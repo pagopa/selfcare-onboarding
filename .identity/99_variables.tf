@@ -32,7 +32,7 @@ variable "env_short" {
 
 variable "prefix" {
   type    = string
-  default = "pagopa"
+  default = "selc"
   validation {
     condition = (
       length(var.prefix) <= 6
@@ -51,6 +51,6 @@ variable "github_repository_environment" {
   default = {
     protected_branches     = false
     custom_branch_policies = true
-    reviewers_teams        = ["pagopa-team-core"]
+    reviewers_teams        = ["selfcare-team-admins"]
   }
 }

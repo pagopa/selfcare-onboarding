@@ -24,7 +24,7 @@ locals {
     "CLIENT_ID" : module.github_runner_app.application_id,
     "TENANT_ID" : data.azurerm_client_config.current.tenant_id,
     "SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id,
-    "SUBKEY" : data.azurerm_key_vault_secret.key_vault_integration_test_subkey.value,
+    # "SUBKEY" : data.azurerm_key_vault_secret.key_vault_integration_test_subkey.value,
   }
   env_variables = {
     "CONTAINER_APP_ENVIRONMENT_NAME" : local.container_app_environment.name,
@@ -34,9 +34,9 @@ locals {
     "NAMESPACE" : local.domain,
   }
   repo_secrets = {
-    "SONAR_TOKEN" : data.azurerm_key_vault_secret.key_vault_sonar.value,
-    "BOT_TOKEN_GITHUB" : data.azurerm_key_vault_secret.key_vault_bot_token.value,
-    "CUCUMBER_PUBLISH_TOKEN" : data.azurerm_key_vault_secret.key_vault_cucumber_token.value,
+    # "SONAR_TOKEN" : data.azurerm_key_vault_secret.key_vault_sonar.value,
+    # "BOT_TOKEN_GITHUB" : data.azurerm_key_vault_secret.key_vault_bot_token.value,
+    # "CUCUMBER_PUBLISH_TOKEN" : data.azurerm_key_vault_secret.key_vault_cucumber_token.value,
   }
 }
 
