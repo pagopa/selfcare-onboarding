@@ -10,4 +10,8 @@
 
     <name>Onboarding domain</name>
 
+    <modules>
+        <module>onboarding-functions</module>
+    </modules>
+
 </project>
