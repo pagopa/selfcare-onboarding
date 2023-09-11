@@ -37,4 +37,7 @@ hs_err_pid*
 local.settings.json
 bin/
 obj/
+
 onboarding-functions/.mvn
+
+.identity/.terraform
