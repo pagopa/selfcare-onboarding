@@ -21,38 +21,20 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: 17
 
-      # default skip bump versioning
-      - name: Set as default skip bump versioning
-        run: |
-          echo "SEMVER=skip" >> $GITHUB_ENV
+    - name: Build project with Maven
+      run: mvn -B package --file onboarding-functions/pom.xml
 
-      - name: Set major
-        run: |
-          echo "SEMVER=major" >> $GITHUB_ENV
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
-
-      - name: Set minor
-        run: |
-          echo "SEMVER=minor" >> $GITHUB_ENV
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'enhancement') }}
-
-      - name: Set patch
-        run: |
-          echo "SEMVER=patch" >> $GITHUB_ENV
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'bug') }}
-
-      - name: Set skip
-        run: |
-          echo "SEMVER=skip" >> $GITHUB_ENV
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'ignore-for-release') }}
-
-      - name: Azure Pipelines Action - Jversion
-        uses: jacopocarlini/azure-pipelines@v1.3
-        with:
-          azure-devops-project-url: https://dev.azure.com/pagopaspa/pagoPA-projects
-          azure-pipeline-name: 'pagopa-function-template.deploy'
-          azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
-          azure-template-parameters: '{"ENV": "dev", "SEMVER": "${{env.SEMVER}}", "TEST": "true"}'
-          azure-pipeline-variables: '{"system.debug": "true"}'
+    # - name: Deploy azure
+    #  run: mvn -B quarkus:deploy --file onboarding-functions/pom.xml
+    #  env:
+    #    AZURE_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+    #    AZURE_RESOURCE_GROUP: ${{ secrets.FUNCTIONS_RESOURCE_GROUP }}
+    #    AZURE_APP_REGION: ${{ secrets.APP_REGION }}
+    #    AZURE_APP_INSIGHTS_KEY: ${{ secrets.APP_INSIGHTS_KEY }}
 

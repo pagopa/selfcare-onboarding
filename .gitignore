@@ -38,4 +38,6 @@ local.settings.json
 bin/
 obj/
 
+onboarding-functions/.mvn
+
 .identity/.terraform
