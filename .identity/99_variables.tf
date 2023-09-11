@@ -1,7 +1,7 @@
 locals {
   github = {
     org        = "pagopa"
-    repository = "https://github.com/pagopa/selfcare-onboarding"
+    repository = "selfcare-onboarding"
   }
 
   prefix         = "selc"

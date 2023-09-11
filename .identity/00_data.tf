@@ -25,3 +25,8 @@ data "azurerm_key_vault" "key_vault" {
 data "azurerm_resource_group" "apim_resource_group" {
   name = "${local.product}-api-rg"
 }
+
+data "azurerm_key_vault_secret" "key_vault_sonar" {
+  name         = "sonar-token"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}
