@@ -47,7 +47,7 @@ jobs:
         name: Set Output
         run: echo "environment=${{env.ENVIRNOMENT}}" >> $GITHUB_OUTPUT
 
-  build_deploy:
+  deploy:
     needs: [setup]
     name: Build and deploy
     runs-on: ubuntu-latest
