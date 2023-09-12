@@ -20,6 +20,11 @@ locals {
     name           = "${local.prefix}-${var.env_short}-github-runner-cae",
     resource_group = "${local.prefix}-${var.env_short}-github-runner-rg",
   }
+
+  functions = {
+    resource_group_name = "${local.prefix}-${var.env_short}-functions-rg",
+    insights_key = "${local.prefix}-${var.env_short}-appinsights"
+  }
 }
 
 variable "env" {
