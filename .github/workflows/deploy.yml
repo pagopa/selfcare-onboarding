@@ -1,4 +1,4 @@
-name: Auto Deploy
+name: Deploy
 
 # Controls when the workflow will run
 on:
@@ -62,6 +62,9 @@ jobs:
 
       - name: Build project with Maven
         run: mvn -B package --file onboarding-functions/pom.xml
+
+      - name: print secret
+        run: echo ${{ secrets.SUBSCRIPTION_ID }}
 
 
     # - name: Deploy azure
