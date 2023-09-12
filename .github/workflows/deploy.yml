@@ -47,10 +47,11 @@ jobs:
         name: Set Output
         run: echo "environment=${{env.ENVIRNOMENT}}" >> $GITHUB_OUTPUT
 
+
   deploy:
-    needs: [setup]
     name: Build and deploy
     runs-on: ubuntu-latest
+    needs: [setup]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -58,8 +59,8 @@ jobs:
         with:
           java-version: 17
 
-    - name: Build project with Maven
-      run: mvn -B package --file onboarding-functions/pom.xml
+      - name: Build project with Maven
+        run: mvn -B package --file onboarding-functions/pom.xml
 
 
     # - name: Deploy azure
