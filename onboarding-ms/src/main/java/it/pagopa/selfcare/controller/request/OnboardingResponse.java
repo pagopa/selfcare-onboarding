@@ -27,8 +27,8 @@ public class OnboardingResponse {
     private ProductInfo productInfo;
     private BusinessData businessData;
     private SupportContact supportContact;
-    private PaymentServiceProvider paymentServiceProvider;
-    private DataProtectionOfficer dataProtectionOfficer;
+    private PaymentServiceProviderRequest paymentServiceProvider;
+    private DataProtectionOfficerRequest dataProtectionOfficer;
     private String parentDescription;
     private String rootParentId;
     private String subunitCode;

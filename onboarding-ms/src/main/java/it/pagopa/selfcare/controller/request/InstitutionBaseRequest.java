@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class InstitutionRequest {
+public class InstitutionBaseRequest {
 
     @NotNull(message = "institutionType is required")
     private InstitutionType institutionType;
@@ -22,14 +22,16 @@ public class InstitutionRequest {
     private String digitalAddress;
     private String address;
     private String zipCode;
-    private PaymentServiceProvider paymentServiceProvider;
-    private DataProtectionOfficer dataProtectionOfficer;
+
     private List<String> geographicTaxonomyCodes;
 
     private String rea;
     private String shareCapital;
     private String businessRegisterPlace;
+
     private String supportEmail;
     private String supportPhone;
+
+    /* when onboarding is imported (es. from IO)*/
     private boolean imported;
 }

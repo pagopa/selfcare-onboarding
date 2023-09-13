@@ -5,13 +5,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OnboardingPspRequest extends OnboardingBaseRequest {
+public class OnboardingDefaultRequest extends OnboardingBaseRequest {
 
     @NotNull(message = "institutionData is required")
     @Valid
-    private InstitutionPspRequest institution;
+    private InstitutionBaseRequest institution;
     private BillingRequest billing;
 
 }

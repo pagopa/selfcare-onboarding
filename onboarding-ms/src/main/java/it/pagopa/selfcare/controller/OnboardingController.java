@@ -1,6 +1,10 @@
 package it.pagopa.selfcare.controller;
 
-import it.pagopa.selfcare.controller.request.OnboardingRequest;
+import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.mapper.OnboardingMapper;
 import it.pagopa.selfcare.service.OnboardingService;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -12,11 +16,40 @@ import lombok.AllArgsConstructor;
 public class OnboardingController {
 
     final private OnboardingService onboardingService;
+    final private OnboardingMapper onboardingMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String onboarding(@Valid OnboardingRequest onboardingInstitutionRequest) {
+    public String onboarding(@Valid OnboardingDefaultRequest onboardingRequest) {
+        onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
+        return "Hello from RESTEasy Reactive";
+    }
+
+    @POST
+    @Path("/pa")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String onboardingPa(@Valid OnboardingPaRequest onboardingRequest) {
+        onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
+        return "Hello from RESTEasy Reactive";
+    }
+
+    @POST
+    @Path("/psp")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String onboardingPsp(@Valid OnboardingPspRequest onboardingRequest) {
+        onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
+        return "Hello from RESTEasy Reactive";
+    }
+
+    @POST
+    @Path("/pg")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String onboardingPg(@Valid OnboardingPgRequest onboardingRequest) {
+        onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
         return "Hello from RESTEasy Reactive";
     }
 }

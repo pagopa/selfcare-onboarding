@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.controller.request;
+package it.pagopa.selfcare.entity;
 
 import lombok.Data;
 

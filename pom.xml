@@ -17,8 +17,17 @@
     </modules>
 
     <properties>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+        <selc-commons.version>2.4.6</selc-commons.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>selc-commons-base</artifactId>
+            <version>${selc-commons.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins><!-- jacoco agent for code coverage -->
@@ -49,6 +58,16 @@
         </plugins>
 
     </build>
+
+
+    <repositories>
+        <repository>
+            <id>selfcare-platform</id>
+            <url>
+                https://pkgs.dev.azure.com/pagopaspa/selfcare-platform-app-projects/_packaging/selfcare-platform/maven/v1
+            </url>
+        </repository>
+    </repositories>
 
 
 </project>
