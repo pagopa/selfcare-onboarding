@@ -94,12 +94,28 @@ jobs:
           secrets: |
             GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
 
+  deploy:
+    needs: [ image ]
+    name: Deploy to container app
+    runs-on: ubuntu-latest
+    steps:
+      # Check out the code
+      - name: Check out code
+        uses: actions/checkout@v2
 
-    # - name: Deploy azure
-    #  run: mvn -B quarkus:deploy --file onboarding-functions/pom.xml
-    #  env:
-    #    AZURE_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-    #    AZURE_RESOURCE_GROUP: ${{ secrets.FUNCTIONS_RESOURCE_GROUP }}
-    #    AZURE_APP_REGION: ${{ secrets.APP_REGION }}
-    #    AZURE_APP_INSIGHTS_KEY: ${{ secrets.APP_INSIGHTS_KEY }}
+      # Log in to Azure CLI
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+
+      # Build and deploy the container app
+      - name: Build and deploy Container App
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: ${{ github.repository }}-ms
+          containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
+          resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
+          imageToDeploy: ghcr.io/${{ github.repository }}-ms:latest
 

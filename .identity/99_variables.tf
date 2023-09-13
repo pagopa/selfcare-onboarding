@@ -16,6 +16,10 @@ locals {
     resource_group_name = "${local.prefix}-${var.env_short}-aks-rg"
   }
 
+  container_app_selc_environment = {
+    name           = "${local.prefix}-${var.env_short}-container-app",
+    resource_group = "${local.prefix}-${var.env_short}-container-app-rg",
+  }
   container_app_environment = {
     name           = "${local.prefix}-${var.env_short}-github-runner-cae",
     resource_group = "${local.prefix}-${var.env_short}-github-runner-rg",
