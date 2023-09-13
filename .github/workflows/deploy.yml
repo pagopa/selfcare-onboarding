@@ -112,7 +112,7 @@ jobs:
 
       # Build and deploy the container app
       - name: Build and deploy Container App
-        uses: azure/container-apps-deploy-action@v2
+        uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: ${{ github.repository }}-ms
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
