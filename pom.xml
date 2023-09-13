@@ -13,6 +13,7 @@
 
     <modules>
         <module>onboarding-functions</module>
+        <module>onboarding-ms</module>
     </modules>
 
     <properties>
