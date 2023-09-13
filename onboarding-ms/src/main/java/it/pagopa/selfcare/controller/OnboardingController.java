@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.controller;
 
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.controller.request.OnboardingPgRequest;
 import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
@@ -21,35 +22,35 @@ public class OnboardingController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String onboarding(@Valid OnboardingDefaultRequest onboardingRequest) {
+    public Uni<String> onboarding(@Valid OnboardingDefaultRequest onboardingRequest) {
         onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
-        return "Hello from RESTEasy Reactive";
+        return Uni.createFrom().item("Hello from RESTEasy Reactive");
     }
 
     @POST
     @Path("/pa")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String onboardingPa(@Valid OnboardingPaRequest onboardingRequest) {
+    public Uni<String> onboardingPa(@Valid OnboardingPaRequest onboardingRequest) {
         onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
-        return "Hello from RESTEasy Reactive";
+        return Uni.createFrom().item("Hello from RESTEasy Reactive");
     }
 
     @POST
     @Path("/psp")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String onboardingPsp(@Valid OnboardingPspRequest onboardingRequest) {
+    public Uni<String> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest) {
         onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
-        return "Hello from RESTEasy Reactive";
+        return Uni.createFrom().item("Hello from RESTEasy Reactive");
     }
 
     @POST
     @Path("/pg")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String onboardingPg(@Valid OnboardingPgRequest onboardingRequest) {
+    public Uni<String> onboardingPg(@Valid OnboardingPgRequest onboardingRequest) {
         onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest));
-        return "Hello from RESTEasy Reactive";
+        return Uni.createFrom().item("Hello from RESTEasy Reactive");
     }
 }

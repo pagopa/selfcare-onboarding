@@ -11,14 +11,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
 public class OnboardingControllerTest {
 
     final static OnboardingPspRequest onboardingPspValid;
     final static OnboardingPaRequest onboardingPaValid;
+    final static OnboardingPgRequest onboardingPgValid;
     final static OnboardingDefaultRequest onboardingBaseValid;
+
     final static InstitutionBaseRequest institution;
     final static InstitutionPspRequest institutionPsp;
 
@@ -56,6 +57,14 @@ public class OnboardingControllerTest {
         institutionPsp.setTaxCode("taxCode");
         institutionPsp.setPaymentServiceProvider(new PaymentServiceProviderRequest());
         onboardingPspValid.setInstitution(institutionPsp);
+
+        /* PG */
+
+        onboardingPgValid = new OnboardingPgRequest();
+        onboardingPgValid.setTaxCode("code");
+        onboardingPgValid.setProductId("productId");
+        onboardingPgValid.setDigitalAddress("email@pagopa.it");
+        onboardingPgValid.setUsers(List.of(userDTO));
     }
 
     @Test
@@ -124,18 +133,9 @@ public class OnboardingControllerTest {
     @Test
     public void onboardingPg() {
 
-        OnboardingPgRequest request = new OnboardingPgRequest();
-        request.setTaxCode("code");
-        request.setProductId("productId");
-        request.setDigitalAddress("email@pagopa.it");
-
-        UserRequest userDTO = new UserRequest();
-        userDTO.setId("is");
-        request.setUsers(List.of(userDTO));
-
         given()
                 .when()
-                .body(request)
+                .body(onboardingPgValid)
                 .contentType(ContentType.JSON)
                 .post("/onboarding/pg")
                 .then()

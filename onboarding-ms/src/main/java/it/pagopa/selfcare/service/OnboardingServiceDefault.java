@@ -9,15 +9,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public void onboarding(Onboarding onboardingRequest) {
 
-
-        /* Check for PA
-        if (billing == null
-                || StringUtils.isEmpty(billing.getVatNumber())
-                || StringUtils.isEmpty(billing.getRecipientCode())) {
-            throw new InvalidRequestException(CustomError.ONBOARDING_BILLING_ERROR.getCode(), CustomError.ONBOARDING_BILLING_ERROR.getMessage());
-        }*/
-
-
         /** Check if Product is Valid and retrieve */
         /* PT is delegable ?
         if(InstitutionType.PT == onboardingData.getInstitutionType() && !delegable) {
