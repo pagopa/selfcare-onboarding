@@ -22,6 +22,8 @@
     <quarkus.platform.version>3.3.2</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
+
+    <lombok.version>1.18.28</lombok.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -53,6 +55,22 @@
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
     </dependency>
+
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-validator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -78,6 +96,14 @@
           <compilerArgs>
             <arg>-parameters</arg>
           </compilerArgs>
+
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>
