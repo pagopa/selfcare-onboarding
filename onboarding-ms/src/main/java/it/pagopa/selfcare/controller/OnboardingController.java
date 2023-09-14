@@ -7,11 +7,13 @@ import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.mapper.OnboardingMapper;
 import it.pagopa.selfcare.service.OnboardingService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 
+@RolesAllowed("USER")
 @Path("/onboarding")
 @AllArgsConstructor
 public class OnboardingController {

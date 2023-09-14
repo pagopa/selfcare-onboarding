@@ -1,6 +1,7 @@
 package it.pagopa.selfcare;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import it.pagopa.selfcare.controller.request.*;
 import it.pagopa.selfcare.util.InstitutionType;
@@ -13,6 +14,7 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
+@TestSecurity(authorizationEnabled = false)
 public class OnboardingControllerTest {
 
     final static OnboardingPspRequest onboardingPspValid;
