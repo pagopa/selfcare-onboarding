@@ -120,7 +120,7 @@ jobs:
       - name: Build and deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
-          containerAppName: ${{ github.repository }}-ms
+          containerAppName: selc-onboarding-ms
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
           imageToDeploy: ghcr.io/${{ github.repository }}-ms:latest
