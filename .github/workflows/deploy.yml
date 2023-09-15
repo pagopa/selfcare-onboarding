@@ -56,9 +56,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Echo
-        run: echo ciao
+        run: echo "${{ github.repository }}"
       - name: Echo 2
-        run: echo ${{ env.ENVIRNOMENT }}
+        run: echo "${{ env.ENVIRNOMENT }}"
 
       # Log in to Azure CLI
 #      - name: Log in to Azure
