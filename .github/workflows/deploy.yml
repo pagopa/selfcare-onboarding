@@ -53,7 +53,7 @@ jobs:
         run: echo "environment=${{env.ENVIRNOMENT}}" >> $GITHUB_OUTPUT
 
   image:
-    if: "contains(true,true)"
+    if: "!contains(true,true)"
     needs: [ setup ]
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
@@ -117,11 +117,11 @@ jobs:
           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
       # Build and deploy the container app
-#      - name: Build and deploy Container App
-#        uses: azure/container-apps-deploy-action@v1
-#        with:
-#          containerAppName: ${{ github.repository }}-ms
-#          containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
-#          resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
-#          imageToDeploy: ghcr.io/${{ github.repository }}-ms:latest
+      - name: Build and deploy Container App
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: ${{ github.repository }}-ms
+          containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
+          resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
+          imageToDeploy: ghcr.io/${{ github.repository }}-ms:latest
 
