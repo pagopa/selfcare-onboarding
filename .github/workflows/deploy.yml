@@ -56,18 +56,13 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Echo
-        run: echo "${{ secrets.CLIENT_ID }}"
-      - name: Echo 2
-        run: echo "${{ env.ENVIRNOMENT }}"
-
       # Log in to Azure CLI
-#      - name: Log in to Azure
-#        uses: azure/login@v1
-#        with:
-#          client-id: ${{ secrets.CLIENT_ID }}
-#          tenant-id: ${{ secrets.TENANT_ID }}
-#          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
       # Build and deploy the container app
 #      - name: Build and deploy Container App
