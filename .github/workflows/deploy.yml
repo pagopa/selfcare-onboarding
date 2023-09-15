@@ -48,7 +48,6 @@ jobs:
         run: echo "environment=${{env.ENVIRNOMENT}}" >> $GITHUB_OUTPUT
 
   deploy:
-    needs: [ image ]
     name: Deploy to container app
     runs-on: ubuntu-latest
     steps:
