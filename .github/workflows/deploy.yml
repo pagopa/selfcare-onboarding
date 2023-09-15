@@ -56,9 +56,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Echo
-        run: echo ${{ secrets.SUBSCRIPTION_ID }}
+        run: echo ciao
       - name: Echo 2
-        run: echo ${{ secrets.FUNCTIONS_RESOURCE_GROUP }}
+        run: echo ${{ env.ENVIRNOMENT }}
 
       # Log in to Azure CLI
 #      - name: Log in to Azure
