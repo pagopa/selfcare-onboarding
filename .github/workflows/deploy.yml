@@ -50,13 +50,14 @@ jobs:
   deploy:
     name: Deploy to container app
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       # Check out the code
       - name: Check out code
         uses: actions/checkout@v2
 
       - name: Echo
-        run: echo "${{ github.repository }}"
+        run: echo "${{ secrets.CLIENT_ID }}"
       - name: Echo 2
         run: echo "${{ env.ENVIRNOMENT }}"
 
