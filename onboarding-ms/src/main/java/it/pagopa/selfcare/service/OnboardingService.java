@@ -1,8 +1,9 @@
 package it.pagopa.selfcare.service;
 
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.entity.Onboarding;
 
 public interface OnboardingService {
 
-    void onboarding(Onboarding onboardingRequest);
+    Uni<Onboarding> onboarding(Onboarding onboardingRequest);
 }

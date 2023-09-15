@@ -1,6 +1,9 @@
-package it.pagopa.selfcare;
+package it.pagopa.selfcare.controller;
 
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import it.pagopa.selfcare.controller.request.*;
@@ -14,6 +17,8 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 
 @QuarkusTest
+@TestHTTPEndpoint(OnboardingController.class)
+@QuarkusTestResource(MongoTestResource.class)
 @TestSecurity(authorizationEnabled = false)
 public class OnboardingControllerTest {
 
@@ -76,13 +81,13 @@ public class OnboardingControllerTest {
           .when()
                 .body(new OnboardingDefaultRequest())
                 .contentType(ContentType.JSON)
-                .post("/onboarding")
+                .post()
           .then()
              .statusCode(400);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/onboarding/psp","/onboarding/pa"})
+    @ValueSource(strings = {"/psp","/pa"})
     public void onboarding_shouldNotValidPspBody(String path) {
 
         given()
@@ -101,7 +106,7 @@ public class OnboardingControllerTest {
                 .when()
                 .body(onboardingBaseValid)
                 .contentType(ContentType.JSON)
-                .post("/onboarding")
+                .post()
                 .then()
                 .statusCode(200);
     }
@@ -113,7 +118,7 @@ public class OnboardingControllerTest {
                 .when()
                 .body(onboardingPaValid)
                 .contentType(ContentType.JSON)
-                .post("/onboarding/pa")
+                .post("/pa")
                 .then()
                 .statusCode(200);
     }
@@ -125,7 +130,7 @@ public class OnboardingControllerTest {
                 .when()
                 .body(onboardingPspValid)
                 .contentType(ContentType.JSON)
-                .post("/onboarding/psp")
+                .post("/psp")
                 .then()
                 .statusCode(200);
     }
@@ -139,7 +144,7 @@ public class OnboardingControllerTest {
                 .when()
                 .body(onboardingPgValid)
                 .contentType(ContentType.JSON)
-                .post("/onboarding/pg")
+                .post("/pg")
                 .then()
                 .statusCode(200);
     }

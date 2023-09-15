@@ -3,11 +3,14 @@ package it.pagopa.selfcare.entity;
 import it.pagopa.selfcare.controller.request.ContractRequest;
 import it.pagopa.selfcare.controller.request.OnboardingImportContract;
 import lombok.Data;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
 @Data
 public class Onboarding {
+
+    public ObjectId id;
 
     private String productId;
     private Institution institution;
