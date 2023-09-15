@@ -30,10 +30,6 @@ locals {
     # "SUBKEY" : data.azurerm_key_vault_secret.key_vault_integration_test_subkey.value,
   }
   env_variables = {
-    "CONTAINER_APP_ENVIRONMENT_NAME" : local.container_app_environment.name,
-    "CONTAINER_APP_ENVIRONMENT_RESOURCE_GROUP_NAME" : local.container_app_environment.resource_group,
-    "CLUSTER_NAME" : local.aks_cluster.name,
-    "CLUSTER_RESOURCE_GROUP" : local.aks_cluster.resource_group_name,
     "CONTAINER_APP_SELC_ENVIRONMENT_NAME" : local.container_app_selc_environment.name,
     "CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME" : local.container_app_selc_environment.resource_group,
     "NAMESPACE" : local.domain,
