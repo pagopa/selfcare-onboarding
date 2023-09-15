@@ -9,7 +9,7 @@ module "github_runner_app" {
   github_repository       = local.github.repository
   github_environment_name = var.env
 
-  container_app_github_runner_env_rg = local.container_app_environment.resource_group
+  container_app_github_runner_env_rg = local.container_app_selc_environment.resource_group
 }
 
 resource "null_resource" "github_runner_app_permissions_to_namespace" {
