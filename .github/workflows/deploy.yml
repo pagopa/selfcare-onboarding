@@ -103,6 +103,10 @@ jobs:
     name: Deploy to container app
     runs-on: ubuntu-latest
     environment: dev
+
+    env:
+      YAML_FILE_PATH: '${{ github.workspace }}/onboarding-ms/deploy-image-container-app.yaml'
+
     steps:
       # Check out the code
       - name: Check out code
@@ -116,6 +120,15 @@ jobs:
           tenant-id: ${{ secrets.TENANT_ID }}
           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
+      - name: Update values in YAML configuration file
+        shell: pwsh
+        run: |
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$SUBSCRIPTION_ID$', '${{ secrets.SUBSCRIPTION_ID }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$RESOURCE_GROUP$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$CONTAINER_APP_ENV$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$JWT_PUBLIC_KEY$', '${{ secrets.JWT_PUBLIC_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+
+
       # Build and deploy the container app
       - name: Build and deploy Container App
         uses: azure/container-apps-deploy-action@v1
@@ -123,5 +136,5 @@ jobs:
           containerAppName: selc-onboarding-ms
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
-          yamlConfigPath: deploy-image-container-app.yaml
+          yamlConfigPath: ${{ env.YAML_FILE_PATH }}
 
