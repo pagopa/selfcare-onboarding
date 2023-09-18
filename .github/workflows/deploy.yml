@@ -120,5 +120,5 @@ jobs:
       - name: Build and deploy Container App
         uses: azure/container-apps-deploy-action@v1
         with:
-          yamlConfigPath: simple-image-container-app.yaml
+          yamlConfigPath: deploy-image-container-app.yaml
 
