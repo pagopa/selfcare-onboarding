@@ -7,7 +7,7 @@ properties:
     ingress:
       external: true
       allowInsecure: false
-      targetPort: 80
+      targetPort: 8080
   template:
     containers:
       - image: ghcr.io/pagopa/selfcare-onboarding-ms:latest
