@@ -3,8 +3,7 @@ properties:
   configuration:
     secrets:
       - name: jwt-public-key
-        keyVaultUrl: https://selc-d-kv.vault.azure.net/secrets/jwt-public-key
-        identity: system
+        value: $JWT_PUBLIC_KEY$
     ingress:
       external: true
       allowInsecure: false

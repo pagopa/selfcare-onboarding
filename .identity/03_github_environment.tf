@@ -27,7 +27,7 @@ locals {
     "FUNCTIONS_RESOURCE_GROUP": local.functions.resource_group_name,
     "APP_INSIGHTS_KEY": local.functions.insights_key,
     "APP_REGION": local.location_short,
-    "JWT_PUBLIC_KEY": data.azurerm_key_vault_secret.jwt_public_key.value,
+    "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),
     # "SUBKEY" : data.azurerm_key_vault_secret.key_vault_integration_test_subkey.value,
   }
   env_variables = {
