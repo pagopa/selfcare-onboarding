@@ -1,0 +1,21 @@
+properties:
+  managedEnvironmentId: /subscriptions/$SUBSCRIPTION_ID$/resourceGroups/$RESOURCE_GROUP$/providers/Microsoft.App/managedEnvironments/$CONTAINER_APP_ENV$
+  configuration:
+    secrets:
+      - name: jwt-public-key
+        value: $JWT_PUBLIC_KEY$
+    ingress:
+      external: true
+      allowInsecure: false
+      targetPort: 8080
+  template:
+    containers:
+      - image: ghcr.io/pagopa/selfcare-onboarding-ms:latest
+        name: selfcare-onboarding-ms
+        env:
+          - name: JWT_TOKEN_PUBLIC_KEY
+            secretRef: jwt-public-key
+
+    scale:
+      minReplicas: 1
+      maxReplicas: 5

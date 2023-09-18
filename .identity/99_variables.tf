@@ -9,20 +9,11 @@ locals {
   location_short = "weu"
   product        = "${var.prefix}-${var.env_short}"
 
-  app_name = "github-${var.prefix}-${local.domain}-${var.env}-aks"
-
-  aks_cluster = {
-    name                = "${local.prefix}-${var.env_short}-aks"
-    resource_group_name = "${local.prefix}-${var.env_short}-aks-rg"
-  }
+  app_name = "github-${local.github.org}-${local.github.repository}-${var.prefix}-${local.domain}-${var.env}"
 
   container_app_selc_environment = {
     name           = "${local.prefix}-${var.env_short}-container-app",
     resource_group = "${local.prefix}-${var.env_short}-container-app-rg",
-  }
-  container_app_environment = {
-    name           = "${local.prefix}-${var.env_short}-github-runner-cae",
-    resource_group = "${local.prefix}-${var.env_short}-github-runner-rg",
   }
 
   functions = {
