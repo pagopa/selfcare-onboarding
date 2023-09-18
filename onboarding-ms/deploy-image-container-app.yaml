@@ -3,7 +3,7 @@ properties:
   configuration:
     secrets:
       - name: jwt-public-key
-        keyVaultUrl: https://selc-d-kv.vault.azure.net/secrets/jwt-public-key,
+        keyVaultUrl: https://selc-d-kv.vault.azure.net/secrets/jwt-public-key
         identity: system
     ingress:
       external: true
