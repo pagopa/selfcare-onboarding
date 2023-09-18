@@ -15,7 +15,7 @@ properties:
         name: selfcare-onboarding-ms
         env:
           - name: JWT_TOKEN_PUBLIC_KEY
-            secretRef: jwt-token-public-key
+            secretRef: jwt-public-key
 
     scale:
       minReplicas: 1
