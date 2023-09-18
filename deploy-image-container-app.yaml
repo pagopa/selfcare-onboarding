@@ -1,5 +1,5 @@
 properties:
-  managedEnvironmentId: /subscriptions/DEV-SelfCare/resourceGroups/selc-d-container-app-rg/providers/Microsoft.App/managedEnvironments/selc-d-container-app
+  managedEnvironmentId: /subscriptions/1ab5e788-3b98-4c63-bd05-de0c7388c853/resourceGroups/selc-d-container-app-rg/providers/Microsoft.App/managedEnvironments/selc-d-container-app
   configuration:
     ingress:
       external: true
