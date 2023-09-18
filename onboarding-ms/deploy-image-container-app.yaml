@@ -9,3 +9,6 @@ properties:
     containers:
       - image: ghcr.io/pagopa/selfcare-onboarding-ms:latest
         name: selfcare-onboarding-ms
+  scale:
+    minReplicas: 1
+    maxReplicas: 5
