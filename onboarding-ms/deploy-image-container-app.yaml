@@ -3,7 +3,7 @@ properties:
   configuration:
     secrets:
       - name: jwt-token-public-key
-        value: $JWT_PUBLIC_KEY$
+        value: $RESOURCE_GROUP$
     ingress:
       external: true
       allowInsecure: false
