@@ -49,17 +49,15 @@ jobs:
         run: |
           if [[ "${{inputs.environment}}" != null ]]
           then
-            echo "::set-output name=environment::${{inputs.environment}}"
+            echo "environment=${{inputs.environment}}" >> $GITHUB_OUTPUT
 
           else
             if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
-              echo "::set-output name=environment::prod"
-              echo "::set-output name=environment::prod"
+              echo "environment=prod" >> $GITHUB_OUTPUT
             fi
 
             if [[ "${{github.base_ref}}" == "develop" || "${{github.ref}}" == "refs/heads/develop" ]]; then
-              echo "::set-output name=environment::dev"
-              echo "::set-output name=environment::dev"
+              echo "environment=dev" >> $GITHUB_OUTPUT
             fi
           fi
 
