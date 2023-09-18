@@ -1,0 +1,11 @@
+properties:
+  managedEnvironmentId: /subscriptions/DEV-SelfCare/resourceGroups/selc-d-container-app-rg/providers/Microsoft.App/managedEnvironments/selc-d-container-app
+  configuration:
+    ingress:
+      external: true
+      allowInsecure: false
+      targetPort: 80
+  template:
+    containers:
+      - image: ghcr.io/pagopa/selfcare-onboarding-ms:latest
+        name: selfcare-onboarding-ms
