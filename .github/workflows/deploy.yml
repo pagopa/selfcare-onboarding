@@ -111,7 +111,7 @@ jobs:
   deploy:
     name: Deploy to container app
     runs-on: ubuntu-latest
-    needs: [setup,image]
+    needs: [setup]
     environment: ${{needs.setup.outputs.environment}}
 
     env:
