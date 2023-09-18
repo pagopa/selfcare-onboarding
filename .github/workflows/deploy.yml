@@ -136,4 +136,6 @@ jobs:
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
           yamlConfigPath: ${{ env.YAML_FILE_PATH }}
+          disableTelemetry: true
+          environmentVariables: "JWT_TOKEN_PUBLIC_KEY=secretref:https://selc-d-kv.vault.azure.net/secrets/jwt-public-key"
 
