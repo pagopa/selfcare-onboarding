@@ -17,3 +17,8 @@ data "azurerm_key_vault_secret" "jwt_public_key" {
   name         = "jwt-public-key"
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
+
+data "azurerm_key_vault_secret" "mongodb_connection_string" {
+  name         = "mongodb-connection-string"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}
