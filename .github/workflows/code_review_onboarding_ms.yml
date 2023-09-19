@@ -1,23 +1,20 @@
-name: Code Review
+name: Code Review onboarding-ms
 
 # Controls when the workflow will run
 on:
   pull_request:
     branches:
       - main
+      - develop
     types:
       - opened
       - synchronize
       - reopened
-  push:
-    branches:
-      - main
+    paths:
+      - 'onboarding-ms/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-env:
-  PROJECT_KEY: pagopa_selfcare-onboarding
 
 permissions:
   id-token: write
@@ -33,11 +30,15 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Code Review
-        uses: pagopa/github-actions-template/maven-code-review@v1.6.8
+      - uses: actions/checkout@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          sonar_token: ${{ secrets.SONAR_TOKEN }}
-          project_key: ${{env.PROJECT_KEY}}
-          coverage_exclusions: "**/config/*,**/*Mock*,**/model/**,**/entity/**,**/generated/**"
-          cpd_exclusions: "**/model/**,**/entity/*"
+          ref: ${{ github.ref_name }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Build project with Maven
+        run: mvn test --file onboarding-ms/pom.xml
