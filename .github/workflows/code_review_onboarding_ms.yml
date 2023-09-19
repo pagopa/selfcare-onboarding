@@ -40,5 +40,5 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Build project with Maven
+      - name: Launch unit test with Maven
         run: mvn test --file onboarding-ms/pom.xml
