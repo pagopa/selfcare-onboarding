@@ -27,7 +27,6 @@ public class ExceptionHandler {
 
     @ServerExceptionMapper
     public RestResponse<String> toResponse(Exception exception) {
-        exception.printStackTrace();
         LOGGER.error("{}: {}", SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
         return RestResponse.status(Response.Status.INTERNAL_SERVER_ERROR, SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER);
     }
