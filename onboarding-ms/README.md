@@ -5,10 +5,12 @@ Repository that contains backend services synch for selfcare onboarding.
 ## Configuration Properties
 
 
-| **Property**                               | **Enviroment Variable** | **Default** | **Required**   |
-|--------------------------------------------|-------------------------|-------------|:--------------:|
-| quarkus.mongodb.connection-string<br/>     | MONGODB_CONNECTION_URI  |             |      yes       |
-| mp.jwt.verify.publickey<br/>               | JWT_TOKEN_PUBLIC_KEY    |             |      yes       |
+| **Property**                                   | **Enviroment Variable** | **Default** | **Required**   |
+|------------------------------------------------|-------------------------|-------------|:--------------:|
+| quarkus.mongodb.connection-string<br/>         | MONGODB_CONNECTION_URI  |             |      yes       |
+| mp.jwt.verify.publickey<br/>                   | JWT_TOKEN_PUBLIC_KEY    |             |      yes       |
+| quarkus.rest-client."**.UserApi".api-key<br/>  | USER_REGISTRY_API_KEY   |             |      yes       |
+| quarkus.rest-client."**.UserApi".url<br/>      | USER_REGISTRY_URL       |             |      yes       |
 
 
 ## Running the application in dev mode
@@ -38,30 +40,17 @@ If you want to build an _über-jar_, execute the following command:
 
 The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
 
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/onboarding-ms-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
-
 ## Related Guides
 
-- RESTEasy Reactive ([guide](https://quarkus.io/guides/resteasy-reactive)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-
-## Provided Code
 
 ### RESTEasy Reactive
 
 Easily start your Reactive RESTful Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+### OpenAPI Generator
+
+Rest client are generated using a quarkus' extension.
+
+[Related guide section...](hhttps://github.com/quarkiverse/quarkus-openapi-generator)
