@@ -17,14 +17,12 @@ import lombok.AllArgsConstructor;
 public class OnboardingController {
 
     final private OnboardingService onboardingService;
-    final private OnboardingMapper onboardingMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboarding(@Valid OnboardingDefaultRequest onboardingRequest) {
-        return onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest))
-                .map(onboardingMapper::toResponse);
+        return onboardingService.onboarding(onboardingRequest);
     }
 
     @POST
@@ -32,8 +30,7 @@ public class OnboardingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPa(@Valid OnboardingPaRequest onboardingRequest) {
-        return onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest))
-                .map(onboardingMapper::toResponse);
+        return onboardingService.onboardingPa(onboardingRequest);
     }
 
     @POST
@@ -41,10 +38,13 @@ public class OnboardingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest) {
-        return onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest))
-                .map(onboardingMapper::toResponse);
+        return onboardingService.onboardingPsp(onboardingRequest);
     }
 
+    /**
+     * Onboarding pg may be excluded from the async onboarding flow
+     * Institutions may be saved without passing from onboarding
+     *
     @POST
     @Path("/pg")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -52,5 +52,5 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPg(@Valid OnboardingPgRequest onboardingRequest) {
         return onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest))
                 .map(onboardingMapper::toResponse);
-    }
+    }*/
 }

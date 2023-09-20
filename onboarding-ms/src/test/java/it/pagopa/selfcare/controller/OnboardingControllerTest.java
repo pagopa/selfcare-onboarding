@@ -1,20 +1,26 @@
 package it.pagopa.selfcare.controller;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.controller.request.*;
+import it.pagopa.selfcare.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.service.OnboardingService;
 import it.pagopa.selfcare.util.InstitutionType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -29,6 +35,9 @@ public class OnboardingControllerTest {
 
     final static InstitutionBaseRequest institution;
     final static InstitutionPspRequest institutionPsp;
+
+    @InjectMock
+    OnboardingService onboardingService;
 
     static {
         onboardingBaseValid = new OnboardingDefaultRequest();
@@ -102,6 +111,9 @@ public class OnboardingControllerTest {
     @Test
     public void onboarding() {
 
+        Mockito.when(onboardingService.onboarding(any()))
+                        .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
         given()
                 .when()
                 .body(onboardingBaseValid)
@@ -113,6 +125,9 @@ public class OnboardingControllerTest {
 
     @Test
     public void onboardingPa() {
+
+        Mockito.when(onboardingService.onboardingPa(any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
                 .when()
@@ -126,6 +141,9 @@ public class OnboardingControllerTest {
     @Test
     public void onboardingPsp() {
 
+        Mockito.when(onboardingService.onboardingPsp(any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
         given()
                 .when()
                 .body(onboardingPspValid)
@@ -137,7 +155,7 @@ public class OnboardingControllerTest {
 
 
 
-    @Test
+    //@Test
     public void onboardingPg() {
 
         given()

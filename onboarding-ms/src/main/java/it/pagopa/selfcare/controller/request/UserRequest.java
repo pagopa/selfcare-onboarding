@@ -5,6 +5,7 @@ import it.pagopa.selfcare.commons.base.security.PartyRole;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Valid
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRequest {

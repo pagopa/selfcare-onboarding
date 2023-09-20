@@ -12,5 +12,6 @@ public class OnboardingResponse {
     private String productId;
     private String pricingPlan;
     private List<UserResponse> users;
+    private BillingResponse billing;
 
 }
