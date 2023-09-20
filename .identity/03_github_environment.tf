@@ -28,7 +28,7 @@ locals {
     "APP_INSIGHTS_KEY": local.functions.insights_key,
     "APP_REGION": local.location_short,
     "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),
-    # "SUBKEY" : data.azurerm_key_vault_secret.key_vault_integration_test_subkey.value,
+    "MONGODB_CONNECTION_URI": data.azurerm_key_vault_secret.mongodb_connection_string.value,
   }
   env_variables = {
     "CONTAINER_APP_SELC_ENVIRONMENT_NAME" : local.container_app_selc_environment.name,

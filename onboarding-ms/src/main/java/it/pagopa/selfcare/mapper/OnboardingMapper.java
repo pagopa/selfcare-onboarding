@@ -1,9 +1,7 @@
 package it.pagopa.selfcare.mapper;
 
-import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.controller.request.*;
+import it.pagopa.selfcare.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.entity.Onboarding;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,4 +17,6 @@ public interface OnboardingMapper {
     @Mapping(source = "businessName", target = "institution.description")
     @Mapping(source = "digitalAddress", target = "institution.digitalAddress")
     Onboarding toEntity(OnboardingPgRequest request);
+
+    OnboardingResponse toResponse(Onboarding onboarding);
 }
