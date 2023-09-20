@@ -4,6 +4,8 @@ properties:
     secrets:
       - name: jwt-public-key
         value: $JWT_PUBLIC_KEY$
+      - name: mongo-connection-uri
+        value: $MONGODB_CONNECTION_URI$
     ingress:
       external: true
       allowInsecure: false
@@ -15,6 +17,8 @@ properties:
         env:
           - name: JWT_TOKEN_PUBLIC_KEY
             secretRef: jwt-public-key
+          - name: MONGODB_CONNECTION_URI
+            secretRef: mongo-connection-uri
 
     scale:
       minReplicas: 1

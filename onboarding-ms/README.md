@@ -1,8 +1,15 @@
-# onboarding-ms
+# Microservice Onboarding
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Repository that contains backend services synch for selfcare onboarding.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+## Configuration Properties
+
+
+| **Property**                               | **Enviroment Variable** | **Default** | **Required**   |
+|--------------------------------------------|-------------------------|-------------|:--------------:|
+| quarkus.mongodb.connection-string<br/>     | MONGODB_CONNECTION_URI  |             |      yes       |
+| mp.jwt.verify.publickey<br/>               | JWT_TOKEN_PUBLIC_KEY    |             |      yes       |
+
 
 ## Running the application in dev mode
 
