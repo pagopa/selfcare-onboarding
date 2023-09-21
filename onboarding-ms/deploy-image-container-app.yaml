@@ -8,6 +8,8 @@ properties:
         value: $MONGODB_CONNECTION_URI$
       - name: user-registry-api-key
         value: $USER_REGISTRY_API_KEY$
+      - name: user-registry-url
+        value: $USER_REGISTRY_URL$
     ingress:
       external: true
       allowInsecure: false
@@ -24,7 +26,7 @@ properties:
           - name: USER_REGISTRY_API_KEY
             secretRef: user-registry-api-key
           - name: USER_REGISTRY_URL
-            value: $USER_REGISTRY_URL$
+            secretRef: user-registry-url
 
     scale:
       minReplicas: 1
