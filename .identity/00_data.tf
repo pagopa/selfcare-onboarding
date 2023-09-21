@@ -22,3 +22,8 @@ data "azurerm_key_vault_secret" "mongodb_connection_string" {
   name         = "mongodb-connection-string"
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
+
+data "azurerm_key_vault_secret" "user_registry_api_key" {
+  name         = "user-registry-api-key"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}

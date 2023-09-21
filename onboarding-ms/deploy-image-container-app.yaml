@@ -6,6 +6,8 @@ properties:
         value: $JWT_PUBLIC_KEY$
       - name: mongo-connection-uri
         value: $MONGODB_CONNECTION_URI$
+      - name: user-registry-api-key
+        value: $USER_REGISTRY_API_KEY$
     ingress:
       external: true
       allowInsecure: false
@@ -19,6 +21,10 @@ properties:
             secretRef: jwt-public-key
           - name: MONGODB_CONNECTION_URI
             secretRef: mongo-connection-uri
+          - name: USER_REGISTRY_API_KEY
+            secretRef: user-registry-api-key
+          - name: USER_REGISTRY_URL
+            value: $USER_REGISTRY_URL$
 
     scale:
       minReplicas: 1

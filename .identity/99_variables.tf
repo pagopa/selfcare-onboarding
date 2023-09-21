@@ -30,6 +30,10 @@ variable "env_short" {
   type = string
 }
 
+variable "user_registry_url" {
+  type = string
+}
+
 variable "prefix" {
   type    = string
   default = "selc"
