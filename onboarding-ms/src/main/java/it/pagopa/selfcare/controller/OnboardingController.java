@@ -11,7 +11,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 
-@RolesAllowed("USER")
+//@RolesAllowed("USER")
 @Path("/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
