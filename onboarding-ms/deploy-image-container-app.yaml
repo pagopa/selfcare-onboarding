@@ -12,8 +12,9 @@ properties:
         value: $USER_REGISTRY_URL$
     ingress:
       external: true
-      allowInsecure: false
+      allowInsecure: true
       targetPort: 8080
+      transport: Auto
   template:
     containers:
       - image: ghcr.io/pagopa/selfcare-onboarding-ms:latest
