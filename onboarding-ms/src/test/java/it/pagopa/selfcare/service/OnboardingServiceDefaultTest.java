@@ -44,7 +44,6 @@ public class OnboardingServiceDefaultTest {
     UserApi userRegistryApi;
 
     final static UserRequest manager = UserRequest.builder()
-            .id(UUID.randomUUID().toString())
             .name("name")
             .surname("surname")
             .taxCode("taxCode")
@@ -55,7 +54,7 @@ public class OnboardingServiceDefaultTest {
 
     static {
         managerResource = new UserResource();
-        managerResource.setId(UUID.fromString(manager.getId()));
+        managerResource.setId(UUID.randomUUID());
         managerResource.setName(new CertifiableFieldResourceOfstring()
                 .value(manager.getName())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
@@ -143,9 +142,8 @@ public class OnboardingServiceDefaultTest {
     @Test
     void onboarding_whenUserFoundedAndWillUpdate() {
         UserRequest manager = UserRequest.builder()
-                .id(managerResource.getId().toString())
                 .name("name")
-                .taxCode("taxCode")
+                .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
@@ -174,12 +172,13 @@ public class OnboardingServiceDefaultTest {
     void onboarding_whenUserNotFoundedAndWillSave() {
         OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
         onboardingDefaultRequest.setUsers(List.of(manager));
+        final UUID createUserId = UUID.randomUUID();
 
         Mockito.when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().failure(new WebApplicationException(404)));
 
         Mockito.when(userRegistryApi.saveUsingPATCH(any()))
-                .thenReturn(Uni.createFrom().item(UserId.builder().id(UUID.fromString(manager.getId())).build()));
+                .thenReturn(Uni.createFrom().item(UserId.builder().id(createUserId).build()));
 
         Mockito.when(onboardingRepository.persistOrUpdate(any()))
                 .thenAnswer(arg -> Uni.createFrom().item(arg.getArguments()[0]));

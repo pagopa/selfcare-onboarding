@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.controller.request;
 
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.util.InstitutionPaSubunitType;
-import it.pagopa.selfcare.util.InstitutionType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

@@ -18,18 +18,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserRequest {
 
-    @NotEmpty(message = "User internal id is required")
-    private String id;
     private String taxCode;
     private String name;
     private String surname;
     private String email;
     private PartyRole role;
-    /*private String productRole;
-    private Env env = Env.ROOT;
-    private String roleLabel;*/
+    private String productRole;
+    //private Env env = Env.ROOT;
 
-    public UserRequest(String id) {
-        this.id = id;
-    }
 }

@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 import org.bson.BsonObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -26,14 +27,18 @@ public class OnboardingRepository {
 
     public Uni<Onboarding> persistOrUpdate(Onboarding model) {
         return Objects.nonNull(model.getId())
-                ? getCollection().findOneAndReplace(Filters.eq("_id", model.getId()), model)
-                : getCollection().insertOne(model)
-                .onItem().transform(insertOneResult -> {
-                    model.setId(Optional.ofNullable(insertOneResult.getInsertedId())
-                                    .map(id -> id.asObjectId().getValue())
-                                    .orElse(null));
-                    return model;
-                });
+                ? Uni.createFrom().item(model)
+                    .onItem().invoke(onboarding -> onboarding.setUpdatedAt(LocalDateTime.now()))
+                    .onItem().transformToUni(onboarding -> getCollection().findOneAndReplace(Filters.eq("_id", onboarding.getId()), onboarding))
+                : Uni.createFrom().item(model)
+                    .onItem().invoke(onboarding -> onboarding.setCreatedAt(LocalDateTime.now()))
+                    .onItem().transformToUni(onboarding -> getCollection().insertOne(onboarding)
+                        .onItem().transform(insertOneResult -> {
+                            onboarding.setId(Optional.ofNullable(insertOneResult.getInsertedId())
+                                            .map(id -> id.asObjectId().getValue())
+                                            .orElse(null));
+                            return onboarding;
+                        }));
     }
 
 

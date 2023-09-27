@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.entity;
 
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.util.InstitutionPaSubunitType;
-import it.pagopa.selfcare.util.InstitutionType;
 import lombok.Data;
 
 import java.util.List;
