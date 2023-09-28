@@ -4,12 +4,16 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import it.pagopa.selfcare.client.ProductApi;
+import it.pagopa.selfcare.client.model.ProductOperations;
+import it.pagopa.selfcare.client.model.ProductResource;
+import it.pagopa.selfcare.client.model.ProductRole;
+import it.pagopa.selfcare.client.model.ProductRoleInfoRes;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
-import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.controller.request.UserRequest;
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.controller.request.*;
 import it.pagopa.selfcare.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.repository.OnboardingRepository;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -22,7 +26,9 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.smallrye.common.constraint.Assert.assertNotNull;
@@ -42,6 +48,10 @@ public class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     UserApi userRegistryApi;
+
+    @InjectMock
+    @RestClient
+    ProductApi productApi;
 
     final static UserRequest manager = UserRequest.builder()
             .name("name")
@@ -83,12 +93,119 @@ public class OnboardingServiceDefaultTest {
         Mockito.when(onboardingRepository.persistOrUpdate(any()))
                 .thenAnswer(arg -> Uni.createFrom().item(arg.getArguments()[0]));
     }
+
+    @Test
+    void onboardingPa_throwExceptionIfUserFoundedAndProductIsNotValid() {
+        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+
+        mockSimpleSearchPOSTAndPersist();
+
+        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        onboardingService.onboardingPa(onboardingRequest)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(OnboardingNotAllowedException.class);
+
+        verify(userRegistryApi, times(1))
+                .searchUsingPOST(any(),any());
+        verify(productApi, times(1))
+                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verifyNoMoreInteractions(userRegistryApi);
+    }
+
+    @Test
+    void onboardingPa_throwExceptionIfUserFoundedAndProductIsNotDelegable() {
+        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PT);
+        onboardingRequest.setInstitution(institutionBaseRequest);
+
+        mockSimpleSearchPOSTAndPersist();
+
+        ProductResource productResource = new ProductResource();
+        productResource.setDelegable(Boolean.FALSE);
+        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
+                .thenReturn(Uni.createFrom().item(productResource));
+
+        onboardingService.onboardingPa(onboardingRequest)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(OnboardingNotAllowedException.class);
+
+        verify(userRegistryApi, times(1))
+                .searchUsingPOST(any(),any());
+        verify(productApi, times(1))
+                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verifyNoMoreInteractions(userRegistryApi);
+    }
+
+    @Test
+    void onboardingPa_throwExceptionIfUserFoundedAndProductRoleIsNotValid() {
+        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+
+        mockSimpleSearchPOSTAndPersist();
+
+        ProductResource productResource = new ProductResource();
+        productResource.setRoleMappings(new HashMap<>());
+        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
+                .thenReturn(Uni.createFrom().item(productResource));
+
+        onboardingService.onboardingPa(onboardingRequest)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(OnboardingNotAllowedException.class);
+
+        verify(userRegistryApi, times(1))
+                .searchUsingPOST(any(),any());
+        verify(productApi, times(1))
+                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verifyNoMoreInteractions(userRegistryApi);
+    }
+
+    @Test
+    void onboardingPa_throwExceptionIfUserFoundedAndProductParentRoleIsNotValid() {
+        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+
+        mockSimpleSearchPOSTAndPersist();
+
+        ProductResource productResource = new ProductResource();
+        ProductOperations productParent = new ProductOperations();
+        productParent.setRoleMappings(new HashMap<>());
+        productResource.setProductOperations(productParent);
+        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
+                .thenReturn(Uni.createFrom().item(productResource));
+
+        onboardingService.onboardingPa(onboardingRequest)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(OnboardingNotAllowedException.class);
+
+        verify(userRegistryApi, times(1))
+                .searchUsingPOST(any(),any());
+        verify(productApi, times(1))
+                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verifyNoMoreInteractions(userRegistryApi);
+    }
+
     @Test
     void onboardingPa_whenUserFoundedAndWillNotUpdate() {
         OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
         onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setInstitution(new InstitutionBaseRequest());
 
         mockSimpleSearchPOSTAndPersist();
+
+        mockSimpleProductValid(onboardingRequest.getProductId());
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingPa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -101,13 +218,28 @@ public class OnboardingServiceDefaultTest {
         verifyNoMoreInteractions(userRegistryApi);
     }
 
+    void mockSimpleProductValid(String productId) {
+        ProductResource productResource = new ProductResource();
+        Map<String, ProductRoleInfoRes> roleMapping = new HashMap<>();
+        roleMapping.put(manager.getRole().name(), ProductRoleInfoRes.builder()
+                .roles(List.of(ProductRole.builder().code("admin").build()))
+                .build());
+        productResource.setRoleMappings(roleMapping);
+        when(productApi.getProductIsValidUsingGET(productId))
+                .thenReturn(Uni.createFrom().item(productResource));
+    }
+
 
     @Test
     void onboardingPsp_whenUserFoundedAndWillNotUpdate() {
         OnboardingPspRequest onboardingRequest = new OnboardingPspRequest();
         onboardingRequest.setUsers(List.of(manager));
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setInstitution(new InstitutionPspRequest());
 
         mockSimpleSearchPOSTAndPersist();
+
+        mockSimpleProductValid(onboardingRequest.getProductId());
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingPsp(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -125,8 +257,12 @@ public class OnboardingServiceDefaultTest {
     void onboarding_whenUserFoundedAndWillNotUpdate() {
         OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
         onboardingDefaultRequest.setUsers(List.of(manager));
+        onboardingDefaultRequest.setProductId("productId");
+        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
 
         mockSimpleSearchPOSTAndPersist();
+
+        mockSimpleProductValid(onboardingDefaultRequest.getProductId());
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(onboardingDefaultRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -147,15 +283,19 @@ public class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
-        onboardingDefaultRequest.setUsers(List.of(manager));
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId("productId");
+        request.setInstitution(new InstitutionBaseRequest());
 
         Mockito.when(userRegistryApi.updateUsingPATCH(any(),any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build()));
 
         mockSimpleSearchPOSTAndPersist();
 
-        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(onboardingDefaultRequest)
+        mockSimpleProductValid(request.getProductId());
+
+        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(request)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
 
         OnboardingResponse actual = subscriber.assertCompleted().getItem();
@@ -170,8 +310,10 @@ public class OnboardingServiceDefaultTest {
 
     @Test
     void onboarding_whenUserNotFoundedAndWillSave() {
-        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
-        onboardingDefaultRequest.setUsers(List.of(manager));
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId("productId");
+        request.setInstitution(new InstitutionBaseRequest());
         final UUID createUserId = UUID.randomUUID();
 
         Mockito.when(userRegistryApi.searchUsingPOST(any(),any()))
@@ -180,10 +322,12 @@ public class OnboardingServiceDefaultTest {
         Mockito.when(userRegistryApi.saveUsingPATCH(any()))
                 .thenReturn(Uni.createFrom().item(UserId.builder().id(createUserId).build()));
 
+        mockSimpleProductValid(request.getProductId());
+
         Mockito.when(onboardingRepository.persistOrUpdate(any()))
                 .thenAnswer(arg -> Uni.createFrom().item(arg.getArguments()[0]));
 
-        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(onboardingDefaultRequest)
+        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(request)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
 
         OnboardingResponse actual = subscriber.assertCompleted().getItem();
