@@ -24,6 +24,7 @@ import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import  it.pagopa.selfcare.client.model.ProductRoleInfoOperations;
 import it.pagopa.selfcare.client.model.ProductRoleInfoRes;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 import org.springframework.util.Assert;
@@ -35,16 +36,10 @@ import static it.pagopa.selfcare.constants.CustomError.DEFAULT_ERROR;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
-    protected static final String REQUIRED_INSTITUTION_ID_MESSAGE = "An Institution id is required";
-
-    protected static final String REQUIRED_TAX_CODE_MESSAGE = "A taxCode id is required";
-    protected static final String REQUIRED_INSTITUTION_BILLING_DATA_MESSAGE = "Institution's billing data are required";
-    protected static final String REQUIRED_INSTITUTION_TYPE_MESSAGE = "An institution type is required";
-    protected static final String REQUIRED_ONBOARDING_DATA_MESSAGE = "Onboarding data is required";
+    protected static final String PRODUCT_NOT_FOUND = "Product %s not found!";
     protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED = "At least one Product role related to %s Party role is required";
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
-    protected static final String A_PRODUCT_ID_IS_REQUIRED = "A Product Id is required";
-    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
+    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
@@ -79,7 +74,6 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
 
-
         return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
                 .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
@@ -92,6 +86,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         /* Verify already onboarding for product and product parent */
 
         return productApi.getProductIsValidUsingGET(onboarding.getProductId())
+                .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
+                    ? Uni.createFrom().failure(new InvalidRequestException(String.format(PRODUCT_NOT_FOUND, onboarding.getProductId()), DEFAULT_ERROR.getCode()))
+                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
                 /* if product is not valid, throw an exception */
                 .onItem().ifNull().failWith(new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),

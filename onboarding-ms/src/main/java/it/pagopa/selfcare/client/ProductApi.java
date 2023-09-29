@@ -4,16 +4,12 @@ import io.quarkiverse.openapi.generator.annotations.GeneratedClass;
 import io.quarkiverse.openapi.generator.annotations.GeneratedMethod;
 import io.quarkiverse.openapi.generator.annotations.GeneratedParam;
 import it.pagopa.selfcare.client.auth.AuthenticationPropagationHeadersFactory;
-import it.pagopa.selfcare.client.auth.CompositeAuthenticationProvider;
 import it.pagopa.selfcare.client.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
-import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +20,6 @@ import java.util.Map;
 @Path("/products")
 @RegisterRestClient
 @GeneratedClass(value="product.json", tag = "Product")
-@RegisterProvider(CompositeAuthenticationProvider.class)
 @RegisterClientHeaders(AuthenticationPropagationHeadersFactory.class)
 @ApplicationScoped
 public interface ProductApi {
