@@ -2,9 +2,6 @@ package it.pagopa.selfcare.service;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.client.ProductApi;
-import it.pagopa.selfcare.client.model.ProductOperations;
-import it.pagopa.selfcare.client.model.ProductResource;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.constants.CustomError;
@@ -25,9 +22,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import  it.pagopa.selfcare.client.model.ProductRoleInfoOperations;
-import it.pagopa.selfcare.client.model.ProductRoleInfoRes;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
+import org.openapi.quarkus.product_json.api.ProductApi;
+import org.openapi.quarkus.product_json.model.ProductOperations;
+import org.openapi.quarkus.product_json.model.ProductResource;
+import org.openapi.quarkus.product_json.model.ProductRoleInfoOperations;
+import org.openapi.quarkus.product_json.model.ProductRoleInfoRes;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 import org.springframework.util.Assert;
@@ -54,6 +54,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     ProductApi productApi;
+
 
     @Inject
     OnboardingRepository onboardingRepository;
