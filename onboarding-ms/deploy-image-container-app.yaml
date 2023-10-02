@@ -28,6 +28,8 @@ properties:
             secretRef: user-registry-api-key
           - name: USER_REGISTRY_URL
             secretRef: user-registry-url
+          - name: ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS
+            value: $ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$
 
     scale:
       minReplicas: 1

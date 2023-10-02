@@ -13,10 +13,10 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingPspRequest request);
     Onboarding toEntity(OnboardingDefaultRequest request);
 
-    @Mapping(source = "taxCode", target = "institution.taxCode")
-    @Mapping(source = "businessName", target = "institution.description")
-    @Mapping(source = "digitalAddress", target = "institution.digitalAddress")
-    Onboarding toEntity(OnboardingPgRequest request);
+    //@Mapping(source = "taxCode", target = "institution.taxCode")
+    //@Mapping(source = "businessName", target = "institution.description")
+    //@Mapping(source = "digitalAddress", target = "institution.digitalAddress")
+    //Onboarding toEntity(OnboardingPgRequest request);
 
     OnboardingResponse toResponse(Onboarding onboarding);
 }

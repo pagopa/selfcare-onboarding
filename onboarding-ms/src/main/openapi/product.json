@@ -1,0 +1,1561 @@
+{
+  "openapi" : "3.0.3",
+  "info" : {
+    "title" : "selc-product",
+    "description" : "The services described in this section deal with the management of the Product entity, providing the necessary methods for its creation, consultation and activation.",
+    "version" : "0.0.1-SNAPSHOT"
+  },
+  "servers" : [ {
+    "url" : "{url}:{port}{basePath}",
+    "variables" : {
+      "url" : {
+        "default" : "http://localhost"
+      },
+      "port" : {
+        "default" : "80"
+      },
+      "basePath" : {
+        "default" : ""
+      }
+    }
+  } ],
+  "tags" : [ {
+    "name" : "product",
+    "description" : "Product's endpoints for CRUD operations"
+  } ],
+  "paths" : {
+    "/products/" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "getProducts",
+        "description" : "Service that returns the list of PagoPA products",
+        "operationId" : "getProductsUsingGET",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProductResource"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      },
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "createProduct",
+        "description" : "Service that allows the insert of a new occurrence for the Product entity",
+        "operationId" : "createProductUsingPOST",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/tree" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "getProductsTree",
+        "description" : "Service that returns the list of PagoPA products tree",
+        "operationId" : "getProductsTreeUsingGET",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProductTreeResource"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "getProduct",
+        "description" : "Service that returns the information for a single product given its product id",
+        "operationId" : "getProductUsingGET",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "institutionType",
+          "in" : "query",
+          "description" : "Institution's type",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "GSP", "PA", "PG", "PSP", "PT", "SCP" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      },
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "updateProduct",
+        "description" : "Service that allows the update of a previously inserted occurrence of the Product entity",
+        "operationId" : "updateProductUsingPUT",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      },
+      "delete" : {
+        "tags" : [ "product" ],
+        "summary" : "deleteProduct",
+        "description" : "Service that allows the deactivation of a specific product by an Admin user",
+        "operationId" : "deleteProductUsingDELETE",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/depict-image" : {
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "saveProductDepictImage",
+        "description" : "Service that allows the update of a Product depiction image",
+        "operationId" : "saveProductDepictImageUsingPUT",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "depictImage" ],
+                "type" : "object",
+                "properties" : {
+                  "depictImage" : {
+                    "type" : "string",
+                    "description" : "Product's depict image",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/logo" : {
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "saveProductLogo",
+        "description" : "Service that allows the update of a Product logo",
+        "operationId" : "saveProductLogoUsingPUT",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "logo" ],
+                "type" : "object",
+                "properties" : {
+                  "logo" : {
+                    "type" : "string",
+                    "description" : "Product's logo image",
+                    "format" : "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/role-mappings" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "getProductRoles",
+        "description" : "Service that returns the information about mappings between Party's and Product's role",
+        "operationId" : "getProductRolesUsingGET",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "$ref" : "#/components/schemas/ProductRoleInfoRes"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/status/{status}" : {
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "updateProductStatus",
+        "description" : "Service that allows to update the product status",
+        "operationId" : "updateProductStatusUsingPUT",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "path",
+          "description" : "Product's status",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "INACTIVE", "PHASE_OUT", "TESTING" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/sub-products" : {
+      "put" : {
+        "tags" : [ "product" ],
+        "summary" : "updateSubProduct",
+        "description" : "Service that allows the update of a previously inserted occurrence of the Product entity",
+        "operationId" : "updateSubProductUsingPUT",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateSubProductDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      },
+      "post" : {
+        "tags" : [ "product" ],
+        "summary" : "createSubProduct",
+        "description" : "Service that allows the insert of a new occurrence for the Product entity",
+        "operationId" : "createSubProductUsingPOST",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSubProductDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/products/{id}/valid" : {
+      "get" : {
+        "tags" : [ "product" ],
+        "summary" : "getProductIsValid",
+        "description" : "Service that returns the information for a single product given its product id",
+        "operationId" : "getProductIsValidUsingGET",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "Product's unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProductResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "BackOfficeConfigurations" : {
+        "title" : "BackOfficeConfigurations",
+        "type" : "object",
+        "properties" : {
+          "identityTokenAudience" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        }
+      },
+      "BackOfficeConfigurationsResource" : {
+        "title" : "BackOfficeConfigurationsResource",
+        "required" : [ "identityTokenAudience", "url" ],
+        "type" : "object",
+        "properties" : {
+          "identityTokenAudience" : {
+            "type" : "string",
+            "description" : "Product's identity token audience"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "URL that redirects to the back-office section, where is possible to manage the product"
+          }
+        }
+      },
+      "ContractOperations" : {
+        "title" : "ContractOperations",
+        "type" : "object",
+        "properties" : {
+          "contractTemplatePath" : {
+            "type" : "string"
+          },
+          "contractTemplateUpdatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ContractResource" : {
+        "title" : "ContractResource",
+        "type" : "object",
+        "properties" : {
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateUpdatedAt" : {
+            "type" : "string",
+            "description" : "Date the contract was postponed",
+            "format" : "date-time"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          }
+        }
+      },
+      "CreateProductDto" : {
+        "title" : "CreateProductDto",
+        "required" : [ "contractTemplatePath", "contractTemplateVersion", "description", "id", "identityTokenAudience", "roleMappings", "title", "urlBO", "urlPublic" ],
+        "type" : "object",
+        "properties" : {
+          "backOfficeEnvironmentConfigurations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/BackOfficeConfigurationsResource"
+            },
+            "description" : "Environment-specific configurations for back-office redirection with Token Exchange"
+          },
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Product's description"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Product's unique identifier"
+          },
+          "identityTokenAudience" : {
+            "type" : "string",
+            "description" : "Product's identity token audience"
+          },
+          "institutionContractMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ContractResource"
+            },
+            "description" : "Product contract based on institutionType"
+          },
+          "logoBgColor" : {
+            "pattern" : "^#[0-9A-F]{6}$",
+            "type" : "string",
+            "description" : "Product logo's background color",
+            "example" : "#000000"
+          },
+          "roleMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ProductRoleInfoReq"
+            },
+            "description" : "Mappings between Party's and Product's role"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Product's title"
+          },
+          "urlBO" : {
+            "type" : "string",
+            "description" : "URL that redirects to the back-office section, where is possible to manage the product"
+          },
+          "urlPublic" : {
+            "type" : "string",
+            "description" : "URL that redirects to the public information webpage of the product"
+          }
+        }
+      },
+      "CreateSubProductDto" : {
+        "title" : "CreateSubProductDto",
+        "required" : [ "contractTemplatePath", "contractTemplateVersion", "id", "title" ],
+        "type" : "object",
+        "properties" : {
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Product's unique identifier"
+          },
+          "institutionContractMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ContractResource"
+            },
+            "description" : "Product contract based on institutionType"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Product's title"
+          }
+        }
+      },
+      "InvalidParam" : {
+        "title" : "InvalidParam",
+        "required" : [ "name", "reason" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Invalid parameter name."
+          },
+          "reason" : {
+            "type" : "string",
+            "description" : "Invalid parameter reason."
+          }
+        }
+      },
+      "Problem" : {
+        "title" : "Problem",
+        "required" : [ "status", "title" ],
+        "type" : "object",
+        "properties" : {
+          "detail" : {
+            "type" : "string",
+            "description" : "Human-readable description of this specific problem."
+          },
+          "instance" : {
+            "type" : "string",
+            "description" : "A URI that describes where the problem occurred."
+          },
+          "invalidParams" : {
+            "type" : "array",
+            "description" : "A list of invalid parameters details.",
+            "items" : {
+              "$ref" : "#/components/schemas/InvalidParam"
+            }
+          },
+          "status" : {
+            "type" : "integer",
+            "description" : "The HTTP status code.",
+            "format" : "int32",
+            "example" : 500
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Short human-readable summary of the problem."
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "A URL to a page with more details regarding the problem."
+          }
+        },
+        "description" : "A \"problem detail\" as a way to carry machine-readable details of errors (https://datatracker.ietf.org/doc/html/rfc7807)"
+      },
+      "ProductOperations" : {
+        "title" : "ProductOperations",
+        "type" : "object",
+        "properties" : {
+          "backOfficeEnvironmentConfigurations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/BackOfficeConfigurations"
+            }
+          },
+          "contractTemplatePath" : {
+            "type" : "string"
+          },
+          "contractTemplateUpdatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "createdBy" : {
+            "type" : "string"
+          },
+          "delegable" : {
+            "type" : "boolean"
+          },
+          "depictImageUrl" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "identityTokenAudience" : {
+            "type" : "string"
+          },
+          "institutionContractMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ContractOperations"
+            }
+          },
+          "logo" : {
+            "type" : "string"
+          },
+          "logoBgColor" : {
+            "type" : "string"
+          },
+          "modifiedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "modifiedBy" : {
+            "type" : "string"
+          },
+          "parentId" : {
+            "type" : "string"
+          },
+          "productOperations" : {
+            "$ref" : "#/components/schemas/ProductOperations"
+          },
+          "roleManagementURL" : {
+            "type" : "string"
+          },
+          "roleMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ProductRoleInfoOperations"
+            }
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "INACTIVE", "PHASE_OUT", "TESTING" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "urlBO" : {
+            "type" : "string"
+          },
+          "urlPublic" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ProductResource" : {
+        "title" : "ProductResource",
+        "type" : "object",
+        "properties" : {
+          "backOfficeEnvironmentConfigurations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/BackOfficeConfigurationsResource"
+            },
+            "description" : "Environment-specific configurations for back-office redirection with Token Exchange"
+          },
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateUpdatedAt" : {
+            "type" : "string",
+            "description" : "Date the contract was postponed",
+            "format" : "date-time"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Creation/activation date and time",
+            "format" : "date-time"
+          },
+          "createdBy" : {
+            "type" : "string",
+            "description" : "User who created/activated the resource",
+            "format" : "uuid"
+          },
+          "delegable" : {
+            "type" : "boolean",
+            "description" : "If a product is delegable to a technical partner ",
+            "example" : false
+          },
+          "depictImageUrl" : {
+            "type" : "string",
+            "description" : "Product's depiction image url"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Product's description"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Product's unique identifier"
+          },
+          "identityTokenAudience" : {
+            "type" : "string",
+            "description" : "Product's identity token audience"
+          },
+          "logo" : {
+            "type" : "string",
+            "description" : "Product's logo url"
+          },
+          "logoBgColor" : {
+            "type" : "string",
+            "description" : "Product logo's background color",
+            "example" : "#000000"
+          },
+          "modifiedAt" : {
+            "type" : "string",
+            "description" : "Last modified date and time",
+            "format" : "date-time"
+          },
+          "modifiedBy" : {
+            "type" : "string",
+            "description" : "User who modified the resource",
+            "format" : "uuid"
+          },
+          "parentId" : {
+            "type" : "string",
+            "description" : "Root parent of the sub product"
+          },
+          "productOperations" : {
+            "$ref" : "#/components/schemas/ProductOperations"
+          },
+          "roleManagementURL" : {
+            "type" : "string",
+            "description" : "Url of the utilities management"
+          },
+          "roleMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ProductRoleInfoRes"
+            },
+            "description" : "Mappings between Party's and Product's role"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Product's status",
+            "enum" : [ "ACTIVE", "INACTIVE", "PHASE_OUT", "TESTING" ]
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Product's title"
+          },
+          "urlBO" : {
+            "type" : "string",
+            "description" : "URL that redirects to the back-office section, where is possible to manage the product"
+          },
+          "urlPublic" : {
+            "type" : "string",
+            "description" : "URL that redirects to the public information webpage of the product"
+          }
+        }
+      },
+      "ProductRole" : {
+        "title" : "ProductRole",
+        "required" : [ "code", "description", "label" ],
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "Product role internal code"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Product role description"
+          },
+          "label" : {
+            "type" : "string",
+            "description" : "Product role label"
+          }
+        }
+      },
+      "ProductRoleInfoOperations" : {
+        "title" : "ProductRoleInfoOperations",
+        "type" : "object",
+        "properties" : {
+          "multiroleAllowed" : {
+            "type" : "boolean"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProductRoleOperations"
+            }
+          }
+        }
+      },
+      "ProductRoleInfoReq" : {
+        "title" : "ProductRoleInfoReq",
+        "required" : [ "multiroleAllowed", "roles" ],
+        "type" : "object",
+        "properties" : {
+          "multiroleAllowed" : {
+            "type" : "boolean",
+            "description" : "Flag indicating if a User can have more than one product role",
+            "example" : false
+          },
+          "roles" : {
+            "type" : "array",
+            "description" : "Available product roles",
+            "items" : {
+              "$ref" : "#/components/schemas/ProductRoleOperations"
+            }
+          }
+        }
+      },
+      "ProductRoleInfoRes" : {
+        "title" : "ProductRoleInfoRes",
+        "required" : [ "multiroleAllowed", "roles" ],
+        "type" : "object",
+        "properties" : {
+          "multiroleAllowed" : {
+            "type" : "boolean",
+            "description" : "Flag indicating if a User can have more than one product role",
+            "example" : false
+          },
+          "roles" : {
+            "type" : "array",
+            "description" : "Available product roles",
+            "items" : {
+              "$ref" : "#/components/schemas/ProductRole"
+            }
+          }
+        }
+      },
+      "ProductRoleOperations" : {
+        "title" : "ProductRoleOperations",
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ProductTreeResource" : {
+        "title" : "ProductTreeResource",
+        "type" : "object",
+        "properties" : {
+          "children" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ProductResource"
+            }
+          },
+          "node" : {
+            "$ref" : "#/components/schemas/ProductResource"
+          }
+        }
+      },
+      "UpdateProductDto" : {
+        "title" : "UpdateProductDto",
+        "required" : [ "contractTemplatePath", "contractTemplateVersion", "description", "identityTokenAudience", "roleMappings", "title", "urlBO", "urlPublic" ],
+        "type" : "object",
+        "properties" : {
+          "backOfficeEnvironmentConfigurations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/BackOfficeConfigurationsResource"
+            },
+            "description" : "Environment-specific configurations for back-office redirection with Token Exchange"
+          },
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Product's description"
+          },
+          "identityTokenAudience" : {
+            "type" : "string",
+            "description" : "Product's identity token audience"
+          },
+          "institutionContractMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ContractResource"
+            },
+            "description" : "Product contract based on institutionType"
+          },
+          "logoBgColor" : {
+            "pattern" : "^#[0-9A-F]{6}$",
+            "type" : "string",
+            "description" : "Product logo's background color",
+            "example" : "#000000"
+          },
+          "roleMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ProductRoleInfoReq"
+            },
+            "description" : "Mappings between Party's and Product's role"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Product's title"
+          },
+          "urlBO" : {
+            "type" : "string",
+            "description" : "URL that redirects to the back-office section, where is possible to manage the product"
+          },
+          "urlPublic" : {
+            "type" : "string",
+            "description" : "URL that redirects to the public information webpage of the product"
+          }
+        }
+      },
+      "UpdateSubProductDto" : {
+        "title" : "UpdateSubProductDto",
+        "required" : [ "contractTemplatePath", "contractTemplateVersion", "title" ],
+        "type" : "object",
+        "properties" : {
+          "contractTemplatePath" : {
+            "type" : "string",
+            "description" : "The path of contract"
+          },
+          "contractTemplateVersion" : {
+            "type" : "string",
+            "description" : "Version of the contract"
+          },
+          "institutionContractMappings" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "$ref" : "#/components/schemas/ContractResource"
+            },
+            "description" : "Product contract based on institutionType"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Product's title"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "bearerAuth" : {
+        "type" : "http",
+        "description" : "A bearer token in the format of a JWS and conformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725)",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT"
+      }
+    }
+  }
+}

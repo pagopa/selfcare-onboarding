@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.exception.handler;
 
 import it.pagopa.selfcare.exception.InvalidRequestException;
+import it.pagopa.selfcare.exception.OnboardingNotAllowedException;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -21,6 +22,11 @@ public class ExceptionHandler {
 
     @ServerExceptionMapper
     public RestResponse<String> toResponse(InvalidRequestException exception) {
+        LOGGER.error("{}: {}", SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
+        return RestResponse.status(Response.Status.BAD_REQUEST, exception.getMessage());
+    }
+    @ServerExceptionMapper
+    public RestResponse<String> toResponse(OnboardingNotAllowedException exception) {
         LOGGER.error("{}: {}", SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
         return RestResponse.status(Response.Status.BAD_REQUEST, exception.getMessage());
     }

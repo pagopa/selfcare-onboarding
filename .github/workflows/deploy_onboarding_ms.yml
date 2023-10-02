@@ -146,6 +146,7 @@ jobs:
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$MONGODB_CONNECTION_URI$', '${{ secrets.MONGODB_CONNECTION_URI }}') | Set-Content ${{ env.YAML_FILE_PATH }}
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_API_KEY$', '${{ secrets.USER_REGISTRY_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_URL$', '${{ vars.USER_REGISTRY_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 
 
       # Build and deploy the container app
@@ -190,6 +191,7 @@ jobs:
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$MONGODB_CONNECTION_URI$', '${{ secrets.MONGODB_CONNECTION_URI }}') | Set-Content ${{ env.YAML_FILE_PATH }}
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_API_KEY$', '${{ secrets.USER_REGISTRY_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_URL$', '${{ vars.USER_REGISTRY_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
+          (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 
 
       # Build and deploy the container app
@@ -200,6 +202,4 @@ jobs:
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
           yamlConfigPath: ${{ env.YAML_FILE_PATH }}
-          ingress: internal
-          targetPort: 8080
 
