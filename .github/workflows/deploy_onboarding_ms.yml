@@ -202,6 +202,4 @@ jobs:
           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
           yamlConfigPath: ${{ env.YAML_FILE_PATH }}
-          ingress: internal
-          targetPort: 8080
 
