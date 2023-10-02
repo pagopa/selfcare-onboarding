@@ -4,14 +4,17 @@ Repository that contains backend services synch for selfcare onboarding.
 
 ## Configuration Properties
 
+Before running you must set these properties as environment variables.
 
-| **Property**                                   | **Enviroment Variable** | **Default** | **Required**   |
-|------------------------------------------------|-------------------------|-------------|:--------------:|
-| quarkus.mongodb.connection-string<br/>         | MONGODB_CONNECTION_URI  |             |      yes       |
-| mp.jwt.verify.publickey<br/>                   | JWT_TOKEN_PUBLIC_KEY    |             |      yes       |
-| quarkus.rest-client."**.UserApi".api-key<br/>  | USER_REGISTRY_API_KEY   |             |      yes       |
-| quarkus.rest-client."**.UserApi".url<br/>      | USER_REGISTRY_URL       |             |      yes       |
 
+| **Property**                                  | **Environment Variable**                 | **Default** | **Required** |
+|-----------------------------------------------|------------------------------------------|-------------|:------------:|
+| quarkus.mongodb.connection-string<br/>        | MONGODB_CONNECTION_URI                   |             |     yes      |
+| mp.jwt.verify.publickey<br/>                  | JWT_TOKEN_PUBLIC_KEY                     |             |     yes      |
+| quarkus.rest-client."**.UserApi".api-key<br/> | USER_REGISTRY_API_KEY                    |             |     yes      |
+| quarkus.rest-client."**.UserApi".url<br/>     | USER_REGISTRY_URL                        |             |     yes      |
+| quarkus.rest-client."**.ProductApi".url<br/>  | MS_PRODUCT_URL                           |             |     yes      |
+| quarkus.rest-client."**.ProductApi".url<br/>  | ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS |             |      no      |
 
 ## Running the application in dev mode
 
@@ -19,6 +22,8 @@ You can run your application in dev mode that enables live coding using:
 ```shell script
 ./mvnw compile quarkus:dev
 ```
+
+For some endpoints 
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 

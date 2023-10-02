@@ -34,6 +34,10 @@ variable "user_registry_url" {
   type = string
 }
 
+variable "onboarding_allowed_institutions_products" {
+  type = string
+}
+
 variable "prefix" {
   type    = string
   default = "selc"

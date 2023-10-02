@@ -2,6 +2,8 @@ package it.pagopa.selfcare.constants;
 
 public enum CustomError {
 
+    DEFAULT_ERROR("0000", ""),
+
     ROLES_NOT_ADMITTED_ERROR("0034","Roles %s are not admitted for this operation");
 
     private final String code;

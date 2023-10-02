@@ -8,10 +8,10 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.controller.request.*;
 import it.pagopa.selfcare.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.service.OnboardingService;
-import it.pagopa.selfcare.util.InstitutionType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -44,7 +44,7 @@ public class OnboardingControllerTest {
         onboardingBaseValid.setProductId("productId");
 
         UserRequest userDTO = new UserRequest();
-        userDTO.setId("is");
+        userDTO.setTaxCode("taxCode");
         onboardingBaseValid.setUsers(List.of(userDTO));
 
         institution = new InstitutionBaseRequest();

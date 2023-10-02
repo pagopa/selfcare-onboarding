@@ -3,6 +3,7 @@ package it.pagopa.selfcare.service;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.constants.CustomError;
 import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
@@ -12,32 +13,57 @@ import it.pagopa.selfcare.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.entity.Onboarding;
 import it.pagopa.selfcare.entity.User;
 import it.pagopa.selfcare.exception.InvalidRequestException;
+import it.pagopa.selfcare.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.mapper.OnboardingMapper;
 import it.pagopa.selfcare.repository.OnboardingRepository;
+import it.pagopa.selfcare.service.strategy.OnboardingValidationStrategy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
+import org.openapi.quarkus.product_json.api.ProductApi;
+import org.openapi.quarkus.product_json.model.ProductOperations;
+import org.openapi.quarkus.product_json.model.ProductResource;
+import org.openapi.quarkus.product_json.model.ProductRoleInfoOperations;
+import org.openapi.quarkus.product_json.model.ProductRoleInfoRes;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
+import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.constants.CustomError.DEFAULT_ERROR;
+
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
+    protected static final String PRODUCT_NOT_FOUND = "Product %s not found!";
+    protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED = "At least one Product role related to %s Party role is required";
+    protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
+    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
+    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
+    public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
 
-    public static final String USERS_FIELD_LIST = "fiscalCode,name,workContacts";
+    public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     @RestClient
     @Inject
     UserApi userRegistryApi;
+
+    @RestClient
+    @Inject
+    ProductApi productApi;
+
 
     @Inject
     OnboardingRepository onboardingRepository;
 
     @Inject
     OnboardingMapper onboardingMapper;
+
+    @Inject
+    OnboardingValidationStrategy onboardingValidationStrategy;
 
     @Override
     public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
@@ -56,22 +82,82 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
 
-        /** Check if Product is Valid and retrieve */
-        /* PT is delegable ?
-        if(InstitutionType.PT == onboardingData.getInstitutionType() && !delegable) {
-            throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
-                onboardingData.getTaxCode(),
-                onboardingData.getProductId()));
-        }*/
-
-        /* Check validation on onboarding maps */
-        /* Check if role user is valid using Product,
-        /* Verify already onboarding for product and product parent */
-
         return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
                 .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
+                .onItem().transformToUni(this::checkProductAndReturnOnboarding)
                 .onItem().transformToUni(onboardingRepository::persistOrUpdate)
                 .onItem().transform(onboardingMapper::toResponse);
+    }
+
+    public Uni<Onboarding> checkProductAndReturnOnboarding(Onboarding onboarding) {
+
+        /* Verify already onboarding for product and product parent */
+
+        return productApi.getProductIsValidUsingGET(onboarding.getProductId())
+                .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
+                    ? Uni.createFrom().failure(new InvalidRequestException(String.format(PRODUCT_NOT_FOUND, onboarding.getProductId()), DEFAULT_ERROR.getCode()))
+                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
+                /* if product is not valid, throw an exception */
+                .onItem().ifNull().failWith(new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
+                        onboarding.getInstitution().getTaxCode(),
+                        onboarding.getProductId()), DEFAULT_ERROR.getCode()))
+                /* if PT and product is not delegable, throw an exception */
+                .onItem().transformToUni(productResource -> InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !productResource.getDelegable()
+                    ? Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
+                            onboarding.getInstitution().getTaxCode(),
+                            onboarding.getProductId()), DEFAULT_ERROR.getCode()))
+                    : Uni.createFrom().item(productResource))
+                .onItem().invoke(product -> {
+                    if(Objects.nonNull(product.getProductOperations()))
+                        validateProductRole(onboarding.getUsers(), product.getProductOperations().getRoleMappings());
+                    else validateProductRoleRes(onboarding.getUsers(), product.getRoleMappings());
+                })
+                .onItem().invoke(product -> checkIfAlreadyOnboardingAndValidateAllowedMap(product, onboarding.getInstitution().getTaxCode()))
+                .replaceWith(onboarding);
+    }
+
+    private void checkIfAlreadyOnboardingAndValidateAllowedMap(ProductResource product, String institutionTaxCode) {
+        String productId = Optional.ofNullable(product.getProductOperations()).map(ProductOperations::getId).orElse(product.getId());
+        if (!onboardingValidationStrategy.validate(productId, institutionTaxCode)) {
+            throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
+                    institutionTaxCode,
+                    productId),
+                    DEFAULT_ERROR.getCode());
+        }
+    }
+
+    private void validateProductRole(List<User> users, Map<String, ProductRoleInfoOperations> roleMappings) {
+        try {
+            Assert.notNull(roleMappings, "Role mappings is required");
+            users.forEach(userInfo -> {
+                Assert.notNull(roleMappings.get(userInfo.getRole().name()),
+                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                Assert.notEmpty(roleMappings.get(userInfo.getRole().name()).getRoles(),
+                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                Assert.state(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1,
+                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+                userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
+            });
+        } catch (IllegalArgumentException e){
+            throw new OnboardingNotAllowedException(e.getMessage(), DEFAULT_ERROR.getCode());
+        }
+    }
+
+    private void validateProductRoleRes(List<User> users, Map<String, ProductRoleInfoRes> roleMappings) {
+        try {
+            Assert.notNull(roleMappings, "Role mappings is required");
+            users.forEach(userInfo -> {
+                Assert.notNull(roleMappings.get(userInfo.getRole().name()),
+                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                Assert.notEmpty(roleMappings.get(userInfo.getRole().name()).getRoles(),
+                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                Assert.state(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1,
+                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+                userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
+            });
+        } catch (IllegalArgumentException e){
+            throw new OnboardingNotAllowedException(e.getMessage(), DEFAULT_ERROR.getCode());
+        }
     }
 
     public Uni<List<User>> checkRoleAndRetrieveUsers(List<UserRequest> users, List<PartyRole> validRoles) {

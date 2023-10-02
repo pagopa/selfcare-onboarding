@@ -1,9 +1,9 @@
 package it.pagopa.selfcare.controller.response;
 
+import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.controller.request.DataProtectionOfficerRequest;
 import it.pagopa.selfcare.controller.request.PaymentServiceProviderRequest;
 import it.pagopa.selfcare.util.InstitutionPaSubunitType;
-import it.pagopa.selfcare.util.InstitutionType;
 import lombok.Data;
 
 import java.util.List;

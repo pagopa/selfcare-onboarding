@@ -5,6 +5,7 @@ import it.pagopa.selfcare.controller.request.OnboardingImportContract;
 import lombok.Data;
 import org.bson.types.ObjectId;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -20,4 +21,7 @@ public class Onboarding {
     private ContractRequest contract;
     private OnboardingImportContract contractImported;
     private Boolean signContract;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
