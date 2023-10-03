@@ -33,6 +33,9 @@ public class OnboardingControllerTest {
     final static OnboardingPgRequest onboardingPgValid;
     final static OnboardingDefaultRequest onboardingBaseValid;
 
+
+    final static OnboardingSaRequest onboardingSaValid;
+
     final static InstitutionBaseRequest institution;
     final static InstitutionPspRequest institutionPsp;
 
@@ -45,7 +48,13 @@ public class OnboardingControllerTest {
 
         UserRequest userDTO = new UserRequest();
         userDTO.setTaxCode("taxCode");
+
+        BillingRequest billingRequest = new BillingRequest();
+        billingRequest.setRecipientCode("code");
+        billingRequest.setVatNumber("vat");
+
         onboardingBaseValid.setUsers(List.of(userDTO));
+        onboardingBaseValid.setBilling(billingRequest);
 
         institution = new InstitutionBaseRequest();
         institution.setInstitutionType(InstitutionType.PT);
@@ -58,9 +67,6 @@ public class OnboardingControllerTest {
 
         onboardingPaValid.setUsers(List.of(userDTO));
         onboardingPaValid.setInstitution(institution);
-        BillingRequest billingRequest = new BillingRequest();
-        billingRequest.setRecipientCode("code");
-        billingRequest.setVatNumber("vat");
         onboardingPaValid.setBilling(billingRequest);
 
         /* PSP */
@@ -81,6 +87,19 @@ public class OnboardingControllerTest {
         onboardingPgValid.setProductId("productId");
         onboardingPgValid.setDigitalAddress("email@pagopa.it");
         onboardingPgValid.setUsers(List.of(userDTO));
+
+        /* SA */
+
+        onboardingSaValid = new OnboardingSaRequest();
+        BillingSaRequest billingSaRequest = new BillingSaRequest();
+        billingSaRequest.setVatNumber("vat");
+        onboardingSaValid.setBilling(billingSaRequest);
+        InstitutionBaseRequest institutionSa = new InstitutionBaseRequest();
+        institutionSa.setInstitutionType(InstitutionType.SA);
+        institutionSa.setTaxCode("taxCode");
+        onboardingSaValid.setInstitution(institutionSa);
+        onboardingSaValid.setUsers(List.of(userDTO));
+        onboardingSaValid.setProductId("productId");
     }
 
     @Test
@@ -96,12 +115,12 @@ public class OnboardingControllerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/psp","/pa"})
+    @ValueSource(strings = {"/psp","/pa", "/sa"})
     public void onboarding_shouldNotValidPspBody(String path) {
 
         given()
                 .when()
-                .body(onboardingBaseValid)
+                .body(new OnboardingDefaultRequest())
                 .contentType(ContentType.JSON)
                 .post(path)
                 .then()
@@ -149,6 +168,21 @@ public class OnboardingControllerTest {
                 .body(onboardingPspValid)
                 .contentType(ContentType.JSON)
                 .post("/psp")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    public void onboardingSa() {
+
+        Mockito.when(onboardingService.onboardingSa(any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingSaValid)
+                .contentType(ContentType.JSON)
+                .post("/sa")
                 .then()
                 .statusCode(200);
     }

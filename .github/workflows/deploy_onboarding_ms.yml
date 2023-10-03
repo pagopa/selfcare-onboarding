@@ -162,7 +162,7 @@ jobs:
     name: Deploy to container app DEV
     runs-on: ubuntu-latest
     needs: [setup,image]
-    if: "${{needs.setup.outputs.environment == 'uat'}}"
+    if: "${{ needs.setup.outputs.environment }} == 'uat' "
     environment: dev
 
     env:
