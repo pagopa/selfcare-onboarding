@@ -235,8 +235,8 @@ public class OnboardingServiceDefaultTest {
         onboardingRequest.setInstitution(new InstitutionBaseRequest());
 
         mockSimpleSearchPOSTAndPersist();
-
         mockSimpleProductValid(onboardingRequest.getProductId(), false);
+        mockVerifyOnboardingNotFound();
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingSa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -283,8 +283,8 @@ public class OnboardingServiceDefaultTest {
         onboardingRequest.setInstitution(new InstitutionPspRequest());
 
         mockSimpleSearchPOSTAndPersist();
-
         mockSimpleProductValid(onboardingRequest.getProductId(), false);
+        mockVerifyOnboardingNotFound();
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingPsp(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -306,8 +306,8 @@ public class OnboardingServiceDefaultTest {
         onboardingRequest.setInstitution(new InstitutionPspRequest());
 
         mockSimpleSearchPOSTAndPersist();
-
         mockSimpleProductValid(onboardingRequest.getProductId(), true);
+        mockVerifyOnboardingNotFound();
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingPsp(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -329,8 +329,8 @@ public class OnboardingServiceDefaultTest {
         onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
 
         mockSimpleSearchPOSTAndPersist();
-
         mockSimpleProductValid(onboardingDefaultRequest.getProductId(), false);
+        mockVerifyOnboardingNotFound();
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(onboardingDefaultRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -360,8 +360,8 @@ public class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build()));
 
         mockSimpleSearchPOSTAndPersist();
-
         mockSimpleProductValid(request.getProductId(), false);
+        mockVerifyOnboardingNotFound();
 
         UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboarding(request)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
@@ -391,6 +391,7 @@ public class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(UserId.builder().id(createUserId).build()));
 
         mockSimpleProductValid(request.getProductId(), false);
+        mockVerifyOnboardingNotFound();
 
         Mockito.when(onboardingRepository.persistOrUpdate(any()))
                 .thenAnswer(arg -> Uni.createFrom().item(arg.getArguments()[0]));
@@ -423,5 +424,10 @@ public class OnboardingServiceDefaultTest {
         verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
         verifyNoMoreInteractions(userRegistryApi);
+    }
+
+    void mockVerifyOnboardingNotFound(){
+        when(onboardingApi.verifyOnboardingInfoUsingHEAD(any(), any(), any()))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
     }
 }
