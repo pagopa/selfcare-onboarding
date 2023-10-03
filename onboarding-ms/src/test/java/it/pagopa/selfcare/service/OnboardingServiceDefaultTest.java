@@ -197,8 +197,8 @@ public class OnboardingServiceDefaultTest {
     }
 
     @Test
-    void onboardingPa_whenUserFoundedAndWillNotUpdate() {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+    void onboardingSa_whenUserFoundedAndWillNotUpdate() {
+        OnboardingSaRequest onboardingRequest = new OnboardingSaRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new InstitutionBaseRequest());
@@ -207,7 +207,7 @@ public class OnboardingServiceDefaultTest {
 
         mockSimpleProductValid(onboardingRequest.getProductId());
 
-        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingPa(onboardingRequest)
+        UniAssertSubscriber<OnboardingResponse> subscriber = onboardingService.onboardingSa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create()).awaitItem();
 
         OnboardingResponse actual = subscriber.assertCompleted().getItem();

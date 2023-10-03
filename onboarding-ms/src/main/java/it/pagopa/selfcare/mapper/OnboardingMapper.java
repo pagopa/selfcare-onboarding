@@ -12,6 +12,7 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingPaRequest request);
     Onboarding toEntity(OnboardingPspRequest request);
     Onboarding toEntity(OnboardingDefaultRequest request);
+    Onboarding toEntity(OnboardingSaRequest request);
 
     //@Mapping(source = "taxCode", target = "institution.taxCode")
     //@Mapping(source = "businessName", target = "institution.description")

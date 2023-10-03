@@ -5,10 +5,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.constants.CustomError;
-import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.controller.request.UserRequest;
+import it.pagopa.selfcare.controller.request.*;
 import it.pagopa.selfcare.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.entity.Onboarding;
 import it.pagopa.selfcare.entity.User;
@@ -72,6 +69,11 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingResponse> onboardingPsp(OnboardingPspRequest onboardingRequest) {
+        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
+    }
+
+    @Override
+    public Uni<OnboardingResponse> onboardingSa(OnboardingSaRequest onboardingRequest) {
         return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
     }
 

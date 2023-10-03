@@ -8,13 +8,13 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OnboardingDefaultRequest extends OnboardingBaseRequest {
+public class OnboardingSaRequest extends OnboardingBaseRequest {
 
     @NotNull(message = "institutionData is required")
     @Valid
     private InstitutionBaseRequest institution;
     @NotNull(message = "billing is required")
     @Valid
-    private BillingRequest billing;
+    private BillingSaRequest billing;
 
 }

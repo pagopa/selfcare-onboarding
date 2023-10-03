@@ -41,6 +41,14 @@ public class OnboardingController {
         return onboardingService.onboardingPsp(onboardingRequest);
     }
 
+    @POST
+    @Path("/sa")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingSa(@Valid OnboardingSaRequest onboardingRequest) {
+        return onboardingService.onboardingSa(onboardingRequest);
+    }
+
     /**
      * Onboarding pg may be excluded from the async onboarding flow
      * Institutions may be saved without passing from onboarding
