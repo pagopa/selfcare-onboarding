@@ -75,13 +75,4 @@ public class ConfigMapAllowedListOnboardingValidationStrategy implements Onboard
         return valid;
     }
 
-    public static void main(String[] args) throws JsonProcessingException {
-        String prova = "{\"prod-interop\":[\"*\"],\"prod-pn\":[\"*\"],\"prod-io\":[\"*\"]}";
-        TypeReference<HashMap<String,Set<String>>> typeRef
-                = new TypeReference<HashMap<String,Set<String>>>() {};
-
-        HashMap<String,Set<String>> map = new ObjectMapper().readValue(prova, typeRef);
-        System.out.println(map);
-    }
-
 }

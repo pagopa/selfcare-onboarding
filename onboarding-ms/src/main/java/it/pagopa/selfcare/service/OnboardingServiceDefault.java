@@ -18,8 +18,10 @@ import it.pagopa.selfcare.service.strategy.OnboardingValidationStrategy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
+import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.product_json.api.ProductApi;
 import org.openapi.quarkus.product_json.model.ProductOperations;
 import org.openapi.quarkus.product_json.model.ProductResource;
@@ -44,6 +46,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
+    public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s'.";
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -51,6 +54,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     ProductApi productApi;
+
+    @RestClient
+    @Inject
+    OnboardingApi onboardingApi;
 
 
     @Inject
@@ -114,18 +121,31 @@ public class OnboardingServiceDefault implements OnboardingService {
                         validateProductRole(onboarding.getUsers(), product.getProductOperations().getRoleMappings());
                     else validateProductRoleRes(onboarding.getUsers(), product.getRoleMappings());
                 })
-                .onItem().invoke(product -> checkIfAlreadyOnboardingAndValidateAllowedMap(product, onboarding.getInstitution().getTaxCode()))
+                .onItem().transformToUni(product -> Objects.nonNull(product.getProductOperations())
+                        ? checkIfAlreadyOnboardingAndValidateAllowedMap(product.getProductOperations().getId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode())
+                                .onItem().transformToUni( ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode()))
+                        : checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode())
+                        )
                 .replaceWith(onboarding);
     }
 
-    private void checkIfAlreadyOnboardingAndValidateAllowedMap(ProductResource product, String institutionTaxCode) {
-        String productId = Optional.ofNullable(product.getProductOperations()).map(ProductOperations::getId).orElse(product.getId());
+    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(String productId, String institutionTaxCode, String institutionSubuniCode) {
+
         if (!onboardingValidationStrategy.validate(productId, institutionTaxCode)) {
-            throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
+            return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
                     institutionTaxCode,
                     productId),
-                    DEFAULT_ERROR.getCode());
+                    DEFAULT_ERROR.getCode()));
         }
+
+        return onboardingApi.verifyOnboardingInfoUsingHEAD(institutionTaxCode, productId, institutionSubuniCode)
+                .onItem().failWith(() -> new InvalidRequestException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED,
+                        institutionTaxCode, productId),
+                        DEFAULT_ERROR.getCode()))
+                .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
+                    ? Uni.createFrom().item(Response.noContent().build())
+                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
+                .replaceWith(Boolean.TRUE);
     }
 
     private void validateProductRole(List<User> users, Map<String, ProductRoleInfoOperations> roleMappings) {
