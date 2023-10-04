@@ -10,6 +10,12 @@ The application can be packaged using:
 ```
 It produces the `onboarding-functions-1.0.0-SNAPSHOT.jar` file in the `target/` directory.
 
+## Start application
+
+```shell script
+./mvnw quarkus:run
+```
+
 ## Related Guides
 
 - Azure Functions ([guide](https://quarkus.io/guides/azure-functions)): Write Microsoft Azure functions
