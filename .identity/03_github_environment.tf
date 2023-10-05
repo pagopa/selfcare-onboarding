@@ -21,7 +21,7 @@ resource "github_repository_environment" "github_repository_environment" {
 
 locals {
   env_secrets = {
-    "CLIENT_ID" : module.github_runner_app.application_id,
+    "CLIENT_ID" : azurerm_user_assigned_identity.environment.client_id,
     "TENANT_ID" : data.azurerm_client_config.current.tenant_id,
     "SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id,
     "FUNCTIONS_RESOURCE_GROUP": local.functions.resource_group_name,
