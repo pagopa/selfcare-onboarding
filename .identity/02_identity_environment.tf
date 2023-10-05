@@ -1,6 +1,6 @@
 
 resource "azurerm_resource_group" "identity" {
-  name     = "${local.product}-identity-rg"
+  name     = "${local.project}-identity-rg"
   location = local.location
 }
 

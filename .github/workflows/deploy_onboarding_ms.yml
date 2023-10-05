@@ -23,7 +23,7 @@ on:
 
 permissions:
   packages: write
-  contents: write
+  contents: read
   issues: write
   id-token: write
   deployments: write
@@ -76,13 +76,6 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
 
       - name: Build project with Maven
         run: mvn -B package --file onboarding-ms/pom.xml

@@ -8,7 +8,7 @@ locals {
   domain         = "onboarding"
   location_short = "weu"
   location       = "westeurope"
-  product        = "${var.prefix}-${var.env_short}"
+  project        = "${var.prefix}-${var.env_short}"
 
   app_name = "github-${local.github.org}-${local.github.repository}-${var.prefix}-${local.domain}-${var.env}"
 
