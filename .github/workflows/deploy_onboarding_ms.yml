@@ -130,7 +130,7 @@ jobs:
           ref: ${{ github.ref_name }}
       # Log in to Azure CLI
       - name: Log in to Azure
-        uses: azure/login@v92a5484dfaf04ca78a94597f4f19fea633851fa2
+        uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
