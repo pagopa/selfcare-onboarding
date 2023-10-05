@@ -125,12 +125,12 @@ jobs:
       YAML_FILE_PATH: '${{ github.workspace }}/onboarding-ms/deploy-image-container-app.yaml'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: ${{ github.ref_name }}
       # Log in to Azure CLI
       - name: Log in to Azure
-        uses: azure/login@v1
+        uses: azure/login@v92a5484dfaf04ca78a94597f4f19fea633851fa2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
