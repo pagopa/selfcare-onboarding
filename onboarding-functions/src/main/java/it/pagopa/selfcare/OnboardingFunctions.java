@@ -1,5 +1,7 @@
 package it.pagopa.selfcare;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpMethod;
 import com.microsoft.azure.functions.HttpRequestMessage;
@@ -9,13 +11,17 @@ import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
 import com.microsoft.durabletask.DurableTaskClient;
+import com.microsoft.durabletask.RetryPolicy;
+import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
+import it.pagopa.selfcare.entity.Onboarding;
 import jakarta.inject.Inject;
 
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -24,6 +30,19 @@ import java.util.Optional;
 public class OnboardingFunctions {
     @Inject
     OnboardingService service;
+
+    @Inject
+    ObjectMapper objectMapper;
+
+    final static TaskOptions optionsRetry;
+
+    static {
+        // Make 3 attempts with 5 seconds between retries
+        final int maxAttempts = 4;
+        final Duration firstRetryInterval = Duration.ofSeconds(3);
+        RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
+        optionsRetry = new TaskOptions(retryPolicy);
+    }
 
     /**
      * This HTTP-triggered function starts the orchestration.
@@ -52,14 +71,23 @@ public class OnboardingFunctions {
     public String OnboardingsOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx) {
         String onboardingId = ctx.getInput(String.class);
-        return onboardingsOrchestratorDefault(ctx, onboardingId);
+        Onboarding onboarding = service.getOnboarding(onboardingId);
+
+        String onboardingString = null;
+        try {
+            onboardingString = objectMapper.writeValueAsString(onboarding);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return onboardingsOrchestratorDefault(ctx, onboardingString);
     }
 
     private String onboardingsOrchestratorDefault(TaskOrchestrationContext ctx, String onboardingId){
         String result = "";
-        result += ctx.callActivity("BuildContract", onboardingId, String.class).await() + ", ";
-        result += ctx.callActivity("SaveInstitutionAndUsers", onboardingId, String.class).await() + ", ";
-        result += ctx.callActivity("SendMailRegistration", onboardingId, String.class).await() + ", ";
+        result += ctx.callActivity("BuildContract", onboardingId, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SaveInstitutionAndUsers", onboardingId, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SendMailRegistration", onboardingId, optionsRetry, String.class).await() + ", ";
         return result;
     }
 
