@@ -83,26 +83,26 @@ public class OnboardingFunctions {
         return onboardingsOrchestratorDefault(ctx, onboardingString);
     }
 
-    private String onboardingsOrchestratorDefault(TaskOrchestrationContext ctx, String onboardingId){
+    private String onboardingsOrchestratorDefault(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("BuildContract", onboardingId, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SaveInstitutionAndUsers", onboardingId, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SendMailRegistration", onboardingId, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("BuildContract", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SendMailRegistration", onboardingString, optionsRetry, String.class).await() + ", ";
         return result;
     }
 
-    private String onboardingsOrchestratorPAorSAorGSPIPA(TaskOrchestrationContext ctx){
+    private String onboardingsOrchestratorPAorSAorGSPIPA(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("BuildContract", "Tokyo", String.class).await() + ", ";
-        result += ctx.callActivity("SaveInstitutionAndUsers", "London", String.class).await() + ", ";
-        result += ctx.callActivity("SendMailRegistrationWithContract", "Seattle", String.class).await() + ", ";
+        result += ctx.callActivity("BuildContract", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity("SendMailRegistrationWithContract", onboardingString, optionsRetry,  String.class).await() + ", ";
         return result;
     }
 
-    private String onboardingsOrchestratorPG(TaskOrchestrationContext ctx){
+    private String onboardingsOrchestratorPG(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("SaveInstitutionAndUsers", "London", String.class).await() + ", ";
-        result += ctx.callActivity("SendMailConfirmation", "Seattle", String.class).await() + ", ";
+        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry,  String.class).await() + ", ";
+        result += ctx.callActivity("SendMailConfirmation", onboardingString, optionsRetry,  String.class).await() + ", ";
         return result;
     }
 
@@ -110,44 +110,44 @@ public class OnboardingFunctions {
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName("BuildContract")
-    public String buildContract(@DurableActivityTrigger(name = "onboardingId") String onboardingId, final ExecutionContext context) {
-        context.getLogger().info("BuildContract: " + onboardingId);
-        return onboardingId.toUpperCase();
+    public String buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info("BuildContract: " + onboardingString);
+        return onboardingString;
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName("SaveInstitutionAndUsers")
-    public String saveInstitutionAndUsers(@DurableActivityTrigger(name = "onboardingId") String onboardingId, final ExecutionContext context) {
-        context.getLogger().info("SaveInstitutionAndUsers: " + onboardingId);
-        return onboardingId.toUpperCase();
+    @FunctionName("SaveToken")
+    public String SaveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info("SaveToken: " + onboardingString);
+        return onboardingString;
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName("SendMailRegistrationWithContract")
-    public String sendMailWithContract(@DurableActivityTrigger(name = "onboardingId") String onboardingId, final ExecutionContext context) {
-        context.getLogger().info("SendMailRegistrationWithContract: " + onboardingId);
-        return onboardingId.toUpperCase();
+    public String sendMailWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info("SendMailRegistrationWithContract: " + onboardingString);
+        return onboardingString;
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName("SendMailRegistration")
-    public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingId") String onboardingId, final ExecutionContext context) {
-        context.getLogger().info("SendMailRegistration: " + onboardingId);
-        return onboardingId.toUpperCase();
+    public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info("SendMailRegistration: " + onboardingString);
+        return onboardingString;
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName("SendMailConfirmation")
-    public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingId") String onboardingId, final ExecutionContext context) {
-        context.getLogger().info("SendMailConfirmation: " + onboardingId);
-        return onboardingId.toUpperCase();
+    public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info("SendMailConfirmation: " + onboardingString);
+        return onboardingString;
     }
 }
