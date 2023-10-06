@@ -49,7 +49,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("StartOnboardingOrchestration")
     public HttpResponseMessage startOrchestration(
-            @HttpTrigger(name = "req", methods = {HttpMethod.GET, HttpMethod.POST}, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET, HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
             final ExecutionContext context) {
         context.getLogger().info("StartOnboardingOrchestration trigger processed a request.");
@@ -71,6 +71,12 @@ public class OnboardingFunctions {
     public String OnboardingsOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx) {
         String onboardingId = ctx.getInput(String.class);
+        String onboardingString = getOnboardingString(onboardingId);
+
+        return onboardingsOrchestratorDefault(ctx, onboardingString);
+    }
+
+    private String getOnboardingString(String onboardingId) {
         Onboarding onboarding = service.getOnboarding(onboardingId);
 
         String onboardingString = null;
@@ -79,8 +85,7 @@ public class OnboardingFunctions {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
-        return onboardingsOrchestratorDefault(ctx, onboardingString);
+        return onboardingString;
     }
 
     private String onboardingsOrchestratorDefault(TaskOrchestrationContext ctx, String onboardingString){
