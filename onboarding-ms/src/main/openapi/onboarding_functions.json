@@ -1,0 +1,123 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "selc-party-registry-proxy",
+    "description": "Party Registry Proxy API documentation",
+    "version": "0.0.1-SNAPSHOT"
+  },
+  "servers": [
+    {
+      "url": "{url}:{port}{basePath}",
+      "variables": {
+        "url": {
+          "default": "http://localhost"
+        },
+        "port": {
+          "default": "80"
+        },
+        "basePath": {
+          "default": ""
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "name": "Orchestration",
+      "description": "Orchestration Trigger"
+    }
+  ],
+  "paths": {
+    "/api/StartOnboardingOrchestration": {
+      "get": {
+        "tags": [
+          "Orchestration"
+        ],
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "onboardingId",
+            "in": "query",
+            "description": "Onboarding id about item to process",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrchestrationResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrchestrationResponse": {
+        "title": "OrchestrationResponse",
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": ""
+              },
+              "purgeHistoryDeleteUri": {
+                "type": "string",
+                "description": ""
+              },
+              "restartPostUri": {
+                "type": "string",
+                "description": ""
+              },
+              "sendEventPostUri": {
+                "type": "string",
+                "description": ""
+              },
+              "statusQueryGetUri": {
+                "type": "string",
+                "description": ""
+              },
+              "terminatePostUri": {
+                "type": "string",
+                "description": ""
+              },
+              "resumePostUri": {
+                "type": "string",
+                "description": ""
+              },
+              "suspendPostUri": {
+                "type": "string",
+                "description": ""
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "name": "x-functions-key",
+        "in": "header"
+      }
+    }
+  }
+}
