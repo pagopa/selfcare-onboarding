@@ -25,6 +25,7 @@ environment_roles = {
     "Key Vault Secrets User",
     "DocumentDB Account Contributor",
     "API Management Service Contributor",
+    "Contributor",
   ]
 }
 
