@@ -12,9 +12,6 @@ tags = {
 
 user_registry_url = "https://api.uat.pdv.pagopa.it/user-registry/v1"
 
-
-onboarding_allowed_institutions_products = "{'prod-interop':['*'],'prod-pn':['*'],'prod-io':['*'],'prod-io-premium':['*'],'prod-pagopa':['*'],'prod-fd':['*'],'prod-fd-garantito': ['*'] }"
-
 environment_roles = {
   subscription = [
     "Reader",
@@ -29,3 +26,6 @@ environment_roles = {
     "API Management Service Contributor",
   ]
 }
+
+onboarding_allowed_institutions_products = "{\"prod-interop\":[\"*\"],\"prod-pn\":[\"*\"],\"prod-io\":[\"*\"],\"prod-io-premium\":[\"*\"],\"prod-pagopa\":[\"*\"],\"prod-fd\":[\"*\"],\"prod-fd-garantito\": [\"*\"] }"
+
