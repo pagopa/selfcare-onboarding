@@ -23,7 +23,7 @@ on:
 
 permissions:
   packages: write
-  contents: read
+  contents: write
   issues: write
   id-token: write
   deployments: write
