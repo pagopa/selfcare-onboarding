@@ -8,8 +8,8 @@ properties:
         value: $MONGODB_CONNECTION_URI$
       - name: user-registry-api-key
         value: $USER_REGISTRY_API_KEY$
-      - name: user-registry-url
-        value: $USER_REGISTRY_URL$
+      - name: onboarding-functions-api-key
+        value: $ONBOARDING_FUNCTIONS_API_KEY$
     ingress:
       external: true
       allowInsecure: true
@@ -27,7 +27,11 @@ properties:
           - name: USER_REGISTRY_API_KEY
             secretRef: user-registry-api-key
           - name: USER_REGISTRY_URL
-            secretRef: user-registry-url
+            value: $USER_REGISTRY_URL$
+          - name: ONBOARDING_FUNCTIONS_API_KEY
+            secretRef: onboarding-functions-api-key
+          - name: ONBOARDING_FUNCTIONS_URL
+            value: $ONBOARDING_FUNCTIONS_URL$
           - name: ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS
             value: $ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$
 

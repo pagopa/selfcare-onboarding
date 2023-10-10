@@ -22,3 +22,8 @@ data "azurerm_key_vault_secret" "user_registry_api_key" {
   name         = "user-registry-api-key"
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
+
+data "azurerm_key_vault_secret" "onboarding_functions_api_key" {
+  name         = "onboarding-functions-api-key"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}
