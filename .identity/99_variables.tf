@@ -7,7 +7,8 @@ locals {
   prefix         = "selc"
   domain         = "onboarding"
   location_short = "weu"
-  product        = "${var.prefix}-${var.env_short}"
+  location       = "westeurope"
+  project        = "${var.prefix}-${var.env_short}"
 
   app_name = "github-${local.github.org}-${local.github.repository}-${var.prefix}-${local.domain}-${var.env}"
 
@@ -61,4 +62,11 @@ variable "github_repository_environment" {
     custom_branch_policies = true
     reviewers_teams        = ["selfcare-team-admins"]
   }
+}
+
+variable "environment_roles" {
+  type = object({
+    subscription = list(string)
+  })
+  description = "GitHub Continous Integration roles"
 }
