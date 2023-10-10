@@ -10,8 +10,15 @@ resource "azurerm_user_assigned_identity" "environment" {
   resource_group_name = azurerm_resource_group.identity.name
 }
 
+resource "azurerm_role_assignment" "environment_subscription" {
+  for_each             = toset(var.environment_roles.subscription)
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = each.key
+  principal_id         = azurerm_user_assigned_identity.environment.principal_id
+}
+
 resource "azurerm_federated_identity_credential" "environment" {
-  name                = "github-federated"
+  name                = "${local.project}-github-selfcare-onboarding"
   resource_group_name = azurerm_resource_group.identity.name
   audience            = ["api://AzureADTokenExchange"]
   issuer              = "https://token.actions.githubusercontent.com"

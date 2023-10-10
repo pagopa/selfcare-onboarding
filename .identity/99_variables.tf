@@ -63,3 +63,10 @@ variable "github_repository_environment" {
     reviewers_teams        = ["selfcare-team-admins"]
   }
 }
+
+variable "environment_roles" {
+  type = object({
+    subscription = list(string)
+  })
+  description = "GitHub Continous Integration roles"
+}
