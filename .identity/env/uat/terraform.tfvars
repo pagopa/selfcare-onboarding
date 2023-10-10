@@ -11,6 +11,7 @@ tags = {
 }
 
 user_registry_url = "https://api.uat.pdv.pagopa.it/user-registry/v1"
+onboarding_functions_url = "https://selc-d-func.azurewebsites.net"
 
 environment_roles = {
   subscription = [

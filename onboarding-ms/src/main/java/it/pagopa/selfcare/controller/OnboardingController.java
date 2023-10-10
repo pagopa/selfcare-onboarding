@@ -1,13 +1,17 @@
 package it.pagopa.selfcare.controller;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.controller.request.*;
+import it.pagopa.selfcare.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.controller.request.OnboardingSaRequest;
 import it.pagopa.selfcare.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.mapper.OnboardingMapper;
 import it.pagopa.selfcare.service.OnboardingService;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 

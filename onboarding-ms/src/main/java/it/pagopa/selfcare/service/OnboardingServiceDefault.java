@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.service;
 
+import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
@@ -13,7 +14,6 @@ import it.pagopa.selfcare.exception.InvalidRequestException;
 import it.pagopa.selfcare.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.mapper.OnboardingMapper;
-import it.pagopa.selfcare.repository.OnboardingRepository;
 import it.pagopa.selfcare.service.strategy.OnboardingValidationStrategy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -22,9 +22,8 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
+import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.product_json.api.ProductApi;
-import org.openapi.quarkus.product_json.model.ProductOperations;
-import org.openapi.quarkus.product_json.model.ProductResource;
 import org.openapi.quarkus.product_json.model.ProductRoleInfoOperations;
 import org.openapi.quarkus.product_json.model.ProductRoleInfoRes;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
@@ -59,15 +58,16 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject
     OnboardingApi onboardingApi;
 
-
+    @RestClient
     @Inject
-    OnboardingRepository onboardingRepository;
+    OrchestrationApi orchestrationApi;
 
     @Inject
     OnboardingMapper onboardingMapper;
 
     @Inject
     OnboardingValidationStrategy onboardingValidationStrategy;
+
 
     @Override
     public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
@@ -94,8 +94,16 @@ public class OnboardingServiceDefault implements OnboardingService {
         return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
                 .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
-                .onItem().transformToUni(onboardingRepository::persistOrUpdate)
+                .onItem().transformToUni(this::persistAndStartOrchestrationOnboarding)
                 .onItem().transform(onboardingMapper::toResponse);
+    }
+
+    public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding) {
+        final List<Onboarding> onboardings = new ArrayList<>();
+        onboardings.add(onboarding);
+        return Panache.withTransaction(() -> Onboarding.persistOrUpdate(onboardings)
+                .onItem().transformToUni(saved ->  orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
+                .replaceWith(onboarding)));
     }
 
     public Uni<Onboarding> checkProductAndReturnOnboarding(Onboarding onboarding) {

@@ -29,12 +29,14 @@ locals {
     "APP_REGION": local.location_short,
     "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),
     "MONGODB_CONNECTION_URI": data.azurerm_key_vault_secret.mongodb_connection_string.value,
-    "USER_REGISTRY_API_KEY": data.azurerm_key_vault_secret.user_registry_api_key.value
+    "USER_REGISTRY_API_KEY": data.azurerm_key_vault_secret.user_registry_api_key.value,
+    "ONBOARDING_FUNCTIONS_API_KEY": data.azurerm_key_vault_secret.onboarding_functions_api_key.value
   }
   env_variables = {
     "CONTAINER_APP_SELC_ENVIRONMENT_NAME" : local.container_app_selc_environment.name,
     "CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME" : local.container_app_selc_environment.resource_group,
     "USER_REGISTRY_URL" : var.user_registry_url,
+    "ONBOARDING_FUNCTIONS_URL" : var.onboarding_functions_url,
     "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS": var.onboarding_allowed_institutions_products,
     "NAMESPACE" : local.domain,
   }
