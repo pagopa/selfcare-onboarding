@@ -2,6 +2,8 @@ package it.pagopa.selfcare.utils;
 
 public enum GenericError {
 
+
+    MANAGER_NOT_FOUND_GENERIC_ERROR("0033", "No onboarded managers"),
     GET_USER_INSTITUTION_RELATIONSHIP_ERROR("0023", "Error while retrieving user relationships"),
     GET_INSTITUTION_BY_ID_ERROR("0040", "Error while retrieving institution having id %s"),
     GET_INSTITUTION_BY_EXTERNAL_ID_ERROR("0041", "Error while retrieving institution having externalId %s"),
