@@ -39,7 +39,7 @@ public class AzureBlobClient  {
         log.trace("AzureBlobClient.AzureBlobClient");;
         this.azureStorageConfig = azureStorageConfig;
         this.blobClient = new BlobServiceClientBuilder()
-                .endpoint(azureStorageConfig.connectionString())
+                .connectionString(azureStorageConfig.connectionString())
                 .buildClient();
     }
 
