@@ -18,5 +18,6 @@
     <modules>
         <module>onboarding-sdk-product</module>
         <module>onboarding-sdk-azure-storage</module>
+        <module>onboarding-sdk-common</module>
     </modules>
 </project>
