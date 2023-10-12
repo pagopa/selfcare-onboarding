@@ -31,12 +31,12 @@ public class OnboardingFunctionConfig {
         return mapper;
     }
 
-    @Produces
+    @ApplicationScoped
     public AzureBlobClient azureBobClientContract(AzureStorageConfig azureStorageConfig){
         return new AzureBlobClientDefault(azureStorageConfig.connectionStringContract(), azureStorageConfig.containerContract());
     }
 
-    @Produces
+    @ApplicationScoped
     public ProductService productService(AzureStorageConfig azureStorageConfig){
        AzureBlobClient azureBlobClient = new AzureBlobClientDefault(azureStorageConfig.connectionStringProduct(), azureStorageConfig.containerProduct());
        String productJsonString = azureBlobClient.getFileAsText(azureStorageConfig.productFilepath());

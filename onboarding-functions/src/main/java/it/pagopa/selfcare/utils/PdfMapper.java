@@ -5,6 +5,7 @@ import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.entity.Billing;
 import it.pagopa.selfcare.entity.Institution;
 import it.pagopa.selfcare.entity.Onboarding;
+import it.pagopa.selfcare.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
@@ -15,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
 
 
 public class PdfMapper {
@@ -22,6 +24,10 @@ public class PdfMapper {
     private static final String[] PLAN_LIST = {"C1", "C2", "C3", "C4", "C5", "C6", "C7"};
 
     public static Map<String, Object> setUpCommonData(UserResource validManager, List<UserResource> users, Institution institution, Billing billing, List<String> geographicTaxonomies) {
+
+        //if (validManager.getWorkContacts() != null && validManager.getWorkContacts().containsKey(institution.getId())) {
+        //    throw new GenericOnboardingException(MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
+        //}
 
         Map<String, Object> map = new HashMap<>();
         map.put("institutionName", institution.getDescription());

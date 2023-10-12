@@ -24,17 +24,17 @@ import static it.pagopa.selfcare.utils.GenericError.ERROR_DURING_SEND_MAIL;
 
 
 @ApplicationScoped
-public class NotificationServiceImpl implements NotificationService {
+public class NotificationServiceDefault implements NotificationService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
 
     private static final String MAIL_PARAMETER_LOG = "mailParameters: {}";
     private static final String DESTINATION_MAIL_LOG = "destinationMails: {}";
 
-    //@Inject
+    @Inject
     MailTemplateConfig mailTemplateConfig;
 
-    @Inject
+    //@Inject
     Mailer mailer;
     @Inject
     AzureBlobClient azureBlobClient;
@@ -83,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .addAttachment(fileName, fileData, "application/zip")
                     .setFrom(sendMail);
 
-            mailer.send(mail);
+            //mailer.send(mail);
 
             log.info("END - sendMail to {}, with prefixSubject {}", destinationMail, prefixSubject);
         } catch (Exception e) {

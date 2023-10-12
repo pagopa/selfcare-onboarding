@@ -90,7 +90,7 @@ public class ContractServiceDefault implements ContractService {
         }
     }
 
-    private void getPDFAsFile(Path files, String contractTemplate, Map<String, Object> data) throws IOException {
+    private void getPDFAsFile(Path files, String contractTemplate, Map<String, Object> data) {
         log.debug("Getting PDF for HTML template...");
         String html = StringSubstitutor.replace(contractTemplate, data);
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -112,9 +112,14 @@ public class ContractServiceDefault implements ContractService {
         var dom = W3CDom.convert(doc);
         builder.withW3cDocument(dom, null);
         builder.useSVGDrawer(new BatikSVGDrawer());
-        FileOutputStream fout = new FileOutputStream(files.toFile());
-        builder.toStream(fout);
-        builder.run();
+
+        try(FileOutputStream fileOutputStream = new FileOutputStream(files.toFile())) {
+            builder.toStream(fileOutputStream);
+            builder.run();
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
         log.debug("PDF stream properly retrieved");
     }
 }
