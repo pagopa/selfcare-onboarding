@@ -1,6 +1,8 @@
 package it.pagopa.selfcare.entity;
 
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.Origin;
 
 import java.util.List;
 
@@ -9,6 +11,9 @@ public class Institution {
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;
+    private InstitutionPaSubunitType subunitType;
+
+    private Origin origin;
     private String description;
     private String digitalAddress;
     private String address;
@@ -154,5 +159,21 @@ public class Institution {
 
     public void setDataProtectionOfficer(DataProtectionOfficer dataProtectionOfficer) {
         this.dataProtectionOfficer = dataProtectionOfficer;
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
+    }
+
+    public InstitutionPaSubunitType getSubunitType() {
+        return subunitType;
+    }
+
+    public void setSubunitType(InstitutionPaSubunitType subunitType) {
+        this.subunitType = subunitType;
     }
 }

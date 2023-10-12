@@ -1,23 +1,27 @@
 package it.pagopa.selfcare.utils;
 
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+
 import it.pagopa.selfcare.entity.Billing;
 import it.pagopa.selfcare.entity.Institution;
 import it.pagopa.selfcare.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static it.pagopa.selfcare.utils.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
 
 
 public class PdfMapper {
 
     private static final String[] PLAN_LIST = {"C1", "C2", "C3", "C4", "C5", "C6", "C7"};
 
-    public static Map<String, Object> setUpCommonData(UserResource validManager, List<UserResource> users, Institution institution, Billing billing) {
+    public static Map<String, Object> setUpCommonData(UserResource validManager, List<UserResource> users, Institution institution, Billing billing, List<String> geographicTaxonomies) {
 
         Map<String, Object> map = new HashMap<>();
         map.put("institutionName", institution.getDescription());
@@ -34,14 +38,14 @@ public class PdfMapper {
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
 
-        //if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
-        //    map.put("institutionGeoTaxonomies", geographicTaxonomies.stream().map(InstitutionGeographicTaxonomies::getDesc).collect(Collectors.toList()));
-        //}
-        /*if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
-            map.put("parentInfo", " ente centrale " + institution.getParentDescription());
+        if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
+            map.put("institutionGeoTaxonomies", geographicTaxonomies);
+        }
+        if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
+            //map.put("parentInfo", " ente centrale " + institution.getParentDescription());
         } else {
             map.put("parentInfo", "");
-        }*/
+        }
         return map;
     }
 
@@ -65,26 +69,26 @@ public class PdfMapper {
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
-
         final Institution institution = onboarding.getInstitution();
+        final InstitutionType institutionType = institution.getInstitutionType();
 
         map.put("institutionTypeCode", institution.getInstitutionType());
         decodePricingPlan(onboarding.getPricingPlan(), onboarding.getProductId(), map);
-        /*if (StringUtils.hasText(institution.getOrigin())) {
-            map.put("originIdLabelValue", Origin.IPA.getValue().equalsIgnoreCase(institution.getOrigin()) ?
+        if (Objects.nonNull(institution.getOrigin())) {
+            map.put("originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ?
                     "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>"
                     : "");
-        }*/
+        }
         addInstitutionRegisterLabelValue(institution, map);
-        if (Objects.nonNull(onboarding.getBilling())) {
-            map.put("institutionRecipientCode", onboarding.getBilling().getRecipientCode());
+        if (onboarding.getBilling() != null) {
+            map.put("institutionRecipientCode",onboarding.getBilling().getRecipientCode());
         }
 
         String underscore = "_______________";
-        map.put("GPSinstitutionName", InstitutionType.GSP == institution.getInstitutionType() ? institution.getDescription() : underscore);
-        map.put("GPSmanagerName", InstitutionType.GSP == institution.getInstitutionType() ? validManager.getName() : underscore);
-        map.put("GPSmanagerSurname", InstitutionType.GSP == institution.getInstitutionType() ? validManager.getFamilyName() : underscore);
-        map.put("GPSmanagerTaxCode", InstitutionType.GSP == institution.getInstitutionType() ? validManager.getFiscalCode() : underscore);
+        map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : underscore);
+        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? validManager.getName() : underscore);
+        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? validManager.getFamilyName() : underscore);
+        map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : underscore);
 
         map.put("institutionREA", Optional.ofNullable(institution.getRea()).orElse(underscore));
         map.put("institutionShareCapital", Optional.ofNullable(institution.getShareCapital()).orElse(underscore));
@@ -92,7 +96,7 @@ public class PdfMapper {
 
         addPricingPlan(onboarding.getPricingPlan(), map);
     }
-  
+
     public static void setupSAProdInteropData(Map<String, Object> map, Institution institution) {
 
         String underscore = "_______________";
@@ -107,7 +111,7 @@ public class PdfMapper {
     public static void setupProdPNData(Map<String, Object> map, Institution institution, Billing billing) {
 
         addInstitutionRegisterLabelValue(institution, map);
-        if (Objects.nonNull(billing)) {
+        if (billing != null) {
             map.put("institutionRecipientCode", billing.getRecipientCode());
         }
     }

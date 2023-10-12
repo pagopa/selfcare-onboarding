@@ -72,6 +72,11 @@
       <version>0.0.1</version>
     </dependency>
     <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-common</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
       <scope>compile</scope>

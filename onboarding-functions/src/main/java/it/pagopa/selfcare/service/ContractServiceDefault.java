@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.utils.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.utils.PdfMapper.*;
-import static it.pagopa.selfcare.utils.ProductId.*;
 
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
@@ -62,7 +62,7 @@ public class ContractServiceDefault implements ContractService {
             String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
 
             Path files = Files.createTempFile(builder, ".pdf");
-            Map<String, Object> data = setUpCommonData(validManager, users, institution, onboarding.getBilling());
+            Map<String, Object> data = setUpCommonData(validManager, users, institution, onboarding.getBilling(), List.of());
             if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                     InstitutionType.PSP == institution.getInstitutionType()) {
                 setupPSPData(data, validManager, institution);
