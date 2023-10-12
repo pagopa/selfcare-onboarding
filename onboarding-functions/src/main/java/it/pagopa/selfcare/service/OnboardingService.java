@@ -1,18 +1,17 @@
 package it.pagopa.selfcare.service;
 
-import it.pagopa.selfcare.client.AzureBlobClient;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
 import it.pagopa.selfcare.entity.Onboarding;
 import it.pagopa.selfcare.entity.User;
 import it.pagopa.selfcare.exception.GenericOnboardingException;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.repository.OnboardingRepository;
 import it.pagopa.selfcare.utils.GenericError;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.product_json.api.ProductApi;
-import org.openapi.quarkus.product_json.model.ProductResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
@@ -31,14 +30,12 @@ public class OnboardingService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
-
-    @RestClient
-    @Inject
-    ProductApi productApi;
     @Inject
     NotificationService notificationService;
     @Inject
     ContractService contractService;
+    @Inject
+    ProductService productService;
 
     @Inject
     OnboardingRepository repository;
@@ -55,9 +52,8 @@ public class OnboardingService {
                 .filter(userToOnboard -> PartyRole.MANAGER != userToOnboard.getRole())
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
-        //ProductResource productResource = productApi.getProductIsValidUsingGET(onboarding.getProductId());
-
-        contractService.createContractPDF("parties/docs/651692a7e98f3b1fac40a05d/io-accordo_di_adesione-v.2.4.2.html", onboarding, manager, delegates, List.of());
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        contractService.createContractPDF(product.getContractTemplatePath(), onboarding, manager, delegates, List.of());
     }
 
     public void loadContract(Onboarding onboarding) {

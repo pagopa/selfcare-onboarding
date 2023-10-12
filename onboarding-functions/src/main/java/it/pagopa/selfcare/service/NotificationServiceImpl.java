@@ -3,7 +3,7 @@ package it.pagopa.selfcare.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
-import it.pagopa.selfcare.client.AzureBlobClient;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.config.MailTemplateConfig;
 import it.pagopa.selfcare.entity.MailTemplate;
 import jakarta.enterprise.context.ApplicationScoped;

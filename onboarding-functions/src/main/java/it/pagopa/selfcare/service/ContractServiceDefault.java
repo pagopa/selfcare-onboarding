@@ -4,8 +4,9 @@ import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
-import it.pagopa.selfcare.client.AzureBlobClient;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.config.AzureStorageConfig;
 import it.pagopa.selfcare.entity.Institution;
 import it.pagopa.selfcare.entity.Onboarding;
 import it.pagopa.selfcare.exception.GenericOnboardingException;
@@ -42,6 +43,8 @@ public class ContractServiceDefault implements ContractService {
 
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
 
+    @Inject
+    AzureStorageConfig azureStorageConfig;
 
     @Inject
     AzureBlobClient azureBlobClient;
@@ -49,7 +52,7 @@ public class ContractServiceDefault implements ContractService {
     @Override
     public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource validManager, List<UserResource> users, List<String> geographicTaxonomies) {
 
-        log.info("START - createContractPdf");
+        log.info("START - createContractPdf for template: {}", contractTemplatePath);
 
         final String builder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "_" + UUID.randomUUID() + "_contratto_interoperabilita.";
         final String productId = onboarding.getProductId();
@@ -77,7 +80,8 @@ public class ContractServiceDefault implements ContractService {
 
             //return signContract(institution, request, files.toFile());
             final String filename = String.format("%s.pdf", onboarding.getId());
-            azureBlobClient.uploadFile(onboarding.getId().toHexString(), filename, Files.readAllBytes(files));
+            final String path = String.format("%s7%s", azureStorageConfig.contractPath(), onboarding.getId().toHexString());
+            azureBlobClient.uploadFile(path, filename, Files.readAllBytes(files));
 
             return files.toFile();
         } catch (IOException e) {

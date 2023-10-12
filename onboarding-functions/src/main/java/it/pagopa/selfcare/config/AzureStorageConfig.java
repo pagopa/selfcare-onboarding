@@ -5,8 +5,11 @@ import io.smallrye.config.ConfigMapping;
 @ConfigMapping(prefix = "onboarding-functions.blob-storage")
 public interface AzureStorageConfig {
 
-    String connectionString();
-    String container();
+    String connectionStringContract();
+    String connectionStringProduct();
+    String containerContract();
+    String containerProduct();
     String contractPath();
+    String productFilepath();
 
 }
