@@ -71,7 +71,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, byte[] fileData, String fileName, String prefixSubject) {
         try {
             log.info("START - sendMailWithFile to {}, with prefixSubject {}", destinationMail, prefixSubject);
-            String template = azureBlobClient.getTemplateFile(templateName);
+            String template = azureBlobClient.getFileAsText(templateName);
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
             log.trace("sendMessage start");

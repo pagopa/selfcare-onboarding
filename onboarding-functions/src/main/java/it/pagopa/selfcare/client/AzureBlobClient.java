@@ -8,7 +8,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobProperties;
 import com.azure.storage.blob.models.BlobStorageException;
 
-import io.smallrye.config.ConfigMapping;
 import it.pagopa.selfcare.config.AzureStorageConfig;
 import it.pagopa.selfcare.exception.GenericOnboardingException;
 import it.pagopa.selfcare.exception.ResourceNotFoundException;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
 import static it.pagopa.selfcare.utils.GenericError.*;
@@ -67,7 +65,7 @@ public class AzureBlobClient  {
         }
     }
 
-    public String getTemplateFile(String templateName) {
+    public String getFileAsText(String templateName) {
         log.info("START - getTemplateFile for template: {}", templateName);
         try {
 
@@ -76,7 +74,7 @@ public class AzureBlobClient  {
 
             BinaryData content = blob.downloadContent();
             log.info("END - getTemplateFile - Downloaded {}", templateName);
-            return content.toObject(String.class);
+            return content.toString();
         } catch (BlobStorageException e) {
             log.error(String.format(ERROR_DURING_DOWNLOAD_FILE.getMessage(), templateName), e);
             throw new GenericOnboardingException(String.format(ERROR_DURING_DOWNLOAD_FILE.getMessage(), templateName),
@@ -107,20 +105,19 @@ public class AzureBlobClient  {
         return downloadedFile;
     }
 
-    public String uploadContract(String id, MultipartFile contract) {
-        log.info("START - uploadContract for token: {}", id);
-        String fileName = Paths.get(azureStorageConfig.contractPath(), id, contract.getOriginalFilename()).toString();
-        log.debug("uploadContract fileName = {}, contentType = {}", fileName, contract.getContentType());
+    public String uploadFile(String directory, String filename, byte[] data) {
+        log.info("START - uploadContract for token: {}", directory);
+        String filepath = Paths.get(azureStorageConfig.contractPath(), directory, filename).toString();
+        log.debug("uploadContract fileName = {}", filepath);
         try {
             final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(azureStorageConfig.container());
-            final BlobClient blob = blobContainer.getBlobClient(fileName);
-            //blob.getProperties().setContentType(contract.getContentType());
-            blob.upload(contract.getInputStream(), contract.getInputStream().available());
-            log.info("Uploaded {}", fileName);
-            return fileName;
-        } catch (BlobStorageException | IOException e) {
-            log.error(String.format(ERROR_DURING_UPLOAD_FILE.getMessage(), fileName), e);
-            throw new GenericOnboardingException(String.format(ERROR_DURING_UPLOAD_FILE.getMessage(), fileName),
+            final BlobClient blob = blobContainer.getBlobClient(filepath);
+            blob.upload(BinaryData.fromBytes(data), true);
+            log.info("Uploaded {}", filepath);
+            return filepath;
+        } catch (BlobStorageException e) {
+            log.error(String.format(ERROR_DURING_UPLOAD_FILE.getMessage(), filepath), e);
+            throw new GenericOnboardingException(String.format(ERROR_DURING_UPLOAD_FILE.getMessage(), filepath),
                     ERROR_DURING_UPLOAD_FILE.getCode());
         }
     }
