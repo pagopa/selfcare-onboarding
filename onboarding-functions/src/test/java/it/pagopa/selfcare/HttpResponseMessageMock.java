@@ -1,4 +1,4 @@
-package org.acme;
+package it.pagopa.selfcare;
 
 import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;

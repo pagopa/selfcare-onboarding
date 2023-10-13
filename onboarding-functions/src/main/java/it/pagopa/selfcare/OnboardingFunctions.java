@@ -19,6 +19,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.entity.Onboarding;
+import it.pagopa.selfcare.service.OnboardingService;
 import jakarta.inject.Inject;
 
 import java.time.Duration;
@@ -38,7 +39,7 @@ public class OnboardingFunctions {
 
     static {
         // Make 3 attempts with 5 seconds between retries
-        final int maxAttempts = 4;
+        final int maxAttempts = 1;
         final Duration firstRetryInterval = Duration.ofSeconds(3);
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
         optionsRetry = new TaskOptions(retryPolicy);
@@ -117,6 +118,11 @@ public class OnboardingFunctions {
     @FunctionName("BuildContract")
     public String buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info("BuildContract: " + onboardingString);
+        try {
+            service.createContract(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return onboardingString;
     }
 

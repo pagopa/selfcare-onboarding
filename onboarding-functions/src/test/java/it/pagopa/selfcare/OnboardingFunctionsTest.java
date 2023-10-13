@@ -1,4 +1,4 @@
-package org.acme;
+package it.pagopa.selfcare;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
@@ -7,8 +7,6 @@ import com.microsoft.azure.functions.HttpStatus;
 import com.microsoft.durabletask.DurableTaskClient;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.OnboardingFunctions;
-import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 

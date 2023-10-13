@@ -1,12 +1,16 @@
 package it.pagopa.selfcare.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.vertx.core.json.jackson.DatabindCodec;
+import it.pagopa.selfcare.azurestorage.AzureBlobClientDefault;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.product.service.ProductService;
+import it.pagopa.selfcare.product.service.ProductServiceDefault;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 
@@ -25,6 +29,22 @@ public class OnboardingFunctionConfig {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);            // custom config
        // mapper.registerModule(new Jdk8Module());                                   // custom config
         return mapper;
+    }
+
+    @ApplicationScoped
+    public AzureBlobClient azureBobClientContract(AzureStorageConfig azureStorageConfig){
+        return new AzureBlobClientDefault(azureStorageConfig.connectionStringContract(), azureStorageConfig.containerContract());
+    }
+
+    @ApplicationScoped
+    public ProductService productService(AzureStorageConfig azureStorageConfig){
+       AzureBlobClient azureBlobClient = new AzureBlobClientDefault(azureStorageConfig.connectionStringProduct(), azureStorageConfig.containerProduct());
+       String productJsonString = azureBlobClient.getFileAsText(azureStorageConfig.productFilepath());
+        try {
+            return new ProductServiceDefault(productJsonString, objectMapper());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
