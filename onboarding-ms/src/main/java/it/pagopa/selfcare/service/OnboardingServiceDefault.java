@@ -95,7 +95,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS));
+        onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
         return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
                 .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
