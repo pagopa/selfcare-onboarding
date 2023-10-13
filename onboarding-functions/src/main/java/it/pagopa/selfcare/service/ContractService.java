@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ContractService {
     File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource validManager, List<UserResource> users, List<String> geographicTaxonomies);
+
+    File retrieveContractNotSigned(String onboardingId);
 }

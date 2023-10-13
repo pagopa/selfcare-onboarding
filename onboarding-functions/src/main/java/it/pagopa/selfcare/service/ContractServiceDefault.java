@@ -122,4 +122,12 @@ public class ContractServiceDefault implements ContractService {
 
         log.debug("PDF stream properly retrieved");
     }
+
+    @Override
+    public File retrieveContractNotSigned(String onboardingId) {
+        final String filename = String.format("%s.pdf", onboardingId);
+        final String path = String.format("%s/%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
+        return azureBlobClient.getFileAsPdf(path);
+    }
+
 }

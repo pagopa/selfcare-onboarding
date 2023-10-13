@@ -132,6 +132,11 @@ public class OnboardingFunctions {
     @FunctionName("SaveToken")
     public String SaveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info("SaveToken: " + onboardingString);
+        try {
+            service.saveToken(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return onboardingString;
     }
 
