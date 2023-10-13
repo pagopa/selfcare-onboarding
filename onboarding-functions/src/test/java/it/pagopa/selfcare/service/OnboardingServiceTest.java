@@ -105,4 +105,20 @@ public class OnboardingServiceTest {
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
     }
+
+
+
+    @Test
+    void loadContract() {
+
+        Onboarding onboarding = createOnboarding();
+
+        Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(new Product());
+
+        onboardingService.loadContract(onboarding);
+
+        Mockito.verify(productService, Mockito.times(1))
+                .getProductIsValid(onboarding.getProductId());
+    }
 }
