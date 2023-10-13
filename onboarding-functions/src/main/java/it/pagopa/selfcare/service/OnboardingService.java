@@ -57,9 +57,8 @@ public class OnboardingService {
     }
 
     public void loadContract(Onboarding onboarding) {
-
-        //File pdf = fileStorageConnector.getFileAsPdf(strategyInput.getOnboardingRequest().getContract().getPath());
-
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString());
     }
 
     public String getValidManagerId(List<User> users) {
