@@ -13,7 +13,7 @@ locals {
   app_name = "github-${local.github.org}-${local.github.repository}-${var.prefix}-${local.domain}-${var.env}"
 
   container_app_selc_environment = {
-    name           = "${local.prefix}-${var.env_short}-container-app",
+    name           = "${local.prefix}-${var.env_short}-cae",
     resource_group = "${local.prefix}-${var.env_short}-container-app-rg",
   }
 
