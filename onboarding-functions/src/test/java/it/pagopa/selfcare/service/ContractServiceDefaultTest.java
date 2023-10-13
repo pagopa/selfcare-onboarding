@@ -42,6 +42,7 @@ public class ContractServiceDefaultTest {
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
+        onboarding.setOnboardingId("example");
         onboarding.setProductId("productId");
         onboarding.setUsers(List.of());
 
@@ -107,12 +108,12 @@ public class ContractServiceDefaultTest {
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboarding.getId().toHexString());
+        contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsPdf(filepathActual.capture());
-        assertTrue(filepathActual.getValue().contains(onboarding.getId().toHexString()));
+        assertTrue(filepathActual.getValue().contains(onboarding.getOnboardingId()));
     }
 
 }

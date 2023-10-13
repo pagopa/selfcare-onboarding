@@ -3,6 +3,8 @@ package it.pagopa.selfcare.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
@@ -11,9 +13,11 @@ import java.util.List;
 
 
 @MongoEntity(collection="onboardings")
-public class Onboarding {
+public class Onboarding  {
 
     private ObjectId id;
+
+    private String onboardingId;
 
     private String productId;
     private Institution institution;
@@ -23,7 +27,7 @@ public class Onboarding {
     private Boolean signContract;
 
 
-    private OffsetDateTime expiringDate;
+    private LocalDateTime expiringDate;
 
     private OnboardingStatus status;
 
@@ -83,11 +87,11 @@ public class Onboarding {
         this.signContract = signContract;
     }
 
-    public OffsetDateTime getExpiringDate() {
+    public LocalDateTime getExpiringDate() {
         return expiringDate;
     }
 
-    public void setExpiringDate(OffsetDateTime expiringDate) {
+    public void setExpiringDate(LocalDateTime expiringDate) {
         this.expiringDate = expiringDate;
     }
 
@@ -97,5 +101,13 @@ public class Onboarding {
 
     public void setStatus(OnboardingStatus status) {
         this.status = status;
+    }
+
+    public String getOnboardingId() {
+        return onboardingId;
+    }
+
+    public void setOnboardingId(String onboardingId) {
+        this.onboardingId = onboardingId;
     }
 }

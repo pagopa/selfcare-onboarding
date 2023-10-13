@@ -27,11 +27,11 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static it.pagopa.selfcare.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
@@ -57,6 +57,7 @@ public class OnboardingServiceTest {
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
+        onboarding.setOnboardingId(onboarding.getId().toHexString());
         onboarding.setProductId("productId");
         onboarding.setUsers(List.of());
         return onboarding;
@@ -65,10 +66,11 @@ public class OnboardingServiceTest {
     @Test
     void getOnboarding() {
         Onboarding onboarding = createOnboarding();
-        Mockito.when(onboardingRepository.findById(onboarding.getId())).thenReturn(onboarding);
+        Mockito.when(onboardingRepository.findByIdOptional(any())).thenReturn(Optional.of(onboarding));
 
-        Onboarding actual = onboardingService.getOnboarding(onboarding.getId().toHexString());
-        assertEquals(onboarding.getId().toHexString(), actual.getId().toHexString());
+        Optional<Onboarding> actual = onboardingService.getOnboarding(onboarding.getOnboardingId());
+        assertTrue(actual.isPresent());
+        assertEquals(onboarding.getOnboardingId(), actual.get().getOnboardingId());
     }
 
     @Test
@@ -131,7 +133,7 @@ public class OnboardingServiceTest {
         DSSDocument document = new FileDocument(contract);
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
-        Mockito.when(contractService.retrieveContractNotSigned(onboarding.getId().toHexString()))
+        Mockito.when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId()))
                         .thenReturn(contract);
         Product productExpected = createDummyProduct();
         Mockito.when(productService.getProductIsValid(onboarding.getProductId()))

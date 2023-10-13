@@ -24,9 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -39,7 +41,7 @@ public class OnboardingService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
-    @Inject
+    //@Inject
     NotificationService notificationService;
     @Inject
     ContractService contractService;
@@ -52,8 +54,12 @@ public class OnboardingService {
     @Inject
     TokenRepository tokenRepository;
 
-    public Onboarding getOnboarding(String onboardingId) {
-        return repository.findById(new ObjectId(onboardingId));
+    public Optional<Onboarding> getOnboarding(String onboardingId) {
+        return repository.findByIdOptional(new ObjectId(onboardingId))
+                .map(onboarding -> {
+                    onboarding.setOnboardingId(onboarding.getId().toString());
+                    return onboarding;
+                });
     }
 
     public void createContract(Onboarding onboarding) {
@@ -77,19 +83,19 @@ public class OnboardingService {
 
     public void saveToken(Onboarding onboarding) {
         /* create digest */
-        File contract = contractService.retrieveContractNotSigned(onboarding.getId().toHexString());
+        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
-        log.debug("createToken for onboarding {}", onboarding.getId().toHexString());
+        log.debug("createToken for onboarding {}", onboarding.getId());
 
         /* persist token entity */
         Product product = productService.getProductIsValid(onboarding.getProductId());
         Token token = new Token();
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
-        token.setCreatedAt(OffsetDateTime.now());
-        token.setUpdatedAt(OffsetDateTime.now());
+        token.setCreatedAt(LocalDateTime.now());
+        token.setUpdatedAt(LocalDateTime.now());
         token.setProductId(onboarding.getProductId());
         token.setChecksum(digest);
         token.setType(TokenType.INSTITUTION);

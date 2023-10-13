@@ -79,8 +79,8 @@ public class ContractServiceDefault implements ContractService {
             getPDFAsFile(files, contractTemplateText, data);
 
             //return signContract(institution, request, files.toFile());
-            final String filename = String.format("%s.pdf", onboarding.getId());
-            final String path = String.format("%s7%s", azureStorageConfig.contractPath(), onboarding.getId().toHexString());
+            final String filename = String.format("%s.pdf", onboarding.getOnboardingId());
+            final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(files));
 
             return files.toFile();
@@ -126,7 +126,7 @@ public class ContractServiceDefault implements ContractService {
     @Override
     public File retrieveContractNotSigned(String onboardingId) {
         final String filename = String.format("%s.pdf", onboardingId);
-        final String path = String.format("%s/%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
+        final String path = String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
         return azureBlobClient.getFileAsPdf(path);
     }
 

@@ -4,6 +4,7 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import org.bson.types.ObjectId;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -19,10 +20,10 @@ public class Token {
     private String contractTemplate;
     private String contractSigned;
     //@Indexed
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
-    private OffsetDateTime deletedAt;
-    private OffsetDateTime activatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
+    private LocalDateTime activatedAt;
 
     public ObjectId getId() {
         return id;
@@ -80,35 +81,35 @@ public class Token {
         this.contractSigned = contractSigned;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public OffsetDateTime getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(OffsetDateTime updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public OffsetDateTime getDeletedAt() {
+    public LocalDateTime getDeletedAt() {
         return deletedAt;
     }
 
-    public void setDeletedAt(OffsetDateTime deletedAt) {
+    public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
 
-    public OffsetDateTime getActivatedAt() {
+    public LocalDateTime getActivatedAt() {
         return activatedAt;
     }
 
-    public void setActivatedAt(OffsetDateTime activatedAt) {
+    public void setActivatedAt(LocalDateTime activatedAt) {
         this.activatedAt = activatedAt;
     }
 }
