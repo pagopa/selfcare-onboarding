@@ -96,7 +96,7 @@ public class ContractServiceDefault implements ContractService {
             File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
 
             final String filename = String.format("%s.pdf", onboardingId);
-            final String path = String.format("%s7%s", azureStorageConfig.contractPath(), onboardingId);
+            final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
 
             return pdf;
