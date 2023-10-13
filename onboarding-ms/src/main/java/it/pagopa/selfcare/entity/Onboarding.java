@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -29,4 +30,5 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private OffsetDateTime expiringDate;
 }

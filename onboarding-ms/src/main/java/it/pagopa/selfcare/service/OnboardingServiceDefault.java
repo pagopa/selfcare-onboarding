@@ -19,6 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
@@ -30,6 +31,8 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 import org.springframework.util.Assert;
 
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,6 +71,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject
     OnboardingValidationStrategy onboardingValidationStrategy;
 
+    @ConfigProperty(name = "onboarding.expiring-date")
+    Integer onboardingExpireDate;
 
     @Override
     public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
@@ -90,7 +95,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-
+        onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS));
         return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
                 .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
