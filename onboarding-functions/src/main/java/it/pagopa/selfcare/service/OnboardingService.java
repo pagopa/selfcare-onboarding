@@ -1,12 +1,18 @@
 package it.pagopa.selfcare.service;
 
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
 import it.pagopa.selfcare.entity.Onboarding;
+import it.pagopa.selfcare.entity.Token;
 import it.pagopa.selfcare.entity.User;
 import it.pagopa.selfcare.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.repository.OnboardingRepository;
+import it.pagopa.selfcare.repository.TokenRepository;
 import it.pagopa.selfcare.utils.GenericError;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -17,7 +23,12 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -30,7 +41,7 @@ public class OnboardingService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
-    @Inject
+    //@Inject
     NotificationService notificationService;
     @Inject
     ContractService contractService;
@@ -39,8 +50,16 @@ public class OnboardingService {
 
     @Inject
     OnboardingRepository repository;
-    public Onboarding getOnboarding(String onboardingId) {
-        return repository.findById(new ObjectId(onboardingId));
+
+    @Inject
+    TokenRepository tokenRepository;
+
+    public Optional<Onboarding> getOnboarding(String onboardingId) {
+        return repository.findByIdOptional(new ObjectId(onboardingId))
+                .map(onboarding -> {
+                    onboarding.setOnboardingId(onboarding.getId().toString());
+                    return onboarding;
+                });
     }
 
     public void createContract(Onboarding onboarding) {
@@ -60,6 +79,29 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString());
     }
+
+    public void saveToken(Onboarding onboarding) {
+        /* create digest */
+        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
+        DSSDocument document = new FileDocument(contract);
+        String digest = document.getDigest(DigestAlgorithm.SHA256);
+
+        log.debug("createToken for onboarding {}", onboarding.getId());
+
+        /* persist token entity */
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        Token token = new Token();
+        token.setContractTemplate(product.getContractTemplatePath());
+        token.setContractVersion(product.getContractTemplateVersion());
+        token.setCreatedAt(LocalDateTime.now());
+        token.setUpdatedAt(LocalDateTime.now());
+        token.setProductId(onboarding.getProductId());
+        token.setChecksum(digest);
+        token.setType(TokenType.INSTITUTION);
+
+        tokenRepository.persist(token);
+    }
+
 
     public String getValidManagerId(List<User> users) {
         log.debug("START - getOnboardingValidManager for users list size: {}", users.size());

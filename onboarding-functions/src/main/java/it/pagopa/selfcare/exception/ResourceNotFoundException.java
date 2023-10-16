@@ -8,6 +8,10 @@ public class ResourceNotFoundException extends RuntimeException {
         super(message);
         this.code = code;
     }
+    public ResourceNotFoundException(String message) {
+        super(message);
+        this.code = "0000";
+    }
 
     public String getCode() {
         return code;
