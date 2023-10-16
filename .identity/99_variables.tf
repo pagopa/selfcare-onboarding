@@ -21,6 +21,11 @@ locals {
     resource_group_name = "${local.prefix}-${var.env_short}-functions-rg",
     insights_key = "${local.prefix}-${var.env_short}-appinsights"
   }
+
+  mongo_db = {
+    mongodb_rg_name = "${local.prefix}-${var.env_short}-cosmosdb-mongodb-rg",
+    cosmosdb_account_mongodb_name = "${local.prefix}-${var.env_short}-cosmosdb-mongodb-account"
+  }
 }
 
 variable "env" {
@@ -73,4 +78,10 @@ variable "environment_roles" {
     subscription = list(string)
   })
   description = "GitHub Continous Integration roles"
+}
+
+variable "cosmosdb_mongodb_throughput" {
+  type        = number
+  description = "The throughput of the MongoDB database (RU/s). Must be set in increments of 100. The minimum value is 400. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply."
+  default     = 1000
 }

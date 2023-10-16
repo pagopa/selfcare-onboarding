@@ -19,6 +19,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.entity.Onboarding;
+import it.pagopa.selfcare.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.service.OnboardingService;
 import jakarta.inject.Inject;
 
@@ -78,7 +79,8 @@ public class OnboardingFunctions {
     }
 
     private String getOnboardingString(String onboardingId) {
-        Onboarding onboarding = service.getOnboarding(onboardingId);
+        Onboarding onboarding = service.getOnboarding(onboardingId)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
 
         String onboardingString = null;
         try {
@@ -132,6 +134,11 @@ public class OnboardingFunctions {
     @FunctionName("SaveToken")
     public String SaveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info("SaveToken: " + onboardingString);
+        try {
+            service.saveToken(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return onboardingString;
     }
 
