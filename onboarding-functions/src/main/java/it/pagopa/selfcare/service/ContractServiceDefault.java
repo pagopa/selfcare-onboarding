@@ -90,7 +90,23 @@ public class ContractServiceDefault implements ContractService {
         }
     }
 
-    private void getPDFAsFile(Path files, String contractTemplate, Map<String, Object> data) {
+    @Override
+    public File loadContractPDF(String contractTemplatePath, String onboardingId) {
+        try {
+            File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
+
+            final String filename = String.format("%s.pdf", onboardingId);
+            final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
+            azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
+
+            return pdf;
+        } catch (IOException e) {
+            log.warn("can not load contract PDF", e);
+            throw new GenericOnboardingException(e.getMessage(), "0000");
+        }
+    }
+
+        private void getPDFAsFile(Path files, String contractTemplate, Map<String, Object> data) {
         log.debug("Getting PDF for HTML template...");
         String html = StringSubstitutor.replace(contractTemplate, data);
         PdfRendererBuilder builder = new PdfRendererBuilder();

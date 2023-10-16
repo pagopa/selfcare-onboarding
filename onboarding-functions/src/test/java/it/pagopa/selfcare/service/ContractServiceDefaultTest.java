@@ -1,8 +1,6 @@
 package it.pagopa.selfcare.service;
 
-import io.quarkus.mailer.Mailer;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
@@ -98,6 +96,24 @@ public class ContractServiceDefaultTest {
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
         assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), List.of()));
+    }
+
+
+
+    @Test
+    void loadContractPDF() {
+        final String contractFilepath = "contract";
+        final String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+
+        File pdf = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+
+        Mockito.when(azureBlobClient.getFileAsPdf(contractFilepath)).thenReturn(pdf);
+
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId().toHexString()));
     }
 
     @Test

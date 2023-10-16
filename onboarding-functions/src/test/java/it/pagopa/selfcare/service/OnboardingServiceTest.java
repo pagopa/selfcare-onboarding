@@ -6,7 +6,6 @@ import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.commons.base.security.PartyRole;
-import it.pagopa.selfcare.config.OnboardingFunctionConfig;
 import it.pagopa.selfcare.entity.Onboarding;
 import it.pagopa.selfcare.entity.Token;
 import it.pagopa.selfcare.entity.User;
@@ -134,7 +133,7 @@ public class OnboardingServiceTest {
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
         Mockito.when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId()))
-                        .thenReturn(contract);
+                .thenReturn(contract);
         Product productExpected = createDummyProduct();
         Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(productExpected);
@@ -151,5 +150,19 @@ public class OnboardingServiceTest {
         assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
         assertEquals(productExpected.getContractTemplatePath(), tokenArgumentCaptor.getValue().getContractTemplate());
         assertEquals(productExpected.getContractTemplateVersion(), tokenArgumentCaptor.getValue().getContractVersion());
+    }
+
+    @Test
+    void loadContract() {
+
+        Onboarding onboarding = createOnboarding();
+
+        Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(new Product());
+
+        onboardingService.loadContract(onboarding);
+
+        Mockito.verify(productService, Mockito.times(1))
+                .getProductIsValid(onboarding.getProductId());
     }
 }
