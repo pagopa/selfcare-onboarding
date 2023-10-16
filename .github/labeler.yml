@@ -6,3 +6,10 @@ ms:
 
 sdk:
 - onboarding-sdk/**
+
+ops:
+- .github/**
+- .identity/**
+
+docs:
+- README.md
