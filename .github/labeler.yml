@@ -1,0 +1,8 @@
+functions:
+- onboarding-functions/**
+
+ms:
+- onboarding-ms/**
+
+sdk:
+- onboarding-sdk/**
