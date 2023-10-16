@@ -47,9 +47,9 @@ jobs:
           echo $size
         shell: bash
       - run: |
-          if [[ $size -gt 400 ]]
+          if [[ $size -gt 1000 ]]
           then
-            echo "Warning - total lines changed is greater than" 400.
+            echo "Warning - total lines changed is greater than 1000."
             echo "Please consider breaking this PR down."
             exit 1
           fi
