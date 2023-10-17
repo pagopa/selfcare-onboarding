@@ -54,7 +54,6 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar-project.properties
 
       - name: Build and analyze on Pull Requests
-        if: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.organization=pagopa
