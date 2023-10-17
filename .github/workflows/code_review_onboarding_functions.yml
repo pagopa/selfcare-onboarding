@@ -23,6 +23,7 @@ permissions:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+
   code-review:
     name: Code Review onboarding-functions
     # The type of runner that the job will run on
@@ -37,6 +38,36 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+      
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Launch unit test with Maven
-        run: mvn test --file onboarding-functions/pom.xml
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar-project.properties/cache
+          key: ${{ runner.os }}-sonar-project.properties
+          restore-keys: ${{ runner.os }}-sonar-project.properties
+
+      - name: Build and analyze on Pull Requests
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.organization=pagopa
+          -Dsonar.projectKey=pagopa_selfcare-onboarding
+          -Dsonar.coverage.jacoco.xmlReportPaths=onboarding-ms/target/jacoco-report/jacoco.xml
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.head_ref }}
+          -Dsonar.pullrequest.base=${{ github.base_ref }}
+          --file onboarding-ms/pom.xml
+        env:
+          # Needed to get some information about the pull request, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # SonarCloud access token should be generated from https://sonarcloud.io/account/security/
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
