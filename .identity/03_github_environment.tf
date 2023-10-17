@@ -25,6 +25,7 @@ locals {
     "TENANT_ID" : data.azurerm_client_config.current.tenant_id,
     "SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id,
     "FUNCTIONS_RESOURCE_GROUP": local.functions.resource_group_name,
+    "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value,
     "APP_INSIGHTS_KEY": local.functions.insights_key,
     "APP_REGION": local.location_short,
     "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),

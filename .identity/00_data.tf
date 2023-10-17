@@ -27,3 +27,8 @@ data "azurerm_key_vault_secret" "onboarding_functions_api_key" {
   name         = "onboarding-functions-api-key"
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
+
+data "azurerm_key_vault_secret" "sonar_token" {
+  name         = "sonar-token"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}
