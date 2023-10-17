@@ -33,7 +33,7 @@ jobs:
 
       - name: Get total lines changed
         run: |
-          size=$(git diff --stat origin/develop \
+          size=$(git diff --stat origin/develop --diff-filter=d \
           | grep -v .lock \
           | awk -F"|" '{ print $2 }' \
           | awk '{ print $1 }' \
