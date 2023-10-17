@@ -1,0 +1,15 @@
+functions:
+- onboarding-functions/**
+
+ms:
+- onboarding-ms/**
+
+sdk:
+- onboarding-sdk/**
+
+ops:
+- .github/**
+- .identity/**
+
+docs:
+- README.md
