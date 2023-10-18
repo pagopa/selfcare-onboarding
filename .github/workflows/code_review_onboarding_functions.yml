@@ -58,9 +58,10 @@ jobs:
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.organization=pagopa
           -Dsonar.projectKey=pagopa_selfcare-onboarding
-          -Dsonar.coverage.jacoco.xmlReportPaths=onboarding-functions/target/jacoco-report/jacoco.xml
+          -Dsonar.coverage.jacoco.xmlReportPaths=./target/jacoco-report/jacoco.xml
           -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.coverage.exclusions='**/exception/**, **/entity/**, **/utils/**, **/*Constant*, **/*Config.java, **/src/test/**'
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=${{ github.base_ref }}

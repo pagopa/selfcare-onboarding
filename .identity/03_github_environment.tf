@@ -25,7 +25,6 @@ locals {
     "TENANT_ID" : data.azurerm_client_config.current.tenant_id,
     "SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id,
     "FUNCTIONS_RESOURCE_GROUP": local.functions.resource_group_name,
-    "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value,
     "APP_INSIGHTS_KEY": local.functions.insights_key,
     "APP_REGION": local.location_short,
     "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),
@@ -42,7 +41,7 @@ locals {
     "NAMESPACE" : local.domain,
   }
   repo_secrets = {
-    # "SONAR_TOKEN" : data.azurerm_key_vault_secret.key_vault_sonar.value,
+    "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value,
     # "BOT_TOKEN_GITHUB" : data.azurerm_key_vault_secret.key_vault_bot_token.value,
     # "CUCUMBER_PUBLISH_TOKEN" : data.azurerm_key_vault_secret.key_vault_cucumber_token.value,
   }
