@@ -7,6 +7,9 @@ on:
         required: true
         type: choice
         description: Select the module
+        options:
+          - onboarding-ms
+          - onboarding-functions
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
