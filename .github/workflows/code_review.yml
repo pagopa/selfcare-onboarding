@@ -1,6 +1,4 @@
 name: Code Review
-  deployments: write
-
 
 inputs:
   module:
