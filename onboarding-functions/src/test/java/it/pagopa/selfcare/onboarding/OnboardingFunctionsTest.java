@@ -1,4 +1,4 @@
-package it.pagopa.selfcare;
+package it.pagopa.selfcare.onboarding;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
