@@ -1,8 +1,5 @@
 name: Code Review MS
 
-env:
-  MODULE: onboarding-ms
-
 # Controls when the workflow will run
 on:
   pull_request:
@@ -28,3 +25,5 @@ jobs:
     name: Code review onboarding-ms
     # The type of runner that the job will run on
     uses: pagopa/selfcare-onboarding/.github/workflows/code_review.yml@ops/duplicate-code-reviews
+    with:
+      module: onboarding-ms
