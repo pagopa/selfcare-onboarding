@@ -34,7 +34,6 @@ properties:
             value: $ONBOARDING_FUNCTIONS_URL$
           - name: ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS
             value: $ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$
-
     scale:
       minReplicas: 1
       maxReplicas: 5
