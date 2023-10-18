@@ -1,7 +1,7 @@
 name: Code Review
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       module:
         required: true
