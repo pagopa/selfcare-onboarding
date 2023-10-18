@@ -41,7 +41,8 @@ import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
 public class ContractServiceDefault implements ContractService {
 
 
-    private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
+    private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
+    public static final String PDF_FORMAT_FILENAME = "%s.pdf";
 
     @Inject
     AzureStorageConfig azureStorageConfig;
@@ -79,7 +80,7 @@ public class ContractServiceDefault implements ContractService {
             getPDFAsFile(files, contractTemplateText, data);
 
             //return signContract(institution, request, files.toFile());
-            final String filename = String.format("%s.pdf", onboarding.getOnboardingId());
+            final String filename = String.format(PDF_FORMAT_FILENAME, onboarding.getOnboardingId());
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(files));
 
@@ -95,14 +96,14 @@ public class ContractServiceDefault implements ContractService {
         try {
             File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
 
-            final String filename = String.format("%s.pdf", onboardingId);
+            final String filename = String.format(PDF_FORMAT_FILENAME, onboardingId);
             final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
 
             return pdf;
         } catch (IOException e) {
-            log.warn("can not load contract PDF", e);
-            throw new GenericOnboardingException(e.getMessage(), "0000");
+            log.warn("Can not load contract PDF", e);
+            throw new GenericOnboardingException(e.getMessage());
         }
     }
 
@@ -111,9 +112,7 @@ public class ContractServiceDefault implements ContractService {
         String html = StringSubstitutor.replace(contractTemplate, data);
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.useFastMode();
-        builder.useProtocolsStreamImplementation(new FSStreamFactory() {
-            @Override
-            public FSStream getUrl(String url) {
+        builder.useProtocolsStreamImplementation(url -> {
                 URI fullUri;
                 try {
                     fullUri = new URI(url);
@@ -122,7 +121,6 @@ public class ContractServiceDefault implements ContractService {
                     log.error("URISintaxException in ClassPathStreamFactory: ",e);
                     throw new GenericOnboardingException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
                 }
-            }
         }, "classpath");
         var doc = Jsoup.parse(html, "UTF-8");
         var dom = W3CDom.convert(doc);
@@ -133,7 +131,7 @@ public class ContractServiceDefault implements ContractService {
             builder.toStream(fileOutputStream);
             builder.run();
         } catch (IOException e){
-            throw new RuntimeException(e);
+            throw new GenericOnboardingException(e.getMessage());
         }
 
         log.debug("PDF stream properly retrieved");
@@ -141,7 +139,7 @@ public class ContractServiceDefault implements ContractService {
 
     @Override
     public File retrieveContractNotSigned(String onboardingId) {
-        final String filename = String.format("%s.pdf", onboardingId);
+        final String filename = String.format(PDF_FORMAT_FILENAME, onboardingId);
         final String path = String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
         return azureBlobClient.getFileAsPdf(path);
     }

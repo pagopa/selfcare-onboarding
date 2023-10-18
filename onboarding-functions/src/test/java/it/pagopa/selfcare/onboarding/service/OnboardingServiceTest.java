@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
-public class OnboardingServiceTest {
+class OnboardingServiceTest {
 
     @InjectMock
     OnboardingRepository onboardingRepository;

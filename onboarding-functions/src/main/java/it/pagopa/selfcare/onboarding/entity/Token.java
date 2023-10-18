@@ -5,8 +5,6 @@ import it.pagopa.selfcare.onboarding.common.TokenType;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 
 @MongoEntity(collection="tokens")

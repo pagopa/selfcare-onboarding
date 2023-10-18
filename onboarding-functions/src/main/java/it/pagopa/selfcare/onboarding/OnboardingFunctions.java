@@ -19,6 +19,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -30,13 +31,16 @@ import java.util.Optional;
  * Azure Functions with HTTP Trigger integrated with Quarkus
  */
 public class OnboardingFunctions {
+    public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
+    public static final String SAVE_TOKEN_ACTIVITY_NAME = "SaveToken";
+    public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     @Inject
     OnboardingService service;
 
     @Inject
     ObjectMapper objectMapper;
 
-    final static TaskOptions optionsRetry;
+    private static final  TaskOptions optionsRetry;
 
     static {
         // Make 3 attempts with 5 seconds between retries
@@ -60,7 +64,7 @@ public class OnboardingFunctions {
 
         DurableTaskClient client = durableContext.getClient();
         String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
-        context.getLogger().info("Created new Onboarding orchestration with instance ID = " + instanceId);
+        context.getLogger().info(CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG + instanceId);
 
         return durableContext.createCheckStatusResponse(request, instanceId);
     }
@@ -70,7 +74,7 @@ public class OnboardingFunctions {
      * or wait for external events in a way that's completely fault-tolerant.
      */
     @FunctionName("Onboardings")
-    public String OnboardingsOrchestrator(
+    public String onboardingsOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx) {
         String onboardingId = ctx.getInput(String.class);
         String onboardingString = getOnboardingString(onboardingId);
@@ -93,23 +97,23 @@ public class OnboardingFunctions {
 
     private String onboardingsOrchestratorDefault(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("BuildContract", onboardingString, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(SAVE_TOKEN_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         result += ctx.callActivity("SendMailRegistration", onboardingString, optionsRetry, String.class).await() + ", ";
         return result;
     }
 
     private String onboardingsOrchestratorPAorSAorGSPIPA(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("BuildContract", onboardingString, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(SAVE_TOKEN_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         result += ctx.callActivity("SendMailRegistrationWithContract", onboardingString, optionsRetry,  String.class).await() + ", ";
         return result;
     }
 
     private String onboardingsOrchestratorPG(TaskOrchestrationContext ctx, String onboardingString){
         String result = "";
-        result += ctx.callActivity("SaveToken", onboardingString, optionsRetry,  String.class).await() + ", ";
+        result += ctx.callActivity(SAVE_TOKEN_ACTIVITY_NAME, onboardingString, optionsRetry,  String.class).await() + ", ";
         result += ctx.callActivity("SendMailConfirmation", onboardingString, optionsRetry,  String.class).await() + ", ";
         return result;
     }
@@ -117,13 +121,13 @@ public class OnboardingFunctions {
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName("BuildContract")
+    @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
     public String buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info("BuildContract: " + onboardingString);
+        context.getLogger().info(String.format("%s: %s", BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
         try {
             service.createContract(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new FunctionOrchestratedException(e);
         }
         return onboardingString;
     }
@@ -131,13 +135,13 @@ public class OnboardingFunctions {
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName("SaveToken")
-    public String SaveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info("SaveToken: " + onboardingString);
+    @FunctionName(SAVE_TOKEN_ACTIVITY_NAME)
+    public String saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format("%s: %s", SAVE_TOKEN_ACTIVITY_NAME, onboardingString));
         try {
             service.saveToken(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new FunctionOrchestratedException(e);
         }
         return onboardingString;
     }
@@ -147,7 +151,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailRegistrationWithContract")
     public String sendMailWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info("SendMailRegistrationWithContract: " + onboardingString);
+        context.getLogger().info(String.format("%s: %s","SendMailRegistrationWithContract", onboardingString));
         return onboardingString;
     }
 
@@ -156,7 +160,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailRegistration")
     public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info("SendMailRegistration: " + onboardingString);
+        context.getLogger().info(String.format("%s: %s", "SendMailRegistration", onboardingString));
         return onboardingString;
     }
 
@@ -165,7 +169,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailConfirmation")
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info("SendMailConfirmation: " + onboardingString);
+        context.getLogger().info(String.format("%s: %s","SendMailConfirmation", onboardingString));
         return onboardingString;
     }
 }

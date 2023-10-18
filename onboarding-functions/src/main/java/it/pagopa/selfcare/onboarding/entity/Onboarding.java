@@ -3,12 +3,9 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 
 

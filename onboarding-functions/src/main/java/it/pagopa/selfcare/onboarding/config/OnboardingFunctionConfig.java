@@ -9,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.vertx.core.json.jackson.DatabindCodec;
 import it.pagopa.selfcare.azurestorage.AzureBlobClientDefault;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.product.service.ProductServiceDefault;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -43,7 +44,7 @@ public class OnboardingFunctionConfig {
         try {
             return new ProductServiceDefault(productJsonString, objectMapper());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new GenericOnboardingException("Found an issue when trying to serialize product json string!!");
         }
     }
 

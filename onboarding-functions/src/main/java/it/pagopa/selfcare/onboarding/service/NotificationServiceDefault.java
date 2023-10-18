@@ -6,6 +6,7 @@ import io.quarkus.mailer.Mailer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplateConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
+import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.commons.text.StringSubstitutor;
@@ -27,9 +28,6 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND
 public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
-
-    private static final String MAIL_PARAMETER_LOG = "mailParameters: {}";
-    private static final String DESTINATION_MAIL_LOG = "destinationMails: {}";
 
     @Inject
     MailTemplateConfig mailTemplateConfig;
@@ -76,19 +74,18 @@ public class NotificationServiceDefault implements NotificationService {
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
             log.trace("sendMessage start");
             
-            Mail mail = Mail
+            /*Mail mail = Mail
                     .withHtml(destinationMail.get(0),
                             prefixSubject + ": " + mailTemplate.getSubject(),
                             html)
                     .addAttachment(fileName, fileData, "application/zip")
                     .setFrom(sendMail);
 
-            //mailer.send(mail);
+            mailer.send(mail); */
 
             log.info("END - sendMail to {}, with prefixSubject {}", destinationMail, prefixSubject);
         } catch (Exception e) {
-            log.error(ERROR_DURING_SEND_MAIL + ":" + e.getMessage());
-            throw new RuntimeException(ERROR_DURING_SEND_MAIL.getMessage());
+            throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
         }
         log.trace("sendMessage end");
     }
@@ -104,8 +101,7 @@ public class NotificationServiceDefault implements NotificationService {
             zos.finish();
             return baos.toByteArray();
         } catch (IOException e) {
-            log.error(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename), e);
-            throw new RuntimeException(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename));
+            throw new GenericOnboardingException(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename));
         }
     }
 

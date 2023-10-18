@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
-public class NotificationServiceDefaultTest {
+class NotificationServiceDefaultTest {
 
     @InjectMock
     AzureBlobClient azureBlobClient;
@@ -32,9 +32,11 @@ public class NotificationServiceDefaultTest {
         Mockito.when(azureBlobClient.getFile(any())).thenReturn("example".getBytes(StandardCharsets.UTF_8));
 
         Mockito.when(azureBlobClient.getFileAsText(any())).thenReturn(mailTemplate);
-        //Mockito.doNothing().when(mailer).send(any());
 
         notificationService.sendMailWithContract("onboardingId", "filenameContract", "","","","","");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFile(any());
     }
 
     @Test

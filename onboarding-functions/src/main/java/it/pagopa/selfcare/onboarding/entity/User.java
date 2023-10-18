@@ -7,7 +7,7 @@ public class User {
 
     private String id;
     private PartyRole role;
-    private String ProductRole;
+    private String productRole;
 
     public String getId() {
         return id;
@@ -26,10 +26,10 @@ public class User {
     }
 
     public String getProductRole() {
-        return ProductRole;
+        return productRole;
     }
 
     public void setProductRole(String productRole) {
-        ProductRole = productRole;
+        this.productRole = productRole;
     }
 }

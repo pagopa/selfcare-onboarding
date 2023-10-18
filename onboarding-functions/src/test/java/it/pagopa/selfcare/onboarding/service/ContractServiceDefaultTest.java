@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 @QuarkusTest
-public class ContractServiceDefaultTest {
+class ContractServiceDefaultTest {
 
     @InjectMock
     AzureBlobClient azureBlobClient;

@@ -1,13 +1,11 @@
 package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.commons.base.utils.InstitutionType;
-
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.springframework.util.StringUtils;
 
@@ -44,11 +42,11 @@ public class PdfMapper {
         if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
         }
-        if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
+        //if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
             //map.put("parentInfo", " ente centrale " + institution.getParentDescription());
-        } else {
+        //} else {
             map.put("parentInfo", "");
-        }
+        //}
         return map;
     }
 
