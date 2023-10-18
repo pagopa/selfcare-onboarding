@@ -1,4 +1,4 @@
-name: Code Review MS
+name: Code Review Functions
 
 # Controls when the workflow will run
 on:
@@ -11,7 +11,7 @@ on:
       - synchronize
       - reopened
     paths:
-      - 'onboarding-ms/**'
+      - 'onboarding-functions/**'
 
 permissions:
   id-token: write
@@ -26,4 +26,4 @@ jobs:
     # The type of runner that the job will run on
     uses: pagopa/selfcare-onboarding/.github/workflows/code_review.yml@develop
     with:
-      module: onboarding-ms
+      module: onboarding-functions
