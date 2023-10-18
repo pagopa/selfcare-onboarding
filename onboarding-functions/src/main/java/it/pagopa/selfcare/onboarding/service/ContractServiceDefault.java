@@ -86,8 +86,7 @@ public class ContractServiceDefault implements ContractService {
 
             return files.toFile();
         } catch (IOException e) {
-            log.warn("can not create contract PDF", e);
-            throw new GenericOnboardingException(e.getMessage(), "0000");
+            throw new GenericOnboardingException(String.format("Can not create contract PDF, message: %s", e.getMessage()));
         }
     }
 
@@ -102,8 +101,7 @@ public class ContractServiceDefault implements ContractService {
 
             return pdf;
         } catch (IOException e) {
-            log.warn("Can not load contract PDF", e);
-            throw new GenericOnboardingException(e.getMessage());
+            throw new GenericOnboardingException(String.format("Can not load contract PDF, message: %s", e.getMessage()));
         }
     }
 

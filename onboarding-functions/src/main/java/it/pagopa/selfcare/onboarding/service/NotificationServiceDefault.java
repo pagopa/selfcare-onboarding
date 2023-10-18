@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplateConfig;
@@ -16,7 +15,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -58,11 +60,7 @@ public class NotificationServiceDefault implements NotificationService {
         byte[] contractData = azureBlobClient.getFile(filepathContract);
         byte[] contractZipData = zipBytes(fileName, contractData);
 
-        //List<String> destinationMail = Objects.nonNull(coreConfig.getDestinationMails()) && !coreConfig.getDestinationMails().isEmpty()
-        //        ? coreConfig.getDestinationMails() : List.of(destination);
-        List<String> destinationMail = List.of("manuel.rafeli@pagopa.it");
-
-        sendMailWithFile(destinationMail, mailTemplateConfig.path(), mailParameters, contractZipData, fileNameZip, productName);
+        sendMailWithFile(List.of("*.*@pagopa.it"), mailTemplateConfig.path(), mailParameters, contractZipData, fileNameZip, productName);
         log.debug("onboarding-contract-email Email successful sent");
     }
 

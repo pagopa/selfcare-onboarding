@@ -34,6 +34,7 @@ public class OnboardingFunctions {
     public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
     public static final String SAVE_TOKEN_ACTIVITY_NAME = "SaveToken";
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
+    public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
     @Inject
     OnboardingService service;
 
@@ -64,7 +65,7 @@ public class OnboardingFunctions {
 
         DurableTaskClient client = durableContext.getClient();
         String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
-        context.getLogger().info(CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG + instanceId);
+        context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
         return durableContext.createCheckStatusResponse(request, instanceId);
     }
@@ -90,7 +91,7 @@ public class OnboardingFunctions {
         try {
             onboardingString = objectMapper.writeValueAsString(onboarding);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new FunctionOrchestratedException(e);
         }
         return onboardingString;
     }
@@ -123,7 +124,7 @@ public class OnboardingFunctions {
      */
     @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
     public String buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format("%s: %s", BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
         try {
             service.createContract(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
@@ -137,7 +138,7 @@ public class OnboardingFunctions {
      */
     @FunctionName(SAVE_TOKEN_ACTIVITY_NAME)
     public String saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format("%s: %s", SAVE_TOKEN_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_ACTIVITY_NAME, onboardingString));
         try {
             service.saveToken(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
@@ -151,7 +152,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailRegistrationWithContract")
     public String sendMailWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format("%s: %s","SendMailRegistrationWithContract", onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING,"SendMailRegistrationWithContract", onboardingString));
         return onboardingString;
     }
 
@@ -160,7 +161,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailRegistration")
     public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format("%s: %s", "SendMailRegistration", onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, "SendMailRegistration", onboardingString));
         return onboardingString;
     }
 
@@ -169,7 +170,7 @@ public class OnboardingFunctions {
      */
     @FunctionName("SendMailConfirmation")
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format("%s: %s","SendMailConfirmation", onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING,"SendMailConfirmation", onboardingString));
         return onboardingString;
     }
 }
