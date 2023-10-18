@@ -2,12 +2,11 @@ name: Code Review
 
 on:
   workflow_call:
-
-inputs:
-  module:
-    required: true
-    type: string
-    description: Module to execute code review
+    inputs:
+      module:
+        required: true
+        type: choice
+        description: Select the module
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,7 +51,7 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=${{ github.base_ref }}
-          --file ${{ inputs.module }}/pom.xml
+          --file ${{ ${{ inputs.module || env.MODULE }}/pom.xml
         env:
           # Needed to get some information about the pull request, if any
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
