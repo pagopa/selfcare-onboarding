@@ -1,5 +1,8 @@
 name: Code Review
 
+on:
+  workflow_call:
+
 inputs:
   module:
     required: true
