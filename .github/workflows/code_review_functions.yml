@@ -1,0 +1,29 @@
+name: Code Review Functions
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - 'onboarding-functions/**'
+
+permissions:
+  id-token: write
+  contents: read
+  deployments: write
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  code-review:
+    name: Code review onboarding-ms
+    # The type of runner that the job will run on
+    uses: pagopa/selfcare-onboarding/.github/workflows/code_review.yml@develop
+    with:
+      module: onboarding-functions

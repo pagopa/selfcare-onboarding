@@ -1,36 +1,24 @@
 name: Code Review
 
-# Controls when the workflow will run
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
-    types:
-      - opened
-      - synchronize
-      - reopened
-    paths:
-      - 'onboarding-ms/**'
-      - 'onboarding-functions/**'
-      - 'onboarding-sdk/**'
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-  deployments: write
+  workflow_call:
+    inputs:
+      module:
+        required: true
+        type: choice
+        description: Select the module
+        options:
+          - onboarding-ms
+          - onboarding-functions
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
   code-review:
-    name: Code Review onboarding-ms
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    env:
+      module: ${{ inputs.module || env.MODULE }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +55,7 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=${{ github.base_ref }}
-          --file ./pom.xml
+          --file ${{ inputs.module }}/pom.xml
         env:
           # Needed to get some information about the pull request, if any
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
