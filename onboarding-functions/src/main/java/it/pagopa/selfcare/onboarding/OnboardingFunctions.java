@@ -87,7 +87,7 @@ public class OnboardingFunctions {
         Onboarding onboarding = service.getOnboarding(onboardingId)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
 
-        String onboardingString = null;
+        String onboardingString;
         try {
             onboardingString = objectMapper.writeValueAsString(onboarding);
         } catch (JsonProcessingException e) {
