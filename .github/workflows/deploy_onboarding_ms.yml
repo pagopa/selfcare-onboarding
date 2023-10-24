@@ -115,7 +115,7 @@ jobs:
           tenant_id: ${{ secrets.TENANT_ID }}
           subscription_id: ${{ secrets.SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
-          azure_environment: ${{ steps.setvars.outputs.environment }}
+          azure_environment: 'uat' # ${{ steps.setvars.outputs.environment }}
 
   deploy:
     name: Deploy microservice
