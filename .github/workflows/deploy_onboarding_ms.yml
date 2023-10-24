@@ -29,6 +29,7 @@ jobs:
     name: Build onboarding microservice
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == 'true') }}
+    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}"
     outputs:
       environment: ${{ steps.setvars.outputs.environment }}
     permissions:
@@ -115,7 +116,7 @@ jobs:
           tenant_id: ${{ secrets.TENANT_ID }}
           subscription_id: ${{ secrets.SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
-          azure_environment: 'uat' # ${{ steps.setvars.outputs.environment }}
+          azure_environment: ${{ steps.setvars.outputs.environment }}
 
   deploy:
     name: Deploy microservice
