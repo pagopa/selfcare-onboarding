@@ -140,8 +140,8 @@ jobs:
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
         with:
           client_id: ${{ secrets.AZURE_CLIENT_ID_CD }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.TENANT_ID }}
+          subscription_id: ${{ secrets.SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
           azure_environment: ${{needs.build.outputs.environment}}
 
