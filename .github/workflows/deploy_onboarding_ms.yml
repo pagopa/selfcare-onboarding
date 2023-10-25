@@ -32,6 +32,7 @@ jobs:
     environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-ci"
     outputs:
       environment: ${{ steps.setvars.outputs.environment }}
+      short_sha: ${{ steps.vars.outputs.short_sha }}
     permissions:
       packages: write
       contents: write
@@ -100,6 +101,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=min
 
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "::set-output name=short_sha::$calculatedSha"
+
       - name: Set Terraform Version
         id: set-terraform-version
         run: |
@@ -118,7 +125,7 @@ jobs:
           dir: ${{ env.DIR }}
           azure_environment: ${{ steps.setvars.outputs.environment }}
         env:
-          TF_VAR_image_tag: $(git rev-parse --short ${{ github.sha }})
+          TF_VAR_image_tag: ${{ steps.vars.outputs.short_sha }}
 
       - name: 'Upload Terraform Plan as Artifact'
         uses: actions/upload-artifact@v3
@@ -172,9 +179,9 @@ jobs:
           tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
-          azure_environment: ${{needs.build.outputs.environment}}
+          azure_environment: ${{ needs.build.outputs.environment }}
         env:
-          TF_VAR_image_tag: $(git rev-parse --short ${{ github.sha }})
+          TF_VAR_image_tag: ${{ needs.build.outputs.short_sha }}
 
 # permissions:
 #   packages: write
