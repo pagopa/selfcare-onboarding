@@ -145,6 +145,15 @@ jobs:
           name: tfplan
           path: ${{ env.DIR }}
 
+      - name: Cache terraform modules
+        id: cache-terraform-modules
+        uses: actions/cache@6fd2d4538ca777f67fccddb233cf1a8ff1339012
+        with:
+          path: ${{ env.DIR }}/.terraform
+          key: terraform-${{ env.DIR }}-${{ github.sha }}
+          restore-keys: |
+            terraform-${{ env.DIR }}
+
       - name: Set Terraform Version
         id: set-terraform-version
         run: |
