@@ -25,7 +25,7 @@ container_app = {
     },
     {
       name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-      value = "'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*']}"
+      value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*']}"
     }
   ]
   cpu    = 0.5

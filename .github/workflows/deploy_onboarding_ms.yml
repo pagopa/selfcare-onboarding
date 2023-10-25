@@ -117,6 +117,8 @@ jobs:
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
           azure_environment: ${{ steps.setvars.outputs.environment }}
+        env:
+          TF_VAR_image_tag: ${{ github.sha }}
 
       - name: 'Upload Terraform Plan as Artifact'
         uses: actions/upload-artifact@v3
@@ -171,6 +173,8 @@ jobs:
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
           azure_environment: ${{needs.build.outputs.environment}}
+        env:
+          TF_VAR_image_tag: ${{ github.sha }}
 
 # permissions:
 #   packages: write

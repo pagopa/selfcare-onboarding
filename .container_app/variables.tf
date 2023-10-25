@@ -63,6 +63,11 @@ variable "container_app" {
   }
 }
 
+variable "image_tag" {
+  type = string
+  default = "latest"
+}
+
 variable "key_vault" {
   description = "KeyVault data to get secrets values from"
   type = object({
