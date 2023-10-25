@@ -5,9 +5,9 @@ on:
     branches:
       - develop
       - main
-    types: [ closed ]
+    types: [closed]
     paths:
-      - 'onboarding-ms/**'
+      - "onboarding-ms/**"
 
   workflow_dispatch:
     inputs:
@@ -39,7 +39,6 @@ jobs:
       id-token: write
 
     steps:
-
       # this workaround is necessary to pass the environment value to the next job
       # unexpectly, it can't read global env vars to set the environment and I don't
       # want to repeat that complex expression
@@ -49,6 +48,13 @@ jobs:
         run: |
           echo "environment=$ENV_NAME" >> $GITHUB_OUTPUT
 
+      # github doesn't provide a short sha anymore
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
@@ -57,7 +63,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 17
-          distribution: 'temurin'
+          distribution: "temurin"
 
       - name: Build project with Maven
         run: mvn -B package --file onboarding-ms/pom.xml
@@ -81,8 +87,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=sha
-          labels:
-            org.opencontainers.image.title=${{ github.repository }}
+          labels: org.opencontainers.image.title=${{ github.repository }}
             org.opencontainers.image.description=SelfCare onboarding microservice
             org.opencontainers.image.authors=PagoPA
             org.opencontainers.image.url=github.com/pagopa/${{ github.repository }}
@@ -100,12 +105,6 @@ jobs:
             GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=min
-
-      - name: Set short git commit SHA
-        id: vars
-        run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
-          echo "::set-output name=short_sha::$calculatedSha"
 
       - name: Set Terraform Version
         id: set-terraform-version
@@ -127,7 +126,7 @@ jobs:
         env:
           TF_VAR_image_tag: ${{ steps.vars.outputs.short_sha }}
 
-      - name: 'Upload Terraform Plan as Artifact'
+      - name: "Upload Terraform Plan as Artifact"
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
@@ -182,7 +181,6 @@ jobs:
           azure_environment: ${{ needs.build.outputs.environment }}
         env:
           TF_VAR_image_tag: ${{ needs.build.outputs.short_sha }}
-
 # permissions:
 #   packages: write
 #   contents: write
@@ -315,7 +313,6 @@ jobs:
 #           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_URL$', '${{ vars.ONBOARDING_FUNCTIONS_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 #           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 
-
 #       # Build and deploy the container app
 #       - name: Build and deploy Container App
 #         uses: azure/container-apps-deploy-action@v1
@@ -339,7 +336,7 @@ jobs:
 #       - uses: actions/checkout@v4
 #         with:
 #           ref: ${{ github.ref_name }}
-          
+
 #       # Log in to Azure CLI
 #       - name: Log in to Azure
 #         uses: azure/login@v1
@@ -361,7 +358,6 @@ jobs:
 #           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_API_KEY$', '${{ secrets.ONBOARDING_FUNCTIONS_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 #           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_URL$', '${{ vars.ONBOARDING_FUNCTIONS_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
 #           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-
 
 #       # Build and deploy the container app
 #       - name: Build and deploy Container App
