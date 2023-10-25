@@ -145,6 +145,15 @@ jobs:
           name: tfplan
           path: ${{ env.DIR }}
 
+      - name: Set Terraform Version
+        id: set-terraform-version
+        run: |
+          echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
+
       - name: Terraform apply
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
         with:
