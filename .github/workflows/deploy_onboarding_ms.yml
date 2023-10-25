@@ -118,11 +118,12 @@ jobs:
           dir: ${{ env.DIR }}
           azure_environment: ${{ steps.setvars.outputs.environment }}
 
-      - name: 'Upload Terraform Plan'
+      - name: 'Upload Terraform Plan as Artifact'
         uses: actions/upload-artifact@v3
         with:
-          name: t-plan
-          path: tfplan-${{ steps.setvars.outputs.environment }}-${{ github.sha }}
+          name: tfplan
+          path: ${{ env.DIR }}/tfplan-${{ steps.setvars.outputs.environment }}-${{ github.sha }}
+          if-no-files-found: error
           retention-days: 1
 
   deploy:
@@ -134,21 +135,14 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
+      # - uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ github.ref_name }}
 
       - name: Download a single artifact
         uses: actions/download-artifact@v3
         with:
-          name: t-plan
-
-      # - name: Log in to Azure
-      #   uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
-      #   with:
-      #     client-id: ${{ secrets.CLIENT_ID }}
-      #     tenant-id: ${{ secrets.TENANT_ID }}
-      #     subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          name: tfplan
 
       - name: Terraform apply
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
