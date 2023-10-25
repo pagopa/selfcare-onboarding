@@ -48,16 +48,16 @@ jobs:
         run: |
           echo "environment=$ENV_NAME" >> $GITHUB_OUTPUT
 
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
       # github doesn't provide a short sha anymore
       - name: Set short git commit SHA
         id: vars
         run: |
           calculatedSha=$(git rev-parse --short ${{ github.sha }})
           echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
