@@ -28,7 +28,6 @@ variable "tags" {
 variable "container_app" {
   description = "Container App configuration"
   type = object({
-    image_tag    = string
     min_replicas = number
     max_replicas = number
 
@@ -42,30 +41,19 @@ variable "container_app" {
 
     cpu    = number
     memory = string
-
-    app_settings = list(object({
-      name  = string
-      value = string
-    }))
   })
-
-  default = {
-    image_tag    = "latest"
-    min_replicas = 0
-    max_replicas = 1
-
-    scale_rules  = []
-    app_settings = []
-    env          = []
-
-    cpu    = 0.5
-    memory = "1Gi"
-  }
 }
 
 variable "image_tag" {
-  type = string
+  type    = string
   default = "latest"
+}
+
+variable "app_settings" {
+  type = list(object({
+    name  = string
+    value = string
+  }))
 }
 
 variable "key_vault" {

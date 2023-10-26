@@ -57,7 +57,7 @@ resource "azapi_resource" "container_app_onboarding" {
       template = {
         containers = [
           {
-            env   = concat(var.container_app.app_settings, local.secrets_env)
+            env   = concat(var.app_settings, local.secrets_env)
             image = "ghcr.io/pagopa/selfcare-onboarding:${var.image_tag}"
             name  = "${local.project}-${local.app_name}"
             resources = {

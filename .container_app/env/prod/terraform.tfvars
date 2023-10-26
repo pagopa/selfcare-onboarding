@@ -1,9 +1,9 @@
 prefix    = "selc"
-env_short = "d"
+env_short = "p"
 
 tags = {
   CreatedBy   = "Terraform"
-  Environment = "Dev"
+  Environment = "Prod"
   Owner       = "SelfCare"
   Source      = "https://github.com/pagopa/selfcare-onboarding"
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
@@ -11,10 +11,23 @@ tags = {
 
 container_app = {
   min_replicas = 0
-  max_replicas = 1
-  scale_rules  = []
-  cpu    = 0.5
-  memory = "1Gi"
+  max_replicas = 5
+  scale_rules  = [
+    {
+      custom = {
+        metadata = {
+          "desiredReplicas" = "3"
+          "start"           = "0 8 * * MON-FRI"
+          "end"             = "0 19 * * MON-FRI"
+          "timezone"        = "Europe/Rome"
+        }
+        type = "cron"
+      }
+      name = "cron-scale-rule"
+    }
+  ]
+  cpu    = 1.25
+  memory = "2.5Gi"
 }
 
 app_settings = [
@@ -24,7 +37,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-d-func.azurewebsites.net"
+    value = "https://selc-p-func.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -33,8 +46,8 @@ app_settings = [
 ]
 
 key_vault = {
-  resource_group_name = "selc-d-sec-rg"
-  name                = "selc-d-kv"
+  resource_group_name = "selc-p-sec-rg"
+  name                = "selc-p-kv"
   secrets_names = [
     "jwt-public-key",
     "mongodb-connection-string",
