@@ -8,6 +8,7 @@ on:
     types: [closed]
     paths:
       - "onboarding-ms/**"
+      - "pom.xml"
 
   workflow_dispatch:
     inputs:
@@ -31,42 +32,43 @@ jobs:
     if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == 'true') }}
     environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-ci"
     outputs:
-      environment: ${{ steps.setvars.outputs.environment }}
-      short_sha: ${{ steps.vars.outputs.short_sha }}
+      environment: ${{ steps.setenv.outputs.environment }}
+      short_sha: ${{ steps.setsha.outputs.short_sha }}
     permissions:
       packages: write
       contents: write
       id-token: write
 
     steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+        with:
+          ref: ${{ github.ref_name }}
+
       # this workaround is necessary to pass the environment value to the next job
-      # unexpectly, it can't read global env vars to set the environment and I don't
-      # want to repeat that complex expression
-      - name: Read current environment
-        id: setvars
+      # unexpectly, global env vars cannot be read to set the environment and I don't
+      # want to repeat that complex expression (already repeated twice)
+      - name: Read Environment
+        id: setenv
         shell: bash
         run: |
           echo "environment=$ENV_NAME" >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-
       # github doesn't provide a short sha anymore
       - name: Set short git commit SHA
-        id: vars
+        id: setsha
         run: |
           calculatedSha=$(git rev-parse --short ${{ github.sha }})
           echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: "temurin"
+      # - name: Set up JDK 17
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     java-version: 17
+      #     distribution: "temurin"
 
-      - name: Build project with Maven
-        run: mvn -B package --file onboarding-ms/pom.xml
+      # - name: Build project with Maven
+      #   run: mvn -B package --file onboarding-ms/pom.xml
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3.0.0
@@ -96,8 +98,8 @@ jobs:
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
-          context: ./onboarding-ms
-          file: ./onboarding-ms/src/main/docker/Dockerfile.jvm
+          context: .
+          file: ./onboarding-ms/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -112,25 +114,26 @@ jobs:
           echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
 
       - uses: hashicorp/setup-terraform@v2
+        name: Setup Terraform
         with:
           terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
 
-      - name: Terraform pre apply
+      - name: Terraform Plan
         uses: pagopa/terraform-preapply-azure-action@54ded8cda3437c3f6a9f46baf69cb321ce82f5cd
         with:
           client_id: ${{ secrets.AZURE_CLIENT_ID_CI }}
           tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
-          azure_environment: ${{ steps.setvars.outputs.environment }}
+          azure_environment: ${{ steps.setenv.outputs.environment }}
         env:
-          TF_VAR_image_tag: ${{ steps.vars.outputs.short_sha }}
+          TF_VAR_image_tag: ${{ steps.setsha.outputs.short_sha }}
 
       - name: "Upload Terraform Plan as Artifact"
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
-          path: ${{ env.DIR }}/tfplan-${{ steps.setvars.outputs.environment }}-${{ github.sha }}
+          path: ${{ env.DIR }}/tfplan-${{ steps.setenv.outputs.environment }}-${{ github.sha }}
           if-no-files-found: error
           retention-days: 1
 
@@ -144,16 +147,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        name: Checkout
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Download a single artifact
+      - name: Download Terraform Plan as Artifact
         uses: actions/download-artifact@v3
         with:
           name: tfplan
           path: ${{ env.DIR }}
 
-      - name: Cache terraform modules
+      - name: Retrieve Terraform Modules from Cache
         id: cache-terraform-modules
         uses: actions/cache@6fd2d4538ca777f67fccddb233cf1a8ff1339012
         with:
@@ -168,10 +172,11 @@ jobs:
           echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
 
       - uses: hashicorp/setup-terraform@v2
+        name: Setup Terraform
         with:
           terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
 
-      - name: Terraform apply
+      - name: Terraform Apply
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
         with:
           client_id: ${{ secrets.AZURE_CLIENT_ID_CD }}
@@ -181,190 +186,3 @@ jobs:
           azure_environment: ${{ needs.build.outputs.environment }}
         env:
           TF_VAR_image_tag: ${{ needs.build.outputs.short_sha }}
-# permissions:
-#   packages: write
-#   contents: write
-#   id-token: write
-#   issues: write
-#   deployments: write
-
-# jobs:
-#   setup:
-#     name: Setup
-#     # The type of runner that the job will run on
-#     runs-on: ubuntu-latest
-#     outputs:
-#       environment: ${{ steps.setvars.outputs.environment }}
-
-#     # Steps represent a sequence of tasks that will be executed as part of the job
-#     steps:
-#       - name: pull request rejected
-#         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged != true
-#         run: |
-#           echo "❌ PR was closed without a merge"
-#           exit 1
-
-#       - name: Set variables
-#         id: setvars
-#         run: |
-#           if [[ "${{inputs.environment}}" != null ]]
-#           then
-#             echo "environment=${{inputs.environment}}" >> $GITHUB_OUTPUT
-
-#           else
-#             if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
-#               echo "environment=prod" >> $GITHUB_OUTPUT
-#             fi
-
-#             if [[ "${{github.base_ref}}" == "develop" || "${{github.ref}}" == "refs/heads/develop" ]]; then
-#               echo "environment=uat" >> $GITHUB_OUTPUT
-#             fi
-#           fi
-
-#   image:
-#     needs: [ setup ]
-#     name: Build and Push Docker Image
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#         with:
-#           ref: ${{ github.ref_name }}
-
-#       - name: Set up JDK 17
-#         uses: actions/setup-java@v3
-#         with:
-#           java-version: 17
-#           distribution: 'temurin'
-
-#       - name: Build project with Maven
-#         run: mvn -B package --file onboarding-ms/pom.xml
-
-#       - name: Setup Docker buildx
-#         uses: docker/setup-buildx-action@v3.0.0
-
-#       - name: Login to GitHub Container Registry
-#         uses: docker/login-action@v3
-#         with:
-#           registry: ghcr.io
-#           username: ${{ github.actor }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
-
-#       - name: Docker meta
-#         id: meta
-#         uses: docker/metadata-action@v4.3.0
-#         with:
-#           images: ghcr.io/${{ github.repository }}
-#           tags: |
-#             type=raw,value=latest,enable={{is_default_branch}}
-#             type=ref,event=branch
-#             type=sha
-#           labels:
-#             org.opencontainers.image.title=${{ github.repository }}
-#             org.opencontainers.image.description=SelfCare onboarding microservice
-#             org.opencontainers.image.authors=PagoPA
-#             org.opencontainers.image.url=github.com/pagopa/${{ github.repository }}
-#             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-
-#       - name: Build and push
-#         uses: docker/build-push-action@v5
-#         with:
-#           context: ./onboarding-ms
-#           file: ./onboarding-ms/src/main/docker/Dockerfile.jvm
-#           push: true
-#           tags: ${{ steps.meta.outputs.tags }}
-#           labels: ${{ steps.meta.outputs.labels }}
-#           secrets: |
-#             GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
-#           cache-from: type=gha
-#           cache-to: type=gha,mode=min
-
-#   deploy:
-#     name: Deploy to container app
-#     runs-on: ubuntu-latest
-#     needs: [setup,image]
-#     environment: ${{needs.setup.outputs.environment}}
-
-#     env:
-#       YAML_FILE_PATH: '${{ github.workspace }}/onboarding-ms/deploy-image-container-app.yaml'
-
-#     steps:
-#       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-#         with:
-#           ref: ${{ github.ref_name }}
-#       # Log in to Azure CLI
-#       - name: Log in to Azure
-#         uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
-#         with:
-#           client-id: ${{ secrets.CLIENT_ID }}
-#           tenant-id: ${{ secrets.TENANT_ID }}
-#           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-
-#       - name: Update values in YAML configuration file
-#         shell: pwsh
-#         run: |
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$SUBSCRIPTION_ID$', '${{ secrets.SUBSCRIPTION_ID }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$RESOURCE_GROUP$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$CONTAINER_APP_ENV$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$JWT_PUBLIC_KEY$', '${{ secrets.JWT_PUBLIC_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$MONGODB_CONNECTION_URI$', '${{ secrets.MONGODB_CONNECTION_URI }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_API_KEY$', '${{ secrets.USER_REGISTRY_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_URL$', '${{ vars.USER_REGISTRY_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_API_KEY$', '${{ secrets.ONBOARDING_FUNCTIONS_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_URL$', '${{ vars.ONBOARDING_FUNCTIONS_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-
-#       # Build and deploy the container app
-#       - name: Build and deploy Container App
-#         uses: azure/container-apps-deploy-action@v1
-#         with:
-#           containerAppName: selc-onboarding-ms
-#           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
-#           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
-#           yamlConfigPath: ${{ env.YAML_FILE_PATH }}
-
-#   deploy_dev:
-#     name: Deploy to container app DEV
-#     runs-on: ubuntu-latest
-#     needs: [setup,image]
-#     if: "${{ needs.setup.outputs.environment }} == 'uat' "
-#     environment: dev
-
-#     env:
-#       YAML_FILE_PATH: '${{ github.workspace }}/onboarding-ms/deploy-image-container-app.yaml'
-
-#     steps:
-#       - uses: actions/checkout@v4
-#         with:
-#           ref: ${{ github.ref_name }}
-
-#       # Log in to Azure CLI
-#       - name: Log in to Azure
-#         uses: azure/login@v1
-#         with:
-#           client-id: ${{ secrets.CLIENT_ID }}
-#           tenant-id: ${{ secrets.TENANT_ID }}
-#           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-
-#       - name: Update values in YAML configuration file
-#         shell: pwsh
-#         run: |
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$SUBSCRIPTION_ID$', '${{ secrets.SUBSCRIPTION_ID }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$RESOURCE_GROUP$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$CONTAINER_APP_ENV$', '${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$JWT_PUBLIC_KEY$', '${{ secrets.JWT_PUBLIC_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$MONGODB_CONNECTION_URI$', '${{ secrets.MONGODB_CONNECTION_URI }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_API_KEY$', '${{ secrets.USER_REGISTRY_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$USER_REGISTRY_URL$', '${{ vars.USER_REGISTRY_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_API_KEY$', '${{ secrets.ONBOARDING_FUNCTIONS_API_KEY }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_FUNCTIONS_URL$', '${{ vars.ONBOARDING_FUNCTIONS_URL }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-#           (Get-Content ${{ env.YAML_FILE_PATH }}).Replace('$ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS$', '${{ vars.ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS }}') | Set-Content ${{ env.YAML_FILE_PATH }}
-
-#       # Build and deploy the container app
-#       - name: Build and deploy Container App
-#         uses: azure/container-apps-deploy-action@v1
-#         with:
-#           containerAppName: selc-onboarding-ms
-#           containerAppEnvironment: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_NAME }}
-#           resourceGroup: ${{ vars.CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME }}
-#           yamlConfigPath: ${{ env.YAML_FILE_PATH }}
-
