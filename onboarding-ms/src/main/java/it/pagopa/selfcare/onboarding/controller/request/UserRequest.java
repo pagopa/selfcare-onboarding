@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import it.pagopa.selfcare.commons.base.security.PartyRole;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,11 +1,9 @@
 package it.pagopa.selfcare.product.entity;
 
-
-import it.pagopa.selfcare.commons.base.security.PartyRole;
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.Map;
 
 public class Product {
@@ -22,7 +20,7 @@ public class Product {
     private String createdBy;
     private Instant modifiedAt;
     private String modifiedBy;
-    private EnumMap<PartyRole, ProductRoleInfo> roleMappings;
+    private Map<PartyRole, ProductRoleInfo> roleMappings;
     private String roleManagementURL;
     private Instant contractTemplateUpdatedAt;
     private String contractTemplatePath;
@@ -132,11 +130,11 @@ public class Product {
         this.modifiedBy = modifiedBy;
     }
 
-    public EnumMap<PartyRole, ProductRoleInfo> getRoleMappings() {
+    public Map<PartyRole, ProductRoleInfo> getRoleMappings() {
         return roleMappings;
     }
 
-    public void setRoleMappings(EnumMap<PartyRole, ProductRoleInfo> roleMappings) {
+    public void setRoleMappings(Map<PartyRole, ProductRoleInfo> roleMappings) {
         this.roleMappings = roleMappings;
     }
 

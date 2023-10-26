@@ -3,8 +3,8 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.commons.base.security.PartyRole;
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -29,7 +29,6 @@ import org.openapi.quarkus.product_json.model.ProductRoleInfoOperations;
 import org.openapi.quarkus.product_json.model.ProductRoleInfoRes;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-import org.springframework.util.Assert;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -163,14 +162,15 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private void validateProductRole(List<User> users, Map<String, ProductRoleInfoOperations> roleMappings) {
         try {
-            Assert.notNull(roleMappings, "Role mappings is required");
+            if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
+                throw new IllegalArgumentException("Role mappings is required");
             users.forEach(userInfo -> {
-                Assert.notNull(roleMappings.get(userInfo.getRole().name()),
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                Assert.notEmpty(roleMappings.get(userInfo.getRole().name()).getRoles(),
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                Assert.state(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1,
-                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+                if(Objects.isNull(roleMappings.get(userInfo.getRole().name())))
+                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                if(Objects.isNull((roleMappings.get(userInfo.getRole().name()).getRoles())))
+                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1)
+                    throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
                 userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
             });
         } catch (IllegalArgumentException e){
@@ -180,14 +180,15 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private void validateProductRoleRes(List<User> users, Map<String, ProductRoleInfoRes> roleMappings) {
         try {
-            Assert.notNull(roleMappings, "Role mappings is required");
+            if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
+                throw new IllegalArgumentException("Role mappings is required");
             users.forEach(userInfo -> {
-                Assert.notNull(roleMappings.get(userInfo.getRole().name()),
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                Assert.notEmpty(roleMappings.get(userInfo.getRole().name()).getRoles(),
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                Assert.state(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1,
-                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+                if(Objects.isNull(roleMappings.get(userInfo.getRole().name())))
+                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                if(Objects.isNull((roleMappings.get(userInfo.getRole().name()).getRoles())))
+                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1)
+                    throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
                 userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
             });
         } catch (IllegalArgumentException e){

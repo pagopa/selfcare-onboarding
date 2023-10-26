@@ -1,13 +1,12 @@
 package it.pagopa.selfcare.onboarding.utils;
 
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -119,7 +118,7 @@ public class PdfMapper {
 
 
     private static void addPricingPlan(String pricingPlan, Map<String, Object> map) {
-        if (StringUtils.hasText(pricingPlan) && Arrays.stream(PLAN_LIST).anyMatch(s -> s.equalsIgnoreCase(pricingPlan))) {
+        if (Objects.nonNull(pricingPlan) && Arrays.stream(PLAN_LIST).anyMatch(s -> s.equalsIgnoreCase(pricingPlan))) {
             map.put("pricingPlanPremium", pricingPlan.replace("C", ""));
             map.put("pricingPlanPremiumCheckbox", "X");
         } else {
@@ -129,7 +128,7 @@ public class PdfMapper {
 
         map.put("pricingPlanPremiumBase", Optional.ofNullable(pricingPlan).orElse(""));
 
-        if (StringUtils.hasText(pricingPlan) && "C0".equalsIgnoreCase(pricingPlan)) {
+        if (Objects.nonNull(pricingPlan) && "C0".equalsIgnoreCase(pricingPlan)) {
             map.put("pricingPlanPremiumBaseCheckbox", "X");
         } else {
             map.put("pricingPlanPremiumBaseCheckbox", "");
@@ -138,7 +137,7 @@ public class PdfMapper {
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {
         if (institution.getPaymentServiceProvider() != null
-                && StringUtils.hasText(institution.getPaymentServiceProvider().getBusinessRegisterNumber())) {
+                && Objects.nonNull(institution.getPaymentServiceProvider().getBusinessRegisterNumber())) {
             map.put("number", institution.getPaymentServiceProvider().getBusinessRegisterNumber());
             map.put("institutionRegisterLabelValue", "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n");
         } else {

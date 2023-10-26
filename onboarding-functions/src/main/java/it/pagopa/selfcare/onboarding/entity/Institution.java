@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 
 import java.util.List;

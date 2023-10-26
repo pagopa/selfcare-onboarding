@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

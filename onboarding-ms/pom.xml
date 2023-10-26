@@ -111,6 +111,7 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-context-propagation</artifactId>
     </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-panache-mock</artifactId>
@@ -126,6 +127,11 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-common</artifactId>
+      <version>0.0.1</version>
     </dependency>
   </dependencies>
   <build>
