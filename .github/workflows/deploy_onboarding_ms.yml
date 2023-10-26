@@ -23,6 +23,11 @@ on:
 
 env:
   DIR: "./.container_app"
+  # This condition (that unfortunately must be replicated for the first job)
+  # sets the environment depending on the current context for manually
+  # started workflows, it picks up the value coming from the UI; otherwise,
+  # it sets prod or uat depending on the current branch.
+  # Ternary operator is not supported
   ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}"
 
 jobs:
