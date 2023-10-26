@@ -34,7 +34,9 @@ jobs:
           cache: maven
 
       - name: Set patch 
-        run: mvn -pl onboarding-sdk build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}
+        run: |
+          mvn build-helper:parse-version versions:set -pl onboarding-sdk -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
+          mvn versions:commit -f onboarding-sdk/pom.xml
         shell: bash
 
       - name: Get Version
@@ -47,10 +49,10 @@ jobs:
         shell: bash
         run: |
           echo "${VERSION}"
-          git ls-files . | grep 'pom.xml'  | xargs git add
+          git ls-files ./onboarding-sdk | grep 'pom.xml'  | xargs git add
           git config --global user.email "github-bot@pagopa.it"
           git config --global user.name "pagopa-github-bot"
-          git commit -m "Bump to version ${VERSION}" || exit 0
+          git commit -m "Bump onboarding SDK to version ${VERSION}" || exit 0
           git push origin ${{ github.ref_name}}
 
       - name: Build with Maven
