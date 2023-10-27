@@ -22,6 +22,7 @@
     <quarkus.platform.version>3.4.2</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
+    <onboarding-sdk.version>0.0.4</onboarding-sdk.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -131,7 +132,7 @@
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-common</artifactId>
-      <version>0.0.1</version>
+      <version>${onboarding-sdk.version}</version>
     </dependency>
   </dependencies>
   <build>
