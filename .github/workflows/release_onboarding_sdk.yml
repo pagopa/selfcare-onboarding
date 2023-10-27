@@ -56,12 +56,12 @@ jobs:
           git push origin ${{ github.ref_name}}
 
       - name: Build with Maven
-        run: mvn -B -pl onboarding-sdk package
+        run: mvn -B package -f onboarding-sdk/pom.xml
         shell: bash
 
       - name: Deploy to GitHub Package Registry
         run: |
-          mvn -B -pl onboarding-sdk deploy
+          mvn -B deploy -f onboarding-sdk/pom.xml
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
