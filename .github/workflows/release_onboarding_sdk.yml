@@ -50,8 +50,8 @@ jobs:
         run: |
           echo "${VERSION}"
           git ls-files ./onboarding-sdk | grep 'pom.xml'  | xargs git add
-          git config --global user.email "github-bot@pagopa.it"
-          git config --global user.name "pagopa-github-bot"
+          git config --global user.email "selfcare-github-bot@pagopa.it"
+          git config --global user.name "selfcare-github-bot"
           git commit -m "Bump onboarding SDK to version ${VERSION}" || exit 0
           git push origin ${{ github.ref_name}}
 
