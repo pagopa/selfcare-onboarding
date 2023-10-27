@@ -41,7 +41,7 @@ jobs:
 
       - name: Get Version
         run: |
-          echo "VERSION=$(mvn -pl onboarding-sdk help:evaluate -Dexpression=project.version -q -DforceStdout)"
+          echo "VERSION=$(mvn -pl onboarding-sdk help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
           echo "🆙 Bump Version to ${VERSION}"
         shell: bash
 
@@ -61,7 +61,7 @@ jobs:
 
       - name: Deploy to GitHub Package Registry
         run: |
-          mvn -B -pl onboarding-sdk deploy "
+          mvn -B -pl onboarding-sdk deploy
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
