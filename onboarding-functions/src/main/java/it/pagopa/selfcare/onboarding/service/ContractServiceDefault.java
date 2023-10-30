@@ -1,11 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.openhtmltopdf.extend.FSStream;
-import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;

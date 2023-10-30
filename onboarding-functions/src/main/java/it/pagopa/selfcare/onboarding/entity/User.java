@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-import it.pagopa.selfcare.commons.base.security.PartyRole;
 
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 
 public class User {
 

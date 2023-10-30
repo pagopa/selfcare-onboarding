@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-import it.pagopa.selfcare.commons.base.security.PartyRole;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -17,25 +17,17 @@
         <module>onboarding-sdk</module>
     </modules>
 
-    <properties>
-        <selc-commons.version>2.4.7</selc-commons.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>selc-commons-base</artifactId>
-            <version>${selc-commons.version}</version>
-        </dependency>
-    </dependencies>
-
-
     <repositories>
         <repository>
             <id>selfcare-platform</id>
             <url>
                 https://pkgs.dev.azure.com/pagopaspa/selfcare-platform-app-projects/_packaging/selfcare-platform/maven/v1
             </url>
+        </repository>
+        <repository>
+            <id>selfcare-github</id>
+            <name>Selfcare Onboarding SDK</name>
+            <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
         </repository>
     </repositories>
 
