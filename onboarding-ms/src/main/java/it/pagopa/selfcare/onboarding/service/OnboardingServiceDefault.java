@@ -169,7 +169,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
                 if(Objects.isNull((roleMappings.get(userInfo.getRole().name()).getRoles())))
                     throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1)
+                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() != 1)
                     throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
                 userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
             });
@@ -187,7 +187,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
                 if(Objects.isNull((roleMappings.get(userInfo.getRole().name()).getRoles())))
                     throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() == 1)
+                if(roleMappings.get(userInfo.getRole().name()).getRoles().size() != 1)
                     throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
                 userInfo.setProductRole(roleMappings.get(userInfo.getRole().name()).getRoles().get(0).getCode());
             });
