@@ -6,7 +6,7 @@ on:
       - develop
     types: [ closed ]
     paths:
-      - 'onboarding-sdk/**'
+      - 'onboarding-sdk/**/src/**'
 
   workflow_dispatch:
 
