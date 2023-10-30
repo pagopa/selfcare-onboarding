@@ -4,7 +4,7 @@
     <parent>
         <groupId>it.pagopa.selfcare</groupId>
         <artifactId>onboarding-sdk</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.4</version>
     </parent>
     <artifactId>onboarding-sdk-common</artifactId>
     <name>onboarding-sdk-common</name>

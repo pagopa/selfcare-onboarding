@@ -1,0 +1,65 @@
+name: Release onboarding sdk
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [ closed ]
+    paths:
+      - 'onboarding-sdk/**/src/**'
+
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  setup:
+    name: Release
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: maven
+
+      - name: Set patch 
+        run: |
+          mvn build-helper:parse-version versions:set -pl onboarding-sdk -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
+          mvn versions:commit -f onboarding-sdk/pom.xml
+        shell: bash
+
+      - name: Get Version
+        run: |
+          echo "VERSION=$(mvn -pl onboarding-sdk help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "🆙 Bump Version to ${VERSION}"
+        shell: bash
+
+      - name: Push New Version
+        shell: bash
+        run: |
+          echo "${VERSION}"
+          git ls-files ./onboarding-sdk | grep 'pom.xml'  | xargs git add
+          git config --global user.email "selfcare-github-bot@pagopa.it"
+          git config --global user.name "selfcare-github-bot"
+          git commit -m "Bump onboarding SDK to version ${VERSION}" || exit 0
+          git push origin ${{ github.ref_name}}
+
+      - name: Build with Maven
+        run: mvn -B package -f onboarding-sdk/pom.xml
+        shell: bash
+
+      - name: Deploy to GitHub Package Registry
+        run: |
+          mvn -B deploy -f onboarding-sdk/pom.xml
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
