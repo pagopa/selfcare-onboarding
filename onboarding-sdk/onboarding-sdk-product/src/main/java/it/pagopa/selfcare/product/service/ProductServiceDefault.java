@@ -6,27 +6,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import it.pagopa.selfcare.commons.base.security.PartyRole;
-import it.pagopa.selfcare.commons.base.utils.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.entity.ProductStatus;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Service
 public class ProductServiceDefault implements ProductService {
-
-
-    private static final Logger log = LoggerFactory.getLogger(ProductServiceDefault.class);
 
     protected static final String REQUIRED_PRODUCT_ID_MESSAGE = "A product id is required";
 
@@ -55,44 +47,41 @@ public class ProductServiceDefault implements ProductService {
 
     @Override
     public List<Product> getProducts(boolean rootOnly) {
-        log.trace("getProducts start");
-        List<Product> products = rootOnly
+
+        return rootOnly
             ? productsMap.values().stream()
                 .filter(product -> Objects.nonNull(product.getParentId()))
                 .collect(Collectors.toList())
             :  productsMap.values().stream()
                 .filter(product -> !ProductStatus.INACTIVE.equals(product.getStatus()))
                 .collect(Collectors.toList());
-
-        log.debug("getProducts result = {}", products);
-        log.trace("getProducts end");
-        return products;
     }
 
 
     @Override
-    public void validateRoleMappings(EnumMap<PartyRole, ? extends ProductRoleInfo> roleMappings) {
-        log.trace("validateRoleMappings start");
-        log.debug("validateRoleMappings roleMappings = {}", roleMappings);
-        Assert.notEmpty(roleMappings, "A product role mappings is required");
+    public void validateRoleMappings(Map<PartyRole, ? extends ProductRoleInfo> roleMappings) {
+
+        if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
+            throw new IllegalArgumentException("A product role mappings is required");
         roleMappings.forEach((partyRole, productRoleInfo) -> {
-            Assert.notNull(productRoleInfo, "A product role info is required");
-            Assert.notEmpty(productRoleInfo.getRoles(), "At least one Product role are required");
+            if(Objects.isNull(productRoleInfo))
+                throw new IllegalArgumentException("A product role info is required");
+            if(Objects.isNull(productRoleInfo.getRoles()) || productRoleInfo.getRoles().isEmpty())
+                throw new IllegalArgumentException("At least one Product role are required");
             if (productRoleInfo.getRoles().size() > 1 && !PartyRole.OPERATOR.equals(partyRole)) {
                 throw new InvalidRoleMappingException(String.format("Only '%s' Party-role can have more than one Product-role, %s",
                         PartyRole.OPERATOR.name(),
                         String.format("partyRole = %s => productRoleInfo = %s", partyRole, productRoleInfo)));
             }
         });
-        log.trace("validateRoleMappings end");
     }
 
 
     @Override
     public Product getProduct(String id, InstitutionType institutionType) {
-        log.trace("getProduct start");
-        log.debug("getProduct id = {}", id);
-        Assert.hasText(id, REQUIRED_PRODUCT_ID_MESSAGE);
+
+       if(Objects.isNull(id))
+           throw new IllegalArgumentException(REQUIRED_PRODUCT_ID_MESSAGE);
         Product foundProduct = Optional.ofNullable(productsMap.get(id)).orElseThrow(ProductNotFoundException::new);
         if (foundProduct.getStatus() == ProductStatus.INACTIVE) {
             throw new ProductNotFoundException();
@@ -101,16 +90,13 @@ public class ProductServiceDefault implements ProductService {
             foundProduct.setContractTemplatePath(foundProduct.getInstitutionContractMappings().get(institutionType).getContractTemplatePath());
             foundProduct.setContractTemplateVersion(foundProduct.getInstitutionContractMappings().get(institutionType).getContractTemplateVersion());
         }
-        log.debug("getProduct result = {}", foundProduct);
-        log.trace("getProduct end");
         return foundProduct;
     }
 
     @Override
     public Product getProductIsValid(String id) {
-        log.trace("getProduct start");
-        log.debug("getProduct id = {}", id);
-        Assert.hasText(id, REQUIRED_PRODUCT_ID_MESSAGE);
+        if(Objects.isNull(id))
+            throw new IllegalArgumentException(REQUIRED_PRODUCT_ID_MESSAGE);
         Product foundProduct = Optional.ofNullable(productsMap.get(id)).orElseThrow(ProductNotFoundException::new);
         Product baseProduct = null;
         if (foundProduct.getParentId() != null) {
@@ -125,9 +111,6 @@ public class ProductServiceDefault implements ProductService {
             return foundProduct;
         }
 
-        log.debug("getProduct result = {}", foundProduct);
-        log.debug("getBaseProduct result = {}", baseProduct);
-        log.trace("getProduct end");
         return null;
     }
 

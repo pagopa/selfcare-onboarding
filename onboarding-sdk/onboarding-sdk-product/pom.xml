@@ -21,6 +21,13 @@
             <version>${jackson.version}</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-common</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+
     </dependencies>
 
 </project>

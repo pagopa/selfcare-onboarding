@@ -1,8 +1,7 @@
 package it.pagopa.selfcare.onboarding.common;
 
-import org.springframework.util.StringUtils;
-
 import java.util.Arrays;
+import java.util.Objects;
 
 public enum Origin {
     MOCK("MOCK"),
@@ -30,7 +29,7 @@ public enum Origin {
 
 
     public static Origin fromValue(String value) {
-        if(StringUtils.hasText(value)) {
+        if(Objects.nonNull(value)) {
             return Arrays.stream(values())
                     .filter(origin -> origin.toString().equals(value))
                     .findAny()

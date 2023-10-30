@@ -22,6 +22,7 @@
     <quarkus.platform.version>3.4.2</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
+    <onboarding-sdk.version>0.0.4</onboarding-sdk.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -111,6 +112,7 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-context-propagation</artifactId>
     </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-panache-mock</artifactId>
@@ -126,6 +128,11 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-common</artifactId>
+      <version>${onboarding-sdk.version}</version>
     </dependency>
   </dependencies>
   <build>
