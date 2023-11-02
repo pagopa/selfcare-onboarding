@@ -22,7 +22,7 @@ on:
           - prod
 
 env:
-  DIR: "./.container_app"
+  DIR: "./.container_apps/onboarding-ms"
   # This condition (that unfortunately must be replicated for the first job)
   # sets the environment depending on the current context for manually
   # started workflows, it picks up the value coming from the UI; otherwise,
@@ -80,12 +80,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4.3.0
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}-ms
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=sha
-          labels: org.opencontainers.image.title=${{ github.repository }}
+          labels:
+            org.opencontainers.image.title=${{ github.repository }}-ms
             org.opencontainers.image.description=SelfCare onboarding microservice
             org.opencontainers.image.authors=PagoPA
             org.opencontainers.image.url=github.com/pagopa/${{ github.repository }}

@@ -22,7 +22,7 @@ data "azurerm_container_app_environment" "container_app_environment" {
   name                = "${local.project}-cae"
 }
 
-resource "azapi_resource" "container_app_onboarding" {
+resource "azapi_resource" "container_app" {
   type      = "Microsoft.App/containerApps@2023-05-01"
   name      = "${local.project}-${local.app_name}-ca"
   location  = data.azurerm_resource_group.resource_group_app.location
@@ -46,7 +46,6 @@ resource "azapi_resource" "container_app_onboarding" {
               latestRevision = true
               label          = "latest"
               weight         = 100
-
             }
           ]
           targetPort = 8080
@@ -58,7 +57,7 @@ resource "azapi_resource" "container_app_onboarding" {
         containers = [
           {
             env   = concat(var.app_settings, local.secrets_env)
-            image = "ghcr.io/pagopa/selfcare-onboarding:${var.image_tag}"
+            image = "ghcr.io/pagopa/selfcare-onboarding-ms:${var.image_tag}"
             name  = "${local.project}-${local.app_name}"
             resources = {
               cpu    = var.container_app.cpu
