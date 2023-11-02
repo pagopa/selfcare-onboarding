@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+
+  onboarding-ms:
+    image: onboarding-ms:latest
+    container_name: onboarding-ms
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./onboarding-ms/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_TOKEN_PUBLIC_KEY=asdf
