@@ -12,6 +12,8 @@ on:
       - reopened
     paths:
       - 'onboarding-ms/**'
+  
+  workflow_dispatch:
 
 jobs:
 
