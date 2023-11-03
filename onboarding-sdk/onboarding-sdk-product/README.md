@@ -2,6 +2,10 @@
 
 This library has been developed to provide a set of Java utility classes to simplify the work of handle **Selfcare Product** as string.
 
+Selfcare Products is a collection of PagoPA products available for use by institutions. Each product contains specific information, such as its status, admitted role, or a filepath template for building contract necessary for selfcare business logic. 
+
+The Onboarding SDK Product offers a set of classes designed for managing this collection of records using a file.
+
 ## Installation
 
 To use this library in your projects, you can add the dependency to your pom.xml if you're using Maven:
@@ -23,117 +27,7 @@ dependencies {
 ```
 ## Product JSON Schema
 
-Product string which are used by ProductService must follow a specific schema: 
-
-```
-{
-  "type" : "record",
-  "name" : "Product",
-  "namespace" : "it.pagopa.selfcare.product.entity",
-  "fields" : [ {
-    "name" : "id",
-    "type" : [ "string" ]
-  }, {
-    "name" : "logo",
-    "type" : [ "string" ]
-  }, {
-    "name" : "depictImageUrl",
-    "type" : [ "string" ]
-  }, {
-    "name" : "title",
-    "type" : [ "string" ]
-  }, {
-    "name" : "logoBgColor",
-    "type" : [ "string" ]
-  }, {
-    "name" : "description",
-    "type" : [ "string" ]
-  }, {
-    "name" : "urlPublic",
-    "type" : [ "string" ]
-  }, {
-    "name" : "urlBO",
-    "type" : [ "string" ]
-  }, {
-    "name" : "createdAt",
-    "type" : [ "string" ]
-  }, {
-    "name" : "createdBy",
-    "type" : [ "string" ]
-  }, {
-    "name" : "modifiedAt",
-    "type" : [ "string" ]
-  }, {
-    "name" : "modifiedBy",
-    "type" : [ "string" ]
-  }, {
-    "name" : "roleManagementURL",
-    "type" : [ "null", "string" ]
-  }, {
-    "name" : "contractTemplateUpdatedAt",
-    "type" : [ "string" ]
-  }, {
-    "name" : "contractTemplatePath",
-    "type" : [ "string" ]
-  }, {
-    "name" : "contractTemplateVersion",
-    "type" : [ "string" ]
-  }, {
-    "name" : "institutionContractMappings",
-    "type" : [ "null", {
-      "type" : "map",
-      "values" : {
-        "type" : "record",
-        "name" : "ContractStorage",
-        "fields" : [ {
-          "name" : "contractTemplateUpdatedAt",
-          "type" : [ "null", "string" ]
-        }, {
-          "name" : "contractTemplatePath",
-          "type" : [ "null", "string" ]
-        }, {
-          "name" : "contractTemplateVersion",
-          "type" : [ "null", "string" ]
-        } ]
-      }
-    } ]
-  }, {
-    "name" : "enabled",
-    "type" : "boolean"
-  }, {
-    "name" : "delegable",
-    "type" : ["null","boolean"]
-  }, {
-    "name" : "status",
-    "type" : [ "string" ]
-  }, {
-    "name" : "parentId",
-    "type" : [ "null", "string" ]
-  }, {
-    "name" : "identityTokenAudience",
-    "type" : [ "string" ]
-  }, {
-    "name" : "backOfficeEnvironmentConfigurations",
-    "type" : [ "null", {
-      "type" : "map",
-      "values" : {
-        "type" : "record",
-        "name" : "BackOfficeConfigurations",
-        "fields" : [ {
-          "name" : "url",
-          "type" : [ "null", "string" ]
-        }, {
-          "name" : "identityTokenAudience",
-          "type" : [ "null", "string" ]
-        } ]
-      }
-    } ]
-  }, {
-    "name" : "parent",
-    "type" : [ "null", "Product" ]
-  } ]
-}
-```
+Product string which are used by ProductService must follow a specific schema, look at src/main/schema folder.
 
 ## Usage
 

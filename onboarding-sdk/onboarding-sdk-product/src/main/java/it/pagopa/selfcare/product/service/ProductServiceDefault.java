@@ -31,33 +31,45 @@ public class ProductServiceDefault implements ProductService {
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        List<Product> productList = mapper.readValue(productString, new TypeReference<List<Product>>(){});
-        if(Objects.isNull(productList) || productList.isEmpty()) throw new ProductNotFoundException("json string is empty!");
-        this.productsMap = productList.stream()
-                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        this.productsMap = constructProductsMap(productString, mapper);
     }
 
     public ProductServiceDefault(String productString, ObjectMapper mapper) throws JsonProcessingException {
+        this.productsMap = constructProductsMap(productString, mapper);
+    }
 
+    private Map<String, Product> constructProductsMap(String productString, ObjectMapper mapper) throws JsonProcessingException {
         List<Product> productList = mapper.readValue(productString, new TypeReference<List<Product>>(){});
         if(Objects.isNull(productList) || productList.isEmpty()) throw new ProductNotFoundException("json string is empty!");
-        this.productsMap = productList.stream()
+        return productList.stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
     }
 
+    /**
+     * Returns the list of PagoPA products tree which are not INACTIVE
+     * @param rootOnly if true only product that has parent is null are returned
+     * @return List of PagoPA products
+     */
     @Override
-    public List<Product> getProducts(boolean rootOnly) {
+    public List<Product> getProducts(boolean rootOnly, boolean valid) {
 
         return rootOnly
             ? productsMap.values().stream()
-                .filter(product -> Objects.nonNull(product.getParentId()))
+                .filter(product -> Objects.isNull(product.getParentId()))
+                .filter(product -> !valid || !statusIsNotValid(product.getStatus()))
                 .collect(Collectors.toList())
-            :  productsMap.values().stream()
-                .filter(product -> !ProductStatus.INACTIVE.equals(product.getStatus()))
+            : productsMap.values().stream()
+                .filter(product -> !valid || !statusIsNotValid(product.getStatus()))
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * Utility method for validating role mappings that contains associations between Selfcare role and Product role.
+     * Each Selfcare role must be only one Product role except OPERATOR.
+     * @param roleMappings
+     * @throws IllegalArgumentException roleMappings is null or empty
+     * @throws InvalidRoleMappingException Selfcare role have more than one Product role
+     */
     @Override
     public void validateRoleMappings(Map<PartyRole, ? extends ProductRoleInfo> roleMappings) {
 
@@ -76,42 +88,74 @@ public class ProductServiceDefault implements ProductService {
         });
     }
 
-
+    /**
+     * Return a product by productId without any filter
+     * retrieving data from institutionContractMappings map
+     * @param productId
+     * @return Product
+     * @throws IllegalArgumentException if @param id is null
+     * @throws ProductNotFoundException if product is not found
+     *
+     */
     @Override
-    public Product getProduct(String id, InstitutionType institutionType) {
-
-       if(Objects.isNull(id))
-           throw new IllegalArgumentException(REQUIRED_PRODUCT_ID_MESSAGE);
-        Product foundProduct = Optional.ofNullable(productsMap.get(id)).orElseThrow(ProductNotFoundException::new);
-        if (foundProduct.getStatus() == ProductStatus.INACTIVE) {
-            throw new ProductNotFoundException();
-        }
-        if (institutionType != null && foundProduct.getInstitutionContractMappings() != null && foundProduct.getInstitutionContractMappings().containsKey(institutionType)) {
-            foundProduct.setContractTemplatePath(foundProduct.getInstitutionContractMappings().get(institutionType).getContractTemplatePath());
-            foundProduct.setContractTemplateVersion(foundProduct.getInstitutionContractMappings().get(institutionType).getContractTemplateVersion());
-        }
-        return foundProduct;
+    public Product getProduct(String productId) {
+        return getProduct(productId, false);
     }
 
-    @Override
-    public Product getProductIsValid(String id) {
-        if(Objects.isNull(id))
+    private Product getProduct(String productId, boolean filterValid) {
+
+        if(Objects.isNull(productId)) {
             throw new IllegalArgumentException(REQUIRED_PRODUCT_ID_MESSAGE);
-        Product foundProduct = Optional.ofNullable(productsMap.get(id)).orElseThrow(ProductNotFoundException::new);
-        Product baseProduct = null;
-        if (foundProduct.getParentId() != null) {
-            baseProduct = Optional.ofNullable(productsMap.get(id)).orElseThrow(ProductNotFoundException::new);
-            if (baseProduct.getStatus() == ProductStatus.PHASE_OUT) {
-                return null;
-            } else if  (foundProduct.getStatus() != ProductStatus.PHASE_OUT){
-                foundProduct.setParent(baseProduct);
-                return foundProduct;
-            }
-        } else if (foundProduct.getStatus() != ProductStatus.PHASE_OUT) {
-            return foundProduct;
+        }
+        Product product = Optional.ofNullable(productsMap.get(productId))
+                .orElseThrow(ProductNotFoundException::new);
+        if (filterValid && statusIsNotValid(product.getStatus())) {
+            throw new ProductNotFoundException();
         }
 
-        return null;
+        if (product.getParentId() != null) {
+            Product parent = Optional.ofNullable(productsMap.get(product.getParentId()))
+                    .orElseThrow(ProductNotFoundException::new);
+            if (filterValid && statusIsNotValid(parent.getStatus())) {
+                throw new ProductNotFoundException();
+            }
+
+            product.setParent(parent);
+        }
+
+        return product;
+    }
+
+    /**
+     * Fills contractTemplatePath and ContractTemplateVersion based on @param institutionType.
+     * If institutionContractMappings contains institutionType, it take value from that setting inside
+     * contractTemplatePath and contractTemplateVersion of product
+     * @param product Product
+     * @param institutionType InstitutionType
+     */
+    @Override
+    public void fillContractTemplatePathAndVersion(Product product, InstitutionType institutionType) {
+        if (institutionType != null && product.getInstitutionContractMappings() != null && product.getInstitutionContractMappings().containsKey(institutionType)) {
+            product.setContractTemplatePath(product.getInstitutionContractMappings().get(institutionType).getContractTemplatePath());
+            product.setContractTemplateVersion(product.getInstitutionContractMappings().get(institutionType).getContractTemplateVersion());
+        }
+    }
+
+
+    /**
+     * Returns the information for a single product if it has not PHASE_OUT,INACTIVE status and its parent has not PHASE_OUT,INACTIVE status
+     * @param productId
+     * @return Product if it is valid or null if it has PHASE_OUT,INACTIVE status
+     * @throws IllegalArgumentException product id is null
+     * @throws ProductNotFoundException product id or its parent does not exist or have PHASE_OUT,INACTIVE status
+     */
+    @Override
+    public Product getProductIsValid(String productId) {
+        return getProduct(productId, true);
+    }
+
+    private static boolean statusIsNotValid(ProductStatus status) {
+        return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
     }
 
 
