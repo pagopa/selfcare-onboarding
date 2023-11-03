@@ -47,8 +47,8 @@ jobs:
 
       - name: Build and analyze on Pull Requests
         shell: bash
-          secrets: |
-            GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
+        secrets: |
+          GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.organization=pagopa
           -Dsonar.projectKey=pagopa_selfcare-onboarding
