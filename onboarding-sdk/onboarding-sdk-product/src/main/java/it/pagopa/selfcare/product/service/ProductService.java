@@ -10,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProductService {
-    List<Product> getProducts(boolean rootOnly);
+    public List<Product> getProducts(boolean rootOnly, boolean valid) ;
 
     void validateRoleMappings(Map<PartyRole, ? extends ProductRoleInfo> roleMappings);
 
-    Product getProduct(String id, InstitutionType institutionType);
+    Product getProduct(String productId);
 
-    Product getProductIsValid(String id);
+    void fillContractTemplatePathAndVersion(Product product, InstitutionType institutionType);
+
+    Product getProductIsValid(String productId);
 }
