@@ -46,3 +46,18 @@ public class Main {
     }
 }
 ```
+
+Generally, you load product json string from an azure storage container, this example use onboading-sdk-azure-storage, and inject the product service in the context of Quarkus or Spring (replace @ApplicationScoped with @Bean). 
+
+```java script
+    @ApplicationScoped
+    public ProductService productService(AzureStorageConfig azureStorageConfig){
+       AzureBlobClient azureBlobClient = new AzureBlobClientDefault(azureStorageConfig.connectionStringProduct(), azureStorageConfig.containerProduct());
+       String productJsonString = azureBlobClient.getFileAsText(azureStorageConfig.productFilepath());
+        try {
+            return new ProductServiceDefault(productJsonString, objectMapper());
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Found an issue when trying to serialize product json string!!");
+        }
+    }
+ ```
