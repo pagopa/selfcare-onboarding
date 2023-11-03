@@ -4,11 +4,24 @@ Repository that contains backend services synch for selfcare onboarding.
 
 It implements CRUD operations for the 'onboarding' object and the business logic for the onboarding phase. During the onboarding process, the following activities are executed:
 
-- Check for the presence of users associated with the onboarding and potentially add them to the point of sale (pdv).
-- Validate the requested product's suitability and verify eligible roles.
-- Verify if there is an existing onboarding record for that institution and product.
+1. Check for the presence of users associated with the onboarding and potentially add them to the point of sale (pdv).
+2. Validate the requested product's suitability and verify eligible roles.
+3. Verify if there is an existing onboarding record for that institution and product.
 
-After the data is saved, it invokes the function implemented by onboarding-functions to trigger asynchronous onboarding activities."
+After the data is saved, it invokes the function implemented by onboarding-functions to trigger asynchronous onboarding activities. 
+
+### Disable starting async onboarding workflow
+
+````properties
+env ONBOARDING_ORCHESTRATION_ENABLED=false.
+````
+### Allowed onboarding product with status TESTING
+
+ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS property permits onboarding for product with status TESTING. It can contain a map of entry with product as key and a list of taxcode as value.
+
+````properties
+ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS={'prod-interop': ['0123456789']}.
+````
 
 ## Configuration Properties
 
@@ -17,14 +30,17 @@ Before running you must set these properties as environment variables.
 
 | **Property**                                           | **Environment Variable**                 | **Default** | **Required** |
 |--------------------------------------------------------|------------------------------------------|-------------|:------------:|
-| quarkus.mongodb.connection-string<br/>                 | MONGODB_CONNECTION_URI                   |             |     yes      |
-| mp.jwt.verify.publickey<br/>                           | JWT_TOKEN_PUBLIC_KEY                     |             |     yes      |
-| quarkus.rest-client."**.UserApi".api-key<br/>          | USER_REGISTRY_API_KEY                    |             |     yes      |
+| quarkus.mongodb.connection-string<br/>                 | MONGODB-CONNECTION-STRING                |             |     yes      |
+| mp.jwt.verify.publickey<br/>                           | JWT-PUBLIC-KEY                           |             |     yes      |
+| quarkus.rest-client."**.UserApi".api-key<br/>          | USER-REGISTRY-API-KEY                    |             |     yes      |
 | quarkus.rest-client."**.UserApi".url<br/>              | USER_REGISTRY_URL                        |             |     yes      |
 | quarkus.rest-client."**.ProductApi".url<br/>           | MS_PRODUCT_URL                           |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".url<br/>     | ONBOARDING_FUNCTIONS_URL                 |             |     yes      |
-| quarkus.rest-client."**.OrchestrationApi".api-key<br/> | ONBOARDING_FUNCTIONS_API_KEY             |             |     yes      |
+| quarkus.rest-client."**.OrchestrationApi".api-key<br/> | ONBOARDING-FUNCTIONS-API-KEY             |             |     yes      |
 | onboarding.institutions-allowed-list<br/>              | ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS |             |      no      |
+
+> **_NOTE:_**  properties that contains secret must have the same name of its secret as uppercase.
+
 
 ## Running the application in dev mode
 
