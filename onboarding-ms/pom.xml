@@ -22,7 +22,7 @@
     <quarkus.platform.version>3.4.2</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <onboarding-sdk.version>0.0.4</onboarding-sdk.version>
+    <onboarding-sdk.version>0.1.0</onboarding-sdk.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -132,6 +132,17 @@
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-common</artifactId>
+      <version>${onboarding-sdk.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-azure-storage</artifactId>
+      <version>${onboarding-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-product</artifactId>
       <version>${onboarding-sdk.version}</version>
     </dependency>
   </dependencies>

@@ -15,7 +15,10 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
-import it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.entity.ProductRole;
+import it.pagopa.selfcare.product.entity.ProductRoleInfo;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -24,12 +27,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.product_json.api.ProductApi;
-import org.openapi.quarkus.product_json.model.*;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
@@ -56,8 +56,7 @@ public class OnboardingServiceDefaultTest {
     UserApi userRegistryApi;
 
     @InjectMock
-    @RestClient
-    ProductApi productApi;
+    ProductService productService;
 
     @InjectMock
     @RestClient
@@ -111,8 +110,8 @@ public class OnboardingServiceDefaultTest {
         when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().item(managerResource));
 
-        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
-                .thenReturn(Uni.createFrom().nullItem());
+        when(productService.getProductIsValid(onboardingRequest.getProductId()))
+                .thenReturn(null);
 
         onboardingService.onboardingPa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -120,8 +119,8 @@ public class OnboardingServiceDefaultTest {
 
         verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
-        verify(productApi, times(1))
-                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verify(productService, times(1))
+                .getProductIsValid(onboardingRequest.getProductId());
         verifyNoMoreInteractions(userRegistryApi);
     }
 
@@ -137,10 +136,10 @@ public class OnboardingServiceDefaultTest {
         when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().item(managerResource));
 
-        ProductResource productResource = new ProductResource();
+        Product productResource = new Product();
         productResource.setDelegable(Boolean.FALSE);
-        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
-                .thenReturn(Uni.createFrom().item(productResource));
+        when(productService.getProductIsValid(onboardingRequest.getProductId()))
+                .thenReturn(productResource);
 
         onboardingService.onboardingPa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -148,8 +147,8 @@ public class OnboardingServiceDefaultTest {
 
         verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
-        verify(productApi, times(1))
-                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verify(productService, times(1))
+                .getProductIsValid(onboardingRequest.getProductId());
         verifyNoMoreInteractions(userRegistryApi);
     }
 
@@ -163,10 +162,10 @@ public class OnboardingServiceDefaultTest {
         when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().item(managerResource));
 
-        ProductResource productResource = new ProductResource();
+        Product productResource = new Product();
         productResource.setRoleMappings(new HashMap<>());
-        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
-                .thenReturn(Uni.createFrom().item(productResource));
+        when(productService.getProductIsValid(onboardingRequest.getProductId()))
+                .thenReturn(productResource);
 
         onboardingService.onboardingPa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -174,8 +173,8 @@ public class OnboardingServiceDefaultTest {
 
         verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
-        verify(productApi, times(1))
-                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verify(productService, times(1))
+                .getProductIsValid(onboardingRequest.getProductId());
         verifyNoMoreInteractions(userRegistryApi);
     }
 
@@ -189,12 +188,12 @@ public class OnboardingServiceDefaultTest {
         when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().item(managerResource));
 
-        ProductResource productResource = new ProductResource();
-        ProductOperations productParent = new ProductOperations();
+        Product productResource = new Product();
+        Product productParent = new Product();
         productParent.setRoleMappings(new HashMap<>());
-        productResource.setProductOperations(productParent);
-        when(productApi.getProductIsValidUsingGET(onboardingRequest.getProductId()))
-                .thenReturn(Uni.createFrom().item(productResource));
+        productResource.setParent(productParent);
+        when(productService.getProductIsValid(onboardingRequest.getProductId()))
+                .thenReturn(productResource);
 
         onboardingService.onboardingPa(onboardingRequest)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -202,8 +201,8 @@ public class OnboardingServiceDefaultTest {
 
         verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
-        verify(productApi, times(1))
-                .getProductIsValidUsingGET(onboardingRequest.getProductId());
+        verify(productService, times(1))
+                .getProductIsValid(onboardingRequest.getProductId());
         verifyNoMoreInteractions(userRegistryApi);
     }
 
@@ -274,39 +273,39 @@ public class OnboardingServiceDefaultTest {
     }
 
     void mockSimpleProductValid(String productId) {
-        ProductResource productResource = createDummyProduct(productId,false);
+        Product productResource = createDummyProduct(productId,false);
 
-        when(productApi.getProductIsValidUsingGET(productId))
-                .thenReturn(Uni.createFrom().item(productResource));
+        when(productService.getProductIsValid(productId))
+                .thenReturn(productResource);
     }
 
 
     void mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter) {
-        ProductResource productResource = createDummyProduct(productId,hasParent);
+        Product productResource = createDummyProduct(productId,hasParent);
 
-        asserter.execute(() -> when(productApi.getProductIsValidUsingGET(productId))
-                .thenReturn(Uni.createFrom().item(productResource)));
+        asserter.execute(() -> when(productService.getProductIsValid(productId))
+                .thenReturn(productResource));
     }
 
-    ProductResource createDummyProduct(String productId, boolean hasParent) {
-        ProductResource productResource = new ProductResource();
+    Product createDummyProduct(String productId, boolean hasParent) {
+        Product productResource = new Product();
         productResource.setId(productId);
-        Map<String, ProductRoleInfoRes> roleMapping = new HashMap<>();
-        roleMapping.put(manager.getRole().name(), ProductRoleInfoRes.builder()
-                .roles(List.of(ProductRole.builder().code("admin").build()))
-                .build());
+        Map<PartyRole, ProductRoleInfo> roleMapping = new HashMap<>();
+        ProductRole productRole = new ProductRole();
+        productRole.setCode("admin");
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setRoles(List.of(productRole));
+        roleMapping.put(manager.getRole(), productRoleInfo);
         productResource.setRoleMappings(roleMapping);
 
         if(hasParent) {
-            ProductOperations parent = new ProductOperations();
+            Product parent = new Product();
             parent.setId("productParentId");
-            Map<String, ProductRoleInfoOperations> roleParentMapping = new HashMap<>();
-            roleParentMapping.put(manager.getRole().name(), ProductRoleInfoOperations.builder()
-                    .roles(List.of(ProductRoleOperations.builder().code("admin").build()))
-                    .build());
+            Map<PartyRole, ProductRoleInfo> roleParentMapping = new HashMap<>();
+            roleParentMapping.put(manager.getRole(), productRoleInfo);
             parent.setRoleMappings(roleParentMapping);
 
-            productResource.setProductOperations(parent);
+            productResource.setParent(parent);
         }
 
         return productResource;
