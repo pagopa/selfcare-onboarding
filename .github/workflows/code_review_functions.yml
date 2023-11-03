@@ -19,6 +19,8 @@ jobs:
 
   code-review:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
