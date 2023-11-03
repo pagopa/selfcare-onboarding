@@ -33,7 +33,7 @@ jobs:
 
       - name: Set patch 
         run: |
-          mvn build-helper:parse-version versions:set -pl onboarding-sdk -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
+          mvn build-helper:parse-version versions:set -f onboarding-sdk/pom.xml -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
           mvn versions:commit -f onboarding-sdk/pom.xml
         shell: bash
 
