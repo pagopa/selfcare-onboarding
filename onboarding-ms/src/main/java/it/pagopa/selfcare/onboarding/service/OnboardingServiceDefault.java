@@ -121,7 +121,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         final Product product;
 
         try {
-            product = Optional.of(productService.getProductIsValid(onboarding.getProductId()))
+            product = Optional.ofNullable(productService.getProductIsValid(onboarding.getProductId()))
                     .orElseThrow(() -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
                         onboarding.getProductId()), DEFAULT_ERROR.getCode()));

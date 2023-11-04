@@ -22,6 +22,7 @@ jobs:
     permissions:
       packages: read
       id-token: write
+      deployments: write
     steps:
       - uses: actions/checkout@v4
 
@@ -60,5 +61,4 @@ jobs:
           --file onboarding-ms/pom.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.READ_PACKAGES_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
