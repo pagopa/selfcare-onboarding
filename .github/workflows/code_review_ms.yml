@@ -33,8 +33,8 @@ jobs:
 
       - uses: s4u/maven-settings-action@v2.8.0
         with:
-          servers: '[{"id": "github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
-          
+          servers: '[{"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
+
       - name: Build and analyze on Pull Requests
         shell: bash
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
