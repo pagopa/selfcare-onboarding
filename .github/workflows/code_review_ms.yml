@@ -30,6 +30,10 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+      - uses: s4u/maven-settings-action@v2.5.0
+        with:
+          servers: '[
+          {"id": "github","configuration": {"httpHeaders": {"property": {"name": "Authorization","value": "Bearer ${{ secrets.GITHUB_TOKEN }}"}}}}]'
 
       - name: Build and analyze on Pull Requests
         shell: bash
