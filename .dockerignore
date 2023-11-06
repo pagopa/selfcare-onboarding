@@ -1,6 +1,6 @@
 **/.dockerignore
 **/.git
-**/.gitignore
+apps/onboarding-ms/.idea/.gitignore
 **/bin
 **/docker-compose*
 **/Dockerfile*
@@ -11,6 +11,11 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+**/.idea
+.idea
+**/.mvn
+.mvn
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Maven template

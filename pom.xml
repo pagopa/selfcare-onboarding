@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.pagopa.selfcare</groupId>
-    <artifactId>onboarding</artifactId>
+    <artifactId>onboarding-root</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
 
@@ -12,9 +12,8 @@
 
 
     <modules>
-        <module>onboarding-functions</module>
-        <module>onboarding-ms</module>
-        <module>onboarding-sdk</module>
+        <module>apps</module>
+        <module>libs</module>
     </modules>
 
     <repositories>
@@ -23,11 +22,6 @@
             <url>
                 https://pkgs.dev.azure.com/pagopaspa/selfcare-platform-app-projects/_packaging/selfcare-platform/maven/v1
             </url>
-        </repository>
-        <repository>
-            <id>selfcare-github</id>
-            <name>Selfcare Onboarding SDK</name>
-            <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
         </repository>
     </repositories>
 

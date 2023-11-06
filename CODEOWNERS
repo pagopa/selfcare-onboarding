@@ -1,3 +1,10 @@
 # see https://help.github.com/en/articles/about-code-owners#example-of-a-codeowners-file
 
-* @pagopa/selfcare-contributors
+# Default owner
+/ @pagopa/selfcare-contributors
+
+# Code owner for the applications
+/apps/onboarding-ms/   @@pagopa/selfcare-contributors
+/apps/onboarding-functions/   @@pagopa/selfcare-contributors
+
+
