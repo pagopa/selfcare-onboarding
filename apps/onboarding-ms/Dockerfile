@@ -2,20 +2,20 @@
 FROM maven:3-eclipse-temurin-17 AS builder
 
 WORKDIR /src
-COPY ./pom.xml .
+COPY --link ./pom.xml .
 
 WORKDIR /src/libs
-COPY ./libs/pom.xml .
+COPY --link ./libs/pom.xml .
 
 WORKDIR /src/libs/onboarding-sdk
-COPY ./libs/onboarding-sdk/ .
+COPY --link ./libs/onboarding-sdk/ .
 
 WORKDIR /src/apps
-COPY ./apps/pom.xml .
+COPY --link ./apps/pom.xml .
 
 WORKDIR /src/apps/onboarding-ms
-COPY ./apps/onboarding-ms/pom.xml .
-COPY ./apps/onboarding-ms/src/main/ ./src/main/
+COPY --link ./apps/onboarding-ms/pom.xml .
+COPY --link ./apps/onboarding-ms/src/main/ ./src/main/
 
 WORKDIR /src
 RUN mvn --projects :onboarding-ms --also-make clean package -DskipTests
