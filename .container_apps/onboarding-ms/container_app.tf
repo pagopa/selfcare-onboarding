@@ -22,7 +22,7 @@ data "azurerm_container_app_environment" "container_app_environment" {
   name                = "${local.project}-cae"
 }
 
-resource "azapi_resource" "container_app" {
+resource "azapi_resource" "container_app_onboarding_ms" {
   type      = "Microsoft.App/containerApps@2023-05-01"
   name      = "${local.project}-${local.app_name}-ca"
   location  = data.azurerm_resource_group.resource_group_app.location
@@ -78,7 +78,7 @@ resource "azapi_resource" "container_app" {
 resource "azurerm_key_vault_access_policy" "keyvault_containerapp_access_policy" {
   key_vault_id = data.azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azapi_resource.container_app_onboarding.identity[0].principal_id
+  object_id    = azapi_resource.container_app_onboarding_ms.identity[0].principal_id
 
   secret_permissions = [
     "Get",
