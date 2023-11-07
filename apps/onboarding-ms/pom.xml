@@ -4,10 +4,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>it.pagopa.selfcare</groupId>
-    <artifactId>onboarding</artifactId>
+    <artifactId>onboarding-apps</artifactId>
     <version>0.0.1</version>
   </parent>
-  <groupId>it.pagopa.selfcare</groupId>
+
   <artifactId>onboarding-ms</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>

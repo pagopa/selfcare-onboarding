@@ -1,5 +1,5 @@
 output "container_app_resource_group_name" {
-  value = azapi_resource.container_app_onboarding.location
+  value = azapi_resource.container_app_onboarding_ms.location
 }
 
 output "container_app_environment_name" {
@@ -7,5 +7,5 @@ output "container_app_environment_name" {
 }
 
 output "container_app_name" {
-  value = azapi_resource.container_app_onboarding.name
+  value = azapi_resource.container_app_onboarding_ms.name
 }

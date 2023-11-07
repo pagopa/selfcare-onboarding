@@ -1,9 +1,46 @@
 # Selfcare Onboarding
 
-Repository that contains backend services for selfcare onboarding. It is a monorepo for onboarding domain that contains:
+This repo structure and build monorepo with Apache Maven for selfcare onboarding domain. 
 
-- `onboarding-functions`: functions that handle all asynchronous activities related to preparing and completing the onboarding process. Indeed, they are activated by the onboarding microservice upon receiving an onboarding request
-- `onboarding-ms`: microservice that implements CRUD operations for the 'onboarding' object and the business logic for the onboarding phase. During the onboarding process
-- `onboarding-sdk`: Java utility classes that simplify the work of developers about onboarding activity
+Applications under apps/ depend on shared code under libs/.
+
+
+```
+.
+
+├── apps
+│   ├── onboarding-functions
+│   └── onboarding-ms
+└── libs
+    ├── onboarding-sdk
+```
 
 Look at single README module for more information.
+
+## Infrastructure
+
+The [`.container_apps/`] sub folder contains terraform files for deploying infrastructure as container apps in Azure.
+
+
+## Continous integration
+
+The [`.github/`] sub folder contains a self-contained ci-stack for building the monorepo with Github Actions.
+
+## Maven basic actions for monorep
+
+Maven is really not a monorepo-*native* build tool (e.g. lacks
+trustworthy incremental builds, can only build java code natively, is recursive and
+struggles with partial repo checkouts) but can be made good use of with some tricks
+and usage of a couple of lesser known command line switches.
+
+| Action                                                                                             |  in working directory  | with Maven                                                                         |
+|:---------------------------------------------------------------------------------------------------|:----------------------:|:-----------------------------------------------------------------------------------|
+| Build the world                                                                                    |          `.`           | `mvn clean package -DskipTests`                                                    |
+| Run `onboarding-ms`                                                                                |          `.`           | `java -jar apps/onboarding-ms/target/onboarding-ms-0.0.1-SNAPSHOT.jar`             |
+| Build and test the world                                                                           |     `.`                | `mvn clean package`                                                                |
+| Build the world                                                                                    | `./apps/onboarding-ms` | `mvn --file ../.. clean package -DskipTests`                                       |
+| Build `onboarding-ms` and its dependencies                                                         |          `.`           | `mvn --projects :onboarding-ms --also-make clean package -DskipTests`              |
+| Build `onboarding-ms` and its dependencies                                                         | `./apps/onboarding-ms` | `mvn --file ../.. --projects :onboarding-ms --also-make clean package -DskipTests` |
+| Build `onboarding-sdk` and its dependents (aka. reverse dependencies or *rdeps* in Bazel parlance) |          `.`           | `mvn --projects :onboarding-sdk --also-make-dependents clean package -DskipTests`  |
+| Print dependencies of `onboarding-sdk`                                                             | `./apps/onboarding-ms` | `mvn dependency:list`                                                              |
+
