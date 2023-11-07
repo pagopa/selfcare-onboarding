@@ -28,6 +28,11 @@ jobs:
           sparse-checkout: |
             apps/onboarding-ms
             libs/
+      - run: |
+          ls .
+          ls ./apps
+          ls ./apps/onboarding-ms
+
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
