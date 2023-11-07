@@ -1,14 +1,15 @@
 functions:
 - onboarding-functions/**
 
-ms:
-- onboarding-ms/**
+onboarding-ms:
+- apps/onboarding-ms/**
 
-sdk:
-- onboarding-sdk/**
+onboarding-sdk:
+- apps/onboarding-sdk/**
 
 ops:
 - .github/**
+- .container_apps/**
 - .identity/**
 
 docs:
