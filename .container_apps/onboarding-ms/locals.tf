@@ -2,6 +2,8 @@ locals {
   project  = "${var.prefix}-${var.env_short}"
   app_name = "onboarding-ms"
 
+  container_app_environment_dns_zone_name = "azurecontainerapps.io"
+
   secrets = [for secret in var.key_vault.secrets_names :
     {
       identity    = "system"
