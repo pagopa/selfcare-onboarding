@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>onboarding-sdk</module>
+        <module>onboarding-sdk-pom</module>
     </modules>
 
 </project>

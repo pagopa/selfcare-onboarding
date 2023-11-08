@@ -1,22 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.pagopa.selfcare</groupId>
-    <artifactId>onboarding-sdk</artifactId>
+    <artifactId>onboarding-sdk-pom</artifactId>
     <packaging>pom</packaging>
-    <name>onboarding-sdk</name>
+    <name>onboarding-sdk-pom</name>
     <version>0.1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-    <modules>
-        <module>onboarding-sdk-product</module>
-        <module>onboarding-sdk-azure-storage</module>
-        <module>onboarding-sdk-common</module>
-    </modules>
 
     <distributionManagement>
         <repository>
@@ -25,4 +19,5 @@
             <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
         </repository>
     </distributionManagement>
+
 </project>
