@@ -29,6 +29,10 @@ app_settings = [
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
     value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*']}"
+  },
+  {
+    name  = "STORAGE_CONTAINER_PRODUCT"
+    value = "product"
   }
 ]
 
@@ -39,6 +43,7 @@ key_vault = {
     "jwt-public-key",
     "mongodb-connection-string",
     "user-registry-api-key",
-    "onboarding-functions-api-key"
+    "onboarding-functions-api-key",
+    "blob-storage-product-connection-string"
   ]
 }
