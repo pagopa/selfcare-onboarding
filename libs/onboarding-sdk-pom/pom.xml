@@ -20,4 +20,10 @@
         </repository>
     </distributionManagement>
 
+    <modules>
+        <module>../onboarding-sdk-azure-storage</module>
+        <module>../onboarding-sdk-common</module>
+        <module>../onboarding-sdk-product</module>
+    </modules>
+
 </project>
