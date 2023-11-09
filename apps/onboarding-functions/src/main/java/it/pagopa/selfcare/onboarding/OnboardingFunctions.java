@@ -21,6 +21,7 @@ import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.service.NotificationService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 
@@ -35,6 +36,7 @@ public class OnboardingFunctions {
     public static final String SAVE_TOKEN_ACTIVITY_NAME = "SaveToken";
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
+    public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME = "SendMailRegistrationWithContract";
     @Inject
     OnboardingService service;
 
@@ -80,7 +82,7 @@ public class OnboardingFunctions {
         String onboardingId = ctx.getInput(String.class);
         String onboardingString = getOnboardingString(onboardingId);
 
-        return onboardingsOrchestratorDefault(ctx, onboardingString);
+        return onboardingsOrchestratorPAorSAorGSPIPA(ctx, onboardingString);
     }
 
     private String getOnboardingString(String onboardingId) {
@@ -108,7 +110,7 @@ public class OnboardingFunctions {
         String result = "";
         result += ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         result += ctx.callActivity(SAVE_TOKEN_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SendMailRegistrationWithContract", onboardingString, optionsRetry,  String.class).await() + ", ";
+        result += ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry,  String.class).await() + ", ";
         return result;
     }
 
@@ -150,9 +152,14 @@ public class OnboardingFunctions {
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName("SendMailRegistrationWithContract")
-    public String sendMailWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING,"SendMailRegistrationWithContract", onboardingString));
+    @FunctionName(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME)
+    public String sendMailRegistrationWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
+        try {
+            service.sendMailRegistrationWithContract(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
         return onboardingString;
     }
 

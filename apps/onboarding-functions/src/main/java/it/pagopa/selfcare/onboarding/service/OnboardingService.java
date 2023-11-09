@@ -39,7 +39,7 @@ public class OnboardingService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
-    //@Inject
+    @Inject
     NotificationService notificationService;
     @Inject
     ContractService contractService;
@@ -106,6 +106,20 @@ public class OnboardingService {
         token.setType(TokenType.INSTITUTION);
 
         tokenRepository.persist(token);
+    }
+
+    public void sendMailRegistrationWithContract(Onboarding onboarding) {
+
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        if(optToken.isEmpty()) {
+            throw new GenericOnboardingException(String.format("Token has already exists for onboarding %s", onboarding.getId()));
+        }
+
+        Product product = productService.getProduct(onboarding.getProductId());
+
+        notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                onboarding.getInstitution().getDigitalAddress(), "example", "example",
+                product.getTitle(), optToken.get().getId().toHexString());
     }
 
 
