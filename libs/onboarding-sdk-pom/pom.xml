@@ -1,7 +1,12 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>it.pagopa.selfcare</groupId>
+    <parent>
+        <groupId>it.pagopa.selfcare</groupId>
+        <artifactId>onboarding-libs</artifactId>
+        <version>0.0.1</version>
+    </parent>
+
     <artifactId>onboarding-sdk-pom</artifactId>
     <packaging>pom</packaging>
     <name>onboarding-sdk-pom</name>
@@ -25,5 +30,35 @@
         <module>../onboarding-sdk-common</module>
         <module>../onboarding-sdk-product</module>
     </modules>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+    </build>
 
 </project>
