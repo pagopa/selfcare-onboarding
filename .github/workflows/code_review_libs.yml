@@ -1,4 +1,4 @@
-name: Code Review MS
+name: Code Review Libs
 
 on:
   pull_request:

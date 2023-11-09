@@ -1,4 +1,4 @@
-name: Code Review MS
+name: Code Review onboarding-functions
 
 on:
   pull_request:
