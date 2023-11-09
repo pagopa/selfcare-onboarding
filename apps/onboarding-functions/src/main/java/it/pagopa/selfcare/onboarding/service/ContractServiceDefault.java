@@ -48,20 +48,37 @@ public class ContractServiceDefault implements ContractService {
     @Inject
     AzureBlobClient azureBlobClient;
 
+    /**
+     * Creates a PDF contract document from a given contract template file and institution data.
+     * Based on @contractTemplatePath it loads contract template as test and replace placeholder using a map <key,value> with institution information.
+     * Contract will be stored at  parties/docs/{onboardingId}
+     *
+     * @param contractTemplatePath   The file path to the contract template.
+     * @param onboarding             Information related to the onboarding process.
+     * @param validManager           A user resource representing a valid manager.
+     * @param users                  A list of user resources.
+     * @param geographicTaxonomies   A list of geographic taxonomies.
+     * @return                       A File object representing the created PDF contract document.
+     * @throws GenericOnboardingException If an error occurs during PDF generation.
+     */
     @Override
     public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource validManager, List<UserResource> users, List<String> geographicTaxonomies) {
 
         log.info("START - createContractPdf for template: {}", contractTemplatePath);
-
+        // Generate a unique filename for the PDF.
         final String builder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "_" + UUID.randomUUID() + "_contratto_interoperabilita.";
         final String productId = onboarding.getProductId();
         final Institution institution = onboarding.getInstitution();
 
         try {
+            // Read the content of the contract template file.
             String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
-
+            // Create a temporary PDF file to store the contract.
             Path files = Files.createTempFile(builder, ".pdf");
+            // Prepare common data for the contract document.
             Map<String, Object> data = setUpCommonData(validManager, users, institution, onboarding.getBilling(), List.of());
+
+            // Customize data based on the product and institution type.
             if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                     InstitutionType.PSP == institution.getInstitutionType()) {
                 setupPSPData(data, validManager, institution);
@@ -77,7 +94,8 @@ public class ContractServiceDefault implements ContractService {
             log.debug("data Map for PDF: {}", data);
             getPDFAsFile(files, contractTemplateText, data);
 
-            //return signContract(institution, request, files.toFile());
+            // Define the filename and path for storage.
+            /* return signContract(institution, request, files.toFile()); */
             final String filename = String.format(PDF_FORMAT_FILENAME, onboarding.getOnboardingId());
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(files));
