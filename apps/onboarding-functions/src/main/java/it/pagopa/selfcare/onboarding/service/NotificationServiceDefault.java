@@ -7,6 +7,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
+import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.commons.text.StringSubstitutor;
@@ -39,7 +40,7 @@ public class NotificationServiceDefault implements NotificationService {
     @Inject
     MailTemplatePathConfig templatePathConfig;
 
-    //@Inject
+    @Inject
     Mailer mailer;
     @Inject
     AzureBlobClient azureBlobClient;
@@ -51,25 +52,33 @@ public class NotificationServiceDefault implements NotificationService {
     @ConfigProperty(name = "onboarding-functions.sender-mail")
     String senderMail;
 
+    @ConfigProperty(name = "onboarding-functions.destination-mail-test")
+    Boolean destinationMailTest;
+
+    @ConfigProperty(name = "onboarding-functions.destination-mail-test-address")
+    String destinationMailTestAddress;
+
     @Override
     public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName, String token) {
 
         // Retrieve PDF contract from storage
         File contract = contractService.retrieveContractNotSigned(onboardingId);
         // Create ZIP file that contains contract
+        final String fileNamePdf = String.format("%s_accordo_adesione.pdf", productName);
         final String fileNameZip = String.format("%s_accordo_adesione.zip", productName);
         byte[] contractZipData = null;
 
         try {
             byte[] contractData = Files.readAllBytes(contract.toPath());
-            contractZipData = zipBytes(contract.getName(), contractData);
+            contractZipData = zipBytes(fileNamePdf, contractData);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        //List<String> destinationMail = Objects.nonNull(coreConfig.getDestinationMails()) && !coreConfig.getDestinationMails().isEmpty()
-        //        ? coreConfig.getDestinationMails() : List.of(destination);
-        List<String> destinationMail = List.of("manuel.rafeli@pagopa.it");
+        // Dev mode send mail to test digital address
+        List<String> destinationMail = destinationMailTest ?
+                List.of(destinationMailTestAddress):
+                List.of(destination);
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -91,19 +100,19 @@ public class NotificationServiceDefault implements NotificationService {
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
             log.trace("sendMessage start");
 
+            final String subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
+
             Mail mail = Mail
-                    .withHtml(destinationMail.get(0),
-                            prefixSubject + ": " + mailTemplate.getSubject(),
-                            html)
-                    //.addAttachment(fileName, fileData, "application/zip")
+                    .withHtml(destinationMail.get(0), subject, html)
+                    .addAttachment(fileName, fileData, "application/zip")
                     .setFrom(senderMail);
 
-            //mailer.send(mail);
+            mailer.send(mail);
 
-            log.info("END - sendMail to {}, with prefixSubject {}", destinationMail, prefixSubject);
+            log.info("END - sendMail to {}, with subject {}", destinationMail, subject);
         } catch (Exception e) {
             log.error(ERROR_DURING_SEND_MAIL + ":" + e.getMessage());
-            throw new RuntimeException(ERROR_DURING_SEND_MAIL.getMessage());
+            throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
         }
         log.trace("sendMessage end");
     }
