@@ -134,6 +134,17 @@
       <artifactId>onboarding-sdk-common</artifactId>
       <version>${onboarding-sdk.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-azure-storage</artifactId>
+      <version>${onboarding-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-product</artifactId>
+      <version>${onboarding-sdk.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

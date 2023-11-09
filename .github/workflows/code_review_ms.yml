@@ -11,19 +11,42 @@ on:
       - synchronize
       - reopened
     paths:
-      - 'onboarding-ms/**'
+      - 'apps/onboarding-ms/**'
+  
+  workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-  deployments: write
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
   code-review:
-    name: Code review onboarding-ms
-    # The type of runner that the job will run on
-    uses: pagopa/selfcare-onboarding/.github/workflows/code_review.yml@develop
-    with:
-      module: onboarding-ms
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            apps/onboarding-ms
+            libs/
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      - name: Build and analyze on Pull Requests
+        shell: bash
+        run: mvn --projects :onboarding-ms --also-make verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.organization=pagopa
+          -Dsonar.projectKey=pagopa_selfcare-onboarding
+          -Dsonar.coverage.jacoco.xmlReportPaths=./target/jacoco-report/jacoco.xml
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.coverage.exclusions='**/exception/**, **/response/**, **/request/**, **/entity/**, **/utils/**, **/*Constant*, **/*Config.java, **/src/test/**'
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          -Dsonar.pullrequest.branch=${{ github.head_ref }}
+          -Dsonar.pullrequest.base=${{ github.base_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
