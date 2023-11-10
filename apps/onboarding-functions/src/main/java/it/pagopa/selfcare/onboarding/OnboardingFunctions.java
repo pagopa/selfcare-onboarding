@@ -36,7 +36,7 @@ public class OnboardingFunctions {
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
     public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME = "SendMailRegistrationWithContract";
-    public static final String SEND_MAIL_REGISTRATION_ACTIVITY_NAME = "SendMailRegistration";
+    public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME = "SendMailRegistrationRequest";
     @Inject
     OnboardingService service;
 
@@ -82,7 +82,7 @@ public class OnboardingFunctions {
         String onboardingId = ctx.getInput(String.class);
         String onboardingString = getOnboardingString(onboardingId);
 
-        return onboardingsOrchestratorPAorSAorGSPIPA(ctx, onboardingString);
+        return onboardingsOrchestratorDefault(ctx, onboardingString);
     }
 
     private String getOnboardingString(String onboardingId) {
@@ -102,7 +102,7 @@ public class OnboardingFunctions {
         String result = "";
         result += ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         result += ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity("SendMailRegistration", onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         return result;
     }
 
@@ -163,12 +163,9 @@ public class OnboardingFunctions {
         return onboardingString;
     }
 
-    /**
-     * This is the activity function that gets invoked by the orchestrator function.
-     */
-    @FunctionName(SEND_MAIL_REGISTRATION_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME)
     public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString));
         try {
             service.sendMailRegistration(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
