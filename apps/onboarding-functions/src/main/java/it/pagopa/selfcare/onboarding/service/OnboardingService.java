@@ -39,7 +39,7 @@ public class OnboardingService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
-    //@Inject
+    @Inject
     NotificationService notificationService;
     @Inject
     ContractService contractService;
@@ -77,18 +77,30 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString());
     }
+    public void saveTokenWithContract(Onboarding onboarding) {
 
-    public void saveToken(Onboarding onboarding) {
-        /* create digest */
+        // Load PDF contract and create digest
         File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
-        log.debug("createToken for onboarding {}", onboarding.getId());
+        saveToken(onboarding, digest);
+    }
 
-        /* persist token entity */
+    private void saveToken(Onboarding onboarding, String digest) {
+        // Skip if token already exists
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        if(optToken.isPresent()) {
+            log.debug("Token has already exists for onboarding {}", onboarding.getId());
+            return;
+        }
+
+        log.debug("creating Token for onboarding {} ...", onboarding.getId());
+
+        // Persist token entity
         Product product = productService.getProductIsValid(onboarding.getProductId());
         Token token = new Token();
+        token.setOnboardingId(onboarding.getOnboardingId());
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
         token.setCreatedAt(LocalDateTime.now());
@@ -98,6 +110,20 @@ public class OnboardingService {
         token.setType(TokenType.INSTITUTION);
 
         tokenRepository.persist(token);
+    }
+
+    public void sendMailRegistrationWithContract(Onboarding onboarding) {
+
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        if(optToken.isEmpty()) {
+            throw new GenericOnboardingException(String.format("Token has already exists for onboarding %s", onboarding.getId()));
+        }
+
+        Product product = productService.getProduct(onboarding.getProductId());
+
+        notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                onboarding.getInstitution().getDigitalAddress(), "example", "example",
+                product.getTitle(), optToken.get().getId().toHexString());
     }
 
 

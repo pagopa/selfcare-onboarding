@@ -12,6 +12,7 @@ public class Token {
 
     private ObjectId id;
     private TokenType type;
+    private String onboardingId;
     private String productId;
     private String checksum;
     private String contractVersion;
@@ -109,6 +110,14 @@ public class Token {
 
     public void setActivatedAt(LocalDateTime activatedAt) {
         this.activatedAt = activatedAt;
+    }
+
+    public String getOnboardingId() {
+        return onboardingId;
+    }
+
+    public void setOnboardingId(String onboardingId) {
+        this.onboardingId = onboardingId;
     }
 }
 

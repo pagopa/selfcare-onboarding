@@ -8,6 +8,12 @@ These functions handle all asynchronous activities related to preparing and comp
 It is triggered by http request at GET or POST `/api/StartOnboardingOrchestration?onboardingId={onboardingId}` where onboardingId is a reference to onboarding which you want to process.
 
 ## Running locally
+
+
+### Install the Azure Functions Core Tools
+
+Follow this [guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=macos%2Cisolated-process%2Cnode-v4%2Cpython-v2%2Chttp-trigger%2Ccontainer-apps&pivots=programming-language-java) for recommended way to install Core Tools on the operating system of your local development computer.
+
 ### Configuration Properties
 
 Before running you must set these properties as environment variables.
@@ -24,6 +30,14 @@ Before running you must set these properties as environment variables.
 Use the Azurite emulator for local Azure Storage development. Once installed, you must create `selc-d-contracts-blob` and `selc-product` container.
 
 ([guide](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio))
+
+### Install dependencies
+
+At project root you must install dependencies:
+
+```shell script
+./mvnw install
+```
 
 ### Packaging
 
