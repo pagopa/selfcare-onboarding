@@ -55,6 +55,8 @@ class OnboardingServiceTest {
     @Inject
     OnboardingService onboardingService;
 
+    final Product dummyProduct = new Product();
+
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
@@ -126,6 +128,21 @@ class OnboardingServiceTest {
         product.setContractTemplateVersion("version");
         return product;
     }
+    @Test
+    void saveToken_shouldSkipIfTokenExists() {
+        Onboarding onboarding = createOnboarding();
+        Token token = new Token();
+        token.setId(ObjectId.get());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
+
+        onboardingService.saveTokenWithContract(onboarding);
+
+        Mockito.verify(tokenRepository, Mockito.times(1))
+                .findByOnboardingId(onboarding.getOnboardingId());
+        Mockito.verifyNoMoreInteractions(tokenRepository);
+    }
 
 
     @Test
@@ -161,7 +178,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(new Product());
+                .thenReturn(dummyProduct);
 
         onboardingService.loadContract(onboarding);
 
@@ -171,7 +188,7 @@ class OnboardingServiceTest {
 
 
     @Test
-    void sendMailRegistrationWithContract_throwExceptionWhenTokenIsPresent() {
+    void sendMailRegistrationWithContract() {
 
         Onboarding onboarding = createOnboarding();
         Token token = new Token();
@@ -180,7 +197,7 @@ class OnboardingServiceTest {
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(new Product());
+                .thenReturn(dummyProduct);
         doNothing().when(notificationService).sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
 
         onboardingService.sendMailRegistrationWithContract(onboarding);
@@ -191,13 +208,82 @@ class OnboardingServiceTest {
 
 
     @Test
-    void sendMailRegistrationWithContract() {
-
+    void sendMailRegistrationWithContract_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
-
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.empty());
-
         assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationWithContract(onboarding));
+    }
+
+
+    @Test
+    void sendMailRegistration() {
+
+        Onboarding onboarding = createOnboarding();
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(dummyProduct);
+        doNothing().when(notificationService).sendMailRegistration(any(), any(), any(),any(),any());
+
+        onboardingService.sendMailRegistration(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistration(any(), any(), any(),any(),any());
+    }
+
+    @Test
+    void sendMailRegistrationApprove() {
+
+        Onboarding onboarding = createOnboarding();
+        Token token = new Token();
+        token.setId(ObjectId.get());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(dummyProduct);
+        doNothing().when(notificationService).sendMailRegistrationApprove(any(), any(), any(),any(),any());
+
+        onboardingService.sendMailRegistrationApprove(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
+    }
+
+
+    @Test
+    void sendMailRegistrationApprove_throwExceptionWhenTokenIsNotPresent() {
+        Onboarding onboarding = createOnboarding();
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.empty());
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationApprove(onboarding));
+    }
+
+
+    @Test
+    void sendMailOnboardingApprove() {
+
+        Onboarding onboarding = createOnboarding();
+        Token token = new Token();
+        token.setId(ObjectId.get());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(dummyProduct);
+        doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
+
+        onboardingService.sendMailOnboardingApprove(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailOnboardingApprove(any(), any(), any(),any(),any());
+    }
+
+
+    @Test
+    void sendMailOnboardingApprove_throwExceptionWhenTokenIsNotPresent() {
+        Onboarding onboarding = createOnboarding();
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.empty());
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(onboarding));
     }
 }

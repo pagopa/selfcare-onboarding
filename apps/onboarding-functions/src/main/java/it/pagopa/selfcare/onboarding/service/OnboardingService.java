@@ -35,6 +35,9 @@ public class OnboardingService {
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
+    public static final String TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S = "Token does not exists for onboarding %s";
+    public static final String loggedUserName = "example";
+    public static final String loggedUserSurname = "example";
 
     @RestClient
     @Inject
@@ -79,6 +82,13 @@ public class OnboardingService {
     }
     public void saveTokenWithContract(Onboarding onboarding) {
 
+        // Skip if token already exists
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        if(optToken.isPresent()) {
+            log.debug("Token has already exists for onboarding {}", onboarding.getId());
+            return;
+        }
+
         // Load PDF contract and create digest
         File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
         DSSDocument document = new FileDocument(contract);
@@ -88,12 +98,6 @@ public class OnboardingService {
     }
 
     private void saveToken(Onboarding onboarding, String digest) {
-        // Skip if token already exists
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
-        if(optToken.isPresent()) {
-            log.debug("Token has already exists for onboarding {}", onboarding.getId());
-            return;
-        }
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
@@ -112,18 +116,25 @@ public class OnboardingService {
         tokenRepository.persist(token);
     }
 
-    public void sendMailRegistrationWithContract(Onboarding onboarding) {
-
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
-        if(optToken.isEmpty()) {
-            throw new GenericOnboardingException(String.format("Token has already exists for onboarding %s", onboarding.getId()));
-        }
+    public void sendMailRegistration(Onboarding onboarding) {
 
         Product product = productService.getProduct(onboarding.getProductId());
 
+        notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
+                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
+                product.getTitle());
+
+    }
+
+    public void sendMailRegistrationWithContract(Onboarding onboarding) {
+
+        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
+                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
+        Product product = productService.getProduct(onboarding.getProductId());
+
         notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
-                onboarding.getInstitution().getDigitalAddress(), "example", "example",
-                product.getTitle(), optToken.get().getId().toHexString());
+                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
+                product.getTitle(), token.getId().toHexString());
     }
 
 
@@ -136,5 +147,28 @@ public class OnboardingService {
                 .findAny()
                 .orElseThrow(() -> new GenericOnboardingException(GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getMessage(),
                         GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getCode()));
+    }
+
+    public void sendMailRegistrationApprove(Onboarding onboarding) {
+
+
+        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
+                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
+        Product product = productService.getProduct(onboarding.getProductId());
+
+        notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
+                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
+
+    }
+
+    public void sendMailOnboardingApprove(Onboarding onboarding) {
+
+        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
+                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
+        Product product = productService.getProduct(onboarding.getProductId());
+
+        notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
+                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
+
     }
 }
