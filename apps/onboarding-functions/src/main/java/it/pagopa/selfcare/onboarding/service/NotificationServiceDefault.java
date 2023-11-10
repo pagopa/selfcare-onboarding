@@ -39,10 +39,13 @@ public class NotificationServiceDefault implements NotificationService {
     final private String senderMail;
     final private Boolean destinationMailTest;
     final private String destinationMailTestAddress;
+
+    final private String notificationAdminMail;
     final private Mailer mailer;
 
     public NotificationServiceDefault(MailTemplatePlaceholdersConfig templatePlaceholdersConfig, MailTemplatePathConfig templatePathConfig,
                                       AzureBlobClient azureBlobClient, ObjectMapper objectMapper, Mailer mailer, ContractService contractService,
+                                      @ConfigProperty(name = "onboarding-functions.notification-admin-email") String notificationAdminMail,
                                       @ConfigProperty(name = "onboarding-functions.sender-mail") String senderMail,
                                       @ConfigProperty(name = "onboarding-functions.destination-mail-test") Boolean destinationMailTest,
                                       @ConfigProperty(name = "onboarding-functions.destination-mail-test-address") String destinationMailTestAddress) {
@@ -54,14 +57,12 @@ public class NotificationServiceDefault implements NotificationService {
         this.senderMail = senderMail;
         this.destinationMailTest = destinationMailTest;
         this.destinationMailTestAddress = destinationMailTestAddress;
+        this.notificationAdminMail = notificationAdminMail;
         this.mailer = mailer;
     }
+
     @Override
     public void sendMailRegistration(String institutionName, String destination, String name, String username, String productName) {
-        // Dev mode send mail to test digital address
-        List<String> destinationMail = destinationMailTest ?
-                List.of(destinationMailTestAddress):
-                List.of(destination);
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -70,8 +71,31 @@ public class NotificationServiceDefault implements NotificationService {
         Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterSurname(), value));
         mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
 
-        sendMailWithFile(destinationMail, templatePathConfig.registrationRequestPath(), mailParameters, productName, null);
-        log.debug("Mail registration successful sent !!");
+        sendMailWithFile(List.of(destination), templatePathConfig.registrationRequestPath(), mailParameters, productName, null);
+    }
+
+    @Override
+    public void sendMailRegistrationApprove(String institutionName, String name, String username, String productName, String token) {
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.registrationNotificationAdminPath());
+    }
+
+    @Override
+    public void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String token) {
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.notificationPath());
+    }
+
+
+    private void sendMailOnboardingOrRegistrationApprove(String institutionName, String name, String username, String productName, String token, String templatePath) {
+        // Prepare data for email
+        Map<String, String> mailParameters = new HashMap<>();
+        mailParameters.put(templatePlaceholdersConfig.productName(), productName);
+        Optional.ofNullable(name).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterName(), value));
+        Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
+        StringBuilder adminApproveLink = new StringBuilder(templatePlaceholdersConfig.adminLink());
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), adminApproveLink.append(token).toString());
+
+        sendMailWithFile(List.of(notificationAdminMail), templatePath, mailParameters, productName, null);
     }
 
     @Override
@@ -91,11 +115,6 @@ public class NotificationServiceDefault implements NotificationService {
             throw new RuntimeException(e);
         }
 
-        // Dev mode send mail to test digital address
-        List<String> destinationMail = destinationMailTest ?
-                List.of(destinationMailTestAddress):
-                List.of(destination);
-
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
         mailParameters.put(templatePlaceholdersConfig.productName(), productName);
@@ -109,12 +128,17 @@ public class NotificationServiceDefault implements NotificationService {
         fileMailData.data = contractZipData;
         fileMailData.name = fileNameZip;
 
-        sendMailWithFile(destinationMail, templatePathConfig.registrationPath(), mailParameters, productName, fileMailData);
-        log.debug("Mail registration with contract successful sent !!");
+        sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, fileMailData);
     }
 
     private void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {
         try {
+
+            // Dev mode send mail to test digital address
+            List<String> destinations = destinationMailTest ?
+                    List.of(destinationMailTestAddress):
+                    destinationMail;
+
             log.info("Sending mail to {}, with prefixSubject {}", destinationMail, prefixSubject);
             String template = azureBlobClient.getFileAsText(templateName);
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
@@ -123,7 +147,7 @@ public class NotificationServiceDefault implements NotificationService {
             final String subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
 
             Mail mail = Mail
-                    .withHtml(destinationMail.get(0), subject, html)
+                    .withHtml(destinations.get(0), subject, html)
                     .setFrom(senderMail);
 
             if(Objects.nonNull(fileMailData)) {

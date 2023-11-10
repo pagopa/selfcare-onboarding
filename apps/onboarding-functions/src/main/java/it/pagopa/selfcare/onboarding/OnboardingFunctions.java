@@ -37,6 +37,8 @@ public class OnboardingFunctions {
     public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
     public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME = "SendMailRegistrationWithContract";
     public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME = "SendMailRegistrationRequest";
+    public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME = "SendMailRegistrationApprove";
+    public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME = "SendMailOnboardingApprove";
     @Inject
     OnboardingService service;
 
@@ -168,6 +170,28 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString));
         try {
             service.sendMailRegistration(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingString;
+    }
+
+    @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME)
+    public String sendMailRegistrationApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME, onboardingString));
+        try {
+            service.sendMailRegistrationApprove(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingString;
+    }
+
+    @FunctionName(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME)
+    public String sendMailOnboardingApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME, onboardingString));
+        try {
+            service.sendMailOnboardingApprove(objectMapper.readValue(onboardingString, Onboarding.class));
         } catch (JsonProcessingException e) {
             throw new FunctionOrchestratedException(e);
         }
