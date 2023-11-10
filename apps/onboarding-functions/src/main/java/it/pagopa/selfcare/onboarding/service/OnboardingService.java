@@ -77,19 +77,23 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString());
     }
+    public void saveTokenWithContract(Onboarding onboarding) {
 
-    public void saveToken(Onboarding onboarding) {
+        // Load PDF contract and create digest
+        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
+        DSSDocument document = new FileDocument(contract);
+        String digest = document.getDigest(DigestAlgorithm.SHA256);
+
+        saveToken(onboarding, digest);
+    }
+
+    private void saveToken(Onboarding onboarding, String digest) {
         // Skip if token already exists
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
         if(optToken.isPresent()) {
             log.debug("Token has already exists for onboarding {}", onboarding.getId());
             return;
         }
-
-        // Load PDF contract and create digest
-        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
-        DSSDocument document = new FileDocument(contract);
-        String digest = document.getDigest(DigestAlgorithm.SHA256);
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
