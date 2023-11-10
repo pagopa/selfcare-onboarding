@@ -86,4 +86,33 @@ class NotificationServiceDefaultTest {
         Mockito.when(contractService.retrieveContractNotSigned(onboardingId)).thenReturn(file);
         assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationWithContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example","token"));
     }
+
+
+
+    @Test
+    void sendMailRegistration() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+
+        final String onboardingId = "onboardingId";
+        final String destination = "test@test.it";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationRequestPath()))
+                .thenReturn(mailTemplate);
+
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRegistration(onboardingId, destination,"","","");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
 }
