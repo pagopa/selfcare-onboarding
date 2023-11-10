@@ -35,28 +35,31 @@ public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
 
-    @Inject
-    MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
-    @Inject
-    MailTemplatePathConfig templatePathConfig;
+    final private MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
+    final private MailTemplatePathConfig templatePathConfig;
+    final private AzureBlobClient azureBlobClient;
+    final private ObjectMapper objectMapper;
+    final private ContractService contractService;
+    final private String senderMail;
+    final private Boolean destinationMailTest;
+    final private String destinationMailTestAddress;
+    final private Mailer mailer;
 
-    @Inject
-    Mailer mailer;
-    @Inject
-    AzureBlobClient azureBlobClient;
-    @Inject
-    ObjectMapper objectMapper;
-    @Inject
-    ContractService contractService;
-
-    @ConfigProperty(name = "onboarding-functions.sender-mail")
-    String senderMail;
-
-    @ConfigProperty(name = "onboarding-functions.destination-mail-test")
-    Boolean destinationMailTest;
-
-    @ConfigProperty(name = "onboarding-functions.destination-mail-test-address")
-    String destinationMailTestAddress;
+    public NotificationServiceDefault(MailTemplatePlaceholdersConfig templatePlaceholdersConfig, MailTemplatePathConfig templatePathConfig,
+                                      AzureBlobClient azureBlobClient, ObjectMapper objectMapper, Mailer mailer, ContractService contractService,
+                                      @ConfigProperty(name = "onboarding-functions.sender-mail") String senderMail,
+                                      @ConfigProperty(name = "onboarding-functions.destination-mail-test") Boolean destinationMailTest,
+                                      @ConfigProperty(name = "onboarding-functions.destination-mail-test-address") String destinationMailTestAddress) {
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
+        this.templatePathConfig = templatePathConfig;
+        this.azureBlobClient = azureBlobClient;
+        this.objectMapper = objectMapper;
+        this.contractService = contractService;
+        this.senderMail = senderMail;
+        this.destinationMailTest = destinationMailTest;
+        this.destinationMailTestAddress = destinationMailTestAddress;
+        this.mailer = mailer;
+    }
 
     @Override
     public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName, String token) {

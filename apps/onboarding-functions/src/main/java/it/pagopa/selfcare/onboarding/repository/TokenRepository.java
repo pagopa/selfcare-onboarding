@@ -9,7 +9,9 @@ import java.util.Optional;
 @ApplicationScoped
 public class TokenRepository implements PanacheMongoRepository<Token> {
 
+    public static final String ONBOARDING_ID_FIELD = "onboardingId";
+
     public Optional<Token> findByOnboardingId(String onboardingId) {
-        return find("onboardingId", onboardingId).firstResultOptional();
+        return find(ONBOARDING_ID_FIELD, onboardingId).firstResultOptional();
     }
 }

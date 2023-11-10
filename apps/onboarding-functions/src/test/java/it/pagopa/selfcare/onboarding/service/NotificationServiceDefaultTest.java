@@ -1,20 +1,32 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.MockitoConfig;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.wildfly.common.Assert;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.only;
 
 @QuarkusTest
 class NotificationServiceDefaultTest {
@@ -23,13 +35,21 @@ class NotificationServiceDefaultTest {
     AzureBlobClient azureBlobClient;
     @InjectMock
     ContractService contractService;
-    //@InjectMock
-    Mailer mailer;
     @Inject
     MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
-
     @Inject
+    MailTemplatePathConfig templatePathConfig;
+    @Inject
+    ObjectMapper objectMapper;
+    Mailer mailer;
     NotificationServiceDefault notificationService;
+
+    @BeforeEach
+    void startup() {
+        mailer = mock(Mailer.class);
+        this.notificationService = new NotificationServiceDefault(templatePlaceholdersConfig, templatePathConfig,
+                azureBlobClient, objectMapper, mailer, contractService, "senderMail", false, "destinationMailTestAddress");
+    }
 
     @Test
     void sendMailRegistrationWithContract() {
@@ -37,15 +57,26 @@ class NotificationServiceDefaultTest {
         final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
 
         final String onboardingId = "onboardingId";
-        final File file = mock(File.class);
-        Mockito.when(contractService.retrieveContractNotSigned(onboardingId)).thenReturn(file);
+        final String destination = "test@test.it";
 
-        Mockito.when(azureBlobClient.getFileAsText(any())).thenReturn(mailTemplate);
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
 
-        notificationService.sendMailRegistrationWithContract("onboardingId", "","","","","");
+        Mockito.when(contractService.retrieveContractNotSigned(onboardingId))
+                .thenReturn(file);
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRegistrationWithContract(onboardingId, destination,"","","","");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
-                .getFile(any());
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
     }
 
     @Test

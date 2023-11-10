@@ -6,6 +6,7 @@ import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -32,6 +33,7 @@ import java.util.UUID;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -59,13 +61,14 @@ class OnboardingServiceTest {
         onboarding.setOnboardingId(onboarding.getId().toHexString());
         onboarding.setProductId("productId");
         onboarding.setUsers(List.of());
+        onboarding.setInstitution(new Institution());
         return onboarding;
     }
 
     @Test
     void getOnboarding() {
         Onboarding onboarding = createOnboarding();
-        Mockito.when(onboardingRepository.findByIdOptional(any())).thenReturn(Optional.of(onboarding));
+        when(onboardingRepository.findByIdOptional(any())).thenReturn(Optional.of(onboarding));
 
         Optional<Onboarding> actual = onboardingService.getOnboarding(onboarding.getOnboardingId());
         assertTrue(actual.isPresent());
@@ -96,13 +99,13 @@ class OnboardingServiceTest {
         delegate.setRole(PartyRole.DELEGATE);
         onboarding.setUsers(List.of(manager, delegate));
 
-        Mockito.when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,manager.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,manager.getId()))
                         .thenReturn(userResource);
 
-        Mockito.when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,delegate.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,delegate.getId()))
                 .thenReturn(delegateResource);
 
-        Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
+        when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(new Product());
 
         onboardingService.createContract(onboarding);
@@ -132,15 +135,15 @@ class OnboardingServiceTest {
         DSSDocument document = new FileDocument(contract);
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
-        Mockito.when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId()))
+        when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId()))
                 .thenReturn(contract);
         Product productExpected = createDummyProduct();
-        Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
+        when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(productExpected);
 
         Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
 
-        onboardingService.saveToken(onboarding);
+        onboardingService.saveTokenWithContract(onboarding);
 
 
         ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
@@ -157,12 +160,44 @@ class OnboardingServiceTest {
 
         Onboarding onboarding = createOnboarding();
 
-        Mockito.when(productService.getProductIsValid(onboarding.getProductId()))
+        when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(new Product());
 
         onboardingService.loadContract(onboarding);
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
+    }
+
+
+    @Test
+    void sendMailRegistrationWithContract_throwExceptionWhenTokenIsPresent() {
+
+        Onboarding onboarding = createOnboarding();
+        Token token = new Token();
+        token.setId(ObjectId.get());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(new Product());
+        doNothing().when(notificationService).sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
+
+        onboardingService.sendMailRegistrationWithContract(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
+    }
+
+
+    @Test
+    void sendMailRegistrationWithContract() {
+
+        Onboarding onboarding = createOnboarding();
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationWithContract(onboarding));
     }
 }
