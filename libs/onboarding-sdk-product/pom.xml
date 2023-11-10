@@ -3,8 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>it.pagopa.selfcare</groupId>
-        <artifactId>onboarding-sdk</artifactId>
+        <artifactId>onboarding-sdk-pom</artifactId>
         <version>0.1.0</version>
+        <relativePath>../onboarding-sdk-pom</relativePath>
     </parent>
     <artifactId>onboarding-sdk-product</artifactId>
     <name>onboarding-sdk-product</name>
@@ -26,7 +27,7 @@
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-common</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

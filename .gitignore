@@ -60,3 +60,4 @@ override.tf.json
 # example: *tfplan*
 
 **/.tfsec/*
+pagopa_selfcare-onboarding
