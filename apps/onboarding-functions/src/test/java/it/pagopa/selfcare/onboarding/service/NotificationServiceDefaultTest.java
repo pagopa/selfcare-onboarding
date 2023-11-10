@@ -11,6 +11,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -44,11 +45,13 @@ class NotificationServiceDefaultTest {
     Mailer mailer;
     NotificationServiceDefault notificationService;
 
+    final String notificationAdminMail = "adminAddress";
+
     @BeforeEach
     void startup() {
         mailer = mock(Mailer.class);
         this.notificationService = new NotificationServiceDefault(templatePlaceholdersConfig, templatePathConfig,
-                azureBlobClient, objectMapper, mailer, contractService, "senderMail", false, "destinationMailTestAddress");
+                azureBlobClient, objectMapper, mailer, contractService, notificationAdminMail, "senderMail", false, "destinationMailTestAddress");
     }
 
     @Test
@@ -87,8 +90,6 @@ class NotificationServiceDefaultTest {
         assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationWithContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example","token"));
     }
 
-
-
     @Test
     void sendMailRegistration() {
 
@@ -107,12 +108,32 @@ class NotificationServiceDefaultTest {
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
 
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+
+    @Test
+    void sendMailRegistrationApprove() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationNotificationAdminPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRegistrationApprove(institutionName, "name","username","product","token");
+
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
 
         ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
         Mockito.verify(mailer, Mockito.times(1))
                 .send(mailArgumentCaptor.capture());
-        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+        assertEquals(notificationAdminMail, mailArgumentCaptor.getValue().getTo().get(0));
     }
+
 }
