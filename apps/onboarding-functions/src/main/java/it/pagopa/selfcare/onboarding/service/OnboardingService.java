@@ -79,6 +79,13 @@ public class OnboardingService {
     }
     public void saveTokenWithContract(Onboarding onboarding) {
 
+        // Skip if token already exists
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        if(optToken.isPresent()) {
+            log.debug("Token has already exists for onboarding {}", onboarding.getId());
+            return;
+        }
+
         // Load PDF contract and create digest
         File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
         DSSDocument document = new FileDocument(contract);
@@ -88,12 +95,6 @@ public class OnboardingService {
     }
 
     private void saveToken(Onboarding onboarding, String digest) {
-        // Skip if token already exists
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
-        if(optToken.isPresent()) {
-            log.debug("Token has already exists for onboarding {}", onboarding.getId());
-            return;
-        }
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
@@ -110,6 +111,16 @@ public class OnboardingService {
         token.setType(TokenType.INSTITUTION);
 
         tokenRepository.persist(token);
+    }
+
+    public void sendMailRegistration(Onboarding onboarding) {
+
+        Product product = productService.getProduct(onboarding.getProductId());
+
+        notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
+                onboarding.getInstitution().getDigitalAddress(), "example", "example",
+                product.getTitle());
+
     }
 
     public void sendMailRegistrationWithContract(Onboarding onboarding) {

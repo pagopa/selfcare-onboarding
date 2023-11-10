@@ -36,6 +36,7 @@ public class OnboardingFunctions {
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
     public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME = "SendMailRegistrationWithContract";
+    public static final String SEND_MAIL_REGISTRATION_ACTIVITY_NAME = "SendMailRegistration";
     @Inject
     OnboardingService service;
 
@@ -165,9 +166,14 @@ public class OnboardingFunctions {
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName("SendMailRegistration")
+    @FunctionName(SEND_MAIL_REGISTRATION_ACTIVITY_NAME)
     public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, "SendMailRegistration", onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_ACTIVITY_NAME, onboardingString));
+        try {
+            service.sendMailRegistration(objectMapper.readValue(onboardingString, Onboarding.class));
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
         return onboardingString;
     }
 
