@@ -36,6 +36,8 @@ public class OnboardingService {
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S = "Token does not exists for onboarding %s";
+    public static final String loggedUserName = "example";
+    public static final String loggedUserSurname = "example";
 
     @RestClient
     @Inject
@@ -119,7 +121,7 @@ public class OnboardingService {
         Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
-                onboarding.getInstitution().getDigitalAddress(), "example", "example",
+                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
                 product.getTitle());
 
     }
@@ -131,7 +133,7 @@ public class OnboardingService {
         Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
-                onboarding.getInstitution().getDigitalAddress(), "example", "example",
+                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
                 product.getTitle(), token.getId().toHexString());
     }
 
@@ -155,7 +157,7 @@ public class OnboardingService {
         Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
-                "example", "example", product.getTitle(), token.getId().toHexString());
+                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
 
     }
 
@@ -166,7 +168,7 @@ public class OnboardingService {
         Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
-                "example", "example", product.getTitle(), token.getId().toHexString());
+                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
 
     }
 }

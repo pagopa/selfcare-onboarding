@@ -42,11 +42,14 @@ public class ContractServiceDefault implements ContractService {
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PDF_FORMAT_FILENAME = "%s.pdf";
 
-    @Inject
-    AzureStorageConfig azureStorageConfig;
+    private final AzureStorageConfig azureStorageConfig;
 
-    @Inject
-    AzureBlobClient azureBlobClient;
+    private final AzureBlobClient azureBlobClient;
+
+    public ContractServiceDefault(AzureStorageConfig azureStorageConfig, AzureBlobClient azureBlobClient) {
+        this.azureStorageConfig = azureStorageConfig;
+        this.azureBlobClient = azureBlobClient;
+    }
 
     /**
      * Creates a PDF contract document from a given contract template file and institution data.

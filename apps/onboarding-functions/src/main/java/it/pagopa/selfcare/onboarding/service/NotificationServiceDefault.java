@@ -31,17 +31,17 @@ public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
 
-    final private MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
-    final private MailTemplatePathConfig templatePathConfig;
-    final private AzureBlobClient azureBlobClient;
-    final private ObjectMapper objectMapper;
-    final private ContractService contractService;
-    final private String senderMail;
-    final private Boolean destinationMailTest;
-    final private String destinationMailTestAddress;
+    private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
+    private final MailTemplatePathConfig templatePathConfig;
+    private final AzureBlobClient azureBlobClient;
+    private final ObjectMapper objectMapper;
+    private final ContractService contractService;
+    private final String senderMail;
+    private final Boolean destinationMailTest;
+    private final String destinationMailTestAddress;
 
-    final private String notificationAdminMail;
-    final private Mailer mailer;
+    private final String notificationAdminMail;
+    private final Mailer mailer;
 
     public NotificationServiceDefault(MailTemplatePlaceholdersConfig templatePlaceholdersConfig, MailTemplatePathConfig templatePathConfig,
                                       AzureBlobClient azureBlobClient, ObjectMapper objectMapper, Mailer mailer, ContractService contractService,
@@ -158,7 +158,7 @@ public class NotificationServiceDefault implements NotificationService {
 
             log.info("End of sending mail to {}, with subject {}", destinationMail, subject);
         } catch (Exception e) {
-            log.error(ERROR_DURING_SEND_MAIL + ":" + e.getMessage());
+            log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
             throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
         }
     }

@@ -39,11 +39,15 @@ public class OnboardingFunctions {
     public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME = "SendMailRegistrationRequest";
     public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME = "SendMailRegistrationApprove";
     public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME = "SendMailOnboardingApprove";
-    @Inject
-    OnboardingService service;
 
-    @Inject
-    ObjectMapper objectMapper;
+    private final OnboardingService service;
+
+    private final ObjectMapper objectMapper;
+
+    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper) {
+        this.service = service;
+        this.objectMapper = objectMapper;
+    }
 
     private static final  TaskOptions optionsRetry;
 
