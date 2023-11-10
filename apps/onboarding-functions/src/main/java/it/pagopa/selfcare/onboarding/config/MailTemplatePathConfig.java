@@ -14,9 +14,9 @@ public interface MailTemplatePathConfig {
 
     String registrationPath();
 
-    String notificationPath();
+    String onboardingApprovePath();
 
     String rejectPath();
     String registrationRequestPath();
-    String registrationNotificationAdminPath();
+    String registrationApprovePath();
 }

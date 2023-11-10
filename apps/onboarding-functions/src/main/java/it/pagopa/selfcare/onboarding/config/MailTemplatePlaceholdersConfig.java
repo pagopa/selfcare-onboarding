@@ -27,7 +27,5 @@ public interface MailTemplatePlaceholdersConfig {
     String rejectOnboardingUrlValue();
     String rejectProductName();
 
-    String notificationAdminEmail();
-
 
 }

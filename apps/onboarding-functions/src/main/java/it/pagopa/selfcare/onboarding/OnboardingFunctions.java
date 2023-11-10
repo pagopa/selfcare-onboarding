@@ -104,7 +104,8 @@ public class OnboardingFunctions {
         String result = "";
         result += ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         result += ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
-        result += ctx.callActivity(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
+        result += ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() + ", ";
         return result;
     }
 

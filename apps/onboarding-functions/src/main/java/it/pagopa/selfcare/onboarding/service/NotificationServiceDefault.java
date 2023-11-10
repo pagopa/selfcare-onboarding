@@ -76,12 +76,12 @@ public class NotificationServiceDefault implements NotificationService {
 
     @Override
     public void sendMailRegistrationApprove(String institutionName, String name, String username, String productName, String token) {
-        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.registrationNotificationAdminPath());
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.registrationApprovePath());
     }
 
     @Override
     public void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String token) {
-        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.notificationPath());
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.onboardingApprovePath());
     }
 
 

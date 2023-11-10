@@ -121,7 +121,7 @@ class NotificationServiceDefaultTest {
         final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
         final String institutionName = "institutionName";
 
-        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationNotificationAdminPath()))
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationApprovePath()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
