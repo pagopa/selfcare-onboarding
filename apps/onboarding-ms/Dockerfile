@@ -5,10 +5,7 @@ WORKDIR /src
 COPY --link ./pom.xml .
 
 WORKDIR /src/libs
-COPY --link ./libs/pom.xml .
-
-WORKDIR /src/libs/onboarding-sdk
-COPY ./libs/onboarding-sdk/ .
+COPY --link ./libs/ .
 
 WORKDIR /src/apps
 COPY --link ./apps/pom.xml .
