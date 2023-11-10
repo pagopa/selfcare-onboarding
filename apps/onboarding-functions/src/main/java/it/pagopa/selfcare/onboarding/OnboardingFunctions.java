@@ -130,11 +130,7 @@ public class OnboardingFunctions {
     @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
     public String buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
-        try {
-            service.createContract(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.createContract(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
@@ -144,11 +140,7 @@ public class OnboardingFunctions {
     @FunctionName(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME)
     public String saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
-        try {
-            service.saveTokenWithContract(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.saveTokenWithContract(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
@@ -158,44 +150,28 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME)
     public String sendMailRegistrationWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
-        try {
-            service.sendMailRegistrationWithContract(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.sendMailRegistrationWithContract(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME)
     public String sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString));
-        try {
-            service.sendMailRegistration(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.sendMailRegistration(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME)
     public String sendMailRegistrationApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME, onboardingString));
-        try {
-            service.sendMailRegistrationApprove(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.sendMailRegistrationApprove(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
     @FunctionName(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME)
     public String sendMailOnboardingApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME, onboardingString));
-        try {
-            service.sendMailOnboardingApprove(objectMapper.readValue(onboardingString, Onboarding.class));
-        } catch (JsonProcessingException e) {
-            throw new FunctionOrchestratedException(e);
-        }
+        service.sendMailOnboardingApprove(readOnboardingValue(onboardingString));
         return onboardingString;
     }
 
@@ -206,5 +182,13 @@ public class OnboardingFunctions {
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING,"SendMailConfirmation", onboardingString));
         return onboardingString;
+    }
+
+    private Onboarding readOnboardingValue(String onboardingString) {
+        try {
+            return objectMapper.readValue(onboardingString, Onboarding.class);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
     }
 }
