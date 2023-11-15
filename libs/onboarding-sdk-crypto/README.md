@@ -18,10 +18,10 @@ The sources available inside this repository are:
 
 It will use the provided private key and certificate, you must set these env variables.
 
-| ENV                  | Description                                                                     | Default |
-|----------------------|---------------------------------------------------------------------------------|---------|
-| CRYPTO_PRIVATE_KEY   | The private key (PEM) used when the pkcs7 hash signature source is <i>local</i> |         |
-| CRYPTO_CERT          | The certificate (PEM) used when the pkcs7 hash signature source is <i>local</i> |         |
+| Properties         | Description                                                                     | Default |
+|--------------------|---------------------------------------------------------------------------------|---------|
+| crypto.key.cert    | The private key (PEM) used when the pkcs7 hash signature source is <i>local</i> |         |
+| crypto.key.private | The certificate (PEM) used when the pkcs7 hash signature source is <i>local</i> |         |
 
 
 ## Installation
