@@ -4,8 +4,8 @@ functions:
 onboarding-ms:
 - apps/onboarding-ms/**
 
-onboarding-sdk:
-- libs/onboarding-sdk/**
+libs:
+- libs
 
 ops:
 - .github/**
