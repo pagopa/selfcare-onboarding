@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class LocalCryptoInitializer {
 
+    private LocalCryptoInitializer(){}
+
     public static LocalCryptoConfig initializeConfig() {
         LocalCryptoConfig config = new LocalCryptoConfig();
         String cert = System.getProperty("crypto.key.cert");

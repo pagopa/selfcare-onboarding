@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -21,6 +20,7 @@ import java.util.Base64;
 
 public class CryptoUtils {
 
+    private CryptoUtils() {}
 
     public static void createParentDirectoryIfNotExists(File destFile) {
         Path destDir = destFile.toPath().getParent();
