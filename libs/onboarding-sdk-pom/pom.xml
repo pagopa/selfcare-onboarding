@@ -29,6 +29,7 @@
         <module>../onboarding-sdk-azure-storage</module>
         <module>../onboarding-sdk-common</module>
         <module>../onboarding-sdk-product</module>
+        <module>../onboarding-sdk-crypto</module>
     </modules>
 
 
