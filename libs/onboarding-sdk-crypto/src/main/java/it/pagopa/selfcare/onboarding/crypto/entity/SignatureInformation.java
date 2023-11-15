@@ -5,6 +5,12 @@ public class SignatureInformation {
     private String location;
     private String reason;
 
+    public SignatureInformation(String name, String location, String reason) {
+        this.name = name;
+        this.location = location;
+        this.reason = reason;
+    }
+
     public String getName() {
         return name;
     }

@@ -89,6 +89,11 @@
                     <artifactId>onboarding-sdk-azure-storage</artifactId>
                     <version>0.1.0</version>
                 </dependency>
+                <dependency>
+                    <groupId>it.pagopa.selfcare</groupId>
+                    <artifactId>onboarding-sdk-crypto</artifactId>
+                    <version>0.1.0</version>
+                </dependency>
             </dependencies>
 
         </profile>
