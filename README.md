@@ -31,6 +31,12 @@ The [`.container_apps/`] sub folder contains terraform files for deploying infra
 
 The [`.github/`] sub folder contains a self-contained ci-stack for building the monorepo with Github Actions.
 
+## Usage
+
+```shell script
+mvn clean package install
+```
+
 ## Maven basic actions for monorep
 
 Maven is really not a monorepo-*native* build tool (e.g. lacks

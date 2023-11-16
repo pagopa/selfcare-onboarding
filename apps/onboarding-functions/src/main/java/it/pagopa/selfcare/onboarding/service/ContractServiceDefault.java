@@ -55,8 +55,6 @@ public class ContractServiceDefault implements ContractService {
 
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
 
-    private final boolean pagopaSignatureDisabled;
-
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
                                   PagoPaSignatureConfig pagoPaSignatureConfig) {
@@ -64,7 +62,6 @@ public class ContractServiceDefault implements ContractService {
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
-        this.pagopaSignatureDisabled = PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source());
     }
 
     /**
@@ -126,8 +123,8 @@ public class ContractServiceDefault implements ContractService {
         }
     }
 
-    private File signPdf(File pdf, String institutionDescription, String productId) {
-        if(pagopaSignatureDisabled) {
+    private File signPdf(File pdf, String institutionDescription, String productId) throws IOException {
+        if(PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
             log.info("Skipping PagoPA contract pdf sign due to global disabling");
             return pdf;
         }
@@ -137,7 +134,7 @@ public class ContractServiceDefault implements ContractService {
                 .replace("${productName}", productId);
 
         log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
-        Path signedPdf = Paths.get(pdf.getAbsolutePath().replace(".pdf", "-signed.pdf"));
+        Path signedPdf = Files.createTempFile("signed", ".pdf");
         padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
         return signedPdf.toFile();
     }
