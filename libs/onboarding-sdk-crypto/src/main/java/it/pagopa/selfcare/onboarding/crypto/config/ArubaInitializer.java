@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public class ArubaInitializer {
 
+    private ArubaInitializer() {}
+
     public static ArubaSignConfig initializeConfig() {
 
         ArubaSignConfig config = new ArubaSignConfig();

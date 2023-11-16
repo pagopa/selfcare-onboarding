@@ -5,7 +5,7 @@ onboarding-ms:
 - apps/onboarding-ms/**
 
 libs:
-- libs
+- libs/**
 
 ops:
 - .github/**
