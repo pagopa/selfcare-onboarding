@@ -95,11 +95,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
-        return checkRoleAndRetrieveUsers(userRequests, List.of(PartyRole.MANAGER, PartyRole.DELEGATE))
-                .onItem().invoke(onboarding::setUsers).replaceWith(onboarding)
+        return Panache.withTransaction(() -> onboarding.persist()
+                .onItem().transform(onboardingPersisted -> (Onboarding) onboardingPersisted)
+                .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
+                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
                 .onItem().transformToUni(this::persistAndStartOrchestrationOnboarding)
-                .onItem().transform(onboardingMapper::toResponse);
+                .onItem().transform(onboardingMapper::toResponse));
     }
 
     public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding) {
@@ -107,9 +109,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboardings.add(onboarding);
 
         if(onboardingOrchestrationEnabled) {
-            return Panache.withTransaction(() -> Onboarding.persistOrUpdate(onboardings)
+            return Onboarding.persistOrUpdate(onboardings)
                     .onItem().transformToUni(saved -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
-                            .replaceWith(onboarding)));
+                    .replaceWith(onboarding));
         } else {
             return Onboarding.persistOrUpdate(onboardings)
                     .replaceWith(onboarding);
@@ -187,7 +189,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
-    public Uni<List<User>> checkRoleAndRetrieveUsers(List<UserRequest> users, List<PartyRole> validRoles) {
+    public Uni<List<User>> checkRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId) {
+
+        List<PartyRole> validRoles = List.of(PartyRole.MANAGER, PartyRole.DELEGATE);
 
         List<UserRequest> usersNotValidRole =  users.stream()
                 .filter(user -> !validRoles.contains(user.getRole()))
@@ -205,13 +209,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
 
                             /* retrieve userId, if found will eventually update some fields */
-                            .onItem().transformToUni(userResource -> createUpdateUserRequest(user, userResource)
+                            .onItem().transformToUni(userResource -> createUpdateUserRequest(user, userResource, onboardingId)
                                 .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
                                         .replaceWith(userResource.getId()))
                                 .orElse(Uni.createFrom().item(userResource.getId())))
                             /* if not found 404, will create new user */
                             .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
-                                ? userRegistryApi.saveUsingPATCH(createSaveUserDto(user)).onItem().transform(UserId::getId)
+                                ? userRegistryApi.saveUsingPATCH(createSaveUserDto(user, onboardingId)).onItem().transform(UserId::getId)
                                 : Uni.createFrom().failure(ex))
                             .onItem().transform(userResourceId -> User.builder()
                                 .id(userResourceId.toString())
@@ -221,7 +225,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .concatenate().collect().asList();
     }
 
-    private SaveUserDto createSaveUserDto(UserRequest model) {
+    private SaveUserDto createSaveUserDto(UserRequest model, String onboardingId) {
         SaveUserDto resource = new SaveUserDto();
         resource.setFiscalCode(model.getTaxCode());
         resource.setName(new CertifiableFieldResourceOfstring()
@@ -230,10 +234,22 @@ public class OnboardingServiceDefault implements OnboardingService {
         resource.setFamilyName(new CertifiableFieldResourceOfstring()
                 .value(model.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+
+        if (Objects.nonNull(onboardingId)) {
+            WorkContactResource contact = new WorkContactResource();
+            contact.setEmail(new CertifiableFieldResourceOfstring()
+                    .value(model.getEmail())
+                    .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+            resource.setWorkContacts(Map.of(createWorkContractId(onboardingId), contact));
+        }
         return resource;
     }
 
-    protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser) {
+    private static String createWorkContractId(String onboardingId) {
+        return String.format("obg_%s", onboardingId);
+    }
+
+    protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser, String onboardingId) {
         Optional<MutableUserFieldsDto> mutableUserFieldsDto = Optional.empty();
         if (isFieldToUpdate(foundUser.getName(), user.getName())) {
             MutableUserFieldsDto dto = new MutableUserFieldsDto();
@@ -247,6 +263,18 @@ public class OnboardingServiceDefault implements OnboardingService {
             dto.setFamilyName(new CertifiableFieldResourceOfstring()
                     .value(user.getSurname())
                     .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+            mutableUserFieldsDto = Optional.of(dto);
+        }
+
+        if (foundUser.getWorkContacts() == null
+                || !foundUser.getWorkContacts().containsKey(onboardingId)
+                || isFieldToUpdate(foundUser.getWorkContacts().get(onboardingId).getEmail(), user.getEmail())) {
+            MutableUserFieldsDto dto = mutableUserFieldsDto.orElseGet(MutableUserFieldsDto::new);
+            final WorkContactResource workContact = new WorkContactResource();
+            workContact.setEmail(new CertifiableFieldResourceOfstring()
+                    .value(user.getEmail())
+                    .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+            dto.setWorkContacts(Map.of(createWorkContractId(onboardingId), workContact));
             mutableUserFieldsDto = Optional.of(dto);
         }
         return mutableUserFieldsDto;
