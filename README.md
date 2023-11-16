@@ -16,6 +16,7 @@ Applications under apps/ depend on shared code under libs/. test-coverage/ is us
     ├── onboarding-sdk-common
     ├── onboarding-sdk-azure-storage
     ├── onboarding-sdk-product
+    ├── onboarding-sdk-crypto
 └── test-coverage
 ```
 
