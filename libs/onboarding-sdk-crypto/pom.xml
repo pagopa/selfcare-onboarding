@@ -69,4 +69,26 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.sun.xml.ws</groupId>
+                <artifactId>jaxws-maven-plugin</artifactId>
+                <version>4.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <wsdlDirectory>src/main/resources/docs/aruba/</wsdlDirectory>
+                    <packageName>it.pagopa.selfcare.onboarding.crypto.soap.aruba.sign.generated.client</packageName>
+                    <sourceDestDir>${project.build.directory}/generated-sources/wsimport/</sourceDestDir>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
