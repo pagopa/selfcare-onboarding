@@ -6,17 +6,25 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.vertx.core.json.jackson.DatabindCodec;
 import it.pagopa.selfcare.azurestorage.AzureBlobClientDefault;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.crypto.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.product.service.ProductServiceDefault;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 @ApplicationScoped
 public class OnboardingFunctionConfig {
+
+
 
     @Produces
     public ObjectMapper objectMapper(){
@@ -46,6 +54,33 @@ public class OnboardingFunctionConfig {
         } catch (JsonProcessingException e) {
             throw new GenericOnboardingException("Found an issue when trying to serialize product json string!!");
         }
+    }
+
+    @Produces
+    @IfBuildProperty(name = "crypto.pkcs7.source", stringValue = "aruba")
+    public Pkcs7HashSignService arubaPkcs7HashSignService(){
+        return new ArubaPkcs7HashSignServiceImpl(new ArubaSignServiceImpl());
+    }
+
+
+    @Produces
+    @IfBuildProperty(name = "crypto.pkcs7.source", stringValue = "disabled")
+    public Pkcs7HashSignService testPkcs7HashSignService(){
+        return new Pkcs7HashSignService(){
+            @Override
+            public byte[] sign(InputStream inputStream) throws IOException {
+                return new byte[0];
+            }
+        };
+    }
+    @Produces
+    @DefaultBean
+    public Pkcs7HashSignService pkcs7HashSignService(){
+        return new Pkcs7HashSignServiceImpl();
+    }
+    @Produces
+    public PadesSignService padesSignService(Pkcs7HashSignService pkcs7HashSignService){
+        return new PadesSignServiceImpl(pkcs7HashSignService);
     }
 
 }

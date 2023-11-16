@@ -81,6 +81,11 @@
       <version>${onboarding-sdk.version}</version>
     </dependency>
     <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-crypto</artifactId>
+      <version>${onboarding-sdk.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
       <scope>compile</scope>
