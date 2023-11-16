@@ -45,7 +45,7 @@ public class ContractServiceDefault implements ContractService {
 
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PDF_FORMAT_FILENAME = "%s.pdf";
-    public static final String CRYPTO_SOURCE_DISABLED = "disabled";
+    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
     private final AzureStorageConfig azureStorageConfig;
 
@@ -55,17 +55,16 @@ public class ContractServiceDefault implements ContractService {
 
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
 
-    private final boolean cryptoSourceDisabled;
+    private final boolean pagopaSignatureDisabled;
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
-                                  PagoPaSignatureConfig pagoPaSignatureConfig,
-                                  @ConfigProperty(name = "crypto.pkcs7.source") String cryptoSource) {
+                                  PagoPaSignatureConfig pagoPaSignatureConfig) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
-        this.cryptoSourceDisabled = CRYPTO_SOURCE_DISABLED.equals(cryptoSource);
+        this.pagopaSignatureDisabled = PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source());
     }
 
     /**
@@ -128,7 +127,7 @@ public class ContractServiceDefault implements ContractService {
     }
 
     private File signPdf(File pdf, String institutionDescription, String productId) {
-        if(cryptoSourceDisabled) {
+        if(pagopaSignatureDisabled) {
             log.info("Skipping PagoPA contract pdf sign due to global disabling");
             return pdf;
         }

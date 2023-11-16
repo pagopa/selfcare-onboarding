@@ -57,15 +57,15 @@ public class OnboardingFunctionConfig {
     }
 
     @Produces
-    @IfBuildProperty(name = "crypto.pkcs7.source", stringValue = "aruba")
+    @IfBuildProperty(name = "onboarding-functions.pagopa-signature.source", stringValue = "aruba")
     public Pkcs7HashSignService arubaPkcs7HashSignService(){
         return new ArubaPkcs7HashSignServiceImpl(new ArubaSignServiceImpl());
     }
 
 
     @Produces
-    @IfBuildProperty(name = "crypto.pkcs7.source", stringValue = "disabled")
-    public Pkcs7HashSignService testPkcs7HashSignService(){
+    @IfBuildProperty(name = "onboarding-functions.pagopa-signature.source", stringValue = "disabled")
+    public Pkcs7HashSignService disabledPkcs7HashSignService(){
         return new Pkcs7HashSignService(){
             @Override
             public byte[] sign(InputStream inputStream) throws IOException {

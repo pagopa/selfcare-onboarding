@@ -6,7 +6,7 @@ import io.smallrye.config.ConfigMapping;
 @ConfigMapping(prefix = "onboarding-functions.pagopa-signature")
 public interface PagoPaSignatureConfig {
 
-    boolean enabled();
+    String source();
 
     String signer();
 
