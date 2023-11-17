@@ -1,5 +1,5 @@
 functions:
-- onboarding-functions/**
+- apps/onboarding-functions/**
 
 onboarding-ms:
 - apps/onboarding-ms/**
