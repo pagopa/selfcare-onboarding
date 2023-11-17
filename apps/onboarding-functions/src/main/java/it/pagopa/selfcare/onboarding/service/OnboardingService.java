@@ -19,6 +19,7 @@ import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,7 @@ public class OnboardingService {
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S = "Token does not exists for onboarding %s";
-    public static final String loggedUserName = "example";
-    public static final String loggedUserSurname = "example";
+    public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
 
     @RestClient
     @Inject
@@ -118,25 +118,46 @@ public class OnboardingService {
 
     public void sendMailRegistration(Onboarding onboarding) {
 
-        Product product = productService.getProduct(onboarding.getProductId());
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
         notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
-                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
-                product.getTitle());
+                onboarding.getInstitution().getDigitalAddress(),
+                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                sendMailInput.product.getTitle());
 
     }
 
     public void sendMailRegistrationWithContract(Onboarding onboarding) {
 
-        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
-                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
-        Product product = productService.getProduct(onboarding.getProductId());
+        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
 
         notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
-                onboarding.getInstitution().getDigitalAddress(), loggedUserName, loggedUserSurname,
-                product.getTitle(), token.getId().toHexString());
+                onboarding.getInstitution().getDigitalAddress(),
+                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                sendMailInput.product.getTitle(),
+                sendMailInput.token.getId().toHexString());
     }
 
+    public void sendMailRegistrationApprove(Onboarding onboarding) {
+
+        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
+
+        notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
+                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                sendMailInput.product.getTitle(),
+                sendMailInput.token.getId().toHexString());
+
+    }
+
+    public void sendMailOnboardingApprove(Onboarding onboarding) {
+
+        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
+
+        notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
+                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                sendMailInput.product.getTitle(),
+                sendMailInput.token.getId().toHexString());
+    }
 
     public String getValidManagerId(List<User> users) {
         log.debug("START - getOnboardingValidManager for users list size: {}", users.size());
@@ -149,26 +170,31 @@ public class OnboardingService {
                         GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getCode()));
     }
 
-    public void sendMailRegistrationApprove(Onboarding onboarding) {
-
-
+    private SendMailInput builderWithTokenAndProductAndUserRequest(Onboarding onboarding) {
         Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
                 .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
-        Product product = productService.getProduct(onboarding.getProductId());
 
-        notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
-                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
-
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        sendMailInput.token = token;
+        return sendMailInput;
     }
 
-    public void sendMailOnboardingApprove(Onboarding onboarding) {
+    private SendMailInput builderWithProductAndUserRequest(Onboarding onboarding) {
+        SendMailInput sendMailInput = new SendMailInput();
+        sendMailInput.product = productService.getProduct(onboarding.getProductId());
 
-        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
-                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
-        Product product = productService.getProduct(onboarding.getProductId());
+        // Retrieve user request name and surname
+        UserResource userRequest = Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .orElseThrow(() -> new GenericOnboardingException(String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
+        sendMailInput.userRequestName = Optional.ofNullable(userRequest.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
+        sendMailInput.userRequestSurname = Optional.ofNullable(userRequest.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
+        return sendMailInput;
+    }
 
-        notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
-                loggedUserName, loggedUserSurname, product.getTitle(), token.getId().toHexString());
-
+    static class SendMailInput {
+        Product product;
+        Token token;
+        String userRequestName;
+        String userRequestSurname;
     }
 }

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.io.File;
@@ -64,7 +65,24 @@ class OnboardingServiceTest {
         onboarding.setProductId("productId");
         onboarding.setUsers(List.of());
         onboarding.setInstitution(new Institution());
+        onboarding.setUserRequestUid("example-uid");
         return onboarding;
+    }
+
+    private UserResource createUserResource(){
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+
+        CertifiableFieldResourceOfstring resourceOfName = new CertifiableFieldResourceOfstring();
+        resourceOfName.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+        resourceOfName.setValue("name");
+        userResource.setName(resourceOfName);
+
+        CertifiableFieldResourceOfstring resourceOfSurname = new CertifiableFieldResourceOfstring();
+        resourceOfSurname.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+        resourceOfSurname.setValue("surname");
+        userResource.setFamilyName(resourceOfSurname);
+        return userResource;
     }
 
     @Test
@@ -86,11 +104,8 @@ class OnboardingServiceTest {
     @Test
     void createContract() {
 
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-
-        UserResource delegateResource = new UserResource();
-        delegateResource.setId(UUID.randomUUID());
+        UserResource userResource = createUserResource();
+        UserResource delegateResource = createUserResource();
 
         Onboarding onboarding = createOnboarding();
         User manager = new User();
@@ -191,6 +206,7 @@ class OnboardingServiceTest {
     void sendMailRegistrationWithContract() {
 
         Onboarding onboarding = createOnboarding();
+        UserResource userResource = createUserResource();
         Token token = new Token();
         token.setId(ObjectId.get());
 
@@ -198,7 +214,11 @@ class OnboardingServiceTest {
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(dummyProduct);
-        doNothing().when(notificationService).sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService)
+                .sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
 
         onboardingService.sendMailRegistrationWithContract(onboarding);
 
@@ -219,9 +239,13 @@ class OnboardingServiceTest {
     @Test
     void sendMailRegistration() {
 
+        UserResource userResource = createUserResource();
         Onboarding onboarding = createOnboarding();
+
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(dummyProduct);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
         doNothing().when(notificationService).sendMailRegistration(any(), any(), any(),any(),any());
 
         onboardingService.sendMailRegistration(onboarding);
@@ -236,12 +260,17 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         Token token = new Token();
         token.setId(ObjectId.get());
+        UserResource userResource = createUserResource();
 
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(dummyProduct);
-        doNothing().when(notificationService).sendMailRegistrationApprove(any(), any(), any(),any(),any());
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+
+        doNothing().when(notificationService)
+                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
 
         onboardingService.sendMailRegistrationApprove(onboarding);
 
@@ -263,6 +292,7 @@ class OnboardingServiceTest {
     void sendMailOnboardingApprove() {
 
         Onboarding onboarding = createOnboarding();
+        UserResource userResource = createUserResource();
         Token token = new Token();
         token.setId(ObjectId.get());
 
@@ -270,6 +300,8 @@ class OnboardingServiceTest {
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(dummyProduct);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
         doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
 
         onboardingService.sendMailOnboardingApprove(onboarding);

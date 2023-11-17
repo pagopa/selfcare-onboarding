@@ -27,6 +27,7 @@ public class Onboarding  {
     private LocalDateTime expiringDate;
 
     private OnboardingStatus status;
+    private String userRequestUid;
 
     public ObjectId getId() {
         return id;
@@ -106,5 +107,13 @@ public class Onboarding  {
 
     public void setOnboardingId(String onboardingId) {
         this.onboardingId = onboardingId;
+    }
+
+    public String getUserRequestUid() {
+        return userRequestUid;
+    }
+
+    public void setUserRequestUid(String userRequestUid) {
+        this.userRequestUid = userRequestUid;
     }
 }
