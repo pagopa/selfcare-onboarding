@@ -31,6 +31,7 @@ import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -95,6 +96,8 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
+        onboarding.setCreatedAt(LocalDateTime.now());
+
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
                     .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
