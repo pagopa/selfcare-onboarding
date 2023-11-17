@@ -13,7 +13,7 @@ public class Institution {
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
-
+    private InstitutionLocationData institutionLocationData;
     private String description;
     private String digitalAddress;
     private String address;

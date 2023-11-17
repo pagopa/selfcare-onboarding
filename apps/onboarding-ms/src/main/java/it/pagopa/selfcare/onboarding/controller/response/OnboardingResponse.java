@@ -8,7 +8,6 @@ import java.util.List;
 public class OnboardingResponse {
 
     private InstitutionResponse institution;
-
     private String productId;
     private String pricingPlan;
     private List<UserResponse> users;
