@@ -12,44 +12,17 @@
     <artifactId>onboarding-libs</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <modules>
+        <module>onboarding-sdk-azure-storage</module>
+        <module>onboarding-sdk-common</module>
+        <module>onboarding-sdk-product</module>
+        <module>onboarding-sdk-crypto</module>
         <module>onboarding-sdk-pom</module>
     </modules>
 
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.quarkus.platform</groupId>
-                <artifactId>quarkus-bom</artifactId>
-                <version>3.4.2</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.sonarsource.scanner.maven</groupId>
-                    <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.10.0.2594</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.11</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
-    </build>
 
 </project>
