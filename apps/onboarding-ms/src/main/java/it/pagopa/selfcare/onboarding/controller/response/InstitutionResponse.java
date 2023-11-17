@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.controller.response;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
 import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
-import it.pagopa.selfcare.onboarding.entity.InstitutionLocationData;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import lombok.Data;
 
@@ -17,7 +16,9 @@ public class InstitutionResponse {
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
-    private InstitutionLocationData institutionLocationData;
+    private String city;
+    private String country;
+    private String county;
     private String description;
     private String digitalAddress;
     private String address;
