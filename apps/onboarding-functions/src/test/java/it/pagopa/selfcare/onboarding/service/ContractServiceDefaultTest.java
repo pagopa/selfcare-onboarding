@@ -2,12 +2,18 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
+import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -24,17 +30,30 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class ContractServiceDefaultTest {
 
+    @Inject
+    AzureStorageConfig azureStorageConfig;
+
     @InjectMock
     AzureBlobClient azureBlobClient;
+    PadesSignService padesSignService;
 
     @Inject
     ContractService contractService;
+
+    @Inject
+    PagoPaSignatureConfig pagoPaSignatureConfig;
+
+
+    @BeforeEach
+    void setup(){
+        padesSignService = mock(PadesSignService.class);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+    }
 
 
     private Onboarding createOnboarding() {
@@ -92,6 +111,27 @@ class ContractServiceDefaultTest {
         onboarding.getInstitution().setInstitutionType(InstitutionType.SA);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), List.of()));
+    }
+
+    @Test
+    void createContractPDFAndSigned() {
+        final String contractFilepath = "contract";
+        final String contractHtml = "contract";
+
+        UserResource manager = createDummyUserResource();
+        Onboarding onboarding = createOnboarding();
+
+        PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
+        when(pagoPaSignatureConfig.source()).thenReturn("local");
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.doNothing().when(padesSignService).padesSign(any(),any(),any());
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 

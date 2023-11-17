@@ -16,6 +16,7 @@ Applications under apps/ depend on shared code under libs/. test-coverage/ is us
     ├── onboarding-sdk-common
     ├── onboarding-sdk-azure-storage
     ├── onboarding-sdk-product
+    ├── onboarding-sdk-crypto
 └── test-coverage
 ```
 
@@ -29,6 +30,12 @@ The [`.container_apps/`] sub folder contains terraform files for deploying infra
 ## Continous integration
 
 The [`.github/`] sub folder contains a self-contained ci-stack for building the monorepo with Github Actions.
+
+## Usage
+
+```shell script
+mvn clean package install
+```
 
 ## Maven basic actions for monorep
 

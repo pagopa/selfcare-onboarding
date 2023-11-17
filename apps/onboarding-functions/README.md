@@ -7,6 +7,11 @@ These functions handle all asynchronous activities related to preparing and comp
 
 It is triggered by http request at GET or POST `/api/StartOnboardingOrchestration?onboardingId={onboardingId}` where onboardingId is a reference to onboarding which you want to process.
 
+### Contract Signature
+
+You can enable the signature inside contracts when there are builded setting PAGOPA_SIGNATURE_SOURCE env (default value is `disabled`) as `local` if you want to use Pkcs7HashSignService or `aruba` for ArubaPkcs7HashSignService. Look at this [README](https://github.com/pagopa/selfcare-onboarding/tree/develop/libs/onboarding-sdk-crypto#readme) for more informations.
+
+
 ## Running locally
 
 
@@ -27,7 +32,7 @@ Before running you must set these properties as environment variables.
 
 ### Storage emulator: Azurite
 
-Use the Azurite emulator for local Azure Storage development. Once installed, you must create `selc-d-contracts-blob` and `selc-product` container.
+Use the Azurite emulator for local Azure Storage development. Once installed, you must create `selc-d-contracts-blob` and `selc-d-product` container. Inside last one you have to put products.json file.
 
 ([guide](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio))
 
