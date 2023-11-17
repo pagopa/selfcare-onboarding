@@ -1,6 +1,8 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
+import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
@@ -19,7 +21,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-@RolesAllowed("USER")
+@Authenticated
 @Path("/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
@@ -84,8 +86,12 @@ public class OnboardingController {
                     if (ctx.getUserPrincipal() == null || !ctx.getUserPrincipal().getName().equals(identity.getPrincipal().getName())) {
                         throw new InternalServerErrorException("Principal and JsonWebToken names do not match");
                     }
-                    DefaultJWTCallerPrincipal jwtCallerPrincipal = (DefaultJWTCallerPrincipal) identity.getPrincipal();
-                    return jwtCallerPrincipal.getClaim("uid");
+
+                    if(identity.getPrincipal() instanceof DefaultJWTCallerPrincipal jwtCallerPrincipal) {
+                        return jwtCallerPrincipal.getClaim("uid");
+                    }
+
+                    return null;
                 });
     }
 }
