@@ -16,7 +16,9 @@ public class InstitutionResponse {
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
-
+    private String city;
+    private String country;
+    private String county;
     private String description;
     private String digitalAddress;
     private String address;
