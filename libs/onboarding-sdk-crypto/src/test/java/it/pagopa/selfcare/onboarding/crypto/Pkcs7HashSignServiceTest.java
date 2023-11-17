@@ -1,13 +1,14 @@
 package it.pagopa.selfcare.onboarding.crypto;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Base64;
+
+import static uk.org.webcompere.systemstubs.SystemStubs.withEnvironmentVariables;
 
 class Pkcs7HashSignServiceTest {
 
@@ -65,14 +66,23 @@ class Pkcs7HashSignServiceTest {
 
     private Pkcs7HashSignService service;
 
-    @BeforeEach
-    void setup(){
-        System.setProperty("crypto.key.cert", testCert);
-        System.setProperty("crypto.key.private", testPrivateKey);
-        service = new Pkcs7HashSignServiceImpl();
+    private static EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+    @BeforeAll
+    static void setup() throws Exception {
+        environmentVariables.set("CRYPTO_CERT", testCert);
+        environmentVariables.set("CRYPTO_PRIVATE_KEY", testPrivateKey);
+        environmentVariables.setup();
+    }
+
+    @AfterAll
+    static void afterAll() throws Exception {
+        environmentVariables.teardown();
     }
     @Test
     void shouldAssertEncoding() throws IOException {
+
+        service = new Pkcs7HashSignServiceImpl();
         try (FileInputStream fis = new FileInputStream(Path.of("src/test/resources/signTest.pdf").toFile())) {
             byte[] result = service.sign(fis);
             Assertions.assertNotNull(result);

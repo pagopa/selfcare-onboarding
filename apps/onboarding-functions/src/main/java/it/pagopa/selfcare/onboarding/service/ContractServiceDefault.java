@@ -5,12 +5,14 @@ import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
+import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
+import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.apache.commons.text.StringSubstitutor;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
@@ -41,14 +43,23 @@ public class ContractServiceDefault implements ContractService {
 
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PDF_FORMAT_FILENAME = "%s.pdf";
+    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
     private final AzureStorageConfig azureStorageConfig;
 
     private final AzureBlobClient azureBlobClient;
 
-    public ContractServiceDefault(AzureStorageConfig azureStorageConfig, AzureBlobClient azureBlobClient) {
+    private final PadesSignService padesSignService;
+
+    private final PagoPaSignatureConfig pagoPaSignatureConfig;
+
+    public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
+                                  AzureBlobClient azureBlobClient, PadesSignService padesSignService,
+                                  PagoPaSignatureConfig pagoPaSignatureConfig) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
+        this.padesSignService = padesSignService;
+        this.pagoPaSignatureConfig = pagoPaSignatureConfig;
     }
 
     /**
@@ -77,7 +88,7 @@ public class ContractServiceDefault implements ContractService {
             // Read the content of the contract template file.
             String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
             // Create a temporary PDF file to store the contract.
-            Path files = Files.createTempFile(builder, ".pdf");
+            Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
             // Prepare common data for the contract document.
             Map<String, Object> data = setUpCommonData(validManager, users, institution, onboarding.getBilling(), List.of());
 
@@ -95,18 +106,43 @@ public class ContractServiceDefault implements ContractService {
                 setupSAProdInteropData(data, institution);
             }
             log.debug("data Map for PDF: {}", data);
-            getPDFAsFile(files, contractTemplateText, data);
+            fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
 
             // Define the filename and path for storage.
-            /* return signContract(institution, request, files.toFile()); */
             final String filename = String.format(PDF_FORMAT_FILENAME, onboarding.getOnboardingId());
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
-            azureBlobClient.uploadFile(path, filename, Files.readAllBytes(files));
 
-            return files.toFile();
+            File signedPath = signPdf(temporaryPdfFile.toFile(), institution.getDescription(), productId);
+            azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedPath.toPath()));
+
+            return signedPath;
         } catch (IOException e) {
             throw new GenericOnboardingException(String.format("Can not create contract PDF, message: %s", e.getMessage()));
         }
+    }
+
+    private File signPdf(File pdf, String institutionDescription, String productId) throws IOException {
+        if(PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
+            log.info("Skipping PagoPA contract pdf sign due to global disabling");
+            return pdf;
+        }
+
+        String signReason = pagoPaSignatureConfig.applyOnboardingTemplateReason()
+                .replace("${institutionName}", institutionDescription)
+                .replace("${productName}", productId);
+
+        log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
+        Path signedPdf = Files.createTempFile("signed", ".pdf");
+        padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
+        return signedPdf.toFile();
+    }
+
+    private SignatureInformation buildSignatureInfo(String signReason) {
+        return new SignatureInformation(
+                pagoPaSignatureConfig.signer(),
+                pagoPaSignatureConfig.location(),
+                signReason
+        );
     }
 
     @Override
@@ -124,7 +160,7 @@ public class ContractServiceDefault implements ContractService {
         }
     }
 
-        private void getPDFAsFile(Path files, String contractTemplate, Map<String, Object> data) {
+        private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
         log.debug("Getting PDF for HTML template...");
         String html = StringSubstitutor.replace(contractTemplate, data);
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -144,7 +180,7 @@ public class ContractServiceDefault implements ContractService {
         builder.withW3cDocument(dom, null);
         builder.useSVGDrawer(new BatikSVGDrawer());
 
-        try(FileOutputStream fileOutputStream = new FileOutputStream(files.toFile())) {
+        try(FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
             builder.toStream(fileOutputStream);
             builder.run();
         } catch (IOException e){
