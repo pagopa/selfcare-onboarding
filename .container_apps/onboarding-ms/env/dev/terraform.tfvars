@@ -32,7 +32,7 @@ app_settings = [
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
-    value = "product"
+    value = "selc-d-product"
   }
 ]
 
