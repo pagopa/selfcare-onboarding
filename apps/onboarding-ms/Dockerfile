@@ -7,6 +7,9 @@ COPY --link ./pom.xml .
 WORKDIR /src/libs
 COPY --link ./libs/ .
 
+WORKDIR /src/test-coverage
+COPY --link ./test-coverage/pom.xml .
+
 WORKDIR /src/apps
 COPY --link ./apps/pom.xml .
 
