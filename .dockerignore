@@ -17,6 +17,8 @@ README.md
 **/.mvn
 .mvn
 
+**/target
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Maven template
 target/
