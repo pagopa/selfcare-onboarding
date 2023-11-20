@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectSpy;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
@@ -12,7 +11,6 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -74,14 +73,16 @@ class ContractServiceDefaultTest {
         return onboarding;
     }
 
-    UserResource createDummyUserResource() {
+    UserResource createDummyUserResource(String onboardingId) {
         UserResource validManager = new UserResource();
+
         CertifiableFieldResourceOfstring emailCert = new CertifiableFieldResourceOfstring();
         emailCert.setValue("email");
         WorkContactResource workContact = new WorkContactResource();
         workContact.setEmail(emailCert);
         Map<String, WorkContactResource> map = new HashMap<>();
-        map.put("id", workContact);
+        map.put(workContactsKey.apply(onboardingId), workContact);
+
         validManager.setWorkContacts(map);
         return validManager;
     }
@@ -91,8 +92,8 @@ class ContractServiceDefaultTest {
         final String contractFilepath = "contract";
         final String contractHtml = "contract";
 
-        UserResource manager = createDummyUserResource();
         Onboarding onboarding = createOnboarding();
+        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
@@ -106,8 +107,8 @@ class ContractServiceDefaultTest {
         final String contractFilepath = "contract";
         final String contractHtml = "contract";
 
-        UserResource manager = createDummyUserResource();
         Onboarding onboarding = createOnboarding();
+        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
         onboarding.getInstitution().setInstitutionType(InstitutionType.SA);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
@@ -122,8 +123,8 @@ class ContractServiceDefaultTest {
         final String contractFilepath = "contract";
         final String contractHtml = "contract";
 
-        UserResource manager = createDummyUserResource();
         Onboarding onboarding = createOnboarding();
+        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
 
         PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");

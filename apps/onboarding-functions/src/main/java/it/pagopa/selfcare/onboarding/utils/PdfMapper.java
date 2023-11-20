@@ -1,16 +1,21 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
 
 
 public class PdfMapper {
@@ -27,40 +32,61 @@ public class PdfMapper {
     public static final String PRICING_PLAN = "pricingPlan";
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
 
-    public static Map<String, Object> setUpCommonData(UserResource validManager, List<UserResource> users, Institution institution, Billing billing, List<String> geographicTaxonomies) {
+    public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
 
-        //if (validManager.getWorkContacts() != null && validManager.getWorkContacts().containsKey(institution.getId())) {
-        //    throw new GenericOnboardingException(MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
-        //}
+
+    public static Map<String, Object> setUpCommonData(UserResource manager, List<UserResource> users, Onboarding onboarding) {
+
+        Institution institution = onboarding.getInstitution();
+        Billing billing = onboarding.getBilling();
+        List<String> geographicTaxonomies = onboarding.getInstitution().getGeographicTaxonomyCodes();
+
+        String mailManager = getMailManager(manager, onboarding.getOnboardingId());
+        if (Objects.isNull(mailManager)) {
+            throw new GenericOnboardingException(MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
+        }
 
         Map<String, Object> map = new HashMap<>();
         map.put(INSTITUTION_NAME, institution.getDescription());
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", institution.getTaxCode());
         map.put("zipCode", institution.getZipCode());
-        map.put("managerName", validManager.getName());
-        map.put("managerSurname", validManager.getFamilyName());
-        //map.put("originId", institution.getOriginId() != null ? institution.getOriginId() : "");
+        map.put("managerName", manager.getName());
+        map.put("managerSurname", manager.getFamilyName());
+        map.put("originId", Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse(""));
         map.put("institutionMail", institution.getDigitalAddress());
-        map.put("managerTaxCode", validManager.getFiscalCode());
-        //map.put("managerEmail", validManager.getWorkContacts().get(institution.getId()).getEmail());
-        //map.put("delegates", delegatesToText(users, institution.getId()));
+        map.put("managerTaxCode", manager.getFiscalCode());
+        map.put("managerEmail", manager.getWorkContacts().get(workContactsKey.apply(onboarding.getOnboardingId())).getEmail());
+        map.put("delegates", delegatesToText(users, mailManager));
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
 
         if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
         }
-        //if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
-            //map.put("parentInfo", " ente centrale " + institution.getParentDescription());
-        //} else {
+        /*if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
+            map.put("parentInfo", " ente centrale " + institution.getParentDescription());
+        } else {
             map.put("parentInfo", "");
-        //}
+        }*/
         return map;
     }
 
-    public static void setupPSPData(Map<String, Object> map, UserResource validManager, Institution institution) {
+    private static String getMailManager(UserResource manager, String onboardingId){
+        if(Objects.isNull(manager.getWorkContacts())
+                || !manager.getWorkContacts().containsKey(workContactsKey.apply(onboardingId))) {
+            return null;
+        }
 
+        return Optional.ofNullable(manager.getWorkContacts()
+                        .get(workContactsKey.apply(onboardingId))
+                        .getEmail())
+                .map(CertifiableFieldResourceOfstring::getValue)
+                .orElse(null);
+    }
+
+    public static void setupPSPData(Map<String, Object> map, UserResource validManager, Onboarding onboarding) {
+        Institution institution = onboarding.getInstitution();
         if (institution.getPaymentServiceProvider() != null) {
             map.put("legalRegisterNumber", institution.getPaymentServiceProvider().getLegalRegisterNumber());
             map.put("legalRegisterName", institution.getPaymentServiceProvider().getLegalRegisterName());
@@ -73,9 +99,9 @@ public class PdfMapper {
             map.put("dataProtectionOfficerEmail", institution.getDataProtectionOfficer().getEmail());
             map.put("dataProtectionOfficerPec", institution.getDataProtectionOfficer().getPec());
         }
-        //if (validManager.getWorkContacts() != null && validManager.getWorkContacts().containsKey(institution.getId())) {
-        //    map.put("managerPEC", validManager.getWorkContacts().get(institution.getId()).getEmail());
-        //}
+
+        Optional.ofNullable(getMailManager(validManager, onboarding.getOnboardingId()))
+                .ifPresent(mail -> map.put("managerPEC", mail));
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
@@ -194,7 +220,7 @@ public class PdfMapper {
         }
     }
 
-    private static String delegatesToText(List<UserResource> users, String institutionId) {
+    private static String delegatesToText(List<UserResource> users, String mailManager) {
         StringBuilder builder = new StringBuilder();
         users.forEach(user -> {
             builder
@@ -209,9 +235,11 @@ public class PdfMapper {
                     .append("<p class=\"c141\"><span class=\"c6\">Amm.ne/Ente/Societ&agrave;: </span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
-            if (user.getWorkContacts() != null && user.getWorkContacts().containsKey(institutionId)) {
-                builder.append(user.getWorkContacts().get(institutionId).getEmail());
+
+            if (Objects.nonNull(mailManager)) {
+                builder.append(mailManager);
             }
+
             builder.append("&nbsp;</span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">PEC: &nbsp;</span></p>\n")
                     .append("</br>");
