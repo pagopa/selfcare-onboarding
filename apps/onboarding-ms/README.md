@@ -34,7 +34,7 @@ Before running you must set these properties as environment variables.
 | mp.jwt.verify.publickey<br/>                           | JWT-PUBLIC-KEY                           |             |     yes      |
 | quarkus.rest-client."**.UserApi".api-key<br/>          | USER-REGISTRY-API-KEY                    |             |     yes      |
 | quarkus.rest-client."**.UserApi".url<br/>              | USER_REGISTRY_URL                        |             |     yes      |
-| quarkus.rest-client."**.ProductApi".url<br/>           | MS_PRODUCT_URL                           |             |     yes      |
+| quarkus.rest-client."**.CoreApi".url<br/>              | MS_CORE_URL                              |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".url<br/>     | ONBOARDING_FUNCTIONS_URL                 |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".api-key<br/> | ONBOARDING-FUNCTIONS-API-KEY             |             |     yes      |
 | onboarding.institutions-allowed-list<br/>              | ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS |             |      no      |

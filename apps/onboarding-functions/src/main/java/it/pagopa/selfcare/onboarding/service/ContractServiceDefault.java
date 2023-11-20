@@ -90,12 +90,12 @@ public class ContractServiceDefault implements ContractService {
             // Create a temporary PDF file to store the contract.
             Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
             // Prepare common data for the contract document.
-            Map<String, Object> data = setUpCommonData(validManager, users, institution, onboarding.getBilling(), List.of());
+            Map<String, Object> data = setUpCommonData(validManager, users, onboarding);
 
             // Customize data based on the product and institution type.
             if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                     InstitutionType.PSP == institution.getInstitutionType()) {
-                setupPSPData(data, validManager, institution);
+                setupPSPData(data, validManager, onboarding);
             } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
                     || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                     || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {

@@ -32,7 +32,11 @@ app_settings = [
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
-    value = "product"
+    value = "selc-d-product"
+  },
+  {
+    name  = "MS_CORE_URL"
+    value = "https://selc.internal.dev.selfcare.pagopa.it/ms-core/v1"
   }
 ]
 

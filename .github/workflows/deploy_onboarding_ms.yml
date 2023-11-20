@@ -34,7 +34,7 @@ jobs:
   build:
     name: Build Onboarding Microservice
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == 'true') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) }}
     environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-ci"
     outputs:
       environment: ${{ steps.setenv.outputs.environment }}

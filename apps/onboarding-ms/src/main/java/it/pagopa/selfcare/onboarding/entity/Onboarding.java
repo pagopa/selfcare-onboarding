@@ -30,4 +30,5 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime expiringDate;
+    private String userRequestUid;
 }

@@ -3,7 +3,9 @@ package it.pagopa.selfcare.onboarding.controller;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
+import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -16,15 +18,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 
 import java.util.List;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.security.TestSecurity;
+
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
 @QuarkusTestResource(MongoTestResource.class)
-@TestSecurity(authorizationEnabled = false)
 public class OnboardingControllerTest {
 
     final static OnboardingPspRequest onboardingPspValid;
@@ -102,6 +102,7 @@ public class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
     public void onboarding_shouldNotValidBody() {
 
         given()
@@ -114,6 +115,7 @@ public class OnboardingControllerTest {
     }
 
     @ParameterizedTest
+    @TestSecurity(user = "userJwt")
     @ValueSource(strings = {"/psp","/pa", "/sa"})
     public void onboarding_shouldNotValidPspBody(String path) {
 
@@ -127,6 +129,7 @@ public class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
     public void onboarding() {
 
         Mockito.when(onboardingService.onboarding(any()))
@@ -142,6 +145,7 @@ public class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
     public void onboardingPa() {
 
         Mockito.when(onboardingService.onboardingPa(any()))
@@ -157,6 +161,7 @@ public class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
     public void onboardingPsp() {
 
         Mockito.when(onboardingService.onboardingPsp(any()))
@@ -172,6 +177,7 @@ public class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
     public void onboardingSa() {
 
         Mockito.when(onboardingService.onboardingSa(any()))
