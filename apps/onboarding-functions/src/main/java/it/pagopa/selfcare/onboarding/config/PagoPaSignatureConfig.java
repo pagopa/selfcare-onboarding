@@ -16,8 +16,6 @@ public interface PagoPaSignatureConfig {
 
     String applyOnboardingTemplateReason();
 
-    boolean verifyEnabled();
-
     String euListOfTrustedListsURL();
 
     String euOfficialJournalUrl();
