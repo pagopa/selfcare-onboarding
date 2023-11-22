@@ -18,6 +18,7 @@ public class Token {
     private String contractVersion;
     private String contractTemplate;
     private String contractSigned;
+    private String contractFilename;
     //@Indexed
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -118,6 +119,14 @@ public class Token {
 
     public void setOnboardingId(String onboardingId) {
         this.onboardingId = onboardingId;
+    }
+
+    public String getContractFilename() {
+        return contractFilename;
+    }
+
+    public void setContractFilename(String contractFilename) {
+        this.contractFilename = contractFilename;
     }
 }
 

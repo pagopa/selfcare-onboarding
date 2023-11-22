@@ -4,30 +4,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.MockitoConfig;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.wildfly.common.Assert;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.only;
 
 @QuarkusTest
 class NotificationServiceDefaultTest {
@@ -61,17 +54,18 @@ class NotificationServiceDefaultTest {
 
         final String onboardingId = "onboardingId";
         final String destination = "test@test.it";
+        final String productName = "productName";
 
         final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
 
-        Mockito.when(contractService.retrieveContractNotSigned(onboardingId))
+        Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName))
                 .thenReturn(file);
 
         Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationWithContract(onboardingId, destination,"","","","");
+        notificationService.sendMailRegistrationWithContract(onboardingId, destination,"","", productName,"");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -85,8 +79,9 @@ class NotificationServiceDefaultTest {
     @Test
     void sendMailRegistrationWithContract_shouldThrowException() {
         final String onboardingId = "onboardingId";
+        final String productName = "productName";
         final File file = mock(File.class);
-        Mockito.when(contractService.retrieveContractNotSigned(onboardingId)).thenReturn(file);
+        Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
         assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationWithContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example","token"));
     }
 

@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
@@ -42,16 +43,16 @@ public class ContractServiceDefault implements ContractService {
 
 
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
-    public static final String PDF_FORMAT_FILENAME = "%s.pdf";
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
+    public static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
+    public static final Function<String, String> contractFilename =
+            productName -> String.format(PDF_FORMAT_FILENAME, productName.replaceAll("\\s+","_"));
     private final AzureStorageConfig azureStorageConfig;
-
     private final AzureBlobClient azureBlobClient;
-
     private final PadesSignService padesSignService;
-
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
+
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
@@ -69,14 +70,14 @@ public class ContractServiceDefault implements ContractService {
      *
      * @param contractTemplatePath   The file path to the contract template.
      * @param onboarding             Information related to the onboarding process.
-     * @param validManager           A user resource representing a valid manager.
+     * @param manager           A user resource representing a valid manager.
      * @param users                  A list of user resources.
-     * @param geographicTaxonomies   A list of geographic taxonomies.
+     * @param productName   Product's name of onboarding.
      * @return                       A File object representing the created PDF contract document.
      * @throws GenericOnboardingException If an error occurs during PDF generation.
      */
     @Override
-    public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource validManager, List<UserResource> users, List<String> geographicTaxonomies) {
+    public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users, String productName) {
 
         log.info("START - createContractPdf for template: {}", contractTemplatePath);
         // Generate a unique filename for the PDF.
@@ -90,16 +91,16 @@ public class ContractServiceDefault implements ContractService {
             // Create a temporary PDF file to store the contract.
             Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
             // Prepare common data for the contract document.
-            Map<String, Object> data = setUpCommonData(validManager, users, onboarding);
+            Map<String, Object> data = setUpCommonData(manager, users, onboarding);
 
             // Customize data based on the product and institution type.
             if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                     InstitutionType.PSP == institution.getInstitutionType()) {
-                setupPSPData(data, validManager, onboarding);
+                setupPSPData(data, manager, onboarding);
             } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
                     || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                     || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
-                setupProdIOData(onboarding, data, validManager);
+                setupProdIOData(onboarding, data, manager);
             } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
                 setupProdPNData(data, institution, onboarding.getBilling());
             } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)){
@@ -109,7 +110,7 @@ public class ContractServiceDefault implements ContractService {
             fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
 
             // Define the filename and path for storage.
-            final String filename = String.format(PDF_FORMAT_FILENAME, onboarding.getOnboardingId());
+            final String filename = contractFilename.apply(productName);
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
 
             File signedPath = signPdf(temporaryPdfFile.toFile(), institution.getDescription(), productId);
@@ -146,11 +147,11 @@ public class ContractServiceDefault implements ContractService {
     }
 
     @Override
-    public File loadContractPDF(String contractTemplatePath, String onboardingId) {
+    public File loadContractPDF(String contractTemplatePath, String onboardingId, String productName) {
         try {
             File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
 
-            final String filename = String.format(PDF_FORMAT_FILENAME, onboardingId);
+            final String filename = contractFilename.apply(productName);
             final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
 
@@ -191,8 +192,8 @@ public class ContractServiceDefault implements ContractService {
     }
 
     @Override
-    public File retrieveContractNotSigned(String onboardingId) {
-        final String filename = String.format(PDF_FORMAT_FILENAME, onboardingId);
+    public File retrieveContractNotSigned(String onboardingId, String productName) {
+        final String filename = contractFilename.apply(productName);
         final String path = String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
         return azureBlobClient.getFileAsPdf(path);
     }

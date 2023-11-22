@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.repository;
 import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

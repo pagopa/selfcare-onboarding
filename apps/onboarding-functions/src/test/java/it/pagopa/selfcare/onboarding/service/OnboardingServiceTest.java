@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -116,7 +117,7 @@ class OnboardingServiceTest {
         delegate.setRole(PartyRole.DELEGATE);
         onboarding.setUsers(List.of(manager, delegate));
 
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,manager.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
                         .thenReturn(userResource);
 
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,delegate.getId()))
@@ -128,7 +129,7 @@ class OnboardingServiceTest {
         onboardingService.createContract(onboarding);
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
-                .findByIdUsingGET(USERS_FIELD_LIST,manager.getId());
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId());
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
                 .findByIdUsingGET(USERS_FIELD_LIST,delegate.getId());
@@ -141,6 +142,7 @@ class OnboardingServiceTest {
         Product product = new Product();
         product.setContractTemplatePath("example");
         product.setContractTemplateVersion("version");
+        product.setTitle("Title");
         return product;
     }
     @Test
@@ -167,9 +169,9 @@ class OnboardingServiceTest {
         DSSDocument document = new FileDocument(contract);
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
-        when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId()))
-                .thenReturn(contract);
         Product productExpected = createDummyProduct();
+        when(contractService.retrieveContractNotSigned(onboarding.getOnboardingId(), productExpected.getTitle()))
+                .thenReturn(contract);
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(productExpected);
 
