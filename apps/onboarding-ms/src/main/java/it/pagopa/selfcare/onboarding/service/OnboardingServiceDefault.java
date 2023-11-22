@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
@@ -23,6 +24,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.bson.types.ObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
@@ -31,13 +33,16 @@ import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+import static it.pagopa.selfcare.onboarding.util.GenericError.ONBOARDING_EXPIRED;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -48,6 +53,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
+    public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s'.";
     @RestClient
     @Inject
@@ -68,11 +74,16 @@ public class OnboardingServiceDefault implements OnboardingService {
     OnboardingValidationStrategy onboardingValidationStrategy;
     @Inject
     ProductService productService;
+    @Inject
+    SignatureService signatureService;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
     @ConfigProperty(name = "onboarding.orchestration.enabled")
     Boolean onboardingOrchestrationEnabled;
+
+    @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
+    Boolean isVerifyEnabled;
 
     @Override
     public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
@@ -146,12 +157,20 @@ public class OnboardingServiceDefault implements OnboardingService {
                 ? product.getParent().getRoleMappings()
                 : product.getRoleMappings());
 
-        /* Verify already onboarding for product and product parent */
+        return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
+    }
+
+    private Uni<Onboarding> verifyAlreadyOnboardingForProductAndProductParent(Onboarding onboarding, Product product) {
+        String institutionTaxCode = onboarding.getInstitution().getTaxCode();
+        String institutionSubunitCode = onboarding.getInstitution().getSubunitCode();
+
         return (Objects.nonNull(product.getParent())
-                        ? checkIfAlreadyOnboardingAndValidateAllowedMap(product.getParentId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode())
-                                .onItem().transformToUni( ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode()))
-                        : checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode())
-                ).replaceWith(onboarding);
+                //If product has parent, I must verify if onboarding is present for parent and child
+                ? checkIfAlreadyOnboardingAndValidateAllowedMap(product.getParentId(), institutionTaxCode, institutionSubunitCode)
+                    .onItem().transformToUni( ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode))
+                //If product is a root, I must only verify if onboarding for root
+                : checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode)
+        ).replaceWith(onboarding);
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(String productId, String institutionTaxCode, String institutionSubuniCode) {
@@ -298,6 +317,89 @@ public class OnboardingServiceDefault implements OnboardingService {
             }
         }
         return isToUpdate;
+    }
+
+    @Override
+    public Uni<Onboarding> complete(String onboardingId, File contract, String contractContentType) {
+
+        if(isVerifyEnabled) {
+            //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
+            //At least, verify contract signature using both
+            Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
+                    .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
+                    .asTuple()
+                    .onItem().transform(inputSignatureVerification -> {
+                        signatureService.verifySignature(contract,
+                                inputSignatureVerification.getItem2(),
+                                inputSignatureVerification.getItem1());
+                        return onboarding;
+                    });
+
+            return complete(onboardingId, contract, contractContentType, verification);
+        } else {
+            return completeWithoutSignatureVerification(onboardingId, contract, contractContentType);
+        }
+    }
+
+    @Override
+    public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, File contract, String contractContentType) {
+        Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
+        return complete(onboardingId, contract, contractContentType, verification);
+    }
+
+    public Uni<Onboarding> complete(String onboardingId, File contract, String contractContentType, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+
+        return retrieveOnboardingAndCheckIfExpired(onboardingId)
+                .onItem().transformToUni(verificationContractSignature::apply)
+                //Fail if onboarding exists for a product
+                .onItem().transformToUni(onboarding -> {
+                    Product product = productService.getProductIsValid(onboarding.getProductId());
+                    return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
+                })
+                //Upload contract on storage
+                //.onItem().transformToUni(onboarding -> contractService.uploadContract(token.getId(), contract);)
+                // Start async activity
+                ;
+    }
+
+
+
+    private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
+        //Retrieve Onboarding if exists
+        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+                .onItem().transformToUni(opt -> opt
+                        //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
+                        .map(onboarding -> (Onboarding) onboarding)
+                        //Check if onboarding is expired
+                        .filter(onboarding -> !isOnboardingExpired(onboarding.getExpiringDate()))
+                        .map(onboarding -> Uni.createFrom().item(onboarding))
+                        .orElse(Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_EXPIRED.getMessage(),
+                                onboardingId, ONBOARDING_EXPIRED.getCode())))));
+    }
+
+    public static boolean isOnboardingExpired(LocalDateTime dateTime) {
+        LocalDateTime now = LocalDateTime.now();
+        return Objects.nonNull(dateTime) && (now.isEqual(dateTime) || now.isAfter(dateTime));
+    }
+
+
+
+    private Uni<String> retrieveContractDigest(String onboardingId) {
+        return Token.list("onboardingId", onboardingId)
+                .onItem().transform(tokens -> tokens.stream().findFirst()
+                        .map(token -> (Token) token)
+                        .map(Token::getChecksum)
+                        .orElseThrow());
+    }
+
+    private Uni<List<String>> retrieveOnboardingUserFiscalCodeList(Onboarding onboarding) {
+        return Multi.createFrom().iterable(onboarding.getUsers().stream()
+                        .filter(user -> PartyRole.MANAGER.equals(user.getRole()))
+                        .map(User::getId)
+                        .toList())
+                .onItem().transformToUni(userId -> userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, userId))
+                .merge().collect().asList()
+                .onItem().transform(usersResource -> usersResource.stream().map(UserResource::getFiscalCode).toList());
     }
 
 }

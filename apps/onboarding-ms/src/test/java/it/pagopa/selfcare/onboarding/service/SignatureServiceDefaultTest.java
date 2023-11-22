@@ -322,13 +322,20 @@ class SignatureServiceDefaultTest {
      */
     @Test
     void testVerifyManagerTaxCode() {
-        XmlDiagnosticData diagnosticDataJaxb = new XmlDiagnosticData();
         XmlDetailedReport detailedReport = new XmlDetailedReport();
         XmlSimpleReport simpleReport = new XmlSimpleReport();
-        Reports reports = new Reports(diagnosticDataJaxb, detailedReport, simpleReport, new ValidationReportType());
+        Reports reports = new Reports(dummyXmlDiagnosticData(), detailedReport, simpleReport, new ValidationReportType());
 
         assertThrows(InvalidRequestException.class, () -> signatureService.verifyManagerTaxCode(reports, new ArrayList<>()),
                 TAX_CODE_NOT_FOUND_IN_SIGNATURE.getMessage());
+    }
+
+    XmlDiagnosticData dummyXmlDiagnosticData() {
+        XmlDiagnosticData diagnosticDataJaxb = new XmlDiagnosticData();
+        XmlCertificate xmlCertificate = new XmlCertificate();
+        xmlCertificate.setSubjectSerialNumber("TINIT-EXAMPLE");
+        diagnosticDataJaxb.setUsedCertificates(List.of(xmlCertificate));
+        return diagnosticDataJaxb;
     }
 
     /**

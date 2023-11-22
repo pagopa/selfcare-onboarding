@@ -8,11 +8,13 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.product.entity.Product;
@@ -35,11 +37,10 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -57,6 +58,9 @@ public class OnboardingServiceDefaultTest {
 
     @InjectMock
     ProductService productService;
+
+    @InjectMock
+    SignatureService signatureService;
 
     @InjectMock
     @RestClient
@@ -508,4 +512,116 @@ public class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(any(), any(), any()))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
     }
+
+    @Test
+    @RunOnVertxContext
+    void completeWithoutSignatureVerification_shouldThrowExceptionWhenExpired(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setExpiringDate(LocalDateTime.now().minusDays(1));
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        asserter.assertFailedWith(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null, null),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void completeWithoutSignatureVerification(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null, null),
+                Assertions::assertNotNull);
+
+    }
+
+    @Test
+    @RunOnVertxContext
+    void complete_shouldThrowExceptionWhenSignatureFail(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        //Mock find token
+        Token token = new Token();
+        token.setChecksum("actual-checksum");
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() -> when(Token.list("onboardingId",onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(List.of(token))));
+
+        //Mock find manager fiscal code
+        String actualUseUid = onboarding.getUsers().get(0).getId();
+        UserResource actualUserResource = new UserResource();
+        actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+        asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+        //Mock contract signature fail
+        asserter.execute(() -> doThrow(InvalidRequestException.class)
+                .when(signatureService)
+                .verifySignature(any(),any(),any()));
+
+        asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId().toHexString(), null, null),
+                InvalidRequestException.class);
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void complete(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        //Mock find token
+        Token token = new Token();
+        token.setChecksum("actual-checksum");
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() -> when(Token.list("onboardingId",onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(List.of(token))));
+
+        //Mock find manager fiscal code
+        String actualUseUid = onboarding.getUsers().get(0).getId();
+        UserResource actualUserResource = new UserResource();
+        actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+        asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+        //Mock contract signature fail
+        asserter.execute(() -> doNothing()
+                .when(signatureService)
+                .verifySignature(any(),any(),any()));
+
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), null, null),
+                Assertions::assertNotNull);
+    }
+
+    private Onboarding createDummyOnboarding() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(ObjectId.get());
+        onboarding.setProductId("prod-id");
+        onboarding.setExpiringDate(LocalDateTime.now().plusDays(1));
+
+        Institution institution = new Institution();
+        onboarding.setInstitution(institution);
+
+        User user = new User();
+        user.setId("actual-user-id");
+        user.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(user));
+        return onboarding;
+    }
+
 }

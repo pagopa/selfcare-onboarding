@@ -21,7 +21,6 @@ import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
 import eu.europa.esig.dss.tsl.source.LOTLSource;
 import eu.europa.esig.dss.tsl.sync.AcceptAllStrategy;
-import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -30,7 +29,6 @@ import java.io.File;
 import java.util.List;
 
 @Slf4j
-@Startup
 @ApplicationScoped
 public class TrustedListsCertificateSourceConfig {
 
@@ -39,7 +37,6 @@ public class TrustedListsCertificateSourceConfig {
     @ConfigProperty(name = "onboarding-ms.signature.eu-official-journal-url")
     String euOfficialJournalUrl;
 
-    @Startup
     @ApplicationScoped
     public TrustedListsCertificateSource generateTrustedListsCertificateSource() {
 
