@@ -79,7 +79,7 @@ public class OnboardingService {
 
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString(), product.getId());
+        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString(), product.getTitle());
     }
     public void saveTokenWithContract(Onboarding onboarding) {
 

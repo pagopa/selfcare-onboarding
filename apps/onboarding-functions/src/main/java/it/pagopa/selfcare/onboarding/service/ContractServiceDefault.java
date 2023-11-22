@@ -66,7 +66,7 @@ public class ContractServiceDefault implements ContractService {
     /**
      * Creates a PDF contract document from a given contract template file and institution data.
      * Based on @contractTemplatePath it loads contract template as test and replace placeholder using a map <key,value> with institution information.
-     * Contract will be stored at  parties/docs/{onboardingId}
+     * Contract will be stored at parties/docs/{onboardingId}/{productName}_accordo_di_adesione.pdf
      *
      * @param contractTemplatePath   The file path to the contract template.
      * @param onboarding             Information related to the onboarding process.

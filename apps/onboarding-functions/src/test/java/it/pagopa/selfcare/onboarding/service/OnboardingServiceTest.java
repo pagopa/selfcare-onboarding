@@ -57,8 +57,6 @@ class OnboardingServiceTest {
     @Inject
     OnboardingService onboardingService;
 
-    final Product dummyProduct = new Product();
-
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
@@ -193,14 +191,17 @@ class OnboardingServiceTest {
     void loadContract() {
 
         Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(dummyProduct);
+                .thenReturn(product);
 
         onboardingService.loadContract(onboarding);
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
+        Mockito.verify(contractService, Mockito.times(1))
+                .loadContractPDF(product.getContractTemplatePath(), onboarding.getOnboardingId(), product.getTitle());
     }
 
 
@@ -215,7 +216,7 @@ class OnboardingServiceTest {
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(dummyProduct);
+                .thenReturn(createDummyProduct());
 
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
@@ -245,7 +246,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
 
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(dummyProduct);
+                .thenReturn(createDummyProduct());
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailRegistration(any(), any(), any(),any(),any());
@@ -267,7 +268,7 @@ class OnboardingServiceTest {
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(dummyProduct);
+                .thenReturn(createDummyProduct());
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
 
@@ -301,7 +302,7 @@ class OnboardingServiceTest {
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(dummyProduct);
+                .thenReturn(createDummyProduct());
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
