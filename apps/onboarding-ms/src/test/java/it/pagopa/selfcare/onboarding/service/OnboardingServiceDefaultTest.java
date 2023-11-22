@@ -37,6 +37,7 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -78,6 +79,8 @@ public class OnboardingServiceDefaultTest {
             .build();
 
     final static UserResource managerResource;
+
+    final static File testFile = new File("src/test/resources/application.properties");
 
     static {
         managerResource = new UserResource();
@@ -534,10 +537,12 @@ public class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
+        mockFindToken(asserter, onboarding.getId().toHexString());
+
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null),
+        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
 
     }
@@ -550,12 +555,7 @@ public class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        //Mock find token
-        Token token = new Token();
-        token.setChecksum("actual-checksum");
-        asserter.execute(() -> PanacheMock.mock(Token.class));
-        asserter.execute(() -> when(Token.list("onboardingId",onboarding.getId().toHexString()))
-                .thenReturn(Uni.createFrom().item(List.of(token))));
+        mockFindToken(asserter, onboarding.getId().toHexString());
 
         //Mock find manager fiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -569,7 +569,7 @@ public class OnboardingServiceDefaultTest {
                 .when(signatureService)
                 .verifySignature(any(),any(),any()));
 
-        asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId().toHexString(), null, null),
+        asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 InvalidRequestException.class);
     }
 
@@ -582,12 +582,7 @@ public class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        //Mock find token
-        Token token = new Token();
-        token.setChecksum("actual-checksum");
-        asserter.execute(() -> PanacheMock.mock(Token.class));
-        asserter.execute(() -> when(Token.list("onboardingId",onboarding.getId().toHexString()))
-                .thenReturn(Uni.createFrom().item(List.of(token))));
+        mockFindToken(asserter, onboarding.getId().toHexString());
 
         //Mock find manager fiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -604,8 +599,16 @@ public class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), null, null),
+        asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
+    }
+
+    private void mockFindToken(UniAsserter asserter, String onboardingId) {
+        Token token = new Token();
+        token.setChecksum("actual-checksum");
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() -> when(Token.list("onboardingId", onboardingId))
+                .thenReturn(Uni.createFrom().item(List.of(token))));
     }
 
     private Onboarding createDummyOnboarding() {

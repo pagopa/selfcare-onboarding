@@ -356,7 +356,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return complete(onboardingId, contract, verification);
     }
 
-    public Uni<Onboarding> complete(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+    private Uni<Onboarding> complete(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
 
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(verificationContractSignature::apply)
