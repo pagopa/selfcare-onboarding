@@ -3,6 +3,9 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.smallrye.mutiny.unchecked.Unchecked;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -34,6 +37,8 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -42,6 +47,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+import static it.pagopa.selfcare.onboarding.util.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.util.GenericError.ONBOARDING_EXPIRED;
 
 @ApplicationScoped
@@ -76,14 +82,17 @@ public class OnboardingServiceDefault implements OnboardingService {
     ProductService productService;
     @Inject
     SignatureService signatureService;
+    @Inject
+    AzureBlobClient azureBlobClient;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
     @ConfigProperty(name = "onboarding.orchestration.enabled")
     Boolean onboardingOrchestrationEnabled;
-
     @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
     Boolean isVerifyEnabled;
+    @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
+    String pathContracts;
 
     @Override
     public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
@@ -320,7 +329,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Onboarding> complete(String onboardingId, File contract, String contractContentType) {
+    public Uni<Onboarding> complete(String onboardingId, File contract) {
 
         if(isVerifyEnabled) {
             //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
@@ -335,19 +344,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                         return onboarding;
                     });
 
-            return complete(onboardingId, contract, contractContentType, verification);
+            return complete(onboardingId, contract, verification);
         } else {
-            return completeWithoutSignatureVerification(onboardingId, contract, contractContentType);
+            return completeWithoutSignatureVerification(onboardingId, contract);
         }
     }
 
     @Override
-    public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, File contract, String contractContentType) {
+    public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, File contract) {
         Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
-        return complete(onboardingId, contract, contractContentType, verification);
+        return complete(onboardingId, contract, verification);
     }
 
-    public Uni<Onboarding> complete(String onboardingId, File contract, String contractContentType, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+    public Uni<Onboarding> complete(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
 
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(verificationContractSignature::apply)
@@ -357,11 +366,27 @@ public class OnboardingServiceDefault implements OnboardingService {
                     return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
                 })
                 //Upload contract on storage
-                //.onItem().transformToUni(onboarding -> contractService.uploadContract(token.getId(), contract);)
+                .onItem().transformToUni(onboarding -> uploadSignedContract(onboardingId, contract)
+                        .onItem().transform(ignore -> onboarding))
                 // Start async activity
                 ;
     }
 
+    private Uni<String> uploadSignedContract(String onboardingId, File contract) {
+        return retrieveToken(onboardingId)
+            .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
+                    final String path = String.format("%s%s", pathContracts, onboardingId);
+                    final String filename = String.format("signed_%s", token.getContractFilename());
+
+                    try {
+                        return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.toPath()));
+                    } catch (IOException e) {
+                        throw new OnboardingNotAllowedException(GENERIC_ERROR.getCode(),
+                                "Error on upload contract for onboarding with id " + onboardingId);
+                    }
+                }))
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool()));
+    }
 
 
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
@@ -385,10 +410,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     private Uni<String> retrieveContractDigest(String onboardingId) {
+        return retrieveToken(onboardingId)
+                .map(Token::getChecksum);
+    }
+    private Uni<Token> retrieveToken(String onboardingId) {
         return Token.list("onboardingId", onboardingId)
-                .onItem().transform(tokens -> tokens.stream().findFirst()
+                .map(tokens -> tokens.stream().findFirst()
                         .map(token -> (Token) token)
-                        .map(Token::getChecksum)
                         .orElseThrow());
     }
 

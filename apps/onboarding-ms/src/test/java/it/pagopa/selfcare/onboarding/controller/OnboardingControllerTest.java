@@ -230,7 +230,7 @@ public class OnboardingControllerTest {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
-        when(onboardingService.complete(any(),any(),any()))
+        when(onboardingService.complete(any(),any()))
                 .thenReturn(Uni.createFrom().nullItem());
 
         given()
@@ -244,7 +244,7 @@ public class OnboardingControllerTest {
 
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
-                .complete(expectedId.capture(), any(), any());
+                .complete(expectedId.capture(), any());
         assertEquals(expectedId.getValue(), onboardingId);
     }
 

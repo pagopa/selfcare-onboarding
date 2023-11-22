@@ -22,6 +22,7 @@ public class Token extends ReactivePanacheMongoEntity {
     private String contractVersion;
     private String contractTemplate;
     private String contractSigned;
+    private String contractFilename;
     //@Indexed
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

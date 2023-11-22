@@ -522,7 +522,7 @@ public class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        asserter.assertFailedWith(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null, null),
+        asserter.assertFailedWith(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null),
                 InvalidRequestException.class);
     }
 
@@ -537,7 +537,7 @@ public class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null, null),
+        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), null),
                 Assertions::assertNotNull);
 
     }

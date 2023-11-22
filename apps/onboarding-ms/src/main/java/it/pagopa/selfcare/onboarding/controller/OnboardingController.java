@@ -19,8 +19,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
-import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.multipart.FileUpload;
+
+import java.io.File;
 
 @Authenticated
 @Path("/onboarding")
@@ -106,10 +106,8 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/complete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String tokenId,
-                                  @RestForm("contract") FileUpload file) {
-
-        return onboardingService.complete(tokenId, file.uploadedFile().toFile(), file.contentType())
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String tokenId, File file) {
+        return onboardingService.complete(tokenId, file)
                 .onItem().transform(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());

@@ -20,7 +20,7 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingPa(OnboardingPaRequest onboardingRequest);
 
-    Uni<Onboarding> complete(String tokenId, File contract, String contractContentType);
+    Uni<Onboarding> complete(String tokenId, File contract);
 
-    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract, String contractContentType);
+    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
 }
