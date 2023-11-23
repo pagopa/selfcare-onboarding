@@ -30,12 +30,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+
 @ApplicationScoped
 public class OnboardingService {
 
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
+    public static final String USERS_WORKS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S = "Token does not exists for onboarding %s";
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
 
@@ -65,7 +68,7 @@ public class OnboardingService {
 
     public void createContract(Onboarding onboarding) {
         String validManagerId = getValidManagerId(onboarding.getUsers());
-        UserResource manager = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,validManagerId);
+        UserResource manager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,validManagerId);
 
         List<UserResource> delegates = onboarding.getUsers()
                 .stream()
@@ -73,12 +76,12 @@ public class OnboardingService {
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.createContractPDF(product.getContractTemplatePath(), onboarding, manager, delegates, List.of());
+        contractService.createContractPDF(product.getContractTemplatePath(), onboarding, manager, delegates, product.getTitle());
     }
 
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString());
+        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString(), product.getTitle());
     }
     public void saveTokenWithContract(Onboarding onboarding) {
 
@@ -89,24 +92,26 @@ public class OnboardingService {
             return;
         }
 
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+
         // Load PDF contract and create digest
-        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
+        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId(), product.getTitle());
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
-        saveToken(onboarding, digest);
+        saveToken(onboarding, product, digest);
     }
 
-    private void saveToken(Onboarding onboarding, String digest) {
+    private void saveToken(Onboarding onboarding, Product product, String digest) {
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
         // Persist token entity
-        Product product = productService.getProductIsValid(onboarding.getProductId());
         Token token = new Token();
         token.setOnboardingId(onboarding.getOnboardingId());
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
+        token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(product.getTitle()));
         token.setCreatedAt(LocalDateTime.now());
         token.setUpdatedAt(LocalDateTime.now());
         token.setProductId(onboarding.getProductId());

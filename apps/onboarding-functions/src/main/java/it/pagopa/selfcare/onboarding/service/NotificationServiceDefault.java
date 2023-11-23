@@ -102,7 +102,7 @@ public class NotificationServiceDefault implements NotificationService {
     public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName, String token) {
 
         // Retrieve PDF contract from storage
-        File contract = contractService.retrieveContractNotSigned(onboardingId);
+        File contract = contractService.retrieveContractNotSigned(onboardingId, productName);
         // Create ZIP file that contains contract
         final String fileNamePdf = String.format("%s_accordo_adesione.pdf", productName);
         final String fileNameZip = String.format("%s_accordo_adesione.zip", productName);

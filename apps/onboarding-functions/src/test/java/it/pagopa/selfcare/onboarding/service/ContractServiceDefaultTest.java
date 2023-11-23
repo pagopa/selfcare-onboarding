@@ -48,6 +48,8 @@ class ContractServiceDefaultTest {
     PagoPaSignatureConfig pagoPaSignatureConfig;
 
 
+    final static String productNameExample = "product-name";
+
     @BeforeEach
     void setup(){
         padesSignService = mock(PadesSignService.class);
@@ -99,7 +101,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), List.of()));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
     }
 
     @Test
@@ -115,7 +117,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), List.of()));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
     }
 
     @Test
@@ -136,7 +138,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), List.of()));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
     }
 
 
@@ -154,7 +156,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId().toHexString()));
+        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId().toHexString(), productNameExample));
     }
 
     @Test
@@ -165,12 +167,13 @@ class ContractServiceDefaultTest {
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboarding.getOnboardingId());
+        contractService.retrieveContractNotSigned(onboarding.getOnboardingId(), productNameExample);
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsPdf(filepathActual.capture());
         assertTrue(filepathActual.getValue().contains(onboarding.getOnboardingId()));
+        assertTrue(filepathActual.getValue().contains(productNameExample));
     }
 
 }

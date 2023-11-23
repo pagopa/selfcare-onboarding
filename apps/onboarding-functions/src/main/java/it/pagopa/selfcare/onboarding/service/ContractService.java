@@ -7,8 +7,8 @@ import java.io.File;
 import java.util.List;
 
 public interface ContractService {
-    File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource validManager, List<UserResource> users, List<String> geographicTaxonomies);
+    File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users, String productName);
 
-    File loadContractPDF(String contractTemplatePath, String onboardingId);
-    File retrieveContractNotSigned(String onboardingId);
+    File loadContractPDF(String contractTemplatePath, String onboardingId, String productName);
+    File retrieveContractNotSigned(String onboardingId, String productName);
 }
