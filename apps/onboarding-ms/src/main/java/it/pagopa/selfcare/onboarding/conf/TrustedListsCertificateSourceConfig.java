@@ -21,14 +21,20 @@ import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
 import eu.europa.esig.dss.tsl.source.LOTLSource;
 import eu.europa.esig.dss.tsl.sync.AcceptAllStrategy;
+import io.quarkus.arc.profile.IfBuildProfile;
+import io.quarkus.arc.profile.UnlessBuildProfile;
+import io.quarkus.runtime.Startup;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 @Slf4j
+@Startup
 @ApplicationScoped
 public class TrustedListsCertificateSourceConfig {
 
@@ -37,14 +43,37 @@ public class TrustedListsCertificateSourceConfig {
     @ConfigProperty(name = "onboarding-ms.signature.eu-official-journal-url")
     String euOfficialJournalUrl;
 
+    @Startup
     @ApplicationScoped
+    @UnlessBuildProfile("test")
     public TrustedListsCertificateSource generateTrustedListsCertificateSource() {
 
         TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
         LOTLSource europeanLOTL = getEuropeanLOTL();
         TLValidationJob validationJob  = getJob(europeanLOTL);
         validationJob.setTrustedListCertificateSource(trustedListsCertificateSource);
-        validationJob.onlineRefresh();
+
+        /* It is an async execution, it avoid waiting 60s for the onlineRefresh to complete */
+        Uni.createFrom().item(validationJob)
+                        .onItem().invoke(TLValidationJob::onlineRefresh)
+                        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                        .subscribe().with(
+                            result -> log.info("TrustedListsCertificateSource online refresh success!!"),
+                            failure -> log.error("Error on TrustedListsCertificateSource online refresh, message:" + failure.getMessage())
+                        );
+
+        return trustedListsCertificateSource;
+    }
+
+    /* It is used for unit test, it does not perform onlineRefresh */
+    @ApplicationScoped
+    @IfBuildProfile("test")
+    public TrustedListsCertificateSource generateTrustedListsCertificateSourceTest() {
+
+        TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
+        LOTLSource europeanLOTL = getEuropeanLOTL();
+        TLValidationJob validationJob  = getJob(europeanLOTL);
+        validationJob.setTrustedListCertificateSource(trustedListsCertificateSource);
         return trustedListsCertificateSource;
     }
 
