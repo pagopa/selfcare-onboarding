@@ -32,11 +32,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
@@ -45,9 +45,6 @@ public class ContractServiceDefault implements ContractService {
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
-    public static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
-    public static final Function<String, String> contractFilename =
-            productName -> String.format(PDF_FORMAT_FILENAME, productName.replaceAll("\\s+","_"));
     private final AzureStorageConfig azureStorageConfig;
     private final AzureBlobClient azureBlobClient;
     private final PadesSignService padesSignService;
@@ -110,7 +107,7 @@ public class ContractServiceDefault implements ContractService {
             fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
 
             // Define the filename and path for storage.
-            final String filename = contractFilename.apply(productName);
+            final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
 
             File signedPath = signPdf(temporaryPdfFile.toFile(), institution.getDescription(), productId);
@@ -151,7 +148,7 @@ public class ContractServiceDefault implements ContractService {
         try {
             File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
 
-            final String filename = contractFilename.apply(productName);
+            final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
             final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
 
@@ -193,7 +190,7 @@ public class ContractServiceDefault implements ContractService {
 
     @Override
     public File retrieveContractNotSigned(String onboardingId, String productName) {
-        final String filename = contractFilename.apply(productName);
+        final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
         final String path = String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
         return azureBlobClient.getFileAsPdf(path);
     }

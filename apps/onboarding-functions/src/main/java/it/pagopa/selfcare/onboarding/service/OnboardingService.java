@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+
 @ApplicationScoped
 public class OnboardingService {
 
@@ -109,7 +111,7 @@ public class OnboardingService {
         token.setOnboardingId(onboarding.getOnboardingId());
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
-        token.setContractFilename(ContractServiceDefault.contractFilename.apply(product.getTitle()));
+        token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(product.getTitle()));
         token.setCreatedAt(LocalDateTime.now());
         token.setUpdatedAt(LocalDateTime.now());
         token.setProductId(onboarding.getProductId());
