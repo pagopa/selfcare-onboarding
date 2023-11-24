@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     public ObjectId id;
 
     private String productId;
+    private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
     private String pricingPlan;
