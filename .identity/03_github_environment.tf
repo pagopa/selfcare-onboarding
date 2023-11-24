@@ -1,10 +1,31 @@
-resource "github_repository_environment" "github_repository_environment" {
-  environment = var.env
+data "azurerm_resource_group" "identity_rg" {
+  name     = "${local.project}-identity-rg"
+}
+
+data "azurerm_user_assigned_identity" "identity_ci" {
+  name                = "${local.project}-github-ci-identity"
+  resource_group_name = data.azurerm_resource_group.identity_rg.name
+}
+
+data "azurerm_user_assigned_identity" "identity_cd" {
+  name                = "${local.project}-github-cd-identity"
+  resource_group_name = data.azurerm_resource_group.identity_rg.name
+}
+
+resource "github_repository_environment" "environment_ci" {
+  environment = "${var.env}-ci"
   repository  = local.github.repository
+}
+
+
+resource "github_repository_environment" "environment_cd" {
+  environment = "${var.env}-cd"
+  repository  = local.github.repository
+
   # filter teams reviewers from github_organization_teams
   # if reviewers_teams is null no reviewers will be configured for environment
   dynamic "reviewers" {
-    for_each = (var.github_repository_environment.reviewers_teams == null || var.env_short != "p" ? [] : [1])
+    for_each = (var.github_repository_environment.reviewers_teams == null || var.env_short == "d" ? [] : [1])
     content {
       teams = matchkeys(
         data.github_organization_teams.all.teams.*.id,
@@ -13,24 +34,18 @@ resource "github_repository_environment" "github_repository_environment" {
       )
     }
   }
-  deployment_branch_policy {
-    protected_branches     = var.github_repository_environment.protected_branches
-    custom_branch_policies = var.github_repository_environment.custom_branch_policies
-  }
 }
 
 locals {
-  env_secrets = {
-    "CLIENT_ID" : azurerm_user_assigned_identity.environment.client_id,
-    "TENANT_ID" : data.azurerm_client_config.current.tenant_id,
-    "SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id,
-    "FUNCTIONS_RESOURCE_GROUP": local.functions.resource_group_name,
-    "APP_INSIGHTS_KEY": local.functions.insights_key,
-    "APP_REGION": local.location_short,
-    "JWT_PUBLIC_KEY": base64encode(data.azurerm_key_vault_secret.jwt_public_key.value),
-    "MONGODB_CONNECTION_URI": data.azurerm_key_vault_secret.mongodb_connection_string.value,
-    "USER_REGISTRY_API_KEY": data.azurerm_key_vault_secret.user_registry_api_key.value,
-    "ONBOARDING_FUNCTIONS_API_KEY": data.azurerm_key_vault_secret.onboarding_functions_api_key.value
+  env_secrets_ci = {
+    "AZURE_CLIENT_ID_CI" : data.azurerm_user_assigned_identity.identity_ci.client_id,
+    "AZURE_TENANT_ID" : data.azurerm_client_config.current.tenant_id,
+    "AZURE_SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id
+  }
+  env_secrets_cd = {
+    "AZURE_CLIENT_ID_CD" : data.azurerm_user_assigned_identity.identity_cd.client_id,
+    "AZURE_TENANT_ID" : data.azurerm_client_config.current.tenant_id,
+    "AZURE_SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id
   }
   env_variables = {
     "CONTAINER_APP_SELC_ENVIRONMENT_NAME" : local.container_app_selc_environment.name,
@@ -41,9 +56,7 @@ locals {
     "NAMESPACE" : local.domain,
   }
   repo_secrets = {
-    "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value,
-    # "BOT_TOKEN_GITHUB" : data.azurerm_key_vault_secret.key_vault_bot_token.value,
-    # "CUCUMBER_PUBLISH_TOKEN" : data.azurerm_key_vault_secret.key_vault_cucumber_token.value,
+    "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value
   }
 }
 
@@ -51,25 +64,20 @@ locals {
 # ENV Secrets #
 ###############
 
-resource "github_actions_environment_secret" "github_environment_runner_secrets" {
-  for_each        = local.env_secrets
+resource "github_actions_environment_secret" "github_environment_ci_secrets" {
+  for_each        = local.env_secrets_ci
   repository      = local.github.repository
-  environment     = var.env
+  environment     = github_repository_environment.environment_ci.environment
   secret_name     = each.key
   plaintext_value = each.value
 }
 
-#################
-# ENV Variables #
-#################
-
-
-resource "github_actions_environment_variable" "github_environment_runner_variables" {
-  for_each      = local.env_variables
-  repository    = local.github.repository
-  environment   = var.env
-  variable_name = each.key
-  value         = each.value
+resource "github_actions_environment_secret" "github_environment_cd_secrets" {
+  for_each        = local.env_secrets_cd
+  repository      = local.github.repository
+  environment     = github_repository_environment.environment_cd.environment
+  secret_name     = each.key
+  plaintext_value = each.value
 }
 
 #############################

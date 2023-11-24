@@ -69,7 +69,7 @@ variable "github_repository_environment" {
   default = {
     protected_branches     = false
     custom_branch_policies = true
-    reviewers_teams        = ["selfcare-team-admins"]
+    reviewers_teams        = ["selfcare-contributors"]
   }
 }
 
