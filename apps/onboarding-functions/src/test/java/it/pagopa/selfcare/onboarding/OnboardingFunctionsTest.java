@@ -133,7 +133,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorRegistrationRequestApprove() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
-        onboarding.setWorkflowType(WorkflowType.REGISTRATION_REQUEST_APPROVE);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 

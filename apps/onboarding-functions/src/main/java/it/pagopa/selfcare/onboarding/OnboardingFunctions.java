@@ -95,7 +95,7 @@ public class OnboardingFunctions {
             workflowContractRegistration(ctx, onboardingString);
         } else if(WorkflowType.FOR_APPROVE.equals(onboarding.getWorkflowType())) {
             workflowForApprove(ctx, onboardingString);
-        } else if(WorkflowType.REGISTRATION_REQUEST_APPROVE.equals(onboarding.getWorkflowType())) {
+        } else if(WorkflowType.FOR_APPROVE_PT.equals(onboarding.getWorkflowType())) {
             workflowRegistrationRequestAndApprove(ctx, onboardingString);
         } else if(WorkflowType.CONFIRMATION.equals(onboarding.getWorkflowType())) {
             workflowForConfirmation(ctx, onboardingString);
