@@ -9,19 +9,18 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.OnboardingFunctions;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -103,10 +102,48 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    void onboardingsOrchestratorDefault() {
+    void onboardingsOrchestratorContractRegistration() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(any(), any(), any(),any());
+    }
+
+    @Test
+    void onboardingsOrchestratorForApprove() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(any(), any(), any(),any());
+    }
+
+    @Test
+    void onboardingsOrchestratorRegistrationRequestApprove() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.REGISTRATION_REQUEST_APPROVE);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        Mockito.verify(orchestrationContext, times(2))
+                .callActivity(any(), any(), any(),any());
+    }
+
+    TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
         when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
@@ -114,12 +151,7 @@ public class OnboardingFunctionsTest {
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
         when(task.await()).thenReturn("example");
-
-        function.onboardingsOrchestrator(orchestrationContext);
-
-        Mockito.verify(orchestrationContext, times(4))
-                .callActivity(any(), any(), any(),any());
-
+        return orchestrationContext;
     }
 
     @Test
