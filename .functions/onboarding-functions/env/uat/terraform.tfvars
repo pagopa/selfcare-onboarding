@@ -38,6 +38,17 @@ storage_account_info = {
 }
 
 app_settings = {
-  USER_REGISTRY_URL = "https://api.uat.pdv.pagopa.it/user-registry/v1",
-  ONBOARDING_FUNCTIONS_URL = "https://selc-d-func.azurewebsites.net"
+  "USER_REGISTRY_URL" = "https://api.uat.pdv.pagopa.it/user-registry/v1",
+  "MONGODB_CONNECTION_URI" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/mongodb-connection-string/)",
+  "USER_REGISTRY_API_KEY" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/user-registry-api-key/)",
+  "BLOB_STORAGE_CONN_STRING_PRODUCT" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
+  "STORAGE_CONTAINER_CONTRACT" = "selc-u-contracts-blob",
+  "STORAGE_CONTAINER_PRODUCT" = "selc-u-product",
+  "BLOB_STORAGE_CONN_STRING_CONTRACT" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/contracts-storage-blob-connection-string/)",
+  "MAIL_DESTINATION_TEST_ADDRESS" = "pectest@pec.pagopa.it",
+  "MAIL_TEMPLATE_REGISTRATION_REQUEST_PT_PATH" = "contracts/template/mail/registration-request-pt/1.0.0.json",
+  "MAIL_SERVER_USERNAME" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/smtp-usr/)",
+  "MAIL_SERVER_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/smtp-psw/)",
+  "MAIL_TEMPLATE_REGISTRATION_NOTIFICATION_ADMIN_PATH" = "contracts/template/mail/registration-notification-admin/1.0.0.json",
+  "MAIL_TEMPLATE_NOTIFICATION_PATH" = "contracts/template/mail/onboarding-notification/1.0.0.json"
 }
