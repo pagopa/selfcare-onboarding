@@ -74,7 +74,8 @@ jobs:
 
       - name: "Build Functions and dependencies"
         shell: bash
-        run: mvn --projects :onboarding-functions --also-make package -DskipTests install
+        run: mvn --projects :onboarding-functions --also-make package install -DskipTests 
+          -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
       - name: Log in to Azure
         uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
