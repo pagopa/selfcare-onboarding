@@ -85,7 +85,7 @@ jobs:
 
       - name: "Deploy Functions"
         shell: bash
-        run: mvn -f apps/onbording-functions/pom.xml quarkus:deploy 
+        run: mvn -f apps/onboarding-functions/pom.xml quarkus:deploy 
           -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
           -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }}
           -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }}
