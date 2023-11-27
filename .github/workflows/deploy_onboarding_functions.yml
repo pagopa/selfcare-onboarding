@@ -74,7 +74,7 @@ jobs:
 
       - name: "Build Functions and dependencies"
         shell: bash
-        run: mvn --projects :onboarding-functions --also-make package -DskipTests
+        run: mvn --projects :onboarding-functions --also-make package -DskipTests install
 
       - name: Log in to Azure
         uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
