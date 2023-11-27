@@ -48,12 +48,9 @@ locals {
     "AZURE_SUBSCRIPTION_ID" : data.azurerm_subscription.current.subscription_id
   }
   env_variables = {
-    "CONTAINER_APP_SELC_ENVIRONMENT_NAME" : local.container_app_selc_environment.name,
-    "CONTAINER_APP_SELC_ENVIRONMENT_RESOURCE_GROUP_NAME" : local.container_app_selc_environment.resource_group,
-    "USER_REGISTRY_URL" : var.user_registry_url,
-    "ONBOARDING_FUNCTIONS_URL" : var.onboarding_functions_url,
-    "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS": var.onboarding_allowed_institutions_products,
-    "NAMESPACE" : local.domain,
+    "AZURE_ONBOARDING_FN_APP_NAME": "${local.project}-onboarding-fn",
+    "AZURE_ONBOARDING_FN_RESOURCE_GROUP": "${local.project}-onboarding-fn-rg",
+    "AZURE_ONBOARDING_FN_SERVICE_PLAN": "${local.project}-onboarding-fn-plan"
   }
   repo_secrets = {
     "SONAR_TOKEN": data.azurerm_key_vault_secret.sonar_token.value
@@ -78,6 +75,18 @@ resource "github_actions_environment_secret" "github_environment_cd_secrets" {
   environment     = github_repository_environment.environment_cd.environment
   secret_name     = each.key
   plaintext_value = each.value
+}
+
+#################
+# ENV Variables #
+#################
+
+resource "github_actions_environment_variable" "github_environment_cd_variables" {
+  for_each      = local.env_variables
+  repository    = local.github.repository
+  environment   = github_repository_environment.environment_cd.environment
+  variable_name = each.key
+  value         = each.value
 }
 
 #############################
