@@ -47,8 +47,8 @@ app_settings = {
   "BLOB_STORAGE_CONN_STRING_CONTRACT" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/contracts-storage-blob-connection-string/)",
   "MAIL_DESTINATION_TEST_ADDRESS" = "pectest@pec.pagopa.it",
   "MAIL_TEMPLATE_REGISTRATION_REQUEST_PT_PATH" = "contracts/template/mail/registration-request-pt/1.0.0.json",
-  "MAIL_SERVER_USERNAME" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-usr/)",
-  "MAIL_SERVER_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-psw/)",
+  "MAIL_SERVER_USERNAME" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-not-pec-usr/)",
+  "MAIL_SERVER_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-not-pec-psw/)",
   "MAIL_TEMPLATE_REGISTRATION_NOTIFICATION_ADMIN_PATH" = "contracts/template/mail/registration-notification-admin/1.0.0.json",
   "MAIL_TEMPLATE_NOTIFICATION_PATH" = "contracts/template/mail/onboarding-notification/1.0.0.json"
 }
