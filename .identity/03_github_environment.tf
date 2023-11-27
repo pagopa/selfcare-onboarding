@@ -84,7 +84,7 @@ resource "github_actions_environment_secret" "github_environment_cd_secrets" {
 resource "github_actions_environment_variable" "github_environment_cd_variables" {
   for_each      = local.env_variables
   repository    = local.github.repository
-  environment     = github_repository_environment.environment_cd.environment
+  environment   = github_repository_environment.environment_cd.environment
   variable_name = each.key
   value         = each.value
 }

@@ -36,9 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == 'true') }}
     environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-cd"
-    outputs:
-      environment: ${{ steps.setenv.outputs.environment }}
-      short_sha: ${{ steps.setsha.outputs.short_sha }}
     permissions:
       packages: write
       contents: write
@@ -49,22 +46,6 @@ jobs:
         name: Checkout
         with:
           ref: ${{ github.ref_name }}
-
-      # this workaround is necessary to pass the environment value to the next job
-      # unexpectly, global env vars cannot be read to set the environment and I don't
-      # want to repeat that complex expression (already repeated twice)
-      - name: Read Environment
-        id: setenv
-        shell: bash
-        run: |
-          echo "environment=$ENV_NAME" >> $GITHUB_OUTPUT
-
-      # github doesn't provide a short sha anymore
-      - name: Set Short Git Commit SHA
-        id: setsha
-        run: |
-          calculatedSha=$(git rev-parse --short ${{ github.sha }})
-          echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
