@@ -86,11 +86,10 @@ jobs:
       - name: "Deploy Functions"
         shell: bash
         run: mvn -f apps/onbording-functions/pom.xml quarkus:deploy 
-          -Dquarkus.azure-functions.app-name=selc-d-func
+          -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
           -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          -Dquarkus.azure-functions.resource-group=selc-d-functions-rg
+          -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }}
           -Dquarkus.azure-functions.region=westeurope
-          -Dquarkus.azure-functions.app-insights-key=
-          -Dquarkus.azure-functions.app-service-plan-name=selc-d-func-plan
+          -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }}
           -Dquarkus.azure-functions.runtime.java-version=17
 
