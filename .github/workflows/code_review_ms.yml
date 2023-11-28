@@ -24,11 +24,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            apps/onboarding-ms
-            libs/
-            test-coverage/
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
