@@ -31,4 +31,12 @@ public class OnboardingMsConfig {
             throw new IllegalArgumentException("Found an issue when trying to serialize product json string!!");
         }
     }
+
+    @ApplicationScoped
+    public AzureBlobClient azureBobClientContract(@ConfigProperty(name = "onboarding-ms.blob-storage.connection-string-contracts")
+                                                      String connectionStringContracts,
+                                                  @ConfigProperty(name = "onboarding-ms.blob-storage.container-contracts")
+                                                      String containerContracts){
+        return new AzureBlobClientDefault(connectionStringContracts, containerContracts);
+    }
 }

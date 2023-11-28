@@ -15,12 +15,17 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -204,6 +209,43 @@ public class OnboardingControllerTest {
                 .post("/pg")
                 .then()
                 .statusCode(200);
+    }
+
+
+    @Test
+    public void complete_unauthorized() {
+
+        given()
+                .when()
+                .pathParam("tokenId", "actual-token-id")
+                .contentType(ContentType.MULTIPART)
+                .put("/{tokenId}/complete")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    public void complete() throws IOException {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.complete(any(),any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/complete")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .complete(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
     }
 
 }
