@@ -32,6 +32,10 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
+          cache: maven
+      - name: Run tests
+        shell: bash
+        run: mvn compile test
 
       - name: Build and analyze on Pull Requests
         shell: bash
