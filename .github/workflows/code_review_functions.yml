@@ -23,7 +23,7 @@ jobs:
       id-token: write
     steps:
       - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v1.11.0
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # pin@v1.11.0
         with:
           checkout-fetch-depth: 0
           java-version: 17
