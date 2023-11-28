@@ -27,7 +27,6 @@ jobs:
         uses: s4u/setup-maven-action@v1.11.0
         with:
           checkout-fetch-depth: 0
-          checkout-ref: ${{ github.ref_name }}
           java-version: 17
           java-distribution: 'temurin'
           maven-version: '3.9.5'
