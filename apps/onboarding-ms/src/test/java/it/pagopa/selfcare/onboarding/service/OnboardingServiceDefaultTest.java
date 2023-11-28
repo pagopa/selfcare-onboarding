@@ -8,6 +8,7 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
@@ -59,6 +60,9 @@ public class OnboardingServiceDefaultTest {
 
     @InjectMock
     ProductService productService;
+
+    @InjectMock
+    AzureBlobClient azureBlobClient;
 
     @InjectMock
     SignatureService signatureService;
@@ -598,6 +602,8 @@ public class OnboardingServiceDefaultTest {
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
+
+        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn("upload-file");
 
         asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
