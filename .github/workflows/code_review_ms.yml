@@ -31,6 +31,7 @@ jobs:
           java-version: 17
           java-distribution: 'temurin'
           maven-version: '3.9.5'
+          cache-enabled: true
 
       - name: Build and analyze on Pull Requests
         shell: bash
