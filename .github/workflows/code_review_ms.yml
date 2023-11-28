@@ -37,7 +37,7 @@ jobs:
           -Dsonar.organization=pagopa
           -Dsonar.projectKey=pagopa_selfcare-onboarding
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.pullrequest.key=50
+          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=refs/remotes/origin/${{ github.base_ref }}
         env:
