@@ -35,7 +35,7 @@ jobs:
           cache: maven
       - name: Run tests
         shell: bash
-        run: mvn compile test
+        run: mvn --projects :onboarding-ms --also-make compile test
 
       - name: Build and analyze on Pull Requests
         shell: bash
