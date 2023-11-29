@@ -111,6 +111,7 @@ public class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfRoleNotValid(UniAsserter asserter) {
         OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
+        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
         onboardingDefaultRequest.setUsers(List.of(UserRequest.builder()
                 .taxCode("taxCode")
                 .role(PartyRole.OPERATOR)
@@ -501,6 +502,7 @@ public class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
         OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
+        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
         onboardingDefaultRequest.setUsers(List.of(manager));
 
         mockPersistOnboarding(asserter);
