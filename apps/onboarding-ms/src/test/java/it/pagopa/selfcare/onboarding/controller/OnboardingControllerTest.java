@@ -33,12 +33,9 @@ import static org.mockito.Mockito.*;
 public class OnboardingControllerTest {
 
     final static OnboardingPspRequest onboardingPspValid;
-    final static OnboardingPaRequest onboardingPaValid;
+    final static UserRequest userDTO;
     final static OnboardingPgRequest onboardingPgValid;
     final static OnboardingDefaultRequest onboardingBaseValid;
-
-
-    final static OnboardingSaRequest onboardingSaValid;
 
     final static InstitutionBaseRequest institution;
     final static InstitutionPspRequest institutionPsp;
@@ -50,12 +47,11 @@ public class OnboardingControllerTest {
         onboardingBaseValid = new OnboardingDefaultRequest();
         onboardingBaseValid.setProductId("productId");
 
-        UserRequest userDTO = new UserRequest();
+        userDTO = new UserRequest();
         userDTO.setTaxCode("taxCode");
 
         BillingRequest billingRequest = new BillingRequest();
-        billingRequest.setRecipientCode("code");
-        billingRequest.setVatNumber("vat");
+        billingRequest.setVatNumber("vatNumber");
 
         onboardingBaseValid.setUsers(List.of(userDTO));
         onboardingBaseValid.setBilling(billingRequest);
@@ -63,15 +59,8 @@ public class OnboardingControllerTest {
         institution = new InstitutionBaseRequest();
         institution.setInstitutionType(InstitutionType.PT);
         institution.setTaxCode("taxCode");
+        institution.setDigitalAddress("example@example.it");
         onboardingBaseValid.setInstitution(institution);
-
-        /* PA */
-        onboardingPaValid = new OnboardingPaRequest();
-        onboardingPaValid.setProductId("productId");
-
-        onboardingPaValid.setUsers(List.of(userDTO));
-        onboardingPaValid.setInstitution(institution);
-        onboardingPaValid.setBilling(billingRequest);
 
         /* PSP */
         onboardingPspValid = new OnboardingPspRequest();
@@ -81,6 +70,7 @@ public class OnboardingControllerTest {
         institutionPsp = new InstitutionPspRequest();
         institutionPsp.setInstitutionType(InstitutionType.PT);
         institutionPsp.setTaxCode("taxCode");
+        institutionPsp.setDigitalAddress("example@example.it");
         institutionPsp.setPaymentServiceProvider(new PaymentServiceProviderRequest());
         onboardingPspValid.setInstitution(institutionPsp);
 
@@ -92,18 +82,6 @@ public class OnboardingControllerTest {
         onboardingPgValid.setDigitalAddress("email@pagopa.it");
         onboardingPgValid.setUsers(List.of(userDTO));
 
-        /* SA */
-
-        onboardingSaValid = new OnboardingSaRequest();
-        BillingSaRequest billingSaRequest = new BillingSaRequest();
-        billingSaRequest.setVatNumber("vat");
-        onboardingSaValid.setBilling(billingSaRequest);
-        InstitutionBaseRequest institutionSa = new InstitutionBaseRequest();
-        institutionSa.setInstitutionType(InstitutionType.SA);
-        institutionSa.setTaxCode("taxCode");
-        onboardingSaValid.setInstitution(institutionSa);
-        onboardingSaValid.setUsers(List.of(userDTO));
-        onboardingSaValid.setProductId("productId");
     }
 
     @Test
@@ -121,7 +99,7 @@ public class OnboardingControllerTest {
 
     @ParameterizedTest
     @TestSecurity(user = "userJwt")
-    @ValueSource(strings = {"/psp","/pa", "/sa"})
+    @ValueSource(strings = {"/psp","/pa"})
     public void onboarding_shouldNotValidPspBody(String path) {
 
         given()
@@ -153,6 +131,19 @@ public class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     public void onboardingPa() {
 
+        /* PA */
+        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
+        onboardingPaValid.setProductId("productId");
+
+
+        BillingPaRequest billingPaRequest = new BillingPaRequest();
+        billingPaRequest.setRecipientCode("code");
+        billingPaRequest.setVatNumber("vat");
+
+        onboardingPaValid.setUsers(List.of(userDTO));
+        onboardingPaValid.setInstitution(institution);
+        onboardingPaValid.setBilling(billingPaRequest);
+
         Mockito.when(onboardingService.onboardingPa(any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
@@ -180,24 +171,6 @@ public class OnboardingControllerTest {
                 .then()
                 .statusCode(200);
     }
-
-    @Test
-    @TestSecurity(user = "userJwt")
-    public void onboardingSa() {
-
-        Mockito.when(onboardingService.onboardingSa(any()))
-                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
-
-        given()
-                .when()
-                .body(onboardingSaValid)
-                .contentType(ContentType.JSON)
-                .post("/sa")
-                .then()
-                .statusCode(200);
-    }
-
-
 
     //@Test
     public void onboardingPg() {
