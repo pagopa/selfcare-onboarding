@@ -57,11 +57,13 @@ class OnboardingServiceTest {
     @Inject
     OnboardingService onboardingService;
 
+    final String productId = "productId";
+
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
         onboarding.setOnboardingId(onboarding.getId().toHexString());
-        onboarding.setProductId("productId");
+        onboarding.setProductId(productId);
         onboarding.setUsers(List.of());
         onboarding.setInstitution(new Institution());
         onboarding.setUserRequestUid("example-uid");
@@ -141,6 +143,7 @@ class OnboardingServiceTest {
         product.setContractTemplatePath("example");
         product.setContractTemplateVersion("version");
         product.setTitle("Title");
+        product.setId(productId);
         return product;
     }
     @Test
@@ -261,14 +264,11 @@ class OnboardingServiceTest {
     void sendMailRegistrationApprove() {
 
         Onboarding onboarding = createOnboarding();
-        Token token = new Token();
-        token.setId(ObjectId.get());
+        Product product = createDummyProduct();
         UserResource userResource = createUserResource();
 
-        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
-                .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(createDummyProduct());
+                .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
 
@@ -278,7 +278,11 @@ class OnboardingServiceTest {
         onboardingService.sendMailRegistrationApprove(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
+                .sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
+                        userResource.getName().getValue(),
+                        userResource.getFamilyName().getValue(),
+                        product.getTitle(),
+                        onboarding.getOnboardingId());
     }
 
 
@@ -295,22 +299,24 @@ class OnboardingServiceTest {
     void sendMailOnboardingApprove() {
 
         Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
         UserResource userResource = createUserResource();
-        Token token = new Token();
-        token.setId(ObjectId.get());
 
-        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
-                .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(createDummyProduct());
+                .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
 
         onboardingService.sendMailOnboardingApprove(onboarding);
 
+
         Mockito.verify(notificationService, times(1))
-                .sendMailOnboardingApprove(any(), any(), any(),any(),any());
+                .sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
+                        userResource.getName().getValue(),
+                        userResource.getFamilyName().getValue(),
+                        product.getTitle(),
+                        onboarding.getOnboardingId());
     }
 
 

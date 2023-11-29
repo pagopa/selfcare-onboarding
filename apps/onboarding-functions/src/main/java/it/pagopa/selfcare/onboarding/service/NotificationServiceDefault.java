@@ -75,17 +75,17 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationApprove(String institutionName, String name, String username, String productName, String token) {
-        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.registrationApprovePath());
+    public void sendMailRegistrationApprove(String institutionName, String name, String username, String productName, String onboardingId) {
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, onboardingId, templatePathConfig.registrationApprovePath());
     }
 
     @Override
-    public void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String token) {
-        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, token, templatePathConfig.onboardingApprovePath());
+    public void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String onboardingId) {
+        sendMailOnboardingOrRegistrationApprove(institutionName, name, username, productName, onboardingId, templatePathConfig.onboardingApprovePath());
     }
 
 
-    private void sendMailOnboardingOrRegistrationApprove(String institutionName, String name, String username, String productName, String token, String templatePath) {
+    private void sendMailOnboardingOrRegistrationApprove(String institutionName, String name, String username, String productName, String onboardingId, String templatePath) {
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
         mailParameters.put(templatePlaceholdersConfig.productName(), productName);
@@ -93,7 +93,7 @@ public class NotificationServiceDefault implements NotificationService {
         Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterSurname(), value));
         mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
         StringBuilder adminApproveLink = new StringBuilder(templatePlaceholdersConfig.adminLink());
-        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), adminApproveLink.append(token).toString());
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), adminApproveLink.append(onboardingId).toString());
 
         sendMailWithFile(List.of(notificationAdminMail), templatePath, mailParameters, productName, null);
     }
