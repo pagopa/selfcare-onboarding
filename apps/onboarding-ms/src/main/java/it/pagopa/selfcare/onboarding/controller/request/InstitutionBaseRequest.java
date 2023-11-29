@@ -21,6 +21,7 @@ public class InstitutionBaseRequest {
     private String country;
     private String county;
     private String description;
+    @NotEmpty(message = "digitalAddress is required")
     private String digitalAddress;
     private String address;
     private String zipCode;
