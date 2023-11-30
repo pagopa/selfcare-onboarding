@@ -224,12 +224,12 @@ class OnboardingServiceTest {
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService)
-                .sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
+                .sendMailRegistrationWithContract(any(), any(), any(),any(),any());
 
         onboardingService.sendMailRegistrationWithContract(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationWithContract(any(), any(), any(),any(),any(),any());
+                .sendMailRegistrationWithContract(any(), any(), any(),any(),any());
     }
 
 

@@ -9,5 +9,5 @@ public interface NotificationService {
 
     void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String onboardingId);
 
-    void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName, String token);
+    void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName);
 }
