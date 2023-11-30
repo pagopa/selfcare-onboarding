@@ -348,16 +348,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static boolean isFieldToUpdate(CertifiableFieldResourceOfstring certifiedField, String value) {
         boolean isToUpdate = true;
         if (certifiedField != null) {
-            if (CertifiableFieldResourceOfstring.CertificationEnum.NONE.equals(certifiedField.getCertification())) {
-                if (certifiedField.getValue().equals(value)) {
-                    isToUpdate = false;
-                }
-            } else {
-                if (certifiedField.getValue().equalsIgnoreCase(value)) {
-                    isToUpdate = false;
-                } else {
-                    throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
-                }
+            boolean isNoneCertification = CertifiableFieldResourceOfstring.CertificationEnum.NONE.equals(certifiedField.getCertification());
+            boolean isSameValue = isNoneCertification ? certifiedField.getValue().equals(value) : certifiedField.getValue().equalsIgnoreCase(value);
+
+            if (isSameValue) {
+                isToUpdate = false;
+            } else if (!isNoneCertification) {
+                throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
             }
         }
         return isToUpdate;

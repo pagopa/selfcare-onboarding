@@ -42,6 +42,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -127,6 +128,13 @@ public class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfUserFoundedAndProductThrowException(UniAsserter asserter) {
         OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        UserRequest manager = UserRequest.builder()
+                .name("currentName")
+                .surname("currentSurname")
+                .taxCode("currentTaxCode")
+                .role(PartyRole.MANAGER)
+                .build();
+
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new InstitutionBaseRequest());
@@ -145,7 +153,7 @@ public class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboardingPa_throwExceptionIfUserFoundedAndProductIsNotValid(UniAsserter asserter) {
+    void onboarding_throwExceptionIfUserFoundedAndProductIsNotValid(UniAsserter asserter) {
         OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
@@ -170,7 +178,7 @@ public class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboardingPa_throwExceptionIfUserFoundedAndProductIsNotDelegable(UniAsserter asserter) {
+    void onboarding_throwExceptionIfUserFoundedAndProductIsNotDelegable(UniAsserter asserter) {
         OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
@@ -199,11 +207,13 @@ public class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboardingPa_throwExceptionIfUserFoundedAndProductRoleIsNotValid(UniAsserter asserter) {
+    void onboarding_throwExceptionIfUserFoundedAndProductRoleIsNotValid(UniAsserter asserter) {
         OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PG);
+        onboardingRequest.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
 
@@ -260,6 +270,7 @@ public class OnboardingServiceDefaultTest {
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
         InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionBaseRequest);
 
@@ -310,7 +321,9 @@ public class OnboardingServiceDefaultTest {
         OnboardingSaRequest onboardingRequest = new OnboardingSaRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.SA);
+        onboardingRequest.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -365,7 +378,9 @@ public class OnboardingServiceDefaultTest {
         OnboardingPspRequest onboardingRequest = new OnboardingPspRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionPspRequest());
+        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        onboardingRequest.setInstitution(institutionPspRequest);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -388,7 +403,9 @@ public class OnboardingServiceDefaultTest {
         OnboardingPspRequest onboardingRequest = new OnboardingPspRequest();
         onboardingRequest.setUsers(List.of(manager));
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionPspRequest());
+        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        onboardingRequest.setInstitution(institutionPspRequest);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -438,8 +455,10 @@ public class OnboardingServiceDefaultTest {
 
         OnboardingDefaultRequest request = new OnboardingDefaultRequest();
         request.setUsers(List.of(manager));
-        request.setProductId("productId");
-        request.setInstitution(new InstitutionBaseRequest());
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        institutionPspRequest.setInstitutionType(InstitutionType.GSP);
+        request.setInstitution(institutionPspRequest);
 
         mockPersistOnboarding(asserter);
 
