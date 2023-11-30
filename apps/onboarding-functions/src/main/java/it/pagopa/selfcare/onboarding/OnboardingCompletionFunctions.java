@@ -9,7 +9,10 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import com.microsoft.durabletask.DurableTaskClient;
+import com.microsoft.durabletask.RetryPolicy;
+import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
+import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
@@ -17,8 +20,10 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
+import java.time.Duration;
 import java.util.Optional;
 
+import static it.pagopa.selfcare.onboarding.OnboardingFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
 public class OnboardingCompletionFunctions {
@@ -32,10 +37,16 @@ public class OnboardingCompletionFunctions {
     private final OnboardingService service;
 
     private final ObjectMapper objectMapper;
+    private final TaskOptions optionsRetry;
 
     public OnboardingCompletionFunctions(OnboardingService service, ObjectMapper objectMapper) {
         this.service = service;
         this.objectMapper = objectMapper;
+
+        final int maxAttempts = 1;
+        final Duration firstRetryInterval = Duration.ofSeconds(3);
+        RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
+        optionsRetry = new TaskOptions(retryPolicy);
     }
 
     /**
@@ -69,8 +80,23 @@ public class OnboardingCompletionFunctions {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
         String onboardingString = getOnboardingString(objectMapper, onboarding);
 
-        //ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        //ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        //ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
+        ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
+    }
+
+    @FunctionName(CREATE_INSTITUTION_ACTIVITY)
+    public void createInstitution(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString));
+    }
+
+    @FunctionName(CREATE_ONBOARDING_ACTIVITY)
+    public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
+    }
+
+    @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
+    public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
     }
 }

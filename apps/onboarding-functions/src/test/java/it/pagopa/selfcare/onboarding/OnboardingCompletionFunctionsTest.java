@@ -5,10 +5,12 @@ import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
 import com.microsoft.durabletask.DurableTaskClient;
+import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -23,7 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static it.pagopa.selfcare.onboarding.OnboardingCompletionFunctions.ONBOARDING_COMPLETION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.OnboardingCompletionFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -96,5 +98,34 @@ public class OnboardingCompletionFunctionsTest {
         when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> function.onboardingCompletionOrchestrator(orchestrationContext));
+    }
+
+
+    @Test
+    void onboardingCompletionOrchestrator() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingCompletionOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+    }
+
+    TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
+        when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
+
+        Task task = mock(Task.class);
+        when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
+        when(task.await()).thenReturn("example");
+        return orchestrationContext;
     }
 }
