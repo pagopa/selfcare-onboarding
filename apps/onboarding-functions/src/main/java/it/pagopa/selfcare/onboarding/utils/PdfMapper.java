@@ -32,6 +32,7 @@ public class PdfMapper {
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
 
     public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
 
 
     public static Map<String, Object> setUpCommonData(UserResource manager, List<UserResource> users, Onboarding onboarding) {
@@ -50,8 +51,8 @@ public class PdfMapper {
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", institution.getTaxCode());
         map.put("zipCode", institution.getZipCode());
-        map.put("managerName", manager.getName());
-        map.put("managerSurname", manager.getFamilyName());
+        map.put("managerName", Optional.ofNullable(manager.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
+        map.put("managerSurname", Optional.ofNullable(manager.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
         map.put("originId", Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse(""));
         map.put("institutionMail", institution.getDigitalAddress());
         map.put("managerTaxCode", manager.getFiscalCode());
@@ -109,11 +110,9 @@ public class PdfMapper {
 
         map.put("institutionTypeCode", institution.getInstitutionType());
         decodePricingPlan(onboarding.getPricingPlan(), onboarding.getProductId(), map);
-        if (Objects.nonNull(institution.getOrigin())) {
-            map.put("originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ?
-                    "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>"
-                    : "");
-        }
+
+        map.put("originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ? ORIGIN_ID_LABEL : "");
+
         addInstitutionRegisterLabelValue(institution, map);
         if (onboarding.getBilling() != null) {
             map.put("institutionRecipientCode",onboarding.getBilling().getRecipientCode());
