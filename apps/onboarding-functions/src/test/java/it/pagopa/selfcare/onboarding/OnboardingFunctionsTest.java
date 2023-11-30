@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static it.pagopa.selfcare.onboarding.OnboardingFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,6 +114,13 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(orchestrationContext, times(3))
                 .callActivity(any(), any(), any(),any());
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
+        assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, captorActivity.getAllValues().get(2));
     }
 
     @Test
@@ -125,8 +133,26 @@ public class OnboardingFunctionsTest {
 
         function.onboardingsOrchestrator(orchestrationContext);
 
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(1))
-                .callActivity(any(), any(), any(),any());
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getValue());
+    }
+
+    @Test
+    void onboardingsOrchestratorConfirmation() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_CONFIRMATION_ACTIVITY, captorActivity.getValue());
     }
 
     @Test
@@ -139,8 +165,11 @@ public class OnboardingFunctionsTest {
 
         function.onboardingsOrchestrator(orchestrationContext);
 
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(2))
-                .callActivity(any(), any(), any(),any());
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, captorActivity.getAllValues().get(1));
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
@@ -212,5 +241,17 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(service, times(1))
                 .sendMailRegistrationApprove(any());
+    }
+
+    @Test
+    void sendMailOnboardingApprove() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(service).sendMailOnboardingApprove(any());
+
+        function.sendMailOnboardingApprove(onboardinString, executionContext);
+
+        Mockito.verify(service, times(1))
+                .sendMailOnboardingApprove(any());
     }
 }
