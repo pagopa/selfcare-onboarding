@@ -143,6 +143,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
+    /**
+     * Identify which workflow must be trigger during onboarding process.
+     * Each workflow consist of different activities such as creating contract or sending appropriate mail.
+     * For more information look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/776339638/DR+-+Domain+Onboarding
+     * @param onboarding actual onboarding request
+     * @return WorkflowType
+     */
     private WorkflowType getWorkflowType(Onboarding onboarding) {
         InstitutionType institutionType = onboarding.getInstitution().getInstitutionType();
         if(InstitutionType.PT.equals(institutionType)){
@@ -150,7 +157,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         if(InstitutionType.PA.equals(institutionType)
-                || checkIfGspProdInterop(institutionType, onboarding.getProductId())
+                || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)) {
             return WorkflowType.CONTRACT_REGISTRATION;
@@ -163,7 +170,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return WorkflowType.FOR_APPROVE;
     }
 
-    private boolean checkIfGspProdInterop(InstitutionType institutionType, String productId) {
+    private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
         return InstitutionType.GSP == institutionType
                 && productId.equals(PROD_INTEROP.getValue());
     }
