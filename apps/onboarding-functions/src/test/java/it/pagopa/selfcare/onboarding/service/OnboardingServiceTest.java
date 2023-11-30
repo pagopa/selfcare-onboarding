@@ -212,6 +212,7 @@ class OnboardingServiceTest {
     void sendMailRegistrationWithContract() {
 
         Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
         UserResource userResource = createUserResource();
         Token token = new Token();
         token.setId(ObjectId.get());
@@ -219,17 +220,23 @@ class OnboardingServiceTest {
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(createDummyProduct());
+                .thenReturn(product);
 
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService)
-                .sendMailRegistrationWithContract(any(), any(), any(),any(),any());
+                .sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
 
         onboardingService.sendMailRegistrationWithContract(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationWithContract(any(), any(), any(),any(),any());
+                .sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
     }
 
 
@@ -246,18 +253,25 @@ class OnboardingServiceTest {
     void sendMailRegistration() {
 
         UserResource userResource = createUserResource();
+        Product product = createDummyProduct();
         Onboarding onboarding = createOnboarding();
 
         when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(createDummyProduct());
+                .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
-        doNothing().when(notificationService).sendMailRegistration(any(), any(), any(),any(),any());
+        doNothing().when(notificationService).sendMailRegistration(onboarding.getInstitution().getDescription(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
 
         onboardingService.sendMailRegistration(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistration(any(), any(), any(),any(),any());
+                .sendMailRegistration(onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                    product.getTitle());
     }
 
     @Test
