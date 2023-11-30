@@ -50,5 +50,17 @@ app_settings = {
   "MAIL_SERVER_USERNAME" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-not-pec-usr/)",
   "MAIL_SERVER_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-not-pec-psw/)",
   "MAIL_TEMPLATE_REGISTRATION_NOTIFICATION_ADMIN_PATH" = "contracts/template/mail/registration-notification-admin/1.0.0.json",
-  "MAIL_TEMPLATE_NOTIFICATION_PATH" = "contracts/template/mail/onboarding-notification/1.0.0.json"
+  "MAIL_TEMPLATE_NOTIFICATION_PATH" = "contracts/template/mail/onboarding-notification/1.0.0.json",
+  "ADDRESS_EMAIL_NOTIFICATION_ADMIN" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/portal-admin-operator-email/)",
+  "MAIL_TEMPLATE_COMPLETE_PATH" = "contracts/template/mail/onboarding-complete/1.0.0.json",
+  "MAIL_TEMPLATE_FD_COMPLETE_NOTIFICATION_PATH" = "contracts/template/mail/onboarding-complete-fd/1.0.0.json",
+  "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
+  "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_PATH" = "contracts/template/mail/1.0.0.json",
+  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
+  "SELFCARE_ADMIN_NOTIFICATION_URL" : "https://dev.selfcare.pagopa.it/dashboard/admin/onboarding/",
+  "SELFCARE_URL"            = "https://selfcare.pagopa.it",
+  "MAIL_ONBOARDING_CONFIRMATION_LINK"    = "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=",
+  "MAIL_ONBOARDING_REJECTION_LINK"      = "https://dev.selfcare.pagopa.it/onboarding/cancel?jwt=",
+  "MAIL_ONBOARDING_URL" : "https://dev.selfcare.pagopa.it/onboarding/"
 }
