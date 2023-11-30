@@ -9,24 +9,24 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.OnboardingFunctions;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static it.pagopa.selfcare.onboarding.OnboardingFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -103,10 +103,76 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    void onboardingsOrchestratorDefault() {
+    void onboardingsOrchestratorContractRegistration() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(any(), any(), any(),any());
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
+        assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, captorActivity.getAllValues().get(2));
+    }
+
+    @Test
+    void onboardingsOrchestratorForApprove() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getValue());
+    }
+
+    @Test
+    void onboardingsOrchestratorConfirmation() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_CONFIRMATION_ACTIVITY, captorActivity.getValue());
+    }
+
+    @Test
+    void onboardingsOrchestratorRegistrationRequestApprove() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(2))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, captorActivity.getAllValues().get(1));
+    }
+
+    TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
         when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
@@ -114,12 +180,7 @@ public class OnboardingFunctionsTest {
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
         when(task.await()).thenReturn("example");
-
-        function.onboardingsOrchestrator(orchestrationContext);
-
-        Mockito.verify(orchestrationContext, times(4))
-                .callActivity(any(), any(), any(),any());
-
+        return orchestrationContext;
     }
 
     @Test
@@ -180,5 +241,17 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(service, times(1))
                 .sendMailRegistrationApprove(any());
+    }
+
+    @Test
+    void sendMailOnboardingApprove() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(service).sendMailOnboardingApprove(any());
+
+        function.sendMailOnboardingApprove(onboardinString, executionContext);
+
+        Mockito.verify(service, times(1))
+                .sendMailOnboardingApprove(any());
     }
 }

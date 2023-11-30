@@ -145,23 +145,23 @@ public class OnboardingService {
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {
 
-        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
         notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
-                sendMailInput.token.getId().toHexString());
+                onboarding.getOnboardingId());
 
     }
 
     public void sendMailOnboardingApprove(Onboarding onboarding) {
 
-        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
         notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
-                sendMailInput.token.getId().toHexString());
+                onboarding.getOnboardingId());
     }
 
     public String getValidManagerId(List<User> users) {

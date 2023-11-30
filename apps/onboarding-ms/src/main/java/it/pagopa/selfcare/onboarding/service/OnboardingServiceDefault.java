@@ -8,6 +8,7 @@ import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -46,6 +47,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
 import static it.pagopa.selfcare.onboarding.util.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.util.GenericError.ONBOARDING_EXPIRED;
@@ -117,6 +119,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
+        onboarding.setWorkflowType(getWorkflowType(onboarding));
 
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
@@ -138,6 +141,38 @@ public class OnboardingServiceDefault implements OnboardingService {
             return Onboarding.persistOrUpdate(onboardings)
                     .replaceWith(onboarding);
         }
+    }
+
+    /**
+     * Identify which workflow must be trigger during onboarding process.
+     * Each workflow consist of different activities such as creating contract or sending appropriate mail.
+     * For more information look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/776339638/DR+-+Domain+Onboarding
+     * @param onboarding actual onboarding request
+     * @return WorkflowType
+     */
+    private WorkflowType getWorkflowType(Onboarding onboarding) {
+        InstitutionType institutionType = onboarding.getInstitution().getInstitutionType();
+        if(InstitutionType.PT.equals(institutionType)){
+            return WorkflowType.FOR_APPROVE_PT;
+        }
+
+        if(InstitutionType.PA.equals(institutionType)
+                || isGspAndProdInterop(institutionType, onboarding.getProductId())
+                || InstitutionType.SA.equals(institutionType)
+                || InstitutionType.AS.equals(institutionType)) {
+            return WorkflowType.CONTRACT_REGISTRATION;
+        }
+
+        if(InstitutionType.PG.equals(institutionType)) {
+            return WorkflowType.CONFIRMATION;
+        }
+
+        return WorkflowType.FOR_APPROVE;
+    }
+
+    private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
+        return InstitutionType.GSP == institutionType
+                && productId.equals(PROD_INTEROP.getValue());
     }
 
     public Uni<Onboarding> checkProductAndReturnOnboarding(Onboarding onboarding) {
@@ -313,16 +348,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static boolean isFieldToUpdate(CertifiableFieldResourceOfstring certifiedField, String value) {
         boolean isToUpdate = true;
         if (certifiedField != null) {
-            if (CertifiableFieldResourceOfstring.CertificationEnum.NONE.equals(certifiedField.getCertification())) {
-                if (certifiedField.getValue().equals(value)) {
-                    isToUpdate = false;
-                }
-            } else {
-                if (certifiedField.getValue().equalsIgnoreCase(value)) {
-                    isToUpdate = false;
-                } else {
-                    throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
-                }
+            boolean isNoneCertification = CertifiableFieldResourceOfstring.CertificationEnum.NONE.equals(certifiedField.getCertification());
+            boolean isSameValue = isNoneCertification ? certifiedField.getValue().equals(value) : certifiedField.getValue().equalsIgnoreCase(value);
+
+            if (isSameValue) {
+                isToUpdate = false;
+            } else if (!isNoneCertification) {
+                throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
             }
         }
         return isToUpdate;

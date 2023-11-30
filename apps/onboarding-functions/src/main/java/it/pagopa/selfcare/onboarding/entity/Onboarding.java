@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
@@ -15,8 +16,8 @@ public class Onboarding  {
     private ObjectId id;
 
     private String onboardingId;
-
     private String productId;
+    private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
     private String pricingPlan;
@@ -115,5 +116,13 @@ public class Onboarding  {
 
     public void setUserRequestUid(String userRequestUid) {
         this.userRequestUid = userRequestUid;
+    }
+
+    public WorkflowType getWorkflowType() {
+        return workflowType;
+    }
+
+    public void setWorkflowType(WorkflowType workflowType) {
+        this.workflowType = workflowType;
     }
 }
