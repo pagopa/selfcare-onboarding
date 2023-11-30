@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ public class InstitutionBaseRequest {
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
+    private Origin origin;
     private String city;
     private String country;
     private String county;
