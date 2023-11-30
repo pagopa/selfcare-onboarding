@@ -9,7 +9,6 @@ import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-
 import com.microsoft.durabletask.DurableTaskClient;
 import com.microsoft.durabletask.RetryPolicy;
 import com.microsoft.durabletask.TaskOptions;
@@ -18,7 +17,6 @@ import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -35,11 +33,11 @@ public class OnboardingFunctions {
     public static final String SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME = "SaveTokenWithContract";
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String FORMAT_LOGGER_ONBOARDING_STRING = "%s: %s";
-    public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME = "SendMailRegistrationWithContract";
-    public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME = "SendMailRegistrationRequest";
-    public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME = "SendMailRegistrationApprove";
-    public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME = "SendMailOnboardingApprove";
-    public static final String SEND_MAIL_CONFIRMATION_ACTIVITY_NAME = "SendMailConfirmation";
+    public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY = "SendMailRegistrationWithContract";
+    public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY = "SendMailRegistrationRequest";
+    public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY = "SendMailRegistrationApprove";
+    public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY = "SendMailOnboardingApprove";
+    public static final String SEND_MAIL_CONFIRMATION_ACTIVITY = "SendMailConfirmation";
 
     private final OnboardingService service;
 
@@ -91,34 +89,31 @@ public class OnboardingFunctions {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
         String onboardingString = getOnboardingString(onboarding);
 
-        if(WorkflowType.CONTRACT_REGISTRATION.equals(onboarding.getWorkflowType())) {
-            workflowContractRegistration(ctx, onboardingString);
-        } else if(WorkflowType.FOR_APPROVE.equals(onboarding.getWorkflowType())) {
-            workflowForApprove(ctx, onboardingString);
-        } else if(WorkflowType.FOR_APPROVE_PT.equals(onboarding.getWorkflowType())) {
-            workflowRegistrationRequestAndApprove(ctx, onboardingString);
-        } else if(WorkflowType.CONFIRMATION.equals(onboarding.getWorkflowType())) {
-            workflowForConfirmation(ctx, onboardingString);
+        switch (onboarding.getWorkflowType()) {
+            case CONTRACT_REGISTRATION -> workflowContractRegistration(ctx, onboardingString);
+            case FOR_APPROVE -> workflowForApprove(ctx, onboardingString);
+            case FOR_APPROVE_PT -> workflowRegistrationRequestAndApprove(ctx, onboardingString);
+            case CONFIRMATION -> workflowForConfirmation(ctx, onboardingString);
         }
     }
 
     private void workflowContractRegistration(TaskOrchestrationContext ctx, String onboardingString){
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() ;
+        ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
     }
 
     private void workflowForApprove(TaskOrchestrationContext ctx, String onboardingString){
-        ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await() ;
+        ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
     }
 
     private void workflowRegistrationRequestAndApprove(TaskOrchestrationContext ctx, String onboardingString){
-        ctx.callActivity(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
     }
 
     private void workflowForConfirmation(TaskOrchestrationContext ctx, String onboardingString){
-        ctx.callActivity(SEND_MAIL_CONFIRMATION_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
     }
 
     /**
@@ -142,36 +137,36 @@ public class OnboardingFunctions {
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY)
     public void sendMailRegistrationWithContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString));
         service.sendMailRegistrationWithContract(readOnboardingValue(onboardingString));
     }
 
-    @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)
     public void sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, onboardingString));
         service.sendMailRegistration(readOnboardingValue(onboardingString));
     }
 
-    @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY)
     public void sendMailRegistrationApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, onboardingString));
         service.sendMailRegistrationApprove(readOnboardingValue(onboardingString));
     }
 
-    @FunctionName(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY)
     public void sendMailOnboardingApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString));
         service.sendMailOnboardingApprove(readOnboardingValue(onboardingString));
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
-    @FunctionName(SEND_MAIL_CONFIRMATION_ACTIVITY_NAME)
+    @FunctionName(SEND_MAIL_CONFIRMATION_ACTIVITY)
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY_NAME, onboardingString));
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString));
         return onboardingString;
     }
 
