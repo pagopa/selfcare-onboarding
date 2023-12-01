@@ -20,9 +20,15 @@ public class ProductServiceCacheable implements ProductService{
 
 
     public ProductServiceCacheable(String connectionString, String containerName, String filePath ){
-     azureBlobClient = new AzureBlobClientDefault(connectionString, containerName);
-     this.filePath = filePath;
-     refreshProduct();
+        this.azureBlobClient = new AzureBlobClientDefault(connectionString, containerName);
+        this.filePath = filePath;
+        refreshProduct();
+    }
+
+    public ProductServiceCacheable(AzureBlobClient azureBlobClient, String filePath) {
+        this.azureBlobClient = azureBlobClient;
+        this.filePath = filePath;
+        refreshProduct();
     }
 
     public void refreshProduct(){
