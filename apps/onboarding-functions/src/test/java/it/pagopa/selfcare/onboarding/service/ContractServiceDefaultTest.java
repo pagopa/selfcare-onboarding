@@ -53,7 +53,7 @@ class ContractServiceDefaultTest {
     @BeforeEach
     void setup(){
         padesSignService = mock(PadesSignService.class);
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo- path");
     }
 
 
@@ -130,7 +130,7 @@ class ContractServiceDefaultTest {
 
         PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo-path");
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 

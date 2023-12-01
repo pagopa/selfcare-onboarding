@@ -8,6 +8,7 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -22,6 +23,8 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_COMPRESS_FILE;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND_MAIL;
 
@@ -31,6 +34,7 @@ public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
 
+    public static final String PAGOPA_LOGO_FILENAME = "pagopa-logo.png";
     private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
     private final MailTemplatePathConfig templatePathConfig;
     private final AzureBlobClient azureBlobClient;
@@ -129,6 +133,33 @@ public class NotificationServiceDefault implements NotificationService {
         fileMailData.name = fileNameZip;
 
         sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, fileMailData);
+    }
+
+    @Override
+    public void sendCompletedEmail(List<String> destinationMails, Product product) {
+
+        String templatePath = product.getId().equals(PROD_FD.getValue())||product.getId().equals(PROD_FD_GARANTITO.getValue())
+                ? templatePathConfig.completePathFd()
+                : templatePathConfig.completePath();
+
+        byte[] logoData = null;
+
+        try {
+            logoData = Files.readAllBytes(contractService.getLogoFile().toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
+        mailParameter.put(templatePlaceholdersConfig.completeSelfcareName(), templatePlaceholdersConfig.completeSelfcarePlaceholder());
+
+        FileMailData fileMailData = new FileMailData();
+        fileMailData.contentType = "image/png";
+        fileMailData.data = logoData;
+        fileMailData.name = PAGOPA_LOGO_FILENAME;
+
+        sendMailWithFile(destinationMails, templatePath, mailParameter, product.getTitle(), fileMailData);
     }
 
     private void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {

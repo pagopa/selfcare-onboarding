@@ -7,17 +7,25 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
@@ -27,11 +35,20 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     InstitutionApi institutionApi;
 
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
+
     @Inject
     InstitutionMapper institutionMapper;
 
     @Inject
     OnboardingRepository onboardingRepository;
+
+    @Inject
+    NotificationService notificationService;
+    @Inject
+    ProductService productService;
 
     @Override
     public void createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
@@ -98,5 +115,28 @@ public class CompletionServiceDefault implements CompletionService {
     private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
         return InstitutionType.GSP == institutionType
                 && productId.equals(PROD_INTEROP.getValue());
+    }
+
+    @Override
+    public void sendCompletedEmail(Onboarding onboarding) {
+
+        String workContractId = String.format("obg_%s", onboarding.getOnboardingId());
+
+        List<String> destinationMails = onboarding.getUsers().stream()
+                .filter(user -> MANAGER.equals(user.getRole()))
+                .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                .filter(user -> Objects.nonNull(user.getWorkContacts())
+                        && user.getWorkContacts().containsKey(workContractId))
+                .map(user -> user.getWorkContacts().get(workContractId))
+                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                .map(workContract -> workContract.getEmail().getValue())
+                .collect(Collectors.toList());
+
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+
+        notificationService.sendCompletedEmail(destinationMails, product);
+
     }
 }
