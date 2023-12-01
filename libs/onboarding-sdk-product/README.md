@@ -61,3 +61,33 @@ Generally, you load product json string from an azure storage container, this ex
         }
     }
  ```
+
+## CacheableProductService
+
+This product has been implemented to work as a cacheable object, which keeps in memory the lastUpdated time of the
+products information.
+When the CacheableProduct gets created a DefaultProductService gets saved with its current state, and every time a
+method of the cacheable object is called, it will call a refresh method to check wether the product has been updated or
+not.
+If the product's last updatedTime is older than the retrieved current time from the azure client a new DefaultProduct
+will be saved into the cacheable Product.
+
+```java script
+    public ProductServiceCacheable(AzureBlobClient azureBlobClient,String filePath){
+        this.azureBlobClient=azureBlobClient;
+        this.filePath=filePath;
+        refreshProduct();
+        }
+public void refreshProduct(){
+        LocalDateTime currentLastModifiedDate=azureBlobClient.getProperties(filePath).getLastModified().toLocalDateTime();
+        if(productLastModifiedDate==null||currentLastModifiedDate.isAfter(productLastModifiedDate)){
+        String productJsonString=azureBlobClient.getFileAsText(filePath);
+        try{
+        this.productService=new ProductServiceDefault(productJsonString);
+        }catch(JsonProcessingException e){
+        throw new IllegalArgumentException(e.getMessage());
+        }
+        this.productLastModifiedDate=currentLastModifiedDate;
+        }
+        }
+ ```
