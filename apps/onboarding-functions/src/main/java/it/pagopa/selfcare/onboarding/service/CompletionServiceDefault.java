@@ -53,27 +53,32 @@ public class CompletionServiceDefault implements CompletionService {
                 .where("_id", onboarding.getOnboardingId());
     }
 
+    /**
+     * Function that creates institution based on institution type and Origin,
+     * Origin indicates which is the indexes where data come from, for ex. IPA comes from index of Pubbliche Amministrazioni
+     * Look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/708804909/Glossario for more information about institution type and indexes
+     */
     private InstitutionResponse createInstitution(Institution institution, String productId) {
 
-        if (InstitutionType.SA.equals(institution.getInstitutionType())
+        if(InstitutionType.SA.equals(institution.getInstitutionType())
                 && Origin.ANAC.equals(institution.getOrigin())) {
 
             return institutionApi.createInstitutionFromAnacUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if (InstitutionType.AS.equals(institution.getInstitutionType())
+        if(InstitutionType.AS.equals(institution.getInstitutionType())
                 && Origin.IVASS.equals(institution.getOrigin())) {
 
             return institutionApi.createInstitutionFromIvassUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if (InstitutionType.PG.equals(institution.getInstitutionType()) &&
+        if(InstitutionType.PG.equals(institution.getInstitutionType()) &&
                 (Origin.INFOCAMERE.equals(institution.getOrigin()) || Origin.ADE.equals(institution.getOrigin()))) {
 
             return institutionApi.createInstitutionFromInfocamereUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if (InstitutionType.PA.equals(institution.getInstitutionType()) ||
+        if(InstitutionType.PA.equals(institution.getInstitutionType()) ||
                 InstitutionType.SA.equals(institution.getInstitutionType()) ||
                 (isGspAndProdInterop(institution.getInstitutionType(), productId)
                         && Origin.IPA.equals(institution.getOrigin()))) {
