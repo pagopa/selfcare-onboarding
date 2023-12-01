@@ -39,7 +39,6 @@ public class OnboardingService {
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String USERS_WORKS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
-    public static final String TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S = "Token does not exists for onboarding %s";
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
 
     @RestClient
@@ -134,13 +133,12 @@ public class OnboardingService {
 
     public void sendMailRegistrationWithContract(Onboarding onboarding) {
 
-        SendMailInput sendMailInput = builderWithTokenAndProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
         notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle(),
-                sendMailInput.token.getId().toHexString());
+                sendMailInput.product.getTitle());
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {
@@ -175,15 +173,6 @@ public class OnboardingService {
                         GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getCode()));
     }
 
-    private SendMailInput builderWithTokenAndProductAndUserRequest(Onboarding onboarding) {
-        Token token = tokenRepository.findByOnboardingId(onboarding.getOnboardingId())
-                .orElseThrow(() -> new GenericOnboardingException(String.format(TOKEN_DOES_NOT_EXISTS_FOR_ONBOARDING_S, onboarding.getId())));
-
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-        sendMailInput.token = token;
-        return sendMailInput;
-    }
-
     private SendMailInput builderWithProductAndUserRequest(Onboarding onboarding) {
         SendMailInput sendMailInput = new SendMailInput();
         sendMailInput.product = productService.getProduct(onboarding.getProductId());
@@ -198,7 +187,6 @@ public class OnboardingService {
 
     static class SendMailInput {
         Product product;
-        Token token;
         String userRequestName;
         String userRequestSurname;
     }

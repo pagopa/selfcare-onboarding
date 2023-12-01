@@ -99,7 +99,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName, String token) {
+    public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName) {
 
         // Retrieve PDF contract from storage
         File contract = contractService.retrieveContractNotSigned(onboardingId, productName);
@@ -120,8 +120,8 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameters.put(templatePlaceholdersConfig.productName(), productName);
         Optional.ofNullable(name).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
         Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
-        mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + token);
-        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + token);
+        mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
 
         FileMailData fileMailData = new FileMailData();
         fileMailData.contentType = "application/zip";
@@ -135,11 +135,11 @@ public class NotificationServiceDefault implements NotificationService {
         try {
 
             // Dev mode send mail to test digital address
-            List<String> destinations = destinationMailTest ?
-                    List.of(destinationMailTestAddress):
-                    destinationMail;
+            String destination = destinationMailTest
+                    ? destinationMailTestAddress
+                    : destinationMail.get(0);
 
-            log.info("Sending mail to {}, with prefixSubject {}", destinationMail, prefixSubject);
+            log.info("Sending mail to {}, with prefixSubject {}", destination, prefixSubject);
             String template = azureBlobClient.getFileAsText(templateName);
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
@@ -147,7 +147,7 @@ public class NotificationServiceDefault implements NotificationService {
             final String subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
 
             Mail mail = Mail
-                    .withHtml(destinations.get(0), subject, html)
+                    .withHtml(destination, subject, html)
                     .setFrom(senderMail);
 
             if(Objects.nonNull(fileMailData)) {
@@ -156,7 +156,7 @@ public class NotificationServiceDefault implements NotificationService {
 
             mailer.send(mail);
 
-            log.info("End of sending mail to {}, with subject {}", destinationMail, subject);
+            log.info("End of sending mail to {}, with subject {}", destination, subject);
         } catch (Exception e) {
             log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
             throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
