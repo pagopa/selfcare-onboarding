@@ -14,6 +14,9 @@ public class Institution {
     private InstitutionPaSubunitType subunitType;
 
     private Origin origin;
+    private String city;
+    private String country;
+    private String county;
     private String description;
     private String digitalAddress;
     private String address;
@@ -175,5 +178,29 @@ public class Institution {
 
     public void setSubunitType(InstitutionPaSubunitType subunitType) {
         this.subunitType = subunitType;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCounty() {
+        return county;
+    }
+
+    public void setCounty(String county) {
+        this.county = county;
     }
 }
