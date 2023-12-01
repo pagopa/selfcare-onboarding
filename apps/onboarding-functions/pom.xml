@@ -22,6 +22,7 @@
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
     <onboarding-sdk.version>0.1.2</onboarding-sdk.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
   </properties>
 
   <dependencyManagement>
@@ -94,7 +95,10 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-multipart</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client-jackson</artifactId>
@@ -111,6 +115,11 @@
       <version>1.0.10</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${mapstruct.version}</version>
+    </dependency>
     <!-- https://mvnrepository.com/artifact/com.openhtmltopdf/openhtmltopdf-pdfbox -->
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
@@ -208,6 +217,13 @@
           <compilerArgs>
             <arg>-parameters</arg>
           </compilerArgs>
+          <annotationProcessorPaths>
+          <path>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+          </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>

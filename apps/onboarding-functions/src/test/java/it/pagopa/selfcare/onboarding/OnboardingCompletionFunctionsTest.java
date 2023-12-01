@@ -12,6 +12,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ public class OnboardingCompletionFunctionsTest {
 
     @InjectMock
     OnboardingService service;
+
+    @InjectMock
+    CompletionService completionService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -116,6 +120,19 @@ public class OnboardingCompletionFunctionsTest {
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+    }
+
+
+    @Test
+    void createInstitutionAndPersistInstitutionId() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).createInstitutionAndPersistInstitutionId(any());
+
+        function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .createInstitutionAndPersistInstitutionId(any());
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {

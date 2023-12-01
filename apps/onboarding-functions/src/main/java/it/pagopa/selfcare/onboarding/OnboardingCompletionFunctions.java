@@ -18,6 +18,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
 import java.time.Duration;
@@ -25,6 +26,7 @@ import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.OnboardingFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 public class OnboardingCompletionFunctions {
 
@@ -36,11 +38,14 @@ public class OnboardingCompletionFunctions {
     public static final String SEND_MAIL_COMPLETION_ACTIVITY = "SendMailCompletion";
     private final OnboardingService service;
 
+    private final CompletionService completionService;
+
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public OnboardingCompletionFunctions(OnboardingService service, ObjectMapper objectMapper) {
+    public OnboardingCompletionFunctions(OnboardingService service, CompletionService completionService, ObjectMapper objectMapper) {
         this.service = service;
+        this.completionService = completionService;
         this.objectMapper = objectMapper;
 
         final int maxAttempts = 1;
@@ -86,8 +91,9 @@ public class OnboardingCompletionFunctions {
     }
 
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
-    public void createInstitution(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public void createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString));
+        completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_ONBOARDING_ACTIVITY)
