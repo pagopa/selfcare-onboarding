@@ -91,7 +91,7 @@ Every time a method call is made, the refreshProduct() is called and the saved l
     }
 ```
 Here's an example on how to retrieve the ProductService using ProductServiceCacheable.
-```
+```java script
     @ApplicationScoped
     public ProductService productService(AzureStorageConfig azureStorageConfig){
         AzureBlobClient azureBlobClient = new AzureBlobClientDefault(azureStorageConfig.connectionStringProduct(), azureStorageConfig.containerProduct());
