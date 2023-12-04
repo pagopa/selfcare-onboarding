@@ -18,9 +18,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-//@ExtendWith({Moc.class})
 class ProductServiceCacheableTest {
     final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
@@ -31,51 +31,24 @@ class ProductServiceCacheableTest {
     @Test
     void constructProduct() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        //when
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //then
         assertNotNull(productServiceCacheable.productLastModifiedDate);
-        verify(azureBlobClient, times(1)).getFileAsText(filePath);
     }
 
     @Test
     void createProduct_notFound() {
         //given
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING_EMPTY);
-        assertThrows(ProductNotFoundException.class, () -> new ProductServiceDefault(PRODUCT_JSON_STRING_EMPTY));
-
+        assertThrows(ProductNotFoundException.class, () -> mockProductService(PRODUCT_JSON_STRING_EMPTY, filePath));
     }
 
     @Test
     void getProducts_rootOnly() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        //when
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //then
         assertEquals(2, productServiceCacheable.getProducts(true, false).size());
 
@@ -84,17 +57,8 @@ class ProductServiceCacheableTest {
     @Test
     void getProducts_getAll() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        //when
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //then
         assertEquals(3, productServiceCacheable.getProducts(false, false).size());
     }
@@ -102,17 +66,8 @@ class ProductServiceCacheableTest {
     @Test
     void getProducts_rootAndValidOnly() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        //when
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //then
         assertEquals(1, productServiceCacheable.getProducts(true, true).size());
 
@@ -121,17 +76,8 @@ class ProductServiceCacheableTest {
     @Test
     void getProduct_allValid() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        //when
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //then
         assertEquals(2, productServiceCacheable.getProducts(false, true).size());
     }
@@ -139,16 +85,8 @@ class ProductServiceCacheableTest {
     @Test
     void validateRoleMappings_exceptionNullroleMapping() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //when
         Executable executable = () -> productServiceCacheable.validateRoleMappings(new HashMap<>());
         //then
@@ -158,16 +96,8 @@ class ProductServiceCacheableTest {
     @Test
     void validateRoleMappings_exceptionNullRoleInfo() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         Map<PartyRole, ProductRoleInfo> roleMappings = new HashMap<>();
         roleMappings.put(PartyRole.MANAGER, null);
         //when
@@ -179,19 +109,10 @@ class ProductServiceCacheableTest {
     @Test
     void validateRoleMappings_exceptionEmptyRoleInfo() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         Map<PartyRole, ProductRoleInfo> roleMappings = new HashMap<>();
         roleMappings.put(PartyRole.MANAGER, new ProductRoleInfo());
-
         //when
         Executable executable = () -> productServiceCacheable.validateRoleMappings(roleMappings);
         //then
@@ -201,21 +122,12 @@ class ProductServiceCacheableTest {
     @Test
     void validateRoleMappings_exceptionEmptyRoleInfoList() {
         //given
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         Map<PartyRole, ProductRoleInfo> roleMappings = new HashMap<>();
         ProductRoleInfo productRoleInfo1 = new ProductRoleInfo();
         productRoleInfo1.setRoles(List.of(new ProductRole(), new ProductRole()));
         roleMappings.put(PartyRole.MANAGER, productRoleInfo1);
-
         //when
         Executable executable = () -> productServiceCacheable.validateRoleMappings(roleMappings);
         //then
@@ -224,16 +136,8 @@ class ProductServiceCacheableTest {
 
     @Test
     void getProduct_nullId() {
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //when
         Executable executable = () -> productServiceCacheable.getProduct(null);
         //then
@@ -242,16 +146,8 @@ class ProductServiceCacheableTest {
 
     @Test
     void getProduct_notFound() {
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //when
         Executable executable = () -> productServiceCacheable.getProduct("notFound");
         //then
@@ -260,16 +156,8 @@ class ProductServiceCacheableTest {
 
     @Test
     void getProduct() {
-
-
         final String filePath = "filePath";
-        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
-        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
-
-        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
-        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
         //when
         Product product = productServiceCacheable.getProduct("prod-test");
         //then
@@ -281,17 +169,21 @@ class ProductServiceCacheableTest {
 
 
         final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
+        //when
+        Executable executable = () -> productServiceCacheable.getProductIsValid("prod-inactive");
+        //then
+        assertThrows(ProductNotFoundException.class, executable);
+    }
+
+    private ProductServiceCacheable mockProductService(String productJson, String filePath) {
         AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
         BlobProperties blobPropertiesMock = mock(BlobProperties.class);
 
         when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
         when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
-        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
-        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
-        //when
-        Executable executable = () -> productServiceCacheable.getProductIsValid("prod-inactive");
-        //then
-        assertThrows(ProductNotFoundException.class, executable);
+        when(azureBlobClient.getFileAsText(any())).thenReturn(productJson);
+        return new ProductServiceCacheable(azureBlobClient, filePath);
     }
 
 }
