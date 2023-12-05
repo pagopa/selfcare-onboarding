@@ -147,7 +147,7 @@ public class NotificationServiceDefault implements NotificationService {
         try {
             logoData = Files.readAllBytes(contractService.getLogoFile().toPath());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new GenericOnboardingException(e.getMessage());
         }
 
         Map<String, String> mailParameter = new HashMap<>();

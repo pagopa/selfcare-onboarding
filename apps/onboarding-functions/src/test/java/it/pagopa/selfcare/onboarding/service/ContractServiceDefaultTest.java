@@ -176,4 +176,16 @@ class ContractServiceDefaultTest {
         assertTrue(filepathActual.getValue().contains(productNameExample));
     }
 
+
+    @Test
+    void getLogoFile() {
+
+        Mockito.when(azureBlobClient.getFileAsText(any())).thenReturn("example");
+
+        contractService.getLogoFile();
+
+        ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(azureBlobClient, times(1))
+                .getFileAsText(any());
+    }
 }
