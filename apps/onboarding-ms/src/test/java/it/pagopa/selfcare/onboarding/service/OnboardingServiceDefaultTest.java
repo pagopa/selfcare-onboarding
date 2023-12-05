@@ -18,6 +18,8 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
@@ -33,6 +35,10 @@ import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
@@ -61,6 +67,15 @@ public class OnboardingServiceDefaultTest {
 
     @InjectMock
     ProductService productService;
+
+    @InjectMock
+    @RestClient
+    AooApi aooApi;
+
+    @InjectMock
+    @RestClient
+    UoApi uoApi;
+
 
     @InjectMock
     AzureBlobClient azureBlobClient;
@@ -297,6 +312,275 @@ public class OnboardingServiceDefaultTest {
         verifyNoMoreInteractions(userRegistryApi);*/
     }
 
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_Aoo(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        AOOResource aooResource = new AOOResource();
+        aooResource.setDenominazioneEnte("TEST");
+        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().item(aooResource)));
+
+        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_AooNotFound(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        AOOResource aooResource = new AOOResource();
+        aooResource.setDenominazioneEnte("TEST");
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(404);
+        when(exception.getResponse()).thenReturn(response);
+        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().failure(exception)));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request), ResourceNotFoundException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_AooException(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        AOOResource aooResource = new AOOResource();
+        aooResource.setDenominazioneEnte("TEST");
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(500);
+        when(exception.getResponse()).thenReturn(response);
+        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().failure(exception)));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request), WebApplicationException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_Uo(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setDenominazioneEnte("TEST");
+        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().item(uoResource)));
+
+        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_UoNotFound(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setDenominazioneEnte("TEST");
+        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().item(uoResource)));
+
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(400);
+        when(exception.getResponse()).thenReturn(response);
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request), ResourceNotFoundException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_addParentDescritpionForAooOrUo_UoException(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+        request.setUsers(List.of(manager));
+        request.setProductId(PROD_INTEROP.getValue());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
+        institutionBaseRequest.setSubunitCode("SubunitCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setDenominazioneEnte("TEST");
+        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().item(uoResource)));
+
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(500);
+        when(exception.getResponse()).thenReturn(response);
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request), WebApplicationException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
 
     void mockSimpleSearchPOSTAndPersist(UniAsserter asserter){
 
