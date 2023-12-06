@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
@@ -32,5 +33,6 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime expiringDate;
+    private OnboardingStatus status;
     private String userRequestUid;
 }
