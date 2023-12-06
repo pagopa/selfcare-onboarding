@@ -7,7 +7,6 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobProperties;
 import com.azure.storage.blob.models.BlobStorageException;
-
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageError;
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageException;
 import org.slf4j.Logger;
@@ -132,6 +131,23 @@ public class AzureBlobClientDefault implements AzureBlobClient {
             log.error(String.format(SelfcareAzureStorageError.ERROR_DURING_DELETED_FILE.getMessage(), fileName), e);
             throw new SelfcareAzureStorageException(String.format(SelfcareAzureStorageError.ERROR_DURING_DELETED_FILE.getMessage(), fileName),
                     SelfcareAzureStorageError.ERROR_DURING_DELETED_FILE.getCode());
+        }
+    }
+
+    @Override
+    public BlobProperties getProperties(String filePath) {
+        try {
+            final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
+            final BlobClient blob = blobContainer.getBlobClient(filePath);
+
+            return blob.getProperties();
+        } catch (BlobStorageException e) {
+            if (e.getStatusCode() == 404) {
+                throw new SelfcareAzureStorageException(String.format(SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getMessage(), filePath),
+                        SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getCode());
+            }
+            throw new SelfcareAzureStorageException(String.format(SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getMessage(), filePath),
+                    SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getCode());
         }
     }
 
