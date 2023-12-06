@@ -85,20 +85,25 @@ public class OnboardingCompletionFunctions {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
         String onboardingString = getOnboardingString(objectMapper, onboarding);
 
-        ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
+        String institutionId = ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        onboarding.getInstitution().setId(institutionId);
+        onboardingString = getOnboardingString(objectMapper, onboarding);
+
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
     }
 
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
-    public void createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public String createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString));
-        completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
+        return completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_ONBOARDING_ACTIVITY)
     public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
+        completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)

@@ -8,6 +8,7 @@ import java.util.List;
 
 public class Institution {
 
+    private String id;
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;
@@ -202,5 +203,13 @@ public class Institution {
 
     public void setCounty(String county) {
         this.county = county;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
