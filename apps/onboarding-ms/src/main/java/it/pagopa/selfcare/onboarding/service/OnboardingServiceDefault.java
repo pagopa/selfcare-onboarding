@@ -17,9 +17,11 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
+import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
@@ -33,7 +35,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
+import org.openapi.quarkus.core_json.model.Institution;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
@@ -48,7 +53,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.util.GenericError.ONBOARDING_EXPIRED;
 
@@ -70,6 +75,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     OnboardingApi onboardingApi;
+
+    @RestClient
+    @Inject
+    AooApi aooApi;
+
+    @RestClient
+    @Inject
+    UoApi uoApi;
 
     @RestClient
     @Inject
@@ -117,7 +130,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate( OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
+        onboarding.setExpiringDate(OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
 
@@ -125,8 +138,39 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
                     .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
+                .onItem().transformToUni(this::addParentDescritpionForAooOrUo)
                 .onItem().transformToUni(this::persistAndStartOrchestrationOnboarding)
                 .onItem().transform(onboardingMapper::toResponse));
+    }
+
+    private Uni<Onboarding> addParentDescritpionForAooOrUo(Onboarding onboarding) {
+        if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
+            if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
+                return addParentDescriptionForAOO(onboarding);
+            } else if (InstitutionPaSubunitType.UO == onboarding.getInstitution().getSubunitType()) {
+                return addParentDescriptionForUO(onboarding);
+            }
+        }
+        return Uni.createFrom().item(onboarding);
+    }
+
+    private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding) {
+        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                .onItem().invoke(uoResource -> onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte()))
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                        : Uni.createFrom().failure(ex))
+                .replaceWith(onboarding);
+
+    }
+
+    private Uni<Onboarding> addParentDescriptionForAOO(Onboarding onboarding) {
+        return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+                .onItem().invoke(aooResource -> onboarding.getInstitution().setParentDescription(aooResource.getDenominazioneEnte()))
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                        : Uni.createFrom().failure(ex))
+                .replaceWith(onboarding);
     }
 
     public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding) {

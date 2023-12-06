@@ -50,6 +50,10 @@ app_settings = [
   {
     name  = "MS_CORE_URL"
     value = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
+  },
+  {
+    name  = "MS_PARTY_REGISTRY_URL"
+    value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
   }
 ]
 

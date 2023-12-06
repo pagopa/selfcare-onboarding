@@ -35,6 +35,8 @@ Before running you must set these properties as environment variables.
 | quarkus.rest-client."**.UserApi".api-key<br/>          | USER-REGISTRY-API-KEY                    |             |     yes      |
 | quarkus.rest-client."**.UserApi".url<br/>              | USER_REGISTRY_URL                        |             |     yes      |
 | quarkus.rest-client."**.CoreApi".url<br/>              | MS_CORE_URL                              |             |     yes      |
+| quarkus.rest-client."**.AooApi".url<br/>               | MS_PARTY_REGISTRY_URL                    |             |     yes      |
+| quarkus.rest-client."**.UoApi".url<br/>                | MS_PARTY_REGISTRY_URL                    |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".url<br/>     | ONBOARDING_FUNCTIONS_URL                 |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".api-key<br/> | ONBOARDING-FUNCTIONS-API-KEY             |             |     yes      |
 | onboarding.institutions-allowed-list<br/>              | ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS |             |      no      |
@@ -51,7 +53,7 @@ You can run your application in dev mode that enables live coding using:
 
 For some endpoints 
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8083/q/dev/.
 
 ## Packaging and running the application
 

@@ -36,4 +36,6 @@ public class Institution {
 
     private PaymentServiceProvider paymentServiceProvider;
     private DataProtectionOfficer dataProtectionOfficer;
+
+    private String parentDescription;
 }
