@@ -13,7 +13,6 @@ import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
@@ -214,7 +213,7 @@ public class CompletionServiceDefaultTest {
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
                 .thenReturn(userResource);
         when(institutionApi.onboardingInstitutionUsingPOST(any(),any()))
-                .thenReturn(Response.status(Response.Status.CREATED).build());
+                .thenReturn(new InstitutionResponse());
 
         completionServiceDefault.persistOnboarding(onboarding);
 
