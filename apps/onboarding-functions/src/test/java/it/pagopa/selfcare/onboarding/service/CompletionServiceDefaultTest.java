@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -245,6 +246,12 @@ public class CompletionServiceDefaultTest {
         onboarding.setUsers(List.of());
         onboarding.setInstitution(new Institution());
         onboarding.setUserRequestUid("example-uid");
+
+        Billing billing = new Billing();
+        billing.setPublicServices(true);
+        billing.setRecipientCode("example");
+        billing.setVatNumber("example");
+        onboarding.setBilling(billing);
         return onboarding;
     }
 

@@ -10,6 +10,7 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
@@ -109,6 +110,7 @@ public class OnboardingCompletionFunctionsTest {
     void onboardingCompletionOrchestrator() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
@@ -127,12 +129,26 @@ public class OnboardingCompletionFunctionsTest {
     void createInstitutionAndPersistInstitutionId() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).createInstitutionAndPersistInstitutionId(any());
+        when(completionService.createInstitutionAndPersistInstitutionId(any()))
+                .thenReturn("id");
 
         function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
 
         Mockito.verify(completionService, times(1))
                 .createInstitutionAndPersistInstitutionId(any());
+    }
+
+
+    @Test
+    void createOnboarding() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).persistOnboarding(any());
+
+        function.createOnboarding(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .persistOnboarding(any());
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
@@ -142,7 +158,7 @@ public class OnboardingCompletionFunctionsTest {
 
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
-        when(task.await()).thenReturn("example");
+        when(task.await()).thenReturn(onboardinString);
         return orchestrationContext;
     }
 }
