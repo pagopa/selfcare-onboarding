@@ -7,4 +7,6 @@ public interface CompletionService {
     String createInstitutionAndPersistInstitutionId(Onboarding onboarding);
 
     void persistOnboarding(Onboarding onboarding);
+
+    void sendCompletedEmail(Onboarding onboarding);
 }

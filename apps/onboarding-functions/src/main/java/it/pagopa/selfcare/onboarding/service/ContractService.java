@@ -11,4 +11,6 @@ public interface ContractService {
 
     File loadContractPDF(String contractTemplatePath, String onboardingId, String productName);
     File retrieveContractNotSigned(String onboardingId, String productName);
+
+    File getLogoFile();
 }

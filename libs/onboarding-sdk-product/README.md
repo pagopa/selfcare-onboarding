@@ -61,3 +61,44 @@ Generally, you load product json string from an azure storage container, this ex
         }
     }
  ```
+
+## CacheableProductService
+
+This product has been primarly designed to maintain the last updated version of the product.json information in memory and refresh it based on the azure BlobProperties "LastModified" property.
+
+When a new ProductServiceCacheable gets instantiated a new ProductServiceDefault gets created reading the current product.json from azure, and its current LastModified date gets saved as productLastModifiedDate.
+
+Every time a method call is made, the refreshProduct() is called and the saved lastModifiedDate is compared to the current LastModified date read from the BlobProperties, if the lastModifiedDate is older than the current date from azure, a new ProductServiceDefault will be created with the updated product.json taken from azure storage.
+
+
+```java script
+    public ProductServiceCacheable(AzureBlobClient azureBlobClient,String filePath){
+        this.azureBlobClient=azureBlobClient;
+        this.filePath=filePath;
+        refreshProduct();
+    }
+    public void refreshProduct(){
+        LocalDateTime currentLastModifiedDate=azureBlobClient.getProperties(filePath).getLastModified().toLocalDateTime();
+        if(productLastModifiedDate==null||currentLastModifiedDate.isAfter(productLastModifiedDate)){
+            String productJsonString=azureBlobClient.getFileAsText(filePath);
+            try{
+                this.productService=new ProductServiceDefault(productJsonString);
+            }catch(JsonProcessingException e){
+                throw new IllegalArgumentException(e.getMessage());
+            }
+            this.productLastModifiedDate=currentLastModifiedDate;
+        }
+    }
+```
+Here's an example on how to retrieve the ProductService using ProductServiceCacheable.
+```java script
+    @ApplicationScoped
+    public ProductService productService(AzureStorageConfig azureStorageConfig){
+        AzureBlobClient azureBlobClient = new AzureBlobClientDefault(azureStorageConfig.connectionStringProduct(), azureStorageConfig.containerProduct());
+        try{
+            return new ProductServiceCacheable(azureBlobClient, azureStorageConfig.getFilePath());
+        } catch(IllegalArgumentException e){
+        throw new IllegalArgumentException("Found an issue when trying to serialize product json string!!");
+        }
+    }
+```
