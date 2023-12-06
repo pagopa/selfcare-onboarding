@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -35,6 +36,7 @@ import java.util.UUID;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.UNABLE_TO_DOWNLOAD_FILE;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
@@ -50,14 +52,18 @@ public class ContractServiceDefault implements ContractService {
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
 
+    private final String logoPath;
+
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
-                                  PagoPaSignatureConfig pagoPaSignatureConfig) {
+                                  PagoPaSignatureConfig pagoPaSignatureConfig,
+                                  @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.logoPath = logoPath;
     }
 
     /**
@@ -195,4 +201,16 @@ public class ContractServiceDefault implements ContractService {
         return azureBlobClient.getFileAsPdf(path);
     }
 
+    @Override
+    public File getLogoFile() {
+        StringBuilder stringBuilder = new StringBuilder(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+        stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
+        try {
+            Path path = Files.createTempFile(stringBuilder.toString(), ".png");
+            Files.writeString(path, azureBlobClient.getFileAsText(logoPath));
+            return path.toFile();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format(UNABLE_TO_DOWNLOAD_FILE.getMessage(), logoPath));
+        }
+    }
 }

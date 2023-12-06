@@ -53,7 +53,7 @@ class ContractServiceDefaultTest {
     @BeforeEach
     void setup(){
         padesSignService = mock(PadesSignService.class);
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo- path");
     }
 
 
@@ -130,7 +130,7 @@ class ContractServiceDefaultTest {
 
         PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo-path");
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
@@ -176,4 +176,14 @@ class ContractServiceDefaultTest {
         assertTrue(filepathActual.getValue().contains(productNameExample));
     }
 
+
+    @Test
+    void getLogoFile() {
+        Mockito.when(azureBlobClient.getFileAsText(any())).thenReturn("example");
+
+        contractService.getLogoFile();
+
+        Mockito.verify(azureBlobClient, times(1))
+                .getFileAsText(any());
+    }
 }

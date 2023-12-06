@@ -135,6 +135,18 @@ public class OnboardingCompletionFunctionsTest {
                 .createInstitutionAndPersistInstitutionId(any());
     }
 
+    @Test
+    void sendCompletedEmail() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendCompletedEmail(any());
+
+        function.sendMailCompletion(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendCompletedEmail(any());
+    }
+
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());

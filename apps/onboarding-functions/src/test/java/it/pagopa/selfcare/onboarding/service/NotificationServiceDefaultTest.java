@@ -8,6 +8,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
+import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,6 +101,35 @@ class NotificationServiceDefaultTest {
         Mockito.doNothing().when(mailer).send(any());
 
         notificationService.sendMailRegistration(onboardingId, destination,"","","");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
+    void sendCompletedEmail() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+
+        final String destination = "test@test.it";
+        Product product = new Product();
+        product.setTitle("productName");
+        product.setId("prod-id");
+
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+
+        Mockito.when(contractService.getLogoFile()).thenReturn(file);
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendCompletedEmail(List.of(destination), product);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

@@ -6,22 +6,34 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -34,10 +46,17 @@ public class CompletionServiceDefaultTest {
 
     @InjectMock
     OnboardingRepository onboardingRepository;
+    @InjectMock
+    NotificationService notificationService;
+    @InjectMock
+    ProductService productService;
 
     @RestClient
     @InjectMock
     InstitutionApi institutionApi;
+    @RestClient
+    @InjectMock
+    UserApi userRegistryApi;
 
     final String productId = "productId";
 
@@ -167,6 +186,35 @@ public class CompletionServiceDefaultTest {
         assertEquals(institution.getSubunitCode(), captor.getValue().getSubunitCode());
     }
 
+
+
+    @Test
+    void sendCompletedEmail() {
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        Map<String, WorkContactResource> map = new HashMap<>();
+        userResource.setWorkContacts(map);
+        Product product = createDummyProduct();
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService).sendCompletedEmail(any(), any());
+
+        completionServiceDefault.sendCompletedEmail(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmail(any(), any());
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
@@ -184,4 +232,14 @@ public class CompletionServiceDefaultTest {
         onboarding.setUserRequestUid("example-uid");
         return onboarding;
     }
+
+    private Product createDummyProduct() {
+        Product product = new Product();
+        product.setContractTemplatePath("example");
+        product.setContractTemplateVersion("version");
+        product.setTitle("Title");
+        product.setId(productId);
+        return product;
+    }
 }
+
