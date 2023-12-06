@@ -2466,6 +2466,71 @@
         } ]
       }
     },
+    "/institutions/{id}/onboarding" : {
+      "post" : {
+        "tags" : [ "Institution" ],
+        "summary" : "The service adds users to the registry if they are not present and associates them with the institution and product contained in the body",
+        "description" : "The service adds users to the registry if they are not present and associates them with the institution and product contained in the body",
+        "operationId" : "onboardingInstitutionUsingPOST",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InstitutionOnboardingRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/institutions/{id}/products" : {
       "get" : {
         "tags" : [ "Institution" ],
@@ -3821,9 +3886,9 @@
     "/onboarding/institution" : {
       "post" : {
         "tags" : [ "Onboarding" ],
-        "summary" : "create a new Token (contract), and update institution and users data",
-        "description" : "create a new Token (contract), and update institution and users data",
-        "operationId" : "onboardingInstitutionUsingPOST",
+        "summary" : "Responsible for saving the association between an institution and a product. It also creates occurrences in the Users collection as part of this process.",
+        "description" : "Responsible for saving the association between an institution and a product. It also creates occurrences in the Users collection as part of this process.",
+        "operationId" : "onboardingInstitutionUsingPOST_1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -6072,6 +6137,27 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/InstitutionOnboardingResponse"
+            }
+          }
+        }
+      },
+      "InstitutionOnboardingRequest" : {
+        "title" : "InstitutionOnboardingRequest",
+        "type" : "object",
+        "properties" : {
+          "billing" : {
+            "$ref" : "#/components/schemas/BillingRequest"
+          },
+          "pricingPlan" : {
+            "type" : "string"
+          },
+          "productId" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Person"
             }
           }
         }
