@@ -395,7 +395,6 @@ public class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -441,7 +440,6 @@ public class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -516,21 +514,20 @@ public class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(404);
+        when(exception.getResponse()).thenReturn(response);
+
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
-                .thenReturn(Uni.createFrom().item(uoResource)));
-
-        WebApplicationException exception = mock(WebApplicationException.class);
-        Response response = mock(Response.class);
-        when(response.getStatus()).thenReturn(400);
-        when(exception.getResponse()).thenReturn(response);
+                .thenReturn(Uni.createFrom().failure(exception)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request), ResourceNotFoundException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -563,21 +560,20 @@ public class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        UOResource uoResource = new UOResource();
-        uoResource.setDenominazioneEnte("TEST");
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
-                .thenReturn(Uni.createFrom().item(uoResource)));
-
         WebApplicationException exception = mock(WebApplicationException.class);
         Response response = mock(Response.class);
         when(response.getStatus()).thenReturn(500);
         when(exception.getResponse()).thenReturn(response);
 
+        UOResource uoResource = new UOResource();
+        uoResource.setDenominazioneEnte("TEST");
+        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+                .thenReturn(Uni.createFrom().failure(exception)));
+
         asserter.assertFailedWith(() -> onboardingService.onboarding(request), WebApplicationException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
