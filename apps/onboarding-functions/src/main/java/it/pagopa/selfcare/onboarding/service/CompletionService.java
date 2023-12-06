@@ -4,5 +4,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
 public interface CompletionService {
 
-    void createInstitutionAndPersistInstitutionId(Onboarding onboarding);
+    String createInstitutionAndPersistInstitutionId(Onboarding onboarding);
+
+    void persistOnboarding(Onboarding onboarding);
 }

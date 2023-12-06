@@ -6,22 +6,35 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
+import org.openapi.quarkus.core_json.model.InstitutionOnboardingRequest;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -29,6 +42,7 @@ import static org.mockito.Mockito.*;
 @QuarkusTest
 public class CompletionServiceDefaultTest {
 
+    public static final String MANAGER_WORKCONTRACT_MAIL = "mail@mail.it";
     @Inject
     CompletionServiceDefault completionServiceDefault;
 
@@ -38,6 +52,10 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     InstitutionApi institutionApi;
+
+    @RestClient
+    @InjectMock
+    UserApi userRegistryApi;
 
     final String productId = "productId";
 
@@ -167,6 +185,51 @@ public class CompletionServiceDefaultTest {
         assertEquals(institution.getSubunitCode(), captor.getValue().getSubunitCode());
     }
 
+    @Test
+    void persistOnboarding_workContractsNotFound() {
+        Onboarding onboarding = createOnboarding();
+
+        User manager = new User();
+        manager.setId("id");
+        manager.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(manager));
+
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
+                .thenReturn(new UserResource());
+
+        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.persistOnboarding(onboarding));
+    }
+
+    @Test
+    void persistOnboarding() {
+        Onboarding onboarding = createOnboarding();
+
+        User manager = new User();
+        manager.setId("id");
+        manager.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(manager));
+
+        UserResource userResource = dummyUserResource(onboarding.getOnboardingId());
+
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
+                .thenReturn(userResource);
+        when(institutionApi.onboardingInstitutionUsingPOST(any(),any()))
+                .thenReturn(Response.status(Response.Status.CREATED).build());
+
+        completionServiceDefault.persistOnboarding(onboarding);
+
+        ArgumentCaptor<InstitutionOnboardingRequest> captor = ArgumentCaptor.forClass(InstitutionOnboardingRequest.class);
+        verify(institutionApi, times(1))
+                .onboardingInstitutionUsingPOST(any(), captor.capture());
+
+        InstitutionOnboardingRequest actual = captor.getValue();
+        assertEquals(onboarding.getProductId(), actual.getProductId());
+        assertEquals(onboarding.getPricingPlan(), actual.getPricingPlan());
+        assertEquals(1, actual.getUsers().size());
+        assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
+        assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
@@ -179,9 +242,37 @@ public class CompletionServiceDefaultTest {
         onboarding.setId(ObjectId.get());
         onboarding.setOnboardingId(onboarding.getId().toHexString());
         onboarding.setProductId(productId);
+        onboarding.setPricingPlan("pricingPlan");
         onboarding.setUsers(List.of());
         onboarding.setInstitution(new Institution());
         onboarding.setUserRequestUid("example-uid");
         return onboarding;
+    }
+
+    private UserResource dummyUserResource(String onboardingId){
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+
+        CertifiableFieldResourceOfstring resourceOfName = new CertifiableFieldResourceOfstring();
+        resourceOfName.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+        resourceOfName.setValue("name");
+        userResource.setName(resourceOfName);
+
+        CertifiableFieldResourceOfstring resourceOfSurname = new CertifiableFieldResourceOfstring();
+        resourceOfSurname.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+        resourceOfSurname.setValue("surname");
+        userResource.setFamilyName(resourceOfSurname);
+
+
+        CertifiableFieldResourceOfstring resourceOfMail = new CertifiableFieldResourceOfstring();
+        resourceOfMail.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+        resourceOfMail.setValue(MANAGER_WORKCONTRACT_MAIL);
+        WorkContactResource workContactResource = new WorkContactResource();
+        workContactResource.email(resourceOfMail);
+
+        Map<String, WorkContactResource> map = new HashMap<>();
+        map.put(workContactsKey.apply(onboardingId), workContactResource);
+        userResource.setWorkContacts(map);
+        return userResource;
     }
 }

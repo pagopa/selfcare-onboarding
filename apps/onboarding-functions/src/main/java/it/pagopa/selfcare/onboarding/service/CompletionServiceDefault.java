@@ -6,18 +6,24 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
+import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
-import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.core_json.model.*;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
@@ -26,6 +32,9 @@ public class CompletionServiceDefault implements CompletionService {
     @RestClient
     @Inject
     InstitutionApi institutionApi;
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
 
     @Inject
     InstitutionMapper institutionMapper;
@@ -33,8 +42,11 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     OnboardingRepository onboardingRepository;
 
+    @Inject
+    UserMapper userMapper;
+
     @Override
-    public void createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
+    public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
 
         Institution institution = onboarding.getInstitution();
 
@@ -51,6 +63,8 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRepository
                 .update("institution.id", institutionResponse.getId())
                 .where("_id", onboarding.getOnboardingId());
+
+        return institutionResponse.getId();
     }
 
     /**
@@ -98,5 +112,40 @@ public class CompletionServiceDefault implements CompletionService {
     private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
         return InstitutionType.GSP == institutionType
                 && productId.equals(PROD_INTEROP.getValue());
+    }
+
+
+    @Override
+    public void persistOnboarding(Onboarding onboarding) {
+        //Prepare data for request
+        InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
+        onboardingRequest.setUsers(onboarding.getUsers().stream()
+                .map(user -> {
+                    UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
+                    String mailWork = Optional.ofNullable(userResource.getWorkContacts())
+                            .map(worksContract -> worksContract.get(workContactsKey.apply(onboarding.getOnboardingId())))
+                            .map(WorkContactResource::getEmail)
+                            .map(CertifiableFieldResourceOfstring::getValue)
+                            .orElseThrow(() -> new GenericOnboardingException("Work contract not found!"));
+                    Person person = userMapper.toPerson(userResource);
+                    person.setEmail(mailWork);
+                    person.setProductRole(user.getProductRole());
+                    person.setRole(Person.RoleEnum.valueOf(user.getRole().name()));
+                    return person;
+                })
+                .toList()
+        );
+        onboardingRequest.pricingPlan(onboarding.getPricingPlan());
+        onboardingRequest.productId(onboarding.getProductId());
+
+        if(Objects.nonNull(onboarding.getBilling())) {
+            BillingRequest billingRequest = new BillingRequest();
+            billingRequest.recipientCode(onboarding.getBilling().getRecipientCode());
+            billingRequest.publicServices(onboarding.getBilling().isPublicServices());
+            billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
+            onboardingRequest.billing(billingRequest);
+        }
+
+        institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
     }
 }
