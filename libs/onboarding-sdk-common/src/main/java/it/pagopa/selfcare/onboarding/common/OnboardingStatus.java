@@ -1,9 +1,8 @@
 package it.pagopa.selfcare.onboarding.common;
 public enum OnboardingStatus {
-    ACTIVE,
+    REQUEST,
     PENDING,
-    TOBEVALIDATED,
-    SUSPENDED,
-    DELETED,
+    COMPLETED,
+    FAILED,
     REJECTED
 }
