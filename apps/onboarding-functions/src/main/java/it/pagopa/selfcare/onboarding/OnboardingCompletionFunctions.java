@@ -103,6 +103,7 @@ public class OnboardingCompletionFunctions {
     @FunctionName(CREATE_ONBOARDING_ACTIVITY)
     public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
+        completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
