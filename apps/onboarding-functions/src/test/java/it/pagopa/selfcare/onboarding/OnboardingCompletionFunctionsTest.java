@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.SAVE_ONBOARDING_STATUS_ACTIVITY;
 import static it.pagopa.selfcare.onboarding.functions.OnboardingCompletionFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -118,11 +119,12 @@ public class OnboardingCompletionFunctionsTest {
         function.onboardingCompletionOrchestrator(orchestrationContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        Mockito.verify(orchestrationContext, times(4))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SAVE_ONBOARDING_STATUS_ACTIVITY, captorActivity.getAllValues().get(3));
     }
 
 
