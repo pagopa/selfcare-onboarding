@@ -13,6 +13,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.functions.OnboardingFunctions;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static it.pagopa.selfcare.onboarding.OnboardingFunctions.*;
+import static it.pagopa.selfcare.onboarding.functions.OnboardingFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

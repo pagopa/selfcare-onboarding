@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding;
+package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -16,15 +16,18 @@ import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.functions.utils.SaveOnboardingStatusInput;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
 import java.time.Duration;
 import java.util.Optional;
 
-import static it.pagopa.selfcare.onboarding.OnboardingFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
+import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
+import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.SAVE_ONBOARDING_STATUS_ACTIVITY;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
@@ -91,7 +94,11 @@ public class OnboardingCompletionFunctions {
         onboardingString = getOnboardingString(objectMapper, onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry, String.class).await() ;
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+
+        //Last activity consist of saving pending status
+        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboardingId, OnboardingStatus.COMPLETED.name());
+        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, saveOnboardingStatusInput, optionsRetry, String.class).await();
     }
 
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
