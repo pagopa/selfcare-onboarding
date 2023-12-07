@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -183,6 +184,12 @@ public class OnboardingService {
         sendMailInput.userRequestName = Optional.ofNullable(userRequest.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         sendMailInput.userRequestSurname = Optional.ofNullable(userRequest.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         return sendMailInput;
+    }
+
+    public void savePendingState(String onboardingId, OnboardingStatus status) {
+        repository
+                .update("status", status.name())
+                .where("_id", onboardingId);
     }
 
     static class SendMailInput {
