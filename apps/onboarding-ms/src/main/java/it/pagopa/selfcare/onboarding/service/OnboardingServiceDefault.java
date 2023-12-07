@@ -7,6 +7,7 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -35,7 +36,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
-import org.openapi.quarkus.core_json.model.Institution;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
@@ -133,6 +133,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setExpiringDate(OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
+        onboarding.setStatus(OnboardingStatus.REQUEST);
 
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())

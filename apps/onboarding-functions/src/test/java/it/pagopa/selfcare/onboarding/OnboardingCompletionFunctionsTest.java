@@ -13,6 +13,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.functions.OnboardingCompletionFunctions;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -27,7 +28,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static it.pagopa.selfcare.onboarding.OnboardingCompletionFunctions.*;
+import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.SAVE_ONBOARDING_STATUS_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.OnboardingCompletionFunctions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -117,11 +119,12 @@ public class OnboardingCompletionFunctionsTest {
         function.onboardingCompletionOrchestrator(orchestrationContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        Mockito.verify(orchestrationContext, times(4))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SAVE_ONBOARDING_STATUS_ACTIVITY, captorActivity.getAllValues().get(3));
     }
 
 
