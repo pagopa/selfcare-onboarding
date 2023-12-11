@@ -64,6 +64,43 @@
           }
         ]
       }
+    },
+    "/api/StartOnboardingCompletionOrchestration": {
+      "get": {
+        "tags": [
+          "Orchestration"
+        ],
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "onboardingId",
+            "in": "query",
+            "description": "Onboarding id about item to process",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrchestrationResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key_complete": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -114,6 +151,11 @@
     },
     "securitySchemes": {
       "api_key": {
+        "type": "apiKey",
+        "name": "x-functions-key",
+        "in": "header"
+      },
+      "api_key_complete": {
         "type": "apiKey",
         "name": "x-functions-key",
         "in": "header"
