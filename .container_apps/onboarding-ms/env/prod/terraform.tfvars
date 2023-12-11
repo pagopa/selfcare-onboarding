@@ -37,7 +37,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-p-func.azurewebsites.net"
+    value = "https://selc-p-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -64,6 +64,7 @@ key_vault = {
     "jwt-public-key",
     "mongodb-connection-string",
     "user-registry-api-key",
-    "onboarding-functions-api-key"
+    "onboarding-functions-api-key",
+    "start-completion-functions-api-key"
   ]
 }
