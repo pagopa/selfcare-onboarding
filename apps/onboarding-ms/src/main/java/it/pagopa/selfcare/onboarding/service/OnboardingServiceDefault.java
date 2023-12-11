@@ -25,7 +25,6 @@ import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrate
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
-import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -220,33 +219,32 @@ public class OnboardingServiceDefault implements OnboardingService {
                 && productId.equals(PROD_INTEROP.getValue());
     }
 
+    private Uni<Product> product(String productId) {
+        return Uni.createFrom().item(() -> productService.getProductIsValid(productId))
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+    }
+
     public Uni<Onboarding> checkProductAndReturnOnboarding(Onboarding onboarding) {
 
-        final Product product;
-
-        try {
-            product = Optional.ofNullable(productService.getProductIsValid(onboarding.getProductId()))
-                    .orElseThrow(() -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
+        return product(onboarding.getProductId())
+                .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
-                        onboarding.getProductId()), DEFAULT_ERROR.getCode()));
-        } catch (ProductNotFoundException | IllegalArgumentException e){
-            throw new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
-                    onboarding.getInstitution().getTaxCode(),
-                    onboarding.getProductId()), DEFAULT_ERROR.getCode());
-        }
+                        onboarding.getProductId()), DEFAULT_ERROR.getCode()))
+                .onItem().transformToUni(product -> {
 
-        /* if PT and product is not delegable, throw an exception */
-        if(InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
-                throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
-                onboarding.getInstitution().getTaxCode(),
-                onboarding.getProductId()), DEFAULT_ERROR.getCode());
-        }
+                    /* if PT and product is not delegable, throw an exception */
+                    if(InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
+                        return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
+                                onboarding.getInstitution().getTaxCode(),
+                                onboarding.getProductId()), DEFAULT_ERROR.getCode()));
+                    }
 
-        validateProductRole(onboarding.getUsers(), Objects.nonNull(product.getParent())
-                ? product.getParent().getRoleMappings()
-                : product.getRoleMappings());
+                    validateProductRole(onboarding.getUsers(), Objects.nonNull(product.getParent())
+                                            ? product.getParent().getRoleMappings()
+                                            : product.getRoleMappings());
 
-        return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
+                    return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
+                });
     }
 
     private Uni<Onboarding> verifyAlreadyOnboardingForProductAndProductParent(Onboarding onboarding, Product product) {
@@ -438,15 +436,17 @@ public class OnboardingServiceDefault implements OnboardingService {
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(verificationContractSignature::apply)
                 //Fail if onboarding exists for a product
-                .onItem().transformToUni(onboarding -> {
-                    Product product = productService.getProductIsValid(onboarding.getProductId());
-                    return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
-                })
+                .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
+                )
                 //Upload contract on storage
                 .onItem().transformToUni(onboarding -> uploadSignedContract(onboardingId, contract)
-                        .onItem().transform(ignore -> onboarding))
-                // Start async activity
-                ;
+                            .map(ignore -> onboarding))
+                // Start async activity if onboardingOrchestrationEnabled is true
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString())
+                            .map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding));
     }
 
     private Uni<String> uploadSignedContract(String onboardingId, File contract) {

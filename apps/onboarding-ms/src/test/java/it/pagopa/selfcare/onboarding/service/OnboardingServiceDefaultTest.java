@@ -23,6 +23,7 @@ import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
+import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -180,7 +181,7 @@ public class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
-                .thenReturn(null));
+                .thenThrow(ProductNotFoundException.class));
 
         asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
 
