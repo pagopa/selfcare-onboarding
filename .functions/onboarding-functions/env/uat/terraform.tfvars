@@ -62,5 +62,6 @@ app_settings = {
   "SELFCARE_URL"            = "https://selfcare.pagopa.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"    = "https://uat.selfcare.pagopa.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"      = "https://uat.selfcare.pagopa.it/onboarding/cancel?jwt=",
-  "MAIL_ONBOARDING_URL" : "https://uat.selfcare.pagopa.it/onboarding/"
+  "MAIL_ONBOARDING_URL" : "https://uat.selfcare.pagopa.it/onboarding/",
+  "MS_CORE_URL" : "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1"
 }
