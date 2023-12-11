@@ -9,6 +9,8 @@ public class AuthenticationPropagationHeadersFactory implements ClientHeadersFac
 
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
+        String bearerToken = System.getenv("JWT_BEARER_TOKEN");
+        clientOutgoingHeaders.put("Authorization", List.of("Bearer " + bearerToken));
         return clientOutgoingHeaders;
     }
 }

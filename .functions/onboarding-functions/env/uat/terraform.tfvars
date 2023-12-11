@@ -63,5 +63,6 @@ app_settings = {
   "MAIL_ONBOARDING_CONFIRMATION_LINK"    = "https://uat.selfcare.pagopa.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"      = "https://uat.selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL" : "https://uat.selfcare.pagopa.it/onboarding/",
-  "MS_CORE_URL" : "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1"
+  "MS_CORE_URL" : "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1",
+  "JWT_BEARER_TOKEN" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
 }
