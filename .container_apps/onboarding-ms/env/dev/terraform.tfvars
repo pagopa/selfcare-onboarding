@@ -41,6 +41,10 @@ app_settings = [
   {
     name  = "MS_PARTY_REGISTRY_URL"
     value = "http://selc.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+  },
+  {
+    name  = "SIGNATURE_VALIDATION_ENABLED"
+    value = "false"
   }
 ]
 
