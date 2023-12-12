@@ -10,7 +10,7 @@ tags = {
 }
 
 container_app = {
-  min_replicas = 0
+  min_replicas = 1
   max_replicas = 1
   scale_rules  = []
   cpu    = 0.5
@@ -41,6 +41,10 @@ app_settings = [
   {
     name  = "MS_PARTY_REGISTRY_URL"
     value = "http://selc.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+  },
+  {
+    name  = "SIGNATURE_VALIDATION_ENABLED"
+    value = "false"
   }
 ]
 
@@ -53,6 +57,7 @@ key_vault = {
     "user-registry-api-key",
     "onboarding-functions-api-key",
     "blob-storage-product-connection-string",
+    "blob-storage-contract-connection-string",
     "start-completion-functions-api-key"
   ]
 }
