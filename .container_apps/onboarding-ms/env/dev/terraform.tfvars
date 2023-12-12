@@ -57,6 +57,7 @@ key_vault = {
     "user-registry-api-key",
     "onboarding-functions-api-key",
     "blob-storage-product-connection-string",
+    "blob-storage-contract-connection-string",
     "start-completion-functions-api-key"
   ]
 }
