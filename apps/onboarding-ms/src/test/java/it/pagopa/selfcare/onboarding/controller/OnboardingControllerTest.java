@@ -10,6 +10,8 @@ import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
@@ -89,17 +91,17 @@ public class OnboardingControllerTest {
     public void onboarding_shouldNotValidBody() {
 
         given()
-          .when()
+                .when()
                 .body(new OnboardingDefaultRequest())
                 .contentType(ContentType.JSON)
                 .post()
-          .then()
-             .statusCode(400);
+                .then()
+                .statusCode(400);
     }
 
     @ParameterizedTest
     @TestSecurity(user = "userJwt")
-    @ValueSource(strings = {"/psp","/pa"})
+    @ValueSource(strings = {"/psp", "/pa"})
     public void onboarding_shouldNotValidPspBody(String path) {
 
         given()
@@ -116,7 +118,7 @@ public class OnboardingControllerTest {
     public void onboarding() {
 
         Mockito.when(onboardingService.onboarding(any()))
-                        .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
                 .when()
@@ -203,7 +205,7 @@ public class OnboardingControllerTest {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
-        when(onboardingService.complete(any(),any()))
+        when(onboardingService.complete(any(), any()))
                 .thenReturn(Uni.createFrom().nullItem());
 
         given()
@@ -219,6 +221,28 @@ public class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .complete(expectedId.capture(), any());
         assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboarding(){
+
+        OnboardingGet onboarding = new OnboardingGet();
+        onboarding.setId("id");
+        OnboardingGetResponse response = new OnboardingGetResponse();
+        response.setCount(1L);
+        response.setItems(List.of(onboarding));
+        when(onboardingService.onboardingGet(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(response));
+
+        given()
+                .when()
+                .get()
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .onboardingGet(any(), any(), any(), any(), any(), any(), any());
     }
 
 }

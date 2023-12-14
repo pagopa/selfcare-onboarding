@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -909,6 +910,20 @@ public class OnboardingServiceDefaultTest {
 
         asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
+    }
+    @Test
+    @RunOnVertxContext
+    void testOnboardingGet(UniAsserter asserter) {
+        int page = 0, size = 3;
+        mockFindOnboarding();
+        asserter.assertThat(() -> onboardingService.onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size),
+                Assertions::assertNotNull);
+    }
+
+    private void mockFindOnboarding() {
+        Onboarding onboarding = createDummyOnboarding();
+        ReactivePanacheQuery<Onboarding> query = mock(ReactivePanacheQuery.class);
+        when(query.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
     }
 
     private void mockFindToken(UniAsserter asserter, String onboardingId) {
