@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
 
@@ -111,7 +112,7 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/complete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, File file) {
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @RestForm("contract") File file) {
         return onboardingService.complete(onboardingId, file)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
