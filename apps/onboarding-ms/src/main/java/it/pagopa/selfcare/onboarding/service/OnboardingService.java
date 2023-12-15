@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
@@ -23,4 +24,6 @@ public interface OnboardingService {
     Uni<Onboarding> complete(String tokenId, File contract);
 
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
+
+    Uni<Long> deleteOnboarding(String onboardingId);
 }

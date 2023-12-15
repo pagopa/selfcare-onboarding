@@ -118,4 +118,14 @@ public class OnboardingController {
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
+
+    @PUT
+    @Path("/{onboardingId}/delete")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.deleteOnboarding(onboardingId)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
 }

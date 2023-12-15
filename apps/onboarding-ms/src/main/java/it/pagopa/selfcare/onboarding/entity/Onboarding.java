@@ -8,6 +8,7 @@ import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 import org.bson.types.ObjectId;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@FieldNameConstants(asEnum = true)
 @MongoEntity(collection="onboardings")
 public class Onboarding extends ReactivePanacheMongoEntity  {
 
