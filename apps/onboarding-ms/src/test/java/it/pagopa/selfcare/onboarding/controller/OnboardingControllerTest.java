@@ -10,6 +10,7 @@ import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -22,7 +23,9 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -226,23 +229,45 @@ public class OnboardingControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void getOnboarding(){
-
-        OnboardingGet onboarding = new OnboardingGet();
-        onboarding.setId("id");
-        OnboardingGetResponse response = new OnboardingGetResponse();
-        response.setCount(1L);
-        response.setItems(List.of(onboarding));
-        when(onboardingService.onboardingGet(any(), any(), any(), any(), any(), any(), any()))
+        OnboardingGetResponse response = getOnboardingGetResponse();
+        when(onboardingService.onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20))
                 .thenReturn(Uni.createFrom().item(response));
+
+        Map<String, String> queryParameterMap = getStringStringMap();
 
         given()
                 .when()
+                .queryParams(queryParameterMap)
                 .get()
                 .then()
                 .statusCode(200);
 
         verify(onboardingService, times(1))
-                .onboardingGet(any(), any(), any(), any(), any(), any(), any());
+                .onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20);
+    }
+
+    private static Map<String, String> getStringStringMap() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("productId","prod-io");
+        queryParameterMap.put("taxCode","taxCode");
+        queryParameterMap.put("from","2023-12-01");
+        queryParameterMap.put("to","2023-12-31");
+        queryParameterMap.put("status","ACTIVE");
+        return queryParameterMap;
+    }
+
+    private static OnboardingGetResponse getOnboardingGetResponse() {
+        OnboardingGet onboarding = new OnboardingGet();
+        onboarding.setId("id");
+        onboarding.setStatus("ACTIVE");
+        onboarding.setProductId("prod-io");
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setTaxCode("taxCode");
+        onboarding.setInstitution(institutionResponse);
+        OnboardingGetResponse response = new OnboardingGetResponse();
+        response.setCount(1L);
+        response.setItems(List.of(onboarding));
+        return response;
     }
 
 }

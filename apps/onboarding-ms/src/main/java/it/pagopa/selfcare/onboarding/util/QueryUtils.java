@@ -69,11 +69,11 @@ public class QueryUtils {
         return queryParameterMap;
     }
 
-    /**
-     * The buildSortForOnboardingCollection function returns a Document object that represents the sort criteria for
-     * the Onboarding collection. The sort criteria is to order by descending creation date.
-     */
-    public static Document buildSortForOnboardingCollection() {
-        return bsonToDocument(Sorts.descending(Onboarding.Fields.createdAt.name()));
+    public static Document buildSortDocument(String field, SortEnum order) {
+        if(SortEnum.ASC == order) {
+            return bsonToDocument(Sorts.ascending(field));
+        }else{
+            return bsonToDocument(Sorts.descending(field));
+        }
     }
 }

@@ -119,7 +119,7 @@ public class OnboardingController {
                         .build());
     }
 
-    @Operation(summary = "The getOnboardingWithFilter API retrieves paged onboarding using optional filter, order by descending creation date")
+    @Operation(summary = "The API retrieves paged onboarding using optional filter, order by descending creation date")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingGetResponse> getOnboardingWithFilter(@QueryParam(value = "productId") String productId,
@@ -128,10 +128,8 @@ public class OnboardingController {
                                                               @QueryParam(value = "to") String to,
                                                               @QueryParam(value = "status") String status,
                                                               @QueryParam(value = "page") @DefaultValue("0") Integer page,
-                                                              @QueryParam(value = "size") @DefaultValue("20") Integer size,
-                                                              @Context SecurityContext ctx) {
-        return readUserIdFromToken(ctx)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size));
+                                                              @QueryParam(value = "size") @DefaultValue("20") Integer size) {
+        return onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size);
     }
 
 

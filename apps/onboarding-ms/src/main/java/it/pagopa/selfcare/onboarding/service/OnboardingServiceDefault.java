@@ -28,6 +28,7 @@ import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
+import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -515,7 +516,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size) {
-        Document sort = QueryUtils.buildSortForOnboardingCollection();
+        Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
         Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(productId, taxCode, status, from, to);
         Document query = QueryUtils.buildQuery(queryParameter);
 
@@ -523,7 +524,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         runQuery(query, sort).page(page, size).list(),
                         runQuery(query, null).count()
                 ).asTuple()
-                .onItem().transform(this::constructOnboardingGetResponse);
+                .map(this::constructOnboardingGetResponse);
     }
 
     private ReactivePanacheQuery<Onboarding> runQuery(Document query, Document sort) {

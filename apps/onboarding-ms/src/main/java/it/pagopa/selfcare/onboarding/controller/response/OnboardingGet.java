@@ -14,8 +14,6 @@ public class OnboardingGet {
     private List<UserResponse> users;
     private String pricingPlan;
     private BillingResponse billing;
-    private ContractRequestResponse contract;
-    private OnboardingImportContractResponse contractImported;
     private Boolean signContract;
 
     private LocalDateTime createdAt;

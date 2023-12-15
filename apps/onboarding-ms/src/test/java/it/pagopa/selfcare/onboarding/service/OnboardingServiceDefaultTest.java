@@ -9,10 +9,15 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -29,6 +34,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
@@ -912,18 +918,44 @@ public class OnboardingServiceDefaultTest {
                 Assertions::assertNotNull);
     }
     @Test
-    @RunOnVertxContext
-    void testOnboardingGet(UniAsserter asserter) {
+    void testOnboardingGet() {
         int page = 0, size = 3;
-        mockFindOnboarding();
-        asserter.assertThat(() -> onboardingService.onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size),
-                Assertions::assertNotNull);
+        Onboarding onboarding = createDummyOnboarding();
+        mockFindOnboarding(onboarding);
+        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding.getId());
+        UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
+                .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(getResponse);
     }
 
-    private void mockFindOnboarding() {
-        Onboarding onboarding = createDummyOnboarding();
-        ReactivePanacheQuery<Onboarding> query = mock(ReactivePanacheQuery.class);
-        when(query.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
+    private static OnboardingGetResponse getOnboardingGetResponse(ObjectId id) {
+        OnboardingGet onboarding = new OnboardingGet();
+        onboarding.setId(id.toString());
+        onboarding.setProductId("prod-id");
+        UserResponse user = new UserResponse();
+        user.setId("actual-user-id");
+        user.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(user));
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        onboarding.setInstitution(institutionResponse);
+        OnboardingGetResponse response = new OnboardingGetResponse();
+        response.setCount(1L);
+        response.setItems(List.of(onboarding));
+        return response;
+    }
+
+    private void mockFindOnboarding(Onboarding onboarding) {
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+        ReactivePanacheQuery<Onboarding> queryPage = mock(ReactivePanacheQuery.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.find(any(Document.class),any(Document.class))).thenReturn(query);
+        when(Onboarding.find(any(Document.class),eq(null))).thenReturn(query);
+        when(query.page(anyInt(),anyInt())).thenReturn(queryPage);
+        when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
+        when(query.count()).thenReturn(Uni.createFrom().item(1L));
     }
 
     private void mockFindToken(UniAsserter asserter, String onboardingId) {
@@ -938,7 +970,6 @@ public class OnboardingServiceDefaultTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
         onboarding.setProductId("prod-id");
-        onboarding.setExpiringDate(LocalDateTime.now().plusDays(1));
 
         Institution institution = new Institution();
         onboarding.setInstitution(institution);
