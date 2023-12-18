@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -15,6 +16,10 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -31,6 +36,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
@@ -913,6 +919,46 @@ class OnboardingServiceDefaultTest {
         asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
     }
+    @Test
+    void testOnboardingGet() {
+        int page = 0, size = 3;
+        Onboarding onboarding = createDummyOnboarding();
+        mockFindOnboarding(onboarding);
+        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding.getId());
+        UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
+                .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(getResponse);
+    }
+
+    private static OnboardingGetResponse getOnboardingGetResponse(ObjectId id) {
+        OnboardingGet onboarding = new OnboardingGet();
+        onboarding.setId(id.toString());
+        onboarding.setProductId("prod-id");
+        UserResponse user = new UserResponse();
+        user.setId("actual-user-id");
+        user.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(user));
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        onboarding.setInstitution(institutionResponse);
+        OnboardingGetResponse response = new OnboardingGetResponse();
+        response.setCount(1L);
+        response.setItems(List.of(onboarding));
+        return response;
+    }
+
+    private void mockFindOnboarding(Onboarding onboarding) {
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+        ReactivePanacheQuery<Onboarding> queryPage = mock(ReactivePanacheQuery.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.find(any(Document.class),any(Document.class))).thenReturn(query);
+        when(Onboarding.find(any(Document.class),eq(null))).thenReturn(query);
+        when(query.page(anyInt(),anyInt())).thenReturn(queryPage);
+        when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
+        when(query.count()).thenReturn(Uni.createFrom().item(1L));
+    }
 
     private void mockFindToken(UniAsserter asserter, String onboardingId) {
         Token token = new Token();
@@ -926,7 +972,6 @@ class OnboardingServiceDefaultTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setId(ObjectId.get());
         onboarding.setProductId("prod-id");
-        onboarding.setExpiringDate(LocalDateTime.now().plusDays(1));
 
         Institution institution = new Institution();
         onboarding.setInstitution(institution);
