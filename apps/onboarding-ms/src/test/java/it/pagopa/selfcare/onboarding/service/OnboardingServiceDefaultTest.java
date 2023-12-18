@@ -55,6 +55,7 @@ import java.util.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 
@@ -851,6 +852,10 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
+        final String filepath = "upload-file-path";
+        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(filepath);
+        mockUpdateToken(asserter, filepath);
+
         asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
 
@@ -908,7 +913,9 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn("upload-file");
+        final String filepath = "upload-file-path";
+        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(filepath);
+        mockUpdateToken(asserter, filepath);
 
         asserter.assertThat(() -> onboardingService.complete(onboarding.getId().toHexString(), testFile),
                 Assertions::assertNotNull);
@@ -920,6 +927,17 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> PanacheMock.mock(Token.class));
         asserter.execute(() -> when(Token.list("onboardingId", onboardingId))
                 .thenReturn(Uni.createFrom().item(List.of(token))));
+    }
+
+    private void mockUpdateToken(UniAsserter asserter, String filepath) {
+
+        //Mock token updat
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        ReactivePanacheUpdate panacheUpdate = mock(ReactivePanacheUpdate.class);
+        asserter.execute(() -> when(panacheUpdate.where("contractSigned", filepath))
+                .thenReturn(Uni.createFrom().item(1L)));
+        asserter.execute(() -> when(Token.update(anyString(),any(Object[].class)))
+                .thenReturn(panacheUpdate));
     }
 
     private Onboarding createDummyOnboarding() {
