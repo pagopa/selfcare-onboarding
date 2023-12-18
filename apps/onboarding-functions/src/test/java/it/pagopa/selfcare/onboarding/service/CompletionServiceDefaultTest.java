@@ -7,12 +7,10 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -31,10 +29,7 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
@@ -52,6 +47,8 @@ public class CompletionServiceDefaultTest {
 
     @InjectMock
     OnboardingRepository onboardingRepository;
+    @InjectMock
+    TokenRepository tokenRepository;
     @InjectMock
     NotificationService notificationService;
     @InjectMock
@@ -222,6 +219,10 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(userResource);
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
+        Token token = new Token();
+        token.setContractFilename("contract-filename");
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
 
         completionServiceDefault.persistOnboarding(onboarding);
 
@@ -229,12 +230,16 @@ public class CompletionServiceDefaultTest {
         verify(institutionApi, times(1))
                 .onboardingInstitutionUsingPOST(any(), captor.capture());
 
+        verify(tokenRepository, times(1))
+                .findByOnboardingId(onboarding.getOnboardingId());
+
         InstitutionOnboardingRequest actual = captor.getValue();
         assertEquals(onboarding.getProductId(), actual.getProductId());
         assertEquals(onboarding.getPricingPlan(), actual.getPricingPlan());
         assertEquals(1, actual.getUsers().size());
         assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
         assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
+        assertEquals(token.getContractFilename(), actual.getContractPath());
     }
 
     @Test
