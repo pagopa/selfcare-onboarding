@@ -449,8 +449,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 //Upload contract on storage
-                .onItem().transformToUni(onboarding -> uploadSignedContract(onboardingId, contract)
-                        .map(ignore -> onboarding))
+                .onItem().transformToUni(onboarding -> uploadSignedContractAndUpdateToken(onboardingId, contract)
+                            .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString())
@@ -458,7 +458,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         : Uni.createFrom().item(onboarding));
     }
 
-    private Uni<String> uploadSignedContract(String onboardingId, File contract) {
+    private Uni<String> uploadSignedContractAndUpdateToken(String onboardingId, File contract) {
         return retrieveToken(onboardingId)
             .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
                     final String path = String.format("%s%s", pathContracts, onboardingId);
@@ -471,7 +471,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 "Error on upload contract for onboarding with id " + onboardingId);
                     }
                 }))
-                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool()));
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                .onItem().transformToUni(filepath -> Token.update("contractSigned", filepath)
+                                .where("_id", token.getId())
+                                .replaceWith(filepath))
+            );
     }
 
 

@@ -220,7 +220,7 @@ public class CompletionServiceDefaultTest {
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
         Token token = new Token();
-        token.setContractFilename("contract-filename");
+        token.setContractSigned("contract-signed-path");
         when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
                 .thenReturn(Optional.of(token));
 
@@ -239,7 +239,7 @@ public class CompletionServiceDefaultTest {
         assertEquals(1, actual.getUsers().size());
         assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
         assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
-        assertEquals(token.getContractFilename(), actual.getContractPath());
+        assertEquals(token.getContractSigned(), actual.getContractPath());
     }
 
     @Test
