@@ -4,9 +4,11 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import org.mapstruct.Mapper;
+import org.bson.types.ObjectId;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "cdi")
 public interface OnboardingMapper {
@@ -22,4 +24,12 @@ public interface OnboardingMapper {
     //Onboarding toEntity(OnboardingPgRequest request);
 
     OnboardingResponse toResponse(Onboarding onboarding);
+
+    @Mapping(target = "id", expression = "java(objectIdToString(model.getId()))")
+    OnboardingGet toGetResponse(Onboarding model);
+
+    @Named("objectIdToString")
+    default String objectIdToString(ObjectId objectId) {
+       return objectId.toHexString();
+    }
 }

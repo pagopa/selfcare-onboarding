@@ -4,10 +4,12 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -48,6 +50,9 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Inject
     OnboardingRepository onboardingRepository;
+
+    @Inject
+    TokenRepository tokenRepository;
 
     @Inject
     UserMapper userMapper;
@@ -170,6 +175,7 @@ public class CompletionServiceDefault implements CompletionService {
         );
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
+        onboardingRequest.setTokenId(onboarding.getOnboardingId());
 
         if(Objects.nonNull(onboarding.getBilling())) {
             BillingRequest billingRequest = new BillingRequest();
@@ -178,6 +184,10 @@ public class CompletionServiceDefault implements CompletionService {
             billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
             onboardingRequest.billing(billingRequest);
         }
+
+        //If contract exists we send the path of the contract
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractFilename()));
 
         institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
     }

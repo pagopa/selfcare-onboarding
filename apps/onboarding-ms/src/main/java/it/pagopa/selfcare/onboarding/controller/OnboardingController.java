@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -31,7 +32,7 @@ public class OnboardingController {
     @Inject
     CurrentIdentityAssociation currentIdentityAssociation;
 
-    final private OnboardingService onboardingService;
+    private final OnboardingService onboardingService;
 
     @Operation(summary = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
             "Users data will be saved on personal data vault if it doesn't already exist." +
@@ -119,6 +120,19 @@ public class OnboardingController {
                         .build());
     }
 
+    @Operation(summary = "The API retrieves paged onboarding using optional filter, order by descending creation date")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingGetResponse> getOnboardingWithFilter(@QueryParam(value = "productId") String productId,
+                                                              @QueryParam(value = "taxCode") String taxCode,
+                                                              @QueryParam(value = "from") String from,
+                                                              @QueryParam(value = "to") String to,
+                                                              @QueryParam(value = "status") String status,
+                                                              @QueryParam(value = "page") @DefaultValue("0") Integer page,
+                                                              @QueryParam(value = "size") @DefaultValue("20") Integer size) {
+        return onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size);
+    }
+
     @PUT
     @Path("/{onboardingId}/delete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -128,4 +142,6 @@ public class OnboardingController {
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
+
+
 }

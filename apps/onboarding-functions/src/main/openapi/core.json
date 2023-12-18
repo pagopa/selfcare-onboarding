@@ -6155,10 +6155,16 @@
           "billing" : {
             "$ref" : "#/components/schemas/BillingRequest"
           },
+          "contractPath" : {
+            "type" : "string"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
           "productId" : {
+            "type" : "string"
+          },
+          "tokenId" : {
             "type" : "string"
           },
           "users" : {

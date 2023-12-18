@@ -1,9 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.mongodb.panache.common.reactive.Panache;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.smallrye.mutiny.tuples.Tuple2;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -12,6 +14,8 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -23,6 +27,8 @@ import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.util.QueryUtils;
+import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -30,6 +36,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -46,7 +53,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -131,7 +137,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate(OffsetDateTime.now().plus(onboardingExpireDate, ChronoUnit.DAYS).toLocalDateTime());
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
@@ -179,7 +185,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         final List<Onboarding> onboardings = new ArrayList<>();
         onboardings.add(onboarding);
 
-        if(Boolean.TRUE.equals(onboardingOrchestrationEnabled)) {
+        if (Boolean.TRUE.equals(onboardingOrchestrationEnabled)) {
             return Onboarding.persistOrUpdate(onboardings)
                     .onItem().transformToUni(saved -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
                     .replaceWith(onboarding));
@@ -192,7 +198,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     /**
      * Identify which workflow must be trigger during onboarding process.
      * Each workflow consist of different activities such as creating contract or sending appropriate mail.
-     * For more information look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/776339638/DR+-+Domain+Onboarding
+     * For more information look at <a href="https://pagopa.atlassian.net/wiki/spaces/SCP/pages/776339638/DR+-+Domain+Onboarding">...</a>
+     *
      * @param onboarding actual onboarding request
      * @return WorkflowType
      */
@@ -408,7 +415,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<Onboarding> complete(String onboardingId, File contract) {
 
-        if(Boolean.TRUE.equals(isVerifyEnabled)) {
+        if (Boolean.TRUE.equals(isVerifyEnabled)) {
             //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
             //At least, verify contract signature using both
             Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
@@ -447,7 +454,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString())
-                            .map(ignore -> onboarding)
+                        .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
 
@@ -514,6 +521,36 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
+    public Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size) {
+        Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
+        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(productId, taxCode, status, from, to);
+        Document query = QueryUtils.buildQuery(queryParameter);
+
+        return Uni.combine().all().unis(
+                        runQuery(query, sort).page(page, size).list(),
+                        runQuery(query, null).count()
+                ).asTuple()
+                .map(this::constructOnboardingGetResponse);
+    }
+
+    private ReactivePanacheQuery<Onboarding> runQuery(Document query, Document sort) {
+        return Onboarding.find(query, sort);
+    }
+
+    private OnboardingGetResponse constructOnboardingGetResponse(Tuple2<List<Onboarding>, Long> tuple) {
+        OnboardingGetResponse onboardingGetResponse = new OnboardingGetResponse();
+        onboardingGetResponse.setCount(tuple.getItem2());
+        onboardingGetResponse.setItems(convertOnboardingListToResponse(tuple.getItem1()));
+        return onboardingGetResponse;
+    }
+
+    private List<OnboardingGet> convertOnboardingListToResponse(List<Onboarding> item1) {
+        return item1.stream()
+                .map(onboardingMapper::toGetResponse)
+                .toList();
+    }
+
+    @Override
     public Uni<Long> deleteOnboarding(String onboardingId) {
         return checkOnboardingIdFormat(onboardingId)
                 .onItem()
@@ -537,5 +574,4 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
         return Uni.createFrom().item(onboardingId);
     }
-
 }
