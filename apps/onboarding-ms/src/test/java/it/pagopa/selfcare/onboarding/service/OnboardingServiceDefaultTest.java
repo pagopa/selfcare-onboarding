@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -8,8 +9,10 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.entity.Institution;
@@ -57,7 +60,7 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-public class OnboardingServiceDefaultTest {
+class OnboardingServiceDefaultTest {
 
     @Inject
     OnboardingServiceDefault onboardingService;
@@ -933,6 +936,48 @@ public class OnboardingServiceDefaultTest {
         user.setRole(PartyRole.MANAGER);
         onboarding.setUsers(List.of(user));
         return onboarding;
+    }
+
+    @Test
+    void testOnboardingUpdateStatusOK() {
+        String onboardingId = "655df045dc52ea5f37c80955";
+        mockUpdateOnboarding(onboardingId, 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboardingId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(1L);
+    }
+
+    @Test
+    void testOnboardingUpdateStatusInvalidOnboardingId() {
+        String onboardingId = "123456";
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboardingId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class, "Given onboardingId [123456] has wrong format");
+    }
+
+    @Test
+    void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
+        String onboardingId = "655df045dc52ea5f37c80955";
+        mockUpdateOnboarding(onboardingId, 0L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboardingId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class, "Onboarding with id 655df045dc52ea5f37c80955 not found or already deleted");
+    }
+
+    private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
+        ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.update(Onboarding.Fields.status.name(), OnboardingStatus.DELETED)).thenReturn(query);
+        when(query.where("_id", onboardingId)).thenReturn(Uni.createFrom().item(updatedItemCount));
     }
 
 }

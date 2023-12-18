@@ -62,6 +62,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
     private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
     private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
+    private static final String INVALID_OBJECTID = "Given onboardingId [%s] has wrong format";
+    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED = "Onboarding with id %s not found or already deleted";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
 
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
@@ -177,7 +179,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         final List<Onboarding> onboardings = new ArrayList<>();
         onboardings.add(onboarding);
 
-        if(onboardingOrchestrationEnabled) {
+        if(Boolean.TRUE.equals(onboardingOrchestrationEnabled)) {
             return Onboarding.persistOrUpdate(onboardings)
                     .onItem().transformToUni(saved -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
                     .replaceWith(onboarding));
@@ -406,7 +408,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<Onboarding> complete(String onboardingId, File contract) {
 
-        if(isVerifyEnabled) {
+        if(Boolean.TRUE.equals(isVerifyEnabled)) {
             //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
             //At least, verify contract signature using both
             Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
@@ -505,6 +507,31 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(userId -> userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, userId))
                 .merge().collect().asList()
                 .onItem().transform(usersResource -> usersResource.stream().map(UserResource::getFiscalCode).toList());
+    }
+
+    @Override
+    public Uni<Long> deleteOnboarding(String onboardingId) {
+        return checkOnboardingIdFormat(onboardingId)
+                .onItem()
+                .transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.DELETED));
+    }
+
+    private static Uni<Long> updateStatus(String onboardingId, OnboardingStatus onboardingStatus ) {
+        return Onboarding.update(Onboarding.Fields.status.name(), onboardingStatus)
+                .where("_id", onboardingId)
+                .onItem().transformToUni(updateItemCount -> {
+                    if (updateItemCount == 0) {
+                        return Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                    }
+                    return Uni.createFrom().item(updateItemCount);
+                });
+    }
+
+    private Uni<String> checkOnboardingIdFormat(String onboardingId) {
+        if (!ObjectId.isValid(onboardingId)) {
+            return Uni.createFrom().failure(new InvalidRequestException(String.format(INVALID_OBJECTID, onboardingId)));
+        }
+        return Uni.createFrom().item(onboardingId);
     }
 
 }
