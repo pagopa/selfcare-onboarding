@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
