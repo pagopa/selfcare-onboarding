@@ -187,7 +187,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         //If contract exists we send the path of the contract
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
-        optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractFilename()));
+        optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
 
         institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
     }
