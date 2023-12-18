@@ -17,6 +17,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.functions.utils.SaveOnboardingStatusInput;
@@ -46,19 +47,16 @@ public class OnboardingFunctions {
     private final OnboardingService service;
 
     private final ObjectMapper objectMapper;
+    private final TaskOptions optionsRetry;
 
-    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper) {
+    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig) {
         this.service = service;
         this.objectMapper = objectMapper;
-    }
 
-    private static final  TaskOptions optionsRetry;
-
-    static {
-        // Make 3 attempts with 5 seconds between retries
-        final int maxAttempts = 1;
-        final Duration firstRetryInterval = Duration.ofSeconds(3);
+        final int maxAttempts = retryPolicyConfig.maxAttempts();
+        final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
+        retryPolicy.setBackoffCoefficient(retryPolicyConfig.backoffCoefficient());
         optionsRetry = new TaskOptions(retryPolicy);
     }
 
