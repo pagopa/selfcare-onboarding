@@ -4,5 +4,6 @@ public enum OnboardingStatus {
     PENDING,
     COMPLETED,
     FAILED,
-    REJECTED
+    REJECTED,
+    DELETED
 }

@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.*;
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
 @QuarkusTestResource(MongoTestResource.class)
-public class OnboardingControllerTest {
+class OnboardingControllerTest {
 
     final static OnboardingPspRequest onboardingPspValid;
     final static UserRequest userDTO;
@@ -91,7 +92,7 @@ public class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    public void onboarding_shouldNotValidBody() {
+    void onboarding_shouldNotValidBody() {
 
         given()
                 .when()
@@ -104,8 +105,8 @@ public class OnboardingControllerTest {
 
     @ParameterizedTest
     @TestSecurity(user = "userJwt")
-    @ValueSource(strings = {"/psp", "/pa"})
-    public void onboarding_shouldNotValidPspBody(String path) {
+    @ValueSource(strings = {"/psp","/pa"})
+    void onboarding_shouldNotValidPspBody(String path) {
 
         given()
                 .when()
@@ -118,7 +119,7 @@ public class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    public void onboarding() {
+    void onboarding() {
 
         Mockito.when(onboardingService.onboarding(any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
@@ -134,7 +135,7 @@ public class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    public void onboardingPa() {
+    void onboardingPa() {
 
         /* PA */
         OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
@@ -163,7 +164,7 @@ public class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    public void onboardingPsp() {
+    void onboardingPsp() {
 
         Mockito.when(onboardingService.onboardingPsp(any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
@@ -178,7 +179,7 @@ public class OnboardingControllerTest {
     }
 
     //@Test
-    public void onboardingPg() {
+    void onboardingPg() {
 
         given()
                 .when()
@@ -191,7 +192,7 @@ public class OnboardingControllerTest {
 
 
     @Test
-    public void complete_unauthorized() {
+    void complete_unauthorized() {
 
         given()
                 .when()
@@ -204,7 +205,7 @@ public class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    public void complete() throws IOException {
+    void complete() throws IOException {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
@@ -223,6 +224,48 @@ public class OnboardingControllerTest {
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
                 .complete(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void deleteOK(){
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.deleteOnboarding(onboardingId))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/delete")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .deleteOnboarding(expectedId.capture());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void deleteInvalidOnboardingIdOrOnboardingNotFound(){
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.deleteOnboarding(onboardingId))
+                .thenThrow(InvalidRequestException.class);
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/delete")
+                .then()
+                .statusCode(400);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .deleteOnboarding(expectedId.capture());
         assertEquals(expectedId.getValue(), onboardingId);
     }
 

@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
 
@@ -112,7 +113,7 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/complete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, File file) {
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @RestForm("contract") File file) {
         return onboardingService.complete(onboardingId, file)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
@@ -130,6 +131,16 @@ public class OnboardingController {
                                                               @QueryParam(value = "page") @DefaultValue("0") Integer page,
                                                               @QueryParam(value = "size") @DefaultValue("20") Integer size) {
         return onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size);
+    }
+
+    @PUT
+    @Path("/{onboardingId}/delete")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.deleteOnboarding(onboardingId)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
     }
 
 
