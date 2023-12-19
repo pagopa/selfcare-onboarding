@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Function;
 
@@ -12,7 +13,7 @@ public class Utils {
     public static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
 
     public static final Function<String, String> CONTRACT_FILENAME_FUNC =
-            productName -> String.format(PDF_FORMAT_FILENAME, productName.replaceAll("\\s+","_"));
+            productName -> String.format(PDF_FORMAT_FILENAME, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 
 
 
