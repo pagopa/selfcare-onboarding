@@ -306,6 +306,23 @@ class OnboardingControllerTest {
                 .onboardingGet(onboardingGet.getId());
     }
 
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingPending(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.onboardingPending(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .get("/{onboardingId}/pending", onboardingGet.getId())
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .onboardingPending(onboardingGet.getId());
+    }
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId","prod-io");

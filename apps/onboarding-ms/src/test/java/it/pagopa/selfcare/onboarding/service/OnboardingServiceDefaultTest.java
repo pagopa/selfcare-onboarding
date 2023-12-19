@@ -1074,4 +1074,37 @@ class OnboardingServiceDefaultTest {
                 .assertFailedWith(ResourceNotFoundException.class);
     }
 
+    @Test
+    void onboardingPending() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .onboardingPending(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.assertCompleted().awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+        Assertions.assertEquals(onboarding.getProductId(), actual.getProductId());
+    }
+
+    @Test
+    void onboardingPending_shouldResourceNotFound() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .onboardingPending(ObjectId.get().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(ResourceNotFoundException.class);
+    }
+
 }
