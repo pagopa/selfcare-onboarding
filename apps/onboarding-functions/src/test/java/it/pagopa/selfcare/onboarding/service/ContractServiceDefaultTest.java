@@ -26,8 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -93,6 +92,7 @@ class ContractServiceDefaultTest {
     void createContractPDF() {
         final String contractFilepath = "contract";
         final String contractHtml = "contract";
+        final String productNameAccent = "Interoperabilità";
 
         Onboarding onboarding = createOnboarding();
         UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
@@ -101,7 +101,14 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent);
+
+        assertNotNull(contract);
+
+        ArgumentCaptor<String> captorFilename = ArgumentCaptor.forClass(String.class);
+        verify(azureBlobClient, times(1))
+                .uploadFile(any(),captorFilename.capture(),any());
+        assertEquals("Interoperabilita_accordo_adesione.pdf", captorFilename.getValue());
     }
 
     @Test
