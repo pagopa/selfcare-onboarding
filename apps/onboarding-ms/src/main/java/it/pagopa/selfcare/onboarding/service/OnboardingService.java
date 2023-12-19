@@ -1,11 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -29,4 +29,6 @@ public interface OnboardingService {
     Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size);
 
     Uni<Long> deleteOnboarding(String onboardingId);
+
+    Uni<OnboardingGet> onboardingGet(String onboardingId);
 }

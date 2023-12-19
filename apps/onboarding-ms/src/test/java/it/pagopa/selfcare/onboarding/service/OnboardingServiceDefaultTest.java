@@ -1043,4 +1043,35 @@ class OnboardingServiceDefaultTest {
         when(query.where("_id", onboardingId)).thenReturn(Uni.createFrom().item(updatedItemCount));
     }
 
+    @Test
+    void onboardingGet() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .onboardingGet(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.assertCompleted().awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+        Assertions.assertEquals(onboarding.getProductId(), actual.getProductId());
+    }
+
+    @Test
+    void onboardingGet_shouldResourceNotFound() {
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.empty()));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .onboardingGet(ObjectId.get().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(ResourceNotFoundException.class);
+    }
+
 }

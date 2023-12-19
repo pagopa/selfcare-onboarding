@@ -7,6 +7,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -135,12 +136,17 @@ public class OnboardingController {
 
     @PUT
     @Path("/{onboardingId}/delete")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.deleteOnboarding(onboardingId)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
+    }
+
+    @GET
+    @Path("/{onboardingId}")
+    public Uni<OnboardingGet> getById(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.onboardingGet(onboardingId);
     }
 
 
