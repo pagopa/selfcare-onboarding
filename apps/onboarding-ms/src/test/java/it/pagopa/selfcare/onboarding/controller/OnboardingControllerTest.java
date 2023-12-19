@@ -289,6 +289,40 @@ class OnboardingControllerTest {
                 .onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingById(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.onboardingGet(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .get("/" + onboardingGet.getId())
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .onboardingGet(onboardingGet.getId());
+    }
+
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingPending(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.onboardingPending(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .get("/{onboardingId}/pending", onboardingGet.getId())
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .onboardingPending(onboardingGet.getId());
+    }
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId","prod-io");
@@ -300,6 +334,14 @@ class OnboardingControllerTest {
     }
 
     private static OnboardingGetResponse getOnboardingGetResponse() {
+        OnboardingGet onboarding = dummyOnboardingGet();
+        OnboardingGetResponse response = new OnboardingGetResponse();
+        response.setCount(1L);
+        response.setItems(List.of(onboarding));
+        return response;
+    }
+
+    private static OnboardingGet dummyOnboardingGet() {
         OnboardingGet onboarding = new OnboardingGet();
         onboarding.setId("id");
         onboarding.setStatus("ACTIVE");
@@ -307,10 +349,7 @@ class OnboardingControllerTest {
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
         onboarding.setInstitution(institutionResponse);
-        OnboardingGetResponse response = new OnboardingGetResponse();
-        response.setCount(1L);
-        response.setItems(List.of(onboarding));
-        return response;
+        return onboarding;
     }
 
 }

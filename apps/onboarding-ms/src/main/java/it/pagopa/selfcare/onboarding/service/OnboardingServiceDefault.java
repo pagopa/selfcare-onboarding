@@ -557,6 +557,32 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.DELETED));
     }
 
+    /**
+     * Returns an onboarding record by its ID only if its status is PENDING.
+     * This feature is crucial for ensuring that the onboarding process can be completed only when
+     * the onboarding status is appropriately set to PENDING.
+     * @param onboardingId String
+     * @return OnboardingGet
+     */
+    @Override
+    public Uni<OnboardingGet> onboardingPending(String onboardingId) {
+        return onboardingGet(onboardingId)
+                .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
+                    ? Uni.createFrom().item(onboardingGet)
+                    : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
+    }
+
+    @Override
+    public Uni<OnboardingGet> onboardingGet(String onboardingId) {
+        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+                .onItem().transformToUni(opt -> opt
+                        //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
+                        .map(onboarding -> (Onboarding) onboarding)
+                        .map(onboardingMapper::toGetResponse)
+                        .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
+                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))));
+    }
+
     private static Uni<Long> updateStatus(String onboardingId, OnboardingStatus onboardingStatus ) {
         return Onboarding.update(Onboarding.Fields.status.name(), onboardingStatus)
                 .where("_id", onboardingId)
