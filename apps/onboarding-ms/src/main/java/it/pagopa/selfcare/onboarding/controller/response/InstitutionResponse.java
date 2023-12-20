@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.controller.response;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
+import it.pagopa.selfcare.onboarding.controller.request.GeographicTaxonomyDto;
 import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class InstitutionResponse {
     private String address;
     private String zipCode;
 
-    private List<String> geographicTaxonomyCodes;
+    private List<GeographicTaxonomyDto> geographicTaxonomies;
 
     private String rea;
     private String shareCapital;
