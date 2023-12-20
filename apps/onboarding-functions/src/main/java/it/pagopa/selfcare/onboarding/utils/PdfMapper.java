@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.GeographicTaxonomy;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
@@ -39,7 +40,9 @@ public class PdfMapper {
 
         Institution institution = onboarding.getInstitution();
         Billing billing = onboarding.getBilling();
-        List<String> geographicTaxonomies = onboarding.getInstitution().getGeographicTaxonomyCodes();
+        List<String> geographicTaxonomies = Optional.ofNullable(onboarding.getInstitution().getGeographicTaxonomies())
+                .map(geoTaxonomies -> geoTaxonomies.stream().map(GeographicTaxonomy::getDesc).toList())
+                .orElse(List.of());
 
         String mailManager = getMailManager(manager, onboarding.getOnboardingId());
         if (Objects.isNull(mailManager)) {
@@ -61,14 +64,11 @@ public class PdfMapper {
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
 
-        if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
+        if (!geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
         }
-        /*if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
-            map.put("parentInfo", " ente centrale " + institution.getParentDescription());
-        } else {
-            map.put("parentInfo", "");
-        }*/
+
+        map.put("parentInfo", Objects.nonNull(institution.getParentDescription()) ? " ente centrale " + institution.getParentDescription() : "");
         return map;
     }
 

@@ -115,6 +115,9 @@ public class CompletionServiceDefault implements CompletionService {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
+            fromIpaPost.setGeographicTaxonomies(Optional.ofNullable(institution.getGeographicTaxonomies())
+                    .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
+                    .orElse(List.of()));
             if(Objects.nonNull(institution.getSubunitType())) {
                 fromIpaPost.setSubunitCode(institution.getSubunitCode());
                 fromIpaPost.setSubunitType(InstitutionFromIpaPost.SubunitTypeEnum.valueOf(institution.getSubunitType().name()));

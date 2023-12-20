@@ -23,7 +23,7 @@ public class Institution {
     private String address;
     private String zipCode;
 
-    private List<String> geographicTaxonomyCodes;
+    private List<GeographicTaxonomy> geographicTaxonomies;
 
     private String rea;
     private String shareCapital;
@@ -36,6 +36,7 @@ public class Institution {
 
     private PaymentServiceProvider paymentServiceProvider;
     private DataProtectionOfficer dataProtectionOfficer;
+    private String parentDescription;
 
     public InstitutionType getInstitutionType() {
         return institutionType;
@@ -93,12 +94,12 @@ public class Institution {
         this.zipCode = zipCode;
     }
 
-    public List<String> getGeographicTaxonomyCodes() {
-        return geographicTaxonomyCodes;
+    public List<GeographicTaxonomy> getGeographicTaxonomies() {
+        return geographicTaxonomies;
     }
 
-    public void setGeographicTaxonomyCodes(List<String> geographicTaxonomyCodes) {
-        this.geographicTaxonomyCodes = geographicTaxonomyCodes;
+    public void setGeographicTaxonomies(List<GeographicTaxonomy> geographicTaxonomies) {
+        this.geographicTaxonomies = geographicTaxonomies;
     }
 
     public String getRea() {
@@ -211,5 +212,13 @@ public class Institution {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getParentDescription() {
+        return parentDescription;
+    }
+
+    public void setParentDescription(String parentDescription) {
+        this.parentDescription = parentDescription;
     }
 }
