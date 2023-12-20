@@ -54,8 +54,8 @@ public class PdfMapper {
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", institution.getTaxCode());
         map.put("zipCode", institution.getZipCode());
-        map.put("managerName", Optional.ofNullable(manager.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
-        map.put("managerSurname", Optional.ofNullable(manager.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
+        map.put("managerName", getStringValue(manager.getName()));
+        map.put("managerSurname", getStringValue(manager.getFamilyName()));
         map.put("originId", Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse(""));
         map.put("institutionMail", institution.getDigitalAddress());
         map.put("managerTaxCode", manager.getFiscalCode());
@@ -120,8 +120,8 @@ public class PdfMapper {
 
         String underscore = "_______________";
         map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : underscore);
-        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? validManager.getName() : underscore);
-        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? validManager.getFamilyName() : underscore);
+        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? getStringValue(validManager.getName()) : underscore);
+        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? getStringValue(validManager.getFamilyName()) : underscore);
         map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : underscore);
 
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(underscore));
@@ -224,8 +224,8 @@ public class PdfMapper {
             builder
                     .append("</br>")
                     .append("<p class=\"c141\"><span class=\"c6\">Nome e Cognome: ")
-                    .append(user.getName()).append(" ")
-                    .append(user.getFamilyName())
+                    .append(getStringValue(user.getName())).append(" ")
+                    .append(getStringValue(user.getFamilyName()))
                     .append("&nbsp;</span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">Codice Fiscale: ")
                     .append(user.getFiscalCode())
@@ -243,5 +243,9 @@ public class PdfMapper {
                     .append("</br>");
         });
         return builder.toString();
+    }
+
+    private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {
+        return Optional.ofNullable(resourceOfString).map(CertifiableFieldResourceOfstring::getValue).orElse("");
     }
 }
