@@ -28,7 +28,7 @@ public class InstitutionBaseRequest {
     private String address;
     private String zipCode;
 
-    private List<String> geographicTaxonomyCodes;
+    private List<GeographicTaxonomyDto> geographicTaxonomies;
 
     private String rea;
     private String shareCapital;

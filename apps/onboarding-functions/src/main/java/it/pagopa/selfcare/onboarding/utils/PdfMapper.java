@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.GeographicTaxonomy;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
@@ -39,7 +40,9 @@ public class PdfMapper {
 
         Institution institution = onboarding.getInstitution();
         Billing billing = onboarding.getBilling();
-        List<String> geographicTaxonomies = onboarding.getInstitution().getGeographicTaxonomyCodes();
+        List<String> geographicTaxonomies = Optional.ofNullable(onboarding.getInstitution().getGeographicTaxonomies())
+                .map(geoTaxonomies -> geoTaxonomies.stream().map(GeographicTaxonomy::getDesc).toList())
+                .orElse(List.of());
 
         String mailManager = getMailManager(manager, onboarding.getOnboardingId());
         if (Objects.isNull(mailManager)) {
@@ -51,8 +54,8 @@ public class PdfMapper {
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", institution.getTaxCode());
         map.put("zipCode", institution.getZipCode());
-        map.put("managerName", Optional.ofNullable(manager.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
-        map.put("managerSurname", Optional.ofNullable(manager.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse(""));
+        map.put("managerName", getStringValue(manager.getName()));
+        map.put("managerSurname", getStringValue(manager.getFamilyName()));
         map.put("originId", Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse(""));
         map.put("institutionMail", institution.getDigitalAddress());
         map.put("managerTaxCode", manager.getFiscalCode());
@@ -61,14 +64,11 @@ public class PdfMapper {
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
 
-        if (geographicTaxonomies != null && !geographicTaxonomies.isEmpty()) {
+        if (!geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
         }
-        /*if(institution.getSubunitType() != null && (institution.getSubunitType().equals(InstitutionPaSubunitType.AOO.name()) || institution.getSubunitType().equals(InstitutionPaSubunitType.UO.name()))){
-            map.put("parentInfo", " ente centrale " + institution.getParentDescription());
-        } else {
-            map.put("parentInfo", "");
-        }*/
+
+        map.put("parentInfo", Objects.nonNull(institution.getParentDescription()) ? " ente centrale " + institution.getParentDescription() : "");
         return map;
     }
 
@@ -120,8 +120,8 @@ public class PdfMapper {
 
         String underscore = "_______________";
         map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : underscore);
-        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? validManager.getName() : underscore);
-        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? validManager.getFamilyName() : underscore);
+        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? getStringValue(validManager.getName()) : underscore);
+        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? getStringValue(validManager.getFamilyName()) : underscore);
         map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : underscore);
 
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(underscore));
@@ -224,8 +224,8 @@ public class PdfMapper {
             builder
                     .append("</br>")
                     .append("<p class=\"c141\"><span class=\"c6\">Nome e Cognome: ")
-                    .append(user.getName()).append(" ")
-                    .append(user.getFamilyName())
+                    .append(getStringValue(user.getName())).append(" ")
+                    .append(getStringValue(user.getFamilyName()))
                     .append("&nbsp;</span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">Codice Fiscale: ")
                     .append(user.getFiscalCode())
@@ -243,5 +243,9 @@ public class PdfMapper {
                     .append("</br>");
         });
         return builder.toString();
+    }
+
+    private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {
+        return Optional.ofNullable(resourceOfString).map(CertifiableFieldResourceOfstring::getValue).orElse("");
     }
 }

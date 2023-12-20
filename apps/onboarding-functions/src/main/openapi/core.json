@@ -715,7 +715,7 @@
     },
     "/delegations" : {
       "get" : {
-        "tags" : [ "Delegation" ],
+        "tags" : [ "Delegation", "external-v2", "support" ],
         "summary" : "Retrieve institution's delegations",
         "description" : "Retrieve institution's delegations",
         "operationId" : "getDelegationsUsingGET",
@@ -1444,7 +1444,7 @@
     },
     "/institutions" : {
       "get" : {
-        "tags" : [ "Institution" ],
+        "tags" : [ "Institution", "external-v2", "support" ],
         "summary" : "Gets institutions filtering by taxCode and/or subunitCode",
         "description" : "Gets institutions filtering by taxCode and/or subunitCode",
         "operationId" : "getInstitutionsUsingGET",
@@ -2244,7 +2244,7 @@
     },
     "/institutions/{id}" : {
       "get" : {
-        "tags" : [ "Institution" ],
+        "tags" : [ "Institution", "external-v2" ],
         "summary" : "Gets the corresponding institution using internal institution id",
         "description" : "Gets the corresponding institution using internal institution id",
         "operationId" : "retrieveInstitutionByIdUsingGET",
@@ -2711,7 +2711,7 @@
     },
     "/institutions/{institutionId}/onboardings" : {
       "get" : {
-        "tags" : [ "Institution" ],
+        "tags" : [ "Institution", "external-v2" ],
         "summary" : "${swagger.mscore.institution.info}",
         "description" : "${swagger.mscore.institution.info}",
         "operationId" : "getOnboardingsInstitutionUsingGET",
@@ -2848,7 +2848,7 @@
     },
     "/institutions/{institutionId}/users" : {
       "get" : {
-        "tags" : [ "Institution" ],
+        "tags" : [ "Institution", "support" ],
         "summary" : "getInstitutionUsers",
         "description" : "Retrieve institution's users",
         "operationId" : "getInstitutionUsersUsingGET",
@@ -4352,7 +4352,7 @@
     },
     "/onboarding/users" : {
       "post" : {
-        "tags" : [ "Onboarding" ],
+        "tags" : [ "Onboarding", "support" ],
         "summary" : "The service adds users to the registry if they are not present and associates them with the institution and product contained in the body",
         "description" : "The service adds users to the registry if they are not present and associates them with the institution and product contained in the body",
         "operationId" : "onboardingInstitutionUsersUsingPOST",
@@ -4557,7 +4557,7 @@
     },
     "/tokens/products/{productId}" : {
       "get" : {
-        "tags" : [ "Token" ],
+        "tags" : [ "Token", "external-v2" ],
         "summary" : "${swagger.mscore.tokens.findFromProduct}",
         "description" : "${swagger.mscore.tokens.findFromProduct}",
         "operationId" : "findFromProductUsingGET_1",
@@ -4973,7 +4973,7 @@
     },
     "/users/{id}" : {
       "get" : {
-        "tags" : [ "Persons" ],
+        "tags" : [ "Persons", "external-v2", "support" ],
         "summary" : "Retrieves user given userId and optional ProductId",
         "description" : "Retrieves user given userId and optional ProductId",
         "operationId" : "getUserInfoUsingGET",
@@ -5962,6 +5962,12 @@
         "title" : "InstitutionFromIpaPost",
         "type" : "object",
         "properties" : {
+          "geographicTaxonomies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeoTaxonomies"
+            }
+          },
           "subunitCode" : {
             "type" : "string"
           },
