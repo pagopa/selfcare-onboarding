@@ -149,6 +149,13 @@ public class OnboardingController {
     public Uni<OnboardingGet> getById(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGet(onboardingId);
     }
+
+    @Operation(summary = "Retrieve an onboarding record given its ID adding to user sensitive information")
+    @GET
+    @Path("/{onboardingId}/withUserInfo")
+    public Uni<OnboardingGet> getByIdWithUserInfo(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.onboardingGetWithUserInfo(onboardingId);
+    }
     @Operation(summary = "Returns an onboarding record by its ID only if its status is PENDING. " +
             "This feature is crucial for ensuring that the onboarding process can be completed only when " +
             "the onboarding status is appropriately set to PENDING.")

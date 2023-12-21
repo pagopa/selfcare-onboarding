@@ -306,6 +306,23 @@ class OnboardingControllerTest {
                 .onboardingGet(onboardingGet.getId());
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingByIdWithUserInfo(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.onboardingGetWithUserInfo(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .get("/" + onboardingGet.getId() + "/withUserInfo")
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .onboardingGetWithUserInfo(onboardingGet.getId());
+    }
+
 
     @Test
     @TestSecurity(user = "userJwt")
