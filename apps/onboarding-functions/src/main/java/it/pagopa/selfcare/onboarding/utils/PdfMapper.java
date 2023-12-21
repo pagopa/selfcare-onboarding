@@ -60,7 +60,7 @@ public class PdfMapper {
         map.put("institutionMail", institution.getDigitalAddress());
         map.put("managerTaxCode", manager.getFiscalCode());
         map.put("managerEmail", mailManager);
-        map.put("delegates", delegatesToText(users, onboarding.getOnboardingId()));
+        map.put("delegates", delegatesToText(users, workContactsKey.apply(onboarding.getOnboardingId())));
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
 
@@ -218,7 +218,7 @@ public class PdfMapper {
         }
     }
 
-    private static String delegatesToText(List<UserResource> users, String onboardingId) {
+    private static String delegatesToText(List<UserResource> users, String workContractId) {
         StringBuilder builder = new StringBuilder();
         users.forEach(user -> {
             builder
@@ -234,8 +234,8 @@ public class PdfMapper {
                     .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
 
-            if (Objects.nonNull(user.getWorkContacts()) && user.getWorkContacts().containsKey(workContactsKey.apply(onboardingId))) {
-                builder.append(getStringValue(user.getWorkContacts().get(onboardingId).getEmail()));
+            if (Objects.nonNull(user.getWorkContacts()) && user.getWorkContacts().containsKey(workContractId)) {
+                builder.append(getStringValue(user.getWorkContacts().get(workContractId).getEmail()));
             }
 
             builder.append("&nbsp;</span></p>\n")
