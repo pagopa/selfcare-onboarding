@@ -6,6 +6,7 @@ import io.quarkus.mailer.Mailer;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.Product;
@@ -129,7 +130,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendCompletedEmail(List.of(destination), product);
+        notificationService.sendCompletedEmail(List.of(destination), product, InstitutionType.PA);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

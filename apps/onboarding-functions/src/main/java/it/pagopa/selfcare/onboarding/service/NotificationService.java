@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.product.entity.Product;
 
 import java.util.List;
@@ -15,5 +16,5 @@ public interface NotificationService {
 
     void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName);
 
-    void sendCompletedEmail(List<String> destinationMails, Product product);
+    void sendCompletedEmail(List<String> destinationMails, Product product, InstitutionType institutionType);
 }
