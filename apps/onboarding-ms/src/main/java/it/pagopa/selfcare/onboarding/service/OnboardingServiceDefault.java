@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -25,6 +26,7 @@ import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
@@ -36,6 +38,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -75,6 +78,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s'.";
+
+
+    public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -106,6 +113,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     SignatureService signatureService;
     @Inject
     AzureBlobClient azureBlobClient;
+
+    @Inject
+    UserMapper userMapper;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
@@ -357,13 +367,9 @@ public class OnboardingServiceDefault implements OnboardingService {
             contact.setEmail(new CertifiableFieldResourceOfstring()
                     .value(model.getEmail())
                     .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
-            resource.setWorkContacts(Map.of(createWorkContractId(onboardingId), contact));
+            resource.setWorkContacts(Map.of(workContactsKey.apply(onboardingId), contact));
         }
         return resource;
-    }
-
-    private static String createWorkContractId(String onboardingId) {
-        return String.format("obg_%s", onboardingId);
     }
 
     protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser, String onboardingId) {
@@ -391,7 +397,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             workContact.setEmail(new CertifiableFieldResourceOfstring()
                     .value(user.getEmail())
                     .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
-            dto.setWorkContacts(Map.of(createWorkContractId(onboardingId), workContact));
+            dto.setWorkContacts(Map.of(workContactsKey.apply(onboardingId), workContact));
             mutableUserFieldsDto = Optional.of(dto);
         }
         return mutableUserFieldsDto;
@@ -581,6 +587,28 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .map(onboardingMapper::toGetResponse)
                         .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
                         .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))));
+    }
+
+    @Override
+    public Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId) {
+        return onboardingGet(onboardingId)
+                .flatMap(onboardingGet -> fillOnboardingWithUserInfo(onboardingGet.getUsers(), workContactsKey.apply(onboardingId))
+                        .replaceWith(onboardingGet));
+    }
+
+    private Uni<List<UserResponse>> fillOnboardingWithUserInfo(List<UserResponse> users, String workContractId) {
+        return Multi.createFrom().iterable(users)
+                .onItem().transformToUni(userResponse -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST ,userResponse.getId())
+                        .onItem().invoke(userResource -> userMapper.fillUserResponse(userResource, userResponse))
+                        .onItem().invoke(userResource -> Optional.ofNullable(userResource.getWorkContacts())
+                                .filter(map -> map.containsKey(workContractId))
+                                .map(map -> map.get(workContractId))
+                                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                                .map(workContract -> workContract.getEmail().getValue())
+                                .ifPresent(userResponse::setEmail))
+                        .replaceWith(userResponse)
+                    )
+                .merge().collect().asList();
     }
 
     private static Uni<Long> updateStatus(String onboardingId, OnboardingStatus onboardingStatus ) {

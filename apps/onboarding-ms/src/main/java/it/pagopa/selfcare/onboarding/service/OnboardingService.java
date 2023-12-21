@@ -33,4 +33,6 @@ public interface OnboardingService {
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 
     Uni<OnboardingGet> onboardingGet(String onboardingId);
+
+    Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
 }

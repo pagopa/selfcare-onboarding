@@ -1107,4 +1107,29 @@ class OnboardingServiceDefaultTest {
                 .assertFailedWith(ResourceNotFoundException.class);
     }
 
+    @Test
+    void onboardingGetWithUserInfo() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(userRegistryApi.findByIdUsingGET(anyString(), anyString()))
+                .thenReturn(Uni.createFrom().item(managerResource));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .onboardingGetWithUserInfo(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.assertCompleted().awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+        Assertions.assertEquals(onboarding.getProductId(), actual.getProductId());
+        Assertions.assertEquals(onboarding.getUsers().size(), actual.getUsers().size());
+        UserResponse actualUser = actual.getUsers().get(0);
+        Assertions.assertEquals(actualUser.getName(), managerResource.getName().getValue());
+        Assertions.assertEquals(actualUser.getSurname(), managerResource.getFamilyName().getValue());
+    }
+
 }
