@@ -120,7 +120,7 @@ class OnboardingServiceTest {
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
                         .thenReturn(userResource);
 
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST,delegate.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,delegate.getId()))
                 .thenReturn(delegateResource);
 
         when(productService.getProductIsValid(onboarding.getProductId()))
@@ -132,7 +132,7 @@ class OnboardingServiceTest {
                 .findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId());
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
-                .findByIdUsingGET(USERS_FIELD_LIST,delegate.getId());
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,delegate.getId());
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
