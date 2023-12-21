@@ -73,7 +73,7 @@ public class OnboardingService {
         List<UserResource> delegates = onboarding.getUsers()
                 .stream()
                 .filter(userToOnboard -> PartyRole.MANAGER != userToOnboard.getRole())
-                .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
+                .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.createContractPDF(product.getContractTemplatePath(), onboarding, manager, delegates, product.getTitle());
