@@ -112,14 +112,12 @@ public class OnboardingFunctions {
     }
 
     private void workflowForApprove(TaskOrchestrationContext ctx, String onboardingString, OnboardingStatus onboardingStatus){
-        switch (onboardingStatus) {
-            case REQUEST ->
-                    ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-            case TO_BE_VALIDATED -> {
-                ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-                ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-                ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-            }
+        if (OnboardingStatus.REQUEST.equals(onboardingStatus)) {
+            ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        } else if (OnboardingStatus.TO_BE_VALIDATED.equals(onboardingStatus)) {
+            ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+            ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+            ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         }
     }
 
