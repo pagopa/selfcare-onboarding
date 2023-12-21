@@ -65,7 +65,9 @@ class OnboardingServiceTest {
         onboarding.setOnboardingId(onboarding.getId().toHexString());
         onboarding.setProductId(productId);
         onboarding.setUsers(List.of());
-        onboarding.setInstitution(new Institution());
+        Institution institution = new Institution();
+        institution.setDescription("description");
+        onboarding.setInstitution(institution);
         onboarding.setUserRequestUid("example-uid");
         return onboarding;
     }
@@ -236,6 +238,38 @@ class OnboardingServiceTest {
                 .sendMailRegistrationWithContract(onboarding.getOnboardingId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+    }
+
+
+    @Test
+    void sendMailRegistrationWithContractWhenApprove() {
+
+        Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
+        UserResource userResource = createUserResource();
+        Token token = new Token();
+        token.setId(ObjectId.get());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService)
+                .sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        onboarding.getInstitution().getDescription(), "",
+                        product.getTitle());
+
+        onboardingService.sendMailRegistrationWithContractWhenApprove(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        onboarding.getInstitution().getDescription(), "",
                         product.getTitle());
     }
 
