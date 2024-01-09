@@ -1,4 +1,4 @@
-resource_group_name="io-infra-rg"
-storage_account_name="selcdstinfraterraform"
-container_name="k8sstate"
-key="terraform.tfstate"
+resource_group_name  = "terraform-state-rg"
+storage_account_name = "tfinfdevselfcare"
+container_name       = "terraform-state"
+key                  = "selfcare-onboarding.identity.tfstate"
