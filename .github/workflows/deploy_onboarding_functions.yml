@@ -1,0 +1,75 @@
+name: Deploy onboarding functions
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types: [closed]
+    paths:
+      - "apps/onboarding-functions/**"
+      - "apps/pom.xml"
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Select the Environment
+        options:
+          - dev
+          - uat
+          - prod
+
+env:
+  #DIR: "./.container_apps/onboarding-ms"
+  # This condition (that unfortunately must be replicated for the first job)
+  # sets the environment depending on the current context for manually
+  # started workflows, it picks up the value coming from the UI; otherwise,
+  # it sets prod or uat depending on the current branch.
+  # Ternary operator is not supported
+  ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}"
+
+jobs:
+  build:
+    name: Build Onboarding Functions
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) }}
+    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-cd"
+    permissions:
+      packages: write
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # pin@v1.11.0
+        with:
+          checkout-fetch-depth: 0
+          checkout-ref: ${{ github.ref_name }}
+          java-version: 17
+          java-distribution: 'temurin'
+          maven-version: '3.9.5'
+          cache-enabled: true
+
+      - name: "Build Functions and dependencies"
+        shell: bash
+        run: mvn --projects :onboarding-functions --also-make package install -DskipTests 
+          -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
+
+      - name: Log in to Azure
+        uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_CD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: "Deploy Functions"
+        shell: bash
+        run: mvn -f apps/onboarding-functions/pom.xml quarkus:deploy 
+          -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
+          -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }}
+          -Dquarkus.azure-functions.region=westeurope
+          -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }}
+          -Dquarkus.azure-functions.runtime.java-version=17
