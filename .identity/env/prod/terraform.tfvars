@@ -1,6 +1,8 @@
 prefix    = "selc"
 env       = "prod"
 env_short = "p"
+domain    = "onboarding-ms"
+location  = "westeurope"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -10,23 +12,45 @@ tags = {
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
 }
 
-user_registry_url = "https://api.pdv.pagopa.it/user-registry/v1"
-onboarding_functions_url = "https://selc-d-func.azurewebsites.net"
+ci_github_federations = [
+  {
+    repository = "selfcare-onboarding"
+    subject    = "prod-ci"
+  }
+]
 
-environment_roles = {
-  subscription = [
-    "Reader",
-    "Reader and Data Access",
-    "Storage Blob Data Reader",
-    "Storage File Data SMB Share Reader",
-    "Storage Queue Data Reader",
-    "Storage Table Data Reader",
-    "PagoPA Export Deployments Template",
-    "Key Vault Secrets User",
-    "DocumentDB Account Contributor",
-    "API Management Service Contributor",
-  ]
+cd_github_federations = [
+  {
+    repository = "selfcare-onboarding"
+    subject    = "prod-cd"
+  }
+]
+
+environment_ci_roles = {
+  subscription = ["Reader"]
+  resource_groups = {
+    "terraform-state-rg" = [
+      "Storage Blob Data Reader"
+    ]
+  }
 }
 
-onboarding_allowed_institutions_products = "{\"prod-interop\":[\"*\"],\"prod-pn\":[\"*\"],\"prod-io\":[\"*\"],\"prod-io-premium\":[\"*\"],\"prod-pagopa\":[\"*\"],\"prod-fd\":[\"*\"],\"prod-fd-garantito\": [\"*\"] }"
+environment_cd_roles = {
+  subscription = ["Reader"]
+  resource_groups = {
+    "terraform-state-rg" = [
+      "Storage Blob Data Contributor"
+    ]
+  }
+}
 
+github_repository_environment_ci = {
+  protected_branches     = false
+  custom_branch_policies = true
+}
+
+github_repository_environment_cd = {
+  protected_branches     = true
+  custom_branch_policies = false
+  reviewers_teams        = ["selfcare-contributors"]
+}
