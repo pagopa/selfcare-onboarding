@@ -39,4 +39,4 @@ jobs:
           distribution: 'temurin'
 
       - name: Launch unit test with Maven
-        run: mvn test --file onboarding-ms/pom.xml
+        run: mvn test --file apps/onboarding-ms/pom.xml
