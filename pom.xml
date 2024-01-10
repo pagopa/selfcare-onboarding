@@ -19,10 +19,8 @@
 
     <repositories>
         <repository>
-            <id>selfcare-platform</id>
-            <url>
-                https://maven.pkg.github.com/pagopa/selfcare-onboarding
-            </url>
+            <id>selfcare-github</id>
+            <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
         </repository>
     </repositories>
 
