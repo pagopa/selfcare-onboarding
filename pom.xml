@@ -21,7 +21,7 @@
         <repository>
             <id>selfcare-platform</id>
             <url>
-                https://pkgs.dev.azure.com/pagopaspa/selfcare-platform-app-projects/_packaging/selfcare-platform/maven/v1
+                https://github.com/pagopa/selfcare-onboarding/packages/1990993
             </url>
         </repository>
     </repositories>
