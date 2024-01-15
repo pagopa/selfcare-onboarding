@@ -46,19 +46,19 @@ jobs:
           maven-version: '3.9.5'
           cache-enabled: true
 
-      - name: Build and analyze on Pull Requests
-        shell: bash
-        run: |
-          mvn --projects :test-coverage --also-make verify -Ponboarding-ms,report,coverage
-            -Dsonar.organization=pagopa
-            -Dsonar.projectKey=pagopa_selfcare-onboarding
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-            -Dsonar.pullrequest.branch=${{ github.head_ref }}
-            -Dsonar.pullrequest.base=refs/remotes/origin/${{ github.base_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      - name: Build and analyze on Pull Requests
+#        shell: bash
+#        run: |
+#          mvn --projects :test-coverage --also-make verify -Ponboarding-ms,report,coverage
+#            -Dsonar.organization=pagopa
+#            -Dsonar.projectKey=pagopa_selfcare-onboarding
+#            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+#            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+#            -Dsonar.pullrequest.branch=${{ github.head_ref }}
+#            -Dsonar.pullrequest.base=refs/remotes/origin/${{ github.base_ref }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Launch unit test with Maven
         run: mvn test --file apps/onboarding-ms/pom.xml

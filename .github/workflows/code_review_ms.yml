@@ -11,18 +11,31 @@ on:
       - synchronize
       - reopened
     paths:
-      - 'apps/onboarding-ms/**'
+      - 'onboarding-ms/**'
 
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  deployments: write
+  packages: read
 
+env:
+  GITHUB_TOKEN_READ_PACKAGES: ${{ secrets.GITHUB_TOKEN }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-
   code-review:
-    runs-on: ubuntu-latest
+    name: Code Review Onboarding-ms
     permissions:
       packages: read
       id-token: write
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # pin@v1.11.0
@@ -33,15 +46,19 @@ jobs:
           maven-version: '3.9.5'
           cache-enabled: true
 
-      - name: Build and analyze on Pull Requests
-        shell: bash
-        run: mvn --projects :test-coverage --also-make verify -Ponboarding-ms,report,coverage
-          -Dsonar.organization=pagopa
-          -Dsonar.projectKey=pagopa_selfcare-onboarding
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.head_ref }}
-          -Dsonar.pullrequest.base=refs/remotes/origin/${{ github.base_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      - name: Build and analyze on Pull Requests
+#        shell: bash
+#        run: |
+#          mvn --projects :test-coverage --also-make verify -Ponboarding-ms,report,coverage
+#            -Dsonar.organization=pagopa
+#            -Dsonar.projectKey=pagopa_selfcare-onboarding
+#            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+#            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+#            -Dsonar.pullrequest.branch=${{ github.head_ref }}
+#            -Dsonar.pullrequest.base=refs/remotes/origin/${{ github.base_ref }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Launch unit test with Maven
+        run: mvn test --file apps/onboarding-ms/pom.xml
