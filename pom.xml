@@ -20,7 +20,7 @@
     <repositories>
         <repository>
             <id>selfcare-github</id>
-            <url>https://github.com/pagopa/selfcare-onboarding</url>
+            <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
         </repository>
     </repositories>
 
