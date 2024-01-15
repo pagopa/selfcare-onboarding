@@ -323,10 +323,4 @@
       </properties>
     </profile>
   </profiles>
-  <repositories>
-    <repository>
-      <id>selfcare-onboarding</id>
-      <url>https://maven.pkg.github.com/pagopa/selfcare-onboarding</url>
-    </repository>
-  </repositories>
 </project>
