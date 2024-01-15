@@ -61,6 +61,12 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      - name: maven-settings
+        uses: s4u/maven-settings-action@v2
+        with:
+          servers: '[{"id": "github", "username": "dummy", "password": "${{secrets.GH_PAT}}"}]'
+          githubServer: false
+
       - name: Launch unit test with Maven
         run: mvn test --file apps/onboarding-ms/pom.xml
         env:
