@@ -74,9 +74,9 @@ jobs:
 
 
       - name: maven-settings
-        uses: s4u/maven-settings-action@v2
+        uses: s4u/maven-settings-action@v3.0.0
         with:
-          servers: '[{"id": "github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
+          servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
           githubServer: false
 
       - name: Launch unit test with Maven
