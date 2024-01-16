@@ -64,7 +64,7 @@ jobs:
 #          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Launch unit test with Maven
-        run: mvn test -X --file apps/onboarding-ms/pom.xml
+        run: mvn test --file apps/onboarding-ms/pom.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN_REF: ${{ secrets.GH_PAT }}
