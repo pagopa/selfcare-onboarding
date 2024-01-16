@@ -72,6 +72,7 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #          GITHUB_TOKEN_REF: ${{ secrets.GH_PAT }}
 
+
       - name: maven-settings
         uses: s4u/maven-settings-action@v2
         with:
