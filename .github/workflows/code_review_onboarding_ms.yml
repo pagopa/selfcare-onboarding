@@ -45,7 +45,7 @@ jobs:
           java-version: 17
           java-distribution: 'temurin'
           maven-version: '3.9.5'
-          cache-enabled: true
+          cache-enabled: false
           checkout-token: ${{ secrets.GITHUB_TOKEN }}
           settings-servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
 
