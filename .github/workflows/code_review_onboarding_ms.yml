@@ -46,6 +46,9 @@ jobs:
           java-distribution: 'temurin'
           maven-version: '3.9.5'
           cache-enabled: true
+          checkout-token: ${{ secrets.GITHUB_TOKEN }}
+          servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
+          githubServer: false
 
 #      - name: Build and analyze on Pull Requests
 #        shell: bash
@@ -73,11 +76,11 @@ jobs:
 #          GITHUB_TOKEN_REF: ${{ secrets.GH_PAT }}
 
 
-      - name: maven-settings
-        uses: s4u/maven-settings-action@v3.0.0
-        with:
-          servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
-          githubServer: false
+#      - name: maven-settings
+#        uses: s4u/maven-settings-action@v3.0.0
+#        with:
+#          servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
+#          githubServer: false
 
       - name: Launch unit test with Maven
         run: mvn test --file apps/onboarding-ms/pom.xml
