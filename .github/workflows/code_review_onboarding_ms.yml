@@ -48,7 +48,6 @@ jobs:
           cache-enabled: true
           checkout-token: ${{ secrets.GITHUB_TOKEN }}
           settings-servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
-          settings-githubServer: false
 
 #      - name: Build and analyze on Pull Requests
 #        shell: bash
