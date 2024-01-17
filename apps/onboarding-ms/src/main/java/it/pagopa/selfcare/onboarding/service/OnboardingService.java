@@ -22,6 +22,10 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingPa(OnboardingPaRequest onboardingRequest);
 
+    Uni<OnboardingGet> approve(String onboardingId);
+
+    Uni<OnboardingGet> approveCompletion(String onboardingId);
+
     Uni<Onboarding> complete(String tokenId, File contract);
 
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);

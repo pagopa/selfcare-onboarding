@@ -992,6 +992,8 @@ class OnboardingServiceDefaultTest {
         onboarding.setProductId("prod-id");
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
+        institution.setSubunitCode("subunitCode");
         onboarding.setInstitution(institution);
 
         User user = new User();
@@ -1132,4 +1134,78 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(actualUser.getSurname(), managerResource.getFamilyName().getValue());
     }
 
+
+
+    @Test
+    void approve() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
+                onboarding.getInstitution().getSubunitCode()))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+
+        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+    }
+
+    @Test
+    void approve_throwExceptionIfOnboardingIsNotToBeValidated() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void approveCompletion() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
+                onboarding.getInstitution().getSubunitCode()))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+
+        when(orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+    }
 }

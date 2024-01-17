@@ -54,6 +54,7 @@ public enum GenericError {
     GET_INSTITUTION_ATTRIBUTES_ERROR("0022", "Error while getting party attributes"),
 
     ONBOARDING_EXPIRED("0040", "Onboarding with id %s not found or it is expired!"),
+    ONBOARDING_NOT_TO_BE_VALIDATED("0043", "Onboarding with id %s has not TO_BE_VALIDATED status!"),
     GET_INSTITUTION_BY_GEOTAXONOMY_ERROR("0053", "Error while searching institutions related to given geoTaxonomies"),
     GET_INSTITUTION_BY_PRODUCTID_ERROR("0053", "Error while searching institutions related to given productId"),
     GET_INSTITUTIONS_REQUEST_ERROR("0054", "Invalid request parameters sent. Allowed filters combinations taxCode and subunit or origin and originId"),

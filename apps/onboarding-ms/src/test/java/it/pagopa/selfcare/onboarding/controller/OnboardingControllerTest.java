@@ -323,7 +323,6 @@ class OnboardingControllerTest {
                 .onboardingGetWithUserInfo(onboardingGet.getId());
     }
 
-
     @Test
     @TestSecurity(user = "userJwt")
     void getOnboardingPending(){
@@ -340,6 +339,40 @@ class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .onboardingPending(onboardingGet.getId());
     }
+    @Test
+    @TestSecurity(user = "userJwt")
+    void approve(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.approve(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .put("/{onboardingId}/approve", onboardingGet.getId())
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .approve(onboardingGet.getId());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void approveCompletion(){
+        OnboardingGet onboardingGet = dummyOnboardingGet();
+        when(onboardingService.approveCompletion(onboardingGet.getId()))
+                .thenReturn(Uni.createFrom().item(onboardingGet));
+
+        given()
+                .when()
+                .put("/{onboardingId}/approve/completion", onboardingGet.getId())
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .approveCompletion(onboardingGet.getId());
+    }
+
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId","prod-io");

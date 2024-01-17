@@ -105,8 +105,7 @@ public class OnboardingController {
                 });
     }
 
-
-    @Operation(summary = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by hte institution." +
+    @Operation(summary = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
             "It checks the contract's signature and upload the contract on an azure storage" +
             "At the end, function triggers async activities related to complete onboarding " +
             "that consist of create the institution, activate the onboarding and sending data to notification queue.")
@@ -118,6 +117,33 @@ public class OnboardingController {
         return onboardingService.complete(onboardingId, file)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
+
+    @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
+            "Function triggers async activities related to onboarding based on institution type. " )
+
+    @PUT
+    @Path("/{onboardingId}/approve")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> approve(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.approve(onboardingId)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_OK)
+                        .build());
+    }
+
+
+    @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
+            "It triggers async activities related to complete onboarding workflow after approving " )
+
+    @PUT
+    @Path("/{onboardingId}/approve/completion")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> approveCompletion(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.approveCompletion(onboardingId)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_OK)
                         .build());
     }
 

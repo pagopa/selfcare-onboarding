@@ -46,6 +46,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
+import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
@@ -62,8 +63,7 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.GenericError.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.util.GenericError.ONBOARDING_EXPIRED;
+import static it.pagopa.selfcare.onboarding.util.GenericError.*;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -419,6 +419,30 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
+    public Uni<OnboardingGet> approve(String onboardingId) {
+        return approve(onboardingId, id -> orchestrationApi.apiStartOnboardingOrchestrationGet(id));
+    }
+
+    @Override
+    public Uni<OnboardingGet> approveCompletion(String onboardingId) {
+        return approve(onboardingId, id -> orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(id));
+    }
+
+
+    private Uni<OnboardingGet> approve(String onboardingId, Function<String, Uni<OrchestrationResponse>> approveFunction) {
+        return retrieveOnboardingAndCheckIfExpired(onboardingId)
+                .onItem().transformToUni(this::checkIfToBeValidated)
+                //Fail if onboarding exists for a product
+                .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
+                )
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? approveFunction.apply(onboardingId).map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding))
+                .map(onboardingMapper::toGetResponse);
+    }
+
+    @Override
     public Uni<Onboarding> complete(String onboardingId, File contract) {
 
         if (Boolean.TRUE.equals(isVerifyEnabled)) {
@@ -496,6 +520,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .map(onboarding -> Uni.createFrom().item(onboarding))
                         .orElse(Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_EXPIRED.getMessage(),
                                 onboardingId, ONBOARDING_EXPIRED.getCode())))));
+    }
+
+
+    private Uni<Onboarding> checkIfToBeValidated(Onboarding onboarding) {
+        return OnboardingStatus.TO_BE_VALIDATED.equals(onboarding.getStatus())
+                ? Uni.createFrom().item(onboarding)
+                : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
+                    onboarding.getInstitution(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
     }
 
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
