@@ -282,4 +282,16 @@ public class OnboardingFunctionsTest {
         Mockito.verify(service, times(1))
                 .sendMailOnboardingApprove(any());
     }
+
+    @Test
+    void sendMailRegistrationWithContractWhenApprove() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(service).sendMailRegistrationWithContractWhenApprove(any());
+
+        function.sendMailRegistrationWithContractWhenApprove(onboardinString, executionContext);
+
+        Mockito.verify(service, times(1))
+                .sendMailRegistrationWithContractWhenApprove(any());
+    }
 }

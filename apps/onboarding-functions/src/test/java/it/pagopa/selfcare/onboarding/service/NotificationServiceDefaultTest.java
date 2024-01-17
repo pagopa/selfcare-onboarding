@@ -163,4 +163,26 @@ class NotificationServiceDefaultTest {
         assertEquals(notificationAdminMail, mailArgumentCaptor.getValue().getTo().get(0));
     }
 
+
+    @Test
+    void sendMailOnboardingApprove() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.onboardingApprovePath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailOnboardingApprove(institutionName, "name","username","product","token");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(notificationAdminMail, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
 }
