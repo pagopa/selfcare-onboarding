@@ -52,7 +52,7 @@ jobs:
       - name: Check out BASE revision
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
-          ref: release-dev
+          ref: EC-78-importare-pipeline-nel-branch-main
           path: base
 
 #      - name: Build and analyze on Pull Requests
@@ -70,7 +70,7 @@ jobs:
 #          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Launch unit test with Maven
-        working-directory: apps/onboarding-ms
+        working-directory: base/apps/onboarding-ms
         run: mvn test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
