@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
@@ -136,11 +137,17 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendCompletedEmail(List<String> destinationMails, Product product) {
+    public void sendCompletedEmail(List<String> destinationMails, Product product, InstitutionType institutionType) {
 
-        String templatePath = product.getId().equals(PROD_FD.getValue())||product.getId().equals(PROD_FD_GARANTITO.getValue())
-                ? templatePathConfig.completePathFd()
-                : templatePathConfig.completePath();
+        String templatePath;
+
+        if(InstitutionType.PT.equals(institutionType)) {
+            templatePath = templatePathConfig.completePathPt();
+        } else {
+            templatePath =product.getId().equals(PROD_FD.getValue()) || product.getId().equals(PROD_FD_GARANTITO.getValue())
+                    ? templatePathConfig.completePathFd()
+                    : templatePathConfig.completePath();
+        }
 
         byte[] logoData = null;
 

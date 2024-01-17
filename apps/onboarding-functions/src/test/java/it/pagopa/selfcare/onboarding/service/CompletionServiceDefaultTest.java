@@ -261,12 +261,12 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
-        doNothing().when(notificationService).sendCompletedEmail(any(), any());
+        doNothing().when(notificationService).sendCompletedEmail(any(), any(), any());
 
         completionServiceDefault.sendCompletedEmail(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendCompletedEmail(any(), any());
+                .sendCompletedEmail(any(), any(), any());
     }
 
     private InstitutionResponse dummyInstitutionResponse() {

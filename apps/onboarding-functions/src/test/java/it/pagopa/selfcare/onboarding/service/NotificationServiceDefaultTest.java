@@ -6,6 +6,7 @@ import io.quarkus.mailer.Mailer;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.Product;
@@ -129,7 +130,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendCompletedEmail(List.of(destination), product);
+        notificationService.sendCompletedEmail(List.of(destination), product, InstitutionType.PA);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -152,6 +153,28 @@ class NotificationServiceDefaultTest {
         Mockito.doNothing().when(mailer).send(any());
 
         notificationService.sendMailRegistrationApprove(institutionName, "name","username","product","token");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(notificationAdminMail, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+
+    @Test
+    void sendMailOnboardingApprove() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.onboardingApprovePath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailOnboardingApprove(institutionName, "name","username","product","token");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

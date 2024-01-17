@@ -17,6 +17,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -39,6 +40,8 @@ public class OnboardingFunctions {
     public static final String SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME = "SaveTokenWithContract";
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY = "SendMailRegistrationWithContract";
+
+    public static final String SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY = "SendMailRegistrationWithContractWhenApprove";
     public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY = "SendMailRegistrationRequest";
     public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY = "SendMailRegistrationApprove";
     public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY = "SendMailOnboardingApprove";
@@ -93,13 +96,15 @@ public class OnboardingFunctions {
 
         switch (onboarding.getWorkflowType()) {
             case CONTRACT_REGISTRATION -> workflowContractRegistration(ctx, onboardingString);
-            case FOR_APPROVE -> workflowForApprove(ctx, onboardingString);
+            case FOR_APPROVE ->  workflowForApprove(ctx, onboardingString, onboarding.getStatus());
             case FOR_APPROVE_PT -> workflowRegistrationRequestAndApprove(ctx, onboardingString);
             case CONFIRMATION -> workflowForConfirmation(ctx, onboardingString);
         }
 
         //Last activity consist of saving pending status
-        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboardingId, OnboardingStatus.PENDING.name());
+        OnboardingStatus nextStatus = nextProcessOnboardingStatus(onboarding.getStatus(), onboarding.getWorkflowType());
+        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboardingId, nextStatus.name());
+
         ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, saveOnboardingStatusInput, optionsRetry, String.class).await();
     }
 
@@ -109,8 +114,14 @@ public class OnboardingFunctions {
         ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString, optionsRetry, String.class).await();
     }
 
-    private void workflowForApprove(TaskOrchestrationContext ctx, String onboardingString){
-        ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+    private void workflowForApprove(TaskOrchestrationContext ctx, String onboardingString, OnboardingStatus onboardingStatus){
+        if (OnboardingStatus.REQUEST.equals(onboardingStatus)) {
+            ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        } else if (OnboardingStatus.TO_BE_VALIDATED.equals(onboardingStatus)) {
+            ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+            ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+            ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        }
     }
 
     private void workflowRegistrationRequestAndApprove(TaskOrchestrationContext ctx, String onboardingString){
@@ -148,6 +159,11 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString));
         service.sendMailRegistrationWithContract(readOnboardingValue(objectMapper, onboardingString));
     }
+    @FunctionName(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY)
+    public void sendMailRegistrationWithContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
+        service.sendMailRegistrationWithContractWhenApprove(readOnboardingValue(objectMapper, onboardingString));
+    }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)
     public void sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
@@ -174,5 +190,14 @@ public class OnboardingFunctions {
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString));
         return onboardingString;
+    }
+
+    private OnboardingStatus nextProcessOnboardingStatus(OnboardingStatus previous, WorkflowType workflowType) {
+        if(OnboardingStatus.REQUEST.equals(previous) &&
+                (WorkflowType.FOR_APPROVE.equals(workflowType) || WorkflowType.FOR_APPROVE_PT.equals(workflowType))) {
+            return OnboardingStatus.TO_BE_VALIDATED;
+        }
+
+        return OnboardingStatus.PENDING;
     }
 }

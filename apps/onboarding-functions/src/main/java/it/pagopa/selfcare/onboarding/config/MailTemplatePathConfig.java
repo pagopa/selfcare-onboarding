@@ -7,6 +7,7 @@ public interface MailTemplatePathConfig {
 
     String completePath();
     String completePathFd();
+    String completePathPt();
 
     String autocompletePath();
 

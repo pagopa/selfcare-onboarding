@@ -10,6 +10,7 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -130,6 +131,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorForApprove() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
@@ -141,6 +143,26 @@ public class OnboardingFunctionsTest {
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_ONBOARDING_STATUS_ACTIVITY, captorActivity.getAllValues().get(1));
+    }
+
+    @Test
+    void onboardingsOrchestratorForApproveWhenToBeValidated() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(4))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
+        assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SAVE_ONBOARDING_STATUS_ACTIVITY, captorActivity.getAllValues().get(3));
     }
 
     @Test
@@ -259,5 +281,17 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(service, times(1))
                 .sendMailOnboardingApprove(any());
+    }
+
+    @Test
+    void sendMailRegistrationWithContractWhenApprove() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(service).sendMailRegistrationWithContractWhenApprove(any());
+
+        function.sendMailRegistrationWithContractWhenApprove(onboardinString, executionContext);
+
+        Mockito.verify(service, times(1))
+                .sendMailRegistrationWithContractWhenApprove(any());
     }
 }

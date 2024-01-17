@@ -136,7 +136,7 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void sendCompletedEmail(Onboarding onboarding) {
 
-        String workContractId = String.format("obg_%s", onboarding.getOnboardingId());
+        String workContractId = workContactsKey.apply(onboarding.getOnboardingId());
 
         List<String> destinationMails = onboarding.getUsers().stream()
                 .filter(user -> MANAGER.equals(user.getRole()))
@@ -152,7 +152,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
-        notificationService.sendCompletedEmail(destinationMails, product);
+        notificationService.sendCompletedEmail(destinationMails, product, onboarding.getInstitution().getInstitutionType());
     }
 
 
