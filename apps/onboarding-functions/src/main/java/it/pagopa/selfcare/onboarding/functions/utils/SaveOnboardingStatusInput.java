@@ -2,6 +2,8 @@ package it.pagopa.selfcare.onboarding.functions.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 
 public class SaveOnboardingStatusInput {
 
@@ -56,5 +58,13 @@ public class SaveOnboardingStatusInput {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static OnboardingStatus toNextOnboardingStatus(OnboardingStatus previous, WorkflowType workflowType) {
+        if(WorkflowType.FOR_APPROVE.equals(workflowType) && OnboardingStatus.REQUEST.equals(previous)) {
+            return OnboardingStatus.TO_BE_VALIDATED;
+        }
+
+        return OnboardingStatus.PENDING;
     }
 }
