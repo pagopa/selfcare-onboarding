@@ -49,6 +49,12 @@ jobs:
           checkout-token: ${{ secrets.GITHUB_TOKEN }}
           settings-servers: '[{"id": "selfcare-github", "username": "user", "password": "${GITHUB_TOKEN_REF}"}]'
 
+      - name: Check out BASE revision
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: release-dev
+          path: base
+
 #      - name: Build and analyze on Pull Requests
 #        shell: bash
 #        run: |
