@@ -17,6 +17,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -101,7 +102,9 @@ public class OnboardingFunctions {
         }
 
         //Last activity consist of saving pending status
-        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboardingId, OnboardingStatus.PENDING.name());
+        OnboardingStatus nextStatus = nextProcessOnboardingStatus(onboarding.getStatus(), onboarding.getWorkflowType());
+        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboardingId, nextStatus.name());
+
         ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, saveOnboardingStatusInput, optionsRetry, String.class).await();
     }
 
@@ -187,5 +190,14 @@ public class OnboardingFunctions {
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString));
         return onboardingString;
+    }
+
+    private OnboardingStatus nextProcessOnboardingStatus(OnboardingStatus previous, WorkflowType workflowType) {
+        if(OnboardingStatus.REQUEST.equals(previous) &&
+                (WorkflowType.FOR_APPROVE.equals(workflowType) || WorkflowType.FOR_APPROVE_PT.equals(workflowType))) {
+            return OnboardingStatus.TO_BE_VALIDATED;
+        }
+
+        return OnboardingStatus.PENDING;
     }
 }
