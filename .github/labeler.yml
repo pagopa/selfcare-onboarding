@@ -9,7 +9,7 @@ libs:
 
 ops:
 - .github/**
-- .container_apps/**
+- infra/**
 - .identity/**
 
 docs:
