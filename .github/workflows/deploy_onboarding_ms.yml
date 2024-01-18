@@ -125,6 +125,7 @@ jobs:
           azure_environment: ${{ steps.setenv.outputs.environment }}
         env:
           TF_VAR_image_tag: ${{ steps.setsha.outputs.short_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Terraform Plan as Artifact"
         uses: actions/upload-artifact@v3
