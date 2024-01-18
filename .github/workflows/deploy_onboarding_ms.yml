@@ -45,10 +45,18 @@ jobs:
       id-token: write
 
     steps:
+      - name: Print vars
+        id: setenv
+        shell: bash
+        run: |
+          echo ${{ github.base_ref }}
+          echo ${{ github.base_ref == 'refs/heads/release*' }}
+          echo ${{ github.base_ref == 'refs/heads/*' }}
+
       - uses: actions/checkout@v4
         name: Checkout
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.ref_name  }}
 
       # this workaround is necessary to pass the environment value to the next job
       # unexpectly, global env vars cannot be read to set the environment and I don't
