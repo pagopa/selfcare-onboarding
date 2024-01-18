@@ -34,7 +34,6 @@ jobs:
   build:
     name: Build Onboarding Microservice
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || github.base_ref == 'refs/heads/release*') }}
     environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (github.base_ref == 'refs/heads/release*' && 'uat' || 'dev')) }}-ci"
     outputs:
       environment: ${{ steps.setenv.outputs.environment }}
@@ -46,12 +45,13 @@ jobs:
 
     steps:
       - name: Print vars
-        id: setenv
+        id: Print
         shell: bash
         run: |
           echo ${{ github.base_ref }}
           echo ${{ github.base_ref == 'refs/heads/release*' }}
           echo ${{ github.base_ref == 'refs/heads/*' }}
+          exit
 
       - uses: actions/checkout@v4
         name: Checkout
