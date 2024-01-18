@@ -1,0 +1,56 @@
+name: Check PR
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: write
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  labeler:
+    name: Add label to PR based on the paths of files being changed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@ac9175f8a1f3625fd0d4fb234536d26811351594 # pin@v4
+
+  check_pr_size:
+    name: Check PR size doesn't break set limit
+    runs-on: ubuntu-latest
+    steps:
+      # checkout your code with your git history
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get total lines changed
+        run: |
+          size=$(git diff --stat origin/develop --diff-filter=d \
+          | grep -v .lock \
+          | awk -F"|" '{ print $2 }' \
+          | awk '{ print $1 }' \
+          | sed '/^$/d' \
+          | paste -sd+ - \
+          | bc)
+
+          echo "size=${size}" >> $GITHUB_ENV
+          echo ""
+          echo "Total lines changed (note: *.lock files are excluded from this count): "
+          echo $size
+        shell: bash
+      - run: |
+          if [[ $size -gt 500 ]]
+          then
+            echo "Warning - total lines changed is greater than 500."
+            echo "Please consider breaking this PR down."
+            exit 1
+          fi
+        shell: bash

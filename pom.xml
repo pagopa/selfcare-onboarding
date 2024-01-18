@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>it.pagopa.selfcare</groupId>
-    <artifactId>onboarding</artifactId>
+    <artifactId>onboarding-root</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
 
@@ -12,23 +12,10 @@
 
 
     <modules>
-        <module>onboarding-functions</module>
-        <module>onboarding-ms</module>
+        <module>apps</module>
+        <module>libs</module>
+        <module>test-coverage</module>
     </modules>
-
-    <properties>
-        <selc-commons.version>2.4.6</selc-commons.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>selc-commons-base</artifactId>
-            <version>${selc-commons.version}</version>
-        </dependency>
-    </dependencies>
-
-
 
     <repositories>
         <repository>

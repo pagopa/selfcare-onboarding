@@ -27,16 +27,22 @@ cd_github_federations = [
 ]
 
 environment_ci_roles = {
-  subscription = ["Reader"]
+  subscription = [
+    "Reader",
+    "Key Vault Secrets User"
+  ]
   resource_groups = {
     "terraform-state-rg" = [
-      "Storage Blob Data Reader"
+      "Storage Blob Data Contributor"
     ]
   }
 }
 
 environment_cd_roles = {
-  subscription = ["Reader"]
+  subscription = [
+    "Reader",
+    "Contributor"
+  ]
   resource_groups = {
     "terraform-state-rg" = [
       "Storage Blob Data Contributor"

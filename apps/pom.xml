@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>it.pagopa.selfcare</groupId>
+        <artifactId>onboarding-root</artifactId>
+        <version>0.0.1</version>
+    </parent>
+
+    <artifactId>onboarding-apps</artifactId>
+    <packaging>pom</packaging>
+
+    <profiles>
+        <profile>
+            <id>onboarding-ms</id>
+            <activation>
+                <file>
+                    <exists>onboarding-ms/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>onboarding-ms</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>onboarding-functions</id>
+            <activation>
+                <file>
+                    <exists>onboarding-functions/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>onboarding-functions</module>
+            </modules>
+        </profile>
+    </profiles>
+
+</project>

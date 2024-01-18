@@ -1,0 +1,16 @@
+functions:
+- apps/onboarding-functions/**
+
+onboarding-ms:
+- apps/onboarding-ms/**
+
+libs:
+- libs/**
+
+ops:
+- .github/**
+- infra/**
+- .identity/**
+
+docs:
+- README.md
