@@ -12,9 +12,13 @@ resource "github_repository_environment" "github_repository_environment_cd" {
       )
     }
   }
-  deployment_branch_policy {
-    protected_branches     = var.github_repository_environment_cd.protected_branches
-    custom_branch_policies = var.github_repository_environment_cd.custom_branch_policies
+  
+  dynamic "deployment_branch_policy" {
+    for_each = var.github_repository_environment_cd.protected_branches ? [1] : []
+    content {
+      protected_branches     = var.github_repository_environment_cd.protected_branches
+      custom_branch_policies = var.github_repository_environment_cd.custom_branch_policies
+    }
   }
 }
 
