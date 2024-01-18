@@ -49,8 +49,8 @@ jobs:
         shell: bash
         run: |
           echo ${{ github.ref_name }}
-          echo ${{ github.ref_name == 'refs/heads/release*' }}
-          echo ${{ github.ref_name == 'refs/heads/*' }}
+          echo ${{ github.base_ref }}
+          echo ${{ github.ref_name == 'release*' }}
           exit
 
       - uses: actions/checkout@v4
