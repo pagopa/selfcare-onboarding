@@ -22,7 +22,7 @@ on:
           - prod
 
 env:
-  DIR: "./.container_apps/onboarding-ms"
+  DIR: "./infra/.container_apps/onboarding-ms"
   # This condition (that unfortunately must be replicated for the first job)
   # sets the environment depending on the current context for manually
   # started workflows, it picks up the value coming from the UI; otherwise,

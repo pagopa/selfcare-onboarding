@@ -24,7 +24,7 @@ Look at single README module for more information.
 
 ## Infrastructure
 
-The [`.container_apps/`] sub folder contains terraform files for deploying infrastructure as container apps in Azure.
+The [`.infra/`] sub folder contains terraform files for deploying infrastructure such as container apps or functions in Azure.
 
 
 ## Continous integration
