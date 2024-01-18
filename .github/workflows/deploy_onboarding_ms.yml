@@ -54,6 +54,7 @@ jobs:
           else
             echo "Il branch 'github.ref_name' non è un branch di release, interrompendo la pipeline."
             exit 1
+          fi
           exit 1
 
       - uses: actions/checkout@v4
