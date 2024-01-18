@@ -3,12 +3,13 @@ name: Deploy onboarding functions
 on:
   pull_request:
     branches:
-      - develop
       - main
     types: [closed]
     paths:
       - "apps/onboarding-functions/**"
-      - "apps/pom.xml"
+        - "apps/pom.xml"
+  # deploy UAT when create a new branch release*, condition below contains() permit to execute worflow only for 'release' branch
+  create:
 
   workflow_dispatch:
     inputs:
@@ -22,14 +23,14 @@ on:
           - prod
 
 env:
-  ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}"
+  ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}"
 
 jobs:
   build:
     name: Build Onboarding Functions
     runs-on: ubuntu-latest
-    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) }}
-    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'prod' || (github.base_ref == 'develop' && 'uat' || 'dev')) }}-cd"
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || contains(github.ref_name, 'release')) }}
+    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}-ci"
     permissions:
       packages: write
       contents: write

@@ -8,6 +8,7 @@ on:
     paths:
       - "apps/onboarding-ms/**"
       - "apps/pom.xml"
+  # deploy UAT when create a new branch release*, condition below contains() permit to execute worflow only for 'release' branch
   create:
 
   workflow_dispatch:
