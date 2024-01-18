@@ -48,13 +48,7 @@ jobs:
         id: Print
         shell: bash
         run: |
-          echo ${{ github.ref_name }}
-          if [[ contains(github.ref_name, 'release') ]]; then
-            echo "Il branch 'github.ref_name' è un branch di release, continuando con la pipeline."
-          else
-            echo "Il branch 'github.ref_name' non è un branch di release, interrompendo la pipeline."
-            exit 1
-          fi
+          echo ${{ contains(github.ref_name, 'release')  }}
           exit 1
 
       - uses: actions/checkout@v4
