@@ -28,13 +28,14 @@ env:
   # started workflows, it picks up the value coming from the UI; otherwise,
   # it sets prod or uat depending on the current branch.
   # Ternary operator is not supported
-  ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (github.base_ref == 'refs/heads/release*' && 'uat' || 'dev')) }}"
+  ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}"
 
 jobs:
   build:
     name: Build Onboarding Microservice
     runs-on: ubuntu-latest
-    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (github.base_ref == 'refs/heads/release*' && 'uat' || 'dev')) }}-ci"
+    if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || contains(github.ref_name, 'release')) }}
+    environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}-ci"
     outputs:
       environment: ${{ steps.setenv.outputs.environment }}
       short_sha: ${{ steps.setsha.outputs.short_sha }}
@@ -44,17 +45,10 @@ jobs:
       id-token: write
 
     steps:
-      - name: Print vars
-        id: Print
-        shell: bash
-        run: |
-          echo ${{ contains(github.ref_name, 'release')  }}
-          exit 1
-
       - uses: actions/checkout@v4
         name: Checkout
         with:
-          ref: ${{ github.ref_name  }}
+          ref: ${{ github.ref_name }}
 
       # this workaround is necessary to pass the environment value to the next job
       # unexpectly, global env vars cannot be read to set the environment and I don't
