@@ -22,7 +22,7 @@ on:
           - prod
 
 env:
-  DIR: "./.container_apps/onboarding-ms"
+  DIR: "./infra/container_apps/onboarding-ms"
   # This condition (that unfortunately must be replicated for the first job)
   # sets the environment depending on the current context for manually
   # started workflows, it picks up the value coming from the UI; otherwise,
@@ -125,6 +125,7 @@ jobs:
           azure_environment: ${{ steps.setenv.outputs.environment }}
         env:
           TF_VAR_image_tag: ${{ steps.setsha.outputs.short_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Terraform Plan as Artifact"
         uses: actions/upload-artifact@v3
