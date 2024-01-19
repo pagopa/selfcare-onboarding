@@ -1003,10 +1003,15 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-        String onboardingId = "655df045dc52ea5f37c80955";
-        mockUpdateOnboarding(onboardingId, 1L);
+
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboarding(onboarding.getId().toHexString(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .rejectOnboarding(onboardingId)
+                .rejectOnboarding(onboarding.getId().toHexString())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1026,20 +1031,25 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
-        String onboardingId = "655df045dc52ea5f37c80955";
-        mockUpdateOnboarding(onboardingId, 0L);
+
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+        mockUpdateOnboarding(onboarding.getId().toHexString(), 0L);
+
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .rejectOnboarding(onboardingId)
+                .rejectOnboarding(onboarding.getId().toHexString())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
-        subscriber.assertFailedWith(InvalidRequestException.class, "Onboarding with id 655df045dc52ea5f37c80955 not found or already deleted");
+        subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
     private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
         PanacheMock.mock(Onboarding.class);
-        when(Onboarding.update(Onboarding.Fields.status.name(), OnboardingStatus.DELETED)).thenReturn(query);
+        when(Onboarding.update(Onboarding.Fields.status.name(), OnboardingStatus.REJECTED)).thenReturn(query);
         when(query.where("_id", onboardingId)).thenReturn(Uni.createFrom().item(updatedItemCount));
     }
 

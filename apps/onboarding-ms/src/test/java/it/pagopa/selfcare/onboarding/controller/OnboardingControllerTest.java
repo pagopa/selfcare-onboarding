@@ -238,7 +238,7 @@ class OnboardingControllerTest {
         given()
                 .when()
                 .pathParam("onboardingId", onboardingId)
-                .put("/{onboardingId}/delete")
+                .put("/{onboardingId}/reject")
                 .then()
                 .statusCode(204);
 
@@ -259,7 +259,7 @@ class OnboardingControllerTest {
         given()
                 .when()
                 .pathParam("onboardingId", onboardingId)
-                .put("/{onboardingId}/delete")
+                .put("/{onboardingId}/reject")
                 .then()
                 .statusCode(400);
 
