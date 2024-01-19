@@ -59,6 +59,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -420,16 +421,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingGet> approve(String onboardingId) {
-        return approve(onboardingId, id -> orchestrationApi.apiStartOnboardingOrchestrationGet(id));
-    }
 
-    @Override
-    public Uni<OnboardingGet> approveCompletion(String onboardingId) {
-        return approve(onboardingId, id -> orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(id));
-    }
+        // If approve if for PT it must complete onboarding, otherwise continue to onboarding process
+        Function<WorkflowType, Supplier<Uni<OrchestrationResponse>>> approveFunction =
+                workflowType -> WorkflowType.FOR_APPROVE_PT.equals(workflowType)
+                ? () -> orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboardingId)
+                : () -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId);
 
-
-    private Uni<OnboardingGet> approve(String onboardingId, Function<String, Uni<OrchestrationResponse>> approveFunction) {
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(this::checkIfToBeValidated)
                 //Fail if onboarding exists for a product
@@ -437,7 +435,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? approveFunction.apply(onboardingId).map(ignore -> onboarding)
+                        ? approveFunction.apply(onboarding.getWorkflowType())
+                            .get().map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
     }
@@ -606,6 +605,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingGet> onboardingPending(String onboardingId) {
         return onboardingGet(onboardingId)
                 .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
+                 ||  OnboardingStatus.TO_BE_VALIDATED.name().equals(onboardingGet.getStatus())
                     ? Uni.createFrom().item(onboardingGet)
                     : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
     }

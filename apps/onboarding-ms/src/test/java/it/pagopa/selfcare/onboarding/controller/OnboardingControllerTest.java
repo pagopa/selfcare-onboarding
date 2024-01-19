@@ -356,23 +356,6 @@ class OnboardingControllerTest {
                 .approve(onboardingGet.getId());
     }
 
-    @Test
-    @TestSecurity(user = "userJwt")
-    void approveCompletion(){
-        OnboardingGet onboardingGet = dummyOnboardingGet();
-        when(onboardingService.approveCompletion(onboardingGet.getId()))
-                .thenReturn(Uni.createFrom().item(onboardingGet));
-
-        given()
-                .when()
-                .put("/{onboardingId}/approve/completion", onboardingGet.getId())
-                .then()
-                .statusCode(200);
-
-        verify(onboardingService, times(1))
-                .approveCompletion(onboardingGet.getId());
-    }
-
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId","prod-io");

@@ -121,27 +121,13 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
-            "Function triggers async activities related to onboarding based on institution type. " )
+            "Function triggers async activities related to onboarding based on institution type or completing onboarding. " )
 
     @PUT
     @Path("/{onboardingId}/approve")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<Response> approve(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.approve(onboardingId)
-                .map(ignore -> Response
-                        .status(HttpStatus.SC_OK)
-                        .build());
-    }
-
-
-    @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
-            "It triggers async activities related to complete onboarding workflow after approving " )
-
-    @PUT
-    @Path("/{onboardingId}/approve/completion")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> approveCompletion(@PathParam(value = "onboardingId") String onboardingId) {
-        return onboardingService.approveCompletion(onboardingId)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_OK)
                         .build());
