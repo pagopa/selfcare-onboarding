@@ -526,7 +526,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return OnboardingStatus.TO_BE_VALIDATED.equals(onboarding.getStatus())
                 ? Uni.createFrom().item(onboarding)
                 : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
-                    onboarding.getInstitution(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
+                    onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
     }
 
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
