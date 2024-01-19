@@ -1030,6 +1030,23 @@ class OnboardingServiceDefaultTest {
     }
 
     @Test
+    void rejectOnboarding_statusIsCOMPLETED() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboarding(onboarding.getId().toHexString(), 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .rejectOnboarding(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
 
         Onboarding onboarding = createDummyOnboarding();
