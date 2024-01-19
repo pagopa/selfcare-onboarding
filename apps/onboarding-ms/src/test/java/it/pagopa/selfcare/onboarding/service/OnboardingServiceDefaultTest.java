@@ -1006,7 +1006,7 @@ class OnboardingServiceDefaultTest {
         String onboardingId = "655df045dc52ea5f37c80955";
         mockUpdateOnboarding(onboardingId, 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .deleteOnboarding(onboardingId)
+                .rejectOnboarding(onboardingId)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1017,7 +1017,7 @@ class OnboardingServiceDefaultTest {
     void testOnboardingUpdateStatusInvalidOnboardingId() {
         String onboardingId = "123456";
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .deleteOnboarding(onboardingId)
+                .rejectOnboarding(onboardingId)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1029,7 +1029,7 @@ class OnboardingServiceDefaultTest {
         String onboardingId = "655df045dc52ea5f37c80955";
         mockUpdateOnboarding(onboardingId, 0L);
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .deleteOnboarding(onboardingId)
+                .rejectOnboarding(onboardingId)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

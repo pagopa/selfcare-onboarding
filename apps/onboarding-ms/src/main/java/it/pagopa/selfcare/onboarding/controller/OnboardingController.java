@@ -135,9 +135,9 @@ public class OnboardingController {
     }
 
     @PUT
-    @Path("/{onboardingId}/delete")
+    @Path("/{onboardingId}/reject")
     public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
-        return onboardingService.deleteOnboarding(onboardingId)
+        return onboardingService.rejectOnboarding(onboardingId)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());

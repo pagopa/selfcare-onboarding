@@ -232,7 +232,7 @@ class OnboardingControllerTest {
     void deleteOK(){
         String onboardingId = "actual-onboarding-id";
 
-        when(onboardingService.deleteOnboarding(onboardingId))
+        when(onboardingService.rejectOnboarding(onboardingId))
                 .thenReturn(Uni.createFrom().item(1L));
 
         given()
@@ -244,7 +244,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
-                .deleteOnboarding(expectedId.capture());
+                .rejectOnboarding(expectedId.capture());
         assertEquals(expectedId.getValue(), onboardingId);
     }
 
@@ -253,7 +253,7 @@ class OnboardingControllerTest {
     void deleteInvalidOnboardingIdOrOnboardingNotFound(){
         String onboardingId = "actual-onboarding-id";
 
-        when(onboardingService.deleteOnboarding(onboardingId))
+        when(onboardingService.rejectOnboarding(onboardingId))
                 .thenThrow(InvalidRequestException.class);
 
         given()
@@ -265,7 +265,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
-                .deleteOnboarding(expectedId.capture());
+                .rejectOnboarding(expectedId.capture());
         assertEquals(expectedId.getValue(), onboardingId);
     }
 
