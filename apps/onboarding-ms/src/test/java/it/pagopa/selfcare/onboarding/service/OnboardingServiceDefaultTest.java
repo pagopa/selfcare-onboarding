@@ -16,7 +16,6 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.*;
-import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
@@ -27,6 +26,8 @@ import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
@@ -42,6 +43,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
@@ -101,6 +103,9 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     OrchestrationApi orchestrationApi;
+
+    @Spy
+    OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
     final static UserRequest manager = UserRequest.builder()
             .name("name")
@@ -931,7 +936,7 @@ class OnboardingServiceDefaultTest {
         int page = 0, size = 3;
         Onboarding onboarding = createDummyOnboarding();
         mockFindOnboarding(onboarding);
-        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding.getId());
+        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding);
         UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
                 .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size)
                 .subscribe()
@@ -940,19 +945,11 @@ class OnboardingServiceDefaultTest {
         subscriber.assertCompleted().assertItem(getResponse);
     }
 
-    private static OnboardingGetResponse getOnboardingGetResponse(ObjectId id) {
-        OnboardingGet onboarding = new OnboardingGet();
-        onboarding.setId(id.toString());
-        onboarding.setProductId("prod-id");
-        UserResponse user = new UserResponse();
-        user.setId("actual-user-id");
-        user.setRole(PartyRole.MANAGER);
-        onboarding.setUsers(List.of(user));
-        InstitutionResponse institutionResponse = new InstitutionResponse();
-        onboarding.setInstitution(institutionResponse);
+    private OnboardingGetResponse getOnboardingGetResponse(Onboarding onboarding) {
+        OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
         OnboardingGetResponse response = new OnboardingGetResponse();
         response.setCount(1L);
-        response.setItems(List.of(onboarding));
+        response.setItems(List.of(onboardingGet));
         return response;
     }
 
@@ -992,6 +989,8 @@ class OnboardingServiceDefaultTest {
         onboarding.setProductId("prod-id");
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
+        institution.setSubunitCode("subunitCode");
         onboarding.setInstitution(institution);
 
         User user = new User();
@@ -1100,7 +1099,7 @@ class OnboardingServiceDefaultTest {
         when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
 
-        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+        onboardingService
                 .onboardingPending(ObjectId.get().toHexString())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create())
@@ -1132,4 +1131,78 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(actualUser.getSurname(), managerResource.getFamilyName().getValue());
     }
 
+
+
+    @Test
+    void approve() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
+                onboarding.getInstitution().getSubunitCode()))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+
+        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+    }
+
+    @Test
+    void approve_throwExceptionIfOnboardingIsNotToBeValidated() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void approveCompletion() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+
+        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
+                onboarding.getInstitution().getSubunitCode()))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+
+        when(orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+
+        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+                .approve(onboarding.getId().toHexString())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        OnboardingGet actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
+    }
 }
