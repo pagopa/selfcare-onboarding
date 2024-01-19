@@ -30,7 +30,7 @@ public interface OnboardingService {
 
     Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size);
 
-    Uni<Long> deleteOnboarding(String onboardingId);
+    Uni<Long> rejectOnboarding(String onboardingId);
 
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 

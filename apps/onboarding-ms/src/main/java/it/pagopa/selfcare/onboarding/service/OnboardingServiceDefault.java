@@ -588,10 +588,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Long> deleteOnboarding(String onboardingId) {
+    public Uni<Long> rejectOnboarding(String onboardingId) {
         return checkOnboardingIdFormat(onboardingId)
-                .onItem()
-                .transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.DELETED));
+                .onItem().transformToUni(ignore -> Onboarding.findById(new ObjectId(onboardingId))
+                        .onItem().transform(onboarding -> (Onboarding) onboarding))
+                .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
+                        ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
+                        : Uni.createFrom().item(onboardingGet))
+                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED));
     }
 
     /**

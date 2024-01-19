@@ -146,10 +146,12 @@ public class OnboardingController {
         return onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size);
     }
 
+    @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +
+            "Function change status to REJECT for an onboarding request that is not COMPLETED. " )
     @PUT
-    @Path("/{onboardingId}/delete")
+    @Path("/{onboardingId}/reject")
     public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
-        return onboardingService.deleteOnboarding(onboardingId)
+        return onboardingService.rejectOnboarding(onboardingId)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
