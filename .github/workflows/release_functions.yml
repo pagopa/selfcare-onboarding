@@ -5,10 +5,16 @@ on:
     branches:
       - main
 
+  # TODO: remove
   pull_request:
     branches:
       - main
-    # types: [closed]
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
       - 'apps/onboarding-functions/**'
       - "apps/pom.xml"
