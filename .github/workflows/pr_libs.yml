@@ -14,7 +14,7 @@ on:
       - ready_for_review
     paths:
       - 'libs/**'
-      - '.github/workflows/code_review_libs.yml'
+      - '.github/workflows/pr_libs.yml'
       - '.github/workflows/call_code_review.yml'
 
 jobs:
