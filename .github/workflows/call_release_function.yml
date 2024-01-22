@@ -52,13 +52,6 @@ jobs:
     needs: [build]
     permissions:
       id-token: write
-    # env:
-    #   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_CD }}
-    #   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-    #   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    #   ARM_USE_OIDC: true
-    #   ARM_USE_AZUREAD: true
-    #   ARM_STORAGE_USE_AZUREAD: true
 
     steps:
 
@@ -76,7 +69,7 @@ jobs:
 
       - name: Deploy Function App
         shell: bash
-        working-directory: apps/onboarding-functions
+        # working-directory: apps/onboarding-functions
         run: |
           ls
 
@@ -85,6 +78,10 @@ jobs:
           ls apps/onboarding-functions
 
           ls apps/onboarding-functions/target
+
+          ls apps/onboarding-functions/target/azure-functions
+
+          ls apps/onboarding-functions/target/azure-functions/onboarding-functions-1.0.0-SNAPSHOT
 
           find /home/runner/work/selfcare-onboarding -type f -name "pom.xml"
 
