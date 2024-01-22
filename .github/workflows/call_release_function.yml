@@ -43,8 +43,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            # **/apps/onboarding-functions/target/azure-functions/**
-            **/apps/onboarding-functions/**
+            **/apps/**
 
   release:
     name: 'Release'
@@ -74,19 +73,6 @@ jobs:
         shell: bash
         working-directory: apps/onboarding-functions
         run: |
-          # ls
-
-          # ls apps/
-
-          # ls apps/onboarding-functions
-
-          # ls apps/onboarding-functions/target
-
-          # ls apps/onboarding-functions/target/azure-functions
-
-          # ls apps/onboarding-functions/target/azure-functions/onboarding-functions-1.0.0-SNAPSHOT
-
-          # find /home/runner/work/selfcare-onboarding -type f -iname "*pom.xml" | wc -l
 
           mvn -f pom.xml quarkus:deploy \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
