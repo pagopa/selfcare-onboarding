@@ -54,7 +54,8 @@ jobs:
     needs: [build]
     permissions:
       id-token: write
-      packages: read
+      packages: write
+      contents: write
 
     steps:
 
