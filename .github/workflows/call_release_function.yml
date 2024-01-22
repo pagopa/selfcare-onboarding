@@ -9,6 +9,9 @@ on:
         required: false
         default: main
 
+env:
+  ARTIFACT_NAME: 'artifact_function'
+
 jobs:
   build:
     name: 'Build Artifact'
@@ -32,7 +35,15 @@ jobs:
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
-          ls
+          ls apps/onboarding-functions/target
+
+      - uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
+        name: Upload Artifact
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          if-no-files-found: error
+          path: |
+            **/apps/onboarding-functions/target/**
 
   release:
     name: 'Release'
@@ -50,6 +61,11 @@ jobs:
     #   ARM_STORAGE_USE_AZUREAD: true
 
     steps:
+
+      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110
+        name: Download Artifact
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
 
       - name: Log in to Azure
         uses: azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
