@@ -34,35 +34,35 @@ jobs:
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
-      - uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
-        name: Upload Artifact
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          if-no-files-found: error
-          path: |
-            **/apps/onboarding-functions/target/**
+  #     - uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
+  #       name: Upload Artifact
+  #       with:
+  #         name: ${{ env.ARTIFACT_NAME }}
+  #         if-no-files-found: error
+  #         path: |
+  #           **/apps/onboarding-functions/target/**
 
-  release:
-    name: 'Release'
-    runs-on: ubuntu-20.04
-    environment: ${{ inputs.environment }}-cd
-    needs: [build]
-    permissions:
-      id-token: write
-      packages: write
-      contents: write
+  # release:
+  #   name: 'Release'
+  #   runs-on: ubuntu-20.04
+  #   environment: ${{ inputs.environment }}-cd
+  #   needs: [build]
+  #   permissions:
+  #     id-token: write
+  #     packages: write
+  #     contents: write
 
-    steps:
+  #   steps:
 
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # 4.1.1
-        name: Checkout
-        with:
-          fetch-depth: 0
+  #     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # 4.1.1
+  #       name: Checkout
+  #       with:
+  #         fetch-depth: 0
 
-      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935
-        name: Download Artifact
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
+  #     - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935
+  #       name: Download Artifact
+  #       with:
+  #         name: ${{ env.ARTIFACT_NAME }}
 
       - name: Log in to Azure
         uses: azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
