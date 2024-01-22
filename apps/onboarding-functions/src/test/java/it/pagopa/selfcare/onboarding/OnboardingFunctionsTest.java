@@ -12,9 +12,11 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.functions.OnboardingFunctions;
+import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -29,7 +31,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.SAVE_ONBOARDING_STATUS_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.OnboardingFunctions.*;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +49,9 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     OnboardingService service;
+
+    @InjectMock
+    CompletionService completionService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -109,6 +114,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorContractRegistration() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
@@ -169,6 +175,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorConfirmation() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
@@ -186,6 +193,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorRegistrationRequestApprove() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
@@ -293,5 +301,53 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(service, times(1))
                 .sendMailRegistrationWithContractWhenApprove(any());
+    }
+
+
+    @Test
+    void onboardingCompletionOrchestrator() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(4))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SAVE_ONBOARDING_STATUS_ACTIVITY, captorActivity.getAllValues().get(3));
+    }
+
+
+    @Test
+    void createInstitutionAndPersistInstitutionId() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        when(completionService.createInstitutionAndPersistInstitutionId(any()))
+                .thenReturn("id");
+
+        function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .createInstitutionAndPersistInstitutionId(any());
+    }
+
+    @Test
+    void sendCompletedEmail() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendCompletedEmail(any());
+
+        function.sendMailCompletion(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendCompletedEmail(any());
     }
 }
