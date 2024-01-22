@@ -26,7 +26,7 @@ on:
 jobs:
 
   code_review:
-    uses: ./.github/workflows/templates/call_code_review.yml
+    uses: ./.github/workflows/call_code_review.yml
     name: Microservice Code Review
     secrets: inherit
     with:
