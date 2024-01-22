@@ -58,5 +58,5 @@ github_repository_environment_ci = {
 github_repository_environment_cd = {
   protected_branches     = false
   custom_branch_policies = false
-  reviewers_teams        = ["selfcare-contributors"]
+  reviewers_teams        = []
 }
