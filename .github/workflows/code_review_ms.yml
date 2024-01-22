@@ -22,7 +22,7 @@ jobs:
 
   code_review:
     uses: ./.github/workflows/call_code_review.yml
-    name: OnBoarding ms Code review
+    name: OnBoarding ms Code Review
     secrets: inherit
     with:
       pr_number: ${{ github.event.pull_request.number }}
