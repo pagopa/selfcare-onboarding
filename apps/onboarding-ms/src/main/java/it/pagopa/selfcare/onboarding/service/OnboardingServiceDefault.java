@@ -46,7 +46,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
-import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
@@ -59,7 +58,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -422,12 +420,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<OnboardingGet> approve(String onboardingId) {
 
-        // If approve if for PT it must complete onboarding, otherwise continue to onboarding process
-        Function<WorkflowType, Supplier<Uni<OrchestrationResponse>>> approveFunction =
-                workflowType -> WorkflowType.FOR_APPROVE_PT.equals(workflowType)
-                ? () -> orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboardingId)
-                : () -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId);
-
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(this::checkIfToBeValidated)
                 //Fail if onboarding exists for a product
@@ -435,8 +427,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? approveFunction.apply(onboarding.getWorkflowType())
-                            .get().map(ignore -> onboarding)
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId)
+                            .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
     }
@@ -482,7 +474,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString())
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
                         .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
