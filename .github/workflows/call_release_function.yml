@@ -43,7 +43,9 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            **/apps/**
+            **/selfcare-onboarding/pom.xml
+            **/apps/pom.xml
+            **/apps/onboarding-functions/**
 
   release:
     name: 'Release'
@@ -52,8 +54,7 @@ jobs:
     needs: [build]
     permissions:
       id-token: write
-      packages: write
-      contents: write
+      packages: read
 
     steps:
 
@@ -71,9 +72,8 @@ jobs:
 
       - name: Deploy Function App
         shell: bash
-        working-directory: apps
+        working-directory: apps/onboarding-functions
         run: |
-
           mvn -f pom.xml quarkus:deploy \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
             -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
