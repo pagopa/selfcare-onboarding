@@ -37,7 +37,7 @@ jobs:
 
           ls apps/onboarding-functions/target/azure-functions
 
-      - uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
+      - uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
         name: Upload Artifact
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -62,7 +62,7 @@ jobs:
 
     steps:
 
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935
         name: Download Artifact
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -79,11 +79,19 @@ jobs:
         working-directory: apps/onboarding-functions
         run: |
           ls
-          mvn -f pom.xml quarkus:deploy \
-          -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
-          -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
-          -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }} \
-          -Dquarkus.azure-functions.region=westeurope \
-          -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }} \
-          -Dquarkus.azure-functions.runtime.java-version=17
 
+          ls apps/
+
+          ls apps/onboarding-functions
+
+          ls apps/onboarding-functions/target
+
+          find /home/runner/work/selfcare-onboarding -type f -name "pom.xml"
+
+          mvn -f apps/onboarding-functions/pom.xml quarkus:deploy \
+            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
+            -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }} \
+            -Dquarkus.azure-functions.region=westeurope \
+            -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }} \
+            -Dquarkus.azure-functions.runtime.java-version=17
