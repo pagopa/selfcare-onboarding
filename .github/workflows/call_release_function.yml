@@ -43,7 +43,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            **/selfcare-onboarding/pom.xml
+            ./pom.xml
             **/apps/pom.xml
             **/apps/onboarding-functions/**
 
