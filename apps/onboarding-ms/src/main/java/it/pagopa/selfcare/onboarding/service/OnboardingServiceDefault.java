@@ -505,7 +505,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.findByIdOptional(new ObjectId(onboardingId))
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
-                        .map(onboarding -> (Onboarding) onboarding)
+                        .map(Onboarding.class::cast)
                         //Check if onboarding is expired
                         .filter(onboarding -> !isOnboardingExpired(onboarding.getExpiringDate()))
                         .map(onboarding -> Uni.createFrom().item(onboarding))
@@ -583,7 +583,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<Long> rejectOnboarding(String onboardingId) {
         return checkOnboardingIdFormat(onboardingId)
                 .onItem().transformToUni(ignore -> Onboarding.findById(new ObjectId(onboardingId))
-                        .onItem().transform(onboarding -> (Onboarding) onboarding))
+                        .onItem().transform(Onboarding.class::cast))
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
@@ -611,7 +611,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.findByIdOptional(new ObjectId(onboardingId))
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
-                        .map(onboarding -> (Onboarding) onboarding)
+                        .map(Onboarding.class::cast)
                         .map(onboardingMapper::toGetResponse)
                         .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
                         .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))));
