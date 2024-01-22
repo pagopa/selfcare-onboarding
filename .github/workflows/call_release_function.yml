@@ -40,10 +40,10 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            ./pom.xml
-            **/apps/pom.xml
+            # ./pom.xml
+            # **/apps/pom.xml
             **/apps/onboarding-functions/**
-            **/libs/**
+            # **/libs/**
 
   release:
     name: 'Release'
@@ -56,6 +56,11 @@ jobs:
       contents: write
 
     steps:
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # 4.1.1
+        name: Checkout
+        with:
+          fetch-depth: 0
 
       - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935
         name: Download Artifact
