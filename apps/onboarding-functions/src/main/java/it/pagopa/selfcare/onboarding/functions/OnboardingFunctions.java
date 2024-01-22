@@ -1,17 +1,11 @@
 package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.functions.ExecutionContext;
-import com.microsoft.azure.functions.HttpMethod;
-import com.microsoft.azure.functions.HttpRequestMessage;
-import com.microsoft.azure.functions.HttpResponseMessage;
+import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.durabletask.DurableTaskClient;
-import com.microsoft.durabletask.RetryPolicy;
-import com.microsoft.durabletask.TaskOptions;
-import com.microsoft.durabletask.TaskOrchestrationContext;
+import com.microsoft.durabletask.*;
 import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
@@ -25,6 +19,7 @@ import it.pagopa.selfcare.onboarding.workflow.*;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -72,6 +67,34 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
         return durableContext.createCheckStatusResponse(request, instanceId);
+    }
+
+    @FunctionName("StartAndWaitOnboardingOrchestration")
+    public HttpResponseMessage startAndWaitOrchestration(
+            @HttpTrigger(name = "req", route = "StartAndWaitOnboardingOrchestration", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
+            final ExecutionContext context) {
+        context.getLogger().info("StartAndWaitOrchestration trigger processed a request.");
+
+        final String onboardingId = request.getQueryParameters().get("onboardingId");
+
+        DurableTaskClient client = durableContext.getClient();
+        String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
+        context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
+
+        try {
+
+            int timeoutInSeconds = 60;
+            OrchestrationMetadata orchestration = client.waitForInstanceCompletion(
+                    instanceId,
+                    Duration.ofSeconds(timeoutInSeconds),
+                    true /* getInputsAndOutputs */);
+            return request.createResponseBuilder(HttpStatus.OK)
+                    .build();
+        } catch (TimeoutException timeoutEx) {
+            // timeout expired - return a 202 response
+            return durableContext.createCheckStatusResponse(request, instanceId);
+        }
     }
 
     /**
