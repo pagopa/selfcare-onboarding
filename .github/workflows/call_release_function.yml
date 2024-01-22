@@ -17,6 +17,10 @@ jobs:
     name: 'Build Artifact'
     runs-on: ubuntu-20.04
     environment: ${{ inputs.environment }}-cd
+    permissions:
+      id-token: write
+      packages: write
+      contents: write
 
     steps:
 
