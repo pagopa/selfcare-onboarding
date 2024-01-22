@@ -28,7 +28,7 @@ jobs:
           maven-version: '3.9.5'
           cache-enabled: true
 
-      - name: "Build Functions App"
+      - name: Build Functions App
         shell: bash
         run: |
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
@@ -40,10 +40,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            # ./pom.xml
-            # **/apps/pom.xml
-            **/apps/onboarding-functions/**
-            # **/libs/**
+            **/apps/onboarding-functions/target/**
 
   release:
     name: 'Release'
@@ -78,6 +75,7 @@ jobs:
         shell: bash
         working-directory: apps/onboarding-functions
         run: |
+          ls 
           mvn -f pom.xml quarkus:deploy \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
             -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
