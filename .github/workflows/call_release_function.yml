@@ -35,7 +35,7 @@ jobs:
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
-          ls apps/onboarding-functions/target
+          ls apps/onboarding-functions/target/azure-functions
 
       - uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         name: Upload Artifact
@@ -43,7 +43,7 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           if-no-files-found: error
           path: |
-            **/apps/onboarding-functions/target/**
+            **/apps/onboarding-functions/target/azure-functions/**
 
   release:
     name: 'Release'
