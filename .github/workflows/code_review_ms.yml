@@ -11,17 +11,12 @@ on:
       - edited
       - synchronize
       - reopened
-      # - ready_for_review # TODO: re enable
+      - ready_for_review
     paths:
       - 'apps/onboarding-ms/**'
       - 'apps/onboarding-ms/pom.xml'
       - '.github/workflows/code_review_ms.yml'
-      - '.github/workflows/templates/call_code_review.yml'
-  
-  # TODO: remove, just for testing
-  push:
-    branches:
-      - EC-95-pipeline-code-review-con-reusable-workflows
+      - '.github/workflows/call_code_review.yml'
 
 jobs:
 
