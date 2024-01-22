@@ -15,7 +15,7 @@ on:
     paths:
       - 'apps/onboarding-functions/**'
       - 'apps/onboarding-ms/pom.xml'
-      - '.github/workflows/code_review_functions.yml'
+      - '.github/workflows/pr_functions.yml'
       - '.github/workflows/call_code_review.yml'
 
 jobs:
