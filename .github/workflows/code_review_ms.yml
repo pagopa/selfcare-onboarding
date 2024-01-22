@@ -11,7 +11,7 @@ on:
       - edited
       - synchronize
       - reopened
-      - ready_for_review
+      # - ready_for_review # TODO: re enable
     paths:
       - 'apps/onboarding-ms/**'
       - 'apps/onboarding-ms/pom.xml'
@@ -27,9 +27,10 @@ jobs:
 
   code_review:
     uses: ./.github/workflows/call_code_review.yml
-    name: Microservice Code Review
+    name: OnBoarding ms Code review
     secrets: inherit
     with:
       pr_number: ${{ github.event.pull_request.number }}
       source_branch: ${{ github.head_ref }}
       target_branch: ${{ github.base_ref }}
+      sonar_key: 'pagopa_selfcare-onboarding'

@@ -10,10 +10,13 @@ on:
       target_branch:
         type: string
         required: true
+      sonar_key:
+        type: string
+        required: true
 
 jobs:
   code_review:
-    name: 'Code Review'
+    name: 'Build & Analysis'
     runs-on: ubuntu-20.04
 
     steps:
@@ -31,7 +34,7 @@ jobs:
         shell: bash
         run: mvn --projects :test-coverage --also-make verify -Ponboarding-ms,report,coverage
           -Dsonar.organization=pagopa
-          -Dsonar.projectKey=pagopa_selfcare-onboarding
+          -Dsonar.projectKey=${{ inputs.sonar_key }}
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
           -Dsonar.pullrequest.key=${{ inputs.pr_number }}
           -Dsonar.pullrequest.branch=${{ inputs.source_branch }}
