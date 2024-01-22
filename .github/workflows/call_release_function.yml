@@ -83,7 +83,7 @@ jobs:
 
           ls apps/onboarding-functions/target/azure-functions/onboarding-functions-1.0.0-SNAPSHOT
 
-          find /home/runner/work/selfcare-onboarding -type f -name "pom.xml"
+          find /home/runner/work/selfcare-onboarding -type f -iname "*pom.xml" | wc -l
 
           mvn -f apps/onboarding-functions/pom.xml quarkus:deploy \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
