@@ -14,7 +14,8 @@ on:
       - ready_for_review
     paths:
       - 'apps/onboarding-functions/**'
-      - '.github/workflows/code_review_functions.yml'
+      - 'apps/onboarding-ms/pom.xml'
+      - '.github/workflows/pr_functions.yml'
       - '.github/workflows/call_code_review.yml'
 
 jobs:
