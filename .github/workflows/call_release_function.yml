@@ -71,7 +71,7 @@ jobs:
 
       - name: Deploy Function App
         shell: bash
-        working-directory: apps/onboarding-functions
+        working-directory: apps
         run: |
 
           mvn -f pom.xml quarkus:deploy \
