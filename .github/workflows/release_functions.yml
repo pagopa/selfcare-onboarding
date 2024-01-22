@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - EC-96-pipeline-deployment-con-supporto-ambienti
 
   # TODO: remove
   pull_request:
