@@ -1,0 +1,59 @@
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: false
+        default: main
+
+jobs:
+  build:
+    name: 'Build Artifact'
+    runs-on: ubuntu-20.04
+    environment: ${{ inputs.environment }}-cd
+
+    steps:
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
+        with:
+          checkout-fetch-depth: 0
+          # checkout-ref: ${{ github.ref_name }}
+          java-version: 17
+          java-distribution: 'temurin'
+          maven-version: '3.9.5'
+          cache-enabled: true
+
+      - name: "Build Functions App"
+        shell: bash
+        run: |
+          mvn --projects :onboarding-functions --also-make package install -DskipTests
+            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
+
+  release:
+    name: 'Release'
+    runs-on: ubuntu-20.04
+    environment: ${{ inputs.environment }}-cd
+    needs: [build]
+    permissions:
+      id-token: write
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_CD }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      ARM_USE_AZUREAD: true
+      ARM_STORAGE_USE_AZUREAD: true
+
+    steps:
+
+      - name: Log in to Azure
+        uses: azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        # with:
+        #   client-id: ${{ secrets.AZURE_CLIENT_ID_CD }}
+        #   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        #   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
