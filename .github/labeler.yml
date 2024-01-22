@@ -1,16 +1,22 @@
 functions:
-- apps/onboarding-functions/**
+  - changed-files:
+    - any-glob-to-any-file: ['apps/onboarding-functions/**']
 
 onboarding-ms:
-- apps/onboarding-ms/**
+  - changed-files:
+    - any-glob-to-any-file: ['apps/onboarding-ms/**']
 
 libs:
-- libs/**
+  - changed-files:
+    - any-glob-to-any-file: ['libs/**']
 
 ops:
-- .github/**
-- infra/**
-- .identity/**
+  - changed-files:
+    - any-glob-to-any-file: ['.github/**', 'infra/**', '.identity/**']
 
 docs:
-- README.md
+  - changed-files:
+    - any-glob-to-any-file: ['README.md']
+
+hotfix:
+  - base-branch: ['releases/*']
