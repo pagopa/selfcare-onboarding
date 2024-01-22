@@ -13,7 +13,6 @@ jobs:
   build:
     name: 'Build Artifact'
     runs-on: ubuntu-20.04
-    environment: ${{ inputs.environment }}-cd
 
     steps:
 
@@ -30,7 +29,7 @@ jobs:
       - name: "Build Functions App"
         shell: bash
         run: |
-          mvn --projects :onboarding-functions --also-make package install -DskipTests
+          mvn --projects :onboarding-functions --also-make package install -DskipTests \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
   release:
