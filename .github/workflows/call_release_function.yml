@@ -74,10 +74,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: "Deploy Function App"
+      - name: Deploy Function App
         shell: bash
+        working-directory: apps/onboarding-functions
         run: |
-          mvn -f apps/onboarding-functions/pom.xml quarkus:deploy \
+          ls
+          mvn -f pom.xml quarkus:deploy \
           -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
           -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
           -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }} \
