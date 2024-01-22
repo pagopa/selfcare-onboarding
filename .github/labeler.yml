@@ -19,4 +19,4 @@ docs:
     - any-glob-to-any-file: ['README.md']
 
 hotfix:
-  - base-branch: ['releases/**']
+  - base-branch: ['releases/*']
