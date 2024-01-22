@@ -1,0 +1,17 @@
+name: Deploy onboarding functions
+
+on:
+  push:
+    branches:
+      - main
+      - releases/**
+
+  workflow_dispatch:
+
+jobs:
+  release:
+    uses: ./.github/workflows/call_release_function.yml
+    name: OnBoarding function Release
+    secrets: inherit
+    with:
+      environment: dev

@@ -1,0 +1,55 @@
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: false
+        default: main
+
+jobs:
+  release:
+    name: 'Build & Release'
+    runs-on: ubuntu-20.04
+    environment: ${{ inputs.environment }}-cd
+    permissions:
+      id-token: write
+      packages: read
+
+    steps:
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
+        with:
+          checkout-fetch-depth: 0
+          java-version: 17
+          java-distribution: 'temurin'
+          maven-version: '3.9.5'
+          cache-enabled: true
+
+      - name: Build Functions App
+        shell: bash
+        run: |
+          mvn --projects :onboarding-functions --also-make package install -DskipTests \
+            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
+
+      - name: Log in to Azure
+        uses: azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_CD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Function App
+        shell: bash
+        working-directory: apps/onboarding-functions
+        run: |
+          mvn -f pom.xml quarkus:deploy \
+            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
+            -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }} \
+            -Dquarkus.azure-functions.region=westeurope \
+            -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }} \
+            -Dquarkus.azure-functions.runtime.java-version=17
