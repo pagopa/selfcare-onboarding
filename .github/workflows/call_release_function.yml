@@ -23,7 +23,6 @@ jobs:
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
         with:
           checkout-fetch-depth: 0
-          # checkout-ref: ${{ github.ref_name }}
           java-version: 17
           java-distribution: 'temurin'
           maven-version: '3.9.5'
@@ -35,8 +34,6 @@ jobs:
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
             -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
 
-          ls apps/onboarding-functions/target/azure-functions
-
       - uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6
         name: Upload Artifact
         with:
@@ -46,6 +43,7 @@ jobs:
             ./pom.xml
             **/apps/pom.xml
             **/apps/onboarding-functions/**
+            **/libs/**
 
   release:
     name: 'Release'
