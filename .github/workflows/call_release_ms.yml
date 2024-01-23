@@ -56,8 +56,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # secrets: |
-          #   GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=min
 
@@ -144,6 +142,12 @@ jobs:
         name: Setup Terraform
         with:
           terraform_version: ${{ needs.tf_plan.outputs.terraform_version }}
+
+      - name: Terraform Init
+        shell: bash
+        working-directory: ${{ env.DIR }}
+        run: |
+          sh terraform.sh init ${{ inputs.environment }}
 
       - name: Terraform Apply
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
