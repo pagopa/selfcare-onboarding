@@ -20,6 +20,8 @@ on:
 jobs:
 
   code_review:
+    permissions:
+      packages: read
     uses: ./.github/workflows/call_code_review.yml
     name: Libs Code Review
     secrets: inherit
