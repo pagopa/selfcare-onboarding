@@ -58,6 +58,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -79,7 +80,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
 
 
-    public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
 
     @RestClient
     @Inject
