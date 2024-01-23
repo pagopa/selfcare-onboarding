@@ -6,10 +6,10 @@ on:
       - main
       - releases/*
       - EC-98-pipeline-container-app-deployment-aggiunta-supporto-ambienti
-    paths:
-      - "apps/onboarding-ms/**"
-      - "apps/pom.xml"
-      - "pom.xml"
+    # paths:
+    #   - "apps/onboarding-ms/**"
+    #   - "apps/pom.xml"
+    #   - "pom.xml"
   
   workflow_dispatch:
 
