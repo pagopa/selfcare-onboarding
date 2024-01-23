@@ -126,6 +126,7 @@ jobs:
       contents: read
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_CD }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
 
