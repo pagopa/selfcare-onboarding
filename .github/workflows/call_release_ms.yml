@@ -147,7 +147,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.DIR }}
         run: |
-          sh terraform.sh init ${{ inputs.environment }}
+          bash ./terraform.sh init ${{ inputs.environment }}
 
       - name: Terraform Apply
         uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
