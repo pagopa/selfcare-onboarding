@@ -1,10 +1,10 @@
 name: Deploy onboarding ms
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [closed]
+      - releases/**
     paths:
       - "apps/onboarding-ms/**"
       - "apps/pom.xml"
