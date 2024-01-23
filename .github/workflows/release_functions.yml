@@ -4,66 +4,39 @@ on:
   push:
     branches:
       - main
-      - releases/**
-      - EC-97-pipeline-function-app-deployment-aggiunta-supporto-ambienti-e-branch # TODO: remove
-    # paths:
-    #   - 'apps/onboarding-functions/**'
-    #   - "apps/pom.xml"
-    #   - "pom.xml"
-
-  # New branch created from main, deploy it in UAT
-  workflow_run:
-    workflows:
-      - "Create Release"
-    types:
-      - completed
-
-  # deploy UAT when create a new branch release*, condition below contains() permit to execute worflow only for 'release' branch
-  # create:
+      - releases/*
+    paths:
+      - 'apps/onboarding-functions/**'
+      - "apps/pom.xml"
+      - "pom.xml"
 
   workflow_dispatch:
 
 jobs:
 
-  # environment:
-  #   uses: ./.github/workflows/call_read_environment.yml
-  #   name: GitHub Environment
-
-  # release:
-  #   uses: ./.github/workflows/call_release_function.yml
-  #   name: OnBoarding function Release
-  #   needs: [environment]
-  #   secrets: inherit
-  #   with:
-  #     environment: ${{ needs.environment.outputs.env_name }}
-
-# ---
-
   release_dev:
     uses: ./.github/workflows/call_release_function.yml
     name: '[Dev] OnBoarding function Release'
-    # needs: [environment] TODO: change
-    # if: github.ref_name == 'main'
-    if: startsWith(github.ref_name, 'ec-97') 
+    if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
+      short_env: d
 
   release_uat:
     uses: ./.github/workflows/call_release_function.yml
     name: '[UAT] OnBoarding function Release'
-    needs: [release_dev] # TODO: change
-    if: startsWith(github.ref_name, 'ec-97') 
+    if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
+      short_env: u
 
   release_prod:
     uses: ./.github/workflows/call_release_function.yml
     name: '[Prod] OnBoarding function Release'
-    needs: [release_uat]
-    if: (needs.release_uat.result == 'skipped' || needs.release_uat.result == 'success') && startsWith(github.ref_name, 'ec-97') 
-    # if: startsWith(github.ref_name, 'releases/')
+    if: startsWith(github.ref_name, 'releases/') 
     secrets: inherit
     with:
       environment: prod
+      short_env: p
