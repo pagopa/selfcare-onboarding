@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding;
+package it.pagopa.selfcare.onboarding.functions;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
@@ -10,12 +10,12 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.functions.OnboardingFunctions;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -99,6 +99,44 @@ public class OnboardingFunctionsTest {
         Mockito.verify(durableContext, times(1))
                 .createCheckStatusResponse(any(), captorInstanceId.capture());
         assertEquals(scheduleNewOrchestrationInstance, captorInstanceId.getValue());
+    }
+    @Test
+    public void startAndWaitOrchestration() throws Exception {
+        // Setup
+        @SuppressWarnings("unchecked")
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        final Map<String, String> queryParams = new HashMap<>();
+        final String onboardingId = "onboardingId";
+        queryParams.put("onboardingId", onboardingId);
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        final Optional<String> queryBody = Optional.empty();
+        doReturn(queryBody).when(req).getBody();
+
+        doAnswer(new Answer<HttpResponseMessage.Builder>() {
+            @Override
+            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
+                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+            }
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        final DurableClientContext durableContext = mock(DurableClientContext.class);
+        final DurableTaskClient client = mock(DurableTaskClient.class);
+        final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
+        doReturn(client).when(durableContext).getClient();
+        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings",onboardingId);
+
+        // Invoke
+        function.startAndWaitOrchestration(req, durableContext, context);
+
+        // Verify
+        Mockito.verify(client, times(1))
+                .waitForInstanceCompletion(anyString(), any(), anyBoolean());
     }
 
     @Test
