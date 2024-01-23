@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "selc-party-registry-proxy",
-    "description": "Party Registry Proxy API documentation",
+    "title": "onboarding-functions",
+    "description": "Onboarding Function API documentation",
     "version": "0.0.1-SNAPSHOT"
   },
   "servers": [
@@ -65,7 +65,7 @@
         ]
       }
     },
-    "/api/StartOnboardingCompletionOrchestration": {
+    "/api/StartAndWaitOnboardingOrchestration": {
       "get": {
         "tags": [
           "Orchestration"
