@@ -68,8 +68,9 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_function.yml
     name: Dev Release OnBoarding function
-    # needs: [environment]
-    if: github.ref_name == 'main'
+    # needs: [environment] TODO: change
+    # if: github.ref_name == 'main'
+    if: startsWith(github.ref_name, 'ec-97') 
     secrets: inherit
     with:
       environment: dev
@@ -77,11 +78,11 @@ jobs:
   release_uat:
     uses: ./.github/workflows/call_release_function.yml
     name: UAT OnBoarding function Release
-    # needs: [environment] TODO: change
+    needs: [release_dev] # TODO: change
     if: startsWith(github.ref_name, 'ec-97') 
     secrets: inherit
     with:
-      environment: dev
+      environment: uat
 
   # release_prod:
   #   uses: ./.github/workflows/call_release_function.yml
