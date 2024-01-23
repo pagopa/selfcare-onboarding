@@ -23,7 +23,7 @@ public interface WorkflowExecutor {
     default void execute(TaskOrchestrationContext ctx, Onboarding onboarding){
         switch (onboarding.getStatus()){
             case REQUEST -> executeRequestState(ctx, onboarding);
-            case TO_BE_VALIDATED -> executeToBeValidatedState(ctx, onboarding);
+            case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboarding);
             case PENDING -> executePendingState(ctx, onboarding);
         }
     }

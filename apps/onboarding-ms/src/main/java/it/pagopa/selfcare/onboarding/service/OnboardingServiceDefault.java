@@ -46,7 +46,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
-import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
@@ -59,7 +58,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -81,7 +80,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
 
 
-    public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
 
     @RestClient
     @Inject
@@ -422,12 +421,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<OnboardingGet> approve(String onboardingId) {
 
-        // If approve if for PT it must complete onboarding, otherwise continue to onboarding process
-        Function<WorkflowType, Supplier<Uni<OrchestrationResponse>>> approveFunction =
-                workflowType -> WorkflowType.FOR_APPROVE_PT.equals(workflowType)
-                ? () -> orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboardingId)
-                : () -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId);
-
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(this::checkIfToBeValidated)
                 //Fail if onboarding exists for a product
@@ -435,8 +428,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? approveFunction.apply(onboarding.getWorkflowType())
-                            .get().map(ignore -> onboarding)
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId)
+                            .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
     }
@@ -482,7 +475,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingCompletionOrchestrationGet(onboarding.getId().toHexString())
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
                         .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
@@ -513,7 +506,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.findByIdOptional(new ObjectId(onboardingId))
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
-                        .map(onboarding -> (Onboarding) onboarding)
+                        .map(Onboarding.class::cast)
                         //Check if onboarding is expired
                         .filter(onboarding -> !isOnboardingExpired(onboarding.getExpiringDate()))
                         .map(onboarding -> Uni.createFrom().item(onboarding))
@@ -523,7 +516,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     private Uni<Onboarding> checkIfToBeValidated(Onboarding onboarding) {
-        return OnboardingStatus.TO_BE_VALIDATED.equals(onboarding.getStatus())
+        return OnboardingStatus.TOBEVALIDATED.equals(onboarding.getStatus())
                 ? Uni.createFrom().item(onboarding)
                 : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
                     onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
@@ -591,7 +584,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<Long> rejectOnboarding(String onboardingId) {
         return checkOnboardingIdFormat(onboardingId)
                 .onItem().transformToUni(ignore -> Onboarding.findById(new ObjectId(onboardingId))
-                        .onItem().transform(onboarding -> (Onboarding) onboarding))
+                        .onItem().transform(Onboarding.class::cast))
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
@@ -609,7 +602,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingGet> onboardingPending(String onboardingId) {
         return onboardingGet(onboardingId)
                 .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
-                 ||  OnboardingStatus.TO_BE_VALIDATED.name().equals(onboardingGet.getStatus())
+                 ||  OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
                     ? Uni.createFrom().item(onboardingGet)
                     : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
     }
@@ -619,7 +612,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.findByIdOptional(new ObjectId(onboardingId))
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
-                        .map(onboarding -> (Onboarding) onboarding)
+                        .map(Onboarding.class::cast)
                         .map(onboardingMapper::toGetResponse)
                         .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
                         .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))));

@@ -193,7 +193,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestratorForApproveWhenToBeValidated() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");
-        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);

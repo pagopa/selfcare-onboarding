@@ -24,7 +24,7 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
     public void executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
         ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, buildAsJsonString(onboarding.getOnboardingId(), OnboardingStatus.TO_BE_VALIDATED.name()), optionsRetry, String.class).await();
+        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, buildAsJsonString(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED.name()), optionsRetry, String.class).await();
     }
 
     @Override

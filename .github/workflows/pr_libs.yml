@@ -14,12 +14,14 @@ on:
       - ready_for_review
     paths:
       - 'libs/**'
-      - '.github/workflows/code_review_libs.yml'
+      - '.github/workflows/pr_libs.yml'
       - '.github/workflows/call_code_review.yml'
 
 jobs:
 
   code_review:
+    permissions:
+      packages: read
     uses: ./.github/workflows/call_code_review.yml
     name: Libs Code Review
     secrets: inherit
