@@ -74,6 +74,20 @@ public class OnboardingController {
                 .onItem().transformToUni(ignore -> onboardingService.onboardingPsp(onboardingRequest));
     }
 
+
+
+    @Operation(summary = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.")
+    @Path("/completion")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingConfirmation(onboardingRequest));
+    }
+
+
     /**
      * Onboarding pg may be excluded from the async onboarding flow
      * Institutions may be saved without passing from onboarding
