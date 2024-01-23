@@ -65,6 +65,7 @@ jobs:
     environment: ${{ inputs.environment }}-ci
     permissions:
       id-token: write
+      contents: read
     outputs:
       terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
       image_tag: ${{ steps.setsha.outputs.short_sha }}
@@ -117,6 +118,9 @@ jobs:
     environment: ${{ inputs.environment }}-cd
     permissions:
       id-token: write
+      contents: read
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_CD }}
 
     steps:
 
