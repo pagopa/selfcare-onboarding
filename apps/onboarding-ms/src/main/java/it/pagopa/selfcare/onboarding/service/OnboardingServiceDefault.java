@@ -58,6 +58,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -79,7 +80,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
 
 
-    public static final Function<String, String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
 
     @RestClient
     @Inject
@@ -515,7 +516,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     private Uni<Onboarding> checkIfToBeValidated(Onboarding onboarding) {
-        return OnboardingStatus.TO_BE_VALIDATED.equals(onboarding.getStatus())
+        return OnboardingStatus.TOBEVALIDATED.equals(onboarding.getStatus())
                 ? Uni.createFrom().item(onboarding)
                 : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
                     onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
@@ -601,7 +602,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingGet> onboardingPending(String onboardingId) {
         return onboardingGet(onboardingId)
                 .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
-                 ||  OnboardingStatus.TO_BE_VALIDATED.name().equals(onboardingGet.getStatus())
+                 ||  OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
                     ? Uni.createFrom().item(onboardingGet)
                     : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
     }
