@@ -26,7 +26,7 @@ public class WorkflowExecutorForApprovePt implements WorkflowExecutor {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
         ctx.callActivity(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, buildAsJsonString(onboarding.getOnboardingId(), OnboardingStatus.TO_BE_VALIDATED.name()), optionsRetry, String.class).await();
+        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, buildAsJsonString(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED.name()), optionsRetry, String.class).await();
     }
 
     @Override
