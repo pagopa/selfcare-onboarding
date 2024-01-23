@@ -515,7 +515,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     private Uni<Onboarding> checkIfToBeValidated(Onboarding onboarding) {
-        return OnboardingStatus.TO_BE_VALIDATED.equals(onboarding.getStatus())
+        return OnboardingStatus.TOBEVALIDATED.equals(onboarding.getStatus())
                 ? Uni.createFrom().item(onboarding)
                 : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
                     onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
@@ -601,7 +601,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingGet> onboardingPending(String onboardingId) {
         return onboardingGet(onboardingId)
                 .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
-                 ||  OnboardingStatus.TO_BE_VALIDATED.name().equals(onboardingGet.getStatus())
+                 ||  OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
                     ? Uni.createFrom().item(onboardingGet)
                     : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
     }

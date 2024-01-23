@@ -1163,7 +1163,7 @@ class OnboardingServiceDefaultTest {
     @Test
     void approve() {
         Onboarding onboarding = createDummyOnboarding();
-        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
@@ -1208,7 +1208,7 @@ class OnboardingServiceDefaultTest {
     @Test
     void approveCompletion() {
         Onboarding onboarding = createDummyOnboarding();
-        onboarding.setStatus(OnboardingStatus.TO_BE_VALIDATED);
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
