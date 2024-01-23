@@ -5,11 +5,10 @@ on:
     branches:
       - main
       - releases/*
-      - EC-98-pipeline-container-app-deployment-aggiunta-supporto-ambienti
-    # paths:
-    #   - "apps/onboarding-ms/**"
-    #   - "apps/pom.xml"
-    #   - "pom.xml"
+    paths:
+      - "apps/onboarding-ms/**"
+      - "apps/pom.xml"
+      - "pom.xml"
   
   workflow_dispatch:
 
@@ -18,7 +17,7 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
     name: '[Dev] OnBoarding ms Release'
-    if: github.ref_name == 'EC-98-pipeline-container-app-deployment-aggiunta-supporto-ambienti'
+    if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
@@ -38,157 +37,3 @@ jobs:
     secrets: inherit
     with:
       environment: prod
-
-  # build:
-  #   name: Build Onboarding Microservice
-  #   runs-on: ubuntu-latest
-  #   if: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true || contains(github.ref_name, 'release')) }}
-  #   environment: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}-ci"
-  #   outputs:
-  #     environment: ${{ steps.setenv.outputs.environment }}
-  #     short_sha: ${{ steps.setsha.outputs.short_sha }}
-  #   permissions:
-  #     packages: write
-  #     contents: write
-  #     id-token: write
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       name: Checkout
-  #       with:
-  #         ref: ${{ github.ref_name }}
-
-  #     # this workaround is necessary to pass the environment value to the next job
-  #     # unexpectly, global env vars cannot be read to set the environment and I don't
-  #     # want to repeat that complex expression (already repeated twice)
-  #     - name: Read Environment
-  #       id: setenv
-  #       shell: bash
-  #       run: |
-  #         echo "environment=$ENV_NAME" >> $GITHUB_OUTPUT
-
-  #     # github doesn't provide a short sha anymore
-  #     - name: Set Short Git Commit SHA
-  #       id: setsha
-  #       run: |
-  #         calculatedSha=$(git rev-parse --short ${{ github.sha }})
-  #         echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
-
-  #     - name: Setup Docker buildx
-  #       uses: docker/setup-buildx-action@v3.0.0
-
-  #     - name: Login to GitHub Container Registry
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Docker Meta
-  #       id: meta
-  #       uses: docker/metadata-action@v4.3.0
-  #       with:
-  #         images: ghcr.io/${{ github.repository }}-ms
-  #         tags: |
-  #           type=raw,value=latest,enable={{is_default_branch}}
-  #           type=ref,event=branch
-  #           type=sha
-  #         labels:
-  #           org.opencontainers.image.title=${{ github.repository }}-ms
-  #           org.opencontainers.image.description=SelfCare onboarding microservice
-  #           org.opencontainers.image.authors=PagoPA
-  #           org.opencontainers.image.url=github.com/pagopa/${{ github.repository }}
-  #           org.opencontainers.image.source=https://github.com/${{ github.repository }}
-
-  #     - name: Build and Push Image
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         context: .
-  #         file: ./apps/onboarding-ms/Dockerfile
-  #         push: true
-  #         tags: ${{ steps.meta.outputs.tags }}
-  #         labels: ${{ steps.meta.outputs.labels }}
-  #         secrets: |
-  #           GH_TOKEN=${{ secrets.READ_PACKAGES_TOKEN }}
-  #         cache-from: type=gha
-  #         cache-to: type=gha,mode=min
-
-  #     - name: Set Terraform Version
-  #       id: set-terraform-version
-  #       run: |
-  #         echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
-
-  #     - uses: hashicorp/setup-terraform@v2
-  #       name: Setup Terraform
-  #       with:
-  #         terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
-
-  #     - name: Terraform Plan
-  #       uses: pagopa/terraform-preapply-azure-action@54ded8cda3437c3f6a9f46baf69cb321ce82f5cd
-  #       with:
-  #         client_id: ${{ secrets.AZURE_CLIENT_ID_CI }}
-  #         tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  #         dir: ${{ env.DIR }}
-  #         azure_environment: ${{ steps.setenv.outputs.environment }}
-  #       env:
-  #         TF_VAR_image_tag: ${{ steps.setsha.outputs.short_sha }}
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: "Upload Terraform Plan as Artifact"
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: tfplan
-  #         path: ${{ env.DIR }}/tfplan-${{ steps.setenv.outputs.environment }}-${{ github.sha }}
-  #         if-no-files-found: error
-  #         retention-days: 1
-
-  # deploy:
-  #   name: Deploy microservice
-  #   runs-on: ubuntu-latest
-  #   needs: [build]
-  #   environment: ${{ needs.build.outputs.environment }}-cd
-  #   permissions:
-  #     id-token: write
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       name: Checkout
-  #       with:
-  #         ref: ${{ github.ref_name }}
-
-  #     - name: Download Terraform Plan as Artifact
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: tfplan
-  #         path: ${{ env.DIR }}
-
-  #     - name: Retrieve Terraform Modules from Cache
-  #       id: cache-terraform-modules
-  #       uses: actions/cache@6fd2d4538ca777f67fccddb233cf1a8ff1339012
-  #       with:
-  #         path: ${{ env.DIR }}/.terraform
-  #         key: terraform-${{ env.DIR }}-${{ github.sha }}
-  #         restore-keys: |
-  #           terraform-${{ env.DIR }}
-
-  #     - name: Set Terraform Version
-  #       id: set-terraform-version
-  #       run: |
-  #         echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
-
-  #     - uses: hashicorp/setup-terraform@v2
-  #       name: Setup Terraform
-  #       with:
-  #         terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
-
-  #     - name: Terraform Apply
-  #       uses: pagopa/terraform-apply-azure-action@87efc4aa9b093b99ae5fd1915977e29cd80861ab
-  #       with:
-  #         client_id: ${{ secrets.AZURE_CLIENT_ID_CD }}
-  #         tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  #         dir: ${{ env.DIR }}
-  #         azure_environment: ${{ needs.build.outputs.environment }}
-  #       env:
-  #         TF_VAR_image_tag: ${{ needs.build.outputs.short_sha }}
