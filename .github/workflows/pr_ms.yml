@@ -20,7 +20,7 @@ on:
 jobs:
   code_review:
     permissions:
-      packages: read
+      packages: write
     uses: ./.github/workflows/call_code_review.yml
     name: OnBoarding ms Code Review
     secrets: inherit
