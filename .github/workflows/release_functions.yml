@@ -5,13 +5,89 @@ on:
     branches:
       - main
       - releases/**
+      - EC-96-pipeline-deployment-con-supporto-ambienti # TODO: remove
+    paths:
+      - 'apps/onboarding-functions/**'
+      - "apps/pom.xml"
+      - "pom.xml"
 
-  workflow_dispatch:
+  # New branch created from main, deploy it in UAT
+  workflow_run:
+    workflows:
+      - "Create Release"
+    types:
+      - completed
+
+  # TODO: remove
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
+    paths:
+      - 'apps/onboarding-functions/**'
+      - "apps/pom.xml"
+
+  # deploy UAT when create a new branch release*, condition below contains() permit to execute worflow only for 'release' branch
+  # create:
+
+  workflow_dispatch: # choose the branch
+    # inputs:
+    #   environment:
+    #     required: true
+    #     type: choice
+    #     description: Select the Environment
+    #     options:
+    #       - dev
+    #       - uat
+    #       - prod
+
+# env:
+#   ENV_NAME: "${{ inputs.environment != null && inputs.environment || (github.base_ref == 'main' && 'dev' || (contains(github.ref_name, 'release') && 'uat' || 'dev')) }}"
 
 jobs:
-  release:
+
+  # environment:
+  #   uses: ./.github/workflows/call_read_environment.yml
+  #   name: GitHub Environment
+
+  # release:
+  #   uses: ./.github/workflows/call_release_function.yml
+  #   name: OnBoarding function Release
+  #   needs: [environment]
+  #   secrets: inherit
+  #   with:
+  #     environment: ${{ needs.environment.outputs.env_name }}
+
+# ---
+
+  release_dev:
     uses: ./.github/workflows/call_release_function.yml
     name: OnBoarding function Release
+    # needs: [environment]
+    if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
+
+  release_uat:
+    uses: ./.github/workflows/call_release_function.yml
+    name: OnBoarding function Release
+    # needs: [environment] TODO: change
+    if: startsWith(github.ref_name, 'ec-97') 
+    secrets: inherit
+    with:
+      environment: dev
+
+  # release_prod:
+  #   uses: ./.github/workflows/call_release_function.yml
+  #   name: OnBoarding function Release
+  #   needs: [release_uat]
+  #   if: startsWith(github.ref_name, 'releases/')
+  #   secrets: inherit
+  #   with:
+  #     environment: prod

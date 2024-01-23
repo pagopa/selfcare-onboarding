@@ -13,7 +13,9 @@ jobs:
   release:
     name: 'Build & Release'
     runs-on: ubuntu-20.04
-    environment: ${{ inputs.environment }}-cd
+    environment:
+      name: ${{ inputs.environment }}-cd
+      url: ${{ format('https://selc-{0}-onboarding-fn.azurewebsites.net', inputs.environment[0]) }}
     permissions:
       id-token: write
       packages: read
