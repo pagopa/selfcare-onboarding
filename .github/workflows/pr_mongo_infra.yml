@@ -14,9 +14,9 @@ on:
       - reopened
       - ready_for_review
     paths:
-      - 'infra/mongo/**'
-      - '.github/workflows/pr_mongo_infra.yml'
-      - '.github/workflows/call_code_review_infra.yml'
+      - './infra/mongo/**'
+      - './.github/workflows/pr_mongo_infra.yml'
+      - './.github/workflows/call_code_review_infra.yml'
 
 jobs:
   code_review_dev:

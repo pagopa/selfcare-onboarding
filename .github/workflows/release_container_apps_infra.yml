@@ -6,7 +6,7 @@ on:
       - main
       - releases/*
     paths:
-      - 'infra/container_apps/onboarding-ms/**'
+      - './infra/container_apps/onboarding-ms/**'
 
   workflow_dispatch:
 
