@@ -1,12 +1,13 @@
-name: Deploy functions infra
+name: Deploy mongo infra
 
 on:
   push:
     branches:
       - main
       - releases/*
-    paths:
-      - 'infra/functions/onboarding-functions/**'
+      - EC-101-pipeline-deployment-infra
+    # paths:
+    #   - './infra/mongo'
 
   workflow_dispatch:
 
@@ -14,27 +15,27 @@ jobs:
 
   release_dev:
     uses: ./.github/workflows/call_release_infra.yml
-    name: '[Dev] Functions Infra Release'
-    if: github.ref_name == 'main'
+    name: '[Dev] Mongo Infra Release'
+    # if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
 
   release_uat:
     uses: ./.github/workflows/call_release_infra.yml
-    name: '[UAT] Functions Infra Release'
+    name: '[UAT] Mongo Infra Release'
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
 
   release_prod:
     uses: ./.github/workflows/call_release_infra.yml
-    name: '[Prod] Functions Infra Release'
+    name: '[Prod] Mongo Infra Release'
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: prod
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
