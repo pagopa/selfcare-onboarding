@@ -29,6 +29,7 @@ public class Onboarding  {
 
     private OnboardingStatus status;
     private String userRequestUid;
+    private String workflowInstanceId;
 
     public ObjectId getId() {
         return id;
@@ -124,5 +125,13 @@ public class Onboarding  {
 
     public void setWorkflowType(WorkflowType workflowType) {
         this.workflowType = workflowType;
+    }
+
+    public String getWorkflowInstanceId() {
+        return workflowInstanceId;
+    }
+
+    public void setWorkflowInstanceId(String workflowInstanceId) {
+        this.workflowInstanceId = workflowInstanceId;
     }
 }
