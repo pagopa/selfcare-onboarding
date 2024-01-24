@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -34,6 +35,7 @@ public class OnboardingController {
     CurrentIdentityAssociation currentIdentityAssociation;
 
     private final OnboardingService onboardingService;
+    private final OnboardingMapper onboardingMapper;
 
     @Operation(summary = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
             "Users data will be saved on personal data vault if it doesn't already exist." +
@@ -44,7 +46,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboarding(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingRequest));
+                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
     }
 
 
@@ -58,7 +60,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPa(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingPa(onboardingRequest));
+                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
     }
 
     @Operation(summary = "Perform onboarding request for PSP institution type." +
@@ -71,8 +73,45 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingPsp(onboardingRequest));
+                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
     }
+
+    @Operation(summary = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.")
+    @Path("/completion")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
+
+
+
+    @Operation(summary = "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
+    @POST
+    @Path("/pa/completion")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
+
+
+    @Operation(summary = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
+    @POST
+    @Path("/psp/completion")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
+
 
     /**
      * Onboarding pg may be excluded from the async onboarding flow

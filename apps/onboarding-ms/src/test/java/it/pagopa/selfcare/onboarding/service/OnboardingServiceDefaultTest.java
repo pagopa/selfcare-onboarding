@@ -142,23 +142,24 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfRoleNotValid(UniAsserter asserter) {
-        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
-        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
-        onboardingDefaultRequest.setUsers(List.of(UserRequest.builder()
+        Onboarding onboardingDefaultRequest = new Onboarding();
+        onboardingDefaultRequest.setInstitution(new Institution());
+
+        List<UserRequest> users = List.of(UserRequest.builder()
                 .taxCode("taxCode")
                 .role(PartyRole.OPERATOR)
-                .build()));
+                .build());
 
         mockPersistOnboarding(asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest),
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users),
                 InvalidRequestException.class);
     }
 
     @Test
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfUserFoundedAndProductThrowException(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
+        Onboarding onboardingRequest = new Onboarding();
         UserRequest manager = UserRequest.builder()
                 .name("currentName")
                 .surname("currentSurname")
@@ -166,9 +167,9 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        onboardingRequest.setUsers(List.of(manager));
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+        onboardingRequest.setInstitution(new Institution());
 
         mockPersistOnboarding(asserter);
 
@@ -178,17 +179,17 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenThrow(IllegalArgumentException.class));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
     }
 
 
     @Test
     @RunOnVertxContext
     void onboarding_throwExceptionIfUserFoundedAndProductIsNotValid(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+        onboardingRequest.setInstitution(new Institution());
 
         mockPersistOnboarding(asserter);
 
@@ -198,7 +199,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenThrow(ProductNotFoundException.class));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
 
         //asserter.execute(() -> verify(userRegistryApi, times(1))
                 //.searchUsingPOST(any(),any()));
@@ -210,10 +211,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_throwExceptionIfUserFoundedAndProductIsNotDelegable(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PT);
         onboardingRequest.setInstitution(institutionBaseRequest);
 
@@ -227,7 +228,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
 
         /*verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
@@ -239,10 +240,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_throwExceptionIfUserFoundedAndProductRoleIsNotValid(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PG);
         onboardingRequest.setInstitution(institutionBaseRequest);
 
@@ -256,7 +257,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
 
         /*verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
@@ -268,10 +269,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfUserFoundedAndProductParentRoleIsNotValid(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new InstitutionBaseRequest());
+        onboardingRequest.setInstitution(new Institution());
 
         mockPersistOnboarding(asserter);
 
@@ -285,7 +286,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
 
         /*verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
@@ -297,10 +298,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductAlreadyOnboarded(UniAsserter asserter) {
-        OnboardingPaRequest onboardingRequest = new OnboardingPaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionBaseRequest);
@@ -319,7 +320,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionBaseRequest.getTaxCode(), onboardingRequest.getProductId(), institutionBaseRequest.getSubunitCode()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingPa(onboardingRequest), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), InvalidRequestException.class);
 
         /*verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
@@ -337,10 +338,10 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
@@ -361,7 +362,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(aooResource)));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -379,10 +380,10 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
@@ -407,7 +408,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -424,10 +425,10 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
@@ -452,7 +453,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -462,17 +463,17 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboarding_Onboarding_addParentDescritpionForAooOrUo_Uo(UniAsserter asserter) {
+    void onboarding_Onboarding_addParentDescriptionForAooOrUo_Uo(UniAsserter asserter) {
         UserRequest manager = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
@@ -493,7 +494,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -504,17 +505,17 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboarding_Onboarding_addParentDescritpionForAooOrUo_UoNotFound(UniAsserter asserter) {
+    void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoNotFound(UniAsserter asserter) {
         UserRequest manager = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
@@ -540,7 +541,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -550,17 +551,17 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboarding_Onboarding_addParentDescritpionForAooOrUo_UoException(UniAsserter asserter) {
+    void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoException(UniAsserter asserter) {
         UserRequest manager = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
@@ -586,7 +587,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -608,16 +609,16 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any()))
+        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
     @Test
     @RunOnVertxContext
     void onboardingSa_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
-        OnboardingSaRequest onboardingRequest = new OnboardingSaRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.SA);
         onboardingRequest.setInstitution(institutionBaseRequest);
 
@@ -626,7 +627,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.onboardingSa(onboardingRequest), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -671,10 +672,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
-        OnboardingPspRequest onboardingRequest = new OnboardingPspRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
         onboardingRequest.setInstitution(institutionPspRequest);
 
@@ -683,7 +684,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.onboardingPsp(onboardingRequest), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -696,10 +697,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdateAndProductHasParent(UniAsserter asserter) {
-        OnboardingPspRequest onboardingRequest = new OnboardingPspRequest();
-        onboardingRequest.setUsers(List.of(manager));
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
         onboardingRequest.setInstitution(institutionPspRequest);
 
@@ -708,7 +709,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.onboardingPsp(onboardingRequest), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -721,17 +722,17 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
-        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
-        onboardingDefaultRequest.setUsers(List.of(manager));
+        Onboarding onboardingDefaultRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         onboardingDefaultRequest.setProductId("productId");
-        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
+        onboardingDefaultRequest.setInstitution(new Institution());
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -749,10 +750,10 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
-        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
 
@@ -765,7 +766,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -777,10 +778,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserNotFoundedAndWillSave(UniAsserter asserter) {
-        OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-        request.setUsers(List.of(manager));
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
         request.setProductId("productId");
-        request.setInstitution(new InstitutionBaseRequest());
+        request.setInstitution(new Institution());
         final UUID createUserId = UUID.randomUUID();
 
         mockPersistOnboarding(asserter);
@@ -803,7 +804,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -816,16 +817,16 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
-        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
-        onboardingDefaultRequest.setInstitution(new InstitutionBaseRequest());
-        onboardingDefaultRequest.setUsers(List.of(manager));
+        Onboarding onboardingDefaultRequest = new Onboarding();
+        onboardingDefaultRequest.setInstitution(new Institution());
+        List<UserRequest> users = List.of(manager);
 
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
                 .thenReturn(Uni.createFrom().failure(new WebApplicationException())));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users), WebApplicationException.class);
 
         /*verify(userRegistryApi, times(1))
                 .searchUsingPOST(any(),any());
@@ -1175,7 +1176,7 @@ class OnboardingServiceDefaultTest {
                 onboarding.getInstitution().getSubunitCode()))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
 
-        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString()))
+        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
 
         UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
@@ -1230,6 +1231,6 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
 
         verify(orchestrationApi, times(1))
-                .apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString());
+                .apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null);
     }
 }

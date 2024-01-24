@@ -1,17 +1,11 @@
 package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.functions.ExecutionContext;
-import com.microsoft.azure.functions.HttpMethod;
-import com.microsoft.azure.functions.HttpRequestMessage;
-import com.microsoft.azure.functions.HttpResponseMessage;
+import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.durabletask.DurableTaskClient;
-import com.microsoft.durabletask.RetryPolicy;
-import com.microsoft.durabletask.TaskOptions;
-import com.microsoft.durabletask.TaskOrchestrationContext;
+import com.microsoft.durabletask.*;
 import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
@@ -26,6 +20,7 @@ import it.pagopa.selfcare.onboarding.workflow.*;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -58,6 +53,9 @@ public class OnboardingFunctions {
 
     /**
      * This HTTP-triggered function starts the orchestration.
+     * Depending on the time required to get the response from the orchestration instance, there are two cases:
+     * * The orchestration instances complete within the defined timeout and the response is the actual orchestration instance output, delivered synchronously.
+     * * The orchestration instances can't complete within the defined timeout, and the response is the default one described in http api uri
      */
     @FunctionName("StartOnboardingOrchestration")
     public HttpResponseMessage startOrchestration(
@@ -72,7 +70,20 @@ public class OnboardingFunctions {
         String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
         context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
-        return durableContext.createCheckStatusResponse(request, instanceId);
+        try {
+
+            String timeoutString = request.getQueryParameters().get("timeout");
+            int timeoutInSeconds = Optional.ofNullable(timeoutString).map(Integer::parseInt).orElse(1);
+            OrchestrationMetadata orchestration = client.waitForInstanceCompletion(
+                    instanceId,
+                    Duration.ofSeconds(timeoutInSeconds),
+                    true /* getInputsAndOutputs */);
+            return request.createResponseBuilder(HttpStatus.OK)
+                    .build();
+        } catch (TimeoutException timeoutEx) {
+            // timeout expired - return a 202 response
+            return durableContext.createCheckStatusResponse(request, instanceId);
+        }
     }
 
     /**

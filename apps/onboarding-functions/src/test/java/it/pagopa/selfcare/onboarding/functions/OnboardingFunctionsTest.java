@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding;
+package it.pagopa.selfcare.onboarding.functions;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
@@ -10,12 +10,12 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.functions.OnboardingFunctions;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -53,20 +53,16 @@ public class OnboardingFunctionsTest {
     CompletionService completionService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
-
-    /**
-     * Unit test for HttpTriggerJava method.
-     */
     @Test
-    public void testHttpTriggerJava() throws Exception {
+    public void startAndWaitOrchestration() throws Exception {
         // Setup
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final HttpResponseMessage res = mock(HttpResponseMessage.class);
 
         final Map<String, String> queryParams = new HashMap<>();
         final String onboardingId = "onboardingId";
         queryParams.put("onboardingId", onboardingId);
+        queryParams.put("timeout", "10");
         doReturn(queryParams).when(req).getQueryParameters();
 
         final Optional<String> queryBody = Optional.empty();
@@ -88,16 +84,13 @@ public class OnboardingFunctionsTest {
         final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
         doReturn(client).when(durableContext).getClient();
         doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings",onboardingId);
-        doReturn(res).when(durableContext).createCheckStatusResponse(any(), any());
 
         // Invoke
         function.startOrchestration(req, durableContext, context);
 
         // Verify
-        ArgumentCaptor<String> captorInstanceId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(durableContext, times(1))
-                .createCheckStatusResponse(any(), captorInstanceId.capture());
-        assertEquals(scheduleNewOrchestrationInstance, captorInstanceId.getValue());
+        Mockito.verify(client, times(1))
+                .waitForInstanceCompletion(anyString(), any(), anyBoolean());
     }
 
     @Test

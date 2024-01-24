@@ -8,9 +8,6 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
 import java.util.Optional;
 
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_CONFIRMATION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
-
 public class WorkflowExecutorConfirmation implements WorkflowExecutor {
 
     private final ObjectMapper objectMapper;
@@ -22,9 +19,7 @@ public class WorkflowExecutorConfirmation implements WorkflowExecutor {
     }
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        String onboardingString = getOnboardingString(objectMapper, onboarding);
-        ctx.callActivity(SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        return Optional.of(OnboardingStatus.PENDING);
+        return Optional.empty();
     }
 
     @Override

@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "selc-party-registry-proxy",
-    "description": "Party Registry Proxy API documentation",
+    "title": "onboarding-functions",
+    "description": "Onboarding Function API documentation",
     "version": "0.0.1-SNAPSHOT"
   },
   "servers": [
@@ -44,40 +44,12 @@
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrchestrationResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
+          },
           {
-            "api_key": []
-          }
-        ]
-      }
-    },
-    "/api/StartOnboardingCompletionOrchestration": {
-      "get": {
-        "tags": [
-          "Orchestration"
-        ],
-        "summary": "",
-        "description": "",
-        "parameters": [
-          {
-            "name": "onboardingId",
+            "name": "timeout",
             "in": "query",
-            "description": "Onboarding id about item to process",
-            "required": true,
+            "description": "timeout of waiting completion process (default 1 seconds), set high if you want a sync response",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -97,7 +69,7 @@
         },
         "security": [
           {
-            "api_key_complete": []
+            "api_key": []
           }
         ]
       }
@@ -151,11 +123,6 @@
     },
     "securitySchemes": {
       "api_key": {
-        "type": "apiKey",
-        "name": "x-functions-key",
-        "in": "header"
-      },
-      "api_key_complete": {
         "type": "apiKey",
         "name": "x-functions-key",
         "in": "header"

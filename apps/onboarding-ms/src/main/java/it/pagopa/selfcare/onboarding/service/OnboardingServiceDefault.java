@@ -46,6 +46,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
+import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
@@ -81,6 +82,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
 
     @RestClient
     @Inject
@@ -127,41 +129,45 @@ public class OnboardingServiceDefault implements OnboardingService {
     String pathContracts;
 
     @Override
-    public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingPsp(OnboardingPspRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingSa(OnboardingSaRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingPa(OnboardingPaRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
-        onboarding.setCreatedAt(LocalDateTime.now());
+    public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
+
+        return fillUsersAndOnboarding(onboarding, userRequests, null);
+    }
+
+    /**
+     * As above but it is specific for CONFIRMATION workflow where onboarding goes directly to persist phase
+     * It is created with PENDING state and wait for completion of the orchestration of persisting onboarding 'apiStartAndWaitOnboardingOrchestrationGet'
+     */
+    @Override
+    public Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests) {
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+
+        return fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE);
+    }
+
+
+    /**
+     * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
+     *                If is null the timeout is default 1 sec and the response is delivered asynchronously
+     */
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
+        onboarding.setCreatedAt(LocalDateTime.now());
 
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
                     .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
-                .onItem().transformToUni(this::addParentDescritpionForAooOrUo)
-                .onItem().transformToUni(this::persistAndStartOrchestrationOnboarding)
+                .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
                 .onItem().transform(onboardingMapper::toResponse));
     }
 
-    private Uni<Onboarding> addParentDescritpionForAooOrUo(Onboarding onboarding) {
+    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
             if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
                 return addParentDescriptionForAOO(onboarding);
@@ -191,14 +197,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(onboarding);
     }
 
-    public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding) {
+    public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding, Uni<OrchestrationResponse> orchestration) {
         final List<Onboarding> onboardings = new ArrayList<>();
         onboardings.add(onboarding);
 
         if (Boolean.TRUE.equals(onboardingOrchestrationEnabled)) {
             return Onboarding.persistOrUpdate(onboardings)
-                    .onItem().transformToUni(saved -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
-                    .replaceWith(onboarding));
+                    .onItem().transformToUni(saved -> orchestration)
+                    .replaceWith(onboarding);
         } else {
             return Onboarding.persistOrUpdate(onboardings)
                     .replaceWith(onboarding);
@@ -428,7 +434,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId)
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, null)
                             .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
@@ -475,7 +481,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null)
                         .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
