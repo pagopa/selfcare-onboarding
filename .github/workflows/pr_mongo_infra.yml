@@ -1,4 +1,4 @@
-name: Code Review functions infra
+name: Code Review mongo infra
 
 on:
   workflow_dispatch:
@@ -19,34 +19,34 @@ on:
       - reopened
       - ready_for_review
     paths:
-      - 'infra/functions/onboarding-functions/**'
-      - '.github/workflows/pr_functions_infra.yml'
+      - 'infra/mongo/**'
+      - '.github/workflows/pr_mongo_infra.yml'
       - '.github/workflows/call_code_review_infra.yml'
 
 jobs:
   code_review_dev:
     uses: ./.github/workflows/call_code_review_infra.yml
-    name: '[DEV] Functions Infra Code Review'
+    name: '[DEV] Mongo Infra Code Review'
     # if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
 
   code_review_uat:
     uses: ./.github/workflows/call_code_review_infra.yml
-    name: '[UAT] Functions Infra Code Review'
+    name: '[UAT] Mongo Infra Code Review'
     # if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
 
   code_review_prod:
     uses: ./.github/workflows/call_code_review_infra.yml
-    name: '[PROD] Functions Infra Code Review'
+    name: '[PROD] Mongo Infra Code Review'
     # if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: prod
-      dir: ./infra/functions/onboarding-functions
+      dir: ./infra/mongo
