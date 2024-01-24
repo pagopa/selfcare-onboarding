@@ -99,16 +99,20 @@ public class OnboardingFunctions {
 
         WorkflowExecutor workflowExecutor;
 
-        switch (onboarding.getWorkflowType()) {
-            case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
-            case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
-            case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
-            case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
-            default -> throw new IllegalArgumentException("Workflow options not found!");
-        }
+        try {
+            switch (onboarding.getWorkflowType()) {
+                case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
+                case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
+                case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
+                case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
+                default -> throw new IllegalArgumentException("Workflow options not found!");
+            }
 
-        Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
-        optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
+            Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
+            optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
+        } catch (Exception ex) {
+            service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+        }
     }
 
     /**
@@ -167,7 +171,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_CONFIRMATION_ACTIVITY)
     public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString));
-        return onboardingString;
+        throw new RuntimeException("");
     }
 
 
