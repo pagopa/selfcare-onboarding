@@ -82,6 +82,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
 
     @RestClient
     @Inject
@@ -132,8 +133,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests,
-                onboardingId -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId));
+        return fillUsersAndOnboarding(onboarding, userRequests, null);
     }
 
     /**
@@ -145,11 +145,15 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests,
-                onboardingId -> orchestrationApi.apiStartAndWaitOnboardingOrchestrationGet(onboardingId));
+        return fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Function<String, Uni<OrchestrationResponse>> orchestrationByOnboardingId) {
+
+    /**
+     * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
+     *                If is null the timeout is default 1 sec and the response is delivered asynchronously
+     */
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
 
@@ -159,7 +163,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
                 .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                 .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationByOnboardingId.apply(currentOnboarding.getId().toHexString())))
+                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
                 .onItem().transform(onboardingMapper::toResponse));
     }
 
@@ -430,7 +434,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId)
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, null)
                             .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
@@ -477,7 +481,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString())
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null)
                         .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }

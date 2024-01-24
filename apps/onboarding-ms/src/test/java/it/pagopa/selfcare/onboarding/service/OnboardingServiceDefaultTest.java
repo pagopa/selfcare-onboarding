@@ -609,7 +609,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any()))
+        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
     @Test
@@ -1176,7 +1176,7 @@ class OnboardingServiceDefaultTest {
                 onboarding.getInstitution().getSubunitCode()))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
 
-        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString()))
+        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
 
         UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
@@ -1231,6 +1231,6 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(onboarding.getId().toHexString(), actual.getId());
 
         verify(orchestrationApi, times(1))
-                .apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString());
+                .apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null);
     }
 }
