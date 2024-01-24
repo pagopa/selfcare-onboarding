@@ -136,19 +136,7 @@ class OnboardingControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void onboardingPa() {
-
-        /* PA */
-        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
-        onboardingPaValid.setProductId("productId");
-
-
-        BillingPaRequest billingPaRequest = new BillingPaRequest();
-        billingPaRequest.setRecipientCode("code");
-        billingPaRequest.setVatNumber("vat");
-
-        onboardingPaValid.setUsers(List.of(userDTO));
-        onboardingPaValid.setInstitution(institution);
-        onboardingPaValid.setBilling(billingPaRequest);
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
 
         Mockito.when(onboardingService.onboarding(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
@@ -160,6 +148,21 @@ class OnboardingControllerTest {
                 .post("/pa")
                 .then()
                 .statusCode(200);
+    }
+
+    private OnboardingPaRequest dummyOnboardingPa() {
+        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
+        onboardingPaValid.setProductId("productId");
+
+        BillingPaRequest billingPaRequest = new BillingPaRequest();
+        billingPaRequest.setRecipientCode("code");
+        billingPaRequest.setVatNumber("vat");
+
+        onboardingPaValid.setUsers(List.of(userDTO));
+        onboardingPaValid.setInstitution(institution);
+        onboardingPaValid.setBilling(billingPaRequest);
+
+        return onboardingPaValid;
     }
 
     @Test
@@ -354,6 +357,65 @@ class OnboardingControllerTest {
 
         verify(onboardingService, times(1))
                 .approve(onboardingGet.getId());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingComplete() {
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingBaseValid)
+                .contentType(ContentType.JSON)
+                .post("/completion")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingCompletion(any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingCompletePa() {
+
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/pa/completion")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingCompletion(any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingCompletePsp() {
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPspValid)
+                .contentType(ContentType.JSON)
+                .post("/psp/completion")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingCompletion(any(), any());
     }
 
     private static Map<String, String> getStringStringMap() {

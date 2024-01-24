@@ -76,14 +76,37 @@ public class OnboardingController {
                 .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
     }
 
-
-
     @Operation(summary = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.")
     @Path("/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
+
+
+
+    @Operation(summary = "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
+    @POST
+    @Path("/pa/completion")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
+
+
+    @Operation(summary = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
+    @POST
+    @Path("/psp/completion")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().invoke(onboardingRequest::setUserRequestUid)
                 .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
