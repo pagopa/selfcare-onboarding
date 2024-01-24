@@ -94,12 +94,33 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    void onboardingsOrchestrator_thorwExceptionIfOnboardingNotPresent() {
+    void onboardingsOrchestrator_throwExceptionIfOnboardingNotPresent() {
         final String onboardingId = "onboardingId";
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext));
+    }
+
+    @Test
+    void onboardingsOrchestrator_throwExceptionActivity() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        final String instanceId = "instanceId";
+
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
+        when(orchestrationContext.getInstanceId()).thenReturn(instanceId);
+        when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
+
+        when(orchestrationContext.callActivity(any(),any(),any(),any())).thenThrow(new RuntimeException());
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatusAndInstanceId(onboarding.getOnboardingId(), OnboardingStatus.FAILED, instanceId);
     }
 
     @Test

@@ -202,6 +202,12 @@ public class OnboardingService {
                 .where("_id", onboardingId);
     }
 
+    public void updateOnboardingStatusAndInstanceId(String onboardingId, OnboardingStatus status, String instanceId) {
+        repository
+                .update("status = ?1 and workflowInstanceId = ?2", status.name(), instanceId)
+                .where("_id", onboardingId);
+    }
+
     static class SendMailInput {
         Product product;
         String userRequestName;
