@@ -64,7 +64,6 @@ key_vault = {
     "jwt-public-key",
     "mongodb-connection-string",
     "user-registry-api-key",
-    "onboarding-functions-api-key",
-    "start-completion-functions-api-key"
+    "onboarding-functions-api-key"
   ]
 }
