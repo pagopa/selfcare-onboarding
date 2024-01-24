@@ -29,7 +29,8 @@ cd_github_federations = [
 environment_ci_roles = {
   subscription = [
     "Reader",
-    "Key Vault Secrets User"
+    "PagoPA IaC Reader",
+    "Reader and Data Access"
   ]
   resource_groups = {
     "terraform-state-rg" = [
