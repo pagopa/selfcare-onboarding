@@ -7,6 +7,7 @@ on:
       - releases/*
     paths:
       - "apps/onboarding-ms/**"
+      - "infra/container_apps/onboarding-ms/**"
       - "apps/pom.xml"
       - "pom.xml"
   
