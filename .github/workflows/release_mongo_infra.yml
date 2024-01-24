@@ -5,9 +5,8 @@ on:
     branches:
       - main
       - releases/*
-      - EC-101-pipeline-deployment-infra
-    # paths:
-    #   - './infra/mongo'
+    paths:
+      - './infra/mongo'
 
   workflow_dispatch:
 
@@ -16,7 +15,7 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_infra.yml
     name: '[Dev] Mongo Infra Release'
-    # if: github.ref_name == 'main'
+    if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev

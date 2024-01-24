@@ -1,0 +1,47 @@
+name: Deploy Container Apps infra
+
+on:
+  push:
+    branches:
+      - main
+      - releases/*
+      - EC-101-pipeline-deployment-infra
+    # paths:
+    #   - 'infra/container_apps/onboarding-ms/**'
+
+  workflow_dispatch:
+
+jobs:
+
+  release_dev:
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[Dev] Container Apps Infra Release'
+    # if: github.ref_name == 'main'
+    secrets: inherit
+    with:
+      environment: dev
+      dir: ./infra/container_apps/onboarding-ms
+      env_vars: |
+        TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
+
+  release_uat:
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[UAT] Container Apps Infra Release'
+    if: startsWith(github.ref_name, 'releases/')
+    secrets: inherit
+    with:
+      environment: uat
+      dir: ./infra/container_apps/onboarding-ms
+      env_vars: |
+        TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
+
+  release_prod:
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[Prod] Container Apps Infra Release'
+    if: startsWith(github.ref_name, 'releases/')
+    secrets: inherit
+    with:
+      environment: prod
+      dir: ./infra/container_apps/onboarding-ms
+      env_vars: |
+        TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
