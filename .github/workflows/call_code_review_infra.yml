@@ -1,0 +1,66 @@
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      dir:
+        type: string
+        required: true
+      env_vars:
+        type: string
+        required: false
+        description: List of environment variables to set up, given in env=value format.
+
+jobs:
+  tf_plan:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-20.04
+    environment: ${{ inputs.environment }}-ci
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+
+      - name: Set Environment Variables
+        if: ${{ inputs.env_vars }}
+        run: |
+          for i in "${{ inputs.env_vars }}"
+          do
+            echo "%s\n" $i >> $GITHUB_ENV
+          done
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        name: Checkout
+
+      # - name: Set Short Git Commit SHA
+      #   id: setsha
+      #   run: |
+      #     calculatedSha=$(git rev-parse --short ${{ github.sha }})
+      #     echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
+
+      - name: Azure Login
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_CI }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set Terraform Version
+        id: set-terraform-version
+        run: |
+          echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
+
+      - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
+        name: Setup Terraform
+        with:
+          terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
+
+      - name: Terraform Plan
+        id: terraform_plan
+        working-directory: ${{ inputs.dir }}
+        shell: bash
+        continue-on-error: true
+        run: |
+          bash ./terraform.sh plan ${{ inputs.environment }}
