@@ -41,7 +41,7 @@ jobs:
         run: |
           for i in "${{ inputs.env_vars }}"
           do
-            echo "%s\n" $i >> $GITHUB_ENV
+            printf "%s\n" $i >> $GITHUB_ENV
           done
 
       # - name: Set Short Git Commit SHA
