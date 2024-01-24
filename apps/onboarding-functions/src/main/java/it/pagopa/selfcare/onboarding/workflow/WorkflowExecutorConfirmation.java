@@ -3,7 +3,10 @@ package it.pagopa.selfcare.onboarding.workflow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+
+import java.util.Optional;
 
 public class WorkflowExecutorConfirmation implements WorkflowExecutor {
 
@@ -15,7 +18,8 @@ public class WorkflowExecutorConfirmation implements WorkflowExecutor {
         this.optionsRetry = optionsRetry;
     }
     @Override
-    public void executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        return Optional.empty();
     }
 
     @Override
