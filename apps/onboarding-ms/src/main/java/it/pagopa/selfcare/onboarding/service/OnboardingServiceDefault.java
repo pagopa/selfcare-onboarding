@@ -129,19 +129,11 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
-        onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
-                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
-                .onItem().transformToUni(this::checkProductAndReturnOnboarding)
-                .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString())))
-                .onItem().transform(onboardingMapper::toResponse));
+        return fillUsersAndOnboarding(onboarding, userRequests,
+                onboardingId -> orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId));
     }
 
     /**
@@ -150,18 +142,24 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     @Override
     public Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests) {
-        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
-        onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
+        return fillUsersAndOnboarding(onboarding, userRequests,
+                onboardingId -> orchestrationApi.apiStartAndWaitOnboardingOrchestrationGet(onboardingId));
+    }
+
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Function<String, Uni<OrchestrationResponse>> orchestrationByOnboardingId) {
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
+        onboarding.setCreatedAt(LocalDateTime.now());
+
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
-                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
+                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
                 .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                 .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationApi.apiStartAndWaitOnboardingOrchestrationGet(currentOnboarding.getId().toHexString())))
+                        orchestrationByOnboardingId.apply(currentOnboarding.getId().toHexString())))
                 .onItem().transform(onboardingMapper::toResponse));
     }
 
