@@ -5,30 +5,32 @@ import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.functions.utils.SaveOnboardingStatusInput;
 
-import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.SAVE_ONBOARDING_STATUS_ACTIVITY;
+import java.util.Optional;
+
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
 public interface WorkflowExecutor {
 
-    void executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding);
-    void executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding);
+    Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding);
+    Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding);
 
     ObjectMapper objectMapper();
 
     TaskOptions optionsRetry();
 
-    default void execute(TaskOrchestrationContext ctx, Onboarding onboarding){
-        switch (onboarding.getStatus()){
+    default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding){
+        return switch (onboarding.getStatus()) {
             case REQUEST -> executeRequestState(ctx, onboarding);
             case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboarding);
             case PENDING -> executePendingState(ctx, onboarding);
-        }
+            default -> Optional.empty();
+        };
+
     }
 
-    default void executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    default Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
@@ -39,8 +41,6 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
 
-        //Last activity consist of saving pending status
-        String saveOnboardingStatusInput =  SaveOnboardingStatusInput.buildAsJsonString(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED.name());
-        ctx.callActivity(SAVE_ONBOARDING_STATUS_ACTIVITY, saveOnboardingStatusInput, optionsRetry(), String.class).await();
+        return Optional.of(OnboardingStatus.COMPLETED);
     }
 }
