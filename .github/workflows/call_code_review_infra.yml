@@ -44,12 +44,6 @@ jobs:
             printf "%s\n" $i >> $GITHUB_ENV
           done
 
-      # - name: Set Short Git Commit SHA
-      #   id: setsha
-      #   run: |
-      #     calculatedSha=$(git rev-parse --short ${{ github.sha }})
-      #     echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
-
       - name: Azure Login
         uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
         with:
