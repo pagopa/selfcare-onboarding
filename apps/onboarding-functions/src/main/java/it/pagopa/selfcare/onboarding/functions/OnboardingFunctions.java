@@ -53,6 +53,9 @@ public class OnboardingFunctions {
 
     /**
      * This HTTP-triggered function starts the orchestration.
+     * Depending on the time required to get the response from the orchestration instance, there are two cases:
+     * * The orchestration instances complete within the defined timeout and the response is the actual orchestration instance output, delivered synchronously.
+     * * The orchestration instances can't complete within the defined timeout, and the response is the default one described in http api uri
      */
     @FunctionName("StartOnboardingOrchestration")
     public HttpResponseMessage startOrchestration(
@@ -67,25 +70,10 @@ public class OnboardingFunctions {
         String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
         context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
-        return durableContext.createCheckStatusResponse(request, instanceId);
-    }
-
-    @FunctionName("StartAndWaitOnboardingOrchestration")
-    public HttpResponseMessage startAndWaitOrchestration(
-            @HttpTrigger(name = "req", route = "StartAndWaitOnboardingOrchestration", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-            @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
-            final ExecutionContext context) {
-        context.getLogger().info("StartAndWaitOrchestration trigger processed a request.");
-
-        final String onboardingId = request.getQueryParameters().get("onboardingId");
-
-        DurableTaskClient client = durableContext.getClient();
-        String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
-        context.getLogger().info(String.format("%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
-
         try {
 
-            int timeoutInSeconds = 60;
+            String timeoutString = request.getQueryParameters().get("timeout");
+            int timeoutInSeconds = Optional.ofNullable(timeoutString).map(Integer::parseInt).orElse(1);
             OrchestrationMetadata orchestration = client.waitForInstanceCompletion(
                     instanceId,
                     Duration.ofSeconds(timeoutInSeconds),

@@ -53,52 +53,6 @@ public class OnboardingFunctionsTest {
     CompletionService completionService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
-
-    /**
-     * Unit test for HttpTriggerJava method.
-     */
-    @Test
-    public void testHttpTriggerJava() throws Exception {
-        // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final HttpResponseMessage res = mock(HttpResponseMessage.class);
-
-        final Map<String, String> queryParams = new HashMap<>();
-        final String onboardingId = "onboardingId";
-        queryParams.put("onboardingId", onboardingId);
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        final Optional<String> queryBody = Optional.empty();
-        doReturn(queryBody).when(req).getBody();
-
-        doAnswer(new Answer<HttpResponseMessage.Builder>() {
-            @Override
-            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
-                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-            }
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        final DurableClientContext durableContext = mock(DurableClientContext.class);
-        final DurableTaskClient client = mock(DurableTaskClient.class);
-        final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
-        doReturn(client).when(durableContext).getClient();
-        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings",onboardingId);
-        doReturn(res).when(durableContext).createCheckStatusResponse(any(), any());
-
-        // Invoke
-        function.startOrchestration(req, durableContext, context);
-
-        // Verify
-        ArgumentCaptor<String> captorInstanceId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(durableContext, times(1))
-                .createCheckStatusResponse(any(), captorInstanceId.capture());
-        assertEquals(scheduleNewOrchestrationInstance, captorInstanceId.getValue());
-    }
     @Test
     public void startAndWaitOrchestration() throws Exception {
         // Setup
@@ -108,6 +62,7 @@ public class OnboardingFunctionsTest {
         final Map<String, String> queryParams = new HashMap<>();
         final String onboardingId = "onboardingId";
         queryParams.put("onboardingId", onboardingId);
+        queryParams.put("timeout", "10");
         doReturn(queryParams).when(req).getQueryParameters();
 
         final Optional<String> queryBody = Optional.empty();
@@ -131,7 +86,7 @@ public class OnboardingFunctionsTest {
         doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings",onboardingId);
 
         // Invoke
-        function.startAndWaitOrchestration(req, durableContext, context);
+        function.startOrchestration(req, durableContext, context);
 
         // Verify
         Mockito.verify(client, times(1))
