@@ -3,11 +3,6 @@ name: Code Review mongo infra
 on:
   workflow_dispatch:
 
-  # TODO: remove
-  push:
-    branches:
-      - EC-101-pipeline-deployment-infra
-
   pull_request:
     branches:
       - main
@@ -27,7 +22,7 @@ jobs:
   code_review_dev:
     uses: ./.github/workflows/call_code_review_infra.yml
     name: '[DEV] Mongo Infra Code Review'
-    # if: github.ref_name == 'main'
+    if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
@@ -36,17 +31,8 @@ jobs:
   code_review_uat:
     uses: ./.github/workflows/call_code_review_infra.yml
     name: '[UAT] Mongo Infra Code Review'
-    # if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
+    if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
-      dir: ./infra/mongo
-
-  code_review_prod:
-    uses: ./.github/workflows/call_code_review_infra.yml
-    name: '[PROD] Mongo Infra Code Review'
-    # if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
-    secrets: inherit
-    with:
-      environment: prod
       dir: ./infra/mongo
