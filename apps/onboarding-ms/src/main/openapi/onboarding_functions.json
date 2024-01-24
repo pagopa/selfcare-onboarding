@@ -126,11 +126,6 @@
         "type": "apiKey",
         "name": "x-functions-key",
         "in": "header"
-      },
-      "api_key_complete": {
-        "type": "apiKey",
-        "name": "x-functions-key",
-        "in": "header"
       }
     }
   }
