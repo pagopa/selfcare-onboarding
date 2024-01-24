@@ -45,8 +45,9 @@ variable "container_app" {
 }
 
 variable "image_tag" {
-  type    = string
-  default = "latest"
+  type        = string
+  default     = "latest"
+  description = "Image tag to use for the container"
 }
 
 variable "app_settings" {

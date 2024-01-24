@@ -19,7 +19,8 @@ public class WorkflowExecutorConfirmation implements WorkflowExecutor {
     }
 
     @Override
-    public void executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        return Optional.empty();
     }
 
     @Override

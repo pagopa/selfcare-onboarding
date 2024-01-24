@@ -196,7 +196,7 @@ public class OnboardingService {
         return sendMailInput;
     }
 
-    public void savePendingState(String onboardingId, OnboardingStatus status) {
+    public void updateOnboardingStatus(String onboardingId, OnboardingStatus status) {
         repository
                 .update("status", status.name())
                 .where("_id", onboardingId);

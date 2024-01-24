@@ -12,7 +12,7 @@ resource "github_repository_environment" "github_repository_environment_cd" {
       )
     }
   }
-  
+
   dynamic "deployment_branch_policy" {
     for_each = var.github_repository_environment_cd.protected_branches ? [1] : []
     content {

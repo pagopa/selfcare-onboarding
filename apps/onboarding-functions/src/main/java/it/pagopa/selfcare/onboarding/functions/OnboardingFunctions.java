@@ -10,6 +10,7 @@ import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -118,7 +119,8 @@ public class OnboardingFunctions {
             default -> throw new IllegalArgumentException("Workflow options not found!");
         }
 
-        workflowExecutor.execute(ctx, onboarding);
+        Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
+        optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
     }
 
     /**
