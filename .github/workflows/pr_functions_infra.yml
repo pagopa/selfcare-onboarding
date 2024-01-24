@@ -22,7 +22,7 @@ jobs:
   code_review_dev:
     uses: ./.github/workflows/call_code_review_infra.yml
     name: '[DEV] Functions Infra Code Review'
-    if: github.ref_name == 'main'
+    if: ${{ !startsWith(github.ref_name, 'releases/') }}
     secrets: inherit
     with:
       environment: dev
@@ -31,7 +31,6 @@ jobs:
   code_review_uat:
     uses: ./.github/workflows/call_code_review_infra.yml
     name: '[UAT] Functions Infra Code Review'
-    if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
@@ -40,7 +39,6 @@ jobs:
   code_review_prod:
     uses: ./.github/workflows/call_code_review_infra.yml
     name: '[PROD] Functions Infra Code Review'
-    if: github.ref_name == 'main' || startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: prod
