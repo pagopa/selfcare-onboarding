@@ -121,7 +121,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboarding() {
 
-        Mockito.when(onboardingService.onboarding(any()))
+        Mockito.when(onboardingService.onboarding(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -150,7 +150,7 @@ class OnboardingControllerTest {
         onboardingPaValid.setInstitution(institution);
         onboardingPaValid.setBilling(billingPaRequest);
 
-        Mockito.when(onboardingService.onboardingPa(any()))
+        Mockito.when(onboardingService.onboarding(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -166,7 +166,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboardingPsp() {
 
-        Mockito.when(onboardingService.onboardingPsp(any()))
+        Mockito.when(onboardingService.onboarding(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()

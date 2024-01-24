@@ -128,31 +128,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     String pathContracts;
 
     @Override
-    public Uni<OnboardingResponse> onboarding(OnboardingDefaultRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingPsp(OnboardingPspRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingSa(OnboardingSaRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingPa(OnboardingPaRequest onboardingRequest) {
-        return fillUsersAndOnboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    @Override
-    public Uni<OnboardingResponse> onboardingConfirmation(OnboardingDefaultRequest onboardingRequest) {
-        return fillUsersAndOnboardingConfirmation(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers());
-    }
-
-    public Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
+    public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
@@ -169,10 +145,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     /**
-     * It is specific for CONFIRMATION workflow where onboarding goes directly to persist phase
+     * As above but it is specific for CONFIRMATION workflow where onboarding goes directly to persist phase
      * It is created with PENDING state and wait for completion of the orchestration of persisting onboarding 'apiStartAndWaitOnboardingOrchestrationGet'
      */
-    public Uni<OnboardingResponse> fillUsersAndOnboardingConfirmation(Onboarding onboarding, List<UserRequest> userRequests) {
+    @Override
+    public Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
