@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-20.04
     permissions:
       contents: write
+      actions: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
 
@@ -64,12 +67,8 @@ jobs:
       - name: Push Branch
         run: |
           git push origin $NEW_BRANCH_NAME
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger UAT Release
         run: |
           gh workflow run pr_functions_infra.yml \
             --ref $NEW_BRANCH_NAME
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
