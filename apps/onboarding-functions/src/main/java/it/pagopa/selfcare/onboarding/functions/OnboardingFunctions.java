@@ -111,7 +111,7 @@ public class OnboardingFunctions {
 
             Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
             optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
-        } catch (Exception ex) {
+        } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
         }
