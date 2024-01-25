@@ -29,9 +29,10 @@ jobs:
         name: Checkout
         with:
           ref: main
+          fetch-depth: 0
 
-      - name: Fetch Remote Branches
-        run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+      # - name: Fetch Remote Branches
+      #   run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
 
       - name: Get Current UAT version
         id: get-version
