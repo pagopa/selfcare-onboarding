@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.entity.ProductStatus;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
@@ -152,6 +153,27 @@ public class ProductServiceDefault implements ProductService {
     @Override
     public Product getProductIsValid(String productId) {
         return getProduct(productId, true);
+    }
+
+    /**
+     * The validateProductRole function is used to validate a product role searching for it within the role map for a specific product
+     * given productId. It returns founded ProductRole object filtered by productRole code
+     */
+    @Override
+    public ProductRole validateProductRole(String productId, String productRole, PartyRole role) {
+        if (role == null) {
+            throw new IllegalArgumentException("Role is mandatory to check productRole");
+        }
+
+        Product product = getProduct(productId);
+        ProductRoleInfo productRoleInfo = product.getRoleMappings().get(productRole);
+        if (productRoleInfo == null) {
+            throw new IllegalArgumentException(String.format("Role %s not found", role));
+        }
+
+        return productRoleInfo.getRoles().stream().filter(prodRole -> prodRole.getCode().equals(productRole))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("ProductRole %s not found for role %s", productRole, role)));
     }
 
     private static boolean statusIsNotValid(ProductStatus status) {
