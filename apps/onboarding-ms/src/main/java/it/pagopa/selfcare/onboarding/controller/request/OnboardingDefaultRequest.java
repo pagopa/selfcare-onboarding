@@ -17,5 +17,5 @@ public class OnboardingDefaultRequest extends OnboardingBaseRequest {
     @Valid
     private BillingRequest billing;
     @Valid
-    private AdditionalInformationsRequest additionalInformations;
+    private AdditionalInformationsDto additionalInformations;
 }
