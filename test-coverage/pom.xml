@@ -77,22 +77,22 @@
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-product</artifactId>
-                    <version>0.1.4</version>
+                    <version>0.1.5</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-common</artifactId>
-                    <version>0.1.4</version>
+                    <version>0.1.5</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-azure-storage</artifactId>
-                    <version>0.1.4</version>
+                    <version>0.1.5</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-crypto</artifactId>
-                    <version>0.1.4</version>
+                    <version>0.1.5</version>
                 </dependency>
             </dependencies>
 
