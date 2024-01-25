@@ -8,9 +8,12 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.tuples.Tuple2;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -278,7 +281,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return (Objects.nonNull(product.getParent())
                 //If product has parent, I must verify if onboarding is present for parent and child
                 ? checkIfAlreadyOnboardingAndValidateAllowedMap(product.getParentId(), institutionTaxCode, institutionSubunitCode)
-                    .onItem().transformToUni( ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode))
+                    .onFailure(InvalidRequestException.class).recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode))
                 //If product is a root, I must only verify if onboarding for root
                 : checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode)
         ).replaceWith(onboarding);
