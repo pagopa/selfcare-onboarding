@@ -34,9 +34,8 @@ jobs:
         id: get-version
         shell: bash
         run: |
-          RELEASE_BRANCH=$(git branch -r | grep -Eo 'releases/[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+          RELEASE_BRANCH=$(git branch -r | grep -Eo 'releases/[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
           echo "RELEASE_BRANCH=${RELEASE_BRANCH}" >> $GITHUB_ENV
-          # run: echo "VERSION=$(git describe --match "releases/*" --abbrev=0 --tags | sed 's/releases\///')" >> $GITHUB_ENV
 
       # - name: Bump Version
       #   id: bump-version
