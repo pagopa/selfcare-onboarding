@@ -24,9 +24,9 @@ jobs:
       - name: Create branch
         shell: bash
         run: |
-          git checkout -b ag/test-branch
+          git checkout -b ag/test-branch2
 
       - name: Push branch
         shell: bash
         run: |
-          git push origin ag/test-branch
+          git push
