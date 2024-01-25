@@ -97,9 +97,10 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestrator_throwExceptionIfOnboardingNotPresent() {
         final String onboardingId = "onboardingId";
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext));
+        assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext, executionContext));
     }
 
     @Test
@@ -111,13 +112,14 @@ public class OnboardingFunctionsTest {
         final String instanceId = "instanceId";
 
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
         when(orchestrationContext.getInstanceId()).thenReturn(instanceId);
         when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
 
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenThrow(new RuntimeException());
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatusAndInstanceId(onboarding.getOnboardingId(), OnboardingStatus.FAILED, instanceId);
@@ -131,8 +133,9 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(3))
@@ -153,8 +156,9 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(1))
@@ -173,8 +177,9 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(3))
@@ -196,8 +201,9 @@ public class OnboardingFunctionsTest {
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(3))
@@ -218,8 +224,9 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(2))
@@ -336,8 +343,9 @@ public class OnboardingFunctionsTest {
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
 
-        function.onboardingsOrchestrator(orchestrationContext);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         Mockito.verify(orchestrationContext, times(3))
@@ -350,6 +358,27 @@ public class OnboardingFunctionsTest {
                 .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
     }
 
+
+
+
+    @Test
+    void onboardingRejectedOrchestrator() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REJECTED);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_REJECTION_ACTIVITY, captorActivity.getAllValues().get(0));
+    }
 
     @Test
     void createInstitutionAndPersistInstitutionId() {
