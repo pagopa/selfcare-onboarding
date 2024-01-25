@@ -6,6 +6,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClientDefault;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 
 import java.time.LocalDateTime;
@@ -72,5 +73,11 @@ public class ProductServiceCacheable implements ProductService{
     public Product getProductIsValid(String productId) {
         refreshProduct();
         return productService.getProductIsValid(productId);
+    }
+
+    @Override
+    public ProductRole validateProductRole(String productId, String productRole, PartyRole role) {
+        refreshProduct();
+        return productService.validateProductRole(productId, productRole, role);
     }
 }
