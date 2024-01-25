@@ -55,7 +55,7 @@ jobs:
             OLD_VERSION=$(echo "${RELEASE_BRANCH}" | sed 's/releases\///')
             echo "old-version: $OLD_VERSION"
 
-            NEW_VERSION=$(semver bump patch "${OLD_VERSION}")
+            NEW_VERSION=$(semver --increment patch "${OLD_VERSION}")
             echo "new-version: $NEW_VERSION"
 
             NEW_BRANCH_NAME="releases/${NEW_VERSION}"
