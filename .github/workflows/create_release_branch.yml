@@ -1,0 +1,32 @@
+name: Create Release branch
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - EC-99-pipeline-creazione-branch-di-release
+
+jobs:
+  create_branch:
+    name: 'Create Release Branch'
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+
+    steps:
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        name: Checkout
+        with:
+          ref: main
+
+      - name: Create branch
+        shell: bash
+        run: |
+          git checkout -b ag/test-branch
+
+      - name: Push branch
+        shell: bash
+        run: |
+          git push origin ag/test-branch
