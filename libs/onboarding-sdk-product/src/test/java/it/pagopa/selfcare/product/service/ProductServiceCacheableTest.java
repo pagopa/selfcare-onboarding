@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.product.service;
 
 import com.azure.storage.blob.models.BlobProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
@@ -25,6 +26,11 @@ class ProductServiceCacheableTest {
     final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
+
+    final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
+            "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
+
 
     final private String PRODUCT_JSON_STRING_EMPTY = "[]";
 
@@ -174,6 +180,37 @@ class ProductServiceCacheableTest {
         Executable executable = () -> productServiceCacheable.getProductIsValid("prod-inactive");
         //then
         assertThrows(ProductNotFoundException.class, executable);
+    }
+
+    @Test
+    void validateProductRoleWithoutRole()  {
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
+        assertThrows(IllegalArgumentException.class, () -> productServiceCacheable.validateProductRole("prod-test", "productRole", null));
+    }
+
+
+    @Test
+    void validateProductRoleOk() {
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING_WITH_ROLEMAPPING, filePath);
+        assertDoesNotThrow(() -> productServiceCacheable.validateProductRole("prod-test", "operatore", PartyRole.MANAGER));
+    }
+
+
+    @Test
+    void validateProductRoleWithProductRoleMappingNotFound() {
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING_WITH_ROLEMAPPING, filePath);
+        assertThrows(IllegalArgumentException.class, () -> productServiceCacheable.validateProductRole("prod-test", "productRole", PartyRole.DELEGATE));
+    }
+
+
+    @Test
+    void validateProductRoleOkWithProductRoleNotFound() {
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING_WITH_ROLEMAPPING, filePath);
+        assertThrows(IllegalArgumentException.class, () -> productServiceCacheable.validateProductRole("prod-test", "amministratore", PartyRole.MANAGER));
     }
 
     private ProductServiceCacheable mockProductService(String productJson, String filePath) {
