@@ -6,7 +6,6 @@ on:
   pull_request:
     branches:
       - main
-      - ops/fix-code-review-function
     types:
       - opened
       - edited
