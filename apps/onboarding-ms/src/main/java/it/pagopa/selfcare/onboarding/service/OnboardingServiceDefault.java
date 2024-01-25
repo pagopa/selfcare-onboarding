@@ -594,7 +594,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
-                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED));
+                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED))
+                // Start async activity if onboardingOrchestrationEnabled is true
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, "60")
+                            .map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding));
     }
 
     /**

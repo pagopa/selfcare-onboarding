@@ -25,6 +25,7 @@ public interface WorkflowExecutor {
             case REQUEST -> executeRequestState(ctx, onboarding);
             case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboarding);
             case PENDING -> executePendingState(ctx, onboarding);
+            case REJECTED -> executeRejectedState(ctx, onboarding);
             default -> Optional.empty();
         };
 
@@ -42,5 +43,11 @@ public interface WorkflowExecutor {
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
 
         return Optional.of(OnboardingStatus.COMPLETED);
+    }
+
+    default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, Onboarding onboarding){
+        String onboardingString = getOnboardingString(objectMapper(), onboarding);
+        ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        return Optional.empty();
     }
 }

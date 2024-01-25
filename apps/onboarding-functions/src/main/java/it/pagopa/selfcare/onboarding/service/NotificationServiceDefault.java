@@ -169,6 +169,32 @@ public class NotificationServiceDefault implements NotificationService {
         sendMailWithFile(destinationMails, templatePath, mailParameter, product.getTitle(), fileMailData);
     }
 
+
+
+    @Override
+    public void sendMailRejection(List<String> destinationMails, Product product) {
+
+        byte[] logoData = null;
+
+        try {
+            logoData = Files.readAllBytes(contractService.getLogoFile().toPath());
+        } catch (IOException e) {
+            throw new GenericOnboardingException(e.getMessage());
+        }
+
+        Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
+        mailParameter.put(templatePlaceholdersConfig.rejectOnboardingUrlPlaceholder(), templatePlaceholdersConfig.rejectOnboardingUrlValue() + product.getId());
+
+
+        FileMailData fileMailData = new FileMailData();
+        fileMailData.contentType = "image/png";
+        fileMailData.data = logoData;
+        fileMailData.name = PAGOPA_LOGO_FILENAME;
+
+        sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), fileMailData);
+    }
+
     private void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {
         try {
 

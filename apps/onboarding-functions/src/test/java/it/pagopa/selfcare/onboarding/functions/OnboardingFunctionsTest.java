@@ -351,6 +351,26 @@ public class OnboardingFunctionsTest {
     }
 
 
+
+
+    @Test
+    void onboardingRejectedOrchestrator() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REJECTED);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(SEND_MAIL_REJECTION_ACTIVITY, captorActivity.getAllValues().get(0));
+    }
+
     @Test
     void createInstitutionAndPersistInstitutionId() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
@@ -374,5 +394,17 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(completionService, times(1))
                 .sendCompletedEmail(any());
+    }
+
+    @Test
+    void sendMailRejection() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendMailRejection(any());
+
+        function.sendMailRejection(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendMailRejection(any());
     }
 }

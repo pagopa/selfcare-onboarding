@@ -141,6 +141,35 @@ class NotificationServiceDefaultTest {
         assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
     }
 
+    @Test
+    void sendMailRejection() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+
+        final String destination = "test@test.it";
+        Product product = new Product();
+        product.setTitle("productName");
+        product.setId("prod-id");
+
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+
+        Mockito.when(contractService.getLogoFile()).thenReturn(file);
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.rejectPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRejection(List.of(destination), product);
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
 
     @Test
     void sendMailRegistrationApprove() {
