@@ -4,6 +4,7 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.controller.request.AdditionalInformationsRequest;
 import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import lombok.Data;
@@ -37,4 +38,5 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     private LocalDateTime expiringDate;
     private OnboardingStatus status;
     private String userRequestUid;
+    private AdditionalInformations additionalInformations;
 }
