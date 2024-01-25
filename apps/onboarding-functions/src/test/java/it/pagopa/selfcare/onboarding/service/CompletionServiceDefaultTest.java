@@ -269,6 +269,27 @@ public class CompletionServiceDefaultTest {
                 .sendCompletedEmail(any(), any(), any());
     }
 
+    @Test
+    void sendMailRejection() {
+
+        Product product = createDummyProduct();
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+        doNothing().when(notificationService).sendMailRejection(any(), any());
+
+        completionServiceDefault.sendMailRejection(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRejection(any(), any());
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
