@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller.response;
 
+import it.pagopa.selfcare.onboarding.controller.request.AdditionalInformationsDto;
+import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
 import lombok.Data;
 
 import java.util.List;
@@ -14,6 +16,7 @@ public class OnboardingGet {
     private String pricingPlan;
     private BillingResponse billing;
     private Boolean signContract;
+    private AdditionalInformationsDto additionalInformations;
 
     private String status;
     private String userRequestUid;
