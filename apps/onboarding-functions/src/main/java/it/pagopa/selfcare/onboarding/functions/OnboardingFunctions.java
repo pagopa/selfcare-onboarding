@@ -92,7 +92,8 @@ public class OnboardingFunctions {
      */
     @FunctionName("Onboardings")
     public void onboardingsOrchestrator(
-            @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx) {
+            @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+            ExecutionContext functionContext) {
         String onboardingId = ctx.getInput(String.class);
         Onboarding onboarding = service.getOnboarding(onboardingId)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
@@ -111,6 +112,7 @@ public class OnboardingFunctions {
             Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
             optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
         } catch (Exception ex) {
+            functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
         }
     }
