@@ -53,6 +53,13 @@ public class OnboardingFunctionsTest {
     CompletionService completionService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
+
+    static ExecutionContext executionContext;
+
+    static {
+        executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+    }
     @Test
     public void startAndWaitOrchestration() throws Exception {
         // Setup
@@ -97,7 +104,7 @@ public class OnboardingFunctionsTest {
     void onboardingsOrchestrator_throwExceptionIfOnboardingNotPresent() {
         final String onboardingId = "onboardingId";
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext, executionContext));
@@ -112,7 +119,7 @@ public class OnboardingFunctionsTest {
         final String instanceId = "instanceId";
 
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
         when(orchestrationContext.getInstanceId()).thenReturn(instanceId);
         when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
@@ -133,7 +140,6 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -156,7 +162,7 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -177,7 +183,7 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -201,7 +207,7 @@ public class OnboardingFunctionsTest {
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -224,7 +230,7 @@ public class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -251,8 +257,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void buildContract() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+
         doNothing().when(service).createContract(any());
 
         function.buildContract(onboardinString, executionContext);
@@ -263,7 +268,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void saveToken() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).saveTokenWithContract(any());
 
@@ -275,7 +280,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailRegistrationWithContract() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistrationWithContract(any());
 
@@ -287,7 +292,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailRegistration() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistration(any());
 
@@ -299,7 +304,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailRegistrationApprove() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistrationApprove(any());
 
@@ -311,7 +316,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailOnboardingApprove() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailOnboardingApprove(any());
 
@@ -323,7 +328,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistrationWithContractWhenApprove(any());
 
@@ -343,7 +348,7 @@ public class OnboardingFunctionsTest {
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -370,7 +375,7 @@ public class OnboardingFunctionsTest {
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -382,7 +387,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void createInstitutionAndPersistInstitutionId() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         when(completionService.createInstitutionAndPersistInstitutionId(any()))
                 .thenReturn("id");
@@ -395,7 +400,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendCompletedEmail() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(completionService).sendCompletedEmail(any());
 
@@ -407,7 +412,7 @@ public class OnboardingFunctionsTest {
 
     @Test
     void sendMailRejection() {
-        ExecutionContext executionContext = mock(ExecutionContext.class);
+        
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(completionService).sendMailRejection(any());
 
