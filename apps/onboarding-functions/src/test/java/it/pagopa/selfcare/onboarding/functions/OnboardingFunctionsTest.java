@@ -244,6 +244,31 @@ public class OnboardingFunctionsTest {
                 .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED);
     }
 
+
+
+    @Test
+    void onboardingsOrchestratorForApprovePtWhenToBeValidated() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setInstitution(new Institution());
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+    }
+
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
