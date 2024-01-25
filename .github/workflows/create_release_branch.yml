@@ -2,10 +2,14 @@ name: Create Release branch
 
 on:
   workflow_dispatch:
-
-  push:
-    branches:
-      - EC-99-pipeline-creazione-branch-di-release
+    inputs:
+      version-bump:
+        required: false
+        type: choice
+        options:
+          - major
+          - minor
+        default: minor
 
 jobs:
   create_branch:
@@ -21,12 +25,32 @@ jobs:
         with:
           ref: main
 
-      - name: Create branch
+      - name: Get Current UAT version
+        id: get-version
         shell: bash
         run: |
-          git checkout -b ag/test-branch2
+          run: echo "VERSION=$(git describe --match "releases/*" --abbrev=0 --tags | sed 's/releases\///')" >> $GITHUB_ENV
 
-      - name: Push branch
+      - name: Bump Version
+        id: bump-version
         shell: bash
         run: |
-          git push
+          echo "BUMPED_VERSION=$(semver bump ${{ inputs.version-bump }} ${{ steps.get-version.outputs.VERSION }})" >> $GITHUB_ENV
+
+      - name: Set Branch Name
+        id: set_branch
+        shell: bash
+        run: |
+          echo "NEW_BRANCH_NAME=ag/${{ steps.bump-version.outputs.BUMPED_VERSION }}" >> $GITHUB_ENV
+
+      - name: Create Branch
+        shell: bash
+        run: |
+          git checkout -b $NEW_BRANCH_NAME
+
+      - name: Push Branch
+        shell: bash
+        run: |
+          git push origin $NEW_BRANCH_NAME
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
