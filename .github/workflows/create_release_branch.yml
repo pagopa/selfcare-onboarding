@@ -12,9 +12,6 @@ on:
           - patch
         default: patch
         description: 'Major, Minor, or Patch version bump'
-  push:
-    branches:
-      - EC-99-pipeline-creazione-branch-di-release
 
 jobs:
   create_branch:
