@@ -1,4 +1,4 @@
-name: Deploy onboarding ms
+name: Deploy mongo infra
 
 on:
   push:
@@ -6,35 +6,35 @@ on:
       - main
       - releases/*
     paths:
-      - "apps/onboarding-ms/**"
-      - "infra/container_apps/onboarding-ms/**"
-      - "apps/pom.xml"
-      - "pom.xml"
-  
+      - './infra/mongo'
+
   workflow_dispatch:
 
 jobs:
 
   release_dev:
-    uses: ./.github/workflows/call_release_ms.yml
-    name: '[Dev] OnBoarding ms Release'
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[Dev] Mongo Infra Release'
     if: github.ref_name == 'main'
     secrets: inherit
     with:
       environment: dev
+      dir: ./infra/mongo
 
   release_uat:
-    uses: ./.github/workflows/call_release_ms.yml
-    name: '[UAT] OnBoarding ms Release'
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[UAT] Mongo Infra Release'
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: uat
+      dir: ./infra/mongo
 
   release_prod:
-    uses: ./.github/workflows/call_release_ms.yml
-    name: '[Prod] OnBoarding ms Release'
+    uses: ./.github/workflows/call_release_infra.yml
+    name: '[Prod] Mongo Infra Release'
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
       environment: prod
+      dir: ./infra/mongo
