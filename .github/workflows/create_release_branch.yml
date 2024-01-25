@@ -39,32 +39,25 @@ jobs:
       - name: Install semver
         run: npm install -g semver
 
-      - name: Get Current UAT version
+      - name: Get Latest Release Version
         id: get-version
         run: |
           RELEASE_BRANCH=$(git branch -r | grep -Eo 'releases/[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
           echo "RELEASE_BRANCH=${RELEASE_BRANCH}" >> $GITHUB_ENV
 
-      # - name: Bump Version
-      #   id: bump-version
-      #   shell: bash
-      #   run: |
-      #     echo "BUMPED_VERSION=$(semver bump minor ${{ steps.get-version.outputs.VERSION }})" >> $GITHUB_ENV
-      #     # ${{ inputs.version-bump }}
-
       - name: Set Branch Name
         id: set_branch
-        shell: bash
         run: |
-          # echo "NEW_BRANCH_NAME=ag/${{ steps.bump-version.outputs.BUMPED_VERSION }}" >> $GITHUB_ENV
 
           if [ -z "${RELEASE_BRANCH}" ]; then
-            # If no existing release branches, create the first one
             NEW_BRANCH_NAME="releases/0.0.1"
           else
-            # Bump the version based on the input
             OLD_VERSION=$(echo "${RELEASE_BRANCH}" | sed 's/releases\///')
+            echo "old-version: $OLD_VERSION"
+
             NEW_VERSION=$(semver bump patch "${OLD_VERSION}")
+            echo "new-version: $NEW_VERSION"
+
             NEW_BRANCH_NAME="releases/${NEW_VERSION}"
           fi
           echo "NEW_BRANCH_NAME=${NEW_BRANCH_NAME}" >> $GITHUB_ENV
