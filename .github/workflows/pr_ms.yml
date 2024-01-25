@@ -29,6 +29,7 @@ jobs:
       source_branch: ${{ github.head_ref }}
       target_branch: ${{ github.base_ref }}
       sonar_key: 'pagopa_selfcare-onboarding'
+      module: 'onboarding-functions'
 
   build_docker:
     name: 'Build Docker image'
