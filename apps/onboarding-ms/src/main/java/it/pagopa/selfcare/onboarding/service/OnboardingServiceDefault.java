@@ -8,10 +8,7 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.tuples.Tuple2;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
@@ -28,6 +25,7 @@ import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
+import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
@@ -75,7 +73,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String INVALID_OBJECTID = "Given onboardingId [%s] has wrong format";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED = "Onboarding with id %s not found or already deleted";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
-
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
@@ -161,11 +158,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
                     .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
                 .onItem().transformToUni(this::checkProductAndReturnOnboarding)
+                .onItem().transformToUni(OnboardingUtils::customValidationOnboardingData)
                 .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                 .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                         orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
                 .onItem().transform(onboardingMapper::toResponse));
     }
+
 
     private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
@@ -594,7 +593,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
-                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED));
+                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED))
+                // Start async activity if onboardingOrchestrationEnabled is true
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, "60")
+                            .map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding));
     }
 
     /**

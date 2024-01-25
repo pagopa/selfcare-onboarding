@@ -16,5 +16,6 @@ public class OnboardingDefaultRequest extends OnboardingBaseRequest {
     @NotNull(message = "billing is required")
     @Valid
     private BillingRequest billing;
-
+    @Valid
+    private AdditionalInformationsDto additionalInformations;
 }

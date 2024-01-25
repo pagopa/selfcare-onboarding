@@ -23,6 +23,7 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -153,6 +154,16 @@ public class CompletionServiceDefault implements CompletionService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         notificationService.sendCompletedEmail(destinationMails, product, onboarding.getInstitution().getInstitutionType());
+    }
+
+    @Override
+    public void sendMailRejection(Onboarding onboarding) {
+
+        List<String> destinationMails = new ArrayList<>();
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        notificationService.sendMailRejection(destinationMails, product);
     }
 
 
