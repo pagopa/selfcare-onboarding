@@ -166,7 +166,7 @@ public class ProductServiceDefault implements ProductService {
         }
 
         Product product = getProduct(productId);
-        ProductRoleInfo productRoleInfo = product.getRoleMappings().get(productRole);
+        ProductRoleInfo productRoleInfo = product.getRoleMappings().get(role);
         if (productRoleInfo == null) {
             throw new IllegalArgumentException(String.format("Role %s not found", role));
         }

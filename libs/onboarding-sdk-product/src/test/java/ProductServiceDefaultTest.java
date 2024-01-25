@@ -21,6 +21,10 @@ public class ProductServiceDefaultTest {
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
+    final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
+            "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
+
     @Test
     void productServiceDefault_shouldThrowProductNotFoundExceptionIfJsonIsEmpty() {
         assertThrows(ProductNotFoundException.class, () -> new ProductServiceDefault(PRODUCT_JSON_STRING_EMPTY));
@@ -112,5 +116,32 @@ public class ProductServiceDefaultTest {
     void getProductValid_shouldThrowProductNotFoundExceptionIfProductInactive() throws JsonProcessingException {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
         assertThrows(ProductNotFoundException.class, () -> productService.getProductIsValid("prod-inactive"));
+    }
+
+    @Test
+    void validateProductRoleWithoutRole() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
+        assertThrows(IllegalArgumentException.class, () -> productService.validateProductRole("prod-test", "productRole", null));
+    }
+
+
+    @Test
+    void validateProductRoleOk() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING_WITH_ROLEMAPPING);
+        assertDoesNotThrow(() -> productService.validateProductRole("prod-test", "operatore", PartyRole.MANAGER));
+    }
+
+
+    @Test
+    void validateProductRoleWithProductRoleMappingNotFound() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING_WITH_ROLEMAPPING);
+        assertThrows(IllegalArgumentException.class, () -> productService.validateProductRole("prod-test", "productRole", PartyRole.DELEGATE));
+    }
+
+
+    @Test
+    void validateProductRoleOkWithProductRoleNotFound() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING_WITH_ROLEMAPPING);
+        assertThrows(IllegalArgumentException.class, () -> productService.validateProductRole("prod-test", "amministratore", PartyRole.MANAGER));
     }
 }
