@@ -193,4 +193,10 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
         completionService.sendCompletedEmail(readOnboardingValue(objectMapper, onboardingString));
     }
+
+    @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)
+    public void sendMailRejection(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString));
+        completionService.sendMailRejection(readOnboardingValue(objectMapper, onboardingString));
+    }
 }
