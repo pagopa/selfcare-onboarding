@@ -31,8 +31,13 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      # - name: Fetch Remote Branches
-      #   run: git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+
+      - name: Install semver
+        run: npm install -g semver
 
       - name: Get Current UAT version
         id: get-version
