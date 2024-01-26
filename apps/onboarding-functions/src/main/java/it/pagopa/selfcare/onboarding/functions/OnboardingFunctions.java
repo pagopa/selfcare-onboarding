@@ -19,6 +19,7 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
@@ -65,6 +66,7 @@ public class OnboardingFunctions {
         context.getLogger().info("StartOnboardingOrchestration trigger processed a request.");
 
         final String onboardingId = request.getQueryParameters().get("onboardingId");
+        final String timeoutString = request.getQueryParameters().get("timeout");
 
         DurableTaskClient client = durableContext.getClient();
         String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
@@ -72,8 +74,12 @@ public class OnboardingFunctions {
 
         try {
 
-            String timeoutString = request.getQueryParameters().get("timeout");
-            int timeoutInSeconds = Optional.ofNullable(timeoutString).map(Integer::parseInt).orElse(1);
+            /* if timeout is null, caller wants response asynchronously */
+            if(Objects.isNull(timeoutString)) {
+                return durableContext.createCheckStatusResponse(request, instanceId);
+            }
+
+            int timeoutInSeconds = Integer.parseInt(timeoutString);
             OrchestrationMetadata orchestration = client.waitForInstanceCompletion(
                     instanceId,
                     Duration.ofSeconds(timeoutInSeconds),
@@ -95,12 +101,14 @@ public class OnboardingFunctions {
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
             ExecutionContext functionContext) {
         String onboardingId = ctx.getInput(String.class);
-        Onboarding onboarding = service.getOnboarding(onboardingId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
+        Onboarding onboarding;
 
         WorkflowExecutor workflowExecutor;
 
         try {
+            onboarding = service.getOnboarding(onboardingId)
+                    .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
+
             switch (onboarding.getWorkflowType()) {
                 case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
@@ -113,6 +121,9 @@ public class OnboardingFunctions {
             optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
+            service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+        } catch (ResourceNotFoundException ex) {
+            functionContext.getLogger().warning(ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
         }
     }
