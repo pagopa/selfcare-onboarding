@@ -14,12 +14,21 @@ resource "github_repository_environment" "github_repository_environment_cd" {
   }
 
   dynamic "deployment_branch_policy" {
-    for_each = var.github_repository_environment_cd.protected_branches ? [1] : []
+    for_each = local.github.cd_branch_policy_enabled == true ? [1] : []
+
     content {
       protected_branches     = var.github_repository_environment_cd.protected_branches
       custom_branch_policies = var.github_repository_environment_cd.custom_branch_policies
     }
   }
+}
+
+resource "github_repository_environment_deployment_policy" "cd_deployment_policy" {
+  count = var.github_repository_environment_cd.branch_pattern == null ? 0 : 1
+
+  repository     = local.github.repository
+  environment    = github_repository_environment.github_repository_environment_cd.environment
+  branch_pattern = var.github_repository_environment_cd.branch_pattern
 }
 
 resource "github_actions_environment_secret" "env_cd_secrets" {

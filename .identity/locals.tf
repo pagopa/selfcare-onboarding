@@ -4,6 +4,9 @@ locals {
   github = {
     org        = "pagopa"
     repository = "selfcare-onboarding"
+
+    ci_branch_policy_enabled = var.github_repository_environment_ci.protected_branches == true || var.github_repository_environment_ci.custom_branch_policies == true
+    cd_branch_policy_enabled = var.github_repository_environment_cd.protected_branches == true || var.github_repository_environment_cd.custom_branch_policies == true
   }
 
   repo_secrets = {
