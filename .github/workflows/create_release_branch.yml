@@ -17,7 +17,6 @@ jobs:
   create_branch:
     name: 'Create Release Branch'
     runs-on: ubuntu-20.04
-    timeout-minutes: 60
     permissions:
       contents: write
       actions: write
