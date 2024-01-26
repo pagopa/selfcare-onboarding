@@ -83,6 +83,10 @@ jobs:
           gh workflow run release_container_apps_infra.yml \
             --ref $NEW_BRANCH_NAME
 
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
       - name: Waiting for infra workflows to complete..
         run: |
           workflows_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy.*infra|infra.*deploy"))) | .[].id')
