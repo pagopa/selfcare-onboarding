@@ -80,9 +80,13 @@ jobs:
 
       - name: Waiting for infra workflows to complete..
         run: |
-          gh run watch \
-            --interval 5 \
-            --exit-status
+          workflows_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy.*infra|infra.*deploy"))) | .[].id')
+
+          for id in $workflows_ids; do
+            gh run watch $id \
+              --interval 5 \
+              --exist-status
+          done
 
       - name: Trigger Functions UAT Release
         run: |
@@ -96,10 +100,10 @@ jobs:
 
       - name: Waiting for workflows to complete..
         run: |
-          # workflows_ids=$(gh workflow list | grep release | awk '{print $3}')
-          
-          # gh workflow list --json  id -q '.[] | .id'
+          workflows_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy"))) | .[].id')
 
-          gh run watch \
-            --interval 5 \
-            --exit-status
+          for id in $workflows_ids; do
+            gh run watch $id \
+              --interval 5 \
+              --exist-status
+          done
