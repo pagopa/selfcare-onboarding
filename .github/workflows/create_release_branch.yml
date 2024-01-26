@@ -73,10 +73,15 @@ jobs:
           gh workflow run release_functions_infra.yml \
             --ref $NEW_BRANCH_NAME
 
-      # - name: Trigger Mongo Infra UAT Release
-      #   run: |
-      #     gh workflow run release_mongo_infra.yml \
-      #       --ref $NEW_BRANCH_NAME
+      - name: Trigger Mongo Infra UAT Release
+        run: |
+          gh workflow run release_mongo_infra.yml \
+            --ref $NEW_BRANCH_NAME
+
+      - name: Trigger Container App Infra UAT Release
+        run: |
+          gh workflow run release_container_apps_infra.yml \
+            --ref $NEW_BRANCH_NAME
 
       - name: Waiting for infra workflows to complete..
         run: |
@@ -93,10 +98,10 @@ jobs:
           gh workflow run release_functions.yml \
             --ref $NEW_BRANCH_NAME
 
-      # - name: Trigger Onboarding ms UAT Release
-      #   run: |
-      #     gh workflow run release_ms.yml \
-      #       --ref $NEW_BRANCH_NAME
+      - name: Trigger Onboarding ms UAT Release
+        run: |
+          gh workflow run release_ms.yml \
+            --ref $NEW_BRANCH_NAME
 
       - name: Waiting for workflows to complete..
         run: |
