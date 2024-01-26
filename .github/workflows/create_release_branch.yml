@@ -17,6 +17,7 @@ jobs:
   create_branch:
     name: 'Create Release Branch'
     runs-on: ubuntu-20.04
+    timeout-minutes: 60
     permissions:
       contents: write
       actions: write
@@ -89,25 +90,42 @@ jobs:
 
       - name: Waiting for infra workflows to complete..
         run: |
-          # workflow_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy.*infra|infra.*deploy"))) | .[].id')
-
-          # for workflow_id in $workflow_ids; do
-          #   latest_run=$(gh run list --workflow $workflow_id --json id,status | jq -r 'sort_by(.created_at) | reverse | .[] | select(.status == "in_progress" or .status == "queued") | .id')
-          #   gh workflow view $id
-          # done
-
-          # for workflow_id in $workflow_ids; do
-          #   latest_run=$(gh run list --workflow $workflow_id -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
-          # done
-
-          run_ids=$(gh run list -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
-          echo "run ids: $run_ids"
+          GITHUB_REPOSITORY=pagopa
           
+          run_ids=$(gh run list -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
+          echo "run ids: \n$run_ids"
+
           for run_id in $run_ids; do
-            gh run watch $run_id \
-              --interval 5 \
-              --exit-status
+          
+            job_status=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$run_id/jobs --json jobs[]."name" --jq '.[]' | grep -i 'uat' | xargs -I{} gh api repos/$GITHUB_REPOSITORY/actions/jobs/{}/steps --json status --jq '.[0]')
+            
+            while true; do
+              if [ "$job_status" == "completed" ] || [ "$job_status" == "failure" ] || [ "$job_status" == "success" ]; then
+                  break
+              fi
+              sleep 10
+            done
+
+            if [ "$job_status" == "failure" ]; then
+              echo "Job with 'uat' in the name failed."
+              exit 1
+            fi
           done
+
+          # while true; do
+          #   for run_id in $run_ids; do
+          #     job_status=$(gh api repos/pagopa/selfcare-onboarding/actions/runs/$run_id/jobs --json jobs[\"$JOB_NAME\"].status --jq '.[0]')
+          #     if [ "$job_status" == "completed" ] || [ "$job_status" == "failure" ] || [ "$job_status" == "success" ]; then
+          #         break
+          #     fi
+          #   sleep 5
+          # done
+          
+          # for run_id in $run_ids; do
+          #   gh run watch $run_id \
+          #     --interval 5 \
+          #     --exit-status
+          # done
 
       - name: Trigger Functions UAT Release
         run: |
