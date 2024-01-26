@@ -96,10 +96,15 @@ jobs:
           #   gh workflow view $id
           # done
 
-          run_ids=$(gh run list -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
+          # for workflow_id in $workflow_ids; do
+          #   latest_run=$(gh run list --workflow $workflow_id -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
+          # done
 
+          run_ids=$(gh run list -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
+          echo "run ids: $run_ids"
+          
           for run_id in $run_ids; do
-            gh run watch $id \
+            gh run watch $run_id \
               --interval 5 \
               --exit-status
           done
