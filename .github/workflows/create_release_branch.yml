@@ -83,15 +83,22 @@ jobs:
           gh workflow run release_container_apps_infra.yml \
             --ref $NEW_BRANCH_NAME
 
-      - name: Sleep for 30 seconds
-        run: sleep 30s
+      - name: Waiting for workflows to be ready
+        run: sleep 15s
         shell: bash
 
       - name: Waiting for infra workflows to complete..
         run: |
-          workflows_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy.*infra|infra.*deploy"))) | .[].id')
+          # workflow_ids=$(gh workflow list --json name,id | jq -r 'map(select(.name | test("(?i)deploy.*infra|infra.*deploy"))) | .[].id')
 
-          for id in $workflows_ids; do
+          # for workflow_id in $workflow_ids; do
+          #   latest_run=$(gh run list --workflow $workflow_id --json id,status | jq -r 'sort_by(.created_at) | reverse | .[] | select(.status == "in_progress" or .status == "queued") | .id')
+          #   gh workflow view $id
+          # done
+
+          run_ids=$(gh run list -b $NEW_BRANCH_NAME -s waiting --json databaseId | jq -r 'sort_by(.created_at) | reverse | .[].databaseId')
+
+          for run_id in $run_ids; do
             gh run watch $id \
               --interval 5 \
               --exit-status
