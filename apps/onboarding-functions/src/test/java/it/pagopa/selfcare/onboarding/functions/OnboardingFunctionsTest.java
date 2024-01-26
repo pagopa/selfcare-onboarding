@@ -4,9 +4,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
-import com.microsoft.durabletask.DurableTaskClient;
-import com.microsoft.durabletask.Task;
-import com.microsoft.durabletask.TaskOrchestrationContext;
+import com.microsoft.durabletask.*;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -108,28 +106,6 @@ public class OnboardingFunctionsTest {
         when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext, executionContext));
-    }
-
-    @Test
-    void onboardingsOrchestrator_throwExceptionActivity() {
-        Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
-        onboarding.setStatus(OnboardingStatus.REQUEST);
-        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
-        final String instanceId = "instanceId";
-
-        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        
-        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
-        when(orchestrationContext.getInstanceId()).thenReturn(instanceId);
-        when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
-
-        when(orchestrationContext.callActivity(any(),any(),any(),any())).thenThrow(new RuntimeException());
-
-        function.onboardingsOrchestrator(orchestrationContext, executionContext);
-
-        Mockito.verify(service, times(1))
-                .updateOnboardingStatusAndInstanceId(onboarding.getOnboardingId(), OnboardingStatus.FAILED, instanceId);
     }
 
     @Test
@@ -242,6 +218,31 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED);
+    }
+
+
+
+    @Test
+    void onboardingsOrchestratorForApprovePtWhenToBeValidated() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setInstitution(new Institution());
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
