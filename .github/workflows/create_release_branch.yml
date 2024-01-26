@@ -68,7 +68,38 @@ jobs:
         run: |
           git push origin $NEW_BRANCH_NAME
 
-      - name: Trigger UAT Release
+      - name: Trigger Functions Infra UAT Release
         run: |
-          gh workflow run pr_functions_infra.yml \
+          gh workflow run release_functions_infra.yml \
             --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger Mongo Infra UAT Release
+      #   run: |
+      #     gh workflow run release_mongo_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      - name: Waiting for infra workflows to complete..
+        run: |
+          gh run watch \
+            --interval 5 \
+            --exit-status
+
+      - name: Trigger Functions UAT Release
+        run: |
+          gh workflow run release_functions.yml \
+            --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger Onboarding ms UAT Release
+      #   run: |
+      #     gh workflow run release_ms.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      - name: Waiting for workflows to complete..
+        run: |
+          # workflows_ids=$(gh workflow list | grep release | awk '{print $3}')
+          
+          # gh workflow list --json  id -q '.[] | .id'
+
+          gh run watch \
+            --interval 5 \
+            --exit-status
