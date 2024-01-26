@@ -85,7 +85,7 @@ jobs:
           for id in $workflows_ids; do
             gh run watch $id \
               --interval 5 \
-              --exist-status
+              --exit-status
           done
 
       - name: Trigger Functions UAT Release
@@ -105,5 +105,5 @@ jobs:
           for id in $workflows_ids; do
             gh run watch $id \
               --interval 5 \
-              --exist-status
+              --exit-status
           done
