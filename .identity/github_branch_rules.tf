@@ -1,3 +1,8 @@
+resource "github_branch_default" "default_main" {
+  repository = local.github.repository
+  branch     = "main"
+}
+
 resource "github_branch_protection_v3" "protection_main" {
   repository = local.github.repository
   branch     = "main"
