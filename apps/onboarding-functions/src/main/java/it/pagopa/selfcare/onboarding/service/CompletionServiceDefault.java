@@ -7,7 +7,6 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -16,6 +15,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
@@ -148,8 +148,11 @@ public class CompletionServiceDefault implements CompletionService {
                 institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
             }
             return true;
-        } catch (ResourceNotFoundException e) {
-            return false;
+        } catch (WebApplicationException e) {
+            if(e.getResponse().getStatus() == 404) {
+                return false;
+            }
+            throw new RuntimeException(e);
         }
     }
 

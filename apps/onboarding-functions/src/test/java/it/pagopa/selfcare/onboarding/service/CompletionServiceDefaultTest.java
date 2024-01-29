@@ -13,12 +13,12 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
@@ -289,7 +289,9 @@ public class CompletionServiceDefaultTest {
         institution.setInstitutionType(InstitutionType.GSP);
         onboarding.setInstitution(institution);
 
-        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null)).thenThrow(ResourceNotFoundException.class);
+        WebApplicationException e = new WebApplicationException(404);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+                .thenThrow(e);
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
@@ -306,6 +308,8 @@ public class CompletionServiceDefaultTest {
                 .createInstitutionUsingPOST1(captor.capture());
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
+
+
 
     @Test
     void persistOnboarding_workContractsNotFound() {
