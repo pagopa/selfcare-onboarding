@@ -130,6 +130,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests) {
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
@@ -154,18 +155,19 @@ public class OnboardingServiceDefault implements OnboardingService {
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
-        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setCreatedAt(LocalDateTime.now());
 
-        return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                .onItem().transformToUni(onboardingPersisted -> checkRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
-                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))
-                .onItem().transformToUni(this::checkProductAndReturnOnboarding)
+        return validationProductDataAndOnboardingExists(onboarding, userRequests)
                 .onItem().transformToUni(OnboardingUtils::customValidationOnboardingData)
                 .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                /* I have to retrieve onboarding id for saving reference to pdv */
+                .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
+                    .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
+                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
+                /* Update onboarding data with users and start orchestration */
                 .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                         orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
-                .onItem().transform(onboardingMapper::toResponse));
+                .onItem().transform(onboardingMapper::toResponse);
     }
 
 
@@ -251,8 +253,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 
-    public Uni<Onboarding> checkProductAndReturnOnboarding(Onboarding onboarding) {
+    public Uni<Onboarding> validationProductDataAndOnboardingExists(Onboarding onboarding, List<UserRequest> userRequests) {
 
+        /* retrieve product, if is not valid will throw OnboardingNotAllowedException */
         return product(onboarding.getProductId())
                 .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
@@ -266,7 +269,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 onboarding.getProductId()), DEFAULT_ERROR.getCode()));
                     }
 
-                    validateProductRole(onboarding.getUsers(), Objects.nonNull(product.getParent())
+                    validateProductRole(userRequests, Objects.nonNull(product.getParent())
                                             ? product.getParent().getRoleMappings()
                                             : product.getRoleMappings());
 
@@ -306,7 +309,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(Boolean.TRUE);
     }
 
-    private void validateProductRole(List<User> users, Map<PartyRole, ProductRoleInfo> roleMappings) {
+    private void validateProductRole(List<UserRequest> users, Map<PartyRole, ProductRoleInfo> roleMappings) {
         try {
             if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
                 throw new IllegalArgumentException("Role mappings is required");
@@ -324,7 +327,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
-    public Uni<List<User>> checkRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId) {
+    public Uni<List<User>> validationRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId) {
 
         List<PartyRole> validRoles = List.of(PartyRole.MANAGER, PartyRole.DELEGATE);
 
