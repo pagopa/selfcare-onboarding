@@ -140,9 +140,9 @@ public class CompletionServiceDefault implements CompletionService {
 
     private boolean isInstitutionPresentOnIpa(Institution institution) {
         try {
-            if (institution.getSubunitType() != null && institution.getSubunitType() == InstitutionPaSubunitType.AOO) {
+            if (InstitutionPaSubunitType.AOO.equals(institution.getSubunitType())) {
                 aooApi.findByUnicodeUsingGET(institution.getSubunitCode(), null);
-            } else if (institution.getSubunitType() != null && institution.getSubunitType() == InstitutionPaSubunitType.UO) {
+            } else if (InstitutionPaSubunitType.UO.equals(institution.getSubunitType())) {
                 uoApi.findByUnicodeUsingGET1(institution.getSubunitCode(), null);
             } else {
                 institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
