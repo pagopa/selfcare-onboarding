@@ -21,8 +21,7 @@ import eu.europa.esig.dss.tsl.function.OfficialJournalSchemeInformationURI;
 import eu.europa.esig.dss.tsl.job.TLValidationJob;
 import eu.europa.esig.dss.tsl.source.LOTLSource;
 import eu.europa.esig.dss.tsl.sync.AcceptAllStrategy;
-import io.quarkus.arc.profile.IfBuildProfile;
-import io.quarkus.arc.profile.UnlessBuildProfile;
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.runtime.Startup;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -45,7 +44,7 @@ public class TrustedListsCertificateSourceConfig {
 
     @Startup
     @ApplicationScoped
-    @UnlessBuildProfile("test")
+    @IfBuildProperty(name = "onboarding-ms.signature.verify-enabled", stringValue = "true", enableIfMissing = false)
     public TrustedListsCertificateSource generateTrustedListsCertificateSource() {
 
         TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
@@ -67,7 +66,7 @@ public class TrustedListsCertificateSourceConfig {
 
     /* It is used for unit test, it does not perform onlineRefresh */
     @ApplicationScoped
-    @IfBuildProfile("test")
+    @IfBuildProperty(name = "onboarding-ms.signature.verify-enabled", stringValue = "false", enableIfMissing = true)
     public TrustedListsCertificateSource generateTrustedListsCertificateSourceTest() {
 
         TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
