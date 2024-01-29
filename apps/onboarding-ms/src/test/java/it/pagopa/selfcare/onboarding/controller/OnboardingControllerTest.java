@@ -9,11 +9,13 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
@@ -416,6 +418,33 @@ class OnboardingControllerTest {
 
         Mockito.verify(onboardingService, times(1))
                 .onboardingCompletion(any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingCompletePg() {
+
+        OnboardingPgRequest onboardingPgRequest = new OnboardingPgRequest();
+        onboardingPgRequest.setProductId("productId");
+        onboardingPgRequest.setUsers(List.of(userDTO));
+        onboardingPgRequest.setTaxCode("taxCode");
+        onboardingPgRequest.setDigitalAddress("digital@address.it");
+        onboardingPgRequest.setOrigin(Origin.INFOCAMERE);
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPgRequest)
+                .contentType(ContentType.JSON)
+                .post("/pg/completion")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboardingCompletion(captor.capture(), any());
     }
 
     private static Map<String, String> getStringStringMap() {
