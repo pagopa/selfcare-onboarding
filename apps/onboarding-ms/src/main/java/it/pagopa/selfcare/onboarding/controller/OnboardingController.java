@@ -6,6 +6,7 @@ import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -113,18 +114,15 @@ public class OnboardingController {
     }
 
 
-    /**
-     * Onboarding pg may be excluded from the async onboarding flow
-     * Institutions may be saved without passing from onboarding
-     *
     @POST
-    @Path("/pg")
+    @Path("/pg/completion")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPg(@Valid OnboardingPgRequest onboardingRequest) {
-        return onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest))
-                .map(onboardingMapper::toResponse);
-    }*/
+    public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().invoke(onboardingRequest::setUserRequestUid)
+                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+    }
 
 
     private Uni<String> readUserIdFromToken(SecurityContext ctx) {
