@@ -8,7 +8,12 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.Product;
@@ -20,10 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
-import org.openapi.quarkus.core_json.model.InstitutionOnboardingRequest;
-import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
@@ -261,7 +263,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null))
+                null, null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -277,7 +279,32 @@ public class CompletionServiceDefaultTest {
         verify(institutionApi, times(1))
                 .createInstitutionFromIpaUsingPOST(captor.capture());
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
-        assertEquals(institution.getSubunitCode(), captor.getValue().getSubunitCode());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreate() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setInstitution(institution);
+
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null)).thenThrow(ResourceNotFoundException.class);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
+                null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionUsingPOST1(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+
+        ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
+        verify(institutionApi, times(1))
+                .createInstitutionUsingPOST1(captor.capture());
+        assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
 
     @Test
