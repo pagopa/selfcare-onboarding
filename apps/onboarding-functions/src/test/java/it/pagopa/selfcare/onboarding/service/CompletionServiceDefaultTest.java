@@ -8,22 +8,29 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
-import org.openapi.quarkus.core_json.model.InstitutionOnboardingRequest;
-import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.core_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -60,6 +67,15 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     UserApi userRegistryApi;
+    @RestClient
+    @InjectMock
+    AooApi aooApi;
+    @RestClient
+    @InjectMock
+    UoApi uoApi;
+    @RestClient
+    @InjectMock
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     final String productId = "productId";
 
@@ -163,7 +179,7 @@ public class CompletionServiceDefaultTest {
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
     }
     @Test
-    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePa() {
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePaAOO() {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
@@ -171,6 +187,10 @@ public class CompletionServiceDefaultTest {
         institution.setSubunitType(InstitutionPaSubunitType.AOO);
         institution.setSubunitCode("code");
         onboarding.setInstitution(institution);
+
+        AOOResource aooResource = new AOOResource();
+        when(aooApi.findByUnicodeUsingGET(institution.getSubunitCode(), null))
+                .thenReturn(aooResource);
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
@@ -183,11 +203,113 @@ public class CompletionServiceDefaultTest {
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
 
         ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
+        ArgumentCaptor<String> subunitCodeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(aooApi, times(1))
+                .findByUnicodeUsingGET(subunitCodeCaptor.capture(), any());
+        assertEquals(institution.getSubunitCode(), subunitCodeCaptor.getValue());
         verify(institutionApi, times(1))
                 .createInstitutionFromIpaUsingPOST(captor.capture());
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
         assertEquals(institution.getSubunitCode(), captor.getValue().getSubunitCode());
     }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePaUO() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setSubunitType(InstitutionPaSubunitType.UO);
+        institution.setSubunitCode("code");
+        onboarding.setInstitution(institution);
+
+        UOResource uoResource = new UOResource();
+        when(uoApi.findByUnicodeUsingGET1(institution.getSubunitCode(), institution.getInstitutionType().name()))
+                .thenReturn(uoResource);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getSubunitCode(), null, null))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionFromIpaUsingPOST(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+
+        ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
+        ArgumentCaptor<String> subunitCodeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(uoApi, times(1))
+                .findByUnicodeUsingGET1(subunitCodeCaptor.capture(), any());
+        assertEquals(institution.getSubunitCode(), subunitCodeCaptor.getValue());
+        verify(institutionApi, times(1))
+                .createInstitutionFromIpaUsingPOST(captor.capture());
+        assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
+        assertEquals(institution.getSubunitCode(), captor.getValue().getSubunitCode());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePa() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        onboarding.setInstitution(institution);
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null))
+                .thenReturn(institutionResource);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
+                null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionFromIpaUsingPOST(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+
+        ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
+        ArgumentCaptor<String> taxCodeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(institutionRegistryProxyApi, times(1))
+                .findInstitutionUsingGET(taxCodeCaptor.capture(), any(), any());
+        assertEquals(institution.getTaxCode(), taxCodeCaptor.getValue());
+        verify(institutionApi, times(1))
+                .createInstitutionFromIpaUsingPOST(captor.capture());
+        assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreate() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setInstitution(institution);
+
+        WebApplicationException e = new WebApplicationException(404);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+                .thenThrow(e);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
+                null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionUsingPOST1(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+
+        ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
+        verify(institutionApi, times(1))
+                .createInstitutionUsingPOST1(captor.capture());
+        assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
+    }
+
+
 
     @Test
     void persistOnboarding_workContractsNotFound() {

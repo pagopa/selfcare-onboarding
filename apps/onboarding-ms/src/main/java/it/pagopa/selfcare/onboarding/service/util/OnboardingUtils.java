@@ -12,8 +12,14 @@ public class OnboardingUtils {
 
     private static final String ADDITIONAL_INFORMATIONS_REQUIRED = "Additional Informations is required when institutionType is GSP and productId is pagopa";
     private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
+    private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
 
     public static Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding) {
+        if(InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType()) &&
+        !ProductId.PROD_INTEROP.getValue().equals(onboarding.getProductId())){
+            if(Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))
+                return  Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
+        }
         if(InstitutionType.GSP == onboarding.getInstitution().getInstitutionType() &&
                 ProductId.PROD_PAGOPA.getValue().equals(onboarding.getProductId())) {
             if(Objects.isNull(onboarding.getAdditionalInformations())) {
