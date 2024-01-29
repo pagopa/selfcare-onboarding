@@ -445,6 +445,7 @@ class OnboardingControllerTest {
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
                 .onboardingCompletion(captor.capture(), any());
+        assertEquals(captor.getValue().getInstitution().getInstitutionType(), InstitutionType.PG);
     }
 
     private static Map<String, String> getStringStringMap() {

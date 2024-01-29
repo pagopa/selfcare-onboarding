@@ -21,6 +21,7 @@ public interface OnboardingMapper {
     @Mapping(source = "businessName", target = "institution.description")
     @Mapping(source = "digitalAddress", target = "institution.digitalAddress")
     @Mapping(source = "origin", target = "institution.origin")
+    @Mapping(source = "institutionType", target = "institution.institutionType")
     Onboarding toEntity(OnboardingPgRequest request);
 
     OnboardingResponse toResponse(Onboarding onboarding);
