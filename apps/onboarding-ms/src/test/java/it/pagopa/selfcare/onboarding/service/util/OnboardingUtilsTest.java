@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
@@ -36,9 +37,13 @@ public class OnboardingUtilsTest {
     @ParameterizedTest
     @ValueSource(strings = {"ipa", "regulatedMarket", "establishedByRegulatoryProvision", "agentOfPublicService"})
     void shouldOnboardingInstitutionWithAdditionalInfo(String type) {
+
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations(type));
@@ -55,9 +60,12 @@ public class OnboardingUtilsTest {
     @Test
     void shouldOnboardingInstitutionWithAdditionalInfoRequiredException() {
 
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations("other"));
@@ -74,10 +82,51 @@ public class OnboardingUtilsTest {
     @Test
     void shouldOnboardingInstitutionWithOtherNoteRequiredException() {
 
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+                .customValidationOnboardingData(onboarding)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+
+    }
+
+    @Test
+    void shouldOnboardingInstitutionWithBillingRequiredException() {
+
+        Onboarding onboarding =  new Onboarding();
+        Institution institution =  new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+                .customValidationOnboardingData(onboarding)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+
+    }
+
+    @Test
+    void shouldOnboardingInstitutionWithRecipientCodeRequiredException() {
+
+        Billing billing = new Billing();
+        Onboarding onboarding =  new Onboarding();
+        Institution institution =  new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+        onboarding.setBilling(billing);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils

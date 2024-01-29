@@ -1,11 +1,13 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -18,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -30,7 +34,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
@@ -45,6 +48,15 @@ public class CompletionServiceDefault implements CompletionService {
     @RestClient
     @Inject
     UserApi userRegistryApi;
+    @RestClient
+    @Inject
+    AooApi aooApi;
+    @RestClient
+    @Inject
+    UoApi uoApi;
+    @RestClient
+    @Inject
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     @Inject
     InstitutionMapper institutionMapper;
@@ -109,10 +121,7 @@ public class CompletionServiceDefault implements CompletionService {
             return institutionApi.createInstitutionFromInfocamereUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if(InstitutionType.PA.equals(institution.getInstitutionType()) ||
-                InstitutionType.SA.equals(institution.getInstitutionType()) ||
-                (isGspAndProdInterop(institution.getInstitutionType(), productId)
-                        && Origin.IPA.equals(institution.getOrigin()))) {
+        if(isInstitutionPresentOnIpa(institution)) {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
@@ -129,9 +138,19 @@ public class CompletionServiceDefault implements CompletionService {
         return institutionApi.createInstitutionUsingPOST1(institutionMapper.toInstitutionRequest(institution));
     }
 
-    private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
-        return InstitutionType.GSP == institutionType
-                && productId.equals(PROD_INTEROP.getValue());
+    private boolean isInstitutionPresentOnIpa(Institution institution) {
+        try {
+            if (institution.getSubunitType() != null && institution.getSubunitType() == InstitutionPaSubunitType.AOO) {
+                aooApi.findByUnicodeUsingGET(institution.getSubunitCode(), null);
+            } else if (institution.getSubunitType() != null && institution.getSubunitType() == InstitutionPaSubunitType.UO) {
+                uoApi.findByUnicodeUsingGET1(institution.getSubunitCode(), null);
+            } else {
+                institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
+            }
+            return true;
+        } catch (ResourceNotFoundException e) {
+            return false;
+        }
     }
 
     @Override
