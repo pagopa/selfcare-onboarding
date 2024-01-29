@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
+import it.pagopa.selfcare.onboarding.common.Origin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,9 +22,10 @@ public class OnboardingPgRequest {
     private String taxCode;
     private String businessName;
     @NotNull
-    private boolean certified;
+    private Origin origin;
     @NotBlank
     @Email
     private String digitalAddress;
+    private String userRequestUid;
 
 }

@@ -1,14 +1,13 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import org.bson.types.ObjectId;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper(componentModel = "cdi")
 public interface OnboardingMapper {
@@ -18,10 +17,11 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingDefaultRequest request);
     Onboarding toEntity(OnboardingSaRequest request);
 
-    //@Mapping(source = "taxCode", target = "institution.taxCode")
-    //@Mapping(source = "businessName", target = "institution.description")
-    //@Mapping(source = "digitalAddress", target = "institution.digitalAddress")
-    //Onboarding toEntity(OnboardingPgRequest request);
+    @Mapping(source = "taxCode", target = "institution.taxCode")
+    @Mapping(source = "businessName", target = "institution.description")
+    @Mapping(source = "digitalAddress", target = "institution.digitalAddress")
+    @Mapping(source = "origin", target = "institution.origin")
+    Onboarding toEntity(OnboardingPgRequest request);
 
     OnboardingResponse toResponse(Onboarding onboarding);
 
