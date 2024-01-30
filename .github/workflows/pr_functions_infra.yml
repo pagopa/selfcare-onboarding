@@ -6,7 +6,7 @@ on:
   pull_request:
     branches:
       - main
-      - releases/*
+      - releases/**
     types:
       - opened
       - edited
