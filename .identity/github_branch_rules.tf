@@ -17,3 +17,31 @@ resource "github_branch_protection_v3" "protection_main" {
     checks = []
   }
 }
+
+resource "github_branch_protection" "protection_releases" {
+  repository_id = local.github.repository
+  pattern       = "releases/*"
+
+  require_conversation_resolution = true
+
+  required_status_checks {
+    strict = true
+  }
+
+  required_pull_request_reviews {
+    dismiss_stale_reviews           = true
+    require_code_owner_reviews      = true
+    required_approving_review_count = 1
+    require_last_push_approval      = true
+
+    pull_request_bypassers = [
+      data.github_team.team_admins.node_id
+    ]
+  }
+
+  allows_deletions = false
+}
+
+data "github_team" "team_admins" {
+  slug = "selfcare-admin"
+}
