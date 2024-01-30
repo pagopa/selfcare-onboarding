@@ -1,10 +1,10 @@
 # CodeOwners
 
-See [documentation](https://help.github.com/en/articles/about-code-owners#example-of-a-codeowners-file)
+See [documentation](https://help.github.com/en/articles/about-code-owners)
 
 ## Default owners
 
-* @pagopa/selfcare-admins
+* @pagopa/selfcare-admin
 
 ## Code owner for the applications
 
