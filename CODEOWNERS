@@ -1,10 +1,16 @@
-# see https://help.github.com/en/articles/about-code-owners#example-of-a-codeowners-file
+# CodeOwners
 
-# Default owner
-* @pagopa/selfcare-contributors
+## Default owners
 
-# Code owner for the applications
-/apps/onboarding-ms/*   @pagopa/selfcare-contributors
-/apps/onboarding-functions/*   @pagopa/selfcare-contributors
+* @pagopa/selfcare-admin
 
+## Code owner for the applications
 
+/apps/** @pagopa/selfcare-contributors
+/libs/** @pagopa/selfcare-contributors
+/test-coverage/** @pagopa/selfcare-contributors
+
+.dockerignore @pagopa/selfcare-contributors
+docker-compose.yml @pagopa/selfcare-contributors
+*.xml @pagopa/selfcare-contributors
+*.md @pagopa/selfcare-contributors
