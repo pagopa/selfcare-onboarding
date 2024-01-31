@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller;
 
 import io.quarkus.security.Authenticated;
-import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
@@ -10,6 +10,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+
+import java.util.List;
 
 @Authenticated
 @Path("/v1/tokens")
@@ -31,8 +33,10 @@ public class TokenController {
 
     @Operation(summary = "Retrieves the token for a given onboarding")
     @GET
-    public Multi<TokenResponse> getToken(@QueryParam(value = "onboardingId") String onboardingId){
+    public Uni<List<TokenResponse>> getToken(@QueryParam(value = "onboardingId") String onboardingId){
         return tokenService.getToken(onboardingId)
-                .map(tokenMapper::toResponse);
+                .map(tokens -> tokens.stream()
+                        .map(tokenMapper::toResponse)
+                        .toList());
     }
 }

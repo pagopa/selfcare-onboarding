@@ -7,11 +7,13 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
-import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
@@ -32,7 +34,7 @@ public class TokenControllerTest {
         Token token = new Token();
         token.setId(ObjectId.get());
         when(tokenService.getToken(onboardingId))
-                .thenReturn(Multi.createFrom().item(token));
+                .thenReturn(Uni.createFrom().item(List.of(token)));
 
         given()
                 .when()

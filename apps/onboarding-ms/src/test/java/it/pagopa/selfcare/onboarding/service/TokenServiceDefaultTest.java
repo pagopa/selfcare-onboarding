@@ -2,14 +2,16 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.helpers.test.AssertSubscriber;
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -18,20 +20,21 @@ import static org.mockito.Mockito.when;
 @QuarkusTestResource(MongoTestResource.class)
 public class TokenServiceDefaultTest {
 
-    @InjectMock
+    @Inject
     TokenServiceDefault tokenService;
 
     @Test
     void getToken() {
         final String onboardingId = "onboardingId";
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
-        when(queryPage.stream()).thenReturn(Multi.createFrom().items(new Token()));
+        when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(new Token())));
 
         PanacheMock.mock(Token.class);
-        when(Token.find("onboardingId", onboardingId)).thenReturn(queryPage);
+        when(Token.find("onboardingId", onboardingId))
+                .thenReturn(queryPage);
 
-        tokenService.getToken(onboardingId)
-                .subscribe().withSubscriber(AssertSubscriber.create())
+        UniAssertSubscriber<List<Token>> subscriber = tokenService.getToken(onboardingId)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted();
     }
 }
