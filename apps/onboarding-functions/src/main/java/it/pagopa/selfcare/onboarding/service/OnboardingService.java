@@ -5,16 +5,17 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import it.pagopa.selfcare.onboarding.common.TokenType;
-import it.pagopa.selfcare.product.entity.Product;
-import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
+import it.pagopa.selfcare.product.entity.ContractStorage;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
@@ -76,7 +77,14 @@ public class OnboardingService {
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.createContractPDF(product.getContractTemplatePath(), onboarding, manager, delegates, product.getTitle());
+        String contractTemplatePath = Optional.ofNullable(product.getInstitutionContractMappings())
+                .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType()))
+                .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType()))
+                .map(ContractStorage::getContractTemplatePath)
+                .orElse(product.getContractTemplatePath());
+
+
+        contractService.createContractPDF(contractTemplatePath, onboarding, manager, delegates, product.getTitle());
     }
 
     public void loadContract(Onboarding onboarding) {

@@ -5,12 +5,14 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.product.entity.ContractStorage;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -26,10 +28,7 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.io.File;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
@@ -67,6 +66,7 @@ class OnboardingServiceTest {
         onboarding.setUsers(List.of());
         Institution institution = new Institution();
         institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.PA);
         onboarding.setInstitution(institution);
         onboarding.setUserRequestUid("example-uid");
         return onboarding;
@@ -105,6 +105,45 @@ class OnboardingServiceTest {
     }
 
     @Test
+    void createContract_InstitutionContractMappings() {
+
+        UserResource userResource = createUserResource();
+
+        Onboarding onboarding = createOnboarding();
+        User manager = new User();
+        manager.setId(userResource.getId().toString());
+        manager.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(manager));
+
+        Product product = createDummyProduct();
+        /* add contract mapping */
+        Map<InstitutionType, ContractStorage> contractStorageMap = new HashMap<>();
+        ContractStorage contractStorage = new ContractStorage();
+        contractStorage.setContractTemplatePath("setContractTemplatePath");
+        contractStorageMap.put(onboarding.getInstitution().getInstitutionType(), contractStorage);
+        product.setInstitutionContractMappings(contractStorageMap);
+
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
+                .thenReturn(userResource);
+
+        when(productService.getProductIsValid(onboarding.getProductId()))
+                .thenReturn(product);
+
+        onboardingService.createContract(onboarding);
+
+        Mockito.verify(userRegistryApi, Mockito.times(1))
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId());
+
+        Mockito.verify(productService, Mockito.times(1))
+                .getProductIsValid(onboarding.getProductId());
+
+        ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(contractService, Mockito.times(1))
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+        assertEquals(captorTemplatePath.getValue(), contractStorage.getContractTemplatePath());
+    }
+
+    @Test
     void createContract() {
 
         UserResource userResource = createUserResource();
@@ -119,6 +158,8 @@ class OnboardingServiceTest {
         delegate.setRole(PartyRole.DELEGATE);
         onboarding.setUsers(List.of(manager, delegate));
 
+        Product product = createDummyProduct();
+
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
                         .thenReturn(userResource);
 
@@ -126,7 +167,7 @@ class OnboardingServiceTest {
                 .thenReturn(delegateResource);
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(new Product());
+                .thenReturn(product);
 
         onboardingService.createContract(onboarding);
 
@@ -138,6 +179,11 @@ class OnboardingServiceTest {
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
+
+        ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(contractService, Mockito.times(1))
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+        assertEquals(captorTemplatePath.getValue(), product.getContractTemplatePath());
     }
 
     private Product createDummyProduct() {
