@@ -84,45 +84,61 @@ public class ContractServiceDefault implements ContractService {
 
         log.info("START - createContractPdf for template: {}", contractTemplatePath);
         // Generate a unique filename for the PDF.
-        final String builder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + "_" + UUID.randomUUID() + "_contratto_interoperabilita.";
         final String productId = onboarding.getProductId();
         final Institution institution = onboarding.getInstitution();
 
         try {
-            // Read the content of the contract template file.
-            String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
-            // Create a temporary PDF file to store the contract.
-            Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
-            // Prepare common data for the contract document.
-            Map<String, Object> data = setUpCommonData(manager, users, onboarding);
+            final String[] split = contractTemplatePath.split("\\.");
+            final String fileType = split[split.length-1];
 
-            // Customize data based on the product and institution type.
-            if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
-                    InstitutionType.PSP == institution.getInstitutionType()) {
-                setupPSPData(data, manager, onboarding);
-            } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
-                    || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
-                    || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
-                setupProdIOData(onboarding, data, manager);
-            } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
-                setupProdPNData(data, institution, onboarding.getBilling());
-            } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)){
-                setupSAProdInteropData(data, institution);
-            }
-            log.debug("data Map for PDF: {}", data);
-            fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
+            // If contract template is a PDF, I get without parsing
+            File temporaryPdfFile = "pdf".equals(fileType)
+                ? azureBlobClient.getFileAsPdf(contractTemplatePath)
+                : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
 
             // Define the filename and path for storage.
             final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
 
-            File signedPath = signPdf(temporaryPdfFile.toFile(), institution.getDescription(), productId);
+            File signedPath = signPdf(temporaryPdfFile, institution.getDescription(), productId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedPath.toPath()));
 
             return signedPath;
         } catch (IOException e) {
             throw new GenericOnboardingException(String.format("Can not create contract PDF, message: %s", e.getMessage()));
         }
+    }
+
+    private File createPdfFileContract(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users) throws IOException {
+        final String builder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) +
+                "_" + UUID.randomUUID() + "_contratto_interoperabilita.";
+
+        final String productId = onboarding.getProductId();
+        final Institution institution = onboarding.getInstitution();
+
+        // Read the content of the contract template file.
+        String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
+        // Create a temporary PDF file to store the contract.
+        Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
+        // Prepare common data for the contract document.
+        Map<String, Object> data = setUpCommonData(manager, users, onboarding);
+
+        // Customize data based on the product and institution type.
+        if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
+                InstitutionType.PSP == institution.getInstitutionType()) {
+            setupPSPData(data, manager, onboarding);
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
+                || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+                || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
+            setupProdIOData(onboarding, data, manager);
+        } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
+            setupProdPNData(data, institution, onboarding.getBilling());
+        } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)){
+            setupSAProdInteropData(data, institution);
+        }
+        log.debug("data Map for PDF: {}", data);
+        fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
+        return temporaryPdfFile.toFile();
     }
 
     private File signPdf(File pdf, String institutionDescription, String productId) throws IOException {
