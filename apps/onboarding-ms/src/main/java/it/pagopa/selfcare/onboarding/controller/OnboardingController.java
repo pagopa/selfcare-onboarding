@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -46,8 +47,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboarding(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
 
@@ -60,8 +61,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPa(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
     @Operation(summary = "Perform onboarding request for PSP institution type." +
@@ -73,8 +74,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboarding(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
     @Operation(summary = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.")
@@ -84,8 +85,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
 
@@ -97,8 +98,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
 
@@ -109,8 +110,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
 
@@ -120,8 +121,8 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
-                .onItem().invoke(onboardingRequest::setUserRequestUid)
-                .onItem().transformToUni(ignore -> onboardingService.onboardingCompletion(onboardingMapper.toEntity(onboardingRequest), onboardingRequest.getUsers()));
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
 
@@ -216,5 +217,9 @@ public class OnboardingController {
         return onboardingService.onboardingPending(onboardingId);
     }
 
+    private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {
+        onboarding.setUserRequestUid(userRequestUid);
+        return onboarding;
+    }
 
 }
