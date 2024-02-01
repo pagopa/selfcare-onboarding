@@ -2,32 +2,26 @@
 
 set -e
 
-ACTION=$1
-ENV=$2
+action=$1
+env=$2
 shift 2
-other="$@"
+other=$@
 # must be subscription in lower case
 subscription=""
 BACKEND_CONFIG_PATH="./env/${ENV}/backend.tfvars"
 
-if [ -z "$ACTION" ]; then
-  echo "[ERROR] Missed ACTION: init, apply, plan"
+if [ -z "$action" ]; then
+  echo "Missed action: init, apply, plan"
   exit 0
 fi
 
-if [ -z "$ENV" ]; then
-  echo "[ERROR] ENV should be: dev, uat or prod."
+if [ -z "$env" ]; then
+  echo "env should be: dev, uat or prod."
   exit 0
 fi
 
-#
-# 🏁 Source & init shell
-#
+source "./env/$env/backend.ini"
 
-# shellcheck source=/dev/null
-source "./env/$ENV/backend.ini"
-
-# Subscription set
 az account set -s "${subscription}"
 
 # if using cygwin, we have to transcode the WORKDIR
@@ -35,35 +29,41 @@ if [[ $WORKDIR == /cygdrive/* ]]; then
   WORKDIR=$(cygpath -w $WORKDIR)
 fi
 
-# Helm
-export HELM_DEBUG=1
-export TF_VAR_github_token="${GITHUB_TOKEN}"
-# TODO set your PAT TOKEN as env var
-if [ -z "$GITHUB_TOKEN" ]; then
-  echo "Error: Set an environment variable named GITHUB_TOKEN with your GitHub PAT Token"
-  exit 1
+if [ "$action" = "force-unlock" ]; then
+  echo "🧭 terraform INIT in env: ${env}"
+  terraform init -reconfigure -backend-config="./env/$env/backend.tfvars" $other
+  warn_message="You are about to unlock Terraform's remote state. 
+  This is a dangerous task you want to be aware of before going on.
+  This operation won't affect your infrastructure directly.
+  However, please note that you may lose pieces of information about partially-applied configurations.
+
+  Please refer to the official Terraform documentation about the command:
+  https://developer.hashicorp.com/terraform/cli/commands/force-unlock"
+  printf "\n\e[33m%s\e[0m\n\n" "$warn_message"
+
+  read -r -p "Please enter the LOCK ID: " lock_id
+  terraform force-unlock "$lock_id"
+  
+  exit 0 # this line prevents the script to go on
 fi
 
-#
-# 🌎 Terraform
-#
-if echo "init plan apply refresh import output state taint destroy" | grep -w "$ACTION" > /dev/null; then
-  if [ "$ACTION" = "init" ]; then
-    echo "[INFO] init tf on ENV: ${ENV}"
-    terraform "$ACTION" -backend-config="${BACKEND_CONFIG_PATH}" $other
-  elif [ "$ACTION" = "output" ] || [ "$ACTION" = "state" ] || [ "$ACTION" = "taint" ]; then
+if echo "init plan apply refresh import output state taint destroy" | grep -w "$action" > /dev/null; then
+  if [ "$action" = "init" ]; then
+    echo "🧭 terraform INIT in env: ${env}"
+    terraform "$action" -reconfigure -backend-config="./env/$env/backend.tfvars" $other
+  elif [ "$action" = "output" ] || [ "$action" = "state" ] || [ "$action" = "taint" ]; then
     # init terraform backend
-    terraform init -reconfigure -backend-config="${BACKEND_CONFIG_PATH}"
-    terraform "$ACTION" $other
+    echo "🧭 terraform (output|state|taint) launched with action: ${action} in env: ${env}"
+    terraform init -reconfigure -backend-config="./env/$env/backend.tfvars"
+    terraform "$action" $other
   else
     # init terraform backend
-    echo "[INFO] init tf on ENV: ${ENV}"
-    terraform init -reconfigure -backend-config="${BACKEND_CONFIG_PATH}"
+    echo "🧭 terraform launched with action: ${action} in env: ${env}"
 
-    echo "[INFO] run tf with: ${ACTION} on ENV: ${ENV} and other: >${other}<"
-    terraform "${ACTION}" -var-file="./env/${ENV}/terraform.tfvars" -compact-warnings $other
+    terraform init -reconfigure -backend-config="./env/$env/backend.tfvars"
+    terraform "$action" -var-file="./env/$env/terraform.tfvars" $other
   fi
 else
-    echo "[ERROR] ACTION not allowed."
+    echo "Action not allowed."
     exit 1
 fi
