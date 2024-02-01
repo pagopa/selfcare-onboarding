@@ -29,6 +29,5 @@ public class OnboardingPgRequest {
     @NotBlank
     @Email
     private String digitalAddress;
-    private String userRequestUid;
 
 }

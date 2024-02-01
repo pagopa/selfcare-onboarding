@@ -20,6 +20,5 @@ public class OnboardingBaseRequest {
     private OnboardingImportContract contractImported;
 
     private Boolean signContract;
-    private String userRequestUid;
 
 }
