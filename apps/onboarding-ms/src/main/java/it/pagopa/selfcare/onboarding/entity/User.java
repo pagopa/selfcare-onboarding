@@ -15,5 +15,5 @@ public class User {
 
     private String id;
     private PartyRole role;
-    private String ProductRole;
+    private String productRole;
 }

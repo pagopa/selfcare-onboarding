@@ -1,33 +1,21 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
-import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
-import io.quarkus.test.vertx.UniAsserter;
-import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import org.bson.types.ObjectId;
+import it.pagopa.selfcare.product.entity.Product;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.wildfly.common.Assert;
-
-import javax.inject.Inject;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -49,7 +37,7 @@ public class OnboardingUtilsTest {
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations(type));
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
-                .customValidationOnboardingData(onboarding)
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -71,7 +59,7 @@ public class OnboardingUtilsTest {
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations("other"));
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
-                .customValidationOnboardingData(onboarding)
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -92,7 +80,7 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
-                .customValidationOnboardingData(onboarding)
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -110,7 +98,7 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
-                .customValidationOnboardingData(onboarding)
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -130,7 +118,7 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
         UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
-                .customValidationOnboardingData(onboarding)
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -174,5 +162,11 @@ public class OnboardingUtilsTest {
         }
 
         return additionalInformations;
+    }
+
+    private Product dummyProduct() {
+        Product product = new Product();
+
+        return product;
     }
 }

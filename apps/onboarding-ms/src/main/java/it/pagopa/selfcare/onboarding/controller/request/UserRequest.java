@@ -22,7 +22,5 @@ public class UserRequest {
     private String surname;
     private String email;
     private PartyRole role;
-    private String productRole;
-    //private Env env = Env.ROOT;
 
 }

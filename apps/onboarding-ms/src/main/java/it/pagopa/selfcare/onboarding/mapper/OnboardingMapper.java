@@ -24,7 +24,8 @@ public interface OnboardingMapper {
     @Mapping(source = "institutionType", target = "institution.institutionType")
     Onboarding toEntity(OnboardingPgRequest request);
 
-    OnboardingResponse toResponse(Onboarding onboarding);
+    @Mapping(target = "id", expression = "java(objectIdToString(model.getId()))")
+    OnboardingResponse toResponse(Onboarding model);
 
     @Mapping(target = "id", expression = "java(objectIdToString(model.getId()))")
     OnboardingGet toGetResponse(Onboarding model);
