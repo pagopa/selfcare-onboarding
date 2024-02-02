@@ -158,6 +158,18 @@ public class OnboardingController {
                         .build());
     }
 
+    @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract")
+
+    @PUT
+    @Path("/{onboardingId}/consume")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @RestForm("contract") File file) {
+        return onboardingService.completeWithoutSignatureVerification(onboardingId, file)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
+
     @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
             "Function triggers async activities related to onboarding based on institution type or completing onboarding. " )
 
