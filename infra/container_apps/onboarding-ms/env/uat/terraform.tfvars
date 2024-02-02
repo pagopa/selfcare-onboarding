@@ -48,15 +48,11 @@ app_settings = [
   }
 ]
 
-key_vault = {
-  resource_group_name = "selc-u-sec-rg"
-  name                = "selc-u-kv"
-  secrets_names = [
-    "jwt-public-key",
-    "mongodb-connection-string",
-    "user-registry-api-key",
-    "onboarding-functions-api-key",
-    "blob-storage-product-connection-string",
-    "blob-storage-contract-connection-string"
-  ]
-}
+secrets_names = [
+  "jwt-public-key",
+  "mongodb-connection-string",
+  "user-registry-api-key",
+  "onboarding-functions-api-key",
+  "blob-storage-product-connection-string",
+  "blob-storage-contract-connection-string"
+]

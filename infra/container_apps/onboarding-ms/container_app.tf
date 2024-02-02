@@ -1,6 +1,6 @@
 resource "azapi_resource" "container_app_onboarding_ms" {
   type      = "Microsoft.App/containerApps@2023-05-01"
-  name      = "${local.project}-${local.app_name}-ca"
+  name      = local.app_name
   location  = data.azurerm_resource_group.resource_group_app.location
   parent_id = data.azurerm_resource_group.resource_group_app.id
 
