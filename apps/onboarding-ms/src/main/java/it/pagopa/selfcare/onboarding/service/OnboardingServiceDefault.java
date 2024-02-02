@@ -72,7 +72,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED = "At least one Product role related to %s Party role is required";
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
     private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
-    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
     private static final String INVALID_OBJECTID = "Given onboardingId [%s] has wrong format";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED = "Onboarding with id %s not found or already deleted";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
@@ -157,17 +156,17 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
-        return validationProductDataAndOnboardingExists(onboarding, userRequests)
-                .onItem().transformToUni(OnboardingUtils::customValidationOnboardingData)
-                .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                /* I have to retrieve onboarding id for saving reference to pdv */
-                .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                    .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString())
-                    .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
-                /* Update onboarding data with users and start orchestration */
-                .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
-                .onItem().transform(onboardingMapper::toResponse);
+        return validationProductDataAndOnboardingExists(onboarding)
+                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                    .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                    /* I have to retrieve onboarding id for saving reference to pdv */
+                    .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
+                        .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString(), product)
+                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
+                    /* Update onboarding data with users and start orchestration */
+                    .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                            orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
+                    .onItem().transform(onboardingMapper::toResponse));
     }
 
 
@@ -253,41 +252,28 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 
-    public Uni<Onboarding> validationProductDataAndOnboardingExists(Onboarding onboarding, List<UserRequest> userRequests) {
+    public Uni<Product> validationProductDataAndOnboardingExists(Onboarding onboarding) {
 
         /* retrieve product, if is not valid will throw OnboardingNotAllowedException */
         return product(onboarding.getProductId())
                 .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
                         onboarding.getProductId()), DEFAULT_ERROR.getCode()))
-                .onItem().transformToUni(product -> {
-
-                    /* if PT and product is not delegable, throw an exception */
-                    if(InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
-                        return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
-                                onboarding.getInstitution().getTaxCode(),
-                                onboarding.getProductId()), DEFAULT_ERROR.getCode()));
-                    }
-
-                    validateProductRole(userRequests, Objects.nonNull(product.getParent())
-                                            ? product.getParent().getRoleMappings()
-                                            : product.getRoleMappings());
-
-                    return verifyAlreadyOnboardingForProductAndProductParent(onboarding, product);
-                });
+                .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode(),
+                            product.getId(), product.getParentId())
+                    .replaceWith(product));
     }
 
-    private Uni<Onboarding> verifyAlreadyOnboardingForProductAndProductParent(Onboarding onboarding, Product product) {
-        String institutionTaxCode = onboarding.getInstitution().getTaxCode();
-        String institutionSubunitCode = onboarding.getInstitution().getSubunitCode();
-
-        return (Objects.nonNull(product.getParent())
+    private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(String institutionTaxCode, String institutionSubunitCode,
+                                                                              String productId, String productParentId) {
+        return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
-                ? checkIfAlreadyOnboardingAndValidateAllowedMap(product.getParentId(), institutionTaxCode, institutionSubunitCode)
-                    .onFailure(InvalidRequestException.class).recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode))
+                ? checkIfAlreadyOnboardingAndValidateAllowedMap(productParentId, institutionTaxCode, institutionSubunitCode)
+                    .onFailure(InvalidRequestException.class)
+                    .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode))
                 //If product is a root, I must only verify if onboarding for root
-                : checkIfAlreadyOnboardingAndValidateAllowedMap(product.getId(), institutionTaxCode, institutionSubunitCode)
-        ).replaceWith(onboarding);
+                : checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode)
+        );
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(String productId, String institutionTaxCode, String institutionSubuniCode) {
@@ -309,25 +295,25 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(Boolean.TRUE);
     }
 
-    private void validateProductRole(List<UserRequest> users, Map<PartyRole, ProductRoleInfo> roleMappings) {
+    private String retrieveProductRole(UserRequest userInfo, Map<PartyRole, ProductRoleInfo> roleMappings) {
         try {
             if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
                 throw new IllegalArgumentException("Role mappings is required");
-            users.forEach(userInfo -> {
-                if(Objects.isNull(roleMappings.get(userInfo.getRole())))
-                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                if(Objects.isNull((roleMappings.get(userInfo.getRole()).getRoles())))
-                    throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-                if(roleMappings.get(userInfo.getRole()).getRoles().size() != 1)
-                    throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
-                userInfo.setProductRole(roleMappings.get(userInfo.getRole()).getRoles().get(0).getCode());
-            });
+
+            if(Objects.isNull(roleMappings.get(userInfo.getRole())))
+                throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+            if(Objects.isNull((roleMappings.get(userInfo.getRole()).getRoles())))
+                throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+            if(roleMappings.get(userInfo.getRole()).getRoles().size() != 1)
+                throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+            return roleMappings.get(userInfo.getRole()).getRoles().get(0).getCode();
+
         } catch (IllegalArgumentException e){
             throw new OnboardingNotAllowedException(e.getMessage(), DEFAULT_ERROR.getCode());
         }
     }
 
-    public Uni<List<User>> validationRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId) {
+    public Uni<List<User>> validationRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId, Product product) {
 
         List<PartyRole> validRoles = List.of(PartyRole.MANAGER, PartyRole.DELEGATE);
 
@@ -341,6 +327,10 @@ public class OnboardingServiceDefault implements OnboardingService {
             return Uni.createFrom().failure( new InvalidRequestException(String.format(CustomError.ROLES_NOT_ADMITTED_ERROR.getMessage(), usersNotValidRoleString),
                     CustomError.ROLES_NOT_ADMITTED_ERROR.getCode()));
         }
+
+        Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
+                ? product.getParent().getRoleMappings()
+                : product.getRoleMappings();
 
         return Multi.createFrom().iterable(users)
                         .onItem().transformToUni(user -> userRegistryApi
@@ -358,6 +348,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .onItem().transform(userResourceId -> User.builder()
                                 .id(userResourceId.toString())
                                 .role(user.getRole())
+                                .productRole(retrieveProductRole(user, roleMappings))
                                 .build())
                 )
                 .concatenate().collect().asList();
@@ -436,7 +427,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(this::checkIfToBeValidated)
                 //Fail if onboarding exists for a product
                 .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
-                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(),
+                                onboarding.getInstitution().getSubunitCode(),
+                                product.getId(),
+                                product.getParentId()))
+                        .replaceWith(onboarding)
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, null)
@@ -479,7 +474,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(verificationContractSignature::apply)
                 //Fail if onboarding exists for a product
                 .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
-                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding, product))
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(),
+                                onboarding.getInstitution().getSubunitCode(),
+                                product.getId(),
+                                product.getParentId()))
+                        .replaceWith(onboarding)
                 )
                 //Upload contract on storage
                 .onItem().transformToUni(onboarding -> uploadSignedContractAndUpdateToken(onboardingId, contract)
