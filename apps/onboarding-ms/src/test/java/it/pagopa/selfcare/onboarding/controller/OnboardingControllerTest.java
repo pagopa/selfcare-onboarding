@@ -234,6 +234,30 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
+    void consume() throws IOException {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.completeWithoutSignatureVerification(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/consume")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .completeWithoutSignatureVerification(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
     void deleteOK(){
         String onboardingId = "actual-onboarding-id";
 
