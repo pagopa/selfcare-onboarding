@@ -20,6 +20,7 @@ public interface WorkflowExecutor {
 
     Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding);
     Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding);
+    Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding);
 
     ObjectMapper objectMapper();
 
@@ -36,7 +37,7 @@ public interface WorkflowExecutor {
 
     }
 
-    default Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
