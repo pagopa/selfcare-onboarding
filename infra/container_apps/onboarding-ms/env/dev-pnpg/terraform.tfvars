@@ -11,7 +11,7 @@ tags = {
 }
 
 container_app = {
-  min_replicas = 0
+  min_replicas = 1
   max_replicas = 1
   scale_rules  = []
   cpu          = 0.5
