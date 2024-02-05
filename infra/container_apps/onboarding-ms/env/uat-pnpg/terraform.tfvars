@@ -1,10 +1,10 @@
 prefix    = "selc"
-env_short = "d"
+env_short = "u"
 is_pnpg   = true
 
 tags = {
   CreatedBy   = "Terraform"
-  Environment = "Dev"
+  Environment = "Uat"
   Owner       = "SelfCare"
   Source      = "https://github.com/pagopa/selfcare-onboarding"
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
@@ -21,11 +21,11 @@ container_app = {
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.dev.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-d-onboarding-fn.azurewebsites.net"
+    value = "https://selc-u-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -33,15 +33,15 @@ app_settings = [
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
-    value = "selc-d-product"
+    value = "selc-u-product"
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.dev.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"

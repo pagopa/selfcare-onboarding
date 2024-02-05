@@ -1,31 +1,44 @@
 prefix    = "selc"
-env_short = "d"
+env_short = "p"
 is_pnpg   = true
 
 tags = {
   CreatedBy   = "Terraform"
-  Environment = "Dev"
+  Environment = "Prod"
   Owner       = "SelfCare"
   Source      = "https://github.com/pagopa/selfcare-onboarding"
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
 }
 
 container_app = {
-  min_replicas = 0
-  max_replicas = 1
-  scale_rules  = []
-  cpu          = 0.5
-  memory       = "1Gi"
+  min_replicas = 1
+  max_replicas = 5
+  scale_rules = [
+    {
+      custom = {
+        metadata = {
+          "desiredReplicas" = "3"
+          "start"           = "0 8 * * MON-FRI"
+          "end"             = "0 19 * * MON-FRI"
+          "timezone"        = "Europe/Rome"
+        }
+        type = "cron"
+      }
+      name = "cron-scale-rule"
+    }
+  ]
+  cpu    = 1.25
+  memory = "2.5Gi"
 }
 
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.dev.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-d-onboarding-fn.azurewebsites.net"
+    value = "https://selc-p-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -33,15 +46,15 @@ app_settings = [
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
-    value = "selc-d-product"
+    value = "selc-p-product"
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.dev.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
