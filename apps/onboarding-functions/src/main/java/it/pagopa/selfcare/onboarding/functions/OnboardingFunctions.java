@@ -178,17 +178,6 @@ public class OnboardingFunctions {
         service.sendMailOnboardingApprove(readOnboardingValue(objectMapper, onboardingString));
     }
 
-    /**
-     * This is the activity function that gets invoked by the orchestrator function.
-     */
-    @FunctionName(SEND_MAIL_CONFIRMATION_ACTIVITY)
-    public String sendMailConfirmation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_CONFIRMATION_ACTIVITY, onboardingString));
-        throw new RuntimeException("");
-    }
-
-
-
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
     public String createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString));

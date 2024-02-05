@@ -31,7 +31,7 @@ public class WorkflowExecutorForApprovePt implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        return WorkflowExecutor.super.executePendingState(ctx, onboarding);
+        return onboardingCompletionActivity(ctx, onboarding);
     }
 
     @Override

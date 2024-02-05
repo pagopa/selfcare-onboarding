@@ -37,6 +37,11 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
     }
 
     @Override
+    public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        return onboardingCompletionActivity(ctx, onboarding);
+    }
+
+    @Override
     public ObjectMapper objectMapper() {
         return this.objectMapper;
     }

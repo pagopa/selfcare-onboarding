@@ -391,13 +391,15 @@ public class OnboardingFunctionsTest {
 
     @Test
     void createInstitutionAndPersistInstitutionId() {
-        
+
+        final String institutionId = "institutionId";
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         when(completionService.createInstitutionAndPersistInstitutionId(any()))
-                .thenReturn("id");
+                .thenReturn(institutionId);
 
-        function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
+        String actualInstitutionId = function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
 
+        assertEquals(institutionId, actualInstitutionId);
         Mockito.verify(completionService, times(1))
                 .createInstitutionAndPersistInstitutionId(any());
     }

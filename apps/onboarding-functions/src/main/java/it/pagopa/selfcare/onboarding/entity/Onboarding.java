@@ -17,6 +17,7 @@ public class Onboarding  {
 
     private String onboardingId;
     private String productId;
+    private List<String> testEnvProductIds;
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
@@ -133,5 +134,13 @@ public class Onboarding  {
 
     public void setWorkflowInstanceId(String workflowInstanceId) {
         this.workflowInstanceId = workflowInstanceId;
+    }
+
+    public List<String> getTestEnvProductIds() {
+        return testEnvProductIds;
+    }
+
+    public void setTestEnvProductIds(List<String> testEnvproductIds) {
+        this.testEnvProductIds = testEnvproductIds;
     }
 }

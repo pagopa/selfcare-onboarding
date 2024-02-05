@@ -10,7 +10,6 @@ public class ActivityName {
     public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY = "SendMailRegistrationRequest";
     public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY = "SendMailRegistrationApprove";
     public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY = "SendMailOnboardingApprove";
-    public static final String SEND_MAIL_CONFIRMATION_ACTIVITY = "SendMailConfirmation";
 
 
     public static final String ONBOARDING_COMPLETION_ACTIVITY = "OnboardingCompletion";
