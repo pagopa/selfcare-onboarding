@@ -7,7 +7,8 @@ locals {
   key_vault_resource_group_name           = "${local.project}${local.pnpg_suffix}-sec-rg"
   key_vault_name                          = "${local.project}${local.pnpg_suffix}-kv"
   container_app_environment_name          = "${local.project}${local.pnpg_suffix}-cae"
-  app_name                                = "${local.project}${local.pnpg_suffix}-onboarding-ms-ca"
+  container_name                          = "${local.project}${local.pnpg_suffix}-onboarding-ms"
+  app_name                                = "${local.container_name}-ca"
   container_app_environment_dns_zone_name = "azurecontainerapps.io"
 
   secrets = [for secret in var.secrets_names :
