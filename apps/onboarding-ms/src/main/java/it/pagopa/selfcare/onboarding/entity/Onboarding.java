@@ -23,6 +23,7 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     public ObjectId id;
 
     private String productId;
+    private List<String> testEnvProductIds;
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
