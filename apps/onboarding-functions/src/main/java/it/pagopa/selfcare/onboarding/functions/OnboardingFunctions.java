@@ -179,9 +179,9 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
-    public void createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public String createInstitutionAndPersistInstitutionId(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString));
-        completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
+        return completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_ONBOARDING_ACTIVITY)

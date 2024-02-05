@@ -46,16 +46,12 @@ public interface WorkflowExecutor {
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
-        // Create onboarding for test env if exists (ex. prod-interop-coll)
-        if(Objects.nonNull(onboarding.getTestEnvProductIds()) || !onboarding.getTestEnvProductIds().isEmpty()) {
+        // Create onboarding for test environments if exists (ex. prod-interop-coll)
+        if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = onboarding.getTestEnvProductIds().stream()
-                    .map(testEnvProductId -> {
-                        Onboarding onboardingTestEnv = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
-                        onboardingTestEnv.setProductId(testEnvProductId);
-                        return onboardingTestEnv;
-                    })
-                    .map(item -> ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, getOnboardingString(objectMapper(), item), optionsRetry(), String.class))
+                    .map(testEnvProductId -> onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString))
+                    .map(onboardingStringWithTestEnvProductId -> ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class))
                     .collect(Collectors.toList());
 
             // Wait for all tasks to complete
@@ -65,6 +61,12 @@ public interface WorkflowExecutor {
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         return Optional.of(OnboardingStatus.COMPLETED);
+    }
+
+    private String onboardingStringWithTestEnvProductId(String testEnvProductId, String onboardingWithInstitutionIdString) {
+        Onboarding onboardingTestEnv = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
+        onboardingTestEnv.setProductId(testEnvProductId);
+        return getOnboardingString(objectMapper(), onboardingTestEnv);
     }
 
     default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, Onboarding onboarding){
