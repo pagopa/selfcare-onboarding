@@ -158,6 +158,8 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return validationProductDataAndOnboardingExists(onboarding)
                 .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                    /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                    .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                     .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                     /* I have to retrieve onboarding id for saving reference to pdv */
                     .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
@@ -259,8 +261,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
                         onboarding.getProductId()), DEFAULT_ERROR.getCode()))
-                /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                .onItem().invoke(product -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode(),
                             product.getId(), product.getParentId())
                     .replaceWith(product));
