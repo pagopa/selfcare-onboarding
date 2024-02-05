@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public class Product {
@@ -30,6 +31,7 @@ public class Product {
     private boolean delegable;
     private ProductStatus status;
     private String parentId;
+    private List<String> testEnvProductIds;
     private String identityTokenAudience;
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
@@ -232,5 +234,13 @@ public class Product {
 
     public void setParent(Product parent) {
         this.parent = parent;
+    }
+
+    public List<String> getTestEnvProductIds() {
+        return testEnvProductIds;
+    }
+
+    public void setTestEnvProductIds(List<String> testEnvProductIds) {
+        this.testEnvProductIds = testEnvProductIds;
     }
 }
