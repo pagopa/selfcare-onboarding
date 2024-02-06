@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "onboarding_fn_rg" {
-  name     = "${local.project}-onboarding-fn-rg"
+  name     = "${local.app_name}-rg"
   location = var.location
 
   tags = var.tags
@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "onboarding_fn_rg" {
 module "onboarding_fn_snet" {
   count                = var.cidr_subnet_selc_onboarding_fn != null ? 1 : 0
   source               = "github.com/pagopa/terraform-azurerm-v3.git//subnet?ref=v7.47.2"
-  name                 = format("%s-onboarding-fn-snet", local.project)
+  name                 = format("%s-snet", local.app_name)
   resource_group_name  = data.azurerm_resource_group.rg_vnet.name
   virtual_network_name = data.azurerm_virtual_network.vnet.name
   address_prefixes     = var.cidr_subnet_selc_onboarding_fn
@@ -25,7 +25,7 @@ module "onboarding_fn_snet" {
 module "selc_onboarding_fn" {
   source = "github.com/pagopa/terraform-azurerm-v3.git//function_app?ref=v7.47.2"
 
-  name                = format("%s-onboarding-fn", local.project)
+  name                = local.app_name
   location            = azurerm_resource_group.onboarding_fn_rg.location
   resource_group_name = azurerm_resource_group.onboarding_fn_rg.name
 
@@ -38,7 +38,7 @@ module "selc_onboarding_fn" {
 
   system_identity_enabled = true
 
-  storage_account_name = replace(format("%s-onboarding-fn-storage", local.project), "-", "")
+  storage_account_name = replace(format("%s-sa", local.app_name), "-", "")
 
   app_service_plan_info = var.app_service_plan_info
   storage_account_info  = var.storage_account_info

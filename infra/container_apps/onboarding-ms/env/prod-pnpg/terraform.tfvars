@@ -1,5 +1,6 @@
 prefix    = "selc"
 env_short = "p"
+is_pnpg   = true
 
 tags = {
   CreatedBy   = "Terraform"
@@ -33,7 +34,7 @@ container_app = {
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
@@ -54,12 +55,15 @@ app_settings = [
   {
     name  = "MS_PARTY_REGISTRY_URL"
     value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+  },
+  {
+    name  = "SIGNATURE_VALIDATION_ENABLED"
+    value = "false"
   }
 ]
 
 secrets_names = [
   "jwt-public-key",
   "mongodb-connection-string",
-  "user-registry-api-key",
-  "onboarding-functions-api-key"
+  "user-registry-api-key"
 ]

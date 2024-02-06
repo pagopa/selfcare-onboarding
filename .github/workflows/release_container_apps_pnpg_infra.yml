@@ -1,4 +1,4 @@
-name: Deploy Container Apps infra
+name: Deploy PNPG Container Apps infra
 
 on:
   push:
@@ -6,7 +6,10 @@ on:
       - main
       - releases/*
     paths:
-      - '!./infra/container_apps/onboarding-ms/env/**-pnpg'
+      - './infra/container_apps/onboarding-ms/env/dev-pnpg'
+      - './infra/container_apps/onboarding-ms/env/uat-pnpg'
+      - './infra/container_apps/onboarding-ms/env/prod-pnpg'
+      - '!./infra/container_apps/onboarding-ms/env/**'
       - './infra/container_apps/onboarding-ms/**'
 
   workflow_dispatch:
@@ -20,6 +23,7 @@ jobs:
     secrets: inherit
     with:
       environment: dev
+      tf_environment: dev-pnpg
       dir: ./infra/container_apps/onboarding-ms
       env_vars: |
         TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
@@ -31,6 +35,7 @@ jobs:
     secrets: inherit
     with:
       environment: uat
+      tf_environment: uat-pnpg
       dir: ./infra/container_apps/onboarding-ms
       env_vars: |
         TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
@@ -42,6 +47,7 @@ jobs:
     secrets: inherit
     with:
       environment: prod
+      tf_environment: prod-pnpg
       dir: ./infra/container_apps/onboarding-ms
       env_vars: |
         TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})

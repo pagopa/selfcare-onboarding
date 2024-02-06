@@ -20,7 +20,7 @@ container_app = {
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.dev.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
@@ -48,15 +48,11 @@ app_settings = [
   }
 ]
 
-key_vault = {
-  resource_group_name = "selc-d-sec-rg"
-  name                = "selc-d-kv"
-  secrets_names = [
-    "jwt-public-key",
-    "mongodb-connection-string",
-    "user-registry-api-key",
-    "onboarding-functions-api-key",
-    "blob-storage-product-connection-string",
-    "blob-storage-contract-connection-string"
-  ]
-}
+secrets_names = [
+  "jwt-public-key",
+  "mongodb-connection-string",
+  "user-registry-api-key",
+  "onboarding-functions-api-key",
+  "blob-storage-product-connection-string",
+  "blob-storage-contract-connection-string"
+]

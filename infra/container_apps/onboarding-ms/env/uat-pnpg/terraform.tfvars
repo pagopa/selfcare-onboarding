@@ -1,9 +1,10 @@
 prefix    = "selc"
-env_short = "p"
+env_short = "u"
+is_pnpg   = true
 
 tags = {
   CreatedBy   = "Terraform"
-  Environment = "Prod"
+  Environment = "Uat"
   Owner       = "SelfCare"
   Source      = "https://github.com/pagopa/selfcare-onboarding"
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
@@ -11,23 +12,10 @@ tags = {
 
 container_app = {
   min_replicas = 1
-  max_replicas = 5
-  scale_rules = [
-    {
-      custom = {
-        metadata = {
-          "desiredReplicas" = "3"
-          "start"           = "0 8 * * MON-FRI"
-          "end"             = "0 19 * * MON-FRI"
-          "timezone"        = "Europe/Rome"
-        }
-        type = "cron"
-      }
-      name = "cron-scale-rule"
-    }
-  ]
-  cpu    = 1.25
-  memory = "2.5Gi"
+  max_replicas = 2
+  scale_rules  = []
+  cpu          = 0.5
+  memory       = "1Gi"
 }
 
 app_settings = [
@@ -37,7 +25,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-p-onboarding-fn.azurewebsites.net"
+    value = "https://selc-u-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -45,21 +33,24 @@ app_settings = [
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
-    value = "selc-p-product"
+    value = "selc-u-product"
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1"
+  },
+  {
+    name  = "SIGNATURE_VALIDATION_ENABLED"
+    value = "false"
   }
 ]
 
 secrets_names = [
   "jwt-public-key",
   "mongodb-connection-string",
-  "user-registry-api-key",
-  "onboarding-functions-api-key"
+  "user-registry-api-key"
 ]

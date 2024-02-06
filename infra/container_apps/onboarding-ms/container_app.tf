@@ -1,6 +1,6 @@
 resource "azapi_resource" "container_app_onboarding_ms" {
   type      = "Microsoft.App/containerApps@2023-05-01"
-  name      = "${local.project}-${local.app_name}-ca"
+  name      = local.app_name
   location  = data.azurerm_resource_group.resource_group_app.location
   parent_id = data.azurerm_resource_group.resource_group_app.id
 
@@ -34,11 +34,41 @@ resource "azapi_resource" "container_app_onboarding_ms" {
           {
             env   = concat(var.app_settings, local.secrets_env)
             image = "ghcr.io/pagopa/selfcare-onboarding-ms:${var.image_tag}"
-            name  = "${local.project}-${local.app_name}"
+            name  = "${local.container_name}"
             resources = {
               cpu    = var.container_app.cpu
               memory = var.container_app.memory
             }
+            probes = [
+              {
+                httpGet = {
+                  path   = "q/health/live"
+                  port   = 8080
+                  scheme = "HTTP"
+                }
+                timeoutSeconds = 5
+                type           = "Liveness"
+              },
+              {
+                httpGet = {
+                  path   = "q/health/ready"
+                  port   = 8080
+                  scheme = "HTTP"
+                }
+                timeoutSeconds = 5
+                type           = "Readiness"
+              },
+              {
+                httpGet = {
+                  path   = "q/health/started"
+                  port   = 8080
+                  scheme = "HTTP"
+                }
+                timeoutSeconds   = 5
+                failureThreshold = 5
+                type             = "Startup"
+              }
+            ]
           }
         ]
         scale = {

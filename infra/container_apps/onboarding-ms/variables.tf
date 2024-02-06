@@ -1,3 +1,9 @@
+variable "is_pnpg" {
+  type        = bool
+  default     = false
+  description = "(Optional) True if you want to apply changes to PNPG environment"
+}
+
 variable "prefix" {
   description = "Domain prefix"
   type        = string
@@ -57,11 +63,7 @@ variable "app_settings" {
   }))
 }
 
-variable "key_vault" {
-  description = "KeyVault data to get secrets values from"
-  type = object({
-    resource_group_name = string
-    name                = string
-    secrets_names       = set(string)
-  })
+variable "secrets_names" {
+  type        = list(string)
+  description = "KeyVault secrets to get values from"
 }
