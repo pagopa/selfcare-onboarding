@@ -25,11 +25,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-d-onboarding-fn.azurewebsites.net"
-  },
-  {
-    name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*']}"
+    value = "https://selc-d-pnpg-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -37,11 +33,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.dev.selfcare.pagopa.it/ms-core/v1"
+    value = "https://dev01.pnpg.internal.dev.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://dev01.pnpg.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
@@ -52,5 +48,8 @@ app_settings = [
 secrets_names = [
   "jwt-public-key",
   "mongodb-connection-string",
-  "user-registry-api-key"
+  "user-registry-api-key",
+  "onboarding-functions-api-key",
+  "blob-storage-product-connection-string",
+  "blob-storage-contract-connection-string"
 ]
