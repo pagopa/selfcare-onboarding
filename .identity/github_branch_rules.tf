@@ -28,6 +28,8 @@ resource "github_branch_protection" "protection_releases" {
     strict = true
   }
 
+  require_signed_commits = true
+
   required_pull_request_reviews {
     dismiss_stale_reviews           = true
     require_code_owner_reviews      = true
