@@ -117,7 +117,7 @@ class NotificationServiceDefaultTest {
     void sendCompletedEmail() {
 
         final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
-
+        final String institutionName = "institutionName";
         final String destination = "test@test.it";
         Product product = new Product();
         product.setTitle("productName");
@@ -131,7 +131,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendCompletedEmail(List.of(destination), product, InstitutionType.PA);
+        notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

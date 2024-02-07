@@ -175,7 +175,8 @@ public class CompletionServiceDefault implements CompletionService {
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
-        notificationService.sendCompletedEmail(destinationMails, product, onboarding.getInstitution().getInstitutionType());
+        notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
+                destinationMails, product, onboarding.getInstitution().getInstitutionType());
     }
 
     @Override

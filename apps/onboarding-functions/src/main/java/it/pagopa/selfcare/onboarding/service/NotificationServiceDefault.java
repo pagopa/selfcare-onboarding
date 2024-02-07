@@ -137,7 +137,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendCompletedEmail(List<String> destinationMails, Product product, InstitutionType institutionType) {
+    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType) {
 
         String templatePath;
 
@@ -150,6 +150,7 @@ public class NotificationServiceDefault implements NotificationService {
         }
 
         Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.businessName(), institutionName);
         mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
         mailParameter.put(templatePlaceholdersConfig.completeSelfcareName(), templatePlaceholdersConfig.completeSelfcarePlaceholder());
 
