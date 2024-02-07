@@ -61,7 +61,7 @@ app_settings = {
   "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://imprese.uat.notifichedigitali.it/dashboard/admin/onboarding/",
-  "SELFCARE_URL"                                       = "https://imprese.notifichedigitali.it",
+  "SELFCARE_URL"                                       = "https://imprese.uat.notifichedigitali.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.uat.notifichedigitali.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.uat.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.uat.notifichedigitali.it/onboarding/",
@@ -69,4 +69,5 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "http://uat01.pnpg.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1",
   "PAGOPA_LOGO_ENABLE"                                 = "false"
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
 }

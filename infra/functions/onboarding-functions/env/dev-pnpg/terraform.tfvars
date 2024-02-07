@@ -61,12 +61,13 @@ app_settings = {
   "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://imprese.dev.notifichedigitali.it/dashboard/admin/onboarding/",
-  "SELFCARE_URL"                                       = "https://imprese.notifichedigitali.it",
+  "SELFCARE_URL"                                       = "https://imprese.dev.notifichedigitali.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.dev.notifichedigitali.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.dev.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.dev.notifichedigitali.it/onboarding/",
   "MS_CORE_URL"                                        = "https://dev01.pnpg.internal.dev.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "http://dev01.pnpg.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1",
-  "PAGOPA_LOGO_ENABLE"                                 = "false"
+  "PAGOPA_LOGO_ENABLE"                                 = "false",
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
 }

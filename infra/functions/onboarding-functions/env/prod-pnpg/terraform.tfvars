@@ -69,4 +69,5 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "http://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1",
   "PAGOPA_LOGO_ENABLE"                                 = "false"
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
 }
