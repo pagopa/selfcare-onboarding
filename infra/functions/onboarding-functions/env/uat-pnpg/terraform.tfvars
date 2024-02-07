@@ -68,5 +68,5 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://uat01.pnpg.internal.uat.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "http://uat01.pnpg.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1",
-  "PAGOPA_LOGO_URL"                                    = ""
+  "PAGOPA_LOGO_ENABLE"                                 = "false"
 }
