@@ -18,7 +18,7 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
     name: '[Dev] OnBoarding ms Release'
-    if: github.ref_name == 'main'
+    if: startsWith(github.ref_name, 'releases/') != true
     secrets: inherit
     with:
       environment: dev
