@@ -17,7 +17,7 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_function.yml
     name: '[Dev] OnBoarding function Release'
-    if: github.ref_name == 'main'
+    if: startsWith(github.ref_name, 'releases/') != true
     secrets: inherit
     with:
       environment: dev
