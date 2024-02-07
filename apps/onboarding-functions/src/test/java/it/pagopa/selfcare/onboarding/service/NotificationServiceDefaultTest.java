@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -124,7 +125,7 @@ class NotificationServiceDefaultTest {
 
         final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
 
-        Mockito.when(contractService.getLogoFile()).thenReturn(file);
+        Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
 
         Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
                 .thenReturn(mailTemplate);
@@ -153,7 +154,7 @@ class NotificationServiceDefaultTest {
 
         final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
 
-        Mockito.when(contractService.getLogoFile()).thenReturn(file);
+        Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
 
         Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.rejectPath()))
                 .thenReturn(mailTemplate);
