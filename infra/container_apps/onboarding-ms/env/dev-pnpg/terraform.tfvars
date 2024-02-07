@@ -21,11 +21,15 @@ container_app = {
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.dev.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
     value = "https://selc-d-pnpg-onboarding-fn.azurewebsites.net"
+  },
+  {
+    name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
+    value = "{'prod-pn-pg': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
