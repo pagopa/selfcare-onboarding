@@ -22,7 +22,7 @@ jobs:
     secrets: inherit
     with:
       environment: dev
-      pnpg_suffix: -pnpg
+      tf_environment: dev-pnpg
 
   release_uat:
     uses: ./.github/workflows/call_release_ms.yml
@@ -31,7 +31,7 @@ jobs:
     secrets: inherit
     with:
       environment: uat
-      pnpg_suffix: -pnpg
+      tf_environment: uat-pnpg
 
   release_prod:
     uses: ./.github/workflows/call_release_ms.yml
@@ -40,4 +40,4 @@ jobs:
     secrets: inherit
     with:
       environment: prod
-      pnpg_suffix: -pnpg
+      tf_environment: prod-pnpg
