@@ -1,12 +1,16 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
@@ -40,7 +44,7 @@ public interface WorkflowExecutor {
         String institutionId = ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         onboarding.getInstitution().setId(institutionId);
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
-/*
+
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
@@ -53,7 +57,7 @@ public interface WorkflowExecutor {
 
             // Wait for all tasks to complete
             ctx.allOf(parallelTasks).await();
-        }*/
+        }
 
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
