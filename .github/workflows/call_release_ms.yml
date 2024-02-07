@@ -4,6 +4,9 @@ on:
       environment:
         type: string
         required: true
+      pnpg_suffix:
+        type: string
+        required: false
 
 env:
   DIR: "./infra/container_apps/onboarding-ms"
@@ -103,7 +106,7 @@ jobs:
           tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           dir: ${{ env.DIR }}
-          azure_environment: ${{ inputs.environment }}
+          azure_environment: ${{ inputs.environment }}${{ inputs.pnpg_suffix }}
         env:
           TF_VAR_image_tag: ${{ steps.setsha.outputs.short_sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,12 +167,12 @@ jobs:
         shell: bash
         working-directory: ${{ env.DIR }}
         run: |
-          bash ./terraform.sh init ${{ inputs.environment }}
+          bash ./terraform.sh init ${{ inputs.environment }}${{ inputs.pnpg_suffix }}
 
       - name: Terraform Apply
         shell: bash
         working-directory: ${{ env.DIR }}
         run: |
-          terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ inputs.environment }}-${{ github.sha }}
+          terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ inputs.environment }}${{ inputs.pnpg_suffix }}-${{ github.sha }}
         env:
           TF_VAR_image_tag: ${{ needs.tf_plan.outputs.image_tag }}

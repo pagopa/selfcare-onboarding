@@ -21,7 +21,8 @@ jobs:
     if: github.ref_name == 'main'
     secrets: inherit
     with:
-      environment: dev-pnpg
+      environment: dev
+      pnpg_suffix: -pnpg
 
   release_uat:
     uses: ./.github/workflows/call_release_ms.yml
@@ -29,7 +30,8 @@ jobs:
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
-      environment: uat-pnpg
+      environment: uat
+      pnpg_suffix: -pnpg
 
   release_prod:
     uses: ./.github/workflows/call_release_ms.yml
@@ -37,4 +39,5 @@ jobs:
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
-      environment: prod-pnpg
+      environment: prod
+      pnpg_suffix: -pnpg
