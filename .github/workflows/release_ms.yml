@@ -22,6 +22,7 @@ jobs:
     secrets: inherit
     with:
       environment: dev
+      tf_environment: dev
 
   release_uat:
     uses: ./.github/workflows/call_release_ms.yml
@@ -30,6 +31,7 @@ jobs:
     secrets: inherit
     with:
       environment: uat
+      tf_environment: uat
 
   release_prod:
     uses: ./.github/workflows/call_release_ms.yml
@@ -38,3 +40,4 @@ jobs:
     secrets: inherit
     with:
       environment: prod
+      tf_environment: prod
