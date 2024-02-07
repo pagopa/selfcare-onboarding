@@ -137,7 +137,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendCompletedEmail(List<String> destinationMails, Product product, InstitutionType institutionType) {
+    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType) {
 
         String templatePath;
 
@@ -149,24 +149,12 @@ public class NotificationServiceDefault implements NotificationService {
                     : templatePathConfig.completePath();
         }
 
-        byte[] logoData = null;
-
-        try {
-            logoData = Files.readAllBytes(contractService.getLogoFile().toPath());
-        } catch (IOException e) {
-            throw new GenericOnboardingException(e.getMessage());
-        }
-
         Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.businessName(), institutionName);
         mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
         mailParameter.put(templatePlaceholdersConfig.completeSelfcareName(), templatePlaceholdersConfig.completeSelfcarePlaceholder());
 
-        FileMailData fileMailData = new FileMailData();
-        fileMailData.contentType = "image/png";
-        fileMailData.data = logoData;
-        fileMailData.name = PAGOPA_LOGO_FILENAME;
-
-        sendMailWithFile(destinationMails, templatePath, mailParameter, product.getTitle(), fileMailData);
+        sendMailWithFile(destinationMails, templatePath, mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
     }
 
 
@@ -174,25 +162,26 @@ public class NotificationServiceDefault implements NotificationService {
     @Override
     public void sendMailRejection(List<String> destinationMails, Product product) {
 
-        byte[] logoData = null;
-
-        try {
-            logoData = Files.readAllBytes(contractService.getLogoFile().toPath());
-        } catch (IOException e) {
-            throw new GenericOnboardingException(e.getMessage());
-        }
-
         Map<String, String> mailParameter = new HashMap<>();
         mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
         mailParameter.put(templatePlaceholdersConfig.rejectOnboardingUrlPlaceholder(), templatePlaceholdersConfig.rejectOnboardingUrlValue() + product.getId());
+        sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
+    }
 
-
-        FileMailData fileMailData = new FileMailData();
-        fileMailData.contentType = "image/png";
-        fileMailData.data = logoData;
-        fileMailData.name = PAGOPA_LOGO_FILENAME;
-
-        sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), fileMailData);
+    private FileMailData retrieveFileMetadataPagopaLogo() {
+        FileMailData fileMailData = null;
+        Optional<File> optFileLogo = contractService.getLogoFile();
+        if(optFileLogo.isPresent()) {
+            fileMailData = new FileMailData();
+            fileMailData.contentType = "image/png";
+            fileMailData.data = optFileLogo.map(File::toPath)
+                    .map(path -> {
+                        try { return Files.readAllBytes(path); }
+                        catch (IOException e) { throw new GenericOnboardingException(e.getMessage());}})
+                    .orElse(null);
+            fileMailData.name = PAGOPA_LOGO_FILENAME;
+        }
+        return fileMailData;
     }
 
     private void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {

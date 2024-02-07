@@ -30,9 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
@@ -52,18 +50,22 @@ public class ContractServiceDefault implements ContractService {
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
 
+    Boolean isLogoEnable;
+
     private final String logoPath;
 
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
                                   PagoPaSignatureConfig pagoPaSignatureConfig,
-                                  @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath) {
+                                  @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
+                                  @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
         this.logoPath = logoPath;
+        this.isLogoEnable = isLogoEnable;
     }
 
     /**
@@ -218,15 +220,20 @@ public class ContractServiceDefault implements ContractService {
     }
 
     @Override
-    public File getLogoFile() {
-        StringBuilder stringBuilder = new StringBuilder(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
-        try {
-            Path path = Files.createTempFile(stringBuilder.toString(), ".png");
-            Files.writeString(path, azureBlobClient.getFileAsText(logoPath));
-            return path.toFile();
-        } catch (IOException e) {
-            throw new IllegalArgumentException(String.format(UNABLE_TO_DOWNLOAD_FILE.getMessage(), logoPath));
+    public Optional<File> getLogoFile() {
+        if (Objects.nonNull(isLogoEnable) && isLogoEnable) {
+
+            StringBuilder stringBuilder = new StringBuilder(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+            stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
+            try {
+                Path path = Files.createTempFile(stringBuilder.toString(), ".png");
+                Files.writeString(path, azureBlobClient.getFileAsText(logoPath));
+                return Optional.of(path.toFile());
+            } catch (IOException e) {
+                throw new IllegalArgumentException(String.format(UNABLE_TO_DOWNLOAD_FILE.getMessage(), logoPath));
+            }
         }
+
+        return Optional.empty();
     }
 }
