@@ -18,10 +18,11 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
     name: '[Dev] OnBoarding ms Release'
-    if: github.ref_name == 'main'
+    if: startsWith(github.ref_name, 'releases/') != true
     secrets: inherit
     with:
-      environment: dev-pnpg
+      environment: dev
+      tf_environment: dev-pnpg
 
   release_uat:
     uses: ./.github/workflows/call_release_ms.yml
@@ -29,7 +30,8 @@ jobs:
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
-      environment: uat-pnpg
+      environment: uat
+      tf_environment: uat-pnpg
 
   release_prod:
     uses: ./.github/workflows/call_release_ms.yml
@@ -37,4 +39,5 @@ jobs:
     if: startsWith(github.ref_name, 'releases/')
     secrets: inherit
     with:
-      environment: prod-pnpg
+      environment: prod
+      tf_environment: prod-pnpg

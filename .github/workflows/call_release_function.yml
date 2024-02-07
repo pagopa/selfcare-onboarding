@@ -7,6 +7,7 @@ on:
       short_env:
         type: string
         required: true
+        description: add '-pnpg' if workflow is related to pnpg
 
 jobs:
   release:
@@ -34,23 +35,23 @@ jobs:
         shell: bash
         run: |
           mvn --projects :onboarding-functions --also-make package install -DskipTests \
-            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }}
+            -Dquarkus.azure-functions.app-name=${{ format('selc-{0}-onboarding-fn', inputs.short_env) }}
 
       - name: Log in to Azure
         uses: azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID_CD }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Function App
         shell: bash
         working-directory: apps/onboarding-functions
         run: |
           mvn -f pom.xml quarkus:deploy \
-            -Dquarkus.azure-functions.app-name=${{ vars.AZURE_ONBOARDING_FN_APP_NAME }} \
-            -Dquarkus.azure-functions.subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }} \
-            -Dquarkus.azure-functions.resource-group=${{ vars.AZURE_ONBOARDING_FN_RESOURCE_GROUP }} \
+            -Dquarkus.azure-functions.app-name=${{ format('selc-{0}-onboarding-fn', inputs.short_env) }} \
+            -Dquarkus.azure-functions.subscription-id=${{ vars.AZURE_SUBSCRIPTION_ID }} \
+            -Dquarkus.azure-functions.resource-group=${{ format('selc-{0}-onboarding-fn-rg', inputs.short_env) }} \
             -Dquarkus.azure-functions.region=westeurope \
-            -Dquarkus.azure-functions.app-service-plan-name=${{ vars.AZURE_ONBOARDING_FN_SERVICE_PLAN }} \
+            -Dquarkus.azure-functions.app-service-plan-name=${{ format('selc-{0}-onboarding-fn-plan', inputs.short_env) }} \
             -Dquarkus.azure-functions.runtime.java-version=17
