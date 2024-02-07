@@ -150,6 +150,12 @@ class OnboardingControllerTest {
                 .post("/pa")
                 .then()
                 .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboarding(captor.capture(), any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+
     }
 
     private OnboardingPaRequest dummyOnboardingPa() {
