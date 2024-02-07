@@ -21,7 +21,7 @@ container_app = {
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.dev.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
