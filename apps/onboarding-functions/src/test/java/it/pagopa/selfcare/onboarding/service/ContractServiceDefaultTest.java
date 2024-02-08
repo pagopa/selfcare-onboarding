@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -74,7 +73,7 @@ class ContractServiceDefaultTest {
         return onboarding;
     }
 
-    UserResource createDummyUserResource(String onboardingId) {
+    UserResource createDummyUserResource(String userMailUuid) {
         UserResource validManager = new UserResource();
 
         CertifiableFieldResourceOfstring emailCert = new CertifiableFieldResourceOfstring();
@@ -82,7 +81,7 @@ class ContractServiceDefaultTest {
         WorkContactResource workContact = new WorkContactResource();
         workContact.setEmail(emailCert);
         Map<String, WorkContactResource> map = new HashMap<>();
-        map.put(workContactsKey.apply(onboardingId), workContact);
+        map.put(userMailUuid, workContact);
 
         validManager.setWorkContacts(map);
         return validManager;
