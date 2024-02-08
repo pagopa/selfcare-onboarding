@@ -14,13 +14,13 @@ import java.util.Objects;
 @Mapper(componentModel = "cdi")
 public interface OnboardingMapper {
 
-    @Mapping(target = "billing.recipientCode", expression = "java(toUpperCase(billing.getRecipientCode()))")
+    @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingPaRequest request);
-    @Mapping(target = "billing.recipientCode", expression = "java(toUpperCase(billing.getRecipientCode()))")
+    @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingPspRequest request);
-    @Mapping(target = "billing.recipientCode", expression = "java(toUpperCase(billing.getRecipientCode()))")
+    @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingDefaultRequest request);
-    @Mapping(target = "billing.recipientCode", expression = "java(toUpperCase(billing.getRecipientCode()))")
+    @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingSaRequest request);
 
     @Mapping(source = "taxCode", target = "institution.taxCode")
@@ -40,6 +40,7 @@ public interface OnboardingMapper {
     default String objectIdToString(ObjectId objectId) {
         return objectId.toHexString();
     }
+
     @Named("toUpperCase")
     default String toUpperCase(String recipientCode) {
         return Objects.nonNull(recipientCode) ? recipientCode.toUpperCase() : null;
