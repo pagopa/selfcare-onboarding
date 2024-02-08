@@ -60,7 +60,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -79,9 +78,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
 
-
-    public static final UnaryOperator<String> workContactsKey = onboardingId -> String.format("obg_%s", onboardingId);
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
+   public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
 
     @RestClient
     @Inject
@@ -334,29 +331,32 @@ public class OnboardingServiceDefault implements OnboardingService {
                 ? product.getParent().getRoleMappings()
                 : product.getRoleMappings();
 
+        final String userMailRandomUuid = UUID.randomUUID().toString();
+
         return Multi.createFrom().iterable(users)
                         .onItem().transformToUni(user -> userRegistryApi
                                 .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
 
                             /* retrieve userId, if found will eventually update some fields */
-                            .onItem().transformToUni(userResource -> createUpdateUserRequest(user, userResource, onboardingId)
+                            .onItem().transformToUni(userResource -> createUpdateUserRequest(user, userResource, userMailRandomUuid)
                                 .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
                                         .replaceWith(userResource.getId()))
                                 .orElse(Uni.createFrom().item(userResource.getId())))
                             /* if not found 404, will create new user */
                             .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
-                                ? userRegistryApi.saveUsingPATCH(createSaveUserDto(user, onboardingId)).onItem().transform(UserId::getId)
+                                ? userRegistryApi.saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid)).onItem().transform(UserId::getId)
                                 : Uni.createFrom().failure(ex))
                             .onItem().transform(userResourceId -> User.builder()
                                 .id(userResourceId.toString())
                                 .role(user.getRole())
+                                .userMailUuid(userMailRandomUuid)
                                 .productRole(retrieveProductRole(user, roleMappings))
                                 .build())
                 )
                 .concatenate().collect().asList();
     }
 
-    private SaveUserDto createSaveUserDto(UserRequest model, String onboardingId) {
+    private SaveUserDto createSaveUserDto(UserRequest model, String userMailRandomUuid) {
         SaveUserDto resource = new SaveUserDto();
         resource.setFiscalCode(model.getTaxCode());
         resource.setName(new CertifiableFieldResourceOfstring()
@@ -366,17 +366,17 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .value(model.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
 
-        if (Objects.nonNull(onboardingId)) {
+        if (Objects.nonNull(userMailRandomUuid)) {
             WorkContactResource contact = new WorkContactResource();
             contact.setEmail(new CertifiableFieldResourceOfstring()
                     .value(model.getEmail())
                     .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
-            resource.setWorkContacts(Map.of(workContactsKey.apply(onboardingId), contact));
+            resource.setWorkContacts(Map.of(userMailRandomUuid, contact));
         }
         return resource;
     }
 
-    protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser, String onboardingId) {
+    protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser, String userMailRandomUuid) {
         Optional<MutableUserFieldsDto> mutableUserFieldsDto = Optional.empty();
         if (isFieldToUpdate(foundUser.getName(), user.getName())) {
             MutableUserFieldsDto dto = new MutableUserFieldsDto();
@@ -393,15 +393,19 @@ public class OnboardingServiceDefault implements OnboardingService {
             mutableUserFieldsDto = Optional.of(dto);
         }
 
-        if (foundUser.getWorkContacts() == null
-                || !foundUser.getWorkContacts().containsKey(onboardingId)
-                || isFieldToUpdate(foundUser.getWorkContacts().get(onboardingId).getEmail(), user.getEmail())) {
+        Optional<Map.Entry<String, WorkContactResource>> entryMail = Objects.nonNull(foundUser.getWorkContacts())
+                ? foundUser.getWorkContacts().entrySet().stream()
+                    .filter(entry -> entry.getValue().getEmail().getValue().equals(user.getEmail()))
+                    .findFirst()
+                : Optional.empty();
+
+        if (entryMail.isEmpty()) {
             MutableUserFieldsDto dto = mutableUserFieldsDto.orElseGet(MutableUserFieldsDto::new);
             final WorkContactResource workContact = new WorkContactResource();
             workContact.setEmail(new CertifiableFieldResourceOfstring()
                     .value(user.getEmail())
                     .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
-            dto.setWorkContacts(Map.of(workContactsKey.apply(onboardingId), workContact));
+            dto.setWorkContacts(Map.of(userMailRandomUuid, workContact));
             mutableUserFieldsDto = Optional.of(dto);
         }
         return mutableUserFieldsDto;
@@ -637,22 +641,35 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId) {
-        return onboardingGet(onboardingId)
-                .flatMap(onboardingGet -> fillOnboardingWithUserInfo(onboardingGet.getUsers(), workContactsKey.apply(onboardingId))
-                        .replaceWith(onboardingGet));
+        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+                .onItem().transformToUni(opt -> opt
+                        //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
+                        .map(Onboarding.class::cast)
+                        .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
+                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))))
+                .flatMap(onboarding -> toUserResponseWithUserInfo(onboarding.getUsers())
+                        .onItem().transform(userResponses -> {
+                            OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
+                            onboardingGet.setUsers(userResponses);
+                            return onboardingGet;
+                        }));
     }
 
-    private Uni<List<UserResponse>> fillOnboardingWithUserInfo(List<UserResponse> users, String workContractId) {
+    private Uni<List<UserResponse>> toUserResponseWithUserInfo(List<User> users) {
         return Multi.createFrom().iterable(users)
-                .onItem().transformToUni(userResponse -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST ,userResponse.getId())
-                        .onItem().invoke(userResource -> userMapper.fillUserResponse(userResource, userResponse))
-                        .onItem().invoke(userResource -> Optional.ofNullable(userResource.getWorkContacts())
-                                .filter(map -> map.containsKey(workContractId))
-                                .map(map -> map.get(workContractId))
-                                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
-                                .map(workContract -> workContract.getEmail().getValue())
-                                .ifPresent(userResponse::setEmail))
-                        .replaceWith(userResponse)
+                .onItem().transformToUni(user -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId())
+                        .onItem().transform(userResource -> {
+                            UserResponse userResponse = userMapper.toUserResponse(user);
+                            userMapper.fillUserResponse(userResource, userResponse);
+
+                            Optional.ofNullable(userResource.getWorkContacts())
+                                    .filter(map -> map.containsKey(user.getUserMailUuid()))
+                                    .map(map -> map.get(user.getUserMailUuid()))
+                                    .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                                    .map(workContract -> workContract.getEmail().getValue())
+                                    .ifPresent(userResponse::setEmail);
+                            return userResponse;
+                        })
                     )
                 .merge().collect().asList();
     }
