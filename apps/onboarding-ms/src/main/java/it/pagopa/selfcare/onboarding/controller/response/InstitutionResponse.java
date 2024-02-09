@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 public class InstitutionResponse {
 
-
+    private String id;
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;
