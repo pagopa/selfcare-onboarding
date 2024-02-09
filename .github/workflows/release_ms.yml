@@ -28,7 +28,7 @@ jobs:
       - name: Print if
         id: print-if
         run: |
-          echo "((startsWith(github.ref_name, 'releases/') != true && ${{ inputs.env == null }} ) || ${{ inputs.env == 'dev' }})""
+          echo "${{ inputs.env == null }}"
 
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
