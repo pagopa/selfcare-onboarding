@@ -22,6 +22,7 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingDefaultRequest request);
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingSaRequest request);
+    Onboarding toEntity(OnboardingImportRequest request);
 
     @Mapping(source = "taxCode", target = "institution.taxCode")
     @Mapping(source = "businessName", target = "institution.description")

@@ -149,6 +149,18 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
 
+
+    /**
+     * As onboarding but it is specific for IMPORT workflow */
+    @Override
+    public Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests) {
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+
+        return fillUsersAndOnboarding(onboarding, userRequests, null);
+    }
+
+
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
