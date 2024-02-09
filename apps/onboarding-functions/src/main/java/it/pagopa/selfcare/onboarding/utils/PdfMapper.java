@@ -34,11 +34,16 @@ public class PdfMapper {
 
         Institution institution = onboarding.getInstitution();
         Billing billing = onboarding.getBilling();
+        User userManager = onboarding.getUsers().stream()
+                .filter(user -> user.getId().equals(manager.getId().toString()))
+                .findFirst()
+                .orElseThrow();
+
         List<String> geographicTaxonomies = Optional.ofNullable(onboarding.getInstitution().getGeographicTaxonomies())
                 .map(geoTaxonomies -> geoTaxonomies.stream().map(GeographicTaxonomy::getDesc).toList())
                 .orElse(List.of());
 
-        String mailManager = getMailManager(manager, onboarding.getOnboardingId());
+        String mailManager = getMailManager(manager, userManager.getUserMailUuid());
         if (Objects.isNull(mailManager)) {
             throw new GenericOnboardingException(MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
         }
