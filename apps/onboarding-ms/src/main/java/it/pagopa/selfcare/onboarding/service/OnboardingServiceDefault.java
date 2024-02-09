@@ -160,8 +160,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                     /* I have to retrieve onboarding id for saving reference to pdv */
                     .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                        .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString(), product)
-                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
+                        .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
+                            .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
+                            .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
                     /* Update onboarding data with users and start orchestration */
                     .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                             orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
@@ -312,46 +313,66 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
-    public Uni<List<User>> validationRoleAndRetrieveUsers(List<UserRequest> users, String onboardingId, Product product) {
+    private Uni<List<UserRequest>> validationRole(List<UserRequest> users) {
 
         List<PartyRole> validRoles = List.of(PartyRole.MANAGER, PartyRole.DELEGATE);
 
-        List<UserRequest> usersNotValidRole =  users.stream()
+        List<UserRequest> usersNotValidRole = users.stream()
                 .filter(user -> !validRoles.contains(user.getRole()))
                 .toList();
         if (!usersNotValidRole.isEmpty()) {
             String usersNotValidRoleString = usersNotValidRole.stream()
                     .map(user -> user.getRole().toString())
                     .collect(Collectors.joining(","));
-            return Uni.createFrom().failure( new InvalidRequestException(String.format(CustomError.ROLES_NOT_ADMITTED_ERROR.getMessage(), usersNotValidRoleString),
+            return Uni.createFrom().failure(new InvalidRequestException(String.format(CustomError.ROLES_NOT_ADMITTED_ERROR.getMessage(), usersNotValidRoleString),
                     CustomError.ROLES_NOT_ADMITTED_ERROR.getCode()));
         }
+
+        return Uni.createFrom().item(users);
+    }
+
+    private Uni<List<User>> retrieveUserResources(List<UserRequest> users, Product product) {
 
         Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
                 ? product.getParent().getRoleMappings()
                 : product.getRoleMappings();
 
-        final String userMailRandomUuid = UUID.randomUUID().toString();
-
         return Multi.createFrom().iterable(users)
-                        .onItem().transformToUni(user -> userRegistryApi
-                                .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
+                    .onItem().transformToUni(user -> userRegistryApi
+                        /* search user by tax code */
+                        .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
 
-                            /* retrieve userId, if found will eventually update some fields */
-                            .onItem().transformToUni(userResource -> createUpdateUserRequest(user, userResource, userMailRandomUuid)
-                                .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
-                                        .replaceWith(userResource.getId()))
-                                .orElse(Uni.createFrom().item(userResource.getId())))
-                            /* if not found 404, will create new user */
-                            .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
-                                ? userRegistryApi.saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid)).onItem().transform(UserId::getId)
-                                : Uni.createFrom().failure(ex))
-                            .onItem().transform(userResourceId -> User.builder()
-                                .id(userResourceId.toString())
-                                .role(user.getRole())
-                                .userMailUuid(userMailRandomUuid)
-                                .productRole(retrieveProductRole(user, roleMappings))
-                                .build())
+                        /* retrieve userId, if found will eventually update some fields */
+                        .onItem().transformToUni(userResource -> {
+                                String userMailRandomUuid = retrieveUserMailUuid(userResource, user.getEmail());
+                                Optional<MutableUserFieldsDto> optUserFieldsDto = toUpdateUserRequest(user, userResource, userMailRandomUuid);
+                                return optUserFieldsDto
+                                        .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
+                                                .replaceWith(userResource.getId()))
+                                        .orElse(Uni.createFrom().item(userResource.getId()))
+                                        .map(userResourceId -> User.builder()
+                                                .id(userResourceId.toString())
+                                                .role(user.getRole())
+                                                .userMailUuid(userMailRandomUuid)
+                                                .productRole(retrieveProductRole(user, roleMappings))
+                                                .build());
+                            }
+                        )
+                        /* if not found 404, will create new user */
+                        .onFailure(WebApplicationException.class).recoverWithUni(ex -> {
+                            if(((WebApplicationException) ex).getResponse().getStatus() != 404) {
+                                return Uni.createFrom().failure(ex);
+                            }
+
+                            String userMailRandomUuid = UUID.randomUUID().toString();
+                            return userRegistryApi.saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid))
+                                    .onItem().transform(userId -> User.builder()
+                                            .id(userId.getId().toString())
+                                            .role(user.getRole())
+                                            .userMailUuid(userMailRandomUuid)
+                                            .productRole(retrieveProductRole(user, roleMappings))
+                                            .build());
+                        })
                 )
                 .concatenate().collect().asList();
     }
@@ -376,7 +397,20 @@ public class OnboardingServiceDefault implements OnboardingService {
         return resource;
     }
 
-    protected static Optional<MutableUserFieldsDto> createUpdateUserRequest(UserRequest user, UserResource foundUser, String userMailRandomUuid) {
+    private String retrieveUserMailUuid(UserResource foundUser, String userMail) {
+        if(Objects.isNull(foundUser.getWorkContacts())) {
+            return UUID.randomUUID().toString();
+        }
+
+        return foundUser.getWorkContacts().entrySet().stream()
+                .filter(entry -> Objects.nonNull(entry.getValue()) && Objects.nonNull(entry.getValue().getEmail()))
+                .filter(entry -> entry.getValue().getEmail().getValue().equals(userMail))
+                .findFirst()
+                .map(Map.Entry::getKey)
+                .orElse(UUID.randomUUID().toString());
+    }
+
+    protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(UserRequest user, UserResource foundUser, String userMailRandomUuid) {
         Optional<MutableUserFieldsDto> mutableUserFieldsDto = Optional.empty();
         if (isFieldToUpdate(foundUser.getName(), user.getName())) {
             MutableUserFieldsDto dto = new MutableUserFieldsDto();
@@ -395,6 +429,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         Optional<Map.Entry<String, WorkContactResource>> entryMail = Objects.nonNull(foundUser.getWorkContacts())
                 ? foundUser.getWorkContacts().entrySet().stream()
+                    .filter(entry -> Objects.nonNull(entry.getValue()) && Objects.nonNull(entry.getValue().getEmail()))
                     .filter(entry -> entry.getValue().getEmail().getValue().equals(user.getEmail()))
                     .findFirst()
                 : Optional.empty();
