@@ -55,6 +55,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -115,6 +116,7 @@ class OnboardingServiceDefaultTest {
             .build();
 
     final static UserResource managerResource;
+    final static UserResource managerResourceWk;
 
     final static File testFile = new File("src/test/resources/application.properties");
 
@@ -127,6 +129,23 @@ class OnboardingServiceDefaultTest {
         managerResource.setFamilyName(new CertifiableFieldResourceOfstring()
                 .value(manager.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+
+        managerResourceWk = new UserResource();
+        managerResourceWk.setId(UUID.randomUUID());
+        managerResourceWk.setName(new CertifiableFieldResourceOfstring()
+                .value(manager.getName())
+                .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+        managerResourceWk.setFamilyName(new CertifiableFieldResourceOfstring()
+                .value(manager.getSurname())
+                .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+
+        Map<String, WorkContactResource> map = new HashMap<>();
+        WorkContactResource workContactResource = new WorkContactResource();
+        workContactResource.setEmail(new CertifiableFieldResourceOfstring()
+                .value("mail@live.it")
+                .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+        map.put(UUID.randomUUID().toString(), workContactResource);
+        managerResourceWk.setWorkContacts(map);
     }
 
     @Test
@@ -640,7 +659,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_whenUserFoundedAndWillUpdate(UniAsserter asserter) {
         UserRequest manager = UserRequest.builder()
                 .name("name")
-                .taxCode(managerResource.getFiscalCode())
+                .taxCode(managerResourceWk.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
@@ -651,14 +670,21 @@ class OnboardingServiceDefaultTest {
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
 
-        mockPersistOnboarding(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+                .thenReturn(Uni.createFrom().item(managerResourceWk)));
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
-        mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
