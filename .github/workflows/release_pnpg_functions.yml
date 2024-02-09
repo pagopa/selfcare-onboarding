@@ -11,13 +11,21 @@ on:
       - "pom.xml"
 
   workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options: 
+        - dev
+        - uat
+        - prod
 
 jobs:
 
   release_dev:
     uses: ./.github/workflows/call_release_function.yml
     name: '[Dev] OnBoarding function Release'
-    if: startsWith(github.ref_name, 'releases/') != true
+    if: ${{ (startsWith(github.ref_name, 'releases/') != true && inputs.env == null) || inputs.env == 'dev' }}
     secrets: inherit
     with:
       environment: dev
@@ -26,7 +34,7 @@ jobs:
   release_uat:
     uses: ./.github/workflows/call_release_function.yml
     name: '[UAT] OnBoarding function Release'
-    if: startsWith(github.ref_name, 'releases/')
+    if: ${{ (startsWith(github.ref_name, 'releases/') == true && inputs.env == null) || inputs.env == 'uat' }}
     secrets: inherit
     with:
       environment: uat
@@ -35,7 +43,7 @@ jobs:
   release_prod:
     uses: ./.github/workflows/call_release_function.yml
     name: '[Prod] OnBoarding function Release'
-    if: startsWith(github.ref_name, 'releases/') 
+    if: ${{ inputs.env == 'prod' }}
     secrets: inherit
     with:
       environment: prod

@@ -22,13 +22,6 @@ on:
         - prod
 
 jobs:
-  test:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Print if
-        id: print-if
-        run: |
-          echo "${{startsWith(github.ref_name, 'releases/') != true && inputs.env == null }}"
 
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
