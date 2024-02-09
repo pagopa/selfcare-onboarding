@@ -12,6 +12,9 @@ on:
       - "pom.xml"
   
   workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
 
 jobs:
 
