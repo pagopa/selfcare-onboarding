@@ -9,6 +9,8 @@ public class User {
     private PartyRole role;
     private String productRole;
 
+    private String userMailUuid;
+
     public String getId() {
         return id;
     }
@@ -31,5 +33,13 @@ public class User {
 
     public void setProductRole(String productRole) {
         this.productRole = productRole;
+    }
+
+    public String getUserMailUuid() {
+        return userMailUuid;
+    }
+
+    public void setUserMailUuid(String userMailUuid) {
+        this.userMailUuid = userMailUuid;
     }
 }
