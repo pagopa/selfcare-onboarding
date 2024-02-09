@@ -10,6 +10,7 @@ import java.util.List;
 @Data
 public class Institution {
 
+    private String id;
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;
