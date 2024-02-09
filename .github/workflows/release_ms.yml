@@ -13,8 +13,13 @@ on:
   
   workflow_dispatch:
     inputs:
-      environment:
-        type: environment
+      env:
+        type: choice
+        description: Who to greet
+        options: 
+        - dev
+        - uat
+        - prod
 
 jobs:
 
@@ -39,7 +44,7 @@ jobs:
   release_prod:
     uses: ./.github/workflows/call_release_ms.yml
     name: '[Prod] OnBoarding ms Release'
-    if: startsWith(github.ref_name, 'releases/')
+    if: "${{ github.event.inputs.env == 'prod' }}"
     secrets: inherit
     with:
       environment: prod
