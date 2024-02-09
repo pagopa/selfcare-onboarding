@@ -33,7 +33,7 @@ jobs:
   release_dev:
     uses: ./.github/workflows/call_release_ms.yml
     name: '[Dev] OnBoarding ms Release'
-    if: ${{startsWith(github.ref_name, 'releases/') != true && inputs.env == null }} || ${{ inputs.env == 'dev' }}
+    if: ${{(startsWith(github.ref_name, 'releases/') != true && inputs.env == null) || inputs.env == 'dev' }}
     secrets: inherit
     with:
       environment: dev
