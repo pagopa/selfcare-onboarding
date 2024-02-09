@@ -83,7 +83,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         InstitutionResponse institutionResponse =
                 Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                    ? createInstitution(institution, onboarding.getProductId())
+                    ? createInstitution(institution)
                     : institutionsResponse.getInstitutions().get(0);
 
         onboardingRepository
@@ -98,7 +98,7 @@ public class CompletionServiceDefault implements CompletionService {
      * Origin indicates which is the indexes where data come from, for ex. IPA comes from index of Pubbliche Amministrazioni
      * Look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/708804909/Glossario for more information about institution type and indexes
      */
-    private InstitutionResponse createInstitution(Institution institution, String productId) {
+    private InstitutionResponse createInstitution(Institution institution) {
 
         if(InstitutionType.SA.equals(institution.getInstitutionType())
                 && Origin.ANAC.equals(institution.getOrigin())) {
