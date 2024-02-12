@@ -10,7 +10,7 @@ locals {
   }
 
   repo_variables = {
-    "AZURE_TENANT_ID" = data.azurerm_client_config.current.tenant_id,
+    "ARM_TENANT_ID" = data.azurerm_client_config.current.tenant_id,
   }
 
   repo_secrets = {
@@ -18,18 +18,18 @@ locals {
   }
 
   env_ci_variables = {
-    "AZURE_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
+    "ARM_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
   }
 
   env_cd_variables = {
-    "AZURE_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
+    "ARM_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
   }
 
   env_ci_secrets = {
-    "AZURE_CLIENT_ID" = module.identity_ci.identity_client_id
+    "ARM_CLIENT_ID" = module.identity_ci.identity_client_id
   }
 
   env_cd_secrets = {
-    "AZURE_CLIENT_ID" = module.identity_cd.identity_client_id
+    "ARM_CLIENT_ID" = module.identity_cd.identity_client_id
   }
 }
