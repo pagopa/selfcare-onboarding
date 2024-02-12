@@ -48,7 +48,6 @@ import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -159,7 +158,6 @@ public class OnboardingServiceDefault implements OnboardingService {
         return fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
-
     /**
      * As onboarding but it is specific for IMPORT workflow */
     @Override
@@ -172,12 +170,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                             InstitutionResponse institution = institutionsResponse.getInstitutions().stream().filter(obj -> Objects.isNull(obj.getRootParent())).findFirst().orElse(null);
                             if(Objects.isNull(institution) || Objects.isNull(institution.getInstitutionType())) {
                                 onboarding.getInstitution().setInstitutionType(getInstitutionType(proxyInstitution.getCategory()));
-                            }else{
+                            } else {
                                 onboarding.getInstitution().setInstitutionType(InstitutionType.valueOf(institutionsResponse.getInstitutions().get(0).getInstitutionType().name()));
                             }
                         }))
-                .invoke(() -> fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE))
-                .onItem().castTo(OnboardingResponse.class);
+                .chain(() -> fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE));
     }
 
 

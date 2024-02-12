@@ -202,6 +202,29 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingsOrchestratorImport() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setOnboardingId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.IMPORT);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(2))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+    }
+
+    @Test
     void onboardingsOrchestratorRegistrationRequestApprove() {
         Onboarding onboarding = new Onboarding();
         onboarding.setOnboardingId("onboardingId");

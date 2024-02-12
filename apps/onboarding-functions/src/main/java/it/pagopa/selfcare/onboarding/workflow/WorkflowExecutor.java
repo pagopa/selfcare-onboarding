@@ -64,7 +64,7 @@ public interface WorkflowExecutor {
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding, boolean isMailToSent) {
+    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding, boolean sendMail) {
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
@@ -86,7 +86,7 @@ public interface WorkflowExecutor {
             ctx.allOf(parallelTasks).await();
         }
 
-        if(isMailToSent)
+        if(sendMail)
             ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         return Optional.of(OnboardingStatus.COMPLETED);
