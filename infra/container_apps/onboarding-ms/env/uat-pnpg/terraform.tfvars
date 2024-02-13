@@ -37,11 +37,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://uat01.pnpg.internal.dev.selfcare.pagopa.it/ms-core/v1"
+    value = "https://uat01.pnpg.internal.uat.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://uat01.pnpg.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://uat01.pnpg.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
