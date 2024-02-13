@@ -62,6 +62,14 @@ jobs:
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
           echo "OLD_VERSION=${OLD_VERSION}" >> $GITHUB_ENV
 
+      - name: Create Branch
+        run: |
+          git checkout -b $NEW_BRANCH_NAME
+
+      - name: Push Branch
+        run: |
+          git push origin $NEW_BRANCH_NAME
+
       - name: Create Repository Release
         run: |
           gh release create v${{ env.NEW_VERSION }} \
@@ -79,60 +87,52 @@ jobs:
           gh variable set CURRENT_PROD_VERSION \
             --body "${{ env.OLD_VERSION }}"
 
-      - name: Create Branch
-        run: |
-          git checkout -b $NEW_BRANCH_NAME
-
-      - name: Push Branch
-        run: |
-          git push origin $NEW_BRANCH_NAME
-
-      - name: Trigger Functions Infra UAT Release
-        run: |
-          gh workflow run release_functions_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger Mongo Infra UAT Release
-        run: |
-          gh workflow run release_mongo_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger Container App Infra UAT Release
-        run: |
-          gh workflow run release_container_apps_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger PNPG Functions Infra UAT Release
-        run: |
-          gh workflow run release_functions_pnpg_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger PNPG Mongo Infra UAT Release
-        run: |
-          gh workflow run release_mongo_pnpg_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger PNPG Container App Infra UAT Release
-        run: |
-          gh workflow run release_container_apps_pnpg_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger Functions UAT Release
-        run: |
-          gh workflow run release_functions.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger Onboarding ms UAT Release
-        run: |
-          gh workflow run release_ms.yml \
-            --ref $NEW_BRANCH_NAME
-
-      # - name: Trigger PNPG Functions UAT Release
+      # - name: Trigger Functions Infra UAT Release
       #   run: |
-      #     gh workflow run release_pnpg_functions.yml \
+      #     gh workflow run release_functions_infra.yml \
       #       --ref $NEW_BRANCH_NAME
 
-      - name: Trigger PNPG Onboarding ms UAT Release
-        run: |
-          gh workflow run release_pnpg_ms.yml \
-            --ref $NEW_BRANCH_NAME
+      # - name: Trigger Mongo Infra UAT Release
+      #   run: |
+      #     gh workflow run release_mongo_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger Container App Infra UAT Release
+      #   run: |
+      #     gh workflow run release_container_apps_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger PNPG Functions Infra UAT Release
+      #   run: |
+      #     gh workflow run release_functions_pnpg_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger PNPG Mongo Infra UAT Release
+      #   run: |
+      #     gh workflow run release_mongo_pnpg_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger PNPG Container App Infra UAT Release
+      #   run: |
+      #     gh workflow run release_container_apps_pnpg_infra.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger Functions UAT Release
+      #   run: |
+      #     gh workflow run release_functions.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger Onboarding ms UAT Release
+      #   run: |
+      #     gh workflow run release_ms.yml \
+      #       --ref $NEW_BRANCH_NAME
+
+      # # - name: Trigger PNPG Functions UAT Release
+      # #   run: |
+      # #     gh workflow run release_pnpg_functions.yml \
+      # #       --ref $NEW_BRANCH_NAME
+
+      # - name: Trigger PNPG Onboarding ms UAT Release
+      #   run: |
+      #     gh workflow run release_pnpg_ms.yml \
+      #       --ref $NEW_BRANCH_NAME
