@@ -1,4 +1,4 @@
-ame: Create Release and change log
+name: Create Release and change log
 
 on:
   workflow_dispatch:
