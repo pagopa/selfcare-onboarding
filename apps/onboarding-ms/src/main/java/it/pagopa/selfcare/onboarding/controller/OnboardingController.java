@@ -105,7 +105,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
     }
 
 

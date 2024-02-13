@@ -494,7 +494,7 @@ class OnboardingControllerTest {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -506,7 +506,20 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any());
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboarding_shouldNotValidImportBody() {
+
+        given()
+                .when()
+                .body(new OnboardingDefaultRequest())
+                .contentType(ContentType.JSON)
+                .post("/pa/import")
+                .then()
+                .statusCode(400);
     }
 
     private static Map<String, String> getStringStringMap() {

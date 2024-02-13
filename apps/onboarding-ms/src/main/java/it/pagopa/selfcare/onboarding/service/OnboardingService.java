@@ -14,7 +14,7 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests);
 
-    Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported);
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
 

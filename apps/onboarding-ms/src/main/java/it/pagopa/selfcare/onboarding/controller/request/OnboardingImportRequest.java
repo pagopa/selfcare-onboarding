@@ -10,7 +10,6 @@ import java.util.List;
 @Data
 public class OnboardingImportRequest {
 
-
     @NotNull(message = "institutionData is required")
     @Valid
     private InstitutionBaseRequest institution;
