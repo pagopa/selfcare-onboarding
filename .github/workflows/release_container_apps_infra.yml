@@ -53,3 +53,27 @@ jobs:
       dir: ./infra/container_apps/onboarding-ms
       env_vars: |
         TF_VAR_image_tag=sha-$(git rev-parse --short ${{ github.sha }})
+
+  promote_release:
+    name: 'Promote prerelase release'
+    runs-on: ubuntu-20.04
+    needs: [release_prod]
+
+    steps:
+
+      # - name: Get Latest Production Release Version
+      #   id: get-version
+      #   run: |
+      #     PROD_BRANCH=$(git branch -r | grep -Eo 'releases/[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 2 | head -n 1)
+      #     PROD_VERSION=$(echo "${PROD_BRANCH}" | sed 's/releases\///')
+
+      #     echo "PROD_BRANCH=${PROD_BRANCH}" >> $GITHUB_ENV
+      #     echo "PROD_VERSION=${PROD_VERSION}" >> $GITHUB_ENV
+
+      - name: Promote Repository Release
+        run: |
+          gh release edit v${{ vars.CURRENT_PROD_VERSION }} \
+            --target releases/${{ env.CURRENT_PROD_VERSION }} \
+            --prerelease=false \
+            --latest \
+            --verify-tag
