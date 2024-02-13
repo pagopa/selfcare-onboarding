@@ -174,11 +174,13 @@ class OnboardingControllerTest {
     }
 
     private OnboardingImportRequest dummyOnboardingImport() {
+        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
+        importInstitution.setTaxCode("taxCode");
         OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
         onboardingImportValid.setProductId("productId");
         onboardingImportValid.setContractImported(new OnboardingImportContract());
         onboardingImportValid.setUsers(List.of(userDTO));
-        onboardingImportValid.setInstitution(institution);
+        onboardingImportValid.setInstitution(importInstitution);
 
         return onboardingImportValid;
     }

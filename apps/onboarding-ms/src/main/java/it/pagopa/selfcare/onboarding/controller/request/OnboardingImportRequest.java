@@ -12,7 +12,7 @@ public class OnboardingImportRequest {
 
     @NotNull(message = "institutionData is required")
     @Valid
-    private InstitutionBaseRequest institution;
+    private InstitutionImportRequest institution;
 
     @NotEmpty(message = "productId is required")
     private String productId;

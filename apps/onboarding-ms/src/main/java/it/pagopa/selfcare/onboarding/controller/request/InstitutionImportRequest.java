@@ -4,15 +4,13 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class InstitutionBaseRequest {
+public class InstitutionImportRequest {
 
-    @NotNull(message = "institutionType is required")
     private InstitutionType institutionType;
     @NotEmpty(message = "taxCode is required")
     private String taxCode;
@@ -23,7 +21,6 @@ public class InstitutionBaseRequest {
     private String country;
     private String county;
     private String description;
-    @NotEmpty(message = "digitalAddress is required")
     private String digitalAddress;
     private String address;
     private String zipCode;

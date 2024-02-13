@@ -15,7 +15,8 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
@@ -50,6 +51,7 @@ import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -59,6 +61,7 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -85,6 +88,10 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     AooApi aooApi;
+
+    @InjectMock
+    @RestClient
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     @InjectMock
     @RestClient
@@ -1155,6 +1162,51 @@ class OnboardingServiceDefaultTest {
                 .apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null);
     }
 
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_importPA(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+        contractImported.setFileName("filename");
+        contractImported.setFilePath("filepath");
+        contractImported.setCreatedAt(OffsetDateTime.now());
+        contractImported.setContractType("type");
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
 
 
     void mockPersistOnboarding(UniAsserter asserter) {
@@ -1163,6 +1215,16 @@ class OnboardingServiceDefaultTest {
                 .thenAnswer(arg -> {
                     Onboarding onboarding = (Onboarding) arg.getArguments()[0];
                     onboarding.setId(ObjectId.get());
+                    return Uni.createFrom().nullItem();
+                }));
+    }
+
+    void mockPersistToken(UniAsserter asserter) {
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() -> when(Token.persist(any(Token.class), any()))
+                .thenAnswer(arg -> {
+                    Token token = (Token) arg.getArguments()[0];
+                    token.setId(ObjectId.get());
                     return Uni.createFrom().nullItem();
                 }));
     }

@@ -774,8 +774,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                 .onItem()
                 .invoke(proxyInstitution -> {
-                    InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
-                    onboarding.getInstitution().setInstitutionType(institutionType);
+                    if(Objects.nonNull(proxyInstitution)) {
+                        InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
+                        onboarding.getInstitution().setInstitutionType(institutionType);
+                    } else {
+                        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+                    }
                 })
                 .replaceWith(Uni.createFrom().item(onboarding));
     }
