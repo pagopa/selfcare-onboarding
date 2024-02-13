@@ -45,7 +45,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
-import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -60,6 +59,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -177,10 +177,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                        /* I have to retrieve onboarding id for saving reference to pdv */
-                        .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                                .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString(), product)
-                                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                                 orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
@@ -200,10 +197,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                         .onItem().transformToUni(this::setInstitutionType)
-                        /* I have to retrieve onboarding id for saving reference to pdv */
-                        .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                                .onItem().transformToUni(onboardingPersisted -> validationRoleAndRetrieveUsers(userRequests, onboardingPersisted.id.toHexString(), product)
-                                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
@@ -211,6 +205,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transform(onboardingMapper::toResponse));
     }
 
+    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product) {
+        /* I have to retrieve onboarding id for saving reference to pdv */
+        return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
+                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
+                        .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
+                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
+    }
 
     private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
@@ -771,17 +772,12 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Onboarding> setInstitutionType(Onboarding onboarding) {
         return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
-                .onItem().transformToUni(
-                    proxyInstitution -> institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(), null, null, null)
-                        .onItem().invoke(institutionsResponse -> {
-                            InstitutionResponse institution = institutionsResponse.getInstitutions().stream().filter(obj -> Objects.isNull(obj.getRootParent())).findFirst().orElse(null);
-                            if (Objects.isNull(institution) || Objects.isNull(institution.getInstitutionType())) {
-                                onboarding.getInstitution().setInstitutionType(proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA);
-                            } else {
-                                onboarding.getInstitution().setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType().name()));
-                            }
-                        })
-                ).replaceWith(Uni.createFrom().item(onboarding));
+                .onItem()
+                .invoke(proxyInstitution -> {
+                    InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
+                    onboarding.getInstitution().setInstitutionType(institutionType);
+                })
+                .replaceWith(Uni.createFrom().item(onboarding));
     }
 
     private Token getToken(Onboarding onboarding, Product product, OnboardingImportContract contractImported) {
