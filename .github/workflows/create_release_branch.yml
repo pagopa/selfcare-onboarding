@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: write
       actions: write
+
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -86,6 +87,8 @@ jobs:
 
           gh variable set CURRENT_PROD_VERSION \
             --body "${{ env.OLD_VERSION }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_VARIABLES }}
 
       # - name: Trigger Functions Infra UAT Release
       #   run: |
