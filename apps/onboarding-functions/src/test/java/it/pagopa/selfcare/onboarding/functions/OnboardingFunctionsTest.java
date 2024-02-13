@@ -211,7 +211,6 @@ public class OnboardingFunctionsTest {
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
-
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);

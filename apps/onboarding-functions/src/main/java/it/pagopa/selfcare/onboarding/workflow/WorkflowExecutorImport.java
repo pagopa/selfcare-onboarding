@@ -29,7 +29,7 @@ public class WorkflowExecutorImport implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        return onboardingCompletionActivity(ctx, onboarding, false);
+        return onboardingCompletionActivityWithoutMail(ctx, onboarding);
     }
 
     @Override
