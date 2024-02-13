@@ -58,7 +58,7 @@ jobs:
             NEW_BRANCH_NAME="releases/${NEW_VERSION}"
           fi
 
-          echo "NEW_BRANCH_NAME=${NEW_BRANCH_NAME}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
 
       - name: Create Release
         uses: ncipollo/release-action@v1.12.0
