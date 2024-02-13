@@ -59,6 +59,19 @@ jobs:
           fi
 
           echo "NEW_BRANCH_NAME=${NEW_BRANCH_NAME}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+    
+      - name: Create Tag
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commit: ${{ github.ref_name }}
+          tag: ${{ env.NEW_VERSION }}
+          name: Release ${{ env.NEW_VERSION }}
+          makeLatest: latest
+          generateReleaseNotes: true
 
       - name: Create Branch
         run: |
