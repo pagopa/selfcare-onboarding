@@ -1,9 +1,9 @@
 package it.pagopa.selfcare.onboarding.controller.response;
 
 import it.pagopa.selfcare.onboarding.controller.request.AdditionalInformationsDto;
-import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -17,7 +17,9 @@ public class OnboardingGet {
     private BillingResponse billing;
     private Boolean signContract;
     private AdditionalInformationsDto additionalInformations;
-
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime expiringDate;
     private String status;
     private String userRequestUid;
 }

@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,12 +21,8 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -71,18 +68,23 @@ class ContractServiceDefaultTest {
         institution.setBusinessRegisterPlace("place");
         institution.setShareCapital("10000");
         onboarding.setInstitution(institution);
+
+        User user = new User();
+        user.setId(UUID.randomUUID().toString());
+        user.setUserMailUuid("setUserMailUuid");
+        onboarding.setUsers(List.of(user));
         return onboarding;
     }
 
-    UserResource createDummyUserResource(String onboardingId) {
+    UserResource createDummyUserResource(String id, String userMailUuid) {
         UserResource validManager = new UserResource();
-
+        validManager.setId(UUID.fromString(id));
         CertifiableFieldResourceOfstring emailCert = new CertifiableFieldResourceOfstring();
         emailCert.setValue("email");
         WorkContactResource workContact = new WorkContactResource();
         workContact.setEmail(emailCert);
         Map<String, WorkContactResource> map = new HashMap<>();
-        map.put(workContactsKey.apply(onboardingId), workContact);
+        map.put(userMailUuid, workContact);
 
         validManager.setWorkContacts(map);
         return validManager;
@@ -95,7 +97,8 @@ class ContractServiceDefaultTest {
         final String productNameAccent = "Interoperabilità";
 
         Onboarding onboarding = createOnboarding();
-        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
@@ -117,7 +120,8 @@ class ContractServiceDefaultTest {
         final String contractHtml = "contract";
 
         Onboarding onboarding = createOnboarding();
-        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
         onboarding.getInstitution().setInstitutionType(InstitutionType.SA);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
@@ -133,7 +137,8 @@ class ContractServiceDefaultTest {
         final String contractHtml = "contract";
 
         Onboarding onboarding = createOnboarding();
-        UserResource manager = createDummyUserResource(onboarding.getOnboardingId());
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
 
         PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");

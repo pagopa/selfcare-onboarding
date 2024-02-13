@@ -45,6 +45,10 @@ app_settings = [
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
     value = "true"
+  },
+  {
+    name  = "STORAGE_CONTAINER_CONTRACT"
+    value = "selc-u-contracts-blob"
   }
 ]
 

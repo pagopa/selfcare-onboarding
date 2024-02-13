@@ -9,13 +9,21 @@ on:
       - './infra/functions/onboarding-functions/**'
 
   workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options: 
+        - dev
+        - uat
+        - prod
 
 jobs:
 
   release_dev:
     uses: ./.github/workflows/call_release_infra.yml
     name: '[Dev] Functions Infra Release'
-    if: github.ref_name == 'main'
+    if: ${{ (startsWith(github.ref_name, 'releases/') != true && inputs.env == null) || inputs.env == 'dev' }}
     secrets: inherit
     with:
       environment: dev
@@ -33,7 +41,7 @@ jobs:
   release_prod:
     uses: ./.github/workflows/call_release_infra.yml
     name: '[Prod] Functions Infra Release'
-    if: startsWith(github.ref_name, 'releases/')
+    if: ${{ inputs.env == 'prod' }}
     secrets: inherit
     with:
       environment: prod

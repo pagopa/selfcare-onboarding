@@ -16,6 +16,10 @@ module "mongodb_collection_onboardings" {
   indexes = [{
     keys   = ["_id"]
     unique = true
+    },
+    {
+      keys   = ["createdAt"]
+      unique = false
     }
   ]
 
@@ -34,6 +38,10 @@ module "mongodb_collection_tokens" {
   indexes = [{
     keys   = ["_id"]
     unique = true
+    },
+    {
+      keys   = ["createdAt"]
+      unique = false
     }
   ]
 

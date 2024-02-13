@@ -54,6 +54,10 @@ app_settings = [
   {
     name  = "MS_PARTY_REGISTRY_URL"
     value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+  },
+  {
+    name  = "STORAGE_CONTAINER_CONTRACT"
+    value = "selc-p-contracts-blob"
   }
 ]
 

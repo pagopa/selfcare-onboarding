@@ -39,7 +39,6 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -333,9 +332,10 @@ public class CompletionServiceDefaultTest {
         User manager = new User();
         manager.setId("id");
         manager.setRole(PartyRole.MANAGER);
+        manager.setUserMailUuid(UUID.randomUUID().toString());
         onboarding.setUsers(List.of(manager));
 
-        UserResource userResource = dummyUserResource(onboarding.getOnboardingId());
+        UserResource userResource = dummyUserResource(manager.getUserMailUuid());
 
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
                 .thenReturn(userResource);
@@ -446,7 +446,7 @@ public class CompletionServiceDefaultTest {
         return product;
     }
 
-    private UserResource dummyUserResource(String onboardingId){
+    private UserResource dummyUserResource(String userMailUuid){
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
 
@@ -468,7 +468,7 @@ public class CompletionServiceDefaultTest {
         workContactResource.email(resourceOfMail);
 
         Map<String, WorkContactResource> map = new HashMap<>();
-        map.put(workContactsKey.apply(onboardingId), workContactResource);
+        map.put(userMailUuid, workContactResource);
         userResource.setWorkContacts(map);
         return userResource;
     }

@@ -23,9 +23,7 @@ import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +34,6 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.workContactsKey;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
@@ -86,7 +83,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         InstitutionResponse institutionResponse =
                 Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                    ? createInstitution(institution, onboarding.getProductId())
+                    ? createInstitution(institution)
                     : institutionsResponse.getInstitutions().get(0);
 
         onboardingRepository
@@ -101,7 +98,7 @@ public class CompletionServiceDefault implements CompletionService {
      * Origin indicates which is the indexes where data come from, for ex. IPA comes from index of Pubbliche Amministrazioni
      * Look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/708804909/Glossario for more information about institution type and indexes
      */
-    private InstitutionResponse createInstitution(Institution institution, String productId) {
+    private InstitutionResponse createInstitution(Institution institution) {
 
         if(InstitutionType.SA.equals(institution.getInstitutionType())
                 && Origin.ANAC.equals(institution.getOrigin())) {
@@ -159,14 +156,15 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void sendCompletedEmail(Onboarding onboarding) {
 
-        String workContractId = workContactsKey.apply(onboarding.getOnboardingId());
-
         List<String> destinationMails = onboarding.getUsers().stream()
-                .filter(user -> MANAGER.equals(user.getRole()))
-                .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
-                .filter(user -> Objects.nonNull(user.getWorkContacts())
-                        && user.getWorkContacts().containsKey(workContractId))
-                .map(user -> user.getWorkContacts().get(workContractId))
+                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
                 .map(workContract -> workContract.getEmail().getValue())
                 .collect(Collectors.toList());
@@ -198,9 +196,9 @@ public class CompletionServiceDefault implements CompletionService {
                 .map(user -> {
                     UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
                     String mailWork = Optional.ofNullable(userResource.getWorkContacts())
-                            .map(worksContract -> worksContract.get(workContactsKey.apply(onboarding.getOnboardingId())))
-                            .map(WorkContactResource::getEmail)
-                            .map(CertifiableFieldResourceOfstring::getValue)
+                            .map(worksContract -> worksContract.get(user.getUserMailUuid()))
+                            .map(workContactResource -> workContactResource.getEmail())
+                            .map(certifiable -> certifiable.getValue())
                             .orElseThrow(() -> new GenericOnboardingException("Work contract not found!"));
                     Person person = userMapper.toPerson(userResource);
                     person.setEmail(mailWork);
