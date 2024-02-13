@@ -6,5 +6,5 @@ public enum WorkflowType {
     FOR_APPROVE,
     FOR_APPROVE_PT,
     CONFIRMATION,
-    IMPORT
+    IMPORT;
 }
