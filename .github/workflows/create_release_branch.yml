@@ -60,18 +60,24 @@ jobs:
 
           echo "NEW_BRANCH_NAME=${NEW_BRANCH_NAME}" >> $GITHUB_ENV
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+          echo "OLD_VERSION=${OLD_VERSION}" >> $GITHUB_ENV
 
-    
-      - name: Create Tag
-        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          commit: ${{ github.ref_name }}
-          tag: ${{ env.NEW_VERSION }}
-          name: Release ${{ env.NEW_VERSION }}
-          makeLatest: latest
-          generateReleaseNotes: true
+      - name: Create Repository Release
+        run: |
+          gh release create v${{ env.NEW_VERSION }} \
+            --title v${{ env.NEW_VERSION }} \
+            --target ${{ env.NEW_BRANCH_NAME }} \
+            --generate-notes \
+            --notes-start-tag v${{ env.OLD_VERSION }} \
+            --prerelease
+
+      - name: Create Release Variables
+        run: |
+          gh variable set CURRENT_UAT_VERSION \
+            --body "${{ env.NEW_VERSION }}"
+
+          gh variable set CURRENT_PROD_VERSION \
+            --body "${{ env.OLD_VERSION }}"
 
       - name: Create Branch
         run: |
