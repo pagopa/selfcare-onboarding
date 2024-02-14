@@ -7,11 +7,11 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -19,7 +19,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,8 +37,8 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.util.*;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -108,7 +107,7 @@ public class CompletionServiceDefaultTest {
 
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding, InstitutionResponse institutionResponse){
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
-        when(panacheUpdateMock.where("_id", onboarding.getOnboardingId()))
+        when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
         when(onboardingRepository.update("institution.id", institutionResponse.getId()))
                 .thenReturn(panacheUpdateMock);
@@ -343,7 +342,7 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(new InstitutionResponse());
         Token token = new Token();
         token.setContractSigned("contract-signed-path");
-        when(tokenRepository.findByOnboardingId(onboarding.getOnboardingId()))
+        when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
 
         completionServiceDefault.persistOnboarding(onboarding);
@@ -353,7 +352,7 @@ public class CompletionServiceDefaultTest {
                 .onboardingInstitutionUsingPOST(any(), captor.capture());
 
         verify(tokenRepository, times(1))
-                .findByOnboardingId(onboarding.getOnboardingId());
+                .findByOnboardingId(onboarding.getId());
 
         InstitutionOnboardingRequest actual = captor.getValue();
         assertEquals(onboarding.getProductId(), actual.getProductId());
@@ -421,8 +420,7 @@ public class CompletionServiceDefaultTest {
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setId(ObjectId.get());
-        onboarding.setOnboardingId(onboarding.getId().toHexString());
+        onboarding.setId(onboarding.getId());
         onboarding.setProductId(productId);
         onboarding.setPricingPlan("pricingPlan");
         onboarding.setUsers(List.of());

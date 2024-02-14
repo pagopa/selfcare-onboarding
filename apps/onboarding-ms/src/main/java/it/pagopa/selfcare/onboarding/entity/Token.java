@@ -1,20 +1,21 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
-import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntityBase;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @MongoEntity(collection="tokens")
-public class Token extends ReactivePanacheMongoEntity {
+public class Token extends ReactivePanacheMongoEntityBase {
 
-    private ObjectId id;
+    @BsonId
+    private String id;
     private TokenType type;
     private String onboardingId;
     private String productId;

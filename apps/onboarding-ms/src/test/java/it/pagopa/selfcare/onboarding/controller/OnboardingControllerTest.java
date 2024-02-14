@@ -173,6 +173,18 @@ class OnboardingControllerTest {
         return onboardingPaValid;
     }
 
+    private OnboardingImportRequest dummyOnboardingImport() {
+        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
+        importInstitution.setTaxCode("taxCode");
+        OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
+        onboardingImportValid.setProductId("productId");
+        onboardingImportValid.setContractImported(new OnboardingImportContract());
+        onboardingImportValid.setUsers(List.of(userDTO));
+        onboardingImportValid.setInstitution(importInstitution);
+
+        return onboardingImportValid;
+    }
+
     @Test
     @TestSecurity(user = "userJwt")
     void onboardingPsp() {
@@ -476,6 +488,40 @@ class OnboardingControllerTest {
         Mockito.verify(onboardingService, times(1))
                 .onboardingCompletion(captor.capture(), any());
         assertEquals(captor.getValue().getInstitution().getInstitutionType(), InstitutionType.PG);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingImport() {
+
+        OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
+
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/pa/import")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboarding_shouldNotValidImportBody() {
+
+        given()
+                .when()
+                .body(new OnboardingDefaultRequest())
+                .contentType(ContentType.JSON)
+                .post("/pa/import")
+                .then()
+                .statusCode(400);
     }
 
     private static Map<String, String> getStringStringMap() {

@@ -100,7 +100,7 @@ public class ContractServiceDefault implements ContractService {
 
             // Define the filename and path for storage.
             final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
-            final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getOnboardingId());
+            final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
             File signedPath = signPdf(temporaryPdfFile, institution.getDescription(), productId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedPath.toPath()));

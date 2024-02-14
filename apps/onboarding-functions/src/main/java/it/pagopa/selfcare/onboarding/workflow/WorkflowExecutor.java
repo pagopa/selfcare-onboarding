@@ -37,7 +37,7 @@ public interface WorkflowExecutor {
 
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    default String createInstitutionAndOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding){
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
@@ -59,8 +59,17 @@ public interface WorkflowExecutor {
             ctx.allOf(parallelTasks).await();
         }
 
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        return onboardingWithInstitutionIdString;
+    }
 
+    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        return Optional.of(OnboardingStatus.COMPLETED);
+    }
+
+    default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        createInstitutionAndOnboarding(ctx, onboarding);
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 

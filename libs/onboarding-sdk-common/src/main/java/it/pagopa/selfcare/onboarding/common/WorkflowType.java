@@ -5,5 +5,6 @@ public enum WorkflowType {
     CONTRACT_REGISTRATION,
     FOR_APPROVE,
     FOR_APPROVE_PT,
-    CONFIRMATION
+    CONFIRMATION,
+    IMPORT;
 }

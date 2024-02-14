@@ -1,10 +1,10 @@
 package it.pagopa.selfcare.onboarding.repository;
 
-import io.quarkus.mongodb.panache.PanacheMongoRepository;
+import io.quarkus.mongodb.panache.PanacheMongoRepositoryBase;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class OnboardingRepository implements PanacheMongoRepository<Onboarding> {
+public class OnboardingRepository implements PanacheMongoRepositoryBase<Onboarding, String> {
 
 }

@@ -8,11 +8,9 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.tuples.Tuple2;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -21,10 +19,7 @@ import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
@@ -41,7 +36,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
@@ -71,14 +65,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED = "At least one Product role related to %s Party role is required";
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
     private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
-    private static final String INVALID_OBJECTID = "Given onboardingId [%s] has wrong format";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED = "Onboarding with id %s not found or already deleted";
+    private static final String GSP_CATEGORY_INSTITUTION_TYPE = "L37";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
 
-   public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
 
     @RestClient
     @Inject
@@ -87,6 +81,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     OnboardingApi onboardingApi;
+
+    @RestClient
+    @Inject
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     @RestClient
     @Inject
@@ -145,6 +143,14 @@ public class OnboardingServiceDefault implements OnboardingService {
         return fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
+    /**
+     * As onboarding but it is specific for IMPORT workflow */
+    @Override
+    public Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported) {
+        onboarding.setWorkflowType(WorkflowType.IMPORT);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        return fillUsersAndOnboarding(onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE);
+    }
 
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
@@ -155,20 +161,44 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return validationProductDataAndOnboardingExists(onboarding)
                 .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
-                    /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                    .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                    .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                    /* I have to retrieve onboarding id for saving reference to pdv */
-                    .onItem().transformToUni(current -> Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                        .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
-                            .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
-                            .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted))))
-                    /* Update onboarding data with users and start orchestration */
-                    .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                            orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId().toHexString(), timeout)))
-                    .onItem().transform(onboardingMapper::toResponse));
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                                orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                        .onItem().transform(onboardingMapper::toResponse));
     }
 
+    /**
+     * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
+     *                If is null the timeout is default 1 sec and the response is delivered asynchronously
+     */
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported, String timeout) {
+        onboarding.setCreatedAt(LocalDateTime.now());
+
+        return validationProductDataAndOnboardingExists(onboarding)
+                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                        .onItem().transformToUni(this::setInstitutionType)
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                                orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                        .onItem().transform(onboardingMapper::toResponse));
+    }
+
+    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product) {
+        /* I have to retrieve onboarding id for saving reference to pdv */
+        return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
+                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
+                        .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
+                        .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
+    }
 
     private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
@@ -286,9 +316,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         return onboardingApi.verifyOnboardingInfoUsingHEAD(institutionTaxCode, productId, institutionSubuniCode)
-                .onItem().failWith(() -> new InvalidRequestException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED,
-                        institutionTaxCode, productId),
-                        DEFAULT_ERROR.getCode()))
+                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institutionTaxCode), PRODUCT_ALREADY_ONBOARDED.getCode()))
                 .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
                     ? Uni.createFrom().item(Response.noContent().build())
                     : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
@@ -526,7 +554,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
-                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId().toHexString(), null)
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
                         .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
@@ -554,7 +582,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
         //Retrieve Onboarding if exists
-        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+        return Onboarding.findByIdOptional(onboardingId)
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
                         .map(Onboarding.class::cast)
@@ -633,9 +661,8 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<Long> rejectOnboarding(String onboardingId) {
-        return checkOnboardingIdFormat(onboardingId)
-                .onItem().transformToUni(ignore -> Onboarding.findById(new ObjectId(onboardingId))
-                        .onItem().transform(Onboarding.class::cast))
+        return Onboarding.findById(onboardingId)
+                        .onItem().transform(Onboarding.class::cast)
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
@@ -665,7 +692,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingGet> onboardingGet(String onboardingId) {
-        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+        return Onboarding.findByIdOptional(onboardingId)
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
                         .map(Onboarding.class::cast)
@@ -676,7 +703,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId) {
-        return Onboarding.findByIdOptional(new ObjectId(onboardingId))
+        return Onboarding.findByIdOptional(onboardingId)
                 .onItem().transformToUni(opt -> opt
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
                         .map(Onboarding.class::cast)
@@ -720,10 +747,32 @@ public class OnboardingServiceDefault implements OnboardingService {
                 });
     }
 
-    private Uni<String> checkOnboardingIdFormat(String onboardingId) {
-        if (!ObjectId.isValid(onboardingId)) {
-            return Uni.createFrom().failure(new InvalidRequestException(String.format(INVALID_OBJECTID, onboardingId)));
-        }
-        return Uni.createFrom().item(onboardingId);
+    private Uni<Onboarding> setInstitutionType(Onboarding onboarding) {
+        return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
+                .onItem()
+                .invoke(proxyInstitution -> {
+                    if(Objects.nonNull(proxyInstitution)) {
+                        InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
+                        onboarding.getInstitution().setInstitutionType(institutionType);
+                    } else {
+                        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+                    }
+                })
+                .replaceWith(Uni.createFrom().item(onboarding));
     }
+
+    private Token getToken(Onboarding onboarding, Product product, OnboardingImportContract contractImported) {
+        var token = new Token();
+        token.setOnboardingId(onboarding.getId());
+        token.setContractTemplate(product.getContractTemplatePath());
+        token.setContractVersion(product.getContractTemplateVersion());
+        token.setContractSigned(contractImported.getFilePath());
+        token.setContractFilename(contractImported.getFileName());
+        token.setCreatedAt(contractImported.getCreatedAt());
+        token.setUpdatedAt(contractImported.getCreatedAt());
+        token.setProductId(onboarding.getProductId());
+        token.setType(TokenType.INSTITUTION);
+        return token;
+    }
+
 }

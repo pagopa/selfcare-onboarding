@@ -10,10 +10,10 @@ import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.TokenService;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.Mockito.when;
@@ -32,7 +32,7 @@ public class TokenControllerTest {
 
         final String onboardingId = "onboardingId";
         Token token = new Token();
-        token.setId(ObjectId.get());
+        token.setId(UUID.randomUUID().toString());
         when(tokenService.getToken(onboardingId))
                 .thenReturn(Uni.createFrom().item(List.of(token)));
 

@@ -18,7 +18,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.bson.types.ObjectId;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -60,11 +59,7 @@ public class OnboardingService {
     TokenRepository tokenRepository;
 
     public Optional<Onboarding> getOnboarding(String onboardingId) {
-        return repository.findByIdOptional(new ObjectId(onboardingId))
-                .map(onboarding -> {
-                    onboarding.setOnboardingId(onboarding.getId().toString());
-                    return onboarding;
-                });
+        return repository.findByIdOptional(onboardingId);
     }
 
     public void createContract(Onboarding onboarding) {
@@ -89,12 +84,12 @@ public class OnboardingService {
 
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId().toHexString(), product.getTitle());
+        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
     public void saveTokenWithContract(Onboarding onboarding) {
 
         // Skip if token already exists
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
         if(optToken.isPresent()) {
             log.debug("Token has already exists for onboarding {}", onboarding.getId());
             return;
@@ -103,7 +98,7 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         // Load PDF contract and create digest
-        File contract = contractService.retrieveContractNotSigned(onboarding.getOnboardingId(), product.getTitle());
+        File contract = contractService.retrieveContractNotSigned(onboarding.getId(), product.getTitle());
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
@@ -116,7 +111,8 @@ public class OnboardingService {
 
         // Persist token entity
         Token token = new Token();
-        token.setOnboardingId(onboarding.getOnboardingId());
+        token.setId(onboarding.getId());
+        token.setOnboardingId(onboarding.getId());
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
         token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(product.getTitle()));
@@ -144,7 +140,7 @@ public class OnboardingService {
 
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
-        notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+        notificationService.sendMailRegistrationWithContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle());
@@ -154,7 +150,7 @@ public class OnboardingService {
 
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
-        notificationService.sendMailRegistrationWithContract(onboarding.getOnboardingId(),
+        notificationService.sendMailRegistrationWithContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 sendMailInput.product.getTitle());
@@ -167,7 +163,7 @@ public class OnboardingService {
         notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
-                onboarding.getOnboardingId());
+                onboarding.getId());
 
     }
 
@@ -178,7 +174,7 @@ public class OnboardingService {
         notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
-                onboarding.getOnboardingId());
+                onboarding.getId());
     }
 
     public String getValidManagerId(List<User> users) {
