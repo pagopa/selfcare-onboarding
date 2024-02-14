@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.exception.handler;
 
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -35,5 +36,10 @@ public class ExceptionHandler {
     public RestResponse<String> toResponse(ResourceNotFoundException exception) {
         LOGGER.error("{}: {}", SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
         return RestResponse.status(Response.Status.NOT_FOUND, exception.getMessage());
+    }
+    @ServerExceptionMapper
+    public RestResponse<String> toResponse(ResourceConflictException exception) {
+        LOGGER.error("{}: {}", SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
+        return RestResponse.status(Response.Status.CONFLICT, exception.getMessage());
     }
 }
