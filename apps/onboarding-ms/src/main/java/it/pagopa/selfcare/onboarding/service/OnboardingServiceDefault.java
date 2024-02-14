@@ -19,10 +19,7 @@ import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
@@ -319,9 +316,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         return onboardingApi.verifyOnboardingInfoUsingHEAD(institutionTaxCode, productId, institutionSubuniCode)
-                .onItem().failWith(() -> new InvalidRequestException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED,
-                        institutionTaxCode, productId),
-                        DEFAULT_ERROR.getCode()))
+                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institutionTaxCode), PRODUCT_ALREADY_ONBOARDED.getCode()))
                 .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
                     ? Uni.createFrom().item(Response.noContent().build())
                     : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
