@@ -4,7 +4,7 @@ package it.pagopa.selfcare.onboarding.entity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,9 +13,8 @@ import java.util.List;
 @MongoEntity(collection="onboardings")
 public class Onboarding  {
 
-    private ObjectId id;
-
-    private String onboardingId;
+    @BsonId
+    private String id;
     private String productId;
     private List<String> testEnvProductIds;
     private WorkflowType workflowType;
@@ -32,11 +31,11 @@ public class Onboarding  {
     private String userRequestUid;
     private String workflowInstanceId;
 
-    public ObjectId getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -102,14 +101,6 @@ public class Onboarding  {
 
     public void setStatus(OnboardingStatus status) {
         this.status = status;
-    }
-
-    public String getOnboardingId() {
-        return onboardingId;
-    }
-
-    public void setOnboardingId(String onboardingId) {
-        this.onboardingId = onboardingId;
     }
 
     public String getUserRequestUid() {

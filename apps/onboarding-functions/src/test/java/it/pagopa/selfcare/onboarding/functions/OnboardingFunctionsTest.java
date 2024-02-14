@@ -114,7 +114,7 @@ public class OnboardingFunctionsTest {
     @Test
     void onboardingsOrchestratorContractRegistration() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
@@ -130,13 +130,13 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.PENDING);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
     @Test
     void onboardingsOrchestratorForApprove() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
@@ -151,13 +151,13 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);
     }
 
     @Test
     void onboardingsOrchestratorForApproveWhenToBeValidated() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
@@ -174,13 +174,13 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.PENDING);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
     @Test
     void onboardingsOrchestratorConfirmation() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setInstitution(new Institution());
@@ -198,13 +198,13 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
     @Test
     void onboardingsOrchestratorImport() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setInstitution(new Institution());
@@ -220,13 +220,13 @@ public class OnboardingFunctionsTest {
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
     @Test
     void onboardingsOrchestratorRegistrationRequestApprove() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
 
@@ -242,7 +242,7 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, captorActivity.getAllValues().get(1));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.TOBEVALIDATED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);
     }
 
 
@@ -250,7 +250,7 @@ public class OnboardingFunctionsTest {
     @Test
     void onboardingsOrchestratorForApprovePtWhenToBeValidated() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setInstitution(new Institution());
         onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_PT);
@@ -267,13 +267,13 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getOnboardingId());
-        when(service.getOnboarding(onboarding.getOnboardingId())).thenReturn(Optional.of(onboarding));
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getId());
+        when(service.getOnboarding(onboarding.getId())).thenReturn(Optional.of(onboarding));
 
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
@@ -368,7 +368,7 @@ public class OnboardingFunctionsTest {
     @Test
     void onboardingCompletionOrchestrator() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
         onboarding.setInstitution(new Institution());
@@ -386,7 +386,7 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
-                .updateOnboardingStatus(onboarding.getOnboardingId(), OnboardingStatus.COMPLETED);
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
 
@@ -395,7 +395,7 @@ public class OnboardingFunctionsTest {
     @Test
     void onboardingRejectedOrchestrator() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setOnboardingId("onboardingId");
+        onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REJECTED);
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
         onboarding.setInstitution(new Institution());

@@ -2,7 +2,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import it.pagopa.selfcare.onboarding.common.TokenType;
-import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @MongoEntity(collection="tokens")
 public class Token {
 
-    private ObjectId id;
+    @BsonId
+    private String id;
     private TokenType type;
     private String onboardingId;
     private String productId;
@@ -25,11 +26,11 @@ public class Token {
     private LocalDateTime deletedAt;
     private LocalDateTime activatedAt;
 
-    public ObjectId getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(ObjectId id) {
+    public void setId(String id) {
         this.id = id;
     }
 
