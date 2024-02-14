@@ -39,8 +39,7 @@ import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -310,7 +309,7 @@ public class CompletionServiceDefaultTest {
 
 
     @Test
-    void persistOnboarding_workContractsNotFound() {
+    void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
 
         User manager = new User();
@@ -321,7 +320,25 @@ public class CompletionServiceDefaultTest {
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
                 .thenReturn(new UserResource());
 
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.persistOnboarding(onboarding));
+        when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
+                .thenReturn(new InstitutionResponse());
+        Token token = new Token();
+        token.setContractSigned("contract-signed-path");
+        when(tokenRepository.findByOnboardingId(onboarding.getId()))
+                .thenReturn(Optional.of(token));
+
+        completionServiceDefault.persistOnboarding(onboarding);
+
+        ArgumentCaptor<InstitutionOnboardingRequest> captor = ArgumentCaptor.forClass(InstitutionOnboardingRequest.class);
+        verify(institutionApi, times(1))
+                .onboardingInstitutionUsingPOST(any(), captor.capture());
+
+        verify(tokenRepository, times(1))
+                .findByOnboardingId(onboarding.getId());
+
+        InstitutionOnboardingRequest actual = captor.getValue();
+        assertEquals(1, actual.getUsers().size());
+        assertNull(actual.getUsers().get(0).getEmail());
     }
 
     @Test
