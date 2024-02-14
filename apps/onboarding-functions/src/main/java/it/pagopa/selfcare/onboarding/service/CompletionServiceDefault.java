@@ -88,7 +88,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         onboardingRepository
                 .update("institution.id", institutionResponse.getId())
-                .where("_id", onboarding.getOnboardingId());
+                .where("_id", onboarding.getId());
 
         return institutionResponse.getId();
     }
@@ -211,7 +211,7 @@ public class CompletionServiceDefault implements CompletionService {
         );
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
-        onboardingRequest.setTokenId(onboarding.getOnboardingId());
+        onboardingRequest.setTokenId(onboarding.getId());
 
         if(Objects.nonNull(onboarding.getBilling())) {
             BillingRequest billingRequest = new BillingRequest();
@@ -222,7 +222,7 @@ public class CompletionServiceDefault implements CompletionService {
         }
 
         //If contract exists we send the path of the contract
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getOnboardingId());
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
         optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
 
         institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);

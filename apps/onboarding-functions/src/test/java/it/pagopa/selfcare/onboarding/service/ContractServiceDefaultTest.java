@@ -11,7 +11,6 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import jakarta.inject.Inject;
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,8 +54,7 @@ class ContractServiceDefaultTest {
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setId(ObjectId.get());
-        onboarding.setOnboardingId("example");
+        onboarding.setId("example");
         onboarding.setProductId("productId");
         onboarding.setUsers(List.of());
 
@@ -168,7 +166,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId().toHexString(), productNameExample));
+        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId(), productNameExample));
     }
 
     @Test
@@ -179,12 +177,12 @@ class ContractServiceDefaultTest {
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboarding.getOnboardingId(), productNameExample);
+        contractService.retrieveContractNotSigned(onboarding.getId(), productNameExample);
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsPdf(filepathActual.capture());
-        assertTrue(filepathActual.getValue().contains(onboarding.getOnboardingId()));
+        assertTrue(filepathActual.getValue().contains(onboarding.getId()));
         assertTrue(filepathActual.getValue().contains(productNameExample));
     }
 

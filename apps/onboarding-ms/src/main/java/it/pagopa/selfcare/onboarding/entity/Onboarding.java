@@ -1,15 +1,13 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
-import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntityBase;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import org.bson.types.ObjectId;
+import org.bson.codecs.pojo.annotations.BsonId;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,9 +16,10 @@ import java.util.List;
 @Data
 @FieldNameConstants(asEnum = true)
 @MongoEntity(collection="onboardings")
-public class Onboarding extends ReactivePanacheMongoEntity  {
+public class Onboarding extends ReactivePanacheMongoEntityBase {
 
-    public ObjectId id;
+    @BsonId
+    public String id;
 
     private String productId;
     private List<String> testEnvProductIds;
@@ -29,8 +28,6 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     private List<User> users;
     private String pricingPlan;
     private Billing billing;
-    private ContractRequest contract;
-    private OnboardingImportContract contractImported;
     private Boolean signContract;
 
     private LocalDateTime createdAt;
