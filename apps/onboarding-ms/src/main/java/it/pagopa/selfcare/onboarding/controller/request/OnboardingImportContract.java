@@ -1,11 +1,10 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Data
 public class OnboardingImportContract {
@@ -16,5 +15,5 @@ public class OnboardingImportContract {
     private String filePath;
     private String contractType;
     @NotNull(message = "createdAt is required")
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 }

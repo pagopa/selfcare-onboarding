@@ -768,8 +768,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         token.setContractVersion(product.getContractTemplateVersion());
         token.setContractSigned(contractImported.getFilePath());
         token.setContractFilename(contractImported.getFileName());
-        token.setCreatedAt(contractImported.getCreatedAt().toLocalDateTime());
-        token.setUpdatedAt(contractImported.getCreatedAt().toLocalDateTime());
+        token.setCreatedAt(contractImported.getCreatedAt());
+        token.setUpdatedAt(contractImported.getCreatedAt());
         token.setProductId(onboarding.getProductId());
         token.setType(TokenType.INSTITUTION);
         return token;

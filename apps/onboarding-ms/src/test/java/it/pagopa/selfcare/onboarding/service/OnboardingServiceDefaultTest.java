@@ -1169,7 +1169,7 @@ class OnboardingServiceDefaultTest {
         OnboardingImportContract contractImported = new OnboardingImportContract();
         contractImported.setFileName("filename");
         contractImported.setFilePath("filepath");
-        contractImported.setCreatedAt(OffsetDateTime.now());
+        contractImported.setCreatedAt(LocalDateTime.now());
         contractImported.setContractType("type");
 
         mockPersistOnboarding(asserter);
