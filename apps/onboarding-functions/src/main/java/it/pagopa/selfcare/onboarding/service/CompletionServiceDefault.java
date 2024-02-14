@@ -125,6 +125,7 @@ public class CompletionServiceDefault implements CompletionService {
             fromIpaPost.setGeographicTaxonomies(Optional.ofNullable(institution.getGeographicTaxonomies())
                     .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
                     .orElse(List.of()));
+            fromIpaPost.setInstitutionType(InstitutionFromIpaPost.InstitutionTypeEnum.valueOf(institution.getInstitutionType().name()));
             if(Objects.nonNull(institution.getSubunitType())) {
                 fromIpaPost.setSubunitCode(institution.getSubunitCode());
                 fromIpaPost.setSubunitType(InstitutionFromIpaPost.SubunitTypeEnum.valueOf(institution.getSubunitType().name()));
