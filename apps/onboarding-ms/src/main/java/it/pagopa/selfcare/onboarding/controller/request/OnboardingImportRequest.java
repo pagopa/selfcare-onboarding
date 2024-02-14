@@ -1,12 +1,18 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class OnboardingBaseRequest {
+public class OnboardingImportRequest {
+
+    @NotNull(message = "institutionData is required")
+    @Valid
+    private InstitutionImportRequest institution;
 
     @NotEmpty(message = "productId is required")
     private String productId;
@@ -14,8 +20,6 @@ public class OnboardingBaseRequest {
     @NotEmpty(message = "at least one user is required")
     private List<UserRequest> users;
 
-    private String pricingPlan;
-
-    private Boolean signContract;
-
+    @NotNull
+    private OnboardingImportContract contractImported;
 }

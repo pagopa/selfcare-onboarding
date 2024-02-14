@@ -4,8 +4,6 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.controller.request.ContractRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
@@ -29,8 +27,6 @@ public class Onboarding extends ReactivePanacheMongoEntity  {
     private List<User> users;
     private String pricingPlan;
     private Billing billing;
-    private ContractRequest contract;
-    private OnboardingImportContract contractImported;
     private Boolean signContract;
 
     private LocalDateTime createdAt;
