@@ -30,7 +30,7 @@ Before running you must set these properties as environment variables.
 | quarkus.openapi-generator.user_registry_json.auth.api_key.api-key<br/> | USER_REGISTRY_API_KEY      |             |     yes      |
 | quarkus.rest-client."*.user_registry_json.api.UserApi".url<br/>        | USER_REGISTRY_URL          |             |     yes      |
 
-### local.settings.json
+### Local settings
 Under the path "apps/onboarding-functions" you should check the presence of "local.settings.json".<br>
 If it's not present than you should add a file named "local.settings.json", containing the following json:<br>
 ```json
