@@ -299,7 +299,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
                 ? checkIfAlreadyOnboardingAndValidateAllowedMap(productParentId, institutionTaxCode, institutionSubunitCode)
-                    .onFailure(InvalidRequestException.class)
+                    .onFailure(ResourceConflictException.class)
                     .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode))
                 //If product is a root, I must only verify if onboarding for root
                 : checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode)
