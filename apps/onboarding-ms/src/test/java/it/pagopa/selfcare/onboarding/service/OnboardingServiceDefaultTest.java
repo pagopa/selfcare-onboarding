@@ -557,10 +557,11 @@ class OnboardingServiceDefaultTest {
     }
 
 
-    void mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter) {
+    Product mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter) {
         Product productResource = createDummyProduct(productId,hasParent);
         asserter.execute(() -> when(productService.getProductIsValid(productId))
                 .thenReturn(productResource));
+        return productResource;
     }
 
     Product createDummyProduct(String productId, boolean hasParent) {
@@ -581,6 +582,7 @@ class OnboardingServiceDefaultTest {
             roleParentMapping.put(manager.getRole(), productRoleInfo);
             parent.setRoleMappings(roleParentMapping);
 
+            productResource.setParentId(parent.getId());
             productResource.setParent(parent);
         }
 
@@ -621,12 +623,18 @@ class OnboardingServiceDefaultTest {
         onboardingRequest.setProductId("productId");
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionPspRequest);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        Product product = mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+
+        // mock parent has already onboarding
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionPspRequest.getTaxCode(), product.getId(), null))
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionPspRequest.getTaxCode(), product.getParentId(), null))
+                .thenReturn(Uni.createFrom().failure(new ResourceConflictException("", ""))));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
 
