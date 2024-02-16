@@ -9,4 +9,5 @@ public class UserOnboardingResponse {
     private String id;
     private PartyRole role;
     private String productRole;
+    private String userMailUuid;
 }

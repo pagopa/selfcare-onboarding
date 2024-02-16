@@ -372,8 +372,8 @@ public class OnboardingServiceDefault implements OnboardingService {
 
                         /* retrieve userId, if found will eventually update some fields */
                         .onItem().transformToUni(userResource -> {
-                                String userMailRandomUuid = retrieveUserMailUuid(userResource, user.getEmail());
-                                Optional<MutableUserFieldsDto> optUserFieldsDto = toUpdateUserRequest(user, userResource, userMailRandomUuid);
+                                Optional<String> optUserMailRandomUuid = Optional.ofNullable(user.getEmail()).map(mail -> retrieveUserMailUuid(userResource, mail));
+                                Optional<MutableUserFieldsDto> optUserFieldsDto = toUpdateUserRequest(user, userResource, optUserMailRandomUuid);
                                 return optUserFieldsDto
                                         .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
                                                 .replaceWith(userResource.getId()))
@@ -381,7 +381,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .map(userResourceId -> User.builder()
                                                 .id(userResourceId.toString())
                                                 .role(user.getRole())
-                                                .userMailUuid(userMailRandomUuid)
+                                                .userMailUuid(optUserMailRandomUuid.orElse(null))
                                                 .productRole(retrieveProductRole(user, roleMappings))
                                                 .build());
                             }
@@ -438,7 +438,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .orElse(UUID.randomUUID().toString());
     }
 
-    protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(UserRequest user, UserResource foundUser, String userMailRandomUuid) {
+    protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(UserRequest user, UserResource foundUser, Optional<String> optUserMailRandomUuid) {
         Optional<MutableUserFieldsDto> mutableUserFieldsDto = Optional.empty();
         if (isFieldToUpdate(foundUser.getName(), user.getName())) {
             MutableUserFieldsDto dto = new MutableUserFieldsDto();
@@ -455,21 +455,22 @@ public class OnboardingServiceDefault implements OnboardingService {
             mutableUserFieldsDto = Optional.of(dto);
         }
 
-        Optional<Map.Entry<String, WorkContactResource>> entryMail = Objects.nonNull(foundUser.getWorkContacts())
-                ? foundUser.getWorkContacts().entrySet().stream()
-                    .filter(entry -> Objects.nonNull(entry.getValue()) && Objects.nonNull(entry.getValue().getEmail()))
-                    .filter(entry -> entry.getValue().getEmail().getValue().equals(user.getEmail()))
-                    .findFirst()
-                : Optional.empty();
+        if(optUserMailRandomUuid.isPresent()) {
+            Optional<String> entryMail = Objects.nonNull(foundUser.getWorkContacts())
+                    ? foundUser.getWorkContacts().keySet().stream()
+                        .filter(key -> key.equals(optUserMailRandomUuid.get()))
+                        .findFirst()
+                    : Optional.empty();
 
-        if (entryMail.isEmpty()) {
-            MutableUserFieldsDto dto = mutableUserFieldsDto.orElseGet(MutableUserFieldsDto::new);
-            final WorkContactResource workContact = new WorkContactResource();
-            workContact.setEmail(new CertifiableFieldResourceOfstring()
-                    .value(user.getEmail())
-                    .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
-            dto.setWorkContacts(Map.of(userMailRandomUuid, workContact));
-            mutableUserFieldsDto = Optional.of(dto);
+            if (entryMail.isEmpty()) {
+                MutableUserFieldsDto dto = mutableUserFieldsDto.orElseGet(MutableUserFieldsDto::new);
+                final WorkContactResource workContact = new WorkContactResource();
+                workContact.setEmail(new CertifiableFieldResourceOfstring()
+                        .value(user.getEmail())
+                        .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
+                dto.setWorkContacts(Map.of(optUserMailRandomUuid.get(), workContact));
+                mutableUserFieldsDto = Optional.of(dto);
+            }
         }
         return mutableUserFieldsDto;
     }

@@ -61,7 +61,6 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
@@ -693,7 +692,56 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), response -> {
+            Assertions.assertEquals(request.getProductId(), response.getProductId());
+            Assertions.assertNull(response.getUsers().get(0).getUserMailUuid());
+        });
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenUserFoundedAndWillUpdateMailUuid(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResourceWk.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .email("example@live.it")
+                .build();
+
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionPspRequest = new Institution();
+        institutionPspRequest.setInstitutionType(InstitutionType.GSP);
+        request.setInstitution(institutionPspRequest);
+
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+                .thenReturn(Uni.createFrom().item(managerResourceWk)));
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), response -> {
+            Assertions.assertEquals(request.getProductId(), response.getProductId());
+            Assertions.assertNotNull(response.getUsers().get(0).getUserMailUuid());
+        });
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
