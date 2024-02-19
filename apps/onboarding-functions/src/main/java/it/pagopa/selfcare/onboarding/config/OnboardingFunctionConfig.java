@@ -7,14 +7,19 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.properties.IfBuildProperty;
+import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.json.jackson.DatabindCodec;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.azurestorage.AzureBlobClientDefault;
 import it.pagopa.selfcare.onboarding.crypto.*;
+import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.product.service.ProductServiceCacheable;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Produces;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +27,11 @@ import java.io.InputStream;
 @ApplicationScoped
 public class OnboardingFunctionConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(OnboardingFunctionConfig.class);
 
+    void onStart(@Observes StartupEvent ev, OnboardingRepository repository) {
+        log.info(String.format("Database %s is starting...", repository.mongoDatabase().getName()));
+    }
 
     @Produces
     public ObjectMapper objectMapper(){
