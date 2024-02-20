@@ -18,7 +18,7 @@ key_vault = {
 
 cidr_subnet_selc_onboarding_fn = ["10.1.144.0/24"]
 
-function_always_on = false
+function_always_on = true
 
 app_service_plan_info = {
   kind                         = "Linux"
