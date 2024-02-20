@@ -19,7 +19,7 @@ key_vault = {
 
 cidr_subnet_selc_onboarding_fn = ["10.1.152.0/24"]
 
-function_always_on = false
+function_always_on = true
 
 app_service_plan_info = {
   kind                         = "Linux"
@@ -42,11 +42,11 @@ app_settings = {
   "USER_REGISTRY_URL"                                  = "https://api.pdv.pagopa.it/user-registry/v1",
   "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
   "USER_REGISTRY_API_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
-  "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
+  "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/web-storage-blob-connection-string/)",
   "STORAGE_CONTAINER_PRODUCT"                          = "selc-p-product",
 
   ## PNPG contains template mail in checkout storage
-  "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
+  "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/web-storage-blob-connection-string/)",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
 
   "MAIL_DESTINATION_TEST_ADDRESS"                      = "pectest@pec.pagopa.it",
@@ -59,7 +59,7 @@ app_settings = {
   
   "MS_CORE_URL"                                        = "https://prod01.pnpg.internal.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "http://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_PARTY_REGISTRY_URL"                              = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1",
   "PAGOPA_LOGO_ENABLE"                                 = "false"
 
   ## IGNORE VALUES
