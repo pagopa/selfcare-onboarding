@@ -519,12 +519,14 @@ public class OnboardingServiceDefault implements OnboardingService {
             Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
                     .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
                     .asTuple()
-                    .onItem().transform(inputSignatureVerification -> {
-                        signatureService.verifySignature(contract,
-                                inputSignatureVerification.getItem2(),
-                                inputSignatureVerification.getItem1());
-                        return onboarding;
-                    });
+                    .onItem().transformToUni(inputSignatureVerification ->
+                            Uni.createFrom().item(() -> { signatureService.verifySignature(contract,
+                                        inputSignatureVerification.getItem2(),
+                                        inputSignatureVerification.getItem1());
+                                return onboarding;
+                            })
+                            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                    );
 
             return complete(onboardingId, contract, verification);
         } else {
