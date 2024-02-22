@@ -39,7 +39,7 @@ jobs:
   release_uat:
     uses: ./.github/workflows/call_release_infra.yml
     name: '[UAT] Container Apps Infra Release'
-    if: startsWith(github.ref_name, 'releases/')
+    if: ${{ (startsWith(github.ref_name, 'releases/') == true && inputs.env == null) || inputs.env == 'uat' }}
     secrets: inherit
     with:
       environment: uat
