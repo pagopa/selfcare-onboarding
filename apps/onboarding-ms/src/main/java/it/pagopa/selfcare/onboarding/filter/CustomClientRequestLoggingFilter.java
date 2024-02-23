@@ -10,9 +10,9 @@ import org.jboss.resteasy.reactive.client.spi.ResteasyReactiveClientRequestFilte
 import java.io.IOException;
 
 @Provider
-public class CustomClientLoggingFilter implements ResteasyReactiveClientRequestFilter {
+public class CustomClientRequestLoggingFilter implements ResteasyReactiveClientRequestFilter {
 
-    private static final Logger LOG = Logger.getLogger(CustomClientLoggingFilter.class);
+    private static final Logger LOG = Logger.getLogger(CustomClientRequestLoggingFilter.class);
 
     @Override
     public void filter(ClientRequestContext requestContext) throws IOException {
