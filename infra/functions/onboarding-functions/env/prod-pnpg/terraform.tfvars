@@ -42,11 +42,11 @@ app_settings = {
   "USER_REGISTRY_URL"                                  = "https://api.pdv.pagopa.it/user-registry/v1",
   "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
   "USER_REGISTRY_API_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
-  "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/web-storage-blob-connection-string/)",
+  "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
   "STORAGE_CONTAINER_PRODUCT"                          = "selc-p-product",
 
   ## PNPG contains template mail in checkout storage
-  "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/web-storage-blob-connection-string/)",
+  "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-contract-connection-string/)",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
 
   "MAIL_DESTINATION_TEST_ADDRESS"                      = "pectest@pec.pagopa.it",

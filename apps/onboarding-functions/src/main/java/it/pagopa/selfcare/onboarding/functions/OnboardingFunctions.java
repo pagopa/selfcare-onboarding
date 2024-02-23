@@ -80,12 +80,20 @@ public class OnboardingFunctions {
             }
 
             int timeoutInSeconds = Integer.parseInt(timeoutString);
-            OrchestrationMetadata orchestration = client.waitForInstanceCompletion(
+            OrchestrationMetadata metadata = client.waitForInstanceCompletion(
                     instanceId,
                     Duration.ofSeconds(timeoutInSeconds),
-                    true /* getInputsAndOutputs */);
-            return request.createResponseBuilder(HttpStatus.OK)
-                    .build();
+                    true);
+
+            boolean isFailed = Optional.ofNullable(metadata)
+                    .map(orchestration -> OrchestrationRuntimeStatus.FAILED.equals(orchestration.getRuntimeStatus()) )
+                    .orElse(true);
+
+            return isFailed
+                    ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .build()
+                    : request.createResponseBuilder(HttpStatus.OK)
+                        .build();
         } catch (TimeoutException timeoutEx) {
             // timeout expired - return a 202 response
             return durableContext.createCheckStatusResponse(request, instanceId);
@@ -123,9 +131,11 @@ public class OnboardingFunctions {
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+            throw ex;
         } catch (ResourceNotFoundException ex) {
             functionContext.getLogger().warning(ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+            throw ex;
         }
     }
 
