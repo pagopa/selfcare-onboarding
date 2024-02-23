@@ -49,6 +49,7 @@ app_settings = {
   "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-contract-connection-string/)",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
 
+  "MAIL_DESTINATION_TEST"                              = "false",
   "MAIL_DESTINATION_TEST_ADDRESS"                      = "pectest@pec.pagopa.it",
   "MAIL_SENDER_ADDRESS"                                = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
   "MAIL_SERVER_USERNAME"                               = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
