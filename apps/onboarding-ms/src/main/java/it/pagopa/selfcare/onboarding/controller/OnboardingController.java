@@ -13,6 +13,7 @@ import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -157,7 +158,7 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/complete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @RestForm("contract") File file) {
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
         return onboardingService.complete(onboardingId, file)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
@@ -169,7 +170,7 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/consume")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @RestForm("contract") File file) {
+    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
         return onboardingService.completeWithoutSignatureVerification(onboardingId, file)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
