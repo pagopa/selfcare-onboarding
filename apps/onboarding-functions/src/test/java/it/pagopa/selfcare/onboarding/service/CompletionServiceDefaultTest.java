@@ -108,13 +108,13 @@ public class CompletionServiceDefaultTest {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
-        when(onboardingRepository.update("institution.id", institutionResponse.getId()))
+        when(onboardingRepository.update("institution.id = ?1 and updateAt = ?2 ", any(), any()))
                 .thenReturn(panacheUpdateMock);
 
         completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
 
         verify(onboardingRepository, times(1))
-                .update("institution.id", institutionResponse.getId());
+                .update("institution.id = ?1 and updateAt = ?2 ", any(), any());
     }
 
     @Test

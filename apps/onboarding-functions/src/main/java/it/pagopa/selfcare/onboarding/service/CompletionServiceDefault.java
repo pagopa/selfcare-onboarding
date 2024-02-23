@@ -25,6 +25,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -87,7 +88,7 @@ public class CompletionServiceDefault implements CompletionService {
                     : institutionsResponse.getInstitutions().get(0);
 
         onboardingRepository
-                .update("institution.id", institutionResponse.getId())
+                .update("institution.id = ?1 and updateAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
                 .where("_id", onboarding.getId());
 
         return institutionResponse.getId();
@@ -125,6 +126,7 @@ public class CompletionServiceDefault implements CompletionService {
             fromIpaPost.setGeographicTaxonomies(Optional.ofNullable(institution.getGeographicTaxonomies())
                     .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
                     .orElse(List.of()));
+            fromIpaPost.setInstitutionType(InstitutionFromIpaPost.InstitutionTypeEnum.valueOf(institution.getInstitutionType().name()));
             if(Objects.nonNull(institution.getSubunitType())) {
                 fromIpaPost.setSubunitCode(institution.getSubunitCode());
                 fromIpaPost.setSubunitType(InstitutionFromIpaPost.SubunitTypeEnum.valueOf(institution.getSubunitType().name()));

@@ -130,10 +130,10 @@ jobs:
           gh workflow run release_ms.yml \
             --ref $NEW_BRANCH_NAME
 
-      # - name: Trigger PNPG Functions UAT Release
-      #   run: |
-      #     gh workflow run release_pnpg_functions.yml \
-      #       --ref $NEW_BRANCH_NAME
+      - name: Trigger PNPG Functions UAT Release
+        run: |
+           gh workflow run release_pnpg_functions.yml \
+             --ref $NEW_BRANCH_NAME
 
       - name: Trigger PNPG Onboarding ms UAT Release
         run: |

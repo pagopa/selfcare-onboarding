@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.smallrye.mutiny.Multi;
@@ -38,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
@@ -62,6 +64,8 @@ import static it.pagopa.selfcare.onboarding.util.GenericError.*;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
+
+    private static final Logger LOG = Logger.getLogger(OnboardingServiceDefault.class);
     protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED = "At least one Product role related to %s Party role is required";
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE = "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
     private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE = "Institution with external id '%s' is not allowed to onboard '%s' product";
@@ -201,6 +205,12 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
+
+        Log.infof("Adding parent description AOO/UOO for: taxCode %s, subunitCode %s, type %s",
+                onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getSubunitCode(),
+                onboarding.getInstitution().getInstitutionType());
+
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
             if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
                 return addParentDescriptionForAOO(onboarding);
@@ -213,6 +223,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding) {
         return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                .onItem().invoke(uoResource -> LOG.infof("Founded parent %s for UO institution with subunitCode %s", uoResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode()))
                 .onItem().invoke(uoResource -> onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte()))
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
@@ -223,6 +234,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Onboarding> addParentDescriptionForAOO(Onboarding onboarding) {
         return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+                .onItem().invoke(aooResource -> LOG.infof("Founded parent %s for AOO institution with subunitCode %s", aooResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode()))
                 .onItem().invoke(aooResource -> onboarding.getInstitution().setParentDescription(aooResource.getDenominazioneEnte()))
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
@@ -233,6 +245,12 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding, Uni<OrchestrationResponse> orchestration) {
         final List<Onboarding> onboardings = new ArrayList<>();
         onboardings.add(onboarding);
+
+        Log.infof("Persist onboarding and start orchestration %b for: taxCode %s, subunitCode %s, type %s",
+                onboardingOrchestrationEnabled,
+                onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getSubunitCode(),
+                onboarding.getInstitution().getInstitutionType());
 
         if (Boolean.TRUE.equals(onboardingOrchestrationEnabled)) {
             return Onboarding.persistOrUpdate(onboardings)
@@ -299,7 +317,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
                 ? checkIfAlreadyOnboardingAndValidateAllowedMap(productParentId, institutionTaxCode, institutionSubunitCode)
-                    .onFailure(InvalidRequestException.class)
+                    .onFailure(ResourceConflictException.class)
                     .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode))
                 //If product is a root, I must only verify if onboarding for root
                 : checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode)
@@ -307,6 +325,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(String productId, String institutionTaxCode, String institutionSubuniCode) {
+
+        Log.infof("Validating allowed map and verify an onboarding is present for: taxCode %s, subunitCode %s, product %s",
+                institutionTaxCode,
+                institutionSubuniCode,
+                productId);
 
         if (!onboardingValidationStrategy.validate(productId, institutionTaxCode)) {
             return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
@@ -360,6 +383,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<List<User>> retrieveUserResources(List<UserRequest> users, Product product) {
+
+        Log.infof("Retrieving user resources for: product %s, product parent %s", product.getId(), product.getParentId());
 
         Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
                 ? product.getParent().getRoleMappings()
@@ -519,12 +544,14 @@ public class OnboardingServiceDefault implements OnboardingService {
             Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
                     .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
                     .asTuple()
-                    .onItem().transform(inputSignatureVerification -> {
-                        signatureService.verifySignature(contract,
-                                inputSignatureVerification.getItem2(),
-                                inputSignatureVerification.getItem1());
-                        return onboarding;
-                    });
+                    .onItem().transformToUni(inputSignatureVerification ->
+                            Uni.createFrom().item(() -> { signatureService.verifySignature(contract,
+                                        inputSignatureVerification.getItem2(),
+                                        inputSignatureVerification.getItem1());
+                                return onboarding;
+                            })
+                            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                    );
 
             return complete(onboardingId, contract, verification);
         } else {
@@ -564,7 +591,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return retrieveToken(onboardingId)
             .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
                     final String path = String.format("%s%s", pathContracts, onboardingId);
-                    final String filename = String.format("signed_%s", token.getContractFilename());
+                    final String filename = String.format("signed_%s", Optional.ofNullable(token.getContractFilename()).orElse(onboardingId));
 
                     try {
                         return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.toPath()));

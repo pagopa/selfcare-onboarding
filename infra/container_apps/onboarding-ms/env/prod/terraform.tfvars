@@ -26,14 +26,14 @@ container_app = {
       name = "cron-scale-rule"
     }
   ]
-  cpu    = 1.25
-  memory = "2.5Gi"
+  cpu          = 0.5
+  memory       = "1Gi"
 }
 
 app_settings = [
   {
     name  = "USER_REGISTRY_URL"
-    value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
+    value = "https://api.pdv.pagopa.it/user-registry/v1"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
@@ -53,7 +53,7 @@ app_settings = [
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "STORAGE_CONTAINER_CONTRACT"
@@ -65,5 +65,7 @@ secrets_names = [
   "jwt-public-key",
   "mongodb-connection-string",
   "user-registry-api-key",
-  "onboarding-functions-api-key"
+  "onboarding-functions-api-key",
+  "blob-storage-product-connection-string",
+  "blob-storage-contract-connection-string"
 ]

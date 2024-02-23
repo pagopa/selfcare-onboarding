@@ -44,7 +44,7 @@ app_settings = [
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
-    value = "true"
+    value = "false"
   },
   {
     name  = "STORAGE_CONTAINER_CONTRACT"

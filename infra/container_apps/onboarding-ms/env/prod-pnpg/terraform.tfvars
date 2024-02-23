@@ -27,8 +27,8 @@ container_app = {
       name = "cron-scale-rule"
     }
   ]
-  cpu    = 1.25
-  memory = "2.5Gi"
+  cpu          = 0.5
+  memory       = "1Gi"
 }
 
 app_settings = [
@@ -38,7 +38,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-p-onboarding-fn.azurewebsites.net"
+    value = "https://selc-p-pnpg-onboarding-fn.azurewebsites.net"
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
@@ -54,7 +54,7 @@ app_settings = [
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
@@ -65,5 +65,8 @@ app_settings = [
 secrets_names = [
   "jwt-public-key",
   "mongodb-connection-string",
-  "user-registry-api-key"
+  "user-registry-api-key",
+  "onboarding-functions-api-key",
+  "blob-storage-product-connection-string",
+  "blob-storage-contract-connection-string"
 ]
