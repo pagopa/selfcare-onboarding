@@ -12,7 +12,5 @@ public interface PagoPaSignatureConfig {
 
     String location();
 
-    boolean applyOnboardingEnabled();
-
     String applyOnboardingTemplateReason();
 }
