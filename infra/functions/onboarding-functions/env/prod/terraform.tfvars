@@ -71,6 +71,16 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://selc.internal.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1",
-  "PAGOPA_SIGNATURE_ONBOARDING_ENABLED"                = "true"
-  "PAGOPA_SIGNATURE_SOURCE"                            = "aruba"
+
+  ##ARUBA SIGNATURE
+  "PAGOPA_SIGNATURE_SOURCE"                            = "aruba",
+  "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"          = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"                = "dsign",
+  "ARUBA_SIGN_SERVICE_IDENTITY_USER"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_USER"         = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/aruba-sign-service-delegated-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_PASSWORD"     = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/aruba-sign-service-delegated-psw/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_DOMAIN"       = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_BASE_URL"                        = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
+  "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"              = "60000"
+  "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"              = "60000"
 }
