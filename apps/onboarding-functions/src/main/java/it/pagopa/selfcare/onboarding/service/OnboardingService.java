@@ -202,13 +202,13 @@ public class OnboardingService {
 
     public void updateOnboardingStatus(String onboardingId, OnboardingStatus status) {
         repository
-                .update("status = ?1 and updateAt = ?2", status.name(), LocalDateTime.now())
+                .update("status = ?1 and updatedAt = ?2", status.name(), LocalDateTime.now())
                 .where("_id", onboardingId);
     }
 
     public void updateOnboardingStatusAndInstanceId(String onboardingId, OnboardingStatus status, String instanceId) {
         repository
-                .update("status = ?1 and workflowInstanceId = ?2 and updateAt = ?3",
+                .update("status = ?1 and workflowInstanceId = ?2 and updatedAt = ?3",
                         status.name(), instanceId, LocalDateTime.now())
                 .where("_id", onboardingId);
     }

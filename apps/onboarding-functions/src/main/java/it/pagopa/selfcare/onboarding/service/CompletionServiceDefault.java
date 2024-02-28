@@ -88,7 +88,7 @@ public class CompletionServiceDefault implements CompletionService {
                     : institutionsResponse.getInstitutions().get(0);
 
         onboardingRepository
-                .update("institution.id = ?1 and updateAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
+                .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
                 .where("_id", onboarding.getId());
 
         return institutionResponse.getId();
