@@ -15,7 +15,7 @@ jobs:
   swagger_conflict_update:  
     name: Swagger Detect Conflict and Update
     id: swagger-conflict-update
-    uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@9262b817fe6cce143f934ac9c111ce0951c48246
+    uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@b33a918befdf5585f86fa0908799c1c1d9e475ac
     with:
       path_openapi_docs: src/main/docs
       branch_ref: main
