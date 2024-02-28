@@ -39,32 +39,32 @@ storage_account_info = {
 }
 
 app_settings = {
-  "USER_REGISTRY_URL"                                  = "https://api.pdv.pagopa.it/user-registry/v1",
-  "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
-  "USER_REGISTRY_API_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
-  "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
-  "STORAGE_CONTAINER_PRODUCT"                          = "selc-p-product",
+  "USER_REGISTRY_URL"                = "https://api.pdv.pagopa.it/user-registry/v1",
+  "MONGODB_CONNECTION_URI"           = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
+  "USER_REGISTRY_API_KEY"            = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
+  "BLOB_STORAGE_CONN_STRING_PRODUCT" = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
+  "STORAGE_CONTAINER_PRODUCT"        = "selc-p-product",
 
   ## PNPG contains template mail in checkout storage
-  "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-contract-connection-string/)",
-  "STORAGE_CONTAINER_CONTRACT"                         = "$web",
+  "BLOB_STORAGE_CONN_STRING_CONTRACT" = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-contract-connection-string/)",
+  "STORAGE_CONTAINER_CONTRACT"        = "$web",
 
-  "MAIL_DESTINATION_TEST"                              = "false",
-  "MAIL_DESTINATION_TEST_ADDRESS"                      = "pectest@pec.pagopa.it",
-  "MAIL_SENDER_ADDRESS"                                = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
-  "MAIL_SERVER_USERNAME"                               = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
-  "MAIL_SERVER_PASSWORD"                               = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-psw/)",
-  "MAIL_SERVER_HOST"                                   = "smtps.pec.aruba.it",
-  "MAIL_SERVER_PORT"                                   = "465",
-  "MAIL_TEMPLATE_COMPLETE_PATH"                        = "resources/templates/email/onboarding_1.0.0.json",
-  
-  "MS_CORE_URL"                                        = "https://prod01.pnpg.internal.selfcare.pagopa.it/ms-core/v1",
-  "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1",
-  "PAGOPA_LOGO_ENABLE"                                 = "false"
-  "RETRY_MAX_ATTEMPTS"                                 = "3"
-  "FIRST_RETRY_INTERVAL"                               = "5"
-  "BACKOFF_COEFFICIENT"                                = "1"
+  "MAIL_DESTINATION_TEST"         = "false",
+  "MAIL_DESTINATION_TEST_ADDRESS" = "pectest@pec.pagopa.it",
+  "MAIL_SENDER_ADDRESS"           = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
+  "MAIL_SERVER_USERNAME"          = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-usr/)",
+  "MAIL_SERVER_PASSWORD"          = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/smtp-psw/)",
+  "MAIL_SERVER_HOST"              = "smtps.pec.aruba.it",
+  "MAIL_SERVER_PORT"              = "465",
+  "MAIL_TEMPLATE_COMPLETE_PATH"   = "resources/templates/email/onboarding_1.0.0.json",
+
+  "MS_CORE_URL"           = "https://prod01.pnpg.internal.selfcare.pagopa.it/ms-core/v1",
+  "JWT_BEARER_TOKEN"      = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
+  "MS_PARTY_REGISTRY_URL" = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1",
+  "PAGOPA_LOGO_ENABLE"    = "false"
+  "RETRY_MAX_ATTEMPTS"    = "3"
+  "FIRST_RETRY_INTERVAL"  = "5"
+  "BACKOFF_COEFFICIENT"   = "1"
 
   ## IGNORE VALUES
 
@@ -76,7 +76,7 @@ app_settings = {
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
   "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/1.0.0.json",
-  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
+  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://imprese.notifichedigitali.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://imprese.notifichedigitali.it",
