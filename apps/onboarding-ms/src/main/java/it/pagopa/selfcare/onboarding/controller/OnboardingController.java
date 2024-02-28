@@ -221,6 +221,13 @@ public class OnboardingController {
         return onboardingService.onboardingGet(onboardingId);
     }
 
+    @Operation(summary = "Retrieve an onboarding record given its ID")
+    @GET
+    @Path("/{onboardingId}/example")
+    public Uni<OnboardingGet> getById(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.onboardingGet(onboardingId);
+    }
+
     @Operation(summary = "Retrieve an onboarding record given its ID adding to user sensitive information")
     @GET
     @Path("/{onboardingId}/withUserInfo")
