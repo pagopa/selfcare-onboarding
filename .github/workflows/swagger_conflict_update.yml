@@ -13,10 +13,12 @@ permissions:
 
 jobs:
   swagger_conflict_update:  
+    runs-on: ubuntu-latest
     name: Swagger Detect Conflict and Update
-    id: swagger-conflict-update
-    uses: pagopa/selfcare-commons/github-actions-template@c0f1512143eab228f283b218843c44a572a98e62
-    with:
-      path_openapi_docs: src/main/docs
-      branch_ref: main
-      module: onboarding-ms
+    steps:
+      - id: swagger-conflict-update
+        uses: pagopa/selfcare-commons/github-actions-template@c0f1512143eab228f283b218843c44a572a98e62
+        with:
+          path_openapi_docs: src/main/docs
+          branch_ref: main
+          module: onboarding-ms
