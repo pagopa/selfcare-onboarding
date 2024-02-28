@@ -1,4 +1,4 @@
-name: Swagger Detect Conflict and Update
+name: Swagger Detect Conflict and Update Onboarding MS
 on:
   pull_request:
     branches:
