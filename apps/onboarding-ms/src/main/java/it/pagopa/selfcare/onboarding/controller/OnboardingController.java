@@ -224,7 +224,7 @@ public class OnboardingController {
     @Operation(summary = "Retrieve an onboarding record given its ID")
     @GET
     @Path("/{onboardingId}/example")
-    public Uni<OnboardingGet> getById(@PathParam(value = "onboardingId") String onboardingId) {
+    public Uni<OnboardingGet> getByIdTest(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGet(onboardingId);
     }
 
