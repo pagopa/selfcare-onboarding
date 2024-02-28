@@ -1,0 +1,22 @@
+name: Swagger Detect Conflict and Update
+on:
+  pull_request:
+    branches:
+      - main
+      - releases/*
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - "apps/onboarding-ms/**"
+    
+permissions:
+  contents: write
+
+jobs:
+  swagger_conflict_update:  
+    name: Swagger Detect Conflict and Update
+    id: swagger-conflict-update
+    uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@0739f4bdefeef56f08b02f0920cad5db7ffd34e3
+    with:
+      path_openapi_docs: src/main/docs
+      branch_ref: main
+      module: onboarding-ms
