@@ -19,6 +19,6 @@ jobs:
       - id: swagger-conflict-update
         uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@6a0d7ba6fc1604cbafdaff13f487b20729fa6e17
         with:
-          path_openapi_docs: src/main/docs
+          path_openapi_docs: src/main/docs/openapi.json
           branch_ref: main
           module: onboarding-ms
