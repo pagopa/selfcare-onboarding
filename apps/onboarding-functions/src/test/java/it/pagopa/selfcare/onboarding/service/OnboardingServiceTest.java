@@ -291,7 +291,6 @@ class OnboardingServiceTest {
 
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
-        UserResource userResource = createUserResource();
         Token token = new Token();
         token.setId(UUID.randomUUID().toString());
 
@@ -300,8 +299,6 @@ class OnboardingServiceTest {
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
 
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-                .thenReturn(userResource);
         doNothing().when(notificationService)
                 .sendMailRegistrationWithContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
