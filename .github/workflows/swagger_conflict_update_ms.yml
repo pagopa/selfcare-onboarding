@@ -1,0 +1,25 @@
+name: Swagger Detect Conflict and Update Onboarding MS
+on:
+  pull_request:
+    branches:
+      - main
+      - releases/*
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - "apps/onboarding-ms/**"
+    
+permissions:
+  contents: write
+
+jobs:
+  swagger_conflict_update:  
+    runs-on: ubuntu-20.04
+    permissions: write-all
+    name: Swagger Detect Conflict and Update
+    steps:
+      - id: swagger-conflict-update
+        uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@main
+        with:
+          path_openapi_docs: src/main/docs/openapi.json
+          branch_ref: main
+          module: onboarding-ms
