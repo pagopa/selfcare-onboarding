@@ -987,15 +987,15 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-
+        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), 1L);
+        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .rejectOnboarding(onboarding.getId())
+                .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1004,15 +1004,16 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void rejectOnboarding_statusIsCOMPLETED() {
+        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), 1L);
+        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .rejectOnboarding(onboarding.getId())
+                .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1021,25 +1022,25 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
-
+        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
-        mockUpdateOnboarding(onboarding.getId(), 0L);
+        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 0L);
 
         UniAssertSubscriber<Long> subscriber = onboardingService
-                .rejectOnboarding(onboarding.getId())
+                .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
-    private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
+    private void mockUpdateOnboarding(String onboardingId, String reasonForReject, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
         PanacheMock.mock(Onboarding.class);
-        when(Onboarding.update(Onboarding.Fields.status.name(), OnboardingStatus.REJECTED)).thenReturn(query);
+        when(Onboarding.update(any(Document.class))).thenReturn(query);
         when(query.where("_id", onboardingId)).thenReturn(Uni.createFrom().item(updatedItemCount));
     }
 

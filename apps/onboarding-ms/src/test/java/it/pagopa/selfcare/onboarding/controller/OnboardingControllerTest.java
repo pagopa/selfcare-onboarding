@@ -278,12 +278,16 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void deleteOK(){
         String onboardingId = "actual-onboarding-id";
+        ReasonRequest reasonRequest = new ReasonRequest();
+        reasonRequest.setReasonForReject("string");
 
-        when(onboardingService.rejectOnboarding(onboardingId))
+        when(onboardingService.rejectOnboarding(onboardingId, "string"))
                 .thenReturn(Uni.createFrom().item(1L));
 
         given()
                 .when()
+                .body(reasonRequest)
+                .contentType(ContentType.JSON)
                 .pathParam("onboardingId", onboardingId)
                 .put("/{onboardingId}/reject")
                 .then()
@@ -291,7 +295,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
-                .rejectOnboarding(expectedId.capture());
+                .rejectOnboarding(expectedId.capture(), eq("string"));
         assertEquals(expectedId.getValue(), onboardingId);
     }
 
@@ -299,12 +303,16 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void deleteInvalidOnboardingIdOrOnboardingNotFound(){
         String onboardingId = "actual-onboarding-id";
+        ReasonRequest reasonRequest = new ReasonRequest();
+        reasonRequest.setReasonForReject("string");
 
-        when(onboardingService.rejectOnboarding(onboardingId))
+        when(onboardingService.rejectOnboarding(onboardingId, "string"))
                 .thenThrow(InvalidRequestException.class);
 
         given()
                 .when()
+                .body(reasonRequest)
+                .contentType(ContentType.JSON)
                 .pathParam("onboardingId", onboardingId)
                 .put("/{onboardingId}/reject")
                 .then()
@@ -312,7 +320,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
         verify(onboardingService, times(1))
-                .rejectOnboarding(expectedId.capture());
+                .rejectOnboarding(expectedId.capture(), eq("string"));
         assertEquals(expectedId.getValue(), onboardingId);
     }
 

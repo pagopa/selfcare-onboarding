@@ -688,13 +688,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Long> rejectOnboarding(String onboardingId) {
+    public Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject) {
         return Onboarding.findById(onboardingId)
                         .onItem().transform(Onboarding.class::cast)
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
-                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED))
+                .onItem().transformToUni(id -> updateReasonForRejectAndUpdateStatus(onboardingId, reasonForReject))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, "60")
@@ -787,6 +787,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                     }
                 })
                 .replaceWith(Uni.createFrom().item(onboarding));
+    }
+
+    private static Uni<Long> updateReasonForRejectAndUpdateStatus(String onboardingId, String reasonForReject) {
+        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingReject(reasonForReject, OnboardingStatus.REJECTED.name());
+        Document query =  QueryUtils.buildUpdateDocument(queryParameter);
+        return Onboarding.update(query)
+                .where("_id", onboardingId)
+                .onItem().transformToUni(updateItemCount -> {
+                    if (updateItemCount == 0) {
+                        return Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                    }
+                    return Uni.createFrom().item(updateItemCount);
+                });
     }
 
     private Token getToken(Onboarding onboarding, Product product, OnboardingImportContract contractImported) {

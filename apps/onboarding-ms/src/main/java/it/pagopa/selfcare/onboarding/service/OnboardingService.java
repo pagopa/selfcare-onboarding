@@ -26,7 +26,7 @@ public interface OnboardingService {
 
     Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size);
 
-    Uni<Long> rejectOnboarding(String onboardingId);
+    Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject);
 
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 

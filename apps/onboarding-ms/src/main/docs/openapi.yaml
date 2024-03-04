@@ -415,6 +415,11 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
       responses:
         "200":
           description: OK
@@ -825,6 +830,8 @@ components:
           type: string
         userRequestUid:
           type: string
+        reasonForReject:
+          type: string
     OnboardingGetResponse:
       type: object
       properties:
@@ -1003,6 +1010,11 @@ components:
           type: string
         vatNumberGroup:
           type: boolean
+    ReasonRequest:
+      type: object
+      properties:
+        reasonForReject:
+          type: string
     TokenResponse:
       type: object
       properties:
