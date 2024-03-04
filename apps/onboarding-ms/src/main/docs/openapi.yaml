@@ -376,6 +376,30 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/{onboardingId}/example:
+    get:
+      tags:
+      - Onboarding Controller
+      summary: Retrieve an onboarding record given its ID
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingGet'
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/{onboardingId}/pending:
     get:
       tags:
