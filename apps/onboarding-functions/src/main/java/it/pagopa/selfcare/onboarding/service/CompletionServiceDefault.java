@@ -26,6 +26,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -219,6 +220,8 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
         onboardingRequest.setTokenId(onboarding.getId());
+        Optional.ofNullable(onboarding.getActivatedAt())
+                .ifPresent(date -> onboardingRequest.setActivatedAt(date.atZone(ZoneId.systemDefault()).toOffsetDateTime()));
 
         if(Objects.nonNull(onboarding.getBilling())) {
             BillingRequest billingRequest = new BillingRequest();
