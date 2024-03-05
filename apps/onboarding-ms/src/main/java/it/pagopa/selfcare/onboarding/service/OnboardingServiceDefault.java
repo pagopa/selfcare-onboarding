@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -187,7 +188,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                        .onItem().transformToUni(this::setInstitutionType)
+                        .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
                         /* Update onboarding data with users and start orchestration */
@@ -775,13 +776,18 @@ public class OnboardingServiceDefault implements OnboardingService {
                 });
     }
 
-    private Uni<Onboarding> setInstitutionType(Onboarding onboarding) {
+    private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {
         return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                 .onItem()
                 .invoke(proxyInstitution -> {
                     if(Objects.nonNull(proxyInstitution)) {
                         InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
                         onboarding.getInstitution().setInstitutionType(institutionType);
+
+                        Billing billing = new Billing();
+                        billing.setVatNumber(proxyInstitution.getTaxCode());
+                        billing.setRecipientCode(proxyInstitution.getOriginId());
+                        onboarding.setBilling(billing);
                     } else {
                         onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
                     }
