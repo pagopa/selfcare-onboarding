@@ -30,6 +30,7 @@ public class Onboarding  {
     private OnboardingStatus status;
     private String userRequestUid;
     private String workflowInstanceId;
+    private LocalDateTime activatedAt;
 
     public String getId() {
         return id;
@@ -133,5 +134,13 @@ public class Onboarding  {
 
     public void setTestEnvProductIds(List<String> testEnvproductIds) {
         this.testEnvProductIds = testEnvproductIds;
+    }
+
+    public LocalDateTime getActivatedAt() {
+        return activatedAt;
+    }
+
+    public void setActivatedAt(LocalDateTime activatedAt) {
+        this.activatedAt = activatedAt;
     }
 }
