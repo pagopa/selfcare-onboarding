@@ -160,10 +160,11 @@ public class NotificationServiceDefault implements NotificationService {
 
 
     @Override
-    public void sendMailRejection(List<String> destinationMails, Product product) {
+    public void sendMailRejection(List<String> destinationMails, Product product, String reasonForReject) {
 
         Map<String, String> mailParameter = new HashMap<>();
         mailParameter.put(templatePlaceholdersConfig.completeProductName(), product.getTitle());
+        mailParameter.put(templatePlaceholdersConfig.reasonForReject(), reasonForReject);
         mailParameter.put(templatePlaceholdersConfig.rejectOnboardingUrlPlaceholder(), templatePlaceholdersConfig.rejectOnboardingUrlValue() + product.getId());
         sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
     }
