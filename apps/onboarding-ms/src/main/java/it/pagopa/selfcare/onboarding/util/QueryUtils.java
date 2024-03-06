@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.util;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.Updates;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,13 @@ public class QueryUtils {
         return queryParameterMap;
     }
 
+    public static Map<String, String> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        Optional.ofNullable(reasonForReject).ifPresent(value -> queryParameterMap.put("reasonForReject", value));
+        Optional.ofNullable(onboardingStatus).ifPresent(value -> queryParameterMap.put("status", value));
+        return queryParameterMap;
+    }
+
     public static Document buildSortDocument(String field, SortEnum order) {
         if(SortEnum.ASC == order) {
             return bsonToDocument(Sorts.ascending(field));
@@ -76,4 +84,20 @@ public class QueryUtils {
             return bsonToDocument(Sorts.descending(field));
         }
     }
+
+    public static Document buildUpdateDocument(Map<String, String> parameters) {
+        if (!parameters.isEmpty()) {
+            return bsonToDocument(Updates.combine(constructBsonUpdate(parameters)));
+        } else {
+            return new Document();
+        }
+    }
+
+    private static List<Bson> constructBsonUpdate(Map<String, String> parameters) {
+        return parameters.entrySet()
+                .stream()
+                .map(stringStringEntry -> Updates.set(stringStringEntry.getKey(), stringStringEntry.getValue()))
+                .toList();
+    }
+
 }

@@ -22,4 +22,5 @@ public class OnboardingGet {
     private LocalDateTime expiringDate;
     private String status;
     private String userRequestUid;
+    private String reasonForReject;
 }
