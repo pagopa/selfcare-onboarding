@@ -206,9 +206,11 @@ public class OnboardingController {
     @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +
             "Function change status to REJECT for an onboarding request that is not COMPLETED. " )
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/reject")
-    public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
-        return onboardingService.rejectOnboarding(onboardingId)
+    public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId, @Valid ReasonRequest reason) {
+        String reasonForReject = reason.getReasonForReject();
+        return onboardingService.rejectOnboarding(onboardingId, reasonForReject)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());

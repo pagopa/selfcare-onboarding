@@ -26,6 +26,8 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     Onboarding toEntity(OnboardingSaRequest request);
+    @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
+    @Mapping(target = "activatedAt", source = "contractImported.createdAt")
     Onboarding toEntity(OnboardingImportRequest request);
 
     @Mapping(source = "taxCode", target = "institution.taxCode")

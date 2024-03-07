@@ -30,6 +30,8 @@ public class Onboarding  {
     private OnboardingStatus status;
     private String userRequestUid;
     private String workflowInstanceId;
+    private LocalDateTime activatedAt;
+    private String reasonForReject;
 
     public String getId() {
         return id;
@@ -127,11 +129,23 @@ public class Onboarding  {
         this.workflowInstanceId = workflowInstanceId;
     }
 
+    public String getReasonForReject(){ return  reasonForReject; }
+
+    public void setReasonForReject(String reasonForReject) { this.reasonForReject = reasonForReject; }
+
     public List<String> getTestEnvProductIds() {
         return testEnvProductIds;
     }
 
     public void setTestEnvProductIds(List<String> testEnvproductIds) {
         this.testEnvProductIds = testEnvproductIds;
+    }
+
+    public LocalDateTime getActivatedAt() {
+        return activatedAt;
+    }
+
+    public void setActivatedAt(LocalDateTime activatedAt) {
+        this.activatedAt = activatedAt;
     }
 }

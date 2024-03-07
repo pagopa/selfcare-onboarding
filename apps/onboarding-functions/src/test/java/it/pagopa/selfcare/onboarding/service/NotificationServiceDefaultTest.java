@@ -144,7 +144,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     void sendMailRejection() {
-
+        String reasonForReject = "string";
         final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
 
         final String destination = "test@test.it";
@@ -160,7 +160,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRejection(List.of(destination), product);
+        notificationService.sendMailRejection(List.of(destination), product, reasonForReject);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

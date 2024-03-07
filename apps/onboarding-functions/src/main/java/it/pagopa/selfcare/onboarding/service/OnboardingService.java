@@ -148,12 +148,12 @@ public class OnboardingService {
 
     public void sendMailRegistrationWithContractWhenApprove(Onboarding onboarding) {
 
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailRegistrationWithContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
-                sendMailInput.product.getTitle());
+                product.getTitle());
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {

@@ -35,6 +35,7 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
@@ -350,6 +351,7 @@ public class CompletionServiceDefaultTest {
         manager.setRole(PartyRole.MANAGER);
         manager.setUserMailUuid(UUID.randomUUID().toString());
         onboarding.setUsers(List.of(manager));
+        onboarding.setActivatedAt(LocalDateTime.now());
 
         UserResource userResource = dummyUserResource(manager.getUserMailUuid());
 
@@ -378,6 +380,7 @@ public class CompletionServiceDefaultTest {
         assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
         assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
         assertEquals(token.getContractSigned(), actual.getContractPath());
+        assertEquals(actual.getActivatedAt().getDayOfYear(), onboarding.getActivatedAt().getDayOfYear());
     }
 
     @Test
@@ -420,12 +423,12 @@ public class CompletionServiceDefaultTest {
 
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
-        doNothing().when(notificationService).sendMailRejection(any(), any());
+        doNothing().when(notificationService).sendMailRejection(any(), any(), any());
 
         completionServiceDefault.sendMailRejection(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRejection(any(), any());
+                .sendMailRejection(any(), any(), any());
     }
 
     private InstitutionResponse dummyInstitutionResponse() {

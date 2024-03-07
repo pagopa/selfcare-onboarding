@@ -22,7 +22,8 @@ public class CustomClientRequestLoggingFilter implements ResteasyReactiveClientR
     @Override
     public void filter(ResteasyReactiveClientRequestContext requestContext) {
         String endpoint = requestContext.getUri().getPath();
+        String query = requestContext.getUri().getQuery();
         String method = requestContext.getMethod();
-        LOG.infof("Request: method: %s, endpoint: %s", method, endpoint);
+        LOG.infof("Request: method: %s, endpoint: %s, query: %s", method, endpoint, query);
     }
 }

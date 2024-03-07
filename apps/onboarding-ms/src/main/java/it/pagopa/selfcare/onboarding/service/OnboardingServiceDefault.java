@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -187,7 +188,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                        .onItem().transformToUni(this::setInstitutionType)
+                        .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
                         /* Update onboarding data with users and start orchestration */
@@ -688,13 +689,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Long> rejectOnboarding(String onboardingId) {
+    public Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject) {
         return Onboarding.findById(onboardingId)
                         .onItem().transform(Onboarding.class::cast)
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
-                .onItem().transformToUni(id -> updateStatus(onboardingId, OnboardingStatus.REJECTED))
+                .onItem().transformToUni(id -> updateReasonForRejectAndUpdateStatus(onboardingId, reasonForReject))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, "60")
@@ -775,18 +776,36 @@ public class OnboardingServiceDefault implements OnboardingService {
                 });
     }
 
-    private Uni<Onboarding> setInstitutionType(Onboarding onboarding) {
+    private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {
         return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                 .onItem()
                 .invoke(proxyInstitution -> {
                     if(Objects.nonNull(proxyInstitution)) {
                         InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
                         onboarding.getInstitution().setInstitutionType(institutionType);
+
+                        Billing billing = new Billing();
+                        billing.setVatNumber(proxyInstitution.getTaxCode());
+                        billing.setRecipientCode(proxyInstitution.getOriginId());
+                        onboarding.setBilling(billing);
                     } else {
                         onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
                     }
                 })
                 .replaceWith(Uni.createFrom().item(onboarding));
+    }
+
+    private static Uni<Long> updateReasonForRejectAndUpdateStatus(String onboardingId, String reasonForReject) {
+        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingReject(reasonForReject, OnboardingStatus.REJECTED.name());
+        Document query =  QueryUtils.buildUpdateDocument(queryParameter);
+        return Onboarding.update(query)
+                .where("_id", onboardingId)
+                .onItem().transformToUni(updateItemCount -> {
+                    if (updateItemCount == 0) {
+                        return Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                    }
+                    return Uni.createFrom().item(updateItemCount);
+                });
     }
 
     private Token getToken(Onboarding onboarding, Product product, OnboardingImportContract contractImported) {
