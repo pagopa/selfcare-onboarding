@@ -61,7 +61,7 @@ app_settings = {
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
   "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/1.0.0.json",
-  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
+  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://uat.selfcare.pagopa.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://selfcare.pagopa.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://uat.selfcare.pagopa.it/onboarding/confirm?jwt=",
@@ -72,14 +72,14 @@ app_settings = {
   "MS_PARTY_REGISTRY_URL"                              = "http://selc.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1",
 
   ##ARUBA SIGNATURE
-  "PAGOPA_SIGNATURE_SOURCE"                            = "disabled",
-  "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"          = "faPagoPa",
-  "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"                = "dsign",
-  "ARUBA_SIGN_SERVICE_IDENTITY_USER"                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_USER"         = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-user/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_PASSWORD"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-psw/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_DOMAIN"       = "faPagoPa",
-  "ARUBA_SIGN_SERVICE_BASE_URL"                        = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
-  "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"              = "60000"
-  "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"              = "60000"
+  "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
+  "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"      = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"            = "dsign",
+  "ARUBA_SIGN_SERVICE_IDENTITY_USER"               = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-psw/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_DOMAIN"   = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_BASE_URL"                    = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
+  "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"          = "60000"
+  "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"          = "60000"
 }
