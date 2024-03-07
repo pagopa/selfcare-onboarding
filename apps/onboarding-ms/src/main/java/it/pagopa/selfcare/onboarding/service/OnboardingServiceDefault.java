@@ -796,7 +796,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private static Uni<Long> updateReasonForRejectAndUpdateStatus(String onboardingId, String reasonForReject) {
-        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingReject(reasonForReject, OnboardingStatus.REJECTED.name());
+        Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingReject(reasonForReject, OnboardingStatus.REJECTED.name());
         Document query =  QueryUtils.buildUpdateDocument(queryParameter);
         return Onboarding.update(query)
                 .where("_id", onboardingId)

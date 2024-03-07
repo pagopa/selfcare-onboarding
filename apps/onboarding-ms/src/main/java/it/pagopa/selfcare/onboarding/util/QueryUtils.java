@@ -16,11 +16,9 @@ import org.bson.codecs.DocumentCodec;
 import org.bson.conversions.Bson;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor(access = AccessLevel.NONE)
 public class QueryUtils {
@@ -70,10 +68,11 @@ public class QueryUtils {
         return queryParameterMap;
     }
 
-    public static Map<String, String> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
-        Map<String, String> queryParameterMap = new HashMap<>();
+    public static Map<String, Object> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
+        Map<String, Object> queryParameterMap = new HashMap<>();
         Optional.ofNullable(reasonForReject).ifPresent(value -> queryParameterMap.put("reasonForReject", value));
         Optional.ofNullable(onboardingStatus).ifPresent(value -> queryParameterMap.put("status", value));
+        queryParameterMap.put("updatedAt", LocalDateTime.now());
         return queryParameterMap;
     }
 
@@ -85,7 +84,7 @@ public class QueryUtils {
         }
     }
 
-    public static Document buildUpdateDocument(Map<String, String> parameters) {
+    public static Document buildUpdateDocument(Map<String, Object> parameters) {
         if (!parameters.isEmpty()) {
             return bsonToDocument(Updates.combine(constructBsonUpdate(parameters)));
         } else {
@@ -93,7 +92,7 @@ public class QueryUtils {
         }
     }
 
-    private static List<Bson> constructBsonUpdate(Map<String, String> parameters) {
+    private static List<Bson> constructBsonUpdate(Map<String, Object> parameters) {
         return parameters.entrySet()
                 .stream()
                 .map(stringStringEntry -> Updates.set(stringStringEntry.getKey(), stringStringEntry.getValue()))
