@@ -187,7 +187,7 @@ public class CompletionServiceDefault implements CompletionService {
         destinationMails.add(onboarding.getInstitution().getDigitalAddress());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        notificationService.sendMailRejection(destinationMails, product);
+        notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
     }
 
 

@@ -423,12 +423,12 @@ public class CompletionServiceDefaultTest {
 
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
-        doNothing().when(notificationService).sendMailRejection(any(), any());
+        doNothing().when(notificationService).sendMailRejection(any(), any(), any());
 
         completionServiceDefault.sendMailRejection(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRejection(any(), any());
+                .sendMailRejection(any(), any(), any());
     }
 
     private InstitutionResponse dummyInstitutionResponse() {

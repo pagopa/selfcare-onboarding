@@ -31,6 +31,7 @@ public class Onboarding  {
     private String userRequestUid;
     private String workflowInstanceId;
     private LocalDateTime activatedAt;
+    private String reasonForReject;
 
     public String getId() {
         return id;
@@ -127,6 +128,10 @@ public class Onboarding  {
     public void setWorkflowInstanceId(String workflowInstanceId) {
         this.workflowInstanceId = workflowInstanceId;
     }
+
+    public String getReasonForReject(){ return  reasonForReject; }
+
+    public void setReasonForReject(String reasonForReject) { this.reasonForReject = reasonForReject; }
 
     public List<String> getTestEnvProductIds() {
         return testEnvProductIds;

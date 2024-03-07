@@ -23,6 +23,7 @@ public interface MailTemplatePlaceholdersConfig {
     String notificationProductName();
     String notificationRequesterName();
     String  notificationRequesterSurname();
+    String reasonForReject();
 
     String rejectOnboardingUrlPlaceholder();
     String rejectOnboardingUrlValue();
