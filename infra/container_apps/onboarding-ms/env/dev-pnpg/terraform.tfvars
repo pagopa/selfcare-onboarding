@@ -37,11 +37,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://dev01.pnpg.internal.dev.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc-d-pnpg-ms-core-ca.whiteglacier-211c4885.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://dev01.pnpg.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "https://selc-d-pnpg-party-reg-proxy-ca.whiteglacier-211c4885.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
