@@ -63,22 +63,26 @@ resource "azurerm_key_vault_access_policy" "keyvault_functions_access_policy" {
   ]
 }
 
+data "azurerm_resource_group" "nat_rg" {
+  name     = "${local.base_domain_name}-nat-rg"
+}
+
 data "azurerm_public_ip" "functions_pip_outboud" {
-  resource_group_name = azurerm_resource_group.onboarding_fn_rg.name
+  resource_group_name = data.azurerm_resource_group.nat_rg.name
   name                = "${local.app_name}-pip-outbound"
 }
 
-data "azurerm_nat_gateway" "functions_nat_gateway" {
-  name                    = "${local.app_name}-nat_gw"
-  resource_group_name     = azurerm_resource_group.onboarding_fn_rg.name
+data "azurerm_nat_gateway" "nat_gateway" {
+  name                    = "${local.base_domain_name}-nat_gw"
+  resource_group_name     = data.azurerm_resource_group.nat_rg.name
 }
 
 resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway" {
-  nat_gateway_id       = data.azurerm_nat_gateway.functions_nat_gateway.id
+  nat_gateway_id       = data.azurerm_nat_gateway.nat_gateway.id
   public_ip_address_id = data.azurerm_public_ip.functions_pip_outboud.id
 }
 
 resource "azurerm_subnet_nat_gateway_association" "functions_subnet_nat_gateway" {
   subnet_id      = module.onboarding_fn_snet[0].id
-  nat_gateway_id = data.azurerm_nat_gateway.functions_nat_gateway.id
+  nat_gateway_id = data.azurerm_nat_gateway.nat_gateway.id
 }
