@@ -40,7 +40,7 @@ public class TokenController {
                         .toList());
     }
 
-    @Operation(summary = "Retrieves the token for a given onboarding")
+    @Operation(summary = "Retrieve contract not signed for a given onboarding")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/contract")
