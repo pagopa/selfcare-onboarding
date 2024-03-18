@@ -5,9 +5,9 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 
@@ -38,5 +38,13 @@ public class TokenController {
                 .map(tokens -> tokens.stream()
                         .map(tokenMapper::toResponse)
                         .toList());
+    }
+
+    @Operation(summary = "Retrieves the token for a given onboarding")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("/{onboardingId}/contract")
+    public Uni<Response> getContract(@PathParam(value = "onboardingId") String onboardingId){
+        return tokenService.retrieveContractNotSigned(onboardingId);
     }
 }

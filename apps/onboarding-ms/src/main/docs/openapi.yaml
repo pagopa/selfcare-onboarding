@@ -55,10 +55,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGetResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
     post:
@@ -80,10 +80,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/completion:
@@ -104,10 +104,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa:
@@ -131,10 +131,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/completion:
@@ -155,10 +155,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/import:
@@ -179,10 +179,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pg/completion:
@@ -201,10 +201,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp:
@@ -227,10 +227,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp/completion:
@@ -251,10 +251,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}:
@@ -275,10 +275,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/approve:
@@ -299,10 +299,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/complete:
@@ -336,10 +336,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/consume:
@@ -370,10 +370,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/pending:
@@ -396,10 +396,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/reject:
@@ -425,10 +425,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/withUserInfo:
@@ -450,10 +450,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/tokens:
@@ -475,10 +475,32 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TokenResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme: []
+  /v1/tokens/{onboardingId}/contract:
+    get:
+      tags:
+      - Token Controller
+      summary: Retrieves the token for a given onboarding
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream: {}
+        "403":
+          description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
 components:

@@ -8,11 +8,13 @@ import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.product.service.ProductServiceCacheable;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 @Slf4j
+@Data
 public class OnboardingMsConfig {
 
     @ConfigProperty(name = "onboarding-ms.blob-storage.container-product")
@@ -23,6 +25,9 @@ public class OnboardingMsConfig {
 
     @ConfigProperty(name = "onboarding-ms.blob-storage.connection-string-product")
     String connectionStringProduct;
+
+    @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
+    String contractPath;
 
     void onStart(@Observes StartupEvent ev) {
         log.info(String.format("Database %s is starting...", Onboarding.mongoDatabase().getName()));

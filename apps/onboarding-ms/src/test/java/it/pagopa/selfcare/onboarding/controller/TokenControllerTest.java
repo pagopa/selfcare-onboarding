@@ -10,13 +10,16 @@ import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.TokenService;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(TokenController.class)
@@ -24,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class TokenControllerTest {
 
     @InjectMock
-    TokenService tokenService;
+    private TokenService tokenService;
 
     @Test
     @TestSecurity(user = "userJwt")
@@ -43,5 +46,23 @@ public class TokenControllerTest {
                 .get()
                 .then()
                 .statusCode(200);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getContract() {
+        final String onboardingId = "onboardingId";
+        Response response = Response.ok().build();
+        when(tokenService.retrieveContractNotSigned(onboardingId))
+                .thenReturn(Uni.createFrom().item(response));
+
+        given()
+                .when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .get("/{onboardingId}/contract", onboardingId)
+                .then()
+                .statusCode(200);
+
+
     }
 }
