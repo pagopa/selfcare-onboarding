@@ -52,11 +52,11 @@ app_settings = [
   }
 ]
 
-secrets_names = [
-  "jwt-public-key",
-  "mongodb-connection-string",
-  "user-registry-api-key",
-  "onboarding-functions-api-key",
-  "blob-storage-product-connection-string",
-  "blob-storage-contract-connection-string"
-]
+secrets_names = {
+  "JWT-PUBLIC-KEY"                          = "jwt-public-key"
+  "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
+  "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
+  "ONBOARDING-FUNCTIONS-API-KEY"            = "onboarding-functions-api-key"
+  "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
+  "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
+}
