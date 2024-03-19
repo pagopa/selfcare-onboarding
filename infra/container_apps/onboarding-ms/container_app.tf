@@ -10,15 +10,15 @@ module "container_app_onboarding_ms" {
   image_tag          = var.image_tag
   app_settings       = var.app_settings
   secrets_names      = var.secrets_names
-  probes              = [
+  probes = [
     {
       httpGet = {
         path   = "q/health/live"
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds = 5
-      type           = "Liveness"
+      timeoutSeconds   = 5
+      type             = "Liveness"
       failureThreshold = 3
     },
     {
@@ -27,8 +27,8 @@ module "container_app_onboarding_ms" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds = 5
-      type           = "Readiness"
+      timeoutSeconds   = 5
+      type             = "Readiness"
       failureThreshold = 30
     },
     {

@@ -20,6 +20,14 @@ container_app = {
 
 app_settings = [
   {
+    name  = "JAVA_TOOL_OPTIONS"
+    value = "-javaagent:applicationinsights-agent.jar",
+  },
+  {
+    name  = "APPLICATIONINSIGHTS_ROLE_NAME"
+    value = "onboarding-ms",
+  },
+  {
     name  = "USER_REGISTRY_URL"
     value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
   },
@@ -56,4 +64,5 @@ secrets_names = {
   "ONBOARDING-FUNCTIONS-API-KEY"            = "onboarding-functions-api-key"
   "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
   "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
+  "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
 }
