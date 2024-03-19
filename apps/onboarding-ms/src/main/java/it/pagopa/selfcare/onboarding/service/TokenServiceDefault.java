@@ -5,8 +5,11 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.MediaType;
+import org.jboss.resteasy.reactive.RestResponse;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -28,7 +31,7 @@ public class TokenServiceDefault implements TokenService {
                 .list();
     }
     @Override
-    public Uni<Response> retrieveContractNotSigned(String onboardingId) {
+    public Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId) {
         return Token.find("onboardingId", onboardingId)
                 .firstResult()
                 .map(Token.class::cast)
@@ -36,7 +39,7 @@ public class TokenServiceDefault implements TokenService {
                             Uni.createFrom().item(azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
                                     .runSubscriptionOn(Executors.newSingleThreadExecutor())
                                     .onItem().transform(contract -> {
-                                        Response.ResponseBuilder response = Response.ok(contract);
+                                        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
                                         response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
                                         return response.build();
                                     }));

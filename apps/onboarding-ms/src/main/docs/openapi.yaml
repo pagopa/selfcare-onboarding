@@ -496,7 +496,10 @@ paths:
         "200":
           description: OK
           content:
-            application/octet-stream: {}
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
         "401":
           description: Not Authorized
         "403":

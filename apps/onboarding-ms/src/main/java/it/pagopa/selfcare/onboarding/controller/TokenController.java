@@ -7,10 +7,11 @@ import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.jboss.resteasy.reactive.RestResponse;
 
+import java.io.File;
 import java.util.List;
 
 @Authenticated
@@ -44,7 +45,7 @@ public class TokenController {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/contract")
-    public Uni<Response> getContract(@PathParam(value = "onboardingId") String onboardingId){
+    public Uni<RestResponse<File>> getContract(@PathParam(value = "onboardingId") String onboardingId){
         return tokenService.retrieveContractNotSigned(onboardingId);
     }
 }

@@ -11,7 +11,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -52,9 +52,9 @@ public class TokenControllerTest {
     @TestSecurity(user = "userJwt")
     void getContract() {
         final String onboardingId = "onboardingId";
-        Response response = Response.ok().build();
+        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
         when(tokenService.retrieveContractNotSigned(onboardingId))
-                .thenReturn(Uni.createFrom().item(response));
+                .thenReturn(Uni.createFrom().item(response.build()));
 
         given()
                 .when()
