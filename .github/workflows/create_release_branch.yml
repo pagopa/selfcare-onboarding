@@ -100,11 +100,6 @@ jobs:
           gh workflow run release_mongo_infra.yml \
             --ref $NEW_BRANCH_NAME
 
-      - name: Trigger Container App Infra UAT Release
-        run: |
-          gh workflow run release_container_apps_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
       - name: Trigger PNPG Functions Infra UAT Release
         run: |
           gh workflow run release_functions_pnpg_infra.yml \
@@ -113,11 +108,6 @@ jobs:
       - name: Trigger PNPG Mongo Infra UAT Release
         run: |
           gh workflow run release_mongo_pnpg_infra.yml \
-            --ref $NEW_BRANCH_NAME
-
-      - name: Trigger PNPG Container App Infra UAT Release
-        run: |
-          gh workflow run release_container_apps_pnpg_infra.yml \
             --ref $NEW_BRANCH_NAME
 
       - name: Trigger Functions UAT Release
