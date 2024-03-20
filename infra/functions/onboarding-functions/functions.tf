@@ -67,6 +67,11 @@ data "azurerm_resource_group" "nat_rg" {
   name     = "${local.base_domain_name}-nat-rg"
 }
 
+data "azurerm_public_ip" "pip_outbound" {
+  resource_group_name = data.azurerm_resource_group.nat_rg.name
+  name                = "${local.base_domain_name}-pip-outbound"
+}
+
 data "azurerm_public_ip" "functions_pip_outboud" {
   resource_group_name = data.azurerm_resource_group.nat_rg.name
   name                = "${local.app_name}-pip-outbound"
