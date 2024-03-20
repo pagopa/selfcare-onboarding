@@ -5,12 +5,13 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.jboss.resteasy.reactive.RestResponse;
 
+import java.io.File;
 import java.util.List;
 
 @Authenticated
@@ -38,5 +39,13 @@ public class TokenController {
                 .map(tokens -> tokens.stream()
                         .map(tokenMapper::toResponse)
                         .toList());
+    }
+
+    @Operation(summary = "Retrieve contract not signed for a given onboarding")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("/{onboardingId}/contract")
+    public Uni<RestResponse<File>> getContract(@PathParam(value = "onboardingId") String onboardingId){
+        return tokenService.retrieveContractNotSigned(onboardingId);
     }
 }
