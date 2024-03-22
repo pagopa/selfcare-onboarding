@@ -810,6 +810,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Token getToken(Onboarding onboarding, Product product, OnboardingImportContract contractImported) {
         var token = new Token();
+        token.setId(onboarding.getId());
         token.setOnboardingId(onboarding.getId());
         token.setContractTemplate(product.getContractTemplatePath());
         token.setContractVersion(product.getContractTemplateVersion());
