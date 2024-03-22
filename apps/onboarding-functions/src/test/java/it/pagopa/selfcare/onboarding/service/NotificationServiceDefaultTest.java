@@ -60,16 +60,16 @@ class NotificationServiceDefaultTest {
         final String destination = "test@test.it";
         final String productName = "productName";
 
-        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
-
-        Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName))
-                .thenReturn(file);
+       // final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+//
+       // Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName))
+       //         .thenReturn(file);
 
         Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationWithContract(onboardingId, destination,"","", productName);
+        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -84,9 +84,9 @@ class NotificationServiceDefaultTest {
     void sendMailRegistrationWithContract_shouldThrowException() {
         final String onboardingId = "onboardingId";
         final String productName = "productName";
-        final File file = mock(File.class);
-        Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
-        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationWithContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
+      //  final File file = mock(File.class);
+      //  Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
     }
 
     @Test

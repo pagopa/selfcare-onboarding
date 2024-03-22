@@ -104,21 +104,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName) {
-
-        // Retrieve PDF contract from storage
-        File contract = contractService.retrieveContractNotSigned(onboardingId, productName);
-        // Create ZIP file that contains contract
-        final String fileNamePdf = String.format("%s_accordo_adesione.pdf", productName);
-        final String fileNameZip = String.format("%s_accordo_adesione.zip", productName);
-        byte[] contractZipData = null;
-
-        try {
-            byte[] contractData = Files.readAllBytes(contract.toPath());
-            contractZipData = zipBytes(fileNamePdf, contractData);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName) {
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -128,12 +114,7 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
 
-        FileMailData fileMailData = new FileMailData();
-        fileMailData.contentType = "application/zip";
-        fileMailData.data = contractZipData;
-        fileMailData.name = fileNameZip;
-
-        sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, fileMailData);
+        sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, null);
     }
 
     @Override
