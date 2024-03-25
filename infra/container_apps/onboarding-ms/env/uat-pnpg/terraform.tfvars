@@ -45,11 +45,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://uat01.pnpg.internal.uat.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc-u-pnpg-ms-core-ca.redground-be752d1f.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://uat01.pnpg.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "https://selc-u-pnpg-party-reg-proxy-ca.redground-be752d1f.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
