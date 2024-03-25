@@ -131,7 +131,7 @@ public class OnboardingFunctionsTest {
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
-        assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
@@ -175,7 +175,7 @@ public class OnboardingFunctionsTest {
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
-        assertEquals(SEND_MAIL_REGISTRATION_WITH_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
@@ -312,12 +312,12 @@ public class OnboardingFunctionsTest {
     void sendMailRegistrationWithContract() {
         
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationWithContract(any());
+        doNothing().when(service).sendMailRegistrationForContract(any());
 
-        function.sendMailRegistrationWithContract(onboardinString, executionContext);
+        function.sendMailRegistrationForContract(onboardinString, executionContext);
 
         Mockito.verify(service, times(1))
-                .sendMailRegistrationWithContract(any());
+                .sendMailRegistrationForContract(any());
     }
 
     @Test
@@ -360,12 +360,12 @@ public class OnboardingFunctionsTest {
     void sendMailRegistrationWithContractWhenApprove() {
         
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationWithContractWhenApprove(any());
+        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any());
 
-        function.sendMailRegistrationWithContractWhenApprove(onboardinString, executionContext);
+        function.sendMailRegistrationForContractWhenApprove(onboardinString, executionContext);
 
         Mockito.verify(service, times(1))
-                .sendMailRegistrationWithContractWhenApprove(any());
+                .sendMailRegistrationForContractWhenApprove(any());
     }
 
 

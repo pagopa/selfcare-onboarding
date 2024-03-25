@@ -136,21 +136,21 @@ public class OnboardingService {
 
     }
 
-    public void sendMailRegistrationWithContract(Onboarding onboarding) {
+    public void sendMailRegistrationForContract(Onboarding onboarding) {
 
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
-        notificationService.sendMailRegistrationWithContract(onboarding.getId(),
+        notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle());
     }
 
-    public void sendMailRegistrationWithContractWhenApprove(Onboarding onboarding) {
+    public void sendMailRegistrationForContractWhenApprove(Onboarding onboarding) {
 
         Product product = productService.getProduct(onboarding.getProductId());
 
-        notificationService.sendMailRegistrationWithContract(onboarding.getId(),
+        notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle());
