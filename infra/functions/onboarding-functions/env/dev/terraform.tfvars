@@ -67,6 +67,7 @@ app_settings = {
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://dev.selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://dev.selfcare.pagopa.it/onboarding/",
   "MS_CORE_URL"                                        = "https://selc-d-ms-core-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"                                        = "https://selc-d-user-ms-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io"
 }

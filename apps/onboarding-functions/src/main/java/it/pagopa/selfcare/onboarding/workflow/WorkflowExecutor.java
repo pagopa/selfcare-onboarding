@@ -46,6 +46,7 @@ public interface WorkflowExecutor {
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
         if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
@@ -53,6 +54,7 @@ public interface WorkflowExecutor {
             List<Task<String>> parallelTasks = onboarding.getTestEnvProductIds().stream()
                     .map(testEnvProductId -> onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString))
                     .map(onboardingStringWithTestEnvProductId -> ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class))
+                    .map(onboardingStringWithTestEnvProductId -> ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class))
                     .collect(Collectors.toList());
 
             // Wait for all tasks to complete

@@ -212,4 +212,10 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString));
         completionService.sendMailRejection(readOnboardingValue(objectMapper, onboardingString));
     }
+
+    @FunctionName(CREATE_USERS_ACTIVITY)
+    public void createOnboardedUsers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
+        completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
+    }
 }
