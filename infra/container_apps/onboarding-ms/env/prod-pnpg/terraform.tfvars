@@ -58,11 +58,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://prod01.pnpg.internal.selfcare.pagopa.it/ms-core/v1"
+    value = "https://selc-p-pnpg-ms-core-ca.salmonpond-60269923.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "https://selc-p-pnpg-party-reg-proxy-ca.salmonpond-60269923.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
