@@ -68,9 +68,9 @@ app_settings = {
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://selfcare.pagopa.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://selfcare.pagopa.it/onboarding/",
-  "MS_CORE_URL"                                        = "https://selc.internal.selfcare.pagopa.it/ms-core/v1",
+  "MS_CORE_URL"                                        = "https://selc-p-ms-core-ca.bluedune-cc0f8752.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.bluedune-cc0f8752.westeurope.azurecontainerapps.io",
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",
