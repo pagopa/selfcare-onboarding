@@ -57,9 +57,9 @@ app_settings = {
   "MAIL_SERVER_PORT"              = "465",
   "MAIL_TEMPLATE_COMPLETE_PATH"   = "resources/templates/email/onboarding_1.0.0.json",
 
-  "MS_CORE_URL"           = "https://uat01.pnpg.internal.uat.selfcare.pagopa.it/ms-core/v1",
+  "MS_CORE_URL"           = "https://selc-u-pnpg-ms-core-ca.redground-be752d1f.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"      = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL" = "http://uat01.pnpg.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_PARTY_REGISTRY_URL" = "https://selc-u-pnpg-party-reg-proxy-ca.redground-be752d1f.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"    = "false",
   "RETRY_MAX_ATTEMPTS"    = "3"
   "FIRST_RETRY_INTERVAL"  = "5"
