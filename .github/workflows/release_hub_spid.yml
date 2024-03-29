@@ -1,0 +1,48 @@
+name: Release - hub-spid-login
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options: 
+        - dev
+        - uat
+        - prod
+
+jobs:
+
+  release_dev:
+    uses: ./.github/workflows/call_release_ms.yml
+    name: '[Dev] Hub-Spid-Login Release'
+    if: ${{ inputs.env == 'dev' }}
+    secrets: inherit
+    with:
+      environment: dev
+      tf_environment: dev
+      dir: 'infra/container_apps/hub_spid_login'
+      docker_image_name: 'selfcare-hub-spid-login'
+      docker_repository: pagopa/selfcare-hub-spid-login-ms
+
+  release_uat:
+    uses: ./.github/workflows/call_release_ms.yml
+    name: '[UAT] Hub-Spid-Login Release'
+    if: ${{ inputs.env == 'uat' }}
+    secrets: inherit
+    with:
+      environment: uat
+      tf_environment: uat
+      dir: 'infra/container_apps/hub_spid_login'
+      docker_image_name: 'selfcare-hub-spid-login'
+
+  release_prod:
+    uses: ./.github/workflows/call_release_ms.yml
+    name: '[Prod] Hub-Spid-Login Release'
+    if: ${{ inputs.env == 'prod' }}
+    secrets: inherit
+    with:
+      environment: prod
+      tf_environment: prod
+      dir: 'infra/container_apps/hub_spid_login'
+      docker_image_name: 'selfcare-hub-spid-login'
