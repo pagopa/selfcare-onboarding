@@ -24,6 +24,7 @@ jobs:
       dir: 'infra/container_apps/hub_spid_login'
       docker_image_name: 'selfcare-hub-spid-login'
       docker_repository: pagopa/selfcare-hub-spid-login-ms
+      file_path: './Dockerfile'
 
   release_uat:
     uses: ./.github/workflows/call_release_ms.yml
