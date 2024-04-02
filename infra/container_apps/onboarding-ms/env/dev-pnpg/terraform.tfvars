@@ -58,11 +58,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-d-pnpg-ms-core-ca.whiteglacier-211c4885.westeurope.azurecontainerapps.io"
+    value = "https://selc-d-pnpg-ms-core-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-d-pnpg-party-reg-proxy-ca.whiteglacier-211c4885.westeurope.azurecontainerapps.io"
+    value = "https://selc-d-pnpg-party-reg-proxy-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
