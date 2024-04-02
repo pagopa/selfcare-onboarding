@@ -10,7 +10,7 @@ module "container_app_onboarding_ms" {
   image_tag          = var.image_tag
   app_settings       = var.app_settings
   secrets_names      = var.secrets_names
-  workload_profile_name = var.workload_profile_name
+  
   probes = [
     {
       httpGet = {
