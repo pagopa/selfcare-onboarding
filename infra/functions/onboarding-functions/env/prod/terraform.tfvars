@@ -71,6 +71,7 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://selc.internal.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_USER_URL"                                        = "https://selc-u-user-ms-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",

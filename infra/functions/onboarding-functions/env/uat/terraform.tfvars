@@ -70,6 +70,7 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "http://selc.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
