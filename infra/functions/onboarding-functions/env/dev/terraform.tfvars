@@ -58,7 +58,7 @@ app_settings = {
   "MAIL_TEMPLATE_FD_COMPLETE_NOTIFICATION_PATH"        = "contracts/template/mail/onboarding-complete-fd/1.0.0.json",
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
-  "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/onboarding-request/1.0.1.json",
   "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://dev.selfcare.pagopa.it/dashboard/admin/onboarding/",
@@ -66,8 +66,8 @@ app_settings = {
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://dev.selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://dev.selfcare.pagopa.it/onboarding/",
-  "MS_CORE_URL"                                        = "https://selc-d-ms-core-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
   "MS_USER_URL"                                        = "https://selc-d-user-ms-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"                                        = "https://selc-d-ms-core-ca.livelydesert-633675bb.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io"
+  "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.livelydesert-633675bb.westeurope.azurecontainerapps.io"
 }
