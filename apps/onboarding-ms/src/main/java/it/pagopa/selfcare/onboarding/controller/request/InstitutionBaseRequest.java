@@ -14,7 +14,6 @@ public class InstitutionBaseRequest {
 
     @NotNull(message = "institutionType is required")
     private InstitutionType institutionType;
-    @NotEmpty(message = "taxCode is required")
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
