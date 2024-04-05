@@ -447,10 +447,6 @@ public class CompletionServiceDefaultTest {
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
 
-
-        when(tokenRepository.findByOnboardingId(any()))
-                .thenReturn(Optional.of(new Token()));
-
         Response response = new ServerResponse(null, 200, null);
         when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
 
