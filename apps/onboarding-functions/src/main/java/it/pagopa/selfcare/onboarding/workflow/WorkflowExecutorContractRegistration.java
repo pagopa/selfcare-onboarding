@@ -25,7 +25,7 @@ public class WorkflowExecutorContractRegistration implements WorkflowExecutor {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_REGISTRATION_WITH_CONTRACT_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.PENDING);
     }
 

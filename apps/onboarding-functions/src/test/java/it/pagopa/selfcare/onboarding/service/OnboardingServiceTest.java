@@ -271,15 +271,15 @@ class OnboardingServiceTest {
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService)
-                .sendMailRegistrationWithContract(onboarding.getId(),
+                .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
 
-        onboardingService.sendMailRegistrationWithContract(onboarding);
+        onboardingService.sendMailRegistrationForContract(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationWithContract(onboarding.getId(),
+                .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
@@ -300,15 +300,15 @@ class OnboardingServiceTest {
                 .thenReturn(product);
 
         doNothing().when(notificationService)
-                .sendMailRegistrationWithContract(onboarding.getId(),
+                .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
                         product.getTitle());
 
-        onboardingService.sendMailRegistrationWithContractWhenApprove(onboarding);
+        onboardingService.sendMailRegistrationForContractWhenApprove(onboarding);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationWithContract(onboarding.getId(),
+                .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
                         product.getTitle());
@@ -320,7 +320,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationWithContract(onboarding));
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboarding));
     }
 
 
