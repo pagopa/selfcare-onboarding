@@ -6,7 +6,7 @@ module "container_app_hub_spid_login" {
   env_short          = var.env_short
   container_app      = var.container_app
   container_app_name = "hub-spid-login"
-  image_name         = "selfcare-hub-spid-login"
+  image_name         = "hub-spid-login-ms"
   image_tag          = var.image_tag
   app_settings       = var.app_settings
   secrets_names      = var.secrets_names
