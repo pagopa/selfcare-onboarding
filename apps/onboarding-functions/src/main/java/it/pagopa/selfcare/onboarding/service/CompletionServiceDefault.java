@@ -202,7 +202,7 @@ public class CompletionServiceDefault implements CompletionService {
             Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
             userRoleDto.getProduct().setTokenId(optToken.map(Token::getId).orElse(null));
             Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
-            if(SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if(!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
             }
         });
