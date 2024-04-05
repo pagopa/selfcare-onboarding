@@ -60,11 +60,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-p-pnpg-ms-core-ca.salmonpond-60269923.westeurope.azurecontainerapps.io"
+    value = "https://selc-p-pnpg-ms-core-ca.redbeach-5da5166f.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-p-pnpg-party-reg-proxy-ca.salmonpond-60269923.westeurope.azurecontainerapps.io"
+    value = "https://selc-p-pnpg-party-reg-proxy-ca.redbeach-5da5166f.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"

@@ -16,6 +16,7 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT
 
 public class PdfMapper {
 
+    private static final String UNDERSCORE = "_______________";
     private static final String[] PLAN_LIST = {"C1", "C2", "C3", "C4", "C5", "C6", "C7"};
     public static final String INSTITUTION_REA = "institutionREA";
     public static final String INSTITUTION_NAME = "institutionName";
@@ -51,7 +52,7 @@ public class PdfMapper {
         Map<String, Object> map = new HashMap<>();
         map.put(INSTITUTION_NAME, institution.getDescription());
         map.put("address", institution.getAddress());
-        map.put("institutionTaxCode", institution.getTaxCode());
+        map.put("institutionTaxCode", Optional.ofNullable(institution.getTaxCode()).orElse(UNDERSCORE));
         map.put("zipCode", institution.getZipCode());
         map.put("managerName", getStringValue(manager.getName()));
         map.put("managerSurname", getStringValue(manager.getFamilyName()));
@@ -61,7 +62,7 @@ public class PdfMapper {
         map.put("managerEmail", mailManager);
         map.put("delegates", delegatesToText(users, onboarding.getUsers()));
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
-        map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(""));
+        map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(UNDERSCORE));
 
         if (!geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
@@ -122,15 +123,14 @@ public class PdfMapper {
             map.put("institutionRecipientCode",onboarding.getBilling().getRecipientCode());
         }
 
-        String underscore = "_______________";
-        map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : underscore);
-        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? getStringValue(validManager.getName()) : underscore);
-        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? getStringValue(validManager.getFamilyName()) : underscore);
-        map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : underscore);
+        map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : UNDERSCORE);
+        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? getStringValue(validManager.getName()) : UNDERSCORE);
+        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? getStringValue(validManager.getFamilyName()) : UNDERSCORE);
+        map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : UNDERSCORE);
 
-        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(underscore));
-        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(underscore));
-        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(underscore));
+        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
 
         addPricingPlan(onboarding.getPricingPlan(), map);
     }
