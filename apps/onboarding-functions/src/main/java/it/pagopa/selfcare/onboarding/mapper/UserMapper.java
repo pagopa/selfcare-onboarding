@@ -7,7 +7,7 @@ import org.openapi.quarkus.core_json.model.Person;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
-@Mapper(componentModel = "cdi", uses = ProductMapper.class)
+@Mapper(componentModel = "cdi")
 public interface UserMapper {
 
     @Mapping(source = "email.value", target = "email")
@@ -20,6 +20,7 @@ public interface UserMapper {
     @Mapping(source = "institution.description", target = "institutionDescription")
     @Mapping(source = "institution.parentDescription", target = "institutionRootName")
     @Mapping(target = "hasToSendEmail", constant = "false")
+    @Mapping(target = "product", source = ".")
     AddUserRoleDto toUserRole(Onboarding onboarding);
 
 

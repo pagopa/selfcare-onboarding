@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
+import it.pagopa.selfcare.onboarding.mapper.ProductMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -76,6 +77,10 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Inject
     UserMapper userMapper;
+
+    @Inject
+    ProductMapper productMapper;
+
     @Inject
     NotificationService notificationService;
     @Inject
@@ -193,6 +198,7 @@ public class CompletionServiceDefault implements CompletionService {
         List<User> users = onboarding.getUsers();
         users.forEach(user -> {
             AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
             Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
             userRoleDto.getProduct().setTokenId(optToken.map(Token::getId).orElse(null));
             Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
