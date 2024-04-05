@@ -26,6 +26,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -207,6 +208,34 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingsOrchestratorConfirmationWithTestProductIds() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(6))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(3));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+    }
+
+    @Test
     void onboardingsOrchestratorImport() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
@@ -283,6 +312,7 @@ public class OnboardingFunctionsTest {
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
         when(task.await()).thenReturn("example");
+        when(orchestrationContext.allOf(anyList())).thenReturn(task);
         return orchestrationContext;
     }
 
