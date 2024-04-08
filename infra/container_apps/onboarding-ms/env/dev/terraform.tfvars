@@ -56,10 +56,6 @@ app_settings = [
     value = "selc-d-product"
   },
   {
-    name  = "MS_CORE_URL"
-    value = "https://selc-d-ms-core-ca.livelydesert-633675bb.westeurope.azurecontainerapps.io"
-  },
-  {
     name  = "MS_PARTY_REGISTRY_URL"
     value = "https://selc-d-party-reg-proxy-ca.livelydesert-633675bb.westeurope.azurecontainerapps.io"
   },
