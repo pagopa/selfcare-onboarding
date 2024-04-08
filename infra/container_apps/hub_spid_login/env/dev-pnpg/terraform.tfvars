@@ -11,9 +11,22 @@ tags = {
 }
 
 container_app = {
-  min_replicas = 1
+  min_replicas = 0
   max_replicas = 1
-  scale_rules  = []
+  scale_rules = [
+    {
+      custom = {
+        metadata = {
+          "desiredReplicas" = "1"
+          "start"           = "0 8 * * MON-FRI"
+          "end"             = "0 19 * * MON-FRI"
+          "timezone"        = "Europe/Rome"
+        }
+        type = "cron"
+      }
+      name = "cron-scale-rule"
+    }
+  ]
   cpu          = 0.5
   memory       = "1Gi"
 }
@@ -54,11 +67,11 @@ app_settings = [
    },
   {
     name  = "ENDPOINT_ERROR"
-    value =  "https://imprese.dev.notifichedigitali.it/auth/login/error"
+    value =  "https://pnpg.dev.selfcare.pagopa.it/auth/login/error"
    },
   {
     name  = "ENDPOINT_SUCCESS"
-    value = "https://imprese.dev.notifichedigitali.it/auth/login/success"
+    value = "https://pnpg.dev.selfcare.pagopa.it/auth/login/success"
   },
   {
     name  = "ENDPOINT_LOGIN"
@@ -102,7 +115,7 @@ app_settings = [
    },
   {
     name  = "COMPANY_NAME"
-    value = "PagoPA"
+    value = "PagoPA S.p.A."
    },
   {
     name  = "COMPANY_VAT_NUMBER"
@@ -119,7 +132,7 @@ app_settings = [
    },
   {
     name  = "TOKEN_EXPIRATION"
-    value = 3600
+    value = 32400
    },
   {
     name  = "JWT_TOKEN_ISSUER"
@@ -178,7 +191,7 @@ app_settings = [
     value = "https://api.is.eng.pagopa.it/idp-keys/spid/latest"
  },
   {
-    name  = "SPID_TESTENV_URL
+    name  = "SPID_TESTENV_URL"
     value = "https://selc-d-pnpg-spid-testenv.westeurope.azurecontainer.io"
   },
   {
@@ -187,7 +200,11 @@ app_settings = [
   },
   { 
     name  = "REDIS_URL"
-    value = "selc-d-weu-pnpg-redis.redis.cache.windows.net
+    value = "selc-d-weu-pnpg-redis.redis.cache.windows.net"
+  },
+  { 
+    name  = "WELL_KNOWN_URL"
+    value = "https://selcdweupnpgcheckoutsa.z6.web.core.windows.net/.well-known/jwks.json"
   }
 ]
 
@@ -195,7 +212,7 @@ secrets_names = {
   "SPID_LOGS_PUBLIC_KEY"                    = "spid-logs-encryption-public-key"
   "REDIS_PASSWORD"                          = "redis-primary-access-key"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
-
+  "APPINSIGHTS_INSTRUMENTATIONKEY"          = "appinsights-instrumentation-key"
   "JWT_TOKEN_PRIVATE_KEY"                   = "jwt-private-key"
   "JWT_TOKEN_KID"                           = "jwt-kid"
   "METADATA_PUBLIC_CERT"                    = "agid-spid-cert"
