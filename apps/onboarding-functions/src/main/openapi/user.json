@@ -1,7 +1,7 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : "User API (development)",
+    "title" : "user-ms API",
     "version" : "1.0.0"
   },
   "servers" : [ {
@@ -49,11 +49,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -104,11 +104,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -184,11 +184,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -222,11 +222,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -317,11 +317,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -351,11 +351,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -396,11 +396,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -436,11 +436,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -486,11 +486,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -529,11 +529,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -576,11 +576,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -623,11 +623,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -672,11 +672,11 @@
           "204" : {
             "description" : "No Content"
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -733,11 +733,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -767,7 +767,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/MutableUserFieldsDto"
+                "$ref" : "#/components/schemas/UpdateUserRequest"
               }
             }
           }
@@ -779,11 +779,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -819,11 +819,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -906,11 +906,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -956,11 +956,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -998,11 +998,11 @@
           "204" : {
             "description" : "No Content"
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -1030,30 +1030,11 @@
           "institutionRootName" : {
             "type" : "string"
           },
+          "userMailUuid" : {
+            "type" : "string"
+          },
           "hasToSendEmail" : {
             "type" : "boolean"
-          }
-        }
-      },
-      "CertifiableFieldResourceOfLocalDate" : {
-        "type" : "object",
-        "properties" : {
-          "certification" : {
-            "$ref" : "#/components/schemas/CertificationEnum1"
-          },
-          "value" : {
-            "$ref" : "#/components/schemas/LocalDate"
-          }
-        }
-      },
-      "CertifiableFieldResourceOfstring" : {
-        "type" : "object",
-        "properties" : {
-          "certification" : {
-            "$ref" : "#/components/schemas/CertificationEnum"
-          },
-          "value" : {
-            "type" : "string"
           }
         }
       },
@@ -1069,10 +1050,6 @@
         }
       },
       "CertificationEnum" : {
-        "enum" : [ "NONE", "SPID" ],
-        "type" : "string"
-      },
-      "CertificationEnum1" : {
         "enum" : [ "NONE", "SPID" ],
         "type" : "string"
       },
@@ -1105,38 +1082,10 @@
         "enum" : [ "ROOT", "DEV", "COLL", "PROD" ],
         "type" : "string"
       },
-      "LocalDate" : {
-        "format" : "date",
-        "type" : "string",
-        "example" : "2022-03-10"
-      },
       "LocalDateTime" : {
         "format" : "date-time",
         "type" : "string",
         "example" : "2022-03-10T12:15:50"
-      },
-      "MutableUserFieldsDto" : {
-        "type" : "object",
-        "properties" : {
-          "birthDate" : {
-            "$ref" : "#/components/schemas/CertifiableFieldResourceOfLocalDate"
-          },
-          "email" : {
-            "$ref" : "#/components/schemas/CertifiableFieldResourceOfstring"
-          },
-          "familyName" : {
-            "$ref" : "#/components/schemas/CertifiableFieldResourceOfstring"
-          },
-          "name" : {
-            "$ref" : "#/components/schemas/CertifiableFieldResourceOfstring"
-          },
-          "workContacts" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "$ref" : "#/components/schemas/WorkContactResource"
-            }
-          }
-        }
       },
       "OnboardedProductResponse" : {
         "type" : "object",
@@ -1233,6 +1182,20 @@
         "properties" : {
           "fiscalCode" : {
             "pattern" : "\\S",
+            "type" : "string"
+          }
+        }
+      },
+      "UpdateUserRequest" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "familyName" : {
+            "type" : "string"
+          },
+          "email" : {
             "type" : "string"
           }
         }
@@ -1506,14 +1469,6 @@
             "items" : {
               "$ref" : "#/components/schemas/UserNotificationResponse"
             }
-          }
-        }
-      },
-      "WorkContactResource" : {
-        "type" : "object",
-        "properties" : {
-          "email" : {
-            "$ref" : "#/components/schemas/CertifiableFieldResourceOfstring"
           }
         }
       },
