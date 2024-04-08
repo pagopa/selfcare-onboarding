@@ -10,9 +10,9 @@ on:
         - dev
         - uat
         - prod
-      short_sha:
+      release_version:
         type: string
-        description: Hub-Sping-Login short sha
+        description: Hub-Sping-Login release version
 
 env:
   dir: infra/container_apps/hub_spid_login
@@ -29,11 +29,18 @@ jobs:
       contents: read
     outputs:
       terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version}}
+      image_tag: ${{ steps.setsha.outputs.short_sha }}
 
     steps:
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout
+
+      - name: Set Short Git Commit SHA
+        id: setsha
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "short_sha=sha-$calculatedSha" >> $GITHUB_OUTPUT
 
       - name: Set Terraform Version
         id: set-terraform-version
@@ -54,14 +61,14 @@ jobs:
           dir: ${{ env.dir }}
           azure_environment: ${{ inputs.env }}
         env:
-          TF_VAR_image_tag: ${{ inputs.short_sha }}
+          TF_VAR_image_tag: ${{ inputs.release_version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Upload Terraform Plan as Artifact"
         uses: actions/upload-artifact@694cdabd8bdb0f10b2cea11669e1bf5453eed0a6 # v4.2.0
         with:
           name: tfplan
-          path: ${{ env.dir }}/tfplan-${{ inputs.env }}-${{ inputs.short_sha }}
+          path: ${{ env.dir }}/tfplan-${{ inputs.env }}-${{ github.sha }}
           if-no-files-found: error
           retention-days: 14
 
@@ -100,7 +107,7 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.dir }}/.terraform
-          key: terraform-${{ env.dir }}-${{ inputs.sha }}
+          key: terraform-${{ env.dir }}-${{ github.sha }}
           restore-keys: |
             terraform-${{ env.dir }}
 
@@ -119,6 +126,6 @@ jobs:
         shell: bash
         working-directory: ${{ env.dir }}
         run: |
-          terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ inputs.env }}-${{ inputs.short_sha }}
+          terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ inputs.env }}-${{ github.sha }}
         env:
           TF_VAR_image_tag: ${{ needs.tf_plan.outputs.image_tag }}

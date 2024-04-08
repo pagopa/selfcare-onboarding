@@ -93,11 +93,11 @@ app_settings = [
    },
   {
     name  = "REQUIRED_ATTRIBUTES_SERVICE_NAME"
-    value = "Selfcare Portale"
+    value = "Selfcare Portal"
    },
   {
     name  = "ENABLE_FULL_OPERATOR_METADATA"
-    value    = true
+    value    = "true"
    },
   {
     name  = "COMPANY_EMAIL"
