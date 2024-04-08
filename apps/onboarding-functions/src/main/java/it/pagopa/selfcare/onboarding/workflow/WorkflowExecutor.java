@@ -7,6 +7,7 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,14 +47,18 @@ public interface WorkflowExecutor {
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
         if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
-            List<Task<String>> parallelTasks = onboarding.getTestEnvProductIds().stream()
-                    .map(testEnvProductId -> onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString))
-                    .map(onboardingStringWithTestEnvProductId -> ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class))
-                    .collect(Collectors.toList());
+            List<Task<String>> parallelTasks = new ArrayList<>();
+            onboarding.getTestEnvProductIds().stream()
+                    .forEach(testEnvProductId -> {
+                        final String onboardingStringWithTestEnvProductId = onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString);
+                        parallelTasks.add(ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class));
+                        parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class));
+                    });
 
             // Wait for all tasks to complete
             ctx.allOf(parallelTasks).await();

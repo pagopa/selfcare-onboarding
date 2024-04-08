@@ -19,7 +19,9 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -30,6 +32,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -62,6 +65,9 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     InstitutionApi institutionApi;
+    @RestClient
+    @InjectMock
+    UserControllerApi userControllerApi;
     @RestClient
     @InjectMock
     UserApi userRegistryApi;
@@ -429,6 +435,25 @@ public class CompletionServiceDefaultTest {
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRejection(any(), any(), any());
+    }
+
+    @Test
+    void persistUsers() {
+
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+
+        completionServiceDefault.persistUsers(onboarding);
+
+        Mockito.verify(userControllerApi, times(1))
+                .usersUserIdPost(any(), any());
     }
 
     private InstitutionResponse dummyInstitutionResponse() {
