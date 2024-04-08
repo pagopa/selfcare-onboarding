@@ -542,12 +542,9 @@ components:
         publicServices:
           type: boolean
     BillingRequest:
-      required:
-      - vatNumber
       type: object
       properties:
         vatNumber:
-          minLength: 1
           type: string
         recipientCode:
           type: string
@@ -581,14 +578,12 @@ components:
     InstitutionBaseRequest:
       required:
       - institutionType
-      - taxCode
       - digitalAddress
       type: object
       properties:
         institutionType:
           $ref: '#/components/schemas/InstitutionType'
         taxCode:
-          minLength: 1
           type: string
         subunitCode:
           type: string
@@ -681,7 +676,6 @@ components:
     InstitutionPspRequest:
       required:
       - institutionType
-      - taxCode
       - digitalAddress
       - paymentServiceProvider
       type: object
@@ -689,7 +683,6 @@ components:
         institutionType:
           $ref: '#/components/schemas/InstitutionType'
         taxCode:
-          minLength: 1
           type: string
         subunitCode:
           type: string

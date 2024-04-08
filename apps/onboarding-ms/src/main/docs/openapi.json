@@ -766,11 +766,9 @@
         }
       },
       "BillingRequest" : {
-        "required" : [ "vatNumber" ],
         "type" : "object",
         "properties" : {
           "vatNumber" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "recipientCode" : {
@@ -821,14 +819,13 @@
         }
       },
       "InstitutionBaseRequest" : {
-        "required" : [ "institutionType", "taxCode", "digitalAddress" ],
+        "required" : [ "institutionType", "digitalAddress" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
             "$ref" : "#/components/schemas/InstitutionType"
           },
           "taxCode" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "subunitCode" : {
@@ -960,14 +957,13 @@
         "type" : "string"
       },
       "InstitutionPspRequest" : {
-        "required" : [ "institutionType", "taxCode", "digitalAddress", "paymentServiceProvider" ],
+        "required" : [ "institutionType", "digitalAddress", "paymentServiceProvider" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
             "$ref" : "#/components/schemas/InstitutionType"
           },
           "taxCode" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "subunitCode" : {
