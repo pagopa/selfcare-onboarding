@@ -10,9 +10,22 @@ tags = {
 }
 
 container_app = {
-  min_replicas = 1
+  min_replicas = 0
   max_replicas = 1
-  scale_rules  = []
+  scale_rules = [
+    {
+      custom = {
+        metadata = {
+          "desiredReplicas" = "1"
+          "start"           = "0 8 * * MON-FRI"
+          "end"             = "0 19 * * MON-FRI"
+          "timezone"        = "Europe/Rome"
+        }
+        type = "cron"
+      }
+      name = "cron-scale-rule"
+    }
+  ]
   cpu          = 0.5
   memory       = "1Gi"
 }
@@ -29,37 +42,37 @@ app_settings = [
   {
     name  = "ORG_URL"
     value = "https://www.pagopa.gov.it"
-   },
+  },
   {
     name  = "ACS_BASE_URL"
     value= "https://api.dev.selfcare.pagopa.it/spid/v1"
-   },
+  },
   {
     name  = "ORG_DISPLAY_NAME"
     value = "PagoPA S.p.A"
-   },
+  },
   {
     name  = "ORG_NAME"
     value = "PagoPA"
-   },
+  },
   {
     name  = "AUTH_N_CONTEXT"
     value = "https://www.spid.gov.it/SpidL2"
-   },
+  },
   {
     name  = "ENDPOINT_ACS"
     value = "/acs"
-   },
+  },
   {
     name  = "ENDPOINT_ERROR"
     value =  "https://dev.selfcare.pagopa.it/auth/login/error"
-   },
+  },
   {
     name  = "ENDPOINT_SUCCESS"
     value = "https://dev.selfcare.pagopa.it/auth/login/success"
   },
   {
-    name  = " ENDPOINT_LOGIN"
+    name  = "ENDPOINT_LOGIN"
     value    = "/login"
    },
   {
@@ -112,11 +125,11 @@ app_settings = [
    },
   {
     name  = "INCLUDE_SPID_USER_ON_INTROSPECTION"
-    value = "true  
+    value = "true"  
    },
   {
     name  = "TOKEN_EXPIRATION"
-    value = 3600
+    value = 32400
    },
   {
     name  = "JWT_TOKEN_ISSUER"
@@ -150,18 +163,18 @@ app_settings = [
     name  = "SPID_LOGS_STORAGE_CONTAINER_NAME"
     value = "selc-d-logs-blob"
  },
-  {
+ {
     name  = "APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL"
     value = "OFF"
  },
-  {
+ {
     name  = "USER_REGISTRY_URL"
     value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
  },
   {
     name  = "ORG_ISSUER"
     value = "https://selfcare.pagopa.it"
- },
+  },
   {
     name  = "CIE_URL"
     value = "https://preproduzione.idserver.servizicie.interno.gov.it/idp/shibboleth?Metadata"
@@ -175,8 +188,8 @@ app_settings = [
     value = "https://api.is.eng.pagopa.it/idp-keys/spid/latest"
  },
   {
-    name  = "SPID_TESTENV_URL
-    value = "https://selc-d-pnpg-spid-testenv.westeurope.azurecontainer.io"
+    name  = "SPID_TESTENV_URL"
+    value = "https://selc-d-spid-testenv.westeurope.azurecontainer.io"
   },
   {
     name  = "REDIS_PORT"
@@ -184,7 +197,11 @@ app_settings = [
   },
   { 
     name  = "REDIS_URL"
-    value = "selc-d-weu-pnpg-redis.redis.cache.windows.net
+    value = "selc-d-redis.redis.cache.windows.net"
+  },
+  { 
+    name  = "WELL_KNOWN_URL"
+    value = "https://selcdcheckoutsa.z6.web.core.windows.net/.well-known/jwks.json"
   }
 ]
 
@@ -192,11 +209,12 @@ secrets_names = {
   "SPID_LOGS_PUBLIC_KEY"                    = "spid-logs-encryption-public-key"
   "REDIS_PASSWORD"                          = "redis-primary-access-key"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
-
+  "APPINSIGHTS_INSTRUMENTATIONKEY"          = "appinsights-instrumentation-key"
   "JWT_TOKEN_PRIVATE_KEY"                   = "jwt-private-key"
   "JWT_TOKEN_KID"                           = "jwt-kid"
-  "METADATA_PUBLIC_CERT"                    = "agid-spid-cert"
-  "METADATA_PRIVATE_CERT"                   = "agid-spid-private-key"
+  "JWT_TOKEN_PUBLIC_KEY"                    = "jwt-public-key"
+  "METADATA_PUBLIC_CERT"                    = "agid-login-cert"
+  "METADATA_PRIVATE_CERT"                   = "agid-login-private-key"
   "USER_REGISTRY_API_KEY"                   = "user-registry-api-key"
   "SPID_LOGS_STORAGE_CONNECTION_STRING"     = "logs-storage-connection-string"
 }

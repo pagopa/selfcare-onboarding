@@ -61,7 +61,7 @@ app_settings = [
     value = "https://imprese.dev.notifichedigitali.it/auth/login/success"
   },
   {
-    name  = " ENDPOINT_LOGIN"
+    name  = "ENDPOINT_LOGIN"
     value    = "/login"
    },
   {
@@ -86,7 +86,7 @@ app_settings = [
    },
   {
     name  = "ENABLE_FULL_OPERATOR_METADATA"
-    value    = true
+    value = "true"
    },
   {
     name  = "COMPANY_EMAIL"
@@ -94,7 +94,7 @@ app_settings = [
    },
   {
     name  = "COMPANY_FISCAL_CODE"
-    value = 15376371009
+    value = "15376371009"
    },
   {
     name  = "COMPANY_IPA_CODE"
@@ -115,7 +115,7 @@ app_settings = [
    },
   {
     name  = "INCLUDE_SPID_USER_ON_INTROSPECTION"
-    value = "true  
+    value = "true"
    },
   {
     name  = "TOKEN_EXPIRATION"

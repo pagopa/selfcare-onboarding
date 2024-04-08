@@ -13,32 +13,32 @@ module "container_app_hub_spid_login" {
   probes = [
     {
       httpGet = {
-        path   = "q/health/live"
+        path   = "/info"
         port   = 8080
         scheme = "HTTP"
       }
       timeoutSeconds   = 5
       type             = "Liveness"
-      failureThreshold = 3
+      failureThreshold = 5
     },
     {
       httpGet = {
-        path   = "q/health/ready"
+        path   = "/info"
         port   = 8080
         scheme = "HTTP"
       }
       timeoutSeconds   = 5
       type             = "Readiness"
-      failureThreshold = 30
+      failureThreshold = 3
     },
     {
       httpGet = {
-        path   = "q/health/started"
+        path   = "/info"
         port   = 8080
         scheme = "HTTP"
       }
       timeoutSeconds   = 5
-      failureThreshold = 5
+      failureThreshold = 30
       type             = "Startup"
     }
   ]
