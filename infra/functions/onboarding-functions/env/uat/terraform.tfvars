@@ -69,7 +69,7 @@ app_settings = {
   "MAIL_ONBOARDING_URL"                                = "https://uat.selfcare.pagopa.it/onboarding/",
   "MS_CORE_URL"                                        = "https://selc-u-ms-core-ca.agreeablesky-f71e6306.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.gentleflower-c63e62fe.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.agreeablesky-f71e6306.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-u-party-reg-proxy-ca.agreeablesky-f71e6306.westeurope.azurecontainerapps.io",
 
   ##ARUBA SIGNATURE
