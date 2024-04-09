@@ -6,6 +6,7 @@ module "container_app_onboarding_ms" {
   env_short          = var.env_short
   container_app      = var.container_app
   container_app_name = "onboarding-ms"
+  container_app_environment_name = local.container_app_environment_name
   image_name         = "selfcare-onboarding-ms"
   image_tag          = var.image_tag
   app_settings       = var.app_settings
