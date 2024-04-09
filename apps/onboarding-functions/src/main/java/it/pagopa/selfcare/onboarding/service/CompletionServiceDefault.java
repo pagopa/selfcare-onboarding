@@ -198,6 +198,7 @@ public class CompletionServiceDefault implements CompletionService {
         List<User> users = onboarding.getUsers();
         users.forEach(user -> {
             AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+            userRoleDto.setUserMailUuid(user.getUserMailUuid());
             userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
             userRoleDto.getProduct().setTokenId(onboarding.getId());
             Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
