@@ -417,7 +417,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom().failure(ex);
                             }
 
-                            String userMailRandomUuid = UUID.randomUUID().toString();
+                            String userMailRandomUuid = ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
                             return userRegistryApi.saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid))
                                     .onItem().transform(userId -> User.builder()
                                             .id(userId.getId().toString())
@@ -460,7 +460,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(entry -> entry.getValue().getEmail().getValue().equals(userMail))
                 .findFirst()
                 .map(Map.Entry::getKey)
-                .orElse(UUID.randomUUID().toString());
+                .orElse(ID_MAIL_PREFIX.concat(UUID.randomUUID().toString()));
     }
 
     protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(UserRequest user, UserResource foundUser, Optional<String> optUserMailRandomUuid) {
