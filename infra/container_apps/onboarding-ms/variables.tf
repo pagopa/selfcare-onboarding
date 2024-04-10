@@ -67,3 +67,15 @@ variable "secrets_names" {
   type        = map(string)
   description = "KeyVault secrets to get values from <env,secret-ref>"
 }
+
+variable "workload_profile_name" {
+  type        = string
+  description = "Workload Profile name to use"
+  default     = null
+}
+
+variable "cae_name" {
+  type        = string
+  description = "Container App Environment name"
+  default     = "cae-cp"
+}

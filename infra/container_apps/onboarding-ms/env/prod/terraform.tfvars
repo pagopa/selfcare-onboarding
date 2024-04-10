@@ -57,11 +57,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-p-ms-core-ca.salmonstone-7f910b8f.westeurope.azurecontainerapps.io"
+    value = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-p-party-reg-proxy-ca.salmonstone-7f910b8f.westeurope.azurecontainerapps.io"
+    value = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
   },
   {
     name  = "STORAGE_CONTAINER_CONTRACT"
