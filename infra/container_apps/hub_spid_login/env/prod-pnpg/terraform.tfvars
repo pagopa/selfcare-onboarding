@@ -191,10 +191,6 @@ app_settings = [
     value = "https://api.is.eng.pagopa.it/idp-keys/spid/latest"
   },
   {
-    name  = "SPID_TESTENV_URL"
-    value = "https://selc-p-pnpg-spid-testenv.westeurope.azurecontainer.io"
-  },
-  {
     name  = "REDIS_PORT"
     value = "6380"
   },
