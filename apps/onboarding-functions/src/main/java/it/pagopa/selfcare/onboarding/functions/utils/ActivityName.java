@@ -19,4 +19,6 @@ public class ActivityName {
     public static final String SEND_MAIL_REJECTION_ACTIVITY = "SendMailRejection";
 
     public static final String CREATE_USERS_ACTIVITY = "CreateUsers";
+
+    public static final String FD_CHECK_ORGANIZATION = "FDCheckOrganization";
 }

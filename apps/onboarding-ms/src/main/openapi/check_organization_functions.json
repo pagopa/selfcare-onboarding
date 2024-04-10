@@ -1,0 +1,108 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "checkOrganization-functions",
+    "description": "Verify onboarding on external FD server",
+    "version": "0.0.1-SNAPSHOT"
+  },
+  "servers": [
+    {
+      "url": "{url}:{port}{basePath}",
+      "variables": {
+        "url": {
+          "default": "http://localhost"
+        },
+        "port": {
+          "default": "80"
+        },
+        "basePath": {
+          "default": ""
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "name": "FD",
+      "description": "FD Trigger"
+    }
+  ],
+  "paths": {
+    "/api/CheckOrganization": {
+      "get": {
+        "tags": [
+          "FD"
+        ],
+        "summary": "",
+        "description": "",
+        "parameters": [
+          {
+            "name": "fiscalCode",
+            "in": "query",
+            "description": "Institution fiscalCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vatNumber",
+            "in": "query",
+            "description": "Institution vatNumber",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationLightBeanResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrganizationLightBeanResponse": {
+        "title": "OrganizationLightBeanResponse",
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "alreadyRegistered": {
+                "type": "boolean",
+                "description": ""
+              },
+              "OrganizationResponse": {
+                "type": "object",
+                "description": "Organization detail"
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "name": "x-functions-key",
+        "in": "header"
+      }
+    }
+  }
+}

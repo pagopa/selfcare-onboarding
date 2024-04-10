@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.ExternalService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,9 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
+
+    @InjectMock
+    ExternalService externalService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 

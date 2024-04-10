@@ -15,6 +15,7 @@ import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.ExternalService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
 
@@ -36,14 +37,17 @@ public class OnboardingFunctions {
 
     private final OnboardingService service;
     private final CompletionService completionService;
+    private final ExternalService externalService;
 
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig, CompletionService completionService) {
+    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig,
+                               CompletionService completionService, ExternalService externalService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
+        this.externalService = externalService;
 
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
@@ -217,5 +221,14 @@ public class OnboardingFunctions {
     public void createOnboardedUsers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(FD_CHECK_ORGANIZATION)
+    public void checkOrganizationFD(
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET, HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            String productId, String fiscalCode, String vatNumber,
+            final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, FD_CHECK_ORGANIZATION, ""));
+        externalService.checkOrganization(productId, fiscalCode, vatNumber);
     }
 }
