@@ -1,7 +1,7 @@
-prefix    = "selc"
-env_short = "u"
-cae_name  = "cae"
-workload_profile_name = "Consumption"
+prefix           = "selc"
+env_short        = "u"
+suffix_increment = "-001"
+cae_name         = "cae-001"
 
 tags = {
   CreatedBy   = "Terraform"
