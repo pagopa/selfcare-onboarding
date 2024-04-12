@@ -466,6 +466,23 @@ public class CompletionServiceDefaultTest {
                 .usersUserIdPost(any(), any());
     }
 
+    @Test
+    void persistUsersWithException() {
+
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        Response response = new ServerResponse(null, 500, null);
+        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
+
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
