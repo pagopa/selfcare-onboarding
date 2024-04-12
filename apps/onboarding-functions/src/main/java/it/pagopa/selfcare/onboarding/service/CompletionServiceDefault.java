@@ -20,6 +20,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
@@ -45,7 +46,6 @@ import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
-
 
     @RestClient
     @Inject
@@ -85,6 +85,9 @@ public class CompletionServiceDefault implements CompletionService {
     NotificationService notificationService;
     @Inject
     ProductService productService;
+
+    @ConfigProperty(name = "onboarding-functions.persist-users.active")
+    private boolean isUserMSActive;
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
@@ -195,18 +198,19 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistUsers(Onboarding onboarding) {
-        List<User> users = onboarding.getUsers();
-        users.forEach(user -> {
-            AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
-            userRoleDto.setUserMailUuid(user.getUserMailUuid());
-            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
-            userRoleDto.getProduct().setTokenId(onboarding.getId());
-            Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
-            if(!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
-            }
-        });
-
+        if(isUserMSActive) {
+            List<User> users = onboarding.getUsers();
+            users.forEach(user -> {
+                AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+                userRoleDto.setUserMailUuid(user.getUserMailUuid());
+                userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+                userRoleDto.getProduct().setTokenId(onboarding.getId());
+                Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
+                if(!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                }
+            });
+        }
     }
 
     @Override

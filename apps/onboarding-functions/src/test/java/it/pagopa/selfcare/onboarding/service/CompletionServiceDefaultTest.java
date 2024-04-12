@@ -3,6 +3,8 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
@@ -47,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
+@TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
     public static final String MANAGER_WORKCONTRACT_MAIL = "mail@mail.it";
@@ -82,6 +85,13 @@ public class CompletionServiceDefaultTest {
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     final String productId = "productId";
+
+    public static class UserMSProfile implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("onboarding-functions.persist-users.active", "true");
+        }
+    }
 
     @Test
     void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
@@ -454,6 +464,23 @@ public class CompletionServiceDefaultTest {
 
         Mockito.verify(userControllerApi, times(1))
                 .usersUserIdPost(any(), any());
+    }
+
+    @Test
+    void persistUsersWithException() {
+
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        Response response = new ServerResponse(null, 500, null);
+        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
+
     }
 
     private InstitutionResponse dummyInstitutionResponse() {
