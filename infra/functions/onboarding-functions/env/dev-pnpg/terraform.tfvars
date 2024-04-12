@@ -72,5 +72,6 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"                                 = "false",
-  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web",
+  "USER_MS_ACTIVE"                                     = "true"
 }
