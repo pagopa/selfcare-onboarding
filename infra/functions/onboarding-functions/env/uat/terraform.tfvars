@@ -69,7 +69,7 @@ app_settings = {
   "MAIL_ONBOARDING_URL"                                = "https://uat.selfcare.pagopa.it/onboarding/",
   "MS_CORE_URL"                                        = "https://selc-u-ms-core-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"                                        = "https://selc-u-user-ms-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-u-party-reg-proxy-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
   "USER_MS_ACTIVE"                                     = "true"
 
