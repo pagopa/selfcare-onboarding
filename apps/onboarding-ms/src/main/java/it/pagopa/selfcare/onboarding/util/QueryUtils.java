@@ -67,6 +67,14 @@ public class QueryUtils {
         Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put("to", value));
         return queryParameterMap;
     }
+    public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId) {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
+        Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put("institution.subunitCode", value));
+        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put("institution.origin", value));
+        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put("institution.originId", value));
+        return queryParameterMap;
+    }
 
     public static Map<String, Object> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
         Map<String, Object> queryParameterMap = new HashMap<>();

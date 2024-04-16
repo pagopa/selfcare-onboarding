@@ -719,6 +719,16 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
+    public Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId) {
+        Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(taxCode, subunitCode, origin, originId);
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return Onboarding.find(query).stream()
+                .map(Onboarding.class::cast)
+                .map(onboardingMapper::toResponse)
+                .collect().asList();
+    }
+
+    @Override
     public Uni<OnboardingGet> onboardingGet(String onboardingId) {
         return Onboarding.findByIdOptional(onboardingId)
                 .onItem().transformToUni(opt -> opt

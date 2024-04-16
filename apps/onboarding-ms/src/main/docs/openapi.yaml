@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: onboarding-ms API
+  title: Onboarding API (development)
   version: 1.0.0
 servers:
 - url: http://localhost:8080
@@ -104,6 +104,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/institutionOnboardings:
+    get:
+      tags:
+      - Onboarding Controller
+      summary: Returns an onboarding record by institution taxCode/subunitCode/origin/originId
+      parameters:
+      - name: origin
+        in: query
+        schema:
+          type: string
+      - name: originId
+        in: query
+        schema:
+          type: string
+      - name: subunitCode
+        in: query
+        schema:
+          type: string
+      - name: taxCode
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OnboardingResponse'
         "401":
           description: Not Authorized
         "403":
