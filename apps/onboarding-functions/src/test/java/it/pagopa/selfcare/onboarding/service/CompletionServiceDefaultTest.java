@@ -3,6 +3,8 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
@@ -19,7 +21,9 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -30,6 +34,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -44,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
+@TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
     public static final String MANAGER_WORKCONTRACT_MAIL = "mail@mail.it";
@@ -64,6 +70,9 @@ public class CompletionServiceDefaultTest {
     InstitutionApi institutionApi;
     @RestClient
     @InjectMock
+    UserControllerApi userControllerApi;
+    @RestClient
+    @InjectMock
     UserApi userRegistryApi;
     @RestClient
     @InjectMock
@@ -76,6 +85,13 @@ public class CompletionServiceDefaultTest {
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     final String productId = "productId";
+
+    public static class UserMSProfile implements QuarkusTestProfile {
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("onboarding-functions.persist-users.active", "true");
+        }
+    }
 
     @Test
     void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
@@ -429,6 +445,42 @@ public class CompletionServiceDefaultTest {
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRejection(any(), any(), any());
+    }
+
+    @Test
+    void persistUsers() {
+
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+
+        completionServiceDefault.persistUsers(onboarding);
+
+        Mockito.verify(userControllerApi, times(1))
+                .usersUserIdPost(any(), any());
+    }
+
+    @Test
+    void persistUsersWithException() {
+
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        Response response = new ServerResponse(null, 500, null);
+        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
+
     }
 
     private InstitutionResponse dummyInstitutionResponse() {

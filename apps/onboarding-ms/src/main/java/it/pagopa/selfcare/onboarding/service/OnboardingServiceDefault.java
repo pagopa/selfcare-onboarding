@@ -75,9 +75,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
-    public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_ALREADY_ONBOARDED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s' because is already onboarded.";
     public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
-
+    private static final String  ID_MAIL_PREFIX = "ID_MAIL#";
 
     @RestClient
     @Inject
@@ -418,7 +417,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom().failure(ex);
                             }
 
-                            String userMailRandomUuid = UUID.randomUUID().toString();
+                            String userMailRandomUuid = ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
                             return userRegistryApi.saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid))
                                     .onItem().transform(userId -> User.builder()
                                             .id(userId.getId().toString())
@@ -453,7 +452,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private String retrieveUserMailUuid(UserResource foundUser, String userMail) {
         if(Objects.isNull(foundUser.getWorkContacts())) {
-            return UUID.randomUUID().toString();
+            return ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
         }
 
         return foundUser.getWorkContacts().entrySet().stream()
@@ -461,7 +460,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(entry -> entry.getValue().getEmail().getValue().equals(userMail))
                 .findFirst()
                 .map(Map.Entry::getKey)
-                .orElse(UUID.randomUUID().toString());
+                .orElse(ID_MAIL_PREFIX.concat(UUID.randomUUID().toString()));
     }
 
     protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(UserRequest user, UserResource foundUser, Optional<String> optUserMailRandomUuid) {

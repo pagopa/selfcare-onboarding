@@ -1,6 +1,8 @@
-prefix    = "selc"
-env_short = "u"
-is_pnpg   = true
+prefix           = "selc"
+env_short        = "u"
+is_pnpg          = true
+suffix_increment = "-001"
+cae_name         = "cae-001"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -45,11 +47,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-u-pnpg-ms-core-ca.calmforest-ffe47bf1.westeurope.azurecontainerapps.io"
+    value = "https://selc-u-pnpg-ms-core-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-u-pnpg-party-reg-proxy-ca.calmforest-ffe47bf1.westeurope.azurecontainerapps.io"
+    value = "https://selc-u-pnpg-party-reg-proxy-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"

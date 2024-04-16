@@ -6,8 +6,10 @@ import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
+import it.pagopa.selfcare.onboarding.mapper.ProductMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -16,12 +18,16 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.user_json.api.UserControllerApi;
+import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
@@ -36,14 +42,17 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
 
-
     @RestClient
     @Inject
     InstitutionApi institutionApi;
+    @RestClient
+    @Inject
+    UserControllerApi userApi;
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -68,10 +77,17 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Inject
     UserMapper userMapper;
+
+    @Inject
+    ProductMapper productMapper;
+
     @Inject
     NotificationService notificationService;
     @Inject
     ProductService productService;
+
+    @ConfigProperty(name = "onboarding-functions.persist-users.active")
+    private boolean isUserMSActive;
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
@@ -178,6 +194,23 @@ public class CompletionServiceDefault implements CompletionService {
 
         notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
                 destinationMails, product, onboarding.getInstitution().getInstitutionType());
+    }
+
+    @Override
+    public void persistUsers(Onboarding onboarding) {
+        if(isUserMSActive) {
+            List<User> users = onboarding.getUsers();
+            users.forEach(user -> {
+                AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+                userRoleDto.setUserMailUuid(user.getUserMailUuid());
+                userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+                userRoleDto.getProduct().setTokenId(onboarding.getId());
+                Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
+                if(!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                }
+            });
+        }
     }
 
     @Override

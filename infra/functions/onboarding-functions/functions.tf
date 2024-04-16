@@ -64,7 +64,7 @@ resource "azurerm_key_vault_access_policy" "keyvault_functions_access_policy" {
 }
 
 data "azurerm_resource_group" "nat_rg" {
-  name     = "${local.base_domain_name}-nat-rg"
+  name = "${local.base_domain_name}-nat-rg"
 }
 
 data "azurerm_public_ip" "functions_pip_outboud" {
@@ -73,8 +73,8 @@ data "azurerm_public_ip" "functions_pip_outboud" {
 }
 
 data "azurerm_nat_gateway" "nat_gateway" {
-  name                    = "${local.base_domain_name}-nat_gw"
-  resource_group_name     = data.azurerm_resource_group.nat_rg.name
+  name                = "${local.base_domain_name}-nat_gw"
+  resource_group_name = data.azurerm_resource_group.nat_rg.name
 }
 
 resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway" {

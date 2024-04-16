@@ -67,9 +67,11 @@ app_settings = {
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.dev.notifichedigitali.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.dev.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.dev.notifichedigitali.it/onboarding/",
-  "MS_CORE_URL"                                        = "https://selc-d-pnpg-ms-core-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"                                        = "https://selc-d-pnpg-user-ms-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"                                        = "https://selc-d-pnpg-ms-core-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-pnpg-party-reg-proxy-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io",
+  "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"                                 = "false",
-  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web",
+  "USER_MS_ACTIVE"                                     = "true"
 }

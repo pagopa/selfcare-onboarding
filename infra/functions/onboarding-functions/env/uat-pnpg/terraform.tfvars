@@ -57,9 +57,10 @@ app_settings = {
   "MAIL_SERVER_PORT"              = "465",
   "MAIL_TEMPLATE_COMPLETE_PATH"   = "resources/templates/email/onboarding_1.0.0.json",
 
-  "MS_CORE_URL"           = "https://selc-u-pnpg-ms-core-ca.calmforest-ffe47bf1.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"           = "https://selc-u-pnpg-user-ms-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"           = "https://selc-u-pnpg-ms-core-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"      = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL" = "https://selc-u-pnpg-party-reg-proxy-ca.calmforest-ffe47bf1.westeurope.azurecontainerapps.io",
+  "MS_PARTY_REGISTRY_URL" = "https://selc-u-pnpg-party-reg-proxy-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"    = "false",
   "RETRY_MAX_ATTEMPTS"    = "3"
   "FIRST_RETRY_INTERVAL"  = "5"

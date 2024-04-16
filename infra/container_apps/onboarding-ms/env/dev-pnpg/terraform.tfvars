@@ -27,8 +27,8 @@ container_app = {
       name = "cron-scale-rule"
     }
   ]
-  cpu          = 0.5
-  memory       = "1Gi"
+  cpu    = 0.5
+  memory = "1Gi"
 }
 
 app_settings = [
@@ -58,11 +58,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-d-pnpg-ms-core-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io"
+    value = "https://selc-d-pnpg-ms-core-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-d-pnpg-party-reg-proxy-ca.yellowdesert-85d3792d.westeurope.azurecontainerapps.io"
+    value = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"

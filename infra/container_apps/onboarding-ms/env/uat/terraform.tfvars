@@ -1,5 +1,7 @@
-prefix    = "selc"
-env_short = "u"
+prefix           = "selc"
+env_short        = "u"
+suffix_increment = "-001"
+cae_name         = "cae-001"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -36,7 +38,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -44,11 +46,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-u-ms-core-ca.agreeablesky-f71e6306.westeurope.azurecontainerapps.io"
+    value = "https://selc-u-ms-core-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-u-party-reg-proxy-ca.agreeablesky-f71e6306.westeurope.azurecontainerapps.io"
+    value = "https://selc-u-party-reg-proxy-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
