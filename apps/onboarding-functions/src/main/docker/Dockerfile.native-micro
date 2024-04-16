@@ -17,7 +17,7 @@
 # docker run -i --rm -p 8080:8080 quarkus/onboarding-functions
 #
 ###
-FROM quay.io/quarkus/quarkus-micro-image:2.0
+FROM quay.io/quarkus/quarkus-micro-image:2.0@sha256:5e176d141ffa3bf91731b16956d55fbaf29d250b6b0d04368a6de7c9f8aedd00
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
