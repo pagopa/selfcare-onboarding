@@ -15,6 +15,7 @@ public class Institution {
     private InstitutionPaSubunitType subunitType;
 
     private Origin origin;
+    private String originId;
     private String city;
     private String country;
     private String county;

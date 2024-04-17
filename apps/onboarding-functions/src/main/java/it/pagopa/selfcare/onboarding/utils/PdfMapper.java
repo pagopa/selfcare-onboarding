@@ -56,7 +56,7 @@ public class PdfMapper {
         map.put("zipCode", institution.getZipCode());
         map.put("managerName", getStringValue(manager.getName()));
         map.put("managerSurname", getStringValue(manager.getFamilyName()));
-        map.put("originId", Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse(""));
+        map.put("originId", Optional.ofNullable(institution.getTaxCode()).map(taxCode -> Optional.ofNullable(institution.getOrigin()).map(Origin::name).orElse("")).orElse(""));
         map.put("institutionMail", institution.getDigitalAddress());
         map.put("managerTaxCode", manager.getFiscalCode());
         map.put("managerEmail", mailManager);
