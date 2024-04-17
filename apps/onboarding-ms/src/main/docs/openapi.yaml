@@ -628,6 +628,8 @@ components:
           $ref: '#/components/schemas/InstitutionPaSubunitType'
         origin:
           $ref: '#/components/schemas/Origin'
+        originId:
+          type: string
         city:
           type: string
         country:
@@ -727,6 +729,8 @@ components:
           $ref: '#/components/schemas/InstitutionPaSubunitType'
         origin:
           $ref: '#/components/schemas/Origin'
+        originId:
+          type: string
         city:
           type: string
         country:

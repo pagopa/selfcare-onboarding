@@ -892,6 +892,9 @@
           "origin" : {
             "$ref" : "#/components/schemas/Origin"
           },
+          "originId" : {
+            "type" : "string"
+          },
           "city" : {
             "type" : "string"
           },
@@ -1029,6 +1032,9 @@
           },
           "origin" : {
             "$ref" : "#/components/schemas/Origin"
+          },
+          "originId" : {
+            "type" : "string"
           },
           "city" : {
             "type" : "string"
