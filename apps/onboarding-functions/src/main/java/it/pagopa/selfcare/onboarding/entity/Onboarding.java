@@ -23,14 +23,12 @@ public class Onboarding  {
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;
-
-
     private LocalDateTime expiringDate;
-
     private OnboardingStatus status;
     private String userRequestUid;
     private String workflowInstanceId;
     private LocalDateTime activatedAt;
+    private LocalDateTime deletedAt;
     private String reasonForReject;
 
     public String getId() {
@@ -147,5 +145,13 @@ public class Onboarding  {
 
     public void setActivatedAt(LocalDateTime activatedAt) {
         this.activatedAt = activatedAt;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }
