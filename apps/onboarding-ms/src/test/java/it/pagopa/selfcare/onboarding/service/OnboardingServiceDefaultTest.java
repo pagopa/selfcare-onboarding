@@ -46,6 +46,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
@@ -1254,21 +1255,7 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
-/*
-    @Test
-    void testInstitutionOnboardings() {
-        Onboarding onboarding1 = mock(Onboarding.class);
-        Onboarding onboarding2 = mock(Onboarding.class);
-        List<Onboarding> onboardingList = Arrays.asList(onboarding1, onboarding2);
-        when(Onboarding.find(any())).thenReturn((ReactivePanacheQuery<ReactivePanacheMongoEntityBase>) onboardingList.stream());
-        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
-                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId")
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
 
-        subscriber.assertCompleted().assertItem(onboardingResponseList);
-    }
-*/
     void mockPersistOnboarding(UniAsserter asserter) {
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
         asserter.execute(() -> when(Onboarding.persist(any(Onboarding.class), any()))
