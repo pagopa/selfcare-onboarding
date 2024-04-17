@@ -196,8 +196,13 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
 
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionBaseRequest.getTaxCode(), onboardingRequest.getProductId(), institutionBaseRequest.getSubunitCode()))
-                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(onboardingRequest.getProductId(),
+                null,
+                institutionBaseRequest.getTaxCode(),
+                null,
+                null,
+                institutionBaseRequest.getSubunitCode())
+        ).thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), ResourceConflictException.class);
     }
@@ -631,9 +636,10 @@ class OnboardingServiceDefaultTest {
         Product product = mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
 
         // mock parent has already onboarding
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionPspRequest.getTaxCode(), product.getId(), null))
+
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(product.getId(), null, institutionPspRequest.getTaxCode(), null, null, null))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(institutionPspRequest.getTaxCode(), product.getParentId(), null))
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(product.getParentId(), null, institutionPspRequest.getTaxCode(), null, null, null))
                 .thenReturn(Uni.createFrom().failure(new ResourceConflictException("", ""))));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
@@ -817,7 +823,7 @@ class OnboardingServiceDefaultTest {
     }
 
     void mockVerifyOnboardingNotFound(UniAsserter asserter){
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoUsingHEAD(any(), any(), any()))
+        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
     }
 
@@ -1146,9 +1152,14 @@ class OnboardingServiceDefaultTest {
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(createDummyProduct(onboarding.getProductId(), false));
 
-        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
-                onboarding.getInstitution().getSubunitCode()))
-                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+        when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(
+                onboarding.getProductId(),
+                null,
+                onboarding.getInstitution().getTaxCode(),
+                null,
+                null,
+                onboarding.getInstitution().getSubunitCode())
+        ).thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
 
         when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
@@ -1191,9 +1202,14 @@ class OnboardingServiceDefaultTest {
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(createDummyProduct(onboarding.getProductId(), false));
 
-        when(onboardingApi.verifyOnboardingInfoUsingHEAD(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(),
-                onboarding.getInstitution().getSubunitCode()))
-                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+        when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(
+                onboarding.getProductId(),
+                null,
+                onboarding.getInstitution().getTaxCode(),
+                null,
+                null,
+                onboarding.getInstitution().getSubunitCode())
+        ).thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
 
         UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
                 .approve(onboarding.getId())
