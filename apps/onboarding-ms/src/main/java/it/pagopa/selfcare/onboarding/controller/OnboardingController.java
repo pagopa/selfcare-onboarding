@@ -238,7 +238,7 @@ public class OnboardingController {
     public Uni<OnboardingGet> getOnboardingPending(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingPending(onboardingId);
     }
-    @Operation(summary = "Returns an onboarding record by institution taxCode/subunitCode/origin/originId")
+    @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/institutionOnboardings")

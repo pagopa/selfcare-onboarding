@@ -114,7 +114,7 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Returns an onboarding record by institution taxCode/subunitCode/origin/originId
+      summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
       parameters:
       - name: origin
         in: query
