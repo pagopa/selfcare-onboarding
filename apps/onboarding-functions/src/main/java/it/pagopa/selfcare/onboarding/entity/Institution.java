@@ -175,6 +175,14 @@ public class Institution {
         this.origin = origin;
     }
 
+    public String getOriginId() {
+        return originId;
+    }
+
+    public void setOriginId(String originId) {
+        this.originId = originId;
+    }
+
     public InstitutionPaSubunitType getSubunitType() {
         return subunitType;
     }
