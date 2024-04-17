@@ -1256,6 +1256,7 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+
     @Test
     void testInstitutionOnboardings() {
         Onboarding onboarding1 = mock(Onboarding.class);
