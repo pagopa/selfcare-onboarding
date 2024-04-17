@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -532,6 +533,28 @@ class OnboardingControllerTest {
                 .statusCode(400);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getInstitutionOnboardings(){
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+        when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId"))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .get("/institutionOnboardings")
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId");
+    }
+
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId","prod-io");
@@ -539,6 +562,15 @@ class OnboardingControllerTest {
         queryParameterMap.put("from","2023-12-01");
         queryParameterMap.put("to","2023-12-31");
         queryParameterMap.put("status","ACTIVE");
+        return queryParameterMap;
+    }
+
+    private static Map<String, String> getStringStringMapOnboardings() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("taxCode","taxCode");
+        queryParameterMap.put("subunitCode","subunitCode");
+        queryParameterMap.put("origin","origin");
+        queryParameterMap.put("originId","originId");
         return queryParameterMap;
     }
 
@@ -552,6 +584,17 @@ class OnboardingControllerTest {
 
     private static OnboardingGet dummyOnboardingGet() {
         OnboardingGet onboarding = new OnboardingGet();
+        onboarding.setId("id");
+        onboarding.setStatus("ACTIVE");
+        onboarding.setProductId("prod-io");
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setTaxCode("taxCode");
+        onboarding.setInstitution(institutionResponse);
+        return onboarding;
+    }
+
+    private static OnboardingResponse dummyOnboardingResponse() {
+        OnboardingResponse onboarding = new OnboardingResponse();
         onboarding.setId("id");
         onboarding.setStatus("ACTIVE");
         onboarding.setProductId("prod-io");

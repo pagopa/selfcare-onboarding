@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntityBase;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
@@ -19,6 +20,7 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -1252,9 +1254,21 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
+/*
+    @Test
+    void testInstitutionOnboardings() {
+        Onboarding onboarding1 = mock(Onboarding.class);
+        Onboarding onboarding2 = mock(Onboarding.class);
+        List<Onboarding> onboardingList = Arrays.asList(onboarding1, onboarding2);
+        when(Onboarding.find(any())).thenReturn((ReactivePanacheQuery<ReactivePanacheMongoEntityBase>) onboardingList.stream());
+        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId")
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
 
-
-
+        subscriber.assertCompleted().assertItem(onboardingResponseList);
+    }
+*/
     void mockPersistOnboarding(UniAsserter asserter) {
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
         asserter.execute(() -> when(Onboarding.persist(any(Onboarding.class), any()))
