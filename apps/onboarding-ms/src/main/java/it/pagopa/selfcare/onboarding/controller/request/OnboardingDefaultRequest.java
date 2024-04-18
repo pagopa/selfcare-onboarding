@@ -13,7 +13,6 @@ public class OnboardingDefaultRequest extends OnboardingBaseRequest {
     @NotNull(message = "institutionData is required")
     @Valid
     private InstitutionBaseRequest institution;
-    @NotNull(message = "billing is required")
     @Valid
     private BillingRequest billing;
     @Valid
