@@ -112,10 +112,10 @@ public class CompletionServiceDefault implements CompletionService {
 
     private InstitutionsResponse getInstitutionsByFilters(Institution institution) {
         InstitutionsResponse institutionsResponse;
-        if(!Objects.isNull(institution.getTaxCode())) {
+        if(Objects.nonNull(institution.getTaxCode())) {
             institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
         } else {
-            String origin = !Objects.isNull(institution.getOrigin()) ? institution.getOrigin().getValue() : null;
+            String origin = Objects.nonNull(institution.getOrigin()) ? institution.getOrigin().getValue() : null;
             institutionsResponse = institutionApi.getInstitutionsUsingGET(null, null, origin, institution.getOriginId());
         }
         return institutionsResponse;
