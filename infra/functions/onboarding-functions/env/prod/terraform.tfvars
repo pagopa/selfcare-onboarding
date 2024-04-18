@@ -34,7 +34,7 @@ storage_account_info = {
   account_tier                      = "Standard"
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
-  advanced_threat_protection_enable = false
+  advanced_threat_protection_enable = true
 }
 
 app_settings = {
@@ -62,16 +62,20 @@ app_settings = {
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
   "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/onboarding-request/1.0.1.json",
+#  "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/1.0.0.json",
   "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://selfcare.pagopa.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://selfcare.pagopa.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://selfcare.pagopa.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://selfcare.pagopa.it/onboarding/",
+#  "MS_CORE_URL"                                        = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
   "MS_CORE_URL"                                        = "https://selc-p-ms-core-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
+#  "MS_PARTY_REGISTRY_URL"                              = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1",
+  "USER_MS_ACTIVE"                                     = "false"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",

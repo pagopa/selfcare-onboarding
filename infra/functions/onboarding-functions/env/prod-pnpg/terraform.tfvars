@@ -35,7 +35,7 @@ storage_account_info = {
   account_tier                      = "Standard"
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
-  advanced_threat_protection_enable = false
+  advanced_threat_protection_enable = true
 }
 
 app_settings = {
@@ -84,4 +84,5 @@ app_settings = {
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.notifichedigitali.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.notifichedigitali.it/onboarding/",
+  "USER_MS_ACTIVE"                                     = "false"
 }
