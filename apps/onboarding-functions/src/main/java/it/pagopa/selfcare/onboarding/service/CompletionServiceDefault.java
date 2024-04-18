@@ -93,8 +93,7 @@ public class CompletionServiceDefault implements CompletionService {
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
 
         Institution institution = onboarding.getInstitution();
-
-        InstitutionsResponse institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
+        InstitutionsResponse institutionsResponse = getInstitutionsByFilters(institution);
         if(Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1){
             throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
         }
@@ -109,6 +108,17 @@ public class CompletionServiceDefault implements CompletionService {
                 .where("_id", onboarding.getId());
 
         return institutionResponse.getId();
+    }
+
+    private InstitutionsResponse getInstitutionsByFilters(Institution institution) {
+        InstitutionsResponse institutionsResponse;
+        if(Objects.nonNull(institution.getTaxCode())) {
+            institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
+        } else {
+            String origin = Objects.nonNull(institution.getOrigin()) ? institution.getOrigin().getValue() : null;
+            institutionsResponse = institutionApi.getInstitutionsUsingGET(null, null, origin, institution.getOriginId());
+        }
+        return institutionsResponse;
     }
 
     /**
