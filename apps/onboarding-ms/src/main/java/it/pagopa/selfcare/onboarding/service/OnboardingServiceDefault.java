@@ -17,10 +17,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
@@ -307,39 +304,38 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
                         onboarding.getProductId()), DEFAULT_ERROR.getCode()))
-                .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode(),
-                            product.getId(), product.getParentId())
+                .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                     .replaceWith(product));
     }
 
-    private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(String institutionTaxCode, String institutionSubunitCode,
-                                                                              String productId, String productParentId) {
+    private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(Institution institution, String productId, String productParentId) {
         return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
-                ? checkIfAlreadyOnboardingAndValidateAllowedMap(productParentId, institutionTaxCode, institutionSubunitCode)
+                ? checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
                     .onFailure(ResourceConflictException.class)
-                    .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode))
+                    .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
                 //If product is a root, I must only verify if onboarding for root
-                : checkIfAlreadyOnboardingAndValidateAllowedMap(productId, institutionTaxCode, institutionSubunitCode)
+                : checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId)
         );
     }
 
-    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(String productId, String institutionTaxCode, String institutionSubuniCode) {
+    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(Institution institution, String productId) {
 
         Log.infof("Validating allowed map and verify an onboarding is present for: taxCode %s, subunitCode %s, product %s",
-                institutionTaxCode,
-                institutionSubuniCode,
+                institution.getTaxCode(),
+                institution.getSubunitCode(),
                 productId);
 
-        if (!onboardingValidationStrategy.validate(productId, institutionTaxCode)) {
+        if (!onboardingValidationStrategy.validate(productId, institution.getTaxCode())) {
             return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
-                    institutionTaxCode,
+                    institution.getTaxCode(),
                     productId),
                     DEFAULT_ERROR.getCode()));
         }
 
-        return onboardingApi.verifyOnboardingInfoUsingHEAD(institutionTaxCode, productId, institutionSubuniCode)
-                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institutionTaxCode), PRODUCT_ALREADY_ONBOARDED.getCode()))
+        String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+        return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
+                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
                 .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
                     ? Uni.createFrom().item(Response.noContent().build())
                     : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
@@ -522,8 +518,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(this::checkIfToBeValidated)
                 //Fail if onboarding exists for a product
                 .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
-                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(),
-                                onboarding.getInstitution().getSubunitCode(),
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(),
                                 product.getId(),
                                 product.getParentId()))
                         .replaceWith(onboarding)
@@ -571,8 +566,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(verificationContractSignature::apply)
                 //Fail if onboarding exists for a product
                 .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
-                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution().getTaxCode(),
-                                onboarding.getInstitution().getSubunitCode(),
+                        .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(),
                                 product.getId(),
                                 product.getParentId()))
                         .replaceWith(onboarding)

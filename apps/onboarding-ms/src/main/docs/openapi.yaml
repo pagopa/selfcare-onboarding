@@ -120,7 +120,7 @@ paths:
         in: query
         schema:
           type: string
-      - name: originId
+      - name: originIdhttps://github.com/pagopa/selfcare-onboarding/pull/235/conflict?name=apps%252Fonboarding-ms%252Fsrc%252Fmain%252Fdocs%252Fopenapi.yaml&ancestor_oid=ddf216f2a87524013f43cd66f7b05c938bb46803&base_oid=717ed37d0d20ac92cb6517504a9ef45f40b6a105&head_oid=f09158b3a7f7d910fd437d2ba16a4afd0e3d6b0e
         in: query
         schema:
           type: string
@@ -835,7 +835,6 @@ components:
       - productId
       - users
       - institution
-      - billing
       type: object
       properties:
         productId:

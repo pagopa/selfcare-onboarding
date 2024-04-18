@@ -1171,7 +1171,7 @@
         "example" : "2022-03-10T12:15:50"
       },
       "OnboardingDefaultRequest" : {
-        "required" : [ "productId", "users", "institution", "billing" ],
+        "required" : [ "productId", "users", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
