@@ -139,6 +139,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institutionSa = new Institution();
+        institutionSa.setTaxCode("taxCode");
         institutionSa.setInstitutionType(InstitutionType.SA);
         institutionSa.setOrigin(Origin.ANAC);
         onboarding.setInstitution(institutionSa);
@@ -155,10 +156,11 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvass() {
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvassWithTaxCode() {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.AS);
         institution.setOrigin(Origin.IVASS);
         onboarding.setInstitution(institution);
@@ -173,11 +175,32 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
     }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvassWithOrigin() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.AS);
+        institution.setOrigin(Origin.IVASS);
+        institution.setOriginId("originId");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(null, null, Origin.IVASS.getValue(), "originId"))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionFromIvassUsingPOST(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+    }
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePgAde() {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PG);
         institution.setOrigin(Origin.ADE);
         onboarding.setInstitution(institution);
@@ -197,6 +220,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.AOO);
         institution.setSubunitCode("code");
@@ -232,6 +256,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.UO);
         institution.setSubunitCode("code");
