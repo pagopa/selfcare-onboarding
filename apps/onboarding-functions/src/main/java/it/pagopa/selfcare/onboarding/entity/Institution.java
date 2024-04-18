@@ -15,6 +15,7 @@ public class Institution {
     private InstitutionPaSubunitType subunitType;
 
     private Origin origin;
+    private String originId;
     private String city;
     private String country;
     private String county;
@@ -172,6 +173,14 @@ public class Institution {
 
     public void setOrigin(Origin origin) {
         this.origin = origin;
+    }
+
+    public String getOriginId() {
+        return originId;
+    }
+
+    public void setOriginId(String originId) {
+        this.originId = originId;
     }
 
     public InstitutionPaSubunitType getSubunitType() {
