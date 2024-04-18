@@ -34,7 +34,7 @@ storage_account_info = {
   account_tier                      = "Standard"
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
-  advanced_threat_protection_enable = false
+  advanced_threat_protection_enable = true
 }
 
 app_settings = {
@@ -72,6 +72,7 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
+  "USER_MS_ACTIVE"                                     = "false"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",
