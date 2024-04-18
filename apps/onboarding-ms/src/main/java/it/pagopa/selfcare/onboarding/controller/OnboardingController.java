@@ -25,6 +25,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
+import java.util.List;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -236,6 +237,16 @@ public class OnboardingController {
     @Path("/{onboardingId}/pending")
     public Uni<OnboardingGet> getOnboardingPending(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingPending(onboardingId);
+    }
+    @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/institutionOnboardings")
+    public Uni<List<OnboardingResponse>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,
+                                                              @QueryParam(value = "subunitCode") String subunitCode,
+                                                              @QueryParam(value = "origin") String origin,
+                                                              @QueryParam(value = "originId") String originId) {
+        return onboardingService.institutionOnboardings(taxCode, subunitCode, origin, originId);
     }
 
     private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {

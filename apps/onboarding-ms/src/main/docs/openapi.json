@@ -74,11 +74,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -108,11 +108,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -144,11 +144,66 @@
               }
             }
           },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "401" : {
             "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/institutionOnboardings" : {
+      "get" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
+        "parameters" : [ {
+          "name" : "origin",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "originId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "subunitCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taxCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OnboardingResponse"
+                  }
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -180,11 +235,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -216,11 +271,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -252,11 +307,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -287,11 +342,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -323,11 +378,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -359,11 +414,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -394,11 +449,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -425,11 +480,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -472,11 +527,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -519,11 +574,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -554,11 +609,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -594,11 +649,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -629,11 +684,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -666,11 +721,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -702,11 +757,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {

@@ -9,6 +9,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -19,6 +20,7 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -44,6 +46,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
@@ -65,6 +68,8 @@ import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -1139,8 +1144,6 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(actualUser.getSurname(), managerResource.getFamilyName().getValue());
     }
 
-
-
     @Test
     void approve() {
         Onboarding onboarding = createDummyOnboarding();
@@ -1270,6 +1273,22 @@ class OnboardingServiceDefaultTest {
     }
 
 
+    @Test
+    void testInstitutionOnboardings() {
+        Onboarding onboarding1 = mock(Onboarding.class);
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding1));
+        when(Onboarding.find(any())).thenReturn(query);
+        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId")
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
+        assertTrue(!response.isEmpty());
+        assertEquals(1, response.size());
+    }
 
     void mockPersistOnboarding(UniAsserter asserter) {
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));

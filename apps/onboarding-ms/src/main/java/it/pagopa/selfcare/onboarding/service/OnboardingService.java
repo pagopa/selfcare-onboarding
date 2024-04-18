@@ -30,6 +30,8 @@ public interface OnboardingService {
 
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 
+    Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId);
+
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
