@@ -181,7 +181,6 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
-        institution.setTaxCode("");
         institution.setInstitutionType(InstitutionType.AS);
         institution.setOrigin(Origin.IVASS);
         institution.setOriginId("originId");
