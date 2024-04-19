@@ -53,7 +53,10 @@ public class PdfMapper {
         map.put(INSTITUTION_NAME, institution.getDescription());
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", Optional.ofNullable(institution.getTaxCode()).orElse(UNDERSCORE));
-        map.put("zipCode", institution.getZipCode());
+        if (Objects.nonNull(institution.getCountry()) && !institution.getCountry().equals("IT")) {
+            map.put("country", institution.getCountry());
+        }
+        map.put("zipCode", Optional.ofNullable(institution.getZipCode()).orElse(""));
         map.put("managerName", getStringValue(manager.getName()));
         map.put("managerSurname", getStringValue(manager.getFamilyName()));
         map.put("originId", Optional.ofNullable(institution.getTaxCode()).map(taxCode -> UNDERSCORE).orElse(Optional.ofNullable(institution.getOriginId()).orElse(UNDERSCORE)));
@@ -205,21 +208,14 @@ public class PdfMapper {
     }
 
     private static String decodeInstitutionType(InstitutionType institutionType) {
-        switch (institutionType) {
-            case PA:
-                return "Pubblica Amministrazione";
-            case GSP:
-                return "Gestore di servizi pubblici";
-            case PT:
-                return "Partner tecnologico";
-            case SCP:
-                return "Società a controllo pubblico";
-            case PSP:
-                return "Prestatori Servizi di Pagamento";
-            default:
-                return "";
-
-        }
+        return switch (institutionType) {
+            case PA -> "Pubblica Amministrazione";
+            case GSP -> "Gestore di servizi pubblici";
+            case PT -> "Partner tecnologico";
+            case SCP -> "Società a controllo pubblico";
+            case PSP -> "Prestatori Servizi di Pagamento";
+            default -> "";
+        };
     }
 
     private static String delegatesToText(List<UserResource> userResources, List<User> users) {
