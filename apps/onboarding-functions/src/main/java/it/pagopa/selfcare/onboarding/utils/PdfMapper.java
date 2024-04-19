@@ -54,7 +54,7 @@ public class PdfMapper {
         map.put("address", institution.getAddress());
         map.put("institutionTaxCode", Optional.ofNullable(institution.getTaxCode()).orElse(UNDERSCORE));
         if (Objects.nonNull(institution.getCountry()) && !institution.getCountry().equals("IT")) {
-            map.put("country", institution.getCountry());
+            map.put("extCountry", institution.getCity() + " (" + institution.getCountry() + ")");
         }
         map.put("zipCode", Optional.ofNullable(institution.getZipCode()).orElse(""));
         map.put("managerName", getStringValue(manager.getName()));
