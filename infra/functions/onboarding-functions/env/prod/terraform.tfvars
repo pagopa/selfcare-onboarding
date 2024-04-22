@@ -75,7 +75,7 @@ app_settings = {
   "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
 #  "MS_PARTY_REGISTRY_URL"                              = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1",
-  "USER_MS_ACTIVE"                                     = "false"
+  "USER_MS_ACTIVE"                                     = "true"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",
