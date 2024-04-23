@@ -23,6 +23,7 @@ module "container_app_hub_spid_login" {
       timeoutSeconds   = 5
       type             = "Liveness"
       failureThreshold = 5
+      initialDelaySeconds = 1
     },
     {
       httpGet = {
@@ -33,6 +34,7 @@ module "container_app_hub_spid_login" {
       timeoutSeconds   = 5
       type             = "Readiness"
       failureThreshold = 3
+      initialDelaySeconds = 3
     },
     {
       httpGet = {
@@ -43,6 +45,7 @@ module "container_app_hub_spid_login" {
       timeoutSeconds   = 5
       failureThreshold = 30
       type             = "Startup"
+      initialDelaySeconds = 30
     }
   ]
 
