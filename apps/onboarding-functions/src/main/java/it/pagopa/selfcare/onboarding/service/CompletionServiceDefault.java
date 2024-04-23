@@ -210,17 +210,18 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void persistUsers(Onboarding onboarding) {
         if(isUserMSActive) {
-            List<User> users = onboarding.getUsers();
-            users.forEach(user -> {
+
+            for(User user: onboarding.getUsers()) {
                 AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
                 userRoleDto.setUserMailUuid(user.getUserMailUuid());
                 userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
                 userRoleDto.getProduct().setTokenId(onboarding.getId());
-                Response response = userApi.usersUserIdPost(user.getId(), userRoleDto);
-                if(!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                try (Response response = userApi.usersUserIdPost(user.getId(), userRoleDto)) {
+                    if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                        throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                    }
                 }
-            });
+            }
         }
     }
 
