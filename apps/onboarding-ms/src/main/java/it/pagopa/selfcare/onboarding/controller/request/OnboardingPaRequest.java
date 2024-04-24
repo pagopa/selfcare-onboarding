@@ -13,8 +13,6 @@ public class OnboardingPaRequest extends OnboardingBaseRequest {
     @Valid
     private InstitutionBaseRequest institution;
 
-    @NotNull(message = "billing is required")
-    @Valid
     private BillingPaRequest billing;
 
 }

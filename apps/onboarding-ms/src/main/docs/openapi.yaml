@@ -567,12 +567,9 @@ components:
         otherNote:
           type: string
     BillingPaRequest:
-      required:
-      - vatNumber
       type: object
       properties:
         vatNumber:
-          minLength: 1
           type: string
         recipientCode:
           type: string
@@ -942,7 +939,6 @@ components:
       - productId
       - users
       - institution
-      - billing
       type: object
       properties:
         productId:
