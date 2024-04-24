@@ -1312,7 +1312,7 @@
         }
       },
       "OnboardingPaRequest" : {
-        "required" : [ "productId", "users", "institution", "billing" ],
+        "required" : [ "productId", "users", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
