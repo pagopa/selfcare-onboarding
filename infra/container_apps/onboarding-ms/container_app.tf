@@ -24,6 +24,7 @@ module "container_app_onboarding_ms" {
       timeoutSeconds   = 5
       type             = "Liveness"
       failureThreshold = 3
+      initialDelaySeconds = 1
     },
     {
       httpGet = {
@@ -34,6 +35,7 @@ module "container_app_onboarding_ms" {
       timeoutSeconds   = 5
       type             = "Readiness"
       failureThreshold = 30
+      initialDelaySeconds = 3
     },
     {
       httpGet = {
@@ -44,6 +46,7 @@ module "container_app_onboarding_ms" {
       timeoutSeconds   = 5
       failureThreshold = 5
       type             = "Startup"
+      initialDelaySeconds = 5
     }
   ]
 
