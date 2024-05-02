@@ -76,6 +76,9 @@
     "name" : "delegable",
     "type" : ["null","boolean"]
   }, {
+     "name" : "invoiceable",
+     "type" : ["null","boolean"]
+  }, {
     "name" : "status",
     "type" : [ "string" ]
   }, {

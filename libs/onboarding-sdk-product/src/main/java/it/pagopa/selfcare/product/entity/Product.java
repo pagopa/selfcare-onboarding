@@ -29,6 +29,7 @@ public class Product {
     private Map<InstitutionType, ContractStorage> institutionContractMappings;
     private boolean enabled = true;
     private boolean delegable;
+    private boolean invoiceable;
     private ProductStatus status;
     private String parentId;
     private List<String> testEnvProductIds;
@@ -194,6 +195,14 @@ public class Product {
 
     public void setDelegable(boolean delegable) {
         this.delegable = delegable;
+    }
+
+    public boolean isInvoiceable() {
+        return invoiceable;
+    }
+
+    public void setInvoiceable(boolean invoiceable) {
+        this.invoiceable = invoiceable;
     }
 
     public ProductStatus getStatus() {
