@@ -30,6 +30,8 @@ public class PdfMapper {
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
 
+    private PdfMapper() {
+    }
 
     public static Map<String, Object> setUpCommonData(UserResource manager, List<UserResource> users, Onboarding onboarding) {
 
@@ -142,13 +144,12 @@ public class PdfMapper {
 
     public static void setupSAProdInteropData(Map<String, Object> map, Institution institution) {
 
-        String underscore = "_______________";
-        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(underscore));
-        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(underscore));
-        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(underscore));
+        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
         //override originId to not fill ipa code in case of SA
         if(InstitutionType.SA.equals(institution.getInstitutionType()))
-            map.put("originId", underscore);
+            map.put("originId", UNDERSCORE);
     }
 
     public static void setupProdPNData(Map<String, Object> map, Institution institution, Billing billing) {
