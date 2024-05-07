@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.controller.request;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -25,7 +24,7 @@ public class OnboardingPgRequest {
     private String businessName;
     @NotNull
     private Origin origin;
-    @NotBlank
+    @NotNull
     private String digitalAddress;
 
 }
