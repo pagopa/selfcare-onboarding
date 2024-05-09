@@ -1,7 +1,7 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : "onboarding-ms API",
+    "title" : "Onboarding API (development)",
     "version" : "1.0.0"
   },
   "servers" : [ {
@@ -881,6 +881,9 @@
           "taxCode" : {
             "type" : "string"
           },
+          "taxCodeSfe" : {
+            "type" : "string"
+          },
           "subunitCode" : {
             "type" : "string"
           },
@@ -1020,6 +1023,9 @@
             "$ref" : "#/components/schemas/InstitutionType"
           },
           "taxCode" : {
+            "type" : "string"
+          },
+          "taxCodeSfe" : {
             "type" : "string"
           },
           "subunitCode" : {

@@ -11,6 +11,7 @@ public class Institution {
     private String id;
     private InstitutionType institutionType;
     private String taxCode;
+    private String taxCodeSfe;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
 
@@ -53,6 +54,14 @@ public class Institution {
 
     public void setTaxCode(String taxCode) {
         this.taxCode = taxCode;
+    }
+
+    public String getTaxCodeSfe() {
+        return taxCodeSfe;
+    }
+
+    public void setTaxCodeSfe(String taxCodeSfe) {
+        this.taxCodeSfe = taxCodeSfe;
     }
 
     public String getSubunitCode() {
