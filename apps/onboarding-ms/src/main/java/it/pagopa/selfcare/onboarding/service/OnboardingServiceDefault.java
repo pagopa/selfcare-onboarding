@@ -505,7 +505,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             if (isSameValue) {
                 isToUpdate = false;
             } else if (!isNoneCertification) {
-                throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
+                throw new InvalidRequestException(USERS_UPDATE_NOT_ALLOWED.getMessage(), USERS_UPDATE_NOT_ALLOWED.getCode());
             }
         }
         return isToUpdate;
