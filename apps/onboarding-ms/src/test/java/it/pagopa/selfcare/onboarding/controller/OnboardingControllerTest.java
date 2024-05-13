@@ -18,14 +18,12 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.openapi.quarkus.core_json.model.InstitutionFromIpaPost;
+
 
 import java.io.File;
 import java.io.IOException;
