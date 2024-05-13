@@ -881,6 +881,9 @@
           "taxCode" : {
             "type" : "string"
           },
+          "taxCodeSfe" : {
+            "type" : "string"
+          },
           "subunitCode" : {
             "type" : "string"
           },
@@ -1022,6 +1025,9 @@
           "taxCode" : {
             "type" : "string"
           },
+          "taxCodeSfe" : {
+            "type" : "string"
+          },
           "subunitCode" : {
             "type" : "string"
           },
@@ -1098,6 +1104,9 @@
             "$ref" : "#/components/schemas/InstitutionType"
           },
           "taxCode" : {
+            "type" : "string"
+          },
+          "taxCodeSfe" : {
             "type" : "string"
           },
           "subunitCode" : {

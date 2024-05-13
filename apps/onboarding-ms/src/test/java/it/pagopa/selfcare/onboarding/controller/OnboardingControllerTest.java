@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -589,6 +590,7 @@ class OnboardingControllerTest {
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
+        institutionResponse.setTaxCodeSfe("taxCodeSfe");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
     }
@@ -600,6 +602,7 @@ class OnboardingControllerTest {
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
+        institutionResponse.setTaxCodeSfe("taxCodeSfe");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
     }

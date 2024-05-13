@@ -318,6 +318,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -360,6 +361,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -394,6 +396,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -428,6 +431,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -470,6 +474,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -505,6 +510,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -987,6 +993,7 @@ class OnboardingServiceDefaultTest {
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
         institution.setSubunitCode("subunitCode");
+        institution.setTaxCodeSfe("TaxCodeSfe");
         onboarding.setInstitution(institution);
 
         User user = new User();
