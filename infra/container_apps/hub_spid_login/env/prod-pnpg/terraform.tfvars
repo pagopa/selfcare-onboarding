@@ -43,7 +43,7 @@ app_settings = [
   },
   {
     name  = "ORG_URL"
-    value = "https://www.pagopa.gov.it"
+    value = "https://www.pagopa.it"
   },
   {
     name  = "ACS_BASE_URL"
@@ -115,7 +115,7 @@ app_settings = [
   },
   {
     name  = "COMPANY_NAME"
-    value = "PagoPA S.p.A."
+    value = "PagoPA"
   },
   {
     name  = "COMPANY_VAT_NUMBER"
@@ -152,7 +152,7 @@ app_settings = [
   },
   {
     name  = "JWT_TOKEN_AUDIENCE"
-    value = "api-pnpg.selfcare.pagopa.it"
+    value = "imprese.notifichedigitali.it"
   },
   {
     name  = "ENABLE_SPID_ACCESS_LOGS"
@@ -176,11 +176,11 @@ app_settings = [
   },
   {
     name  = "ORG_ISSUER"
-    value = "https://selfcare.pagopa.it"
+    value = "https://imprese.notifichedigitali.it"
   },
   {
     name  = "CIE_URL"
-    value = "https://preproduzione.idserver.servizicie.interno.gov.it/idp/shibboleth?Metadata"
+    value = "https://api.is.eng.pagopa.it/idp-keys/cie/latest"
   },
   {
     name  = "SERVER_PORT"

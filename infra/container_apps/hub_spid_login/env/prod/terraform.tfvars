@@ -44,7 +44,7 @@ app_settings = [
   },
   {
     name  = "ACS_BASE_URL"
-    value = "https://api.selfcare.pagopa.it/spid/v1"
+    value = "https://api.selfcare.pagopa.it/spid-login/v1"
   },
   {
     name  = "ORG_DISPLAY_NAME"
@@ -140,7 +140,7 @@ app_settings = [
   },
   {
     name  = "APPINSIGHTS_DISABLED"
-    value = "false"
+    value = false
   },
   {
     name  = "ENABLE_USER_REGISTRY"
@@ -172,11 +172,11 @@ app_settings = [
   },
   {
     name  = "ORG_ISSUER"
-    value = "https://selfcare.pagopa.it"
+    value = "https://selfcare.pagopa.it/pub-op-full/"
   },
   {
     name  = "CIE_URL"
-    value = "https://preproduzione.idserver.servizicie.interno.gov.it/idp/shibboleth?Metadata"
+    value = "https://api.is.eng.pagopa.it/idp-keys/cie/latest"
   },
   {
     name  = "SERVER_PORT"
