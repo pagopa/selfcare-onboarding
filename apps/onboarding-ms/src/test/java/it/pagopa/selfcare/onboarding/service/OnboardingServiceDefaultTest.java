@@ -993,6 +993,7 @@ class OnboardingServiceDefaultTest {
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
         institution.setSubunitCode("subunitCode");
+        institution.setTaxCodeSfe("TaxCodeSfe");
         onboarding.setInstitution(institution);
 
         User user = new User();
