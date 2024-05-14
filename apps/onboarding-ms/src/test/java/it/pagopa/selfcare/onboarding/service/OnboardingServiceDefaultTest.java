@@ -128,6 +128,7 @@ class OnboardingServiceDefaultTest {
 
     final static UserResource managerResource;
     final static UserResource managerResourceWk;
+    final static UserResource managerResourceWkSpid;
 
     final static File testFile = new File("src/test/resources/application.properties");
 
@@ -157,6 +158,16 @@ class OnboardingServiceDefaultTest {
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
         map.put(UUID.randomUUID().toString(), workContactResource);
         managerResourceWk.setWorkContacts(map);
+
+        managerResourceWkSpid  = new UserResource();
+        managerResourceWkSpid.setId(UUID.randomUUID());
+        managerResourceWkSpid.setName(new CertifiableFieldResourceOfstring()
+                .value(manager.getName())
+                .certification(CertifiableFieldResourceOfstring.CertificationEnum.SPID));
+        managerResourceWkSpid.setFamilyName(new CertifiableFieldResourceOfstring()
+                .value(manager.getSurname())
+                .certification(CertifiableFieldResourceOfstring.CertificationEnum.SPID));
+        managerResourceWkSpid.setWorkContacts(map);
     }
 
     @Test
@@ -725,6 +736,43 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenUserFoundAndWillNotUpdate(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("wrong_name")
+                .taxCode(managerResourceWkSpid.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionPspRequest = new Institution();
+        institutionPspRequest.setInstitutionType(InstitutionType.GSP);
+        request.setInstitution(institutionPspRequest);
+
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+                .thenReturn(Uni.createFrom().item(managerResourceWkSpid)));
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockPersistOnboarding(asserter);
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), InvalidRequestException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
