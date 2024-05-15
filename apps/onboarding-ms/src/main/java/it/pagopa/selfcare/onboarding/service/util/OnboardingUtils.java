@@ -31,11 +31,14 @@ public class OnboardingUtils {
     public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product) {
 
         if(!Objects.isNull(onboarding.getInstitution().getTaxCodeInvoicing())) {
-            UOResource uoResource = uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                    .await().indefinitely();
-            if(!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())){
-                return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
-            }
+            uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                    .onItem().transform(uoResource -> {
+                        if (!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())) {
+                            return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
+                        }
+                        return Uni.createFrom().voidItem();
+                    }
+            );
         }
         /* if PT and product is not delegable, throw an exception */
         if(InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
@@ -64,5 +67,4 @@ public class OnboardingUtils {
         }
         return Uni.createFrom().item(onboarding);
     }
-
 }
