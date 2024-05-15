@@ -16,6 +16,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+
 @ApplicationScoped
 public class OnboardingUtils {
 
@@ -30,41 +31,40 @@ public class OnboardingUtils {
 
     public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product) {
 
-        if(!Objects.isNull(onboarding.getInstitution().getTaxCodeInvoicing())) {
-            uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                    .onItem().transform(uoResource -> {
-                        if (!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())) {
-                            return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
-                        }
-                        return Uni.createFrom().voidItem();
+        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                .flatMap(uoResource -> {
+                    if (Objects.nonNull(onboarding.getInstitution().getTaxCodeInvoicing()) &&
+                            Objects.nonNull(onboarding.getInstitution().getTaxCode())
+                            && !onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())
+                    ) {
+                        return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
                     }
-            );
-        }
-        /* if PT and product is not delegable, throw an exception */
-        if(InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
-            throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
-                    onboarding.getInstitution().getTaxCode(),
-                    onboarding.getProductId()), DEFAULT_ERROR.getCode());
-        }
+                    /* if PT and product is not delegable, throw an exception */
+                    if (InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
+                        throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
+                                onboarding.getInstitution().getTaxCode(),
+                                onboarding.getProductId()), DEFAULT_ERROR.getCode());
+                    }
 
-        if(InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType()) &&
-            !ProductId.PROD_INTEROP.getValue().equals(onboarding.getProductId())){
-            if(Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))
-                return  Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
-        }
-        if(InstitutionType.GSP == onboarding.getInstitution().getInstitutionType() &&
-                ProductId.PROD_PAGOPA.getValue().equals(onboarding.getProductId())) {
-            if(Objects.isNull(onboarding.getAdditionalInformations())) {
-                return  Uni.createFrom().failure(new InvalidRequestException(ADDITIONAL_INFORMATIONS_REQUIRED));
-            }
-            else if (!onboarding.getAdditionalInformations().isIpa() &&
-                    !onboarding.getAdditionalInformations().isBelongRegulatedMarket() &&
-                    !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision() &&
-                    !onboarding.getAdditionalInformations().isAgentOfPublicService() &&
-                    Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())){
-                return  Uni.createFrom().failure(new InvalidRequestException(OTHER_NOTE_REQUIRED));
-            }
-        }
-        return Uni.createFrom().item(onboarding);
+
+                    if (InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType()) &&
+                            !ProductId.PROD_INTEROP.getValue().equals(onboarding.getProductId())) {
+                        if (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))
+                            return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
+                    }
+                    if (InstitutionType.GSP == onboarding.getInstitution().getInstitutionType() &&
+                            ProductId.PROD_PAGOPA.getValue().equals(onboarding.getProductId())) {
+                        if (Objects.isNull(onboarding.getAdditionalInformations())) {
+                            return Uni.createFrom().failure(new InvalidRequestException(ADDITIONAL_INFORMATIONS_REQUIRED));
+                        } else if (!onboarding.getAdditionalInformations().isIpa() &&
+                                !onboarding.getAdditionalInformations().isBelongRegulatedMarket() &&
+                                !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision() &&
+                                !onboarding.getAdditionalInformations().isAgentOfPublicService() &&
+                                Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())) {
+                            return Uni.createFrom().failure(new InvalidRequestException(OTHER_NOTE_REQUIRED));
+                        }
+                    }
+                    return Uni.createFrom().item(onboarding);
+                });
     }
 }

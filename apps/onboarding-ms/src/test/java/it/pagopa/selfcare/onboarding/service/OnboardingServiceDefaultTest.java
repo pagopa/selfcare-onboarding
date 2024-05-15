@@ -483,20 +483,22 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
+        institutionBaseRequest.setTaxCodeInvoicing("taxCodeInvoicing");
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        WebApplicationException exception = mock(WebApplicationException.class);
-        Response response = mock(Response.class);
-        when(response.getStatus()).thenReturn(404);
-        when(exception.getResponse()).thenReturn(response);
+        ResourceNotFoundException resourceNotFoundException = new ResourceNotFoundException("Resource not found");
 
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        when(uoApi.findByUnicodeUsingGET1(any(),any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
-                .thenReturn(Uni.createFrom().failure(exception)));
+                .thenReturn(Uni.createFrom().failure(resourceNotFoundException)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
     }
