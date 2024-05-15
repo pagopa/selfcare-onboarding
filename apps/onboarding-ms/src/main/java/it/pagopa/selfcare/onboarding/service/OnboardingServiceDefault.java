@@ -110,9 +110,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     SignatureService signatureService;
     @Inject
     AzureBlobClient azureBlobClient;
-
     @Inject
     UserMapper userMapper;
+    @Inject
+    OnboardingUtils onboardingUtils;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
@@ -161,7 +162,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return validationProductDataAndOnboardingExists(onboarding)
-                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
@@ -180,7 +181,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return validationProductDataAndOnboardingExists(onboarding)
-                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
@@ -505,7 +506,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             if (isSameValue) {
                 isToUpdate = false;
             } else if (!isNoneCertification) {
-                throw new UpdateNotAllowedException(String.format("Update user request not allowed because of value %s", value));
+                throw new InvalidRequestException(USERS_UPDATE_NOT_ALLOWED.getMessage(), USERS_UPDATE_NOT_ALLOWED.getCode());
             }
         }
         return isToUpdate;
@@ -766,17 +767,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                         })
                     )
                 .merge().collect().asList();
-    }
-
-    private static Uni<Long> updateStatus(String onboardingId, OnboardingStatus onboardingStatus ) {
-        return Onboarding.update(Onboarding.Fields.status.name(), onboardingStatus)
-                .where("_id", onboardingId)
-                .onItem().transformToUni(updateItemCount -> {
-                    if (updateItemCount == 0) {
-                        return Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
-                    }
-                    return Uni.createFrom().item(updateItemCount);
-                });
     }
 
     private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {

@@ -881,7 +881,7 @@
           "taxCode" : {
             "type" : "string"
           },
-          "taxCodeSfe" : {
+          "taxCodeInvoicing" : {
             "type" : "string"
           },
           "subunitCode" : {
@@ -1025,7 +1025,7 @@
           "taxCode" : {
             "type" : "string"
           },
-          "taxCodeSfe" : {
+          "taxCodeInvoicing" : {
             "type" : "string"
           },
           "subunitCode" : {
@@ -1106,7 +1106,7 @@
           "taxCode" : {
             "type" : "string"
           },
-          "taxCodeSfe" : {
+          "taxCodeInvoicing" : {
             "type" : "string"
           },
           "subunitCode" : {
