@@ -619,7 +619,7 @@ components:
           $ref: '#/components/schemas/InstitutionType'
         taxCode:
           type: string
-        taxCodeSfe:
+        taxCodeInvoicing:
           type: string
         subunitCode:
           type: string
@@ -722,7 +722,7 @@ components:
           $ref: '#/components/schemas/InstitutionType'
         taxCode:
           type: string
-        taxCodeSfe:
+        taxCodeInvoicing:
           type: string
         subunitCode:
           type: string
@@ -776,7 +776,7 @@ components:
           $ref: '#/components/schemas/InstitutionType'
         taxCode:
           type: string
-        taxCodeSfe:
+        taxCodeInvoicing:
           type: string
         subunitCode:
           type: string

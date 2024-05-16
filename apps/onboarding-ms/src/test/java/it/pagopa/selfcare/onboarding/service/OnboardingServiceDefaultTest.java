@@ -329,7 +329,6 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -372,7 +371,6 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -407,7 +405,6 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -442,7 +439,6 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -485,23 +481,24 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
+        institutionBaseRequest.setTaxCodeInvoicing("taxCodeInvoicing");
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        WebApplicationException exception = mock(WebApplicationException.class);
-        Response response = mock(Response.class);
-        when(response.getStatus()).thenReturn(404);
-        when(exception.getResponse()).thenReturn(response);
+        ResourceNotFoundException resourceNotFoundException = new ResourceNotFoundException("Resource not found");
 
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        when(uoApi.findByUnicodeUsingGET1(any(),any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
-                .thenReturn(Uni.createFrom().failure(exception)));
+                .thenReturn(Uni.createFrom().failure(resourceNotFoundException)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
     }
@@ -521,7 +518,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
-        institutionBaseRequest.setTaxCodeSfe("taxCodeSfe");
+        institutionBaseRequest.setTaxCodeInvoicing("taxCodeInvoicing");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -1041,7 +1038,7 @@ class OnboardingServiceDefaultTest {
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
         institution.setSubunitCode("subunitCode");
-        institution.setTaxCodeSfe("TaxCodeSfe");
+        institution.setTaxCodeInvoicing("TaxCodeSfe");
         onboarding.setInstitution(institution);
 
         User user = new User();

@@ -590,7 +590,7 @@ class OnboardingControllerTest {
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
-        institutionResponse.setTaxCodeSfe("taxCodeSfe");
+        institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
     }
@@ -602,7 +602,7 @@ class OnboardingControllerTest {
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
-        institutionResponse.setTaxCodeSfe("taxCodeSfe");
+        institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
     }

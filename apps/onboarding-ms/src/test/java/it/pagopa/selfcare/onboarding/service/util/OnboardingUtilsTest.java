@@ -1,8 +1,10 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
+import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
@@ -12,14 +14,28 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.wildfly.common.Assert;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
 public class OnboardingUtilsTest {
+
+    @InjectMock
+    @RestClient
+    UoApi uoApi;
+    @Inject
+    OnboardingUtils onboardingUtils;
 
 
     @ParameterizedTest
@@ -36,7 +52,7 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations(type));
 
-        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
@@ -58,7 +74,7 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations("other"));
 
-        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
@@ -79,7 +95,7 @@ public class OnboardingUtilsTest {
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
-        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
@@ -97,7 +113,7 @@ public class OnboardingUtilsTest {
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
-        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
@@ -117,13 +133,37 @@ public class OnboardingUtilsTest {
         onboarding.setBilling(billing);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
-        UniAssertSubscriber<Onboarding> subscriber = OnboardingUtils
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(InvalidRequestException.class);
 
+    }
+
+    @Test
+    void shouldOnboardingInstitutionWithParentTaxCodeException() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCodeInvoicing("taxCodeInvoicing");
+        institution.setTaxCode("taxCode1");
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleEnte("taxCode2");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
 

@@ -110,9 +110,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     SignatureService signatureService;
     @Inject
     AzureBlobClient azureBlobClient;
-
     @Inject
     UserMapper userMapper;
+    @Inject
+    OnboardingUtils onboardingUtils;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
@@ -161,7 +162,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return validationProductDataAndOnboardingExists(onboarding)
-                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
@@ -180,7 +181,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return validationProductDataAndOnboardingExists(onboarding)
-                .onItem().transformToUni(product -> OnboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
