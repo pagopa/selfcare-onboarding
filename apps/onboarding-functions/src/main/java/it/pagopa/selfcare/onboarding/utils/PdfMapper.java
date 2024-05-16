@@ -116,6 +116,13 @@ public class PdfMapper {
                 .ifPresent(mail -> map.put("managerPEC", mail));
     }
 
+    public static void setECData(Map<String, Object> map, Onboarding onboarding) {
+        Institution institution = onboarding.getInstitution();
+        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
+        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
+    }
+
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
         final Institution institution = onboarding.getInstitution();
         final InstitutionType institutionType = institution.getInstitutionType();
