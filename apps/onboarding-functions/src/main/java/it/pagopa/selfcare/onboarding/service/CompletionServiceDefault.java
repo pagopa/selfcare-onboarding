@@ -89,24 +89,31 @@ public class CompletionServiceDefault implements CompletionService {
     @ConfigProperty(name = "onboarding-functions.persist-users.active")
     private boolean isUserMSActive;
 
+    @ConfigProperty(name = "onboarding-function.force-institution-persist")
+    private boolean forceInstitutionCreation;
+
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
+        InstitutionResponse institutionResponse = null;
+        if(forceInstitutionCreation){
+            institutionResponse = createInstitution(onboarding.getInstitution());
+        }else {
+            Institution institution = onboarding.getInstitution();
+            InstitutionsResponse institutionsResponse = getInstitutions(institution);
+            if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
+                throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+            }
 
-        Institution institution = onboarding.getInstitution();
-        InstitutionsResponse institutionsResponse = getInstitutions(institution);
-        if(Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1){
-            throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+            institutionResponse =
+                    Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
+                            ? createInstitution(institution)
+                            : institutionsResponse.getInstitutions().get(0);
+
+            onboardingRepository
+                    .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
+                    .where("_id", onboarding.getId());
+
         }
-
-        InstitutionResponse institutionResponse =
-                Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                    ? createInstitution(institution)
-                    : institutionsResponse.getInstitutions().get(0);
-
-        onboardingRepository
-                .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
-                .where("_id", onboarding.getId());
-
         return institutionResponse.getId();
     }
 
