@@ -105,7 +105,23 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
-
+//    @Test
+//    void forceInstitutionCreationFlagTrue(){
+//        Onboarding onboarding = createOnboarding();
+//
+//        Institution institutionSa = new Institution();
+//        institutionSa.setTaxCode("taxCode");
+//        institutionSa.setInstitutionType(InstitutionType.SA);
+//        institutionSa.setOrigin(Origin.ANAC);
+//        onboarding.setInstitution(institutionSa);
+//
+//        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+//        when(institutionApi.createInstitutionFromAnacUsingPOST(any())).thenReturn(institutionResponse);
+//
+//        completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+//
+//        verify(institutionApi, times(1)).createInstitutionFromAnacUsingPOST(any());
+//    }
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
         Onboarding onboarding = createOnboarding();

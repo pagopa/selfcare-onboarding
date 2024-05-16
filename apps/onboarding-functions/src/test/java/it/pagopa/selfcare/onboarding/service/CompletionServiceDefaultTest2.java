@@ -42,7 +42,6 @@ public class CompletionServiceDefaultTest2 {
 
     @Test
     void forceInstitutionCreationFlagTrue(){
-        System.setProperty("onboarding-function.force-institution-persist", "true");
         Onboarding onboarding = createOnboarding();
 
         Institution institutionSa = new Institution();
