@@ -33,7 +33,7 @@ public class OnboardingUtils {
 
         return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
                 .flatMap(uoResource -> {
-                    if (Objects.nonNull(onboarding.getInstitution().getTaxCodeInvoicing()) &&
+                    if (Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing()) &&
                             Objects.nonNull(onboarding.getInstitution().getTaxCode())
                             && !onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())
                     ) {

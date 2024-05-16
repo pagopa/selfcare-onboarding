@@ -37,7 +37,6 @@ public class OnboardingUtilsTest {
     @Inject
     OnboardingUtils onboardingUtils;
 
-
     @ParameterizedTest
     @ValueSource(strings = {"ipa", "regulatedMarket", "establishedByRegulatoryProvision", "agentOfPublicService"})
     void shouldOnboardingInstitutionWithAdditionalInfo(String type) {
@@ -148,12 +147,14 @@ public class OnboardingUtilsTest {
         Onboarding onboarding = new Onboarding();
         Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.PA);
-        institution.setTaxCodeInvoicing("taxCodeInvoicing");
         institution.setTaxCode("taxCode1");
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleEnte("taxCode2");
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
 
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
@@ -170,43 +171,42 @@ public class OnboardingUtilsTest {
     private static AdditionalInformations createSimpleAdditionalInformations(String type) {
         AdditionalInformations additionalInformations = new AdditionalInformations();
         switch (type) {
-            case "ipa":
+            case "ipa" -> {
                 additionalInformations.setIpa(true);
                 additionalInformations.setBelongRegulatedMarket(false);
                 additionalInformations.setEstablishedByRegulatoryProvision(false);
                 additionalInformations.setAgentOfPublicService(false);
-                break;
-            case "regulatedMarket":
+            }
+            case "regulatedMarket" -> {
                 additionalInformations.setIpa(false);
                 additionalInformations.setBelongRegulatedMarket(true);
                 additionalInformations.setEstablishedByRegulatoryProvision(false);
                 additionalInformations.setAgentOfPublicService(false);
-                break;
-            case "establishedByRegulatoryProvision":
+            }
+            case "establishedByRegulatoryProvision" -> {
                 additionalInformations.setIpa(false);
                 additionalInformations.setBelongRegulatedMarket(false);
                 additionalInformations.setEstablishedByRegulatoryProvision(true);
                 additionalInformations.setAgentOfPublicService(false);
-                break;
-            case "agentOfPublicService":
+            }
+            case "agentOfPublicService" -> {
                 additionalInformations.setIpa(false);
                 additionalInformations.setBelongRegulatedMarket(false);
                 additionalInformations.setEstablishedByRegulatoryProvision(false);
                 additionalInformations.setAgentOfPublicService(true);
-                break;
-            default:
+            }
+            default -> {
                 additionalInformations.setIpa(false);
                 additionalInformations.setBelongRegulatedMarket(false);
                 additionalInformations.setEstablishedByRegulatoryProvision(false);
                 additionalInformations.setAgentOfPublicService(false);
+            }
         }
 
         return additionalInformations;
     }
 
     private Product dummyProduct() {
-        Product product = new Product();
-
-        return product;
+        return new Product();
     }
 }
