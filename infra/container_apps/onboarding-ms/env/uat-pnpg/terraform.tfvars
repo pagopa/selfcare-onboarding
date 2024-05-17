@@ -47,11 +47,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-u-pnpg-ms-core-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io"
+    value = "http://selc-u-pnpg-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-u-pnpg-party-reg-proxy-ca.orangeground-0bd2d4dc.westeurope.azurecontainerapps.io"
+    value = "http://selc-u-pnpg-party-reg-proxy-ca"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
