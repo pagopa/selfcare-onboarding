@@ -1,9 +1,7 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.mongodb.MongoTestResource;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -30,9 +28,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-
 @QuarkusTest
-@QuarkusTestResource(MongoTestResource.class)
 public class OnboardingUtilsTest {
 
     @InjectMock

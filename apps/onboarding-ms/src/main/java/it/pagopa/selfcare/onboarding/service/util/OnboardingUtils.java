@@ -55,7 +55,7 @@ public class OnboardingUtils {
                 .flatMap(uosResource -> {
                     /* if parent tax code is not into hierarchy, throw an exception */
                     if (Objects.nonNull(uosResource) && Objects.nonNull(uosResource.getItems())
-                            && uosResource.getItems().stream().anyMatch(uoResource -> uoResource.getCodiceFiscaleEnte().equals(onboarding.getInstitution().getTaxCode())))
+                            && uosResource.getItems().stream().anyMatch(uoResource -> !uoResource.getCodiceFiscaleEnte().equals(onboarding.getInstitution().getTaxCode())))
                     {
                         return Uni.createFrom().failure(new InvalidRequestException(TAX_CODE_INVOICING_IS_INVALID));
                     }
