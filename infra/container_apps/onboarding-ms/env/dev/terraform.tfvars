@@ -57,11 +57,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-d-ms-core-ca.politewater-9af33050.westeurope.azurecontainerapps.io"
+    value = "http://selc-d-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-d-party-reg-proxy-ca.politewater-9af33050.westeurope.azurecontainerapps.io"
+    value = "http://selc-d-party-reg-proxy-ca"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"

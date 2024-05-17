@@ -57,11 +57,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-p-ms-core-ca.greensand-62fc96da.westeurope.azurecontainerapps.io"
+    value = "http://selc-p-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io"
+    value = "http://selc-p-party-reg-proxy-ca"
   },
   {
     name  = "STORAGE_CONTAINER_CONTRACT"

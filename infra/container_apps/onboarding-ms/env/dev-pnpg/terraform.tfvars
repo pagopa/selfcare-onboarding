@@ -58,11 +58,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc-d-pnpg-ms-core-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io"
+    value = "http://selc-d-pnpg-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io"
+    value = "http://selc-d-pnpg-party-reg-proxy-ca"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
