@@ -15,7 +15,6 @@ public class Institution {
     private String id;
     private InstitutionType institutionType;
     private String taxCode;
-    private String taxCodeInvoicing;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
     private Origin origin;
