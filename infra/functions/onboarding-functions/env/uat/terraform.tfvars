@@ -71,7 +71,9 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_USER_URL"                                        = "https://selc-u-user-ms-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-u-party-reg-proxy-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
-  "USER_MS_ACTIVE"                                     = "true"
+  "USER_MS_ACTIVE"                                     = "true",
+  "FORCE_INSTITUTION_PERSIST"                          = "false"
+
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",

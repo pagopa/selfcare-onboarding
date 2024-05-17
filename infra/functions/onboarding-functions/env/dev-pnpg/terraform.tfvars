@@ -74,5 +74,5 @@ app_settings = {
   "PAGOPA_LOGO_ENABLE"                                 = "false",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
   "USER_MS_ACTIVE"                                     = "true",
-  "FORCE_INSTITUTION_PERSIST"                          = "true"
+  "FORCE_INSTITUTION_PERSIST"                          = "false"
 }

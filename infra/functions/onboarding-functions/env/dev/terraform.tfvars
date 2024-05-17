@@ -71,5 +71,7 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://selc-d-ms-core-ca.politewater-9af33050.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.politewater-9af33050.westeurope.azurecontainerapps.io",
-  "USER_MS_ACTIVE"                                     = "true"
+  "USER_MS_ACTIVE"                                     = "true",
+  "FORCE_INSTITUTION_PERSIST"                          = "false"
+
 }
