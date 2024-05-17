@@ -95,6 +95,7 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
         InstitutionResponse institutionResponse = null;
+        //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
         if(forceInstitutionCreation){
             institutionResponse = createInstitution(onboarding.getInstitution());
         }else {

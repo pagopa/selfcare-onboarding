@@ -73,5 +73,6 @@ app_settings = {
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"                                 = "false",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
-  "USER_MS_ACTIVE"                                     = "true"
+  "USER_MS_ACTIVE"                                     = "true",
+  "FORCE_INSTITUTION_PERSIST"                          = "true"
 }
