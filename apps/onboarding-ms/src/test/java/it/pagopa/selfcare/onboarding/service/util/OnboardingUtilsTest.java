@@ -22,7 +22,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOsResource;
 import org.wildfly.common.Assert;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -191,8 +194,19 @@ public class OnboardingUtilsTest {
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
 
+        UOResource uoResource2 = new UOResource();
+        uoResource2.setCodiceFiscaleEnte("taxCode1");
+        uoResource2.setCodiceFiscaleSfe("taxCodeInvoicing1");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
+
+        UOsResource uOsResource = new UOsResource();
+        uOsResource.setItems(List.of(uoResource, uoResource2));
+        when(uoApi.findAllUsingGET1(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(uOsResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
