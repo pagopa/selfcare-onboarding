@@ -105,7 +105,6 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
-
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
         Onboarding onboarding = createOnboarding();
