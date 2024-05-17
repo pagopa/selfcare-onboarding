@@ -13,6 +13,7 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -149,6 +150,8 @@ public class OnboardingUtilsTest {
 
         Onboarding onboarding = new Onboarding();
         Institution institution = new Institution();
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.UO);
         institution.setInstitutionType(InstitutionType.PA);
         institution.setTaxCode("taxCode1");
         UOResource uoResource = new UOResource();
@@ -163,7 +166,7 @@ public class OnboardingUtilsTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .validationTaxCodeInvoicing(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -175,6 +178,8 @@ public class OnboardingUtilsTest {
 
         Onboarding onboarding = new Onboarding();
         Institution institution = new Institution();
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.UO);
         institution.setInstitutionType(InstitutionType.PA);
         institution.setTaxCode("taxCode");
         UOResource uoResource = new UOResource();
@@ -190,7 +195,7 @@ public class OnboardingUtilsTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .validationTaxCodeInvoicing(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

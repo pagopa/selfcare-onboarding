@@ -6,6 +6,7 @@ import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,32 +31,34 @@ public class OnboardingUtils {
     private static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
     private static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match the tax code invoicing retrieved by IPA";
 
-    public Uni<Onboarding> validationTaxCodeInvoicing(Onboarding onboarding, Product product) {
-
-        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .flatMap(uoResource -> {
-                    /* if parent tax code is different from child tax code, throw an exception */
-                    if (Objects.nonNull(onboarding.getBilling()) &&
-                            Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing()) &&
-                            Objects.nonNull(onboarding.getInstitution().getTaxCode())
-                            && !onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())
-                    )
-                    {
-                        return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
-                    }
-                    /* if tax code invoicing is different IPA tax code invoicing, throw an exception */
-                    if (Objects.nonNull(onboarding.getBilling()) &&
-                            Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
-                            && !onboarding.getBilling().getTaxCodeInvoicing().equals(uoResource.getCodiceFiscaleSfe())
-                    )
-                    {
-                        return Uni.createFrom().failure(new InvalidRequestException(TAX_CODE_INVOICING_IS_INVALID));
-                    }
-                    return customValidationOnboardingData(onboarding, product);
-                });
+    public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product) {
+        if (Objects.nonNull(onboarding.getInstitution().getSubunitCode()) && onboarding.getInstitution().getSubunitType().equals(InstitutionPaSubunitType.UO)) {
+            return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                    .flatMap(uoResource -> {
+                        /* if parent tax code is different from child tax code, throw an exception */
+                        if (Objects.nonNull(onboarding.getBilling()) &&
+                                Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing()) &&
+                                Objects.nonNull(onboarding.getInstitution().getTaxCode())
+                                && !onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())
+                        )
+                        {
+                            return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
+                        }
+                        /* if tax code invoicing is different IPA tax code invoicing, throw an exception */
+                        if (Objects.nonNull(onboarding.getBilling()) &&
+                                Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
+                                && !onboarding.getBilling().getTaxCodeInvoicing().equals(uoResource.getCodiceFiscaleSfe())
+                        )
+                        {
+                            return Uni.createFrom().failure(new InvalidRequestException(TAX_CODE_INVOICING_IS_INVALID));
+                        }
+                        return additionalChecksForProduct(onboarding, product);
+                    });
+        }
+        return additionalChecksForProduct(onboarding, product);
     }
 
-    public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product) {
+    private Uni<Onboarding> additionalChecksForProduct(Onboarding onboarding, Product product) {
 
         /* if PT and product is not delegable, throw an exception */
         if (InstitutionType.PT == onboarding.getInstitution().getInstitutionType() && !product.isDelegable()) {
