@@ -111,6 +111,9 @@ public class OnboardingUtilsTest {
         institution.setInstitutionType(InstitutionType.PA);
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())
@@ -160,7 +163,34 @@ public class OnboardingUtilsTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .validationTaxCodeInvoicing(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void shouldOnboardingInstitutionWithTaxCodeInvoicingException() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        uoResource.setCodiceFiscaleSfe("taxCodeInvoicing1");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .validationTaxCodeInvoicing(onboarding, dummyProduct())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

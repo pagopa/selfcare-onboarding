@@ -162,7 +162,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return validationProductDataAndOnboardingExists(onboarding)
-                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> onboardingUtils.validationTaxCodeInvoicing(onboarding, product)
+                        .onFailure().recoverWithUni(onboardingUtils.customValidationOnboardingData(onboarding, product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)

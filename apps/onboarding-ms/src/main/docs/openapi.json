@@ -884,9 +884,6 @@
           "taxCode" : {
             "type" : "string"
           },
-          "taxCodeInvoicing" : {
-            "type" : "string"
-          },
           "subunitCode" : {
             "type" : "string"
           },
@@ -1026,9 +1023,6 @@
             "$ref" : "#/components/schemas/InstitutionType"
           },
           "taxCode" : {
-            "type" : "string"
-          },
-          "taxCodeInvoicing" : {
             "type" : "string"
           },
           "subunitCode" : {
