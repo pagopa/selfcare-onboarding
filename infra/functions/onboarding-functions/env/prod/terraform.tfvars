@@ -74,7 +74,6 @@ app_settings = {
   "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "USER_MS_ACTIVE"                                     = "true",
-  "FORCE_INSTITUTION_PERSIST"                          = "false"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",

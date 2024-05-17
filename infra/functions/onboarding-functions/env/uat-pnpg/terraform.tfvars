@@ -84,6 +84,6 @@ app_settings = {
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.uat.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.uat.notifichedigitali.it/onboarding/",
   "USER_MS_ACTIVE"                                     = "true",
-  "FORCE_INSTITUTION_PERSIST"                          = "false"
+  "FORCE_INSTITUTION_PERSIST"                          = "true"
 
 }
