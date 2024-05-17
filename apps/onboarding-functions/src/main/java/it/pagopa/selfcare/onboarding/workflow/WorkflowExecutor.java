@@ -45,7 +45,7 @@ public interface WorkflowExecutor {
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
         String institutionId = ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         onboarding.getInstitution().setId(institutionId);
-        onboarding.setActivatedAt(OffsetDateTime.now().toLocalDateTime());
+//        onboarding.setActivatedAt(OffsetDateTime.now().toLocalDateTime());
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
