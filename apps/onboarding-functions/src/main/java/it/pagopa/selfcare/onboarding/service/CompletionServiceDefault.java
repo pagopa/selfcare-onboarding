@@ -29,7 +29,9 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -170,7 +172,7 @@ public class CompletionServiceDefault implements CompletionService {
             return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
-        return institutionApi.createInstitutionUsingPOST1(institutionMapper.toInstitutionRequest(institution));
+        return institutionApi.createInstitutionUsingPOST(institutionMapper.toInstitutionRequest(institution));
     }
 
     private boolean isInstitutionPresentOnIpa(Institution institution) {
