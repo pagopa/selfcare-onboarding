@@ -527,6 +527,7 @@ public class CompletionServiceDefaultTest {
         billing.setPublicServices(true);
         billing.setRecipientCode("example");
         billing.setVatNumber("example");
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
         return onboarding;
     }

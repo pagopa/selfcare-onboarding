@@ -11,7 +11,6 @@ public class Institution {
     private String id;
     private InstitutionType institutionType;
     private String taxCode;
-    private String taxCodeInvoicing;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
 
@@ -54,14 +53,6 @@ public class Institution {
 
     public void setTaxCode(String taxCode) {
         this.taxCode = taxCode;
-    }
-
-    public String getTaxCodeInvoicing() {
-        return taxCodeInvoicing;
-    }
-
-    public void setTaxCodeInvoicing(String taxCodeInvoicing) {
-        this.taxCodeInvoicing = taxCodeInvoicing;
     }
 
     public String getSubunitCode() {
