@@ -337,13 +337,13 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
-        when(institutionApi.createInstitutionUsingPOST1(any())).thenReturn(institutionResponse);
+        when(institutionApi.createInstitutionUsingPOST(any())).thenReturn(institutionResponse);
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
 
         ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
         verify(institutionApi, times(1))
-                .createInstitutionUsingPOST1(captor.capture());
+                .createInstitutionUsingPOST(captor.capture());
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
 
