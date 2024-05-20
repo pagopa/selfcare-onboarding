@@ -350,10 +350,17 @@ public class CompletionServiceDefaultTest {
 
 
 
+    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("_id", onboarding.getId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("activatedAt = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+    }
+
     @Test
     void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
-
         User manager = new User();
         manager.setId("id");
         manager.setRole(PartyRole.MANAGER);
@@ -368,6 +375,8 @@ public class CompletionServiceDefaultTest {
         token.setContractSigned("contract-signed-path");
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
+
+        mockOnboardingUpdateWhenPersistOnboarding(onboarding);
 
         completionServiceDefault.persistOnboarding(onboarding);
 
@@ -404,6 +413,8 @@ public class CompletionServiceDefaultTest {
         token.setContractSigned("contract-signed-path");
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
+
+        mockOnboardingUpdateWhenPersistOnboarding(onboarding);
 
         completionServiceDefault.persistOnboarding(onboarding);
 
