@@ -70,6 +70,7 @@ public class PdfMapper {
         map.put("delegates", delegatesToText(users, onboarding.getUsers()));
         map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
         map.put("institutionVatNumber", Optional.ofNullable(billing).map(Billing::getVatNumber).orElse(UNDERSCORE));
+        map.put("taxCodeInvoicing", Optional.ofNullable(billing).map(Billing::getTaxCodeInvoicing).orElse(UNDERSCORE));
 
         if (!geographicTaxonomies.isEmpty()) {
             map.put("institutionGeoTaxonomies", geographicTaxonomies);
