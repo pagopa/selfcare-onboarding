@@ -288,6 +288,7 @@ public class CompletionServiceDefault implements CompletionService {
             billingRequest.recipientCode(onboarding.getBilling().getRecipientCode());
             billingRequest.publicServices(onboarding.getBilling().isPublicServices());
             billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
+            billingRequest.setTaxCodeInvoicing(onboarding.getBilling().getTaxCodeInvoicing());
             onboardingRequest.billing(billingRequest);
         }
 
