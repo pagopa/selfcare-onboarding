@@ -35,6 +35,8 @@ storage_account_info = {
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
   advanced_threat_protection_enable = true
+  public_network_access_enabled     = false
+  use_legacy_defender_version       = false
 }
 
 app_settings = {

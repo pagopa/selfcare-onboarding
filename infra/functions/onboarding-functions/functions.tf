@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "onboarding_fn_rg" {
 
 module "onboarding_fn_snet" {
   count                = var.cidr_subnet_selc_onboarding_fn != null ? 1 : 0
-  source               = "github.com/pagopa/terraform-azurerm-v3.git//subnet?ref=v7.47.2"
+  source               = "github.com/pagopa/terraform-azurerm-v3.git//subnet?ref=v8.15.1"
   name                 = format("%s-snet", local.app_name)
   resource_group_name  = data.azurerm_resource_group.rg_vnet.name
   virtual_network_name = data.azurerm_virtual_network.vnet.name
@@ -23,7 +23,7 @@ module "onboarding_fn_snet" {
 }
 
 module "selc_onboarding_fn" {
-  source = "github.com/pagopa/terraform-azurerm-v3.git//function_app?ref=v7.47.2"
+  source = "github.com/pagopa/terraform-azurerm-v3.git//function_app?ref=v8.15.1"
 
   name                = local.app_name
   location            = azurerm_resource_group.onboarding_fn_rg.location

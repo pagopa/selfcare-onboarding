@@ -21,12 +21,12 @@ cidr_subnet_selc_onboarding_fn = ["10.1.144.0/24"]
 function_always_on = true
 
 app_service_plan_info = {
-  kind                         = "Linux"
-  sku_size                     = "P1v3"
-  sku_tier                     = "PremiumV3"
-  maximum_elastic_worker_count = 1
-  worker_count                 = 1
-  zone_balancing_enabled       = false
+  kind                          = "Linux"
+  sku_size                      = "P1v3"
+  sku_tier                      = "PremiumV3"
+  maximum_elastic_worker_count  = 1
+  worker_count                  = 1
+  zone_balancing_enabled        = false
 }
 
 storage_account_info = {
@@ -35,6 +35,8 @@ storage_account_info = {
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
   advanced_threat_protection_enable = false
+  public_network_access_enabled     = false
+  use_legacy_defender_version       = false
 }
 
 app_settings = {
