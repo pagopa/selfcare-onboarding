@@ -87,7 +87,7 @@ public class OnboardingCdcService {
         if(Objects.nonNull(resumeToken))
             options = options.resumeAfter(BsonDocument.parse(resumeToken));
 
-        Bson match = Aggregates.match(Filters.in("operationType", asList("update", "replace")));
+        Bson match = Aggregates.match(Filters.in("operationType", asList("update", "replace", "insert")));
         Bson project = Aggregates.project(fields(include("_id", "ns", "documentKey", "fullDocument")));
         List<Bson> pipeline = Arrays.asList(match, project);
 
