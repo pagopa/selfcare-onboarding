@@ -93,7 +93,7 @@ public class OnboardingCdcService {
 
         Multi<ChangeStreamDocument<Onboarding>> publisher = dataCollection.watch(pipeline, Onboarding.class, options);
         publisher.subscribe().with(
-                this::consumerOnboardingRepositoryEvent,
+                this::consumerOnboardingEvent,
                 failure -> {
                     log.error("Error during subscribe collection, exception: {} , message: {}", failure.toString(), failure.getMessage());
                     constructMapAndTrackEvent(failure.getClass().toString(), "FALSE", ONBOARDING_FAILURE_MECTRICS);
@@ -109,12 +109,12 @@ public class OnboardingCdcService {
                 .getCollection(COLLECTION_NAME, Onboarding.class);
     }
 
-    protected void consumerOnboardingRepositoryEvent(ChangeStreamDocument<Onboarding> document) {
+    protected void consumerOnboardingEvent(ChangeStreamDocument<Onboarding> document) {
 
         assert document.getFullDocument() != null;
         assert document.getDocumentKey() != null;
 
-        log.info("Starting consumerUserInstitutionRepositoryEvent ... ");
+        log.info("Starting consumerOnboardingEvent ... ");
 /*
         userInstitutionRepository.updateUser(document.getFullDocument())
                 .onFailure().retry().withBackOff(Duration.ofSeconds(retryMinBackOff), Duration.ofHours(retryMaxBackOff)).atMost(maxRetry)
