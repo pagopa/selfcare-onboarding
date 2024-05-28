@@ -511,9 +511,7 @@ public class OnboardingFunctionsTest {
         final Map<String, String> queryParams = new HashMap<>();
         queryParams.put("timeout", "10");
         doReturn(queryParams).when(req).getQueryParameters();
-        doReturn(onboardinString).when(req).getBody();
-
-        final Optional<String> queryBody = Optional.empty();
+        final Optional<String> queryBody = Optional.of(onboardinString);
         doReturn(queryBody).when(req).getBody();
 
         doAnswer(new Answer<HttpResponseMessage.Builder>() {
@@ -549,7 +547,11 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(messageService).send(any());
 
-        function.sendOnboardingNotification(onboardinString, executionContext);
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboardinString);
+
+        function.sendOnboardingNotification(orchestrationContext, executionContext);
 
         Mockito.verify(messageService, times(1))
                 .send(any());

@@ -65,6 +65,16 @@ app_settings = {
   "RETRY_MAX_ATTEMPTS"    = "3"
   "FIRST_RETRY_INTERVAL"  = "5"
   "BACKOFF_COEFFICIENT"   = "1"
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-u-eventhub-ns.servicebus.windows.net",
+  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
+  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
+  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
+  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
+  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
 
   ## IGNORE VALUES
 

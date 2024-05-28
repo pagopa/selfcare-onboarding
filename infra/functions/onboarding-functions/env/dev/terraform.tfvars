@@ -73,7 +73,13 @@ app_settings = {
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.politewater-9af33050.westeurope.azurecontainerapps.io",
   "USER_MS_ACTIVE"                                     = "true",
   "EVENT_HUB_BASE_PATH"                                = "https://selc-d-eventhub-ns.servicebus.windows.net",
-  "SHARED_ACCESS_KEY_NAME"                             = "selfcare-wo"
-  "EVENTHUB-SC-USERS-SELFCARE-WO-KEY-LC"               = "eventhub-sc-users-selfcare-wo-key-lc"
-  "PRODUCTS_TOPICS_MAP"                                = "{\"prod-io\":[\"SC-Contracts\"],\"prod-io-sign\":[\"SC-Contracts\"],\"prod-idpay\":[\"SC-Contracts\"],\"prod-interop-atst\":[\"SC-Contracts\"],\"prod-interop-collaudo\":[\"SC-Contracts\"],\"prod-io-premium\":[\"SC-Contracts\"],\"prod-fd\":[\"SC-Contracts\",\"SC-Contracts-FD\",\"SC-Contracts-SAP\"],\"prod-pn\":[\"SC-Contracts\",\"SC-Contracts-SAP\"],\"prod-interop\":[\"SC-Contracts\"],\"prod-pagopa\":[\"SC-Contracts\"]}"
+  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
+  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
+  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
+  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
+  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
 }

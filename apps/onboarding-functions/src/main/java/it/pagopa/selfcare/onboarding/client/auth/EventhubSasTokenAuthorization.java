@@ -1,7 +1,9 @@
 package it.pagopa.selfcare.onboarding.client.auth;
 
+import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.crypto.Mac;
@@ -12,26 +14,29 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Map;
 
 public class EventhubSasTokenAuthorization implements ClientRequestFilter {
 
     private final URI resourceUri;
-    private final String keyName;
-    private final String key;
+    private final NotificationConfig notificationConfig;
 
-    public EventhubSasTokenAuthorization(@ConfigProperty(name = "rest-client.event-hub.uri") URI resourceUri,
-                                         @ConfigProperty(name = "eventhub.rest-client.keyName") String keyName,
-                                         @ConfigProperty(name = "eventhub.rest-client.key") String key) {
+    public EventhubSasTokenAuthorization(@Context @ConfigProperty(name = "rest-client.event-hub.uri") URI resourceUri,
+                                         @Context NotificationConfig notificationConfig) {
         this.resourceUri = resourceUri;
-        this.keyName = keyName;
-        this.key = key;
+        this.notificationConfig = notificationConfig;
     }
 
     @Override
     public void filter(ClientRequestContext clientRequestContext) {
-        final String[] segments = clientRequestContext.getUri().getPath().split("/");
-        final String topic = segments[segments.length - 1];
-        clientRequestContext.getHeaders().add("Authorization", getSASToken(resourceUri.toString(), keyName, key));
+        final String[] paths = clientRequestContext.getUri().getPath().split("/");
+        final String topic = paths[1];
+        NotificationConfig.Consumer consumerConfiguration = notificationConfig.consumers().entrySet().stream()
+                .filter(consumer -> consumer.getValue().topic().equals(topic))
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .get();
+        clientRequestContext.getHeaders().add("Authorization", getSASToken(resourceUri.toString(), consumerConfiguration.name(), consumerConfiguration.key()));
     }
 
     private static String getSASToken(String resourceUri, String keyName, String key) {

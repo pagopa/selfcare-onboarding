@@ -2,61 +2,59 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.QuarkusTestProfile;
-import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.NotificationException;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@TestProfile(MessageServiceDefaultTest.ProductsTopicsProfile.class)
 public class MessageServiceDefaultTest {
 
     @Inject
     MessageServiceDefault messageServiceDefault;
 
+    @InjectMock
+    ProductService productService;
+
     @RestClient
     @InjectMock
     EventHubRestClient eventHubRestClient;
 
-    public static class ProductsTopicsProfile implements QuarkusTestProfile {
-        @Override
-        public Map<String, String> getConfigOverrides() {
-            return Map.of("onboarding-functions.event-hub.map-products-topics", "{\"prod-io\":[\"SC-Contracts\"]}");
-        }
-    }
+    private static Product product;
 
-    @Test
-    void sendMessageWithCustomProduct() {
-        Onboarding onboarding = new Onboarding();
-        onboarding.setProductId("prod-faked");
-        messageServiceDefault.send(onboarding);
-        verifyNoInteractions(eventHubRestClient);
+    static {
+        product = new Product();
+        product.setConsumers(List.of("STANDARD", "SAP", "FD"));
     }
 
     @Test
     void sendMessage() {
         final Onboarding onboarding = createOnboarding();
+        when(productService.getProduct(any())).thenReturn(product);
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(onboarding);
-        verify(eventHubRestClient, times(1))
+        verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
 
     @Test
     void sendMessageWithError() {
         final Onboarding onboarding = createOnboarding();
-        doThrow(new RuntimeException()).when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(onboarding);
+        when(productService.getProduct(any())).thenReturn(product);
+        doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
+                .when(eventHubRestClient).sendMessage(anyString(), anyString());
+        assertThrows(NotificationException.class, () -> messageServiceDefault.send(onboarding));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }

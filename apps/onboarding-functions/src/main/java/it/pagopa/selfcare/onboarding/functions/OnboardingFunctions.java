@@ -281,7 +281,9 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(SEND_ONBOARDING_NOTIFICATION)
-    public void sendOnboardingNotification(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public void sendOnboardingNotification(@DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+                                           ExecutionContext context) {
+        String onboardingString = ctx.getInput(String.class);
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
         messageService.send(readOnboardingValue(objectMapper, onboardingString));
     }
