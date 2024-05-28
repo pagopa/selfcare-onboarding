@@ -11,8 +11,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
 
@@ -64,11 +62,7 @@ public class EventhubSasTokenAuthorization implements ClientRequestFilter {
 
             hash = new String(encoder.encode(sha256_HMAC.doFinal(input.getBytes(StandardCharsets.UTF_8))));
 
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return hash;

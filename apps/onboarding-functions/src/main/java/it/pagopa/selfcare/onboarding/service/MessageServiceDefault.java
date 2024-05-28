@@ -50,8 +50,8 @@ public class MessageServiceDefault implements MessageService {
         try {
             for (String consumer : product.getConsumers()) {
                 final String topic = config.get(consumer.toLowerCase()).topic();
-                NotificationToSend object = notificationFactory.create(topic, onboarding);
-                final String message = new ObjectMapper().writeValueAsString(object);
+                NotificationToSend notificationToSend = notificationFactory.create(topic, onboarding);
+                final String message = new ObjectMapper().writeValueAsString(notificationToSend);
                 eventHubRestClient.sendMessage(topic, message);
                 log.info("Sent notification on topic: {}", topic);
             }

@@ -31,16 +31,10 @@ public class MessageServiceDefaultTest {
     @InjectMock
     EventHubRestClient eventHubRestClient;
 
-    private static Product product;
-
-    static {
-        product = new Product();
-        product.setConsumers(List.of("STANDARD", "SAP", "FD"));
-    }
-
     @Test
     void sendMessage() {
         final Onboarding onboarding = createOnboarding();
+        final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(onboarding);
@@ -51,12 +45,23 @@ public class MessageServiceDefaultTest {
     @Test
     void sendMessageWithError() {
         final Onboarding onboarding = createOnboarding();
+        final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
         doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         assertThrows(NotificationException.class, () -> messageServiceDefault.send(onboarding));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
+    }
+
+    @Test
+    void sendMessageNullConsumers() {
+        final Onboarding onboarding = createOnboarding();
+        Product test = new Product();
+        test.setConsumers(List.of());
+        when(productService.getProduct(any())).thenReturn(test);
+        messageServiceDefault.send(onboarding);
+        verifyNoInteractions(eventHubRestClient);
     }
 
     private Onboarding createOnboarding() {
@@ -76,6 +81,12 @@ public class MessageServiceDefaultTest {
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
         return onboarding;
+    }
+
+    private Product createProduct() {
+        var product = new Product();
+        product.setConsumers(List.of("STANDARD", "SAP", "FD"));
+        return product;
     }
 
 }
