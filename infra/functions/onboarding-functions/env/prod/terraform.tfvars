@@ -73,6 +73,10 @@ app_settings = {
   "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
   "USER_MS_ACTIVE"                                     = "true",
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-p-eventhub-ns.servicebus.windows.net",
+  "SHARED_ACCESS_KEY_NAME"                             = "selfcare-wo"
+  "EVENTHUB-SC-USERS-SELFCARE-WO-KEY-LC"               = "eventhub-sc-users-selfcare-wo-key-lc"
+  "PRODUCTS_TOPICS_MAP"                                = "{\"prod-io\":[\"SC-Contracts\"],\"prod-io-sign\":[\"SC-Contracts\"],\"prod-idpay\":[\"SC-Contracts\"],\"prod-interop-atst\":[\"SC-Contracts\"],\"prod-interop-collaudo\":[\"SC-Contracts\"],\"prod-io-premium\":[\"SC-Contracts\"],\"prod-fd\":[\"SC-Contracts\",\"SC-Contracts-FD\",\"SC-Contracts-SAP\"],\"prod-pn\":[\"SC-Contracts\",\"SC-Contracts-SAP\"],\"prod-interop\":[\"SC-Contracts\"],\"prod-pagopa\":[\"SC-Contracts\"]}"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",

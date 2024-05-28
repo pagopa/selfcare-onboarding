@@ -74,5 +74,8 @@ app_settings = {
   "PAGOPA_LOGO_ENABLE"                                 = "false",
   "STORAGE_CONTAINER_CONTRACT"                         = "$web",
   "USER_MS_ACTIVE"                                     = "true",
-  "FORCE_INSTITUTION_PERSIST"                          = "true"
+  "FORCE_INSTITUTION_PERSIST"                          = "true",
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-d-eventhub-ns.servicebus.windows.net",
+  "SHARED_ACCESS_KEY_NAME"                             = "selfcare-wo",
+  "EVENTHUB-SC-USERS-SELFCARE-WO-KEY-LC"               = "string"
 }

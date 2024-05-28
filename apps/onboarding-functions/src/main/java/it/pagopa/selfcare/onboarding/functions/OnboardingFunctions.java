@@ -15,6 +15,7 @@ import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.MessageService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
 
@@ -36,14 +37,20 @@ public class OnboardingFunctions {
 
     private final OnboardingService service;
     private final CompletionService completionService;
+    private final MessageService messageService;
 
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig, CompletionService completionService) {
+    public OnboardingFunctions(OnboardingService service,
+                               ObjectMapper objectMapper,
+                               RetryPolicyConfig retryPolicyConfig,
+                               CompletionService completionService,
+                               MessageService messageService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
+        this.messageService = messageService;
 
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
@@ -140,6 +147,60 @@ public class OnboardingFunctions {
     }
 
     /**
+     * This HTTP-triggered function starts the orchestration.
+     * Depending on the time required to get the response from the orchestration instance, there are two cases:
+     * * The orchestration instances complete within the defined timeout and the response is the actual orchestration instance output, delivered synchronously.
+     * * The orchestration instances can't complete within the defined timeout, and the response is the default one described in http api uri
+     */
+    @FunctionName("Notifications")
+    public HttpResponseMessage sendNotifications(
+            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
+            final ExecutionContext context) {
+        context.getLogger().info("sendNotifications trigger processed a request.");
+
+        // Check request body
+        if (request.getBody().isEmpty()) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("\"Request body cannot be empty.")
+                    .build();
+        }
+
+        final String onboarding = request.getBody().get();
+        final String timeoutString = request.getQueryParameters().get("timeout");
+        DurableTaskClient client = durableContext.getClient();
+        String instanceId = client.scheduleNewOrchestrationInstance(SEND_ONBOARDING_NOTIFICATION, onboarding);
+        context.getLogger().info(String.format("%s %s", "Process to send onboarding's notifications started with ID = ", instanceId));
+
+        try {
+
+            /* if timeout is null, caller wants response asynchronously */
+            if(Objects.isNull(timeoutString)) {
+                return durableContext.createCheckStatusResponse(request, instanceId);
+            }
+
+            int timeoutInSeconds = Integer.parseInt(timeoutString);
+            OrchestrationMetadata metadata = client.waitForInstanceCompletion(
+                    instanceId,
+                    Duration.ofSeconds(timeoutInSeconds),
+                    true);
+
+            boolean isFailed = Optional.ofNullable(metadata)
+                    .map(orchestration -> OrchestrationRuntimeStatus.FAILED.equals(orchestration.getRuntimeStatus()) )
+                    .orElse(true);
+
+            return isFailed
+                    ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build()
+                    : request.createResponseBuilder(HttpStatus.OK)
+                    .build();
+        } catch (TimeoutException timeoutEx) {
+            // timeout expired - return a 202 response
+            return durableContext.createCheckStatusResponse(request, instanceId);
+        }
+    }
+
+    /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
@@ -217,5 +278,11 @@ public class OnboardingFunctions {
     public void createOnboardedUsers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(SEND_ONBOARDING_NOTIFICATION)
+    public void sendOnboardingNotification(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
+        messageService.send(readOnboardingValue(objectMapper, onboardingString));
     }
 }

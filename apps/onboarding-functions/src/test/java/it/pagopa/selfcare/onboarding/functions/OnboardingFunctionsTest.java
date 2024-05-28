@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.MessageService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,9 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
+
+    @InjectMock
+    MessageService messageService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -496,5 +500,58 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(completionService, times(1))
                 .persistUsers(any());
+    }
+
+    @Test
+    public void sendNotificationTrigger() throws Exception {
+        // Setup
+        @SuppressWarnings("unchecked")
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("timeout", "10");
+        doReturn(queryParams).when(req).getQueryParameters();
+        doReturn(onboardinString).when(req).getBody();
+
+        final Optional<String> queryBody = Optional.empty();
+        doReturn(queryBody).when(req).getBody();
+
+        doAnswer(new Answer<HttpResponseMessage.Builder>() {
+            @Override
+            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
+                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+            }
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        final DurableClientContext durableContext = mock(DurableClientContext.class);
+        final DurableTaskClient client = mock(DurableTaskClient.class);
+        final String scheduleNewOrchestrationInstance = "sendNotificationInstance";
+        doReturn(client).when(durableContext).getClient();
+        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance(SEND_ONBOARDING_NOTIFICATION,onboardinString);
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.sendNotifications(req, durableContext, context);
+
+        // Verify
+        Mockito.verify(client, times(1))
+                .waitForInstanceCompletion(anyString(), any(), anyBoolean());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseMessage.getStatusCode());
+
+    }
+
+    @Test
+    void sendOnboardingNotification() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(messageService).send(any());
+
+        function.sendOnboardingNotification(onboardinString, executionContext);
+
+        Mockito.verify(messageService, times(1))
+                .send(any());
     }
 }
