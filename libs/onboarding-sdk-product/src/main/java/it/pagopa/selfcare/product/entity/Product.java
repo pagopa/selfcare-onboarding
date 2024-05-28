@@ -36,6 +36,7 @@ public class Product {
     private String identityTokenAudience;
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
+    private List<String> consumers;
 
     public String getId() {
         return id;
@@ -251,5 +252,13 @@ public class Product {
 
     public void setTestEnvProductIds(List<String> testEnvProductIds) {
         this.testEnvProductIds = testEnvProductIds;
+    }
+
+    public List<String> getConsumers() {
+        return consumers;
+    }
+
+    public void setConsumers(List<String> consumers) {
+        this.consumers = consumers;
     }
 }
