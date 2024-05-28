@@ -6,6 +6,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.bson.codecs.pojo.annotations.BsonId;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Data
 @FieldNameConstants(asEnum = true)
 @MongoEntity(collection="onboardings")
+@ToString
 public class Onboarding extends ReactivePanacheMongoEntityBase {
 
     @BsonId

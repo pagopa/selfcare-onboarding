@@ -129,7 +129,7 @@ public class OnboardingCdcService {
                             constructMapAndTrackEvent(document.getDocumentKey().toJson(), "FALSE", ONBOARDING_FAILURE_MECTRICS);
                         });
  */
-        log.info("Document : {}", document);
+        log.info("Document : {}", document.getFullDocument());
         //Codice per invio dei messaggi su coda
 
     }
