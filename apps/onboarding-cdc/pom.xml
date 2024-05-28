@@ -118,12 +118,6 @@
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-common</artifactId>
-            <version>0.1.10</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-common</artifactId>
             <version>0.1.11</version>
             <scope>compile</scope>
         </dependency>
