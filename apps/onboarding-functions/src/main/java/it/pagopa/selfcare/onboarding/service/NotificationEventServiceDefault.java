@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @ApplicationScoped
-public class MessageServiceDefault implements MessageService {
+public class NotificationEventServiceDefault implements NotificationEventService {
 
     @RestClient
     @Inject
@@ -29,11 +29,11 @@ public class MessageServiceDefault implements MessageService {
     private final ProductService productService;
     private final NotificationConfig notificationConfig;
     private final NotificationFactory notificationFactory;
-    private static final Logger log = LoggerFactory.getLogger(MessageServiceDefault.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
 
-    public MessageServiceDefault(ProductService productService,
-                                 NotificationConfig notificationConfig,
-                                 NotificationFactory notificationFactory) {
+    public NotificationEventServiceDefault(ProductService productService,
+                                           NotificationConfig notificationConfig,
+                                           NotificationFactory notificationFactory) {
        this.productService = productService;
        this.notificationConfig = notificationConfig;
        this.notificationFactory = notificationFactory;

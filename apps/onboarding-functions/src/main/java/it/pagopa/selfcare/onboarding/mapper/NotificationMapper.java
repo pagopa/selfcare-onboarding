@@ -17,4 +17,5 @@ public interface NotificationMapper {
     @Mapping(source = "productId", target = "product")
     @Mapping(source = "institution.id", target = "internalIstitutionID")
     NotificationToSend toSCContracts(Onboarding onboarding);
+
 }

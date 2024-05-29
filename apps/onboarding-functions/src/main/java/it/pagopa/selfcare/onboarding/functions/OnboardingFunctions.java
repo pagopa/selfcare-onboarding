@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.functions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
-import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import com.microsoft.durabletask.*;
@@ -16,7 +15,7 @@ import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.MessageService;
+import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
 
@@ -38,20 +37,16 @@ public class OnboardingFunctions {
 
     private final OnboardingService service;
     private final CompletionService completionService;
-    private final MessageService messageService;
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
     public OnboardingFunctions(OnboardingService service,
                                ObjectMapper objectMapper,
                                RetryPolicyConfig retryPolicyConfig,
-                               CompletionService completionService,
-                               MessageService messageService) {
+                               CompletionService completionService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
-        this.messageService = messageService;
-
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -144,39 +139,6 @@ public class OnboardingFunctions {
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
             throw ex;
         }
-    }
-
-    /**
-     * This HTTP-triggered function sends messages through event hub.
-     * It gets invoked by module onboarding-cdc when status is COMPLETED or DELETED
-     */
-    @FunctionName("Notifications")
-    @FixedDelayRetry(maxRetryCount = 3, delayInterval = "00:00:30")
-    public HttpResponseMessage sendNotifications(
-            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-            final ExecutionContext context) {
-        context.getLogger().info("sendNotifications trigger processed a request");
-
-        // Check request body
-        if (request.getBody().isEmpty()) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Request body cannot be empty.")
-                    .build();
-        }
-
-        final Onboarding onboarding;
-        final String onboardingString = request.getBody().get();
-        try {
-            onboarding = readOnboardingValue(objectMapper, onboardingString);
-        } catch (Exception ex) {
-            context.getLogger().warning("Error during sendNotifications execution, msg: " + ex.getMessage());
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Malformed object onboarding in input.")
-                    .build();
-        }
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-        messageService.send(onboarding);
-        return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
     /**

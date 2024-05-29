@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.functions;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -17,10 +15,9 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.MessageService;
+import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -57,7 +54,7 @@ public class OnboardingFunctionsTest {
     CompletionService completionService;
 
     @InjectMock
-    MessageService messageService;
+    NotificationEventService notificationEventService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -499,52 +496,6 @@ public class OnboardingFunctionsTest {
 
         Mockito.verify(completionService, times(1))
                 .persistUsers(any());
-    }
-
-    @Test
-    public void sendNotificationTrigger() {
-        // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-
-        final Optional<String> queryBody = Optional.of(onboardinString);
-        doReturn(queryBody).when(req).getBody();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        // Invoke
-        HttpResponseMessage responseMessage = function.sendNotifications(req, context);
-
-        // Verify
-        Mockito.verify(messageService, times(1))
-                .send(any());
-        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
-
-    }
-
-    @Test
-    public void sendNotificationTriggerError() {
-        // Setup
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final String malformedOnboarding = "{\"onboardingId\":\"onboardingId\"";
-        final Optional<String> queryBody = Optional.of(malformedOnboarding);
-        doReturn(queryBody).when(req).getBody();
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-        // Invoke
-        HttpResponseMessage responseMessage = function.sendNotifications(req, context);
-        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
-
     }
 
 }

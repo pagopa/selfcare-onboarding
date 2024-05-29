@@ -19,10 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-public class MessageServiceDefaultTest {
+public class NotificationEventServiceDefaultTest {
 
     @Inject
-    MessageServiceDefault messageServiceDefault;
+    NotificationEventServiceDefault messageServiceDefault;
 
     @InjectMock
     ProductService productService;
