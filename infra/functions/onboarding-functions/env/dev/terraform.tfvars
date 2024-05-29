@@ -71,6 +71,15 @@ app_settings = {
   "MS_CORE_URL"                                        = "https://selc-d-ms-core-ca.politewater-9af33050.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-party-reg-proxy-ca.politewater-9af33050.westeurope.azurecontainerapps.io",
-  "USER_MS_ACTIVE"                                     = "true"
-
+  "USER_MS_ACTIVE"                                     = "true",
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-d-eventhub-ns.servicebus.windows.net",
+  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
+  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
+  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
+  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
+  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
 }

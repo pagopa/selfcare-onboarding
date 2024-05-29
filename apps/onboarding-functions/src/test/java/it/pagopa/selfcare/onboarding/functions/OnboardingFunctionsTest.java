@@ -17,12 +17,12 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.HashMap;
@@ -53,6 +53,9 @@ public class OnboardingFunctionsTest {
     @InjectMock
     CompletionService completionService;
 
+    @InjectMock
+    NotificationEventService notificationEventService;
+
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
     static ExecutionContext executionContext;
@@ -76,12 +79,9 @@ public class OnboardingFunctionsTest {
         final Optional<String> queryBody = Optional.empty();
         doReturn(queryBody).when(req).getBody();
 
-        doAnswer(new Answer<HttpResponseMessage.Builder>() {
-            @Override
-            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
-                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-            }
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         final ExecutionContext context = mock(ExecutionContext.class);
@@ -497,4 +497,5 @@ public class OnboardingFunctionsTest {
         Mockito.verify(completionService, times(1))
                 .persistUsers(any());
     }
+
 }

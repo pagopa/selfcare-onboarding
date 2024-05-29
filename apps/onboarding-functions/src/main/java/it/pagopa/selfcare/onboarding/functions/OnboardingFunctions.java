@@ -36,15 +36,16 @@ public class OnboardingFunctions {
 
     private final OnboardingService service;
     private final CompletionService completionService;
-
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig, CompletionService completionService) {
+    public OnboardingFunctions(OnboardingService service,
+                               ObjectMapper objectMapper,
+                               RetryPolicyConfig retryPolicyConfig,
+                               CompletionService completionService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
-
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -91,9 +92,9 @@ public class OnboardingFunctions {
 
             return isFailed
                     ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .build()
+                    .build()
                     : request.createResponseBuilder(HttpStatus.OK)
-                        .build();
+                    .build();
         } catch (TimeoutException timeoutEx) {
             // timeout expired - return a 202 response
             return durableContext.createCheckStatusResponse(request, instanceId);
@@ -218,4 +219,5 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
     }
+
 }

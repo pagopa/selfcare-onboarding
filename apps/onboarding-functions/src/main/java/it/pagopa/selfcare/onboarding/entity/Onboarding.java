@@ -154,4 +154,26 @@ public class Onboarding  {
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    @Override
+    public String toString() {
+        return "Onboarding{" +
+                "id='" + id + '\'' +
+                ", productId='" + productId + '\'' +
+                ", testEnvProductIds=" + testEnvProductIds +
+                ", workflowType=" + workflowType +
+                ", institution=" + institution +
+                ", users=" + users +
+                ", pricingPlan='" + pricingPlan + '\'' +
+                ", billing=" + billing +
+                ", signContract=" + signContract +
+                ", expiringDate=" + expiringDate +
+                ", status=" + status +
+                ", userRequestUid='" + userRequestUid + '\'' +
+                ", workflowInstanceId='" + workflowInstanceId + '\'' +
+                ", activatedAt=" + activatedAt +
+                ", deletedAt=" + deletedAt +
+                ", reasonForReject='" + reasonForReject + '\'' +
+                '}';
+    }
 }

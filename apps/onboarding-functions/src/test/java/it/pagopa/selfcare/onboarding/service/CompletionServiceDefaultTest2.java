@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestProfile(CompletionServiceDefaultTest2.ForceCreationProfile.class)
-
 public class CompletionServiceDefaultTest2 {
     final String productId = "productId";
     @Inject
