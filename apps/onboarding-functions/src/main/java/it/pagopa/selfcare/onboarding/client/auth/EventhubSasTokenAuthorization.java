@@ -5,6 +5,8 @@ import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 public class EventhubSasTokenAuthorization implements ClientRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(EventhubSasTokenAuthorization.class);
     private final URI resourceUri;
     private final NotificationConfig notificationConfig;
 
@@ -56,14 +59,14 @@ public class EventhubSasTokenAuthorization implements ClientRequestFilter {
         String hash = null;
         try {
             sha256_HMAC = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secret_key = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-            sha256_HMAC.init(secret_key);
+            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "HmacSHA256");
+            sha256_HMAC.init(secretKey);
             Base64.Encoder encoder = Base64.getEncoder();
 
             hash = new String(encoder.encode(sha256_HMAC.doFinal(input.getBytes(StandardCharsets.UTF_8))));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Impossible to sign token for event hub rest client. Error: {}", e.getMessage(), e);
         }
         return hash;
     }

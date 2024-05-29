@@ -44,7 +44,7 @@ public class MessageServiceDefault implements MessageService {
         final Product product = productService.getProduct(onboarding.getProductId());
         final Map<String, NotificationConfig.Consumer> config = notificationConfig.consumers();
         if (Objects.isNull(product.getConsumers())) {
-            log.warn("Product with ID {} has node consumers null", onboarding.getProductId());
+            log.warn("Node consumers is null for product with ID {}", onboarding.getProductId());
             return;
         }
         try {

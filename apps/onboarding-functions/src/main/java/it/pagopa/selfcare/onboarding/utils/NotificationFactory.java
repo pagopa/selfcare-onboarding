@@ -4,15 +4,17 @@ import it.pagopa.selfcare.onboarding.entity.NotificationToSend;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.mapper.NotificationMapper;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import static it.pagopa.selfcare.onboarding.entity.Topic.*;
 
 @ApplicationScoped
 public class NotificationFactory {
 
-    @Inject
-    NotificationMapper notificationMapper;
+    private final NotificationMapper notificationMapper;
+
+    public NotificationFactory(NotificationMapper notificationMapper) {
+        this.notificationMapper = notificationMapper;
+    }
 
     public NotificationToSend create(String topic, Onboarding onboarding) {
         if (SC_CONTRACTS_FD.getValue().equalsIgnoreCase(topic)) {

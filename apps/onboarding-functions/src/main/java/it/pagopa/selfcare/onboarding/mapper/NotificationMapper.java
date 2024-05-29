@@ -9,9 +9,12 @@ import org.mapstruct.Mapping;
 public interface NotificationMapper {
 
     @Mapping(source = "productId", target = "product")
+    @Mapping(source = "institution.id", target = "internalIstitutionID")
     NotificationToSend toSCContractsFD(Onboarding onboarding);
     @Mapping(source = "productId", target = "product")
+    @Mapping(source = "institution.id", target = "internalIstitutionID")
     NotificationToSend toSCContractsSAP(Onboarding onboarding);
     @Mapping(source = "productId", target = "product")
+    @Mapping(source = "institution.id", target = "internalIstitutionID")
     NotificationToSend toSCContracts(Onboarding onboarding);
 }
