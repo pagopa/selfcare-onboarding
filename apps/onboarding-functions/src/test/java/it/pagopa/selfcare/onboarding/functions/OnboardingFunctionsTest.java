@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -15,6 +17,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.MessageService;
@@ -23,7 +26,6 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.HashMap;
@@ -80,12 +82,9 @@ public class OnboardingFunctionsTest {
         final Optional<String> queryBody = Optional.empty();
         doReturn(queryBody).when(req).getBody();
 
-        doAnswer(new Answer<HttpResponseMessage.Builder>() {
-            @Override
-            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
-                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-            }
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         final ExecutionContext context = mock(ExecutionContext.class);
@@ -503,57 +502,49 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    public void sendNotificationTrigger() throws Exception {
+    public void sendNotificationTrigger() {
         // Setup
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
 
-        final Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("timeout", "10");
-        doReturn(queryParams).when(req).getQueryParameters();
         final Optional<String> queryBody = Optional.of(onboardinString);
         doReturn(queryBody).when(req).getBody();
 
-        doAnswer(new Answer<HttpResponseMessage.Builder>() {
-            @Override
-            public HttpResponseMessage.Builder answer(InvocationOnMock invocation) {
-                HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-            }
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
 
-        final DurableClientContext durableContext = mock(DurableClientContext.class);
-        final DurableTaskClient client = mock(DurableTaskClient.class);
-        final String scheduleNewOrchestrationInstance = "sendNotificationInstance";
-        doReturn(client).when(durableContext).getClient();
-        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance(SEND_ONBOARDING_NOTIFICATION,onboardinString);
-
         // Invoke
-        HttpResponseMessage responseMessage = function.sendNotifications(req, durableContext, context);
+        HttpResponseMessage responseMessage = function.sendNotifications(req, context);
 
         // Verify
-        Mockito.verify(client, times(1))
-                .waitForInstanceCompletion(anyString(), any(), anyBoolean());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseMessage.getStatusCode());
+        Mockito.verify(messageService, times(1))
+                .send(any());
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
 
     }
 
     @Test
-    void sendOnboardingNotification() {
+    public void sendNotificationTriggerError() {
+        // Setup
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final String malformedOnboarding = "{\"onboardingId\":\"onboardingId\"";
+        final Optional<String> queryBody = Optional.of(malformedOnboarding);
+        doReturn(queryBody).when(req).getBody();
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        // Invoke
+        HttpResponseMessage responseMessage = function.sendNotifications(req, context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
 
-        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(messageService).send(any());
-
-        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-
-        when(orchestrationContext.getInput(String.class)).thenReturn(onboardinString);
-
-        function.sendOnboardingNotification(orchestrationContext, executionContext);
-
-        Mockito.verify(messageService, times(1))
-                .send(any());
     }
+
 }

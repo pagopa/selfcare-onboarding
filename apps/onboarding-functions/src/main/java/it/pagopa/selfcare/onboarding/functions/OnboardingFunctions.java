@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.functions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
+import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import com.microsoft.durabletask.*;
@@ -38,7 +39,6 @@ public class OnboardingFunctions {
     private final OnboardingService service;
     private final CompletionService completionService;
     private final MessageService messageService;
-
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
@@ -98,9 +98,9 @@ public class OnboardingFunctions {
 
             return isFailed
                     ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .build()
+                    .build()
                     : request.createResponseBuilder(HttpStatus.OK)
-                        .build();
+                    .build();
         } catch (TimeoutException timeoutEx) {
             // timeout expired - return a 202 response
             return durableContext.createCheckStatusResponse(request, instanceId);
@@ -147,57 +147,36 @@ public class OnboardingFunctions {
     }
 
     /**
-     * This HTTP-triggered function starts the orchestration.
-     * Depending on the time required to get the response from the orchestration instance, there are two cases:
-     * * The orchestration instances complete within the defined timeout and the response is the actual orchestration instance output, delivered synchronously.
-     * * The orchestration instances can't complete within the defined timeout, and the response is the default one described in http api uri
+     * This HTTP-triggered function sends messages through event hub.
+     * It gets invoked by module onboarding-cdc when status is COMPLETED or DELETED
      */
     @FunctionName("Notifications")
+    @FixedDelayRetry(maxRetryCount = 3, delayInterval = "00:00:30")
     public HttpResponseMessage sendNotifications(
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-            @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
             final ExecutionContext context) {
-        context.getLogger().info("sendNotifications trigger processed a request.");
+        context.getLogger().info("sendNotifications trigger processed a request");
 
         // Check request body
         if (request.getBody().isEmpty()) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("\"Request body cannot be empty.")
+                    .body("Request body cannot be empty.")
                     .build();
         }
 
-        final String onboarding = request.getBody().get();
-        final String timeoutString = request.getQueryParameters().get("timeout");
-        DurableTaskClient client = durableContext.getClient();
-        String instanceId = client.scheduleNewOrchestrationInstance(SEND_ONBOARDING_NOTIFICATION, onboarding);
-        context.getLogger().info(String.format("%s %s", "Process to send onboarding's notifications started with ID = ", instanceId));
-
+        final Onboarding onboarding;
+        final String onboardingString = request.getBody().get();
         try {
-
-            /* if timeout is null, caller wants response asynchronously */
-            if(Objects.isNull(timeoutString)) {
-                return durableContext.createCheckStatusResponse(request, instanceId);
-            }
-
-            int timeoutInSeconds = Integer.parseInt(timeoutString);
-            OrchestrationMetadata metadata = client.waitForInstanceCompletion(
-                    instanceId,
-                    Duration.ofSeconds(timeoutInSeconds),
-                    true);
-
-            boolean isFailed = Optional.ofNullable(metadata)
-                    .map(orchestration -> OrchestrationRuntimeStatus.FAILED.equals(orchestration.getRuntimeStatus()) )
-                    .orElse(true);
-
-            return isFailed
-                    ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build()
-                    : request.createResponseBuilder(HttpStatus.OK)
+            onboarding = readOnboardingValue(objectMapper, onboardingString);
+        } catch (Exception ex) {
+            context.getLogger().warning("Error during sendNotifications execution, msg: " + ex.getMessage());
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("Malformed object onboarding in input.")
                     .build();
-        } catch (TimeoutException timeoutEx) {
-            // timeout expired - return a 202 response
-            return durableContext.createCheckStatusResponse(request, instanceId);
         }
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
+        messageService.send(onboarding);
+        return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
     /**
@@ -280,11 +259,4 @@ public class OnboardingFunctions {
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
     }
 
-    @FunctionName(SEND_ONBOARDING_NOTIFICATION)
-    public void sendOnboardingNotification(@DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
-                                           ExecutionContext context) {
-        String onboardingString = ctx.getInput(String.class);
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-        messageService.send(readOnboardingValue(objectMapper, onboardingString));
-    }
 }
