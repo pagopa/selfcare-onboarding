@@ -64,15 +64,17 @@ public class NotificationEventServiceDefault implements NotificationEventService
             log.warn("Node consumers is null for product with ID {}", onboarding.getProductId());
             return;
         }
+
         try {
+            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
+            if (token.isEmpty()) {
+                log.warn("Token not found for onboarding {}", onboarding.getId());
+                return;
+            }
+            InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
+
             for (String consumer : product.getConsumers()) {
                 final String topic = config.get(consumer.toLowerCase()).topic();
-                Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
-                if (token.isEmpty()) {
-                    log.warn("Token not found for onboarding {}", onboarding.getId());
-                    return;
-                }
-                InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
                 NotificationMapper notificationMapper = notificationMapperFactory.create(topic);
                 final String message = mapper.writeValueAsString(notificationMapper.toNotificationToSend(onboarding, token.get(), institution, queueEvent));
                 eventHubRestClient.sendMessage(topic, message);

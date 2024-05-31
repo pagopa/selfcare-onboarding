@@ -93,12 +93,12 @@ public class NotificationToSend {
     }
 
     public void setContentType(String contractSigned) {
-        String fileName = Objects.isNull(contractSigned) ? "" : Paths.get(contractSigned).getFileName().toString();
-        if (fileName.isEmpty()) {
+        String contractFileName = Objects.isNull(contractSigned) ? "" : Paths.get(contractSigned).getFileName().toString();
+        if (contractFileName.isEmpty()) {
             this.contentType = "";
-        } else if (fileName.endsWith(".p7m")) {
+        } else if (contractFileName.endsWith(".p7m")) {
             this.contentType = "application/pkcs7-mime";
-        } else if (fileName.endsWith(".pdf")) {
+        } else if (contractFileName.endsWith(".pdf")) {
             this.contentType = "application/pdf";
         } else {
             this.contentType = "application/octet-stream";
