@@ -17,7 +17,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static it.pagopa.selfcare.onboarding.mapper.impl.NotificationMapperTestUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +36,7 @@ class NotificationCommonMapperTest {
     org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
 
     NotificationCommonMapper notificationCommonMapper;
+
     @BeforeEach
     public void setup() {
         notificationCommonMapper = new NotificationCommonMapper("alternativeEmail", registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
@@ -45,15 +45,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventAdd() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -61,9 +54,9 @@ class NotificationCommonMapperTest {
                 null // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -84,15 +77,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventAdd() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 null, // activatedAt
@@ -100,9 +86,9 @@ class NotificationCommonMapperTest {
                 null // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -123,15 +109,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventUpdate() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -139,9 +118,9 @@ class NotificationCommonMapperTest {
                 null // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -162,15 +141,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventUpdate() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
@@ -178,9 +150,9 @@ class NotificationCommonMapperTest {
                 null // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -201,15 +173,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingDeletedHasDeletedAtAndQueueEventUpdate() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.DELETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
@@ -217,9 +182,9 @@ class NotificationCommonMapperTest {
                 OffsetDateTime.parse("2020-12-02T18:22:00Z") // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -240,14 +205,8 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationToSendWhenOnboardingDeletedHasNotDeletedAtAndQueueEventUpdate() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.DELETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
@@ -255,9 +214,9 @@ class NotificationCommonMapperTest {
                 null // deletedAt
         );
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -278,23 +237,15 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationAttributesNotNull() {
 
-        //given
-        final String institutionId = UUID.randomUUID().toString();
-        final String tokenId = UUID.randomUUID().toString();
-        final String productId = "prod";
-
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         AttributesResponse attribute = new AttributesResponse();
         attribute.setCode("code");
         institution.setAttributes(List.of(attribute));
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 null, // activatedAt
@@ -319,20 +270,13 @@ class NotificationCommonMapperTest {
     @Test
     void toNotificationCityNull() {
 
-        //given
-        final String institutionId = UUID.randomUUID().toString();
-        final String tokenId = UUID.randomUUID().toString();
-        final String productId = "prod";
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         institution.setCity(null);
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 null, // activatedAt

@@ -44,15 +44,9 @@ class NotificationFdMapperTest {
 
     @Test
     void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventAdd() {
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
 
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -64,9 +58,9 @@ class NotificationFdMapperTest {
         onboarding.setBilling(billing);
 
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");

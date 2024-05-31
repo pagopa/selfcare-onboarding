@@ -21,7 +21,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class NotificationMapperTestUtil {
-    public static Token createToken(String tokenId, String productId) {
+
+    public static final String institutionId = "i1";
+    public static final String tokenId = "t1";
+    public static final String productId = "prod";
+
+    public static Token createToken() {
         Token token = new Token();
         token.setId(tokenId);
         token.setProductId(productId);
@@ -29,7 +34,7 @@ public class NotificationMapperTestUtil {
         return token;
     }
 
-    public static InstitutionResponse createInstitution(String institutionId) {
+    public static InstitutionResponse createInstitution() {
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setAddress("address");
         institutionResponse.setAooParentCode("aooParentCode");
@@ -77,9 +82,9 @@ public class NotificationMapperTestUtil {
         return paymentServiceProvider;
     }
 
-    public static Onboarding createOnboarding(String tokenId, String prod, String institutionId, OnboardingStatus status, OffsetDateTime createdAt, OffsetDateTime activatedAt, OffsetDateTime updateAt, OffsetDateTime deletedAt) {
+    public static Onboarding createOnboarding(OnboardingStatus status, OffsetDateTime createdAt, OffsetDateTime activatedAt, OffsetDateTime updateAt, OffsetDateTime deletedAt) {
         Onboarding onboarding = new Onboarding();
-        onboarding.setProductId(prod);
+        onboarding.setProductId(productId);
         onboarding.setId(tokenId);
         onboarding.setStatus(status);
         onboarding.setCreatedAt(Objects.nonNull(createdAt) ? createdAt.toLocalDateTime() : null);

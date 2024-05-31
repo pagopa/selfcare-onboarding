@@ -58,15 +58,8 @@ class NotificationSapMapperTest {
     @Test
     void toNotificationToSendForEc() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -78,10 +71,10 @@ class NotificationSapMapperTest {
         onboarding.setBilling(billing);
 
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         institution.setCity(null);
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -118,15 +111,8 @@ class NotificationSapMapperTest {
     @Test
     void toNotificationToSendForAoo() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -138,12 +124,12 @@ class NotificationSapMapperTest {
         onboarding.setBilling(billing);
 
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         institution.setSubunitType("AOO");
         institution.setSubunitCode("subunitCode");
         institution.setCity(null);
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -181,15 +167,8 @@ class NotificationSapMapperTest {
     @Test
     void toNotificationToSendForUo() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -201,12 +180,12 @@ class NotificationSapMapperTest {
         onboarding.setBilling(billing);
 
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         institution.setSubunitType("UO");
         institution.setSubunitCode("subunitCode");
         institution.setCity(null);
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
@@ -244,15 +223,8 @@ class NotificationSapMapperTest {
     @Test
     void toNotificationToSendForEcWhenPartyRegistryThrowsException() {
 
-        String institutionId = "i1";
-        String tokenId = "t1";
-        String productId = "prod";
-
         // Create Onboarding
         Onboarding onboarding = createOnboarding(
-                tokenId,
-                productId,
-                institutionId,
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
@@ -264,10 +236,10 @@ class NotificationSapMapperTest {
         onboarding.setBilling(billing);
 
         // Create Institution
-        InstitutionResponse institution = createInstitution(institutionId);
+        InstitutionResponse institution = createInstitution();
         institution.setCity(null);
         // Create Token
-        Token token = createToken(tokenId, productId);
+        Token token = createToken();
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
