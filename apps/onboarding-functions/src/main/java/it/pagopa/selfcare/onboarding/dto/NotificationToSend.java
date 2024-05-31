@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 
@@ -22,8 +23,11 @@ public class NotificationToSend {
     private String pricingPlan;
     private InstitutionToNotify institution;
     private Billing billing;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private OffsetDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private OffsetDateTime closedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private OffsetDateTime updatedAt;
     private QueueEvent notificationType;
     private NotificationType type;

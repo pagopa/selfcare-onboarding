@@ -2,10 +2,11 @@ package it.pagopa.selfcare.onboarding.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.mapper.NotificationMapper;
@@ -41,15 +42,18 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final NotificationMapperFactory notificationMapperFactory;
     private final TokenRepository tokenRepository;
     private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
+    private final ObjectMapper mapper;
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationMapperFactory notificationMapperFactory,
                                            TokenRepository tokenRepository) {
-       this.productService = productService;
-       this.notificationConfig = notificationConfig;
-       this.notificationMapperFactory = notificationMapperFactory;
+        this.productService = productService;
+        this.notificationConfig = notificationConfig;
+        this.notificationMapperFactory = notificationMapperFactory;
         this.tokenRepository = tokenRepository;
+        mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
     }
 
     @Override
@@ -70,7 +74,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 }
                 InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
                 NotificationMapper notificationMapper = notificationMapperFactory.create(topic);
-                final String message = new ObjectMapper().writeValueAsString(notificationMapper.toNotificationToSend(onboarding, token.get(), institution, queueEvent));
+                final String message = mapper.writeValueAsString(notificationMapper.toNotificationToSend(onboarding, token.get(), institution, queueEvent));
                 eventHubRestClient.sendMessage(topic, message);
                 log.info("Sent notification on topic: {}", topic);
             }

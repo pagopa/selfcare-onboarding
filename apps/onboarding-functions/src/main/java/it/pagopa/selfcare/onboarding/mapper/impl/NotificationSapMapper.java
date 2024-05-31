@@ -2,8 +2,8 @@ package it.pagopa.selfcare.onboarding.mapper.impl;
 
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -35,7 +35,7 @@ public class NotificationSapMapper extends NotificationCommonMapper {
     @Override
     public NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.toNotificationToSend(onboarding, token, institution, queueEvent);
-        if (Objects.nonNull(onboarding.getBilling()) && !onboarding.getBilling().getTaxCodeInvoicing().isEmpty()) {
+        if (Objects.nonNull(onboarding.getBilling()) && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
             notificationToSend.getInstitution().setTaxCode(onboarding.getBilling().getTaxCodeInvoicing());
         }
         notificationToSend.setType(NotificationType.getNotificationTypeFromQueueEvent(queueEvent));
@@ -65,20 +65,21 @@ public class NotificationSapMapper extends NotificationCommonMapper {
             GeographicTaxonomyResource geographicTaxonomies = null;
             if (notificationToSend.getInstitution().getSubUnitType() != null && notificationToSend.getInstitution().getCity() == null) {
                 switch (Objects.requireNonNull(notificationToSend.getInstitution().getSubUnitType())) {
-                    case "UO":
+                    case "UO" -> {
                         UOResource organizationUnit = proxyRegistryUoApi.findByUnicodeUsingGET1(notificationToSend.getInstitution().getSubUnitCode(), null);
                         notificationToSend.getInstitution().setIstatCode(organizationUnit.getCodiceComuneISTAT());
                         geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(organizationUnit.getCodiceComuneISTAT());
-                        break;
-                    case "AOO":
+                    }
+                    case "AOO" -> {
                         AOOResource homogeneousOrganizationalArea = proxyRegistryAooApi.findByUnicodeUsingGET(notificationToSend.getInstitution().getSubUnitCode(), null);
                         notificationToSend.getInstitution().setIstatCode(homogeneousOrganizationalArea.getCodiceComuneISTAT());
                         geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(homogeneousOrganizationalArea.getCodiceComuneISTAT());
-                        break;
-                    default:
+                    }
+                    default -> {
                         InstitutionResource proxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(notificationToSend.getInstitution().getTaxCode(), null, null);
                         geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
                         notificationToSend.getInstitution().setIstatCode(proxyInfo.getIstatCode());
+                    }
                 }
             }
             if (geographicTaxonomies != null) {

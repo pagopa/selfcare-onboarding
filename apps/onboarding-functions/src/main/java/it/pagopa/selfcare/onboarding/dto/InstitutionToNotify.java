@@ -1,9 +1,10 @@
 package it.pagopa.selfcare.onboarding.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
 
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class InstitutionToNotify {
 
     private InstitutionType institutionType;
