@@ -56,7 +56,6 @@ public class OnboardingCdcService {
     private final Integer retryMaxBackOff;
     private final Integer maxRetry;
 
-
     public OnboardingCdcService(OnboardingMapper onboardingMapper, ReactiveMongoClient mongoClient,
                                 @ConfigProperty(name = "quarkus.mongodb.database") String mongodbDatabase,
                                 @ConfigProperty(name = "onboarding-cdc.retry.min-backoff") Integer retryMinBackOff,
@@ -99,10 +98,11 @@ public class OnboardingCdcService {
         if (Objects.nonNull(resumeToken))
             options = options.resumeAfter(BsonDocument.parse(resumeToken));
 
-        Bson match = Aggregates.match(Filters.in("operationType", asList("update", "replace", "insert")));
-        Bson matchStatus = Aggregates.match(Filters.in("fullDocument.status", Arrays.asList("COMPLETED", "DELETED")));
+        Bson match = Aggregates.match(Filters.and(
+                Filters.in("operationType", asList("update", "replace", "insert")),
+                Filters.in("fullDocument.status", Arrays.asList("COMPLETED", "DELETED"))));
         Bson project = Aggregates.project(fields(include("_id", "ns", "documentKey", "fullDocument")));
-        List<Bson> pipeline = Arrays.asList(match, matchStatus, project);
+        List<Bson> pipeline = Arrays.asList(match, project);
 
         Multi<ChangeStreamDocument<Onboarding>> publisher = dataCollection.watch(pipeline, Onboarding.class, options);
         publisher.subscribe().with(
