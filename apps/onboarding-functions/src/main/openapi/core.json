@@ -90,16 +90,6 @@
             "type" : "string"
           }
         }, {
-          "name" : "mode",
-          "in" : "query",
-          "description" : "Mode (full or normal) to retreieve institution's delegations",
-          "required" : false,
-          "style" : "form",
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "FULL", "NORMAL" ]
-          }
-        }, {
           "name" : "order",
           "in" : "query",
           "description" : "Order to show response NONE, ASC, DESC",
@@ -398,16 +388,6 @@
           "style" : "form",
           "schema" : {
             "type" : "string"
-          }
-        }, {
-          "name" : "mode",
-          "in" : "query",
-          "description" : "Mode (full or normal) to retreieve institution's delegations",
-          "required" : false,
-          "style" : "form",
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "FULL", "NORMAL" ]
           }
         }, {
           "name" : "order",
@@ -3420,6 +3400,9 @@
           "institutionType" : {
             "type" : "string",
             "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+          },
+          "istatCode" : {
+            "type" : "string"
           },
           "onboarding" : {
             "type" : "array",

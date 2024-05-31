@@ -1,6 +1,8 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Billing {
     private String vatNumber;
     private String recipientCode;
