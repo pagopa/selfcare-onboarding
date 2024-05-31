@@ -42,8 +42,7 @@ public class OnboardingCdcService {
     @Inject
     @RestClient
     NotificationsApi notificationsApi;
-    @Inject
-    OnboardingMapper onboardingMapper;
+    private final OnboardingMapper onboardingMapper;
     private static final String COLLECTION_NAME = "onboardings";
     private static final String OPERATION_NAME = "ONBOARDING-CDC-OnboardingsUpdate";
     private static final String EVENT_NAME = "ONBOARDING-CDC";
@@ -58,13 +57,14 @@ public class OnboardingCdcService {
     private final Integer maxRetry;
 
 
-    public OnboardingCdcService(ReactiveMongoClient mongoClient,
+    public OnboardingCdcService(OnboardingMapper onboardingMapper, ReactiveMongoClient mongoClient,
                                 @ConfigProperty(name = "quarkus.mongodb.database") String mongodbDatabase,
                                 @ConfigProperty(name = "onboarding-cdc.retry.min-backoff") Integer retryMinBackOff,
                                 @ConfigProperty(name = "onboarding-cdc.retry.max-backoff") Integer retryMaxBackOff,
                                 @ConfigProperty(name = "onboarding-cdc.retry") Integer maxRetry,
                                 TelemetryClient telemetryClient,
                                 TableClient tableClient) {
+        this.onboardingMapper = onboardingMapper;
         this.mongoClient = mongoClient;
         this.mongodbDatabase = mongodbDatabase;
         this.maxRetry = maxRetry;
