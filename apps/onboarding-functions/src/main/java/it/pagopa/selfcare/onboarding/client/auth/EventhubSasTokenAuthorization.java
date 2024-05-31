@@ -54,15 +54,15 @@ public class EventhubSasTokenAuthorization implements ClientRequestFilter {
     }
 
     private static String getHMAC256(String key, String input) {
-        Mac sha256_HMAC;
+        Mac sha256HMAC;
         String hash = null;
         try {
-            sha256_HMAC = Mac.getInstance("HmacSHA256");
+            sha256HMAC = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-            sha256_HMAC.init(secretKey);
+            sha256HMAC.init(secretKey);
             Base64.Encoder encoder = Base64.getEncoder();
 
-            hash = new String(encoder.encode(sha256_HMAC.doFinal(input.getBytes(StandardCharsets.UTF_8))));
+            hash = new String(encoder.encode(sha256HMAC.doFinal(input.getBytes(StandardCharsets.UTF_8))));
 
         } catch (Exception e) {
             log.warn("Impossible to sign token for event hub rest client. Error: {}", e.getMessage(), e);

@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.entity.NotificationToSend;
@@ -13,8 +14,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +28,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final ProductService productService;
     private final NotificationConfig notificationConfig;
     private final NotificationFactory notificationFactory;
-    private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
@@ -40,11 +38,11 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     @Override
-    public void send(Onboarding onboarding) {
+    public void send(ExecutionContext context, Onboarding onboarding) {
         final Product product = productService.getProduct(onboarding.getProductId());
         final Map<String, NotificationConfig.Consumer> config = notificationConfig.consumers();
         if (Objects.isNull(product.getConsumers())) {
-            log.warn("Node consumers is null for product with ID {}", onboarding.getProductId());
+            context.getLogger().warning("Node consumers is null for product with ID " + onboarding.getProductId());
             return;
         }
         try {
@@ -53,10 +51,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 NotificationToSend notificationToSend = notificationFactory.create(topic, onboarding);
                 final String message = new ObjectMapper().writeValueAsString(notificationToSend);
                 eventHubRestClient.sendMessage(topic, message);
-                log.info("Sent notification on topic: {}", topic);
+                context.getLogger().info("Sent notification on topic: " + topic);
             }
         } catch (Exception e) {
-            log.warn("Error during send notification for object {}: {} ", onboarding, e.getMessage(), e);
+            context.getLogger().warning("Error during send notification for object with ID " + onboarding.getId() + ". Error: " + e.getMessage());
             throw new NotificationException("Impossible to send notification for object " + onboarding);
         }
     }

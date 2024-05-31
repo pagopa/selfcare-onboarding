@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
@@ -14,6 +15,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -37,7 +39,9 @@ public class NotificationEventServiceDefaultTest {
         final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(onboarding);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        messageServiceDefault.send(context, onboarding);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -49,7 +53,9 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(product);
         doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
-        assertThrows(NotificationException.class, () -> messageServiceDefault.send(onboarding));
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
@@ -60,7 +66,9 @@ public class NotificationEventServiceDefaultTest {
         Product test = new Product();
         test.setConsumers(List.of());
         when(productService.getProduct(any())).thenReturn(test);
-        messageServiceDefault.send(onboarding);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        messageServiceDefault.send(context, onboarding);
         verifyNoInteractions(eventHubRestClient);
     }
 

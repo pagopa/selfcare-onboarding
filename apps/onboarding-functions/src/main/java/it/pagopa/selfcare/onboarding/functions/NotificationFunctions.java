@@ -60,7 +60,7 @@ public class NotificationFunctions {
                     .body("Malformed object onboarding in input.")
                     .build();
         }
-        notificationEventService.send(onboarding);
+        notificationEventService.send(context, onboarding);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
@@ -87,7 +87,7 @@ public class NotificationFunctions {
                     .body("Onboarding with ID: " + onboardingId + " not found")
                     .build();
         }
-        notificationEventService.send(onboarding.get());
+        notificationEventService.send(context, onboarding.get());
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

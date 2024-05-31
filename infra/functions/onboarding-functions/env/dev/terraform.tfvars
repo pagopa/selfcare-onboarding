@@ -74,12 +74,12 @@ app_settings = {
   "USER_MS_ACTIVE"                                     = "true",
   "EVENT_HUB_BASE_PATH"                                = "https://selc-d-eventhub-ns.servicebus.windows.net",
   "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
-  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
+  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/eventhub-sc-contracts-selfcare-wo-key-lc/)"
   "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
   "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
+  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/eventhub-sc-contracts-sap-external-interceptor-wo-key-lc/)"
   "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
+  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/eventhub-selfcare-fd-external-interceptor-wo-key-lc/)"
   "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
 }
