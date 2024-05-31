@@ -22,7 +22,7 @@ public interface OnboardingMapper {
     @Named("toOffsetDateTime")
     default OffsetDateTime map(String value) {
         LocalDateTime localDateTime = LocalDateTime.parse(value);
-        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of("Europe/London"));
+        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
         return zonedDateTime.toOffsetDateTime();
     }
 }
