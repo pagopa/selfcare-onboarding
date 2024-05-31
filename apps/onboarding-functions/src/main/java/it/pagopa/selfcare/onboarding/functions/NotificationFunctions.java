@@ -91,7 +91,7 @@ public class NotificationFunctions {
                     .body("Onboarding with ID: " + onboardingId + " not found")
                     .build();
         }
-        notificationEventService.send(context, onboarding.get(), null);
+        notificationEventService.send(context, onboarding.get(), QueueEvent.UPDATE);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

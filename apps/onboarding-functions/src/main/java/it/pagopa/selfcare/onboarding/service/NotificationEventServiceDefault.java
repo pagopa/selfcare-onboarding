@@ -44,7 +44,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final TokenRepository tokenRepository;
     private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
     private final ObjectMapper mapper;
-    private final NotificationFactory notificationFactory;
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
@@ -59,15 +58,13 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     @Override
-    public void send(ExecutionContext context, Onboarding onboarding) {
-    public void send(Onboarding onboarding, QueueEvent queueEvent) {
+    public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent) {
         final Product product = productService.getProduct(onboarding.getProductId());
         final Map<String, NotificationConfig.Consumer> config = notificationConfig.consumers();
         if (Objects.isNull(product.getConsumers())) {
             context.getLogger().warning("Node consumers is null for product with ID " + onboarding.getProductId());
             return;
         }
-
         try {
             Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             if (token.isEmpty()) {
