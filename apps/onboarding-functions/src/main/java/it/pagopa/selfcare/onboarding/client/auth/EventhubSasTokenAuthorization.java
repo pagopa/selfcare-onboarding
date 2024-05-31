@@ -14,7 +14,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Map;
+import java.util.Objects;
 
 public class EventhubSasTokenAuthorization implements ClientRequestFilter {
 
@@ -32,12 +32,11 @@ public class EventhubSasTokenAuthorization implements ClientRequestFilter {
     public void filter(ClientRequestContext clientRequestContext) {
         final String[] paths = clientRequestContext.getUri().getPath().split("/");
         final String topic = paths[1];
-        NotificationConfig.Consumer consumerConfiguration = notificationConfig.consumers().entrySet().stream()
-                .filter(consumer -> consumer.getValue().topic().equals(topic))
-                .findFirst()
-                .map(Map.Entry::getValue)
-                .get();
-        clientRequestContext.getHeaders().add("Authorization", getSASToken(resourceUri.toString(), consumerConfiguration.name(), consumerConfiguration.key()));
+        NotificationConfig.Consumer consumerConfiguration = notificationConfig.consumers().values().stream()
+                .filter(consumer -> consumer.topic().equals(topic))
+                .findFirst().orElse(null);
+        if(Objects.nonNull(consumerConfiguration))
+            clientRequestContext.getHeaders().add("Authorization", getSASToken(resourceUri.toString(), consumerConfiguration.name(), consumerConfiguration.key()));
     }
 
     private static String getSASToken(String resourceUri, String keyName, String key) {
