@@ -1,14 +1,18 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NotificationToSend {
 
     private String id;
     private String internalIstitutionID;
+    private String institutionId;
     private String product;
     private String state;
     private String filePath;
@@ -16,12 +20,37 @@ public class NotificationToSend {
     private String contentType;
     private String onboardingTokenId;
     private String pricingPlan;
-    //private InstitutionToNotify institution;
+    private InstitutionToNotify institution;
     private Billing billing;
     private OffsetDateTime createdAt;
     private OffsetDateTime closedAt;
     private OffsetDateTime updatedAt;
     private QueueEvent notificationType;
+    private NotificationType type;
+
+    public String getInstitutionId() {
+        return institutionId;
+    }
+
+    public void setInstitutionId(String institutionId) {
+        this.institutionId = institutionId;
+    }
+
+    public InstitutionToNotify getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(InstitutionToNotify institution) {
+        this.institution = institution;
+    }
+
+    public NotificationType getType() {
+        return type;
+    }
+
+    public void setType(NotificationType type) {
+        this.type = type;
+    }
 
     public String getInternalIstitutionID() {
         return internalIstitutionID;
@@ -56,11 +85,20 @@ public class NotificationToSend {
     }
 
     public String getContentType() {
-        return contentType;
+        return this.contentType;
     }
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    public void setContentType(String contractSigned) {
+        String fileName = Objects.isNull(contractSigned) ? "" : Paths.get(contractSigned).getFileName().toString();
+        if (fileName.isEmpty()) {
+            this.contentType = "";
+        } else if (fileName.endsWith(".p7m")) {
+            this.contentType = "application/pkcs7-mime";
+        } else if (fileName.endsWith(".pdf")) {
+            this.contentType = "application/pdf";
+        } else {
+            this.contentType = "application/octet-stream";
+        }
     }
 
     public String getOnboardingTokenId() {

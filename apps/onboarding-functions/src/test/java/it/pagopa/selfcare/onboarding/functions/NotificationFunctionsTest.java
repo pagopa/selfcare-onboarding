@@ -64,7 +64,7 @@ public class NotificationFunctionsTest {
 
         // Verify
         Mockito.verify(notificationEventService, times(1))
-                .send(any());
+                .send(any(), any());
         assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
 
     }

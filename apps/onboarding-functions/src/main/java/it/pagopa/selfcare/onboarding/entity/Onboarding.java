@@ -27,6 +27,8 @@ public class Onboarding  {
     private OnboardingStatus status;
     private String userRequestUid;
     private String workflowInstanceId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime activatedAt;
     private LocalDateTime deletedAt;
     private String reasonForReject;
@@ -139,6 +141,21 @@ public class Onboarding  {
         this.testEnvProductIds = testEnvproductIds;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
     public LocalDateTime getActivatedAt() {
         return activatedAt;
     }
