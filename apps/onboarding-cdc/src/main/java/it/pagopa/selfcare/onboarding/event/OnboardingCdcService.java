@@ -109,7 +109,7 @@ public class OnboardingCdcService {
                 this::consumerOnboardingEvent,
                 failure -> {
                     log.error("Error during subscribe collection, exception: {} , message: {}", failure.toString(), failure.getMessage());
-                    constructMapAndTrackEvent(failure.getClass().toString(), ONBOARDING_FAILURE_MECTRICS);
+                    constructMapAndTrackEvent(failure.getClass().toString(), "FALSE",ONBOARDING_FAILURE_MECTRICS);
                     Quarkus.asyncExit();
                 });
 
