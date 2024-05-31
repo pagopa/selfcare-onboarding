@@ -121,6 +121,15 @@
             <version>${onboarding-sdk.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.openapi.generator</groupId>
+            <artifactId>quarkus-openapi-generator</artifactId>
+            <version>${quarkus-openapi-generator.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
