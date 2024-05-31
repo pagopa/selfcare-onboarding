@@ -7,6 +7,7 @@ import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
@@ -42,6 +43,9 @@ public class NotificationFunctions {
             final ExecutionContext context) {
         context.getLogger().info("sendNotifications trigger processed a request");
 
+        final String queueEventString = request.getQueryParameters().get("queueEvent");
+        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? QueueEvent.ADD : QueueEvent.valueOf(queueEventString);
+
         // Check request body
         if (request.getBody().isEmpty()) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
@@ -60,7 +64,7 @@ public class NotificationFunctions {
                     .body("Malformed object onboarding in input.")
                     .build();
         }
-        notificationEventService.send(context, onboarding);
+        notificationEventService.send(context, onboarding, queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
@@ -87,7 +91,7 @@ public class NotificationFunctions {
                     .body("Onboarding with ID: " + onboardingId + " not found")
                     .build();
         }
-        notificationEventService.send(context, onboarding.get());
+        notificationEventService.send(context, onboarding.get(), null);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

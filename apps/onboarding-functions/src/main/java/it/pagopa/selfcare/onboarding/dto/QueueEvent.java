@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.dto;
 
 public enum QueueEvent {
     ADD,

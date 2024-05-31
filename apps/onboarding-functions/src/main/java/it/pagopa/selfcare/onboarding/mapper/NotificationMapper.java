@@ -1,21 +1,10 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
-import it.pagopa.selfcare.onboarding.entity.NotificationToSend;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.*;
+import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
-@Mapper(componentModel = "cdi")
 public interface NotificationMapper {
-
-    @Mapping(source = "productId", target = "product")
-    @Mapping(source = "institution.id", target = "internalIstitutionID")
-    NotificationToSend toSCContractsFD(Onboarding onboarding);
-    @Mapping(source = "productId", target = "product")
-    @Mapping(source = "institution.id", target = "internalIstitutionID")
-    NotificationToSend toSCContractsSAP(Onboarding onboarding);
-    @Mapping(source = "productId", target = "product")
-    @Mapping(source = "institution.id", target = "internalIstitutionID")
-    NotificationToSend toSCContracts(Onboarding onboarding);
-
+    NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent);
 }
