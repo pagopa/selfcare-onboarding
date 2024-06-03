@@ -75,14 +75,14 @@ app_settings = {
   "USER_MS_ACTIVE"                                     = "true",
   "EVENT_HUB_BASE_PATH"                                = "https://selc-p-eventhub-ns.servicebus.windows.net",
   "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
-  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
+  "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"           = "eventhub-sc-contracts-selfcare-wo-key-lc"
   "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
   "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
+  "EVENTHUB_SC_CONTRACTS_SAP_SELFCARE_WO_KEY_LC"       = "eventhub-sc-contracts-sap-external-interceptor-wo-key-lc"
   "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
-  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
+  "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "eventhub-selfcare-fd-external-interceptor-wo-key-lc"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",

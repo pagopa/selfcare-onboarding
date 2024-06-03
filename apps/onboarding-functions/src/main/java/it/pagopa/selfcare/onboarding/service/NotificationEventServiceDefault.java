@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -19,8 +20,6 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +40,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final NotificationConfig notificationConfig;
     private final NotificationMapperFactory notificationMapperFactory;
     private final TokenRepository tokenRepository;
-    private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
     private final ObjectMapper mapper;
 
     public NotificationEventServiceDefault(ProductService productService,
@@ -57,32 +55,30 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     @Override
-    public void send(Onboarding onboarding, QueueEvent queueEvent) {
+    public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent) {
         final Product product = productService.getProduct(onboarding.getProductId());
         final Map<String, NotificationConfig.Consumer> config = notificationConfig.consumers();
         if (Objects.isNull(product.getConsumers())) {
-            log.warn("Node consumers is null for product with ID {}", onboarding.getProductId());
+            context.getLogger().warning("Node consumers is null for product with ID " + onboarding.getProductId());
             return;
         }
-
         try {
             Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             if (token.isEmpty()) {
-                log.warn("Token not found for onboarding {}", onboarding.getId());
+                context.getLogger().warning("Token not found for onboarding " + onboarding.getId());
                 return;
             }
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
-
             for (String consumer : product.getConsumers()) {
                 final String topic = config.get(consumer.toLowerCase()).topic();
                 NotificationMapper notificationMapper = notificationMapperFactory.create(topic);
                 final String message = mapper.writeValueAsString(notificationMapper.toNotificationToSend(onboarding, token.get(), institution, queueEvent));
                 eventHubRestClient.sendMessage(topic, message);
-                log.info("Sent notification on topic: {}", topic);
+                context.getLogger().info("Sent notification on topic: " + topic);
             }
         } catch (Exception e) {
-            log.warn("Error during send notification for object {}: {} ", onboarding, e.getMessage(), e);
-            throw new NotificationException("Impossible to send notification for object " + onboarding);
+            context.getLogger().warning("Error during send notification for onboarding with ID " + onboarding.getId() + ". Error: " + e.getMessage());
+            throw new NotificationException("Impossible to send notification for onboarding " + onboarding);
         }
     }
 }

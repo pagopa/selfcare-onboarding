@@ -1,13 +1,14 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.mapper.impl.NotificationCommonMapper;
@@ -23,6 +24,7 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -50,6 +52,7 @@ public class NotificationEventServiceDefaultTest {
     @InjectMock
     InstitutionApi institutionApi;
 
+
     @Test
     void sendMessage() {
         final Onboarding onboarding = createOnboarding();
@@ -58,11 +61,12 @@ public class NotificationEventServiceDefaultTest {
         NotificationCommonMapper notificationMapper = mock(NotificationCommonMapper.class);
         when(notificationMapperFactory.create(anyString())).thenReturn(notificationMapper);
         when(notificationMapper.toNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
-
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(onboarding, QueueEvent.ADD);
+        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -73,7 +77,9 @@ public class NotificationEventServiceDefaultTest {
         final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.empty());
-        messageServiceDefault.send(onboarding, QueueEvent.ADD);
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
 
@@ -89,7 +95,9 @@ public class NotificationEventServiceDefaultTest {
         when(notificationMapper.toNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
         doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
-        assertThrows(NotificationException.class, () -> messageServiceDefault.send(onboarding, QueueEvent.ADD));
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
@@ -100,7 +108,9 @@ public class NotificationEventServiceDefaultTest {
         Product test = new Product();
         test.setConsumers(List.of());
         when(productService.getProduct(any())).thenReturn(test);
-        messageServiceDefault.send(onboarding, QueueEvent.ADD);
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
 
@@ -130,4 +140,3 @@ public class NotificationEventServiceDefaultTest {
     }
 
 }
-

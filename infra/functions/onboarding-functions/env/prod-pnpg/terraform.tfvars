@@ -68,14 +68,14 @@ app_settings = {
   "BACKOFF_COEFFICIENT"   = "1"
   "EVENT_HUB_BASE_PATH"                                = "https://selc-p-eventhub-ns.servicebus.windows.net",
   "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
-  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "string"
+  "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"           = "string"
   "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
   "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "string"
+  "EVENTHUB_SC_CONTRACTS_SAP_SELFCARE_WO_KEY_LC"       = "string"
   "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
-  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "string"
-  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
+  "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "string"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
 
   ## IGNORE VALUES
 

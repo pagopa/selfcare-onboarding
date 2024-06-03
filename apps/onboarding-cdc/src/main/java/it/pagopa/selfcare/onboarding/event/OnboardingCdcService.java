@@ -131,7 +131,7 @@ public class OnboardingCdcService {
         log.info("Starting consumerOnboardingEvent ... ");
         log.info("Sending Onboarding notification having id {}", document.getFullDocument().getId());
 
-        notificationsApi.apiNotificationsPost(onboardingMapper.toEntity(document.getFullDocument()))
+       notificationsApi.apiNotificationPost(onboardingMapper.toEntity(document.getFullDocument()))
                 .onFailure().retry().withBackOff(Duration.ofSeconds(retryMinBackOff), Duration.ofHours(retryMaxBackOff)).atMost(maxRetry)
                 .subscribe().with(
                         result -> {

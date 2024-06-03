@@ -74,7 +74,7 @@ app_settings = {
   "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
   "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "string"
-  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
 
   ## IGNORE VALUES
 
