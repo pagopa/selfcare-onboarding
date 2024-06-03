@@ -45,7 +45,7 @@ app_settings = [
   },
   {
     name  = "ACS_BASE_URL"
-    value = "https://api.dev.selfcare.pagopa.it/spid/v1"
+    value = "https://api.dev.selfcare.pagopa.it/spid-login/v1"
   },
   {
     name  = "ORG_DISPLAY_NAME"
