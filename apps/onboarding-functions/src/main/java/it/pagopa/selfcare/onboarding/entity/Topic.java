@@ -1,7 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 public enum Topic {
-    SC_CONTRACTS_FD("SC-Contracts-FD"),
+    SC_CONTRACTS_FD("Selfcare-FD"),
     SC_CONTRACTS_SAP("SC-Contracts-SAP"),
     SC_CONTRACTS("SC-Contracts");
 

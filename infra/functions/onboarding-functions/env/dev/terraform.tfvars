@@ -81,5 +81,5 @@ app_settings = {
   "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
   "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/eventhub-selfcare-fd-external-interceptor-wo-key-lc/)"
-  "FD_TOPIC_NAME"                                      = "SC-Contracts-FD"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
 }

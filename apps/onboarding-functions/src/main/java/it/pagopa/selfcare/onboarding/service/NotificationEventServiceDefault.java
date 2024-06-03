@@ -20,8 +20,6 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -42,7 +40,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final NotificationConfig notificationConfig;
     private final NotificationMapperFactory notificationMapperFactory;
     private final TokenRepository tokenRepository;
-    private static final Logger log = LoggerFactory.getLogger(NotificationEventServiceDefault.class);
     private final ObjectMapper mapper;
 
     public NotificationEventServiceDefault(ProductService productService,
@@ -68,11 +65,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
         try {
             Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             if (token.isEmpty()) {
-                log.warn("Token not found for onboarding {}", onboarding.getId());
+                context.getLogger().warning("Token not found for onboarding " + onboarding.getId());
                 return;
             }
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
-
             for (String consumer : product.getConsumers()) {
                 final String topic = config.get(consumer.toLowerCase()).topic();
                 NotificationMapper notificationMapper = notificationMapperFactory.create(topic);
@@ -81,8 +77,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 context.getLogger().info("Sent notification on topic: " + topic);
             }
         } catch (Exception e) {
-            context.getLogger().warning("Error during send notification for object with ID " + onboarding.getId() + ". Error: " + e.getMessage());
-            throw new NotificationException("Impossible to send notification for object " + onboarding);
+            context.getLogger().warning("Error during send notification for onboarding with ID " + onboarding.getId() + ". Error: " + e.getMessage());
+            throw new NotificationException("Impossible to send notification for onboarding " + onboarding);
         }
     }
 }
