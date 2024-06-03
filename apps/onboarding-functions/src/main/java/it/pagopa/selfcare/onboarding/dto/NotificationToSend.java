@@ -2,7 +2,9 @@ package it.pagopa.selfcare.onboarding.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.utils.CustomOffsetDateTimeSerializer;
 
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
@@ -23,11 +25,11 @@ public class NotificationToSend {
     private String pricingPlan;
     private InstitutionToNotify institution;
     private Billing billing;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
     private OffsetDateTime createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
     private OffsetDateTime closedAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
     private OffsetDateTime updatedAt;
     private QueueEvent notificationType;
     private NotificationType type;
@@ -196,4 +198,5 @@ public class NotificationToSend {
                 ", notificationType=" + notificationType +
                 '}';
     }
+
 }
