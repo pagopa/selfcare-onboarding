@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: onboarding-ms API
+  title: Onboarding API (development)
   version: 1.0.0
 servers:
 - url: http://localhost:8080
@@ -124,6 +124,10 @@ paths:
         in: query
         schema:
           type: string
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/OnboardingStatus'
       - name: subunitCode
         in: query
         schema:
@@ -1036,6 +1040,16 @@ components:
           $ref: '#/components/schemas/AdditionalInformationsDto'
         userRequestUid:
           type: string
+    OnboardingStatus:
+      enum:
+      - REQUEST
+      - TOBEVALIDATED
+      - PENDING
+      - COMPLETED
+      - FAILED
+      - REJECTED
+      - DELETED
+      type: string
     Origin:
       enum:
       - MOCK

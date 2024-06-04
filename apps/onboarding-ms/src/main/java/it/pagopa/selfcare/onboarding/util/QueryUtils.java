@@ -4,6 +4,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -67,12 +68,13 @@ public class QueryUtils {
         Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put("to", value));
         return queryParameterMap;
     }
-    public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId) {
+    public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status) {
         Map<String, String> queryParameterMap = new HashMap<>();
         Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
         Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put("institution.subunitCode", value));
         Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put("institution.origin", value));
         Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put("institution.originId", value));
+        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value.toString()));
         return queryParameterMap;
     }
 

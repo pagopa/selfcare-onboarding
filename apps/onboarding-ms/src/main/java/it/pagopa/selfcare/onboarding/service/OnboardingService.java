@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -30,7 +31,7 @@ public interface OnboardingService {
 
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 
-    Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId);
+    Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
 
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
