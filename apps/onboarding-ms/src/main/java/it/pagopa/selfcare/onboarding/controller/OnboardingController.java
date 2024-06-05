@@ -4,6 +4,7 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -245,8 +246,9 @@ public class OnboardingController {
     public Uni<List<OnboardingResponse>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,
                                                               @QueryParam(value = "subunitCode") String subunitCode,
                                                               @QueryParam(value = "origin") String origin,
-                                                              @QueryParam(value = "originId") String originId) {
-        return onboardingService.institutionOnboardings(taxCode, subunitCode, origin, originId);
+                                                              @QueryParam(value = "originId") String originId,
+                                                              @QueryParam(value = "status") OnboardingStatus status) {
+        return onboardingService.institutionOnboardings(taxCode, subunitCode, origin, originId, status);
     }
 
     private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {
