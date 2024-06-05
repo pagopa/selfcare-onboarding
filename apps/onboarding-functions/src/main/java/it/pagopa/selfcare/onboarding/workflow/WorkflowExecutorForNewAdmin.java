@@ -11,12 +11,12 @@ import java.util.Optional;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
-public class WorkflowExecutorNewAdmin implements WorkflowExecutor {
+public class WorkflowExecutorForNewAdmin implements WorkflowExecutor {
 
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public WorkflowExecutorNewAdmin(ObjectMapper objectMapper, TaskOptions optionsRetry) {
+    public WorkflowExecutorForNewAdmin(ObjectMapper objectMapper, TaskOptions optionsRetry) {
         this.objectMapper = objectMapper;
         this.optionsRetry = optionsRetry;
     }
