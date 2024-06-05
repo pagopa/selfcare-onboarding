@@ -1330,7 +1330,7 @@ class OnboardingServiceDefaultTest {
         when(query.stream()).thenReturn(Multi.createFrom().item(onboarding1));
         when(Onboarding.find(any())).thenReturn(query);
         UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
-                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId")
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

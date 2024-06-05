@@ -9,6 +9,7 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
@@ -540,7 +541,7 @@ class OnboardingControllerTest {
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
         onboardingResponses.add(onboardingResponse);
-        when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId"))
+        when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
@@ -553,7 +554,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         verify(onboardingService, times(1))
-                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId");
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
     }
 
     private static Map<String, String> getStringStringMap() {
@@ -572,6 +573,7 @@ class OnboardingControllerTest {
         queryParameterMap.put("subunitCode","subunitCode");
         queryParameterMap.put("origin","origin");
         queryParameterMap.put("originId","originId");
+        queryParameterMap.put("status","PENDING");
         return queryParameterMap;
     }
 
@@ -598,7 +600,7 @@ class OnboardingControllerTest {
     private static OnboardingResponse dummyOnboardingResponse() {
         OnboardingResponse onboarding = new OnboardingResponse();
         onboarding.setId("id");
-        onboarding.setStatus("ACTIVE");
+        onboarding.setStatus("PENDING");
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
