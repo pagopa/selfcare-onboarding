@@ -6,8 +6,6 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
@@ -19,10 +17,15 @@ import org.bson.conversions.Bson;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-@RequiredArgsConstructor(access = AccessLevel.NONE)
 public class QueryUtils {
+
+    private QueryUtils() {
+    }
 
     public static Document buildQuery(Map<String, String> parameters) {
         if (!parameters.isEmpty()) {
