@@ -74,7 +74,7 @@ public class QueryUtils {
         Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put("institution.subunitCode", value));
         Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put("institution.origin", value));
         Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put("institution.originId", value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value.toString()));
+        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value.name()));
         return queryParameterMap;
     }
 
