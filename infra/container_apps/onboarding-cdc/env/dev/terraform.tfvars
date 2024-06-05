@@ -46,6 +46,10 @@ app_settings = [
   {
     name  = "ONBOARDING-CDC-MONGODB-WATCH-ENABLED"
     value = "true"
+  },
+  {
+    name = "ONBOARDING-CDC-MINUTES-THRESHOLD-FOR-UPDATE-NOTIFICATION"
+    value = "5"
   }
 ]
 
