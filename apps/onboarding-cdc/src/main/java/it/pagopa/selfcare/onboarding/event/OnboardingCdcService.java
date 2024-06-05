@@ -17,19 +17,12 @@ import io.quarkus.runtime.configuration.ConfigUtils;
 import io.smallrye.mutiny.Multi;
 import it.pagopa.selfcare.onboarding.event.constant.CdcStartAtConstant;
 import it.pagopa.selfcare.onboarding.event.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.event.entity.util.QueueEvent;
-import it.pagopa.selfcare.onboarding.event.mapper.OnboardingMapper;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.mongodb.client.model.Projections.fields;
@@ -42,11 +35,6 @@ import static java.util.Arrays.asList;
 @Slf4j
 @ApplicationScoped
 public class OnboardingCdcService {
-
-    @Inject
-    @RestClient
-    NotificationsApi notificationsApi;
-    private final OnboardingMapper onboardingMapper;
     private static final String COLLECTION_NAME = "onboardings";
     private static final String OPERATION_NAME = "ONBOARDING-CDC-OnboardingsUpdate";
     private static final String EVENT_NAME = "ONBOARDING-CDC";
@@ -56,28 +44,18 @@ public class OnboardingCdcService {
     private final TableClient tableClient;
     private final String mongodbDatabase;
     private final ReactiveMongoClient mongoClient;
-    private final Integer retryMinBackOff;
-    private final Integer retryMaxBackOff;
-    private final Integer maxRetry;
-    private final Integer minutesThresholdForUpdateNotification;
+    private final NotificationService notificationService;
 
-    public OnboardingCdcService(OnboardingMapper onboardingMapper, ReactiveMongoClient mongoClient,
+    public OnboardingCdcService(ReactiveMongoClient mongoClient,
                                 @ConfigProperty(name = "quarkus.mongodb.database") String mongodbDatabase,
-                                @ConfigProperty(name = "onboarding-cdc.retry.min-backoff") Integer retryMinBackOff,
-                                @ConfigProperty(name = "onboarding-cdc.retry.max-backoff") Integer retryMaxBackOff,
-                                @ConfigProperty(name = "onboarding-cdc.retry") Integer maxRetry,
-                                @ConfigProperty(name = "onboarding-cdc.minutes-threshold-for-update-notification") Integer minutesThresholdForUpdateNotification,
                                 TelemetryClient telemetryClient,
-                                TableClient tableClient) {
-        this.onboardingMapper = onboardingMapper;
+                                TableClient tableClient,
+                                NotificationService notificationService) {
         this.mongoClient = mongoClient;
         this.mongodbDatabase = mongodbDatabase;
-        this.maxRetry = maxRetry;
-        this.retryMaxBackOff = retryMaxBackOff;
-        this.retryMinBackOff = retryMinBackOff;
-        this.minutesThresholdForUpdateNotification = minutesThresholdForUpdateNotification;
         this.telemetryClient = telemetryClient;
         this.tableClient = tableClient;
+        this.notificationService = notificationService;
         telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         initOrderStream();
     }
@@ -136,10 +114,7 @@ public class OnboardingCdcService {
         log.info("Starting consumerOnboardingEvent ... ");
         log.info("Sending Onboarding notification having id {}", document.getFullDocument().getId());
 
-        Onboarding onboarding = document.getFullDocument();
-        QueueEvent queueEvent = determineEventType(onboarding);
-        notificationsApi.apiNotificationPost(queueEvent.name(), onboardingMapper.toEntity(onboarding))
-                .onFailure().retry().withBackOff(Duration.ofSeconds(retryMinBackOff), Duration.ofHours(retryMaxBackOff)).atMost(maxRetry)
+        notificationService.invokeNotificationApi(document.getFullDocument())
                 .subscribe().with(
                         result -> {
                             log.info("Onboarding notification having id: {} successfully sent", document.getDocumentKey().toJson());
@@ -151,20 +126,6 @@ public class OnboardingCdcService {
                             constructMapAndTrackEvent(document.getDocumentKey().toJson(), "FALSE", ONBOARDING_FAILURE_MECTRICS);
                         });
         log.info("End consumerOnboardingEvent ... ");
-    }
-
-    private QueueEvent determineEventType(Onboarding onboarding) {
-        return switch (onboarding.getStatus()) {
-            case COMPLETED -> (isOverUpdateThreshold(onboarding.getUpdatedAt(), onboarding.getActivatedAt())) ? QueueEvent.UPDATE : QueueEvent.ADD;
-            case DELETED -> QueueEvent.UPDATE;
-            default -> throw new IllegalArgumentException("Onboarding status not supported");
-        };
-    }
-
-    private boolean isOverUpdateThreshold(LocalDateTime updatedAt, LocalDateTime activatedAt) {
-        return Objects.nonNull(updatedAt)
-                && Objects.nonNull(activatedAt)
-                && updatedAt.isAfter(activatedAt.plusMinutes(minutesThresholdForUpdateNotification));
     }
 
     private void updateLastResumeToken(BsonDocument resumeToken) {
