@@ -154,23 +154,17 @@ public class OnboardingCdcService {
     }
 
     private QueueEvent determineEventType(Onboarding onboarding) {
-        if (onboarding.getStatus() == COMPLETED) {
-            if (Objects.nonNull(onboarding.getActivatedAt()) && isOverUpdateThreshold(onboarding.getUpdatedAt(), onboarding.getActivatedAt())) {
-                return QueueEvent.UPDATE;
-            }
-
-            return QueueEvent.ADD;
-        }
-
-        if (onboarding.getStatus() == DELETED) {
-            return QueueEvent.UPDATE;
-        }
-
-        throw new IllegalArgumentException("Onboarding status not supported");
+        return switch (onboarding.getStatus()) {
+            case COMPLETED -> (isOverUpdateThreshold(onboarding.getUpdatedAt(), onboarding.getActivatedAt())) ? QueueEvent.UPDATE : QueueEvent.ADD;
+            case DELETED -> QueueEvent.UPDATE;
+            default -> throw new IllegalArgumentException("Onboarding status not supported");
+        };
     }
 
     private boolean isOverUpdateThreshold(LocalDateTime updatedAt, LocalDateTime activatedAt) {
-        return updatedAt.isAfter(activatedAt.plusMinutes(minutesThresholdForUpdateNotification));
+        return Objects.nonNull(updatedAt)
+                && Objects.nonNull(activatedAt)
+                && updatedAt.isAfter(activatedAt.plusMinutes(minutesThresholdForUpdateNotification));
     }
 
     private void updateLastResumeToken(BsonDocument resumeToken) {
