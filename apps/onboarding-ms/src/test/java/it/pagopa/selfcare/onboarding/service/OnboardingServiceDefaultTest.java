@@ -68,8 +68,7 @@ import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -317,12 +316,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Aoo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -359,12 +352,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -393,12 +380,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -427,12 +408,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Uo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -469,12 +444,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -505,12 +474,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -1047,13 +1010,12 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1064,14 +1026,13 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void rejectOnboarding_statusIsCOMPLETED() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1082,12 +1043,11 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 0L);
+        mockUpdateOnboarding(onboarding.getId(), 0L);
 
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
@@ -1097,7 +1057,7 @@ class OnboardingServiceDefaultTest {
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
-    private void mockUpdateOnboarding(String onboardingId, String reasonForReject, Long updatedItemCount) {
+    private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.update(any(Document.class))).thenReturn(query);
@@ -1127,8 +1087,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.empty()));
-
-        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+        onboardingService
                 .onboardingGet(UUID.randomUUID().toString())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create())
@@ -1321,7 +1280,6 @@ class OnboardingServiceDefaultTest {
         });
     }
 
-
     @Test
     void testInstitutionOnboardings() {
         Onboarding onboarding1 = mock(Onboarding.class);
@@ -1335,7 +1293,7 @@ class OnboardingServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
-        assertTrue(!response.isEmpty());
+        assertFalse(response.isEmpty());
         assertEquals(1, response.size());
     }
 
