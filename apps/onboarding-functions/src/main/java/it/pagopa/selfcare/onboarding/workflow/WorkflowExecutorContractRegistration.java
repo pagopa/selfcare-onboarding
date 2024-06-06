@@ -11,15 +11,8 @@ import java.util.Optional;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
-public class WorkflowExecutorContractRegistration implements WorkflowExecutor {
+public record WorkflowExecutorContractRegistration(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
 
-    private final ObjectMapper objectMapper;
-    private final TaskOptions optionsRetry;
-
-    public WorkflowExecutorContractRegistration(ObjectMapper objectMapper, TaskOptions optionsRetry) {
-        this.objectMapper = objectMapper;
-        this.optionsRetry = optionsRetry;
-    }
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
@@ -37,15 +30,5 @@ public class WorkflowExecutorContractRegistration implements WorkflowExecutor {
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         return onboardingCompletionActivity(ctx, onboarding);
-    }
-
-    @Override
-    public ObjectMapper objectMapper() {
-        return this.objectMapper;
-    }
-
-    @Override
-    public TaskOptions optionsRetry() {
-        return this.optionsRetry;
     }
 }
