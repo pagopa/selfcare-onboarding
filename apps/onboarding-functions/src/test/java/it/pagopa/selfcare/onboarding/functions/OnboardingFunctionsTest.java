@@ -143,7 +143,7 @@ public class OnboardingFunctionsTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
-        onboarding.setWorkflowType(WorkflowType.NEW_ADMIN);
+        onboarding.setWorkflowType(WorkflowType.USERS);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
@@ -285,7 +285,7 @@ public class OnboardingFunctionsTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
-        onboarding.setWorkflowType(WorkflowType.NEW_ADMIN);
+        onboarding.setWorkflowType(WorkflowType.USERS);
         onboarding.setInstitution(new Institution());
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);

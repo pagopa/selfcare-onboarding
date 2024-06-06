@@ -7,12 +7,10 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
@@ -74,7 +72,7 @@ public interface WorkflowExecutor {
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionAdminActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    default Optional<OnboardingStatus> onboardingCompletionUsersActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
