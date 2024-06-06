@@ -248,11 +248,6 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistOnboarding(Onboarding onboarding) {
-        LocalDateTime now = LocalDateTime.now();
-        onboardingRepository
-                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
-                .where("_id", onboarding.getId());
-
         //Prepare data for request
         InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
         onboardingRequest.setUsers(onboarding.getUsers().stream()
@@ -297,5 +292,13 @@ public class CompletionServiceDefault implements CompletionService {
         optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
 
         institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
+    }
+
+    @Override
+    public void persistActivatedAt(Onboarding onboarding) {
+        LocalDateTime now = LocalDateTime.now();
+        onboardingRepository
+                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
+                .where("_id", onboarding.getId());
     }
 }
