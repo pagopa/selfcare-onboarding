@@ -51,6 +51,18 @@ public class OnboardingController {
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
+    @Operation(summary = "Perform onboarding users request, it is used all institution types." +
+            "Users data will be saved on personal data vault if it doesn't already exist." +
+            "At the end, function triggers async activities related to onboarding based on institution type.")
+    @POST
+    @Path("/users")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingUsers(@Valid OnboardingUserRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingUsers(onboardingRequest, userId));
+    }
 
     @Operation(summary = "Perform onboarding request for PA institution type, it require billing.recipientCode in additition to default request" +
             "Users data will be saved on personal data vault if it doesn't already exist." +
@@ -111,7 +123,6 @@ public class OnboardingController {
                         .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
     }
 
-
     @Operation(summary = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
     @POST
     @Path("/psp/completion")
@@ -123,7 +134,6 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
-
     @POST
     @Path("/pg/completion")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -133,7 +143,6 @@ public class OnboardingController {
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
-
 
     private Uni<String> readUserIdFromToken(SecurityContext ctx) {
 
@@ -168,7 +177,6 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract")
-
     @PUT
     @Path("/{onboardingId}/consume")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
