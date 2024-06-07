@@ -51,6 +51,18 @@ public class OnboardingController {
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
+    @Operation(summary = "Perform onboarding users request, it is used all institution types." +
+            "Users data will be saved on personal data vault if it doesn't already exist." +
+            "At the end, function triggers async activities related to onboarding based on institution type.")
+    @POST
+    @Path("/users")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingUsers(@Valid OnboardingUserRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingUsers(onboardingRequest, userId));
+    }
 
     @Operation(summary = "Perform onboarding request for PA institution type, it require billing.recipientCode in additition to default request" +
             "Users data will be saved on personal data vault if it doesn't already exist." +
