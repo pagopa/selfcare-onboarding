@@ -29,7 +29,9 @@ public class QueryUtils {
     private QueryUtils() {
     }
 
-    static abstract class FieldNames {
+    static class FieldNames {
+        private FieldNames() {
+        }
         public static final String STATUS = "status";
         public static final String FROM = "from";
         public static final String TO = "to";
