@@ -16,6 +16,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class NotificationSapMapper extends NotificationCommonMapper {
     private final UoApi proxyRegistryUoApi;
@@ -35,20 +36,29 @@ public class NotificationSapMapper extends NotificationCommonMapper {
     @Override
     public NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.toNotificationToSend(onboarding, token, institution, queueEvent);
-        if (Objects.nonNull(onboarding.getBilling()) && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
-            notificationToSend.getInstitution().setTaxCode(onboarding.getBilling().getTaxCodeInvoicing());
-        }
+        notificationToSend.setId(UUID.randomUUID().toString());
+        notificationToSend.setInstitutionId(notificationToSend.getInternalIstitutionID());
         notificationToSend.setType(NotificationType.getNotificationTypeFromQueueEvent(queueEvent));
-        clearFields(notificationToSend);
+        if (Objects.nonNull(onboarding.getBilling())) {
+            if(Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
+                notificationToSend.getInstitution().setTaxCode(onboarding.getBilling().getTaxCodeInvoicing());
+            }
+            notificationToSend.getBilling().setPublicService(notificationToSend.getBilling().isPublicServices());
+        }
+        clearFieldsNotNeeded(notificationToSend);
         setNotificationInstitutionLocationFields(notificationToSend);
         setNotificationToSendInstitutionDescription(notificationToSend);
         return notificationToSend;
     }
 
-    private void clearFields(NotificationToSend notificationToSend) {
+    private void clearFieldsNotNeeded(NotificationToSend notificationToSend) {
+        // This method is used to clear fields that are not needed in the notification
+        notificationToSend.setInternalIstitutionID(null);
         notificationToSend.setNotificationType(null);
+        notificationToSend.getInstitution().setCategory(null);
         if (Objects.nonNull(notificationToSend.getBilling())) {
             notificationToSend.getBilling().setTaxCodeInvoicing(null);
+            notificationToSend.getBilling().setPublicServices(null);
         }
     }
 

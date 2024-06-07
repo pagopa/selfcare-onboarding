@@ -2,10 +2,7 @@ package it.pagopa.selfcare.onboarding.mapper.impl;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.dto.InstitutionToNotify;
-import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
-import it.pagopa.selfcare.onboarding.dto.QueueEvent;
-import it.pagopa.selfcare.onboarding.dto.RootParent;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.mapper.NotificationMapper;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -25,6 +22,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class NotificationCommonMapper implements NotificationMapper {
+    public static final String CLOSED = "CLOSED";
+    public static final String ACTIVE = "ACTIVE";
     private final String alternativeEmail;
     protected final InstitutionApi proxyRegistryInstitutionApi;
     protected final GeographicTaxonomiesApi geographicTaxonomiesApi;
@@ -48,24 +47,11 @@ public class NotificationCommonMapper implements NotificationMapper {
     public NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = new NotificationToSend();
         if (queueEvent.equals(QueueEvent.ADD)) {
-            // When Onboarding.complete event id is the onboarding id
-            notificationToSend.setId(token.getId());
-            notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
-            // when onboarding complete last update is activated date
-            notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
+            notificationToSend.setId(onboarding.getId());
         } else {
-            // New id
             notificationToSend.setId(UUID.randomUUID().toString());
-            notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
-            if (onboarding.getStatus().equals(OnboardingStatus.DELETED)) {
-                // Queue.ClosedAt: if token.deleted show closedAt
-                notificationToSend.setClosedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getDeletedAt()).orElse(onboarding.getUpdatedAt()), ZoneOffset.UTC));
-                notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getDeletedAt()).orElse(onboarding.getUpdatedAt()), ZoneOffset.UTC));
-            } else {
-                // when update last update is updated date
-                notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getUpdatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
-            }
         }
+        notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
         notificationToSend.setInternalIstitutionID(institution.getId());
         notificationToSend.setNotificationType(queueEvent);
 
@@ -76,24 +62,54 @@ public class NotificationCommonMapper implements NotificationMapper {
     }
 
     private void mapDataFromOnboarding(Onboarding onboarding, NotificationToSend notificationToSend) {
-        notificationToSend.setBilling(onboarding.getBilling());
+        notificationToSend.setOnboardingTokenId(onboarding.getId());
+        notificationToSend.setBilling(convertBilling(onboarding.getBilling()));
         notificationToSend.setPricingPlan(onboarding.getPricingPlan());
         notificationToSend.setCreatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
+
+        if (notificationToSend.getNotificationType().equals(QueueEvent.ADD)) {
+            // when onboarding complete last update is activated date
+            notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
+        } else {
+            if (onboarding.getStatus().equals(OnboardingStatus.DELETED)) {
+                // Queue.ClosedAt: if token.deleted show closedAt
+                notificationToSend.setClosedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getDeletedAt()).orElse(onboarding.getUpdatedAt()), ZoneOffset.UTC));
+                notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getDeletedAt()).orElse(onboarding.getUpdatedAt()), ZoneOffset.UTC));
+            } else {
+                // when update last update is updated date
+                notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getUpdatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
+            }
+        }
+    }
+
+    private BillingToSend convertBilling(Billing billing) {
+        BillingToSend billingToSend = new BillingToSend();
+        if (Objects.isNull(billing)) {
+            return null;
+        }
+        billingToSend.setTaxCodeInvoicing(billing.getTaxCodeInvoicing());
+        billingToSend.setPublicServices(billing.isPublicServices());
+        billingToSend.setVatNumber(billing.getVatNumber());
+        billingToSend.setRecipientCode(billing.getRecipientCode());
+        return billingToSend;
     }
 
     private void mapDataFromToken(Token token, NotificationToSend notificationToSend) {
+        if(Objects.isNull(token)) {
+            return;
+        }
+
         notificationToSend.setProduct(token.getProductId());
         notificationToSend.setFilePath(token.getContractSigned());
-        notificationToSend.setOnboardingTokenId(token.getId());
         notificationToSend.setFileName(Objects.isNull(token.getContractSigned()) ? "" : Paths.get(token.getContractSigned()).getFileName().toString());
         notificationToSend.setContentType(token.getContractSigned());
     }
 
     private String convertOnboardingStatusToNotificationStatus(OnboardingStatus status) {
         if (status.equals(OnboardingStatus.DELETED)) {
-            return "CLOSED";
+            return CLOSED;
         } else  if (status.equals(OnboardingStatus.COMPLETED)) {
-            return "ACTIVE";
+            return ACTIVE;
         } else {
             return status.name();
         }

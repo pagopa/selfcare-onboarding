@@ -70,6 +70,7 @@ class NotificationFdMapperTest {
         NotificationToSend notification = notificationFdMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
+        assertNotEquals(onboarding.getId(), notification.getId());
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
         assertEquals(tokenId, notification.getOnboardingTokenId());
@@ -78,5 +79,7 @@ class NotificationFdMapperTest {
         assertNull(notification.getNotificationType());
         assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
         assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().isPublicServices());
+        assertEquals(onboarding.getBilling().isPublicServices(), notification.getBilling().isPublicService());
     }
 }

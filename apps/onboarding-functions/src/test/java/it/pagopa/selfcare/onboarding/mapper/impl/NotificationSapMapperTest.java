@@ -94,6 +94,7 @@ class NotificationSapMapperTest {
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
+        assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals("ACTIVE", notification.getState());
         assertEquals(tokenId, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
@@ -101,6 +102,8 @@ class NotificationSapMapperTest {
         assertNull(notification.getNotificationType());
         assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
         assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().isPublicServices());
+        assertEquals(onboarding.getBilling().isPublicServices(), notification.getBilling().isPublicService());
         assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
         assertEquals("istatCode", notification.getInstitution().getIstatCode());
         assertEquals("provinceAbbreviation", notification.getInstitution().getCounty());
@@ -148,12 +151,14 @@ class NotificationSapMapperTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertNull(notification.getNotificationType());
         assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
         assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().isPublicServices());
+        assertEquals(onboarding.getBilling().isPublicServices(), notification.getBilling().isPublicService());
         assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
         assertEquals("istatCode", notification.getInstitution().getIstatCode());
         assertEquals("provinceAbbreviation", notification.getInstitution().getCounty());
@@ -204,12 +209,14 @@ class NotificationSapMapperTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertNull(notification.getNotificationType());
         assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
         assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().isPublicServices());
         assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
         assertEquals("istatCode", notification.getInstitution().getIstatCode());
         assertEquals("provinceAbbreviation", notification.getInstitution().getCounty());
@@ -254,9 +261,11 @@ class NotificationSapMapperTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+        assertNull(notification.getBilling().getTaxCodeInvoicing());
+        assertNull(notification.getBilling().isPublicServices());
         assertNull(notification.getNotificationType());
         assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
         assertNull(notification.getBilling().getTaxCodeInvoicing());
