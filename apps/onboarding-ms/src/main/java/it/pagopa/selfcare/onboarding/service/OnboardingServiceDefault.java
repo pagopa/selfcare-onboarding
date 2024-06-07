@@ -214,13 +214,34 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
+                .onItem().transformToUni(product -> this.addReferencedOnboardingId(onboarding)
                 /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                .onItem().invoke(product -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                .onItem().transformToUni(product -> persistOnboarding(onboarding, userRequests, product))
+                .onItem().invoke(current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                 /* Update onboarding data with users and start orchestration */
                 .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                         orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
-                .onItem().transform(onboardingMapper::toResponse);
+                .onItem().transform(onboardingMapper::toResponse));
+    }
+
+    private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
+        final Map<String, String> queryParameter = QueryUtils.createMapForOnboardingsQueryParameter(
+                onboarding.getProductId(),
+                onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getOrigin().name(),
+                onboarding.getInstitution().getOriginId(),
+                onboarding.getInstitution().getSubunitCode());
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return Onboarding.find(query).firstResult()
+                .map(Onboarding.class::cast)
+                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %S, origin %s, originId %s, productId %s, subunitCode %s not found",
+                        onboarding.getInstitution().getTaxCode(),
+                        onboarding.getInstitution().getOrigin().name(),
+                        onboarding.getInstitution().getOriginId(),
+                        onboarding.getProductId(),
+                        onboarding.getInstitution().getSubunitCode())))
+                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getReferenceOnboardingId()))
+                .replaceWith(onboarding);
     }
 
     /**
