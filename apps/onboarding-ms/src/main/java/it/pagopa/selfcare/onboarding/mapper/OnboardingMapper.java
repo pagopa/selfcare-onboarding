@@ -43,7 +43,7 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "userRequestUid", source = "userId")
     @Mapping(target = "productId", source = "request.productId")
-    @Mapping(target = "workflowType", expression = "java(WorkflowType.NEW_ADMIN)")
+    @Mapping(target = "workflowType", expression = "java(WorkflowType.USERS)")
     @Mapping(target = "status", expression = "java(OnboardingStatus.REQUEST)")
     Onboarding toEntity(OnboardingUserRequest request, String userId);
 

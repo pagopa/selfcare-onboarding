@@ -148,7 +148,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     /**
-     * As onboarding but it is specific for NEW_ADMIN workflow
+     * As onboarding but it is specific for USERS workflow
      */
     @Override
     public Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest request, String userId) {
