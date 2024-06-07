@@ -10,6 +10,8 @@ public interface CompletionService {
 
     void persistOnboarding(Onboarding onboarding);
 
+    void persistActivatedAt(Onboarding onboarding);
+
     void sendCompletedEmail(Onboarding onboarding);
 
     void persistUsers(Onboarding onboarding);

@@ -203,6 +203,12 @@ public class OnboardingFunctions {
         completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(STORE_ONBOARDING_ACTIVATEDAT)
+    public void storeOnboardingActivatedAt(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, STORE_ONBOARDING_ACTIVATEDAT, onboardingString));
+        completionService.persistActivatedAt(readOnboardingValue(objectMapper, onboardingString));
+    }
+
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
     public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
