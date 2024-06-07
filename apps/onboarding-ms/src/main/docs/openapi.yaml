@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: Onboarding API (development)
+  title: Onboarding API
   version: 1.0.0
 servers:
 - url: http://localhost:8080
@@ -55,10 +55,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGetResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
     post:
@@ -80,10 +80,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/completion:
@@ -104,10 +104,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/institutionOnboardings:
@@ -145,10 +145,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa:
@@ -172,10 +172,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/completion:
@@ -196,10 +196,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/import:
@@ -220,10 +220,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pg/completion:
@@ -242,10 +242,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp:
@@ -268,10 +268,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp/completion:
@@ -292,36 +292,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v1/onboarding/users:
-    post:
-      tags:
-      - Onboarding Controller
-      summary: "Perform onboarding users request, it is used all institution types.Users\
-        \ data will be saved on personal data vault if it doesn't already exist.At\
-        \ the end, function triggers async activities related to onboarding based\
-        \ on institution type."
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OnboardingUserRequest'
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OnboardingResponse'
         "401":
           description: Not Authorized
-        "403":
-          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}:
@@ -342,10 +316,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/approve:
@@ -366,10 +340,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/complete:
@@ -403,10 +377,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/consume:
@@ -437,10 +411,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/pending:
@@ -463,10 +437,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/reject:
@@ -492,10 +466,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/withUserInfo:
@@ -517,10 +491,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/tokens:
@@ -542,10 +516,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TokenResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/tokens/{onboardingId}/contract:
@@ -567,10 +541,10 @@ paths:
               schema:
                 format: binary
                 type: string
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
 components:
@@ -1076,34 +1050,6 @@ components:
       - REJECTED
       - DELETED
       type: string
-    OnboardingUserRequest:
-      required:
-      - productId
-      - origin
-      - originId
-      - users
-      type: object
-      properties:
-        productId:
-          minLength: 1
-          type: string
-        institutionType:
-          $ref: '#/components/schemas/InstitutionType'
-        subunitCode:
-          type: string
-        origin:
-          minLength: 1
-          type: string
-        originId:
-          minLength: 1
-          type: string
-        taxCode:
-          type: string
-        users:
-          minItems: 1
-          type: array
-          items:
-            $ref: '#/components/schemas/UserRequest'
     Origin:
       enum:
       - MOCK

@@ -15,11 +15,11 @@ jobs:
   swagger_conflict_update:  
     runs-on: ubuntu-20.04
     permissions: write-all
-    name: Swagger Detect Conflict and Update
+    name: Swagger Detect Rule and Conflict
     steps:
-      - id: swagger-conflict-update
+      - id: swagger-detect
         uses: pagopa/selfcare-commons/github-actions-template/swagger-detect-conflict-quarkus@main
         with:
           path_openapi_docs: src/main/docs/openapi.json
-          branch_ref: main
           module: onboarding-ms
+          github_token: ${{ secrets.GITHUB_TOKEN }}
