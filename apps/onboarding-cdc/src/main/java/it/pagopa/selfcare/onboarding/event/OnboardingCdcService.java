@@ -17,32 +17,24 @@ import io.quarkus.runtime.configuration.ConfigUtils;
 import io.smallrye.mutiny.Multi;
 import it.pagopa.selfcare.onboarding.event.constant.CdcStartAtConstant;
 import it.pagopa.selfcare.onboarding.event.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.event.mapper.OnboardingMapper;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
 
-import java.time.Duration;
 import java.util.*;
 
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.DELETED;
 import static java.util.Arrays.asList;
 
 @Startup
 @Slf4j
 @ApplicationScoped
 public class OnboardingCdcService {
-
-    @Inject
-    @RestClient
-    NotificationsApi notificationsApi;
-    private final OnboardingMapper onboardingMapper;
     private static final String COLLECTION_NAME = "onboardings";
     private static final String OPERATION_NAME = "ONBOARDING-CDC-OnboardingsUpdate";
     private static final String EVENT_NAME = "ONBOARDING-CDC";
@@ -52,25 +44,18 @@ public class OnboardingCdcService {
     private final TableClient tableClient;
     private final String mongodbDatabase;
     private final ReactiveMongoClient mongoClient;
-    private final Integer retryMinBackOff;
-    private final Integer retryMaxBackOff;
-    private final Integer maxRetry;
+    private final NotificationService notificationService;
 
-    public OnboardingCdcService(OnboardingMapper onboardingMapper, ReactiveMongoClient mongoClient,
+    public OnboardingCdcService(ReactiveMongoClient mongoClient,
                                 @ConfigProperty(name = "quarkus.mongodb.database") String mongodbDatabase,
-                                @ConfigProperty(name = "onboarding-cdc.retry.min-backoff") Integer retryMinBackOff,
-                                @ConfigProperty(name = "onboarding-cdc.retry.max-backoff") Integer retryMaxBackOff,
-                                @ConfigProperty(name = "onboarding-cdc.retry") Integer maxRetry,
                                 TelemetryClient telemetryClient,
-                                TableClient tableClient) {
-        this.onboardingMapper = onboardingMapper;
+                                TableClient tableClient,
+                                NotificationService notificationService) {
         this.mongoClient = mongoClient;
         this.mongodbDatabase = mongodbDatabase;
-        this.maxRetry = maxRetry;
-        this.retryMaxBackOff = retryMaxBackOff;
-        this.retryMinBackOff = retryMinBackOff;
         this.telemetryClient = telemetryClient;
         this.tableClient = tableClient;
+        this.notificationService = notificationService;
         telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         initOrderStream();
     }
@@ -87,7 +72,7 @@ public class OnboardingCdcService {
                 if (Objects.nonNull(cdcStartAtEntity))
                     resumeToken = (String) cdcStartAtEntity.getProperty(CdcStartAtConstant.CDC_START_AT_PROPERTY);
             } catch (TableServiceException e) {
-                log.warn("Table StarAt not found, it is starting from now ...");
+                log.warn("Table StartAt not found, it is starting from now ...");
             }
         }
 
@@ -100,7 +85,7 @@ public class OnboardingCdcService {
 
         Bson match = Aggregates.match(Filters.and(
                 Filters.in("operationType", asList("update", "replace", "insert")),
-                Filters.in("fullDocument.status", Arrays.asList("COMPLETED", "DELETED"))));
+                Filters.in("fullDocument.status", Arrays.asList(COMPLETED.name(), DELETED.name()))));
         Bson project = Aggregates.project(fields(include("_id", "ns", "documentKey", "fullDocument")));
         List<Bson> pipeline = Arrays.asList(match, project);
 
@@ -123,16 +108,13 @@ public class OnboardingCdcService {
     }
 
     protected void consumerOnboardingEvent(ChangeStreamDocument<Onboarding> document) {
-
-
         assert document.getFullDocument() != null;
         assert document.getDocumentKey() != null;
 
         log.info("Starting consumerOnboardingEvent ... ");
         log.info("Sending Onboarding notification having id {}", document.getFullDocument().getId());
 
-       notificationsApi.apiNotificationPost(onboardingMapper.toEntity(document.getFullDocument()))
-                .onFailure().retry().withBackOff(Duration.ofSeconds(retryMinBackOff), Duration.ofHours(retryMaxBackOff)).atMost(maxRetry)
+        notificationService.invokeNotificationApi(document.getFullDocument())
                 .subscribe().with(
                         result -> {
                             log.info("Onboarding notification having id: {} successfully sent", document.getDocumentKey().toJson());
