@@ -33,7 +33,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-d-onboarding-fn.azurewebsites.net"
+    value = "https://selc-p-onboarding-fn.azurewebsites.net"
   }
 ]
 
@@ -41,6 +41,6 @@ secrets_names = {
   "APPLICATIONINSIGHTS_CONNECTION_STRING" = "appinsights-connection-string"
   "MONGODB-CONNECTION-STRING"             = "mongodb-connection-string"
   "STORAGE_CONNECTION_STRING"             = "blob-storage-product-connection-string"
-  "NOTIFICATION-FUNCTIONS-API-KEY"        = "notification-functions-api-key"
+  "NOTIFICATION-FUNCTIONS-API-KEY"        = "fn-onboarding-primary-key"
 }
 

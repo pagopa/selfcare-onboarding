@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: onboarding-ms API
+  title: Onboarding API
   version: 1.0.0
 servers:
 - url: http://localhost:8080
@@ -1067,6 +1067,7 @@ components:
       - DELEGATE
       - SUB_DELEGATE
       - OPERATOR
+      - ADMIN_EA
       type: string
     PaymentServiceProviderRequest:
       type: object
