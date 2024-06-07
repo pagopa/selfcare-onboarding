@@ -224,26 +224,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transform(onboardingMapper::toResponse));
     }
 
-    private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
-        final Map<String, String> queryParameter = QueryUtils.createMapForOnboardingsQueryParameter(
-                onboarding.getProductId(),
-                onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getOrigin().name(),
-                onboarding.getInstitution().getOriginId(),
-                onboarding.getInstitution().getSubunitCode());
-        Document query = QueryUtils.buildQuery(queryParameter);
-        return Onboarding.find(query).firstResult()
-                .map(Onboarding.class::cast)
-                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %S, origin %s, originId %s, productId %s, subunitCode %s not found",
-                        onboarding.getInstitution().getTaxCode(),
-                        onboarding.getInstitution().getOrigin().name(),
-                        onboarding.getInstitution().getOriginId(),
-                        onboarding.getProductId(),
-                        onboarding.getInstitution().getSubunitCode())))
-                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getReferenceOnboardingId()))
-                .replaceWith(onboarding);
-    }
-
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
@@ -310,6 +290,26 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
+                .replaceWith(onboarding);
+    }
+
+    private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
+        final Map<String, String> queryParameter = QueryUtils.createMapForOnboardingsQueryParameter(
+                onboarding.getProductId(),
+                onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getOrigin().name(),
+                onboarding.getInstitution().getOriginId(),
+                onboarding.getInstitution().getSubunitCode());
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return Onboarding.find(query).firstResult()
+                .map(Onboarding.class::cast)
+                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %S, origin %s, originId %s, productId %s, subunitCode %s not found",
+                        onboarding.getInstitution().getTaxCode(),
+                        onboarding.getInstitution().getOrigin().name(),
+                        onboarding.getInstitution().getOriginId(),
+                        onboarding.getProductId(),
+                        onboarding.getInstitution().getSubunitCode())))
+                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getReferenceOnboardingId()))
                 .replaceWith(onboarding);
     }
 
