@@ -39,7 +39,10 @@ public class NotificationSapMapper extends NotificationCommonMapper {
         notificationToSend.setId(UUID.randomUUID().toString());
         notificationToSend.setInstitutionId(notificationToSend.getInternalIstitutionID());
         notificationToSend.setType(NotificationType.getNotificationTypeFromQueueEvent(queueEvent));
+        notificationToSend.getInstitution().setFileName(notificationToSend.getFileName());
+        notificationToSend.getInstitution().setContentType(notificationToSend.getContentType());
         if (Objects.nonNull(onboarding.getBilling())) {
+            // If there is tax code invoicing in billing, set it as taxCode in the institution
             if(Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
                 notificationToSend.getInstitution().setTaxCode(onboarding.getBilling().getTaxCodeInvoicing());
             }

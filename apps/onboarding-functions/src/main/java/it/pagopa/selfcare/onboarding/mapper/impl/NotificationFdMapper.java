@@ -25,6 +25,7 @@ public class NotificationFdMapper extends NotificationCommonMapper {
     public NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.toNotificationToSend(onboarding, token, institution, queueEvent);
         notificationToSend.setId(UUID.randomUUID().toString());
+        notificationToSend.setInstitutionId(notificationToSend.getInternalIstitutionID());
         notificationToSend.setType(NotificationType.getNotificationTypeFromQueueEvent(queueEvent));
         notificationToSend.getInstitution().setFileName(notificationToSend.getFileName());
         notificationToSend.getInstitution().setContentType(notificationToSend.getContentType());
