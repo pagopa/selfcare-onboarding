@@ -85,6 +85,17 @@
         ],
         "summary": "",
         "description": "",
+        "parameters": [
+          {
+            "name": "queueEvent",
+            "in": "query",
+            "description": "Query Event type",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

@@ -85,13 +85,17 @@ public class NotificationFunctions {
                     .build();
         }
 
+        final String queueEventString = request.getQueryParameters().get("queueEvent");
+        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? QueueEvent.UPDATE : QueueEvent.valueOf(queueEventString);
+
+
         final Optional<Onboarding> onboarding = onboardingService.getOnboarding(onboardingId);
         if(onboarding.isEmpty()) {
             return request.createResponseBuilder(HttpStatus.NOT_FOUND)
                     .body("Onboarding with ID: " + onboardingId + " not found")
                     .build();
         }
-        notificationEventService.send(context, onboarding.get(), QueueEvent.UPDATE);
+        notificationEventService.send(context, onboarding.get(), queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }
