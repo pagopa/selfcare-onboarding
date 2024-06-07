@@ -68,7 +68,8 @@ import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -657,12 +658,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResourceWk.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -701,14 +696,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundAndWillNotUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest wrongManager = UserRequest.builder()
                 .name("wrong_name")
                 .taxCode(managerResourceWkSpid.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(wrongManager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -739,7 +734,7 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdateMailUuid(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest newManager = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResourceWk.getFiscalCode())
                 .role(PartyRole.MANAGER)
@@ -747,7 +742,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(newManager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -1238,12 +1233,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_importPA(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());

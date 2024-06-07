@@ -22,9 +22,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.*;
+
 public class QueryUtils {
 
     private QueryUtils() {
+    }
+
+    static class FieldNames {
+        public static final String STATUS = "status";
+        public static final String FROM = "from";
+        public static final String TO = "to";
+        public static final String PRODUCT = "productId";
+        public static final String INSTITUTION_TAX_CODE = "institution.taxCode";
+        public static final String INSTITUTION_ORIGIN = "institution.origin";
+        public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
+        public static final String INSTITUTION_SUBUNIT_CODE =  "institution.subunitCode";
     }
 
     public static Document buildQuery(Map<String, String> parameters) {
@@ -43,9 +56,9 @@ public class QueryUtils {
     private static List<Bson> constructBsonFilter(Map<String, String> parameters) {
         return parameters.entrySet().stream()
                 .map(entry -> {
-                    if (StringUtils.equalsIgnoreCase(entry.getKey(), "from")) {
+                    if (StringUtils.equalsIgnoreCase(entry.getKey(), FROM)) {
                         return Filters.gte(Onboarding.Fields.createdAt.name(), LocalDate.parse(entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE));
-                    } else if (StringUtils.equalsIgnoreCase(entry.getKey(), "to")) {
+                    } else if (StringUtils.equalsIgnoreCase(entry.getKey(), TO)) {
                         return Filters.lt(Onboarding.Fields.createdAt.name(), LocalDate.parse(entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1));
                     }
                     return Filters.eq(entry.getKey(), entry.getValue());
@@ -64,27 +77,27 @@ public class QueryUtils {
      */
     public static Map<String, String> createMapForOnboardingQueryParameter(String productId, String taxCode, String status, String from, String to) {
         Map<String, String> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put("productId", value));
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value));
-        Optional.ofNullable(from).ifPresent(value -> queryParameterMap.put("from", value));
-        Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put("to", value));
+        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
+        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value));
+        Optional.ofNullable(from).ifPresent(value -> queryParameterMap.put(FROM, value));
+        Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put(TO, value));
         return queryParameterMap;
     }
     public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status) {
         Map<String, String> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
-        Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put("institution.subunitCode", value));
-        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put("institution.origin", value));
-        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put("institution.originId", value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value.name()));
+        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, value));
+        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
+        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
+        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
         return queryParameterMap;
     }
 
     public static Map<String, Object> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
         Map<String, Object> queryParameterMap = new HashMap<>();
         Optional.ofNullable(reasonForReject).ifPresent(value -> queryParameterMap.put("reasonForReject", value));
-        Optional.ofNullable(onboardingStatus).ifPresent(value -> queryParameterMap.put("status", value));
+        Optional.ofNullable(onboardingStatus).ifPresent(value -> queryParameterMap.put(STATUS, value));
         queryParameterMap.put("updatedAt", LocalDateTime.now());
         return queryParameterMap;
     }
