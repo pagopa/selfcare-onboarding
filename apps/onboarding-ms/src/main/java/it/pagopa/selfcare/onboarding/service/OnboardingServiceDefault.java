@@ -309,7 +309,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         onboarding.getInstitution().getOriginId(),
                         onboarding.getProductId(),
                         onboarding.getInstitution().getSubunitCode())))
-                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getReferenceOnboardingId()))
+                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()))
                 .replaceWith(onboarding);
     }
 
