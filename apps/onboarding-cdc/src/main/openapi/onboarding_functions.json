@@ -427,7 +427,8 @@
           "MANAGER",
           "DELEGATE",
           "SUB_DELEGATE",
-          "OPERATOR"
+          "OPERATOR",
+          "ADMIN_EA"
         ],
         "type": "string"
       },
@@ -437,19 +438,9 @@
           "FOR_APPROVE",
           "FOR_APPROVE_PT",
           "CONFIRMATION",
-          "IMPORT"
-        ],
-        "type": "string"
-      },
-      "OnboardingStatus": {
-        "enum": [
-          "REQUEST",
-          "TOBEVALIDATED",
-          "PENDING",
-          "COMPLETED",
-          "FAILED",
-          "REJECTED",
-          "DELETED"
+          "IMPORT",
+          "USERS",
+          "USERS_IMPORT"
         ],
         "type": "string"
       },
