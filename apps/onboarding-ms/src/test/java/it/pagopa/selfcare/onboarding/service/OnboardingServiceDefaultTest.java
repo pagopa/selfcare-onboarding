@@ -15,8 +15,10 @@ import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -48,7 +50,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
+import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -92,6 +96,10 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     AooApi aooApi;
+
+    @InjectMock
+    @RestClient
+    InstitutionApi institutionApi;
 
     @InjectMock
     @RestClient
@@ -1318,6 +1326,44 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+     }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingUsers(UniAsserter asserter) {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setUsers(users);
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.firstResult()).thenReturn(Uni.createFrom().item(new Onboarding()));
+        when(Onboarding.find(any())).thenReturn(query);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
+        institutionResponse.setOrigin(Origin.IPA.name());
+        institutionResponse.setOriginId("originId");
+        InstitutionsResponse response = new InstitutionsResponse();
+        response.setInstitutions(List.of(institutionResponse));
+        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(response)));
+
+        asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId"), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
         });
     }
 

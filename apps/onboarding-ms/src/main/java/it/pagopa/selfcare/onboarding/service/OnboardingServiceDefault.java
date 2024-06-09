@@ -294,12 +294,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
-        final Map<String, String> queryParameter = QueryUtils.createMapForOnboardingsQueryParameter(
-                onboarding.getProductId(),
+        final Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
                 onboarding.getInstitution().getTaxCode(),
+                onboarding.getInstitution().getSubunitCode(),
                 onboarding.getInstitution().getOrigin().name(),
                 onboarding.getInstitution().getOriginId(),
-                onboarding.getInstitution().getSubunitCode());
+                null,
+                onboarding.getProductId()
+                );
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).firstResult()
                 .map(Onboarding.class::cast)
@@ -789,7 +791,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status) {
-        Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(taxCode, subunitCode, origin, originId, status);
+        Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(taxCode, subunitCode, origin, originId, status, null);
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)
