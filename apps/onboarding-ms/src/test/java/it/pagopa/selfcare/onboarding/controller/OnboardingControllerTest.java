@@ -173,7 +173,7 @@ class OnboardingControllerTest {
                 .contentType(ContentType.JSON)
                 .post("/users")
                 .then()
-                .statusCode(200);
+                .statusCode(204);
     }
 
     @Test

@@ -47,6 +47,7 @@ import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -878,8 +879,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<InstitutionResponse> getInstitutionFromUserRequest(OnboardingUserRequest request) {
-        return institutionApi.getInstitutionsUsingGET(request.getTaxCode(), request.getSubunitCode(), request.getOrigin(), request.getOriginId())
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+        Uni<InstitutionsResponse> responseUni;
+        if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
+            responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), request.getSubunitCode(), null, null);
+        } else {
+            responseUni = institutionApi.getInstitutionsUsingGET(null, null, request.getOrigin(), request.getOriginId());
+        }
+        return responseUni.onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(
                         String.format(INSTITUTION_NOT_FOUND.getMessage(),
                                 request.getTaxCode(), request.getOrigin(),
@@ -887,14 +893,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                         )))
                         : Uni.createFrom().failure(ex))
                 .onItem().transformToUni(response -> {
-                        if (Objects.isNull(response.getInstitutions()) || response.getInstitutions().size() > 1) {
-                            return Uni.createFrom().failure(new ResourceNotFoundException(
-                                    String.format(INSTITUTION_NOT_FOUND.getMessage(),
-                                            request.getTaxCode(), request.getOrigin(),
-                                            request.getOriginId(), request.getSubunitCode()
-                                    )));
-                        }
-                        return Uni.createFrom().item(response.getInstitutions().get(0));
+                    if (Objects.isNull(response.getInstitutions()) || response.getInstitutions().size() > 1) {
+                        return Uni.createFrom().failure(new ResourceNotFoundException(
+                                String.format(INSTITUTION_NOT_FOUND.getMessage(),
+                                        request.getTaxCode(), request.getOrigin(),
+                                        request.getOriginId(), request.getSubunitCode()
+                                )));
+                    }
+                    return Uni.createFrom().item(response.getInstitutions().get(0));
                 });
     }
 
