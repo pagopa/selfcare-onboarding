@@ -7,20 +7,12 @@ import java.util.Map;
 
 @ConfigMapping(prefix = "notification")
 public interface NotificationConfig {
-
     Map<String, Consumer> consumers();
-
-    Filter filter();
-
     interface Consumer {
         String topic();
         String name();
         String key();
+        Set<String> allowedInstitutionTypes();
+        Set<String> allowedOrigins();
     }
-
-    interface Filter {
-        Set<String> sapAllowedInstitutionTypes();
-        Set<String> sapAllowedOrigins();
-    }
-
 }

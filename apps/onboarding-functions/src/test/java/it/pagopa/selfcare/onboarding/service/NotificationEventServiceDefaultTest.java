@@ -11,11 +11,9 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
-import it.pagopa.selfcare.onboarding.mapper.impl.NotificationCommonMapper;
+import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.onboarding.utils.NotificationMapperFactory;
-import it.pagopa.selfcare.onboarding.utils.SendNotificationFilter;
-import it.pagopa.selfcare.onboarding.utils.SendNotificationFilterFactory;
+import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -45,10 +43,7 @@ public class NotificationEventServiceDefaultTest {
     EventHubRestClient eventHubRestClient;
 
     @InjectMock
-    NotificationMapperFactory notificationMapperFactory;
-
-    @InjectMock
-    SendNotificationFilterFactory sendNotificationFilterFactory;
+    NotificationBuilderFactory notificationBuilderFactory;
 
     @InjectMock
     TokenRepository tokenRepository;
@@ -63,10 +58,9 @@ public class NotificationEventServiceDefaultTest {
         final Onboarding onboarding = createOnboarding();
         final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
-        mockNotificationMapper();
+        mockNotificationMapper(true);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
-        mockSendNotificationFilter(true);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -75,16 +69,11 @@ public class NotificationEventServiceDefaultTest {
                 .sendMessage(anyString(), anyString());
     }
 
-    private void mockNotificationMapper() {
-        NotificationCommonMapper notificationMapper = mock(NotificationCommonMapper.class);
-        when(notificationMapperFactory.create(anyString())).thenReturn(notificationMapper);
-        when(notificationMapper.toNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
-    }
-
-    private void mockSendNotificationFilter(boolean shouldSend) {
-        SendNotificationFilter sendNotificationFilter = mock(SendNotificationFilter.class);
-        when(sendNotificationFilterFactory.create(anyString())).thenReturn(sendNotificationFilter);
-        when(sendNotificationFilter.shouldSendNotification(any(), any())).thenReturn(shouldSend);
+    private void mockNotificationMapper(boolean shouldSendNotification) {
+        BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
+        when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
+        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
+        when(notificationMapper.shouldSendNotification(any(), any())).thenReturn(shouldSendNotification);
     }
 
     @Test
@@ -94,8 +83,7 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(product);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.empty());
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
-        mockNotificationMapper();
-        mockSendNotificationFilter(true);
+        mockNotificationMapper(true);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -111,8 +99,7 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(product);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
-        mockNotificationMapper();
-        mockSendNotificationFilter(false);
+        mockNotificationMapper(false);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -126,10 +113,9 @@ public class NotificationEventServiceDefaultTest {
         final Product product = createProduct();
         product.setTestEnvProductIds(List.of("prod-interop-coll", "prod-interop-atst"));
         when(productService.getProduct(any())).thenReturn(product);
+        mockNotificationMapper(true);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
-        mockNotificationMapper();
-        mockSendNotificationFilter(true);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -145,8 +131,7 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(product);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
-        mockNotificationMapper();
-        mockSendNotificationFilter(true);
+        mockNotificationMapper(true);
         doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         ExecutionContext context = mock(ExecutionContext.class);

@@ -1,10 +1,13 @@
-package it.pagopa.selfcare.onboarding.mapper.impl;
+package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
-import it.pagopa.selfcare.onboarding.entity.*;
-import it.pagopa.selfcare.onboarding.mapper.NotificationMapper;
+import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.PaymentServiceProviderResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
@@ -21,30 +24,33 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class NotificationCommonMapper implements NotificationMapper {
+public class BaseNotificationBuilder implements NotificationBuilder {
     public static final String CLOSED = "CLOSED";
     public static final String ACTIVE = "ACTIVE";
     private final String alternativeEmail;
+    protected NotificationConfig.Consumer consumer;
     protected final InstitutionApi proxyRegistryInstitutionApi;
     protected final GeographicTaxonomiesApi geographicTaxonomiesApi;
     protected final org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
     protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
-    protected static final Logger log = LoggerFactory.getLogger(NotificationCommonMapper.class);
+    protected static final Logger log = LoggerFactory.getLogger(BaseNotificationBuilder.class);
 
 
-    public NotificationCommonMapper(
+    public BaseNotificationBuilder(
             String alternativeEmail,
+            NotificationConfig.Consumer consumer,
             InstitutionApi proxyRegistryInstitutionApi,
             GeographicTaxonomiesApi geographicTaxonomiesApi,
             org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi
     ) {
         this.alternativeEmail = alternativeEmail;
+        this.consumer = consumer;
         this.proxyRegistryInstitutionApi = proxyRegistryInstitutionApi;
         this.geographicTaxonomiesApi = geographicTaxonomiesApi;
         this.coreInstitutionApi = coreInstitutionApi;
     }
 
-    public NotificationToSend toNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
+    public NotificationToSend buildNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = new NotificationToSend();
         if (queueEvent.equals(QueueEvent.ADD)) {
             notificationToSend.setId(onboarding.getId());
@@ -52,22 +58,20 @@ public class NotificationCommonMapper implements NotificationMapper {
             notificationToSend.setId(UUID.randomUUID().toString());
         }
         notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
-        notificationToSend.setInternalIstitutionID(institution.getId());
-        notificationToSend.setNotificationType(queueEvent);
-
         mapDataFromToken(token, notificationToSend);
-        mapDataFromOnboarding(onboarding, notificationToSend);
-        mapDataFromInstitution(institution, notificationToSend);
+        mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
+        notificationToSend.setInstitution(retrieveInstitution(institution));
+
         return notificationToSend;
     }
 
-    private void mapDataFromOnboarding(Onboarding onboarding, NotificationToSend notificationToSend) {
+    private void mapDataFromOnboarding(Onboarding onboarding, NotificationToSend notificationToSend, QueueEvent queueEvent) {
         notificationToSend.setOnboardingTokenId(onboarding.getId());
-        notificationToSend.setBilling(convertBilling(onboarding.getBilling()));
+        notificationToSend.setBilling(retrieveBilling(onboarding));
         notificationToSend.setPricingPlan(onboarding.getPricingPlan());
         notificationToSend.setCreatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
 
-        if (notificationToSend.getNotificationType().equals(QueueEvent.ADD)) {
+        if (queueEvent.equals(QueueEvent.ADD)) {
             // when onboarding complete last update is activated date
             notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
         } else {
@@ -80,18 +84,6 @@ public class NotificationCommonMapper implements NotificationMapper {
                 notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getUpdatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
             }
         }
-    }
-
-    private BillingToSend convertBilling(Billing billing) {
-        BillingToSend billingToSend = new BillingToSend();
-        if (Objects.isNull(billing)) {
-            return null;
-        }
-        billingToSend.setTaxCodeInvoicing(billing.getTaxCodeInvoicing());
-        billingToSend.setPublicServices(billing.isPublicServices());
-        billingToSend.setVatNumber(billing.getVatNumber());
-        billingToSend.setRecipientCode(billing.getRecipientCode());
-        return billingToSend;
     }
 
     private void mapDataFromToken(Token token, NotificationToSend notificationToSend) {
@@ -115,8 +107,8 @@ public class NotificationCommonMapper implements NotificationMapper {
         }
     }
 
-
-    private void mapDataFromInstitution(InstitutionResponse institution, NotificationToSend notificationToSend) {
+    @Override
+    public InstitutionToNotify retrieveInstitution(InstitutionResponse institution) {
         InstitutionToNotify toNotify = new InstitutionToNotify();
         toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType().value()));
         toNotify.setDescription(institution.getDescription());
@@ -139,20 +131,18 @@ public class NotificationCommonMapper implements NotificationMapper {
             rootParent.setOriginId(Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
             toNotify.setRootParent(rootParent);
         }
-
         if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
             toNotify.setCategory(institution.getAttributes().get(0).getCode());
         }
         if (Objects.isNull(institution.getCity())) {
-            setInstitutionLocation(toNotify, institution);
+            retrieveAndSetGeographicData(toNotify);
         } else {
             toNotify.setCounty(institution.getCounty());
             toNotify.setCountry(institution.getCountry());
             toNotify.setIstatCode(institution.getIstatCode());
             toNotify.setCity(institution.getCity().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
         }
-
-        notificationToSend.setInstitution(toNotify);
+        return toNotify;
     }
 
     private PaymentServiceProvider toSetPaymentServiceProvider(PaymentServiceProviderResponse paymentServiceProvider) {
@@ -169,19 +159,34 @@ public class NotificationCommonMapper implements NotificationMapper {
         return paymentServiceProviderToNotify;
     }
 
-    private void setInstitutionLocation(InstitutionToNotify toNotify, InstitutionResponse institution) {
+    @Override
+    public void retrieveAndSetGeographicData(InstitutionToNotify institution) {
         try {
-            InstitutionResource institutionProxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institution.getExternalId(), null, null);
-            toNotify.setIstatCode(institutionProxyInfo.getIstatCode());
-            toNotify.setCategory(institutionProxyInfo.getCategory());
-            GeographicTaxonomyResource geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(toNotify.getIstatCode());
-            toNotify.setCounty(geographicTaxonomies.getProvinceAbbreviation());
-            toNotify.setCountry(geographicTaxonomies.getCountryAbbreviation());
-            toNotify.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
+            InstitutionResource institutionProxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
+            institution.setIstatCode(institutionProxyInfo.getIstatCode());
+            institution.setCategory(institutionProxyInfo.getCategory());
+            GeographicTaxonomyResource geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(institutionProxyInfo.getIstatCode());
+            institution.setCounty(geographicTaxonomies.getProvinceAbbreviation());
+            institution.setCountry(geographicTaxonomies.getCountryAbbreviation());
+            institution.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
         } catch (Exception e) {
-            log.warn("Error while searching institution {} on IPA, {} ", institution.getExternalId(), e.getMessage());
-            toNotify.setIstatCode(null);
+            log.warn("Error while searching institution {} on IPA, {} ", institution.getTaxCode(), e.getMessage());
+            institution.setIstatCode(null);
         }
     }
 
+    @Override
+    public BillingToSend retrieveBilling(Onboarding onboarding) {
+        return convertBilling(onboarding.getBilling());
+    }
+
+    private BillingToSend convertBilling(Billing billing) {
+        BillingToSend billingToSend = new BillingToSend();
+        if (Objects.isNull(billing)) {
+            return null;
+        }
+        billingToSend.setVatNumber(billing.getVatNumber());
+        billingToSend.setRecipientCode(billing.getRecipientCode());
+        return billingToSend;
+    }
 }

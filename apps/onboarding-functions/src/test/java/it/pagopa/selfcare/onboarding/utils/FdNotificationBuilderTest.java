@@ -1,8 +1,9 @@
-package it.pagopa.selfcare.onboarding.mapper.impl;
+package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -18,13 +19,15 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 
 import java.time.OffsetDateTime;
 
-import static it.pagopa.selfcare.onboarding.mapper.impl.NotificationMapperTestUtil.*;
+import static it.pagopa.selfcare.onboarding.entity.Topic.SC_CONTRACTS_FD;
+import static it.pagopa.selfcare.onboarding.utils.NotificationBuilderTestUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-class NotificationFdMapperTest {
+class FdNotificationBuilderTest {
     @InjectMock
     @RestClient
     InstitutionApi registryProxyInstitutionsApi;
@@ -35,11 +38,13 @@ class NotificationFdMapperTest {
     @RestClient
     org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
 
-    NotificationFdMapper notificationFdMapper;
+    FdNotificationBuilder fdNotificationBuilder;
 
     @BeforeEach
     public void setup() {
-        notificationFdMapper = new NotificationFdMapper("alternativeEmail", registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
+        NotificationConfig.Consumer consumer = mock(NotificationConfig.Consumer.class);
+        when(consumer.topic()).thenReturn(SC_CONTRACTS_FD.getValue());
+        fdNotificationBuilder = new FdNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
     }
 
     @Test
@@ -67,7 +72,7 @@ class NotificationFdMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationFdMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = fdNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNotEquals(onboarding.getId(), notification.getId());

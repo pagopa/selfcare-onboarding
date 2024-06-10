@@ -1,8 +1,11 @@
-package it.pagopa.selfcare.onboarding.mapper.impl;
+package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.PricingPlan;
+import it.pagopa.selfcare.onboarding.common.ProductId;
+import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -11,6 +14,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -23,15 +27,16 @@ import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
-import static it.pagopa.selfcare.onboarding.mapper.impl.NotificationMapperTestUtil.*;
+import static it.pagopa.selfcare.onboarding.entity.Topic.SC_CONTRACTS_SAP;
+import static it.pagopa.selfcare.onboarding.utils.NotificationBuilderTestUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
-class NotificationSapMapperTest {
+class SapNotificationBuilderTest {
     @InjectMock
     @RestClient
     InstitutionApi registryProxyInstitutionsApi;
@@ -47,12 +52,16 @@ class NotificationSapMapperTest {
     @InjectMock
     @RestClient
     AooApi proxyRegistryAooApi;
+
+    NotificationConfig.Consumer consumer;
     
-    static NotificationSapMapper notificationSapMapper;
+    static SapNotificationBuilder sapNotificationBuilder;
     
     @BeforeEach
     public void setup() {
-        notificationSapMapper = new NotificationSapMapper("alternativeEmail", registryProxyInstitutionsApi, geographicTaxonomiesApi, proxyRegistryUoApi, proxyRegistryAooApi, coreInstitutionApi);
+        consumer = mock(NotificationConfig.Consumer.class);
+        when(consumer.topic()).thenReturn(SC_CONTRACTS_SAP.getValue());
+        sapNotificationBuilder = new SapNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi, proxyRegistryUoApi, proxyRegistryAooApi);
     }
 
     @Test
@@ -81,16 +90,13 @@ class NotificationSapMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        when(registryProxyInstitutionsApi.findInstitutionUsingGET(institution.getExternalId(), null, null))
-                .thenThrow(new RuntimeException("Error"));
-
-        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCodeInvoicing", null, null))
+        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
                 .thenReturn(new InstitutionResource().istatCode("istatCode"));
 
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
 
-        NotificationToSend notification = notificationSapMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -146,7 +152,7 @@ class NotificationSapMapperTest {
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
 
-        NotificationToSend notification = notificationSapMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -204,7 +210,7 @@ class NotificationSapMapperTest {
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
 
-        NotificationToSend notification = notificationSapMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -256,7 +262,7 @@ class NotificationSapMapperTest {
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(any(), any(), any()))
                 .thenThrow(new RuntimeException("Error"));
 
-        NotificationToSend notification = notificationSapMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -271,5 +277,62 @@ class NotificationSapMapperTest {
         assertNull(notification.getBilling().getTaxCodeInvoicing());
         assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
         assertNull(notification.getInstitution().getIstatCode());
+    }
+
+    @Test
+    @DisplayName("Should allow notification for allowed institution type and origin")
+    public void shouldAllowNotificationForAllowedInstitutionTypeAndOrigin() {
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId(ProductId.PROD_IO.name());
+        onboarding.setPricingPlan(PricingPlan.FA.name());
+        InstitutionResponse institution = new InstitutionResponse();
+        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+        institution.setOrigin("IPA");
+
+        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of(InstitutionResponse.InstitutionTypeEnum.PA.toString()));
+        when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
+
+        assertTrue(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
+    }
+
+    @Test
+    @DisplayName("Should not allow notification for disallowed institution type")
+    public void shouldNotAllowNotificationForDisallowedInstitutionType() {
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId(ProductId.PROD_IO.name());
+        onboarding.setPricingPlan(PricingPlan.FA.name());
+        InstitutionResponse institution = new InstitutionResponse();
+        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.AS);
+
+        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of(InstitutionResponse.InstitutionTypeEnum.PA.toString()));
+
+        assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
+    }
+
+    @Test
+    @DisplayName("Should not allow notification for disallowed origin")
+    public void shouldNotAllowNotificationForDisallowedOrigin() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId(ProductId.PROD_IO.name());
+        onboarding.setPricingPlan(PricingPlan.FA.name());
+        InstitutionResponse institution = new InstitutionResponse();
+        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+        institution.setOrigin("INFOCAMERE");
+        when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
+
+        assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
+    }
+
+    @Test
+    @DisplayName("Should not allow notification for disallowed product (prodIo not Io Fast)")
+    public void shouldNotAllowNotificationForDisallowedProduct() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId(ProductId.PROD_IO.name());
+        onboarding.setPricingPlan(PricingPlan.BASE.name());
+        InstitutionResponse institution = new InstitutionResponse();
+
+        assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
     }
 }
