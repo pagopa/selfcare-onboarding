@@ -329,7 +329,7 @@ class SapNotificationBuilderTest {
     @DisplayName("Should not allow notification for disallowed product (prodIo not Io Fast)")
     public void shouldNotAllowNotificationForDisallowedProduct() {
         Onboarding onboarding = new Onboarding();
-        onboarding.setProductId(ProductId.PROD_IO.name());
+        onboarding.setProductId(ProductId.PROD_IO.getValue());
         onboarding.setPricingPlan(PricingPlan.BASE.name());
         InstitutionResponse institution = new InstitutionResponse();
 
