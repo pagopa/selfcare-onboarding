@@ -75,6 +75,7 @@ class StandardNotificationBuilderTest {
         assertEquals(tokenId, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+        assertEquals(token.getContractSigned(), notification.getFilePath());
         assertEquals(QueueEvent.ADD, notification.getNotificationType());
     }
 

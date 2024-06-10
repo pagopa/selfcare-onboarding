@@ -14,6 +14,7 @@ public interface NotificationBuilder {
         return true;
     }
     InstitutionToNotify retrieveInstitution(InstitutionResponse institution);
+    void setTokenData(NotificationToSend notificationToSend, Token token);
     void retrieveAndSetGeographicData(InstitutionToNotify institution);
     BillingToSend retrieveBilling(Onboarding onboarding);
 }
