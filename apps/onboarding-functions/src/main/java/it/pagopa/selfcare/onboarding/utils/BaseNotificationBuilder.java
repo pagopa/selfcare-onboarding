@@ -58,9 +58,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
             notificationToSend.setId(UUID.randomUUID().toString());
         }
         notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
-        mapDataFromToken(token, notificationToSend);
         mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
         notificationToSend.setInstitution(retrieveInstitution(institution));
+        setTokenData(notificationToSend, token);
 
         return notificationToSend;
     }
@@ -84,17 +84,6 @@ public class BaseNotificationBuilder implements NotificationBuilder {
                 notificationToSend.setUpdatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getUpdatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
             }
         }
-    }
-
-    private void mapDataFromToken(Token token, NotificationToSend notificationToSend) {
-        if(Objects.isNull(token)) {
-            return;
-        }
-
-        notificationToSend.setProduct(token.getProductId());
-        notificationToSend.setFilePath(token.getContractSigned());
-        notificationToSend.setFileName(Objects.isNull(token.getContractSigned()) ? "" : Paths.get(token.getContractSigned()).getFileName().toString());
-        notificationToSend.setContentType(token.getContractSigned());
     }
 
     private String convertOnboardingStatusToNotificationStatus(OnboardingStatus status) {
@@ -188,5 +177,16 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         billingToSend.setVatNumber(billing.getVatNumber());
         billingToSend.setRecipientCode(billing.getRecipientCode());
         return billingToSend;
+    }
+
+    @Override
+    public void setTokenData(NotificationToSend notificationToSend, Token token) {
+        if(Objects.isNull(token)) {
+            return;
+        }
+
+        notificationToSend.setProduct(token.getProductId());
+        notificationToSend.setFileName(Objects.isNull(token.getContractSigned()) ? "" : Paths.get(token.getContractSigned()).getFileName().toString());
+        notificationToSend.setContentType(token.getContractSigned());
     }
 }

@@ -41,4 +41,10 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
         billing.setTaxCodeInvoicing(onboarding.getBilling().getTaxCodeInvoicing());
         return billing;
     }
+
+    @Override
+    public void setTokenData(NotificationToSend notificationToSend, Token token) {
+        super.setTokenData(notificationToSend, token);
+        notificationToSend.setFilePath(token.getContractSigned());
+    }
 }
