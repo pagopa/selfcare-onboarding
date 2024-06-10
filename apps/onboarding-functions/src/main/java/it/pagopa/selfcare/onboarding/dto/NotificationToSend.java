@@ -1,9 +1,7 @@
 package it.pagopa.selfcare.onboarding.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.utils.CustomOffsetDateTimeSerializer;
 
 import java.nio.file.Paths;
@@ -24,7 +22,7 @@ public class NotificationToSend {
     private String onboardingTokenId;
     private String pricingPlan;
     private InstitutionToNotify institution;
-    private Billing billing;
+    private BillingToSend billing;
     @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
     private OffsetDateTime createdAt;
     @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
@@ -155,11 +153,11 @@ public class NotificationToSend {
         this.pricingPlan = pricingPlan;
     }
 
-    public Billing getBilling() {
+    public BillingToSend getBilling() {
         return billing;
     }
 
-    public void setBilling(Billing billing) {
+    public void setBilling(BillingToSend billing) {
         this.billing = billing;
     }
 
