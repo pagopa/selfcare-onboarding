@@ -123,7 +123,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
 
     private boolean isProductAllowed(Onboarding onboarding) {
         // If the product is prodIo we can allow only Io Fast, and to do so we need to check pricing plan
-        boolean isProdIo = ProductId.PROD_IO.name().equals(onboarding.getProductId());
+        boolean isProdIo = ProductId.PROD_IO.getValue().equals(onboarding.getProductId());
         return !isProdIo || PricingPlan.FA.name().equals(onboarding.getPricingPlan());
     }
 
