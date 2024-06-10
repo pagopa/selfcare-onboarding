@@ -86,5 +86,6 @@ class FdNotificationBuilderTest {
         assertNull(notification.getBilling().getTaxCodeInvoicing());
         assertNull(notification.getBilling().isPublicServices());
         assertEquals(onboarding.getBilling().isPublicServices(), notification.getBilling().isPublicService());
+        assertNull(notification.getFilePath());
     }
 }

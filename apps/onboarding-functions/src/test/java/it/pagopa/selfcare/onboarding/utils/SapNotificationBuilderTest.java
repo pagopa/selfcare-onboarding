@@ -115,6 +115,7 @@ class SapNotificationBuilderTest {
         assertEquals("provinceAbbreviation", notification.getInstitution().getCounty());
         assertEquals("countryAbbreviation", notification.getInstitution().getCountry());
         assertEquals("desc", notification.getInstitution().getCity());
+        assertNull(notification.getFilePath());
     }
 
     @Test
