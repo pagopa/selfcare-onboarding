@@ -31,6 +31,7 @@ import java.util.List;
 
 @Authenticated
 @Path("/v1/onboarding")
+@Tag(name = "Onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
