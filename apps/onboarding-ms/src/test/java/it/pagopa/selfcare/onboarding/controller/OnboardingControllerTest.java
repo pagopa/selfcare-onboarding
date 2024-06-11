@@ -242,6 +242,42 @@ class OnboardingControllerTest {
     }
 
     @Test
+    void completeOnboardingUsers_unauthorized() {
+
+        given()
+                .when()
+                .pathParam("tokenId", "actual-token-id")
+                .contentType(ContentType.MULTIPART)
+                .put("/{tokenId}/completeOnboardingUsers")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void completeOnboardingUsers() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.completeOnboardingUsers(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/completeOnboardingUsers")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .completeOnboardingUsers(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
     @TestSecurity(user = "userJwt")
     void consume() {
         File testFile = new File("src/test/resources/application.properties");

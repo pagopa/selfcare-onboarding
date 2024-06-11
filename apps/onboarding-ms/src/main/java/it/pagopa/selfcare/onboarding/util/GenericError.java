@@ -15,6 +15,8 @@ public enum GenericError {
     GETTING_ONBOARDING_INFO_ERROR("0016", "Error while getting onboarding info"),
     GET_PRODUCTS_ERROR("0031", "Error while getting products"),
     PRODUCT_ALREADY_ONBOARDED("0032", "Product %s already onboarded for institution having externalId %s"),
+    PRODUCT_NOT_ONBOARDED("0033", "Product %s not onboarded or isn't ACTIVE for institution having externalId %s"),
+    INVALID_REFERENCE_ONBORADING("0034", "Reference onboarding id is not present or reference onboarding doesn't exist"),
     CONTRACT_PATH_ERROR("0100", "Contract Path is required"),
     MANAGER_EMAIL_NOT_FOUND("0101", "Manager email not found"),
     VERIFY_TOKEN_FAILED("0041", "Something went wrong trying to verify token"),

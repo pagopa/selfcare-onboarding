@@ -178,6 +178,21 @@ public class OnboardingController {
                         .build());
     }
 
+    @Operation(summary = "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution." +
+            "It checks the contract's signature and upload the contract on an azure storage" +
+            "At the end, function triggers async activities related to complete onboarding " +
+            "that consist of create the institution, activate the onboarding and sending data to notification queue.")
+
+    @PUT
+    @Path("/{onboardingId}/completeOnboardingUsers")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
+        return onboardingService.completeOnboardingUsers(onboardingId, file)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
+
     @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract")
     @PUT
     @Path("/{onboardingId}/consume")

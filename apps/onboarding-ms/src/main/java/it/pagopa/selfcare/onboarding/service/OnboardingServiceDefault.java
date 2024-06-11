@@ -387,34 +387,64 @@ public class OnboardingServiceDefault implements OnboardingService {
         return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
                 ? checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
-                    .onFailure(ResourceConflictException.class)
-                    .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
+                .onFailure(ResourceConflictException.class)
+                .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
                 //If product is a root, I must only verify if onboarding for root
                 : checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId)
         );
     }
 
-    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(Institution institution, String productId) {
+    private Uni<Boolean> verifyOnboardingNotExistForProductAndProductParent(Onboarding onboarding, String productId, String productParentId) {
+        return (Objects.nonNull(productParentId)
+                //If product has parent, I must verify if onboarding is present for parent and child
+                ? checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productParentId)
+                .onFailure(ResourceConflictException.class)
+                .recoverWithUni(ignore -> checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId))
+                //If product is a root, I must only verify if onboarding for root
+                : checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId)
+        );
+    }
 
-        Log.infof("Validating allowed map and verify an onboarding is present for: taxCode %s, subunitCode %s, product %s",
-                institution.getTaxCode(),
-                institution.getSubunitCode(),
-                productId);
+    private Uni<Boolean> validateAllowedMap(String taxCode, String subunitCode, String productId) {
+        Log.infof("Validating allowed map for: taxCode %s, subunitCode %s, product %s",
+                taxCode, subunitCode, productId);
 
-        if (!onboardingValidationStrategy.validate(productId, institution.getTaxCode())) {
-            return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
-                    institution.getTaxCode(),
-                    productId),
+        if (!onboardingValidationStrategy.validate(productId, taxCode)) {
+            return Uni.createFrom().failure(new OnboardingNotAllowedException(
+                    String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
                     DEFAULT_ERROR.getCode()));
         }
 
-        String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
-        return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
-                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
-                .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
-                    ? Uni.createFrom().item(Response.noContent().build())
-                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
-                .replaceWith(Boolean.TRUE);
+        return Uni.createFrom().item(Boolean.TRUE);
+    }
+
+    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(Institution institution, String productId) {
+        return validateAllowedMap(institution.getTaxCode(), institution.getSubunitCode(), productId)
+                .flatMap(ignored -> {
+                    String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+                    return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
+                            .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
+                            .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                                    ? Uni.createFrom().item(Response.noContent().build())
+                                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
+                            .replaceWith(Boolean.TRUE);
+                });
+    }
+
+    private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedMap(Onboarding onboarding, String productId) {
+        return validateAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode(), productId)
+                .flatMap(ignored -> {
+                    if (Objects.isNull(onboarding.getReferenceOnboardingId())) {
+                        return Uni.createFrom().failure(new InvalidRequestException(INVALID_REFERENCE_ONBORADING.getMessage(), INVALID_REFERENCE_ONBORADING.getCode()));
+                    }
+                    return Onboarding.findByIdOptional(onboarding.getReferenceOnboardingId())
+                            .onItem().transformToUni(opt -> opt
+                                    .map(Onboarding.class::cast)
+                                    .filter(referenceOnboarding -> referenceOnboarding.getStatus().equals(OnboardingStatus.COMPLETED))
+                                    .map(referenceOnboarding -> Uni.createFrom().item(Boolean.TRUE))
+                                    .orElse(Uni.createFrom().failure(new InvalidRequestException(
+                                            String.format(PRODUCT_NOT_ONBOARDED.getMessage(), onboarding.getProductId(), onboarding.getInstitution().getTaxCode(), PRODUCT_NOT_ONBOARDED.getCode())))));
+                });
     }
 
     private String retrieveProductRole(UserRequest userInfo, Map<PartyRole, ProductRoleInfo> roleMappings) {
@@ -630,6 +660,36 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
+    public Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract) {
+
+        if (Boolean.TRUE.equals(isVerifyEnabled)) {
+            //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
+            //At least, verify contract signature using both
+            Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
+                    .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
+                    .asTuple()
+                    .onItem().transformToUni(inputSignatureVerification ->
+                            Uni.createFrom().item(() -> {
+                                        signatureService.verifySignature(contract,
+                                                inputSignatureVerification.getItem2(),
+                                                inputSignatureVerification.getItem1());
+                                        return onboarding;
+                                    })
+                                    .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                    );
+
+            return completeOnboardingUsers(onboardingId, contract, verification);
+        } else {
+            return completeOnboardingUsersWithoutSignatureVerification(onboardingId, contract);
+        }
+    }
+
+    public Uni<Onboarding> completeOnboardingUsersWithoutSignatureVerification(String onboardingId, File contract) {
+        Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
+        return completeOnboardingUsers(onboardingId, contract, verification);
+    }
+
+    @Override
     public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, File contract) {
         Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
         return complete(onboardingId, contract, verification);
@@ -642,6 +702,27 @@ public class OnboardingServiceDefault implements OnboardingService {
                 //Fail if onboarding exists for a product
                 .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
                         .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(),
+                                product.getId(),
+                                product.getParentId()))
+                        .replaceWith(onboarding)
+                )
+                //Upload contract on storage
+                .onItem().transformToUni(onboarding -> uploadSignedContractAndUpdateToken(onboardingId, contract)
+                            .map(ignore -> onboarding))
+                // Start async activity if onboardingOrchestrationEnabled is true
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
+                        .map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding));
+    }
+
+    private Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+
+        return retrieveOnboardingAndCheckIfExpired(onboardingId)
+                .onItem().transformToUni(verificationContractSignature::apply)
+                //Fail if onboarding exists for a product
+                .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
+                        .onItem().transformToUni(product -> verifyOnboardingNotExistForProductAndProductParent(onboarding,
                                 product.getId(),
                                 product.getParentId()))
                         .replaceWith(onboarding)
