@@ -1,8 +1,9 @@
-package it.pagopa.selfcare.onboarding.mapper.impl;
+package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -18,13 +19,14 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static it.pagopa.selfcare.onboarding.mapper.impl.NotificationMapperTestUtil.*;
+import static it.pagopa.selfcare.onboarding.entity.Topic.SC_CONTRACTS;
+import static it.pagopa.selfcare.onboarding.utils.NotificationBuilderTestUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-class NotificationCommonMapperTest {
+class StandardNotificationBuilderTest {
     @InjectMock
     @RestClient
     InstitutionApi registryProxyInstitutionsApi;
@@ -35,11 +37,13 @@ class NotificationCommonMapperTest {
     @RestClient
     org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
 
-    NotificationCommonMapper notificationCommonMapper;
+    StandardNotificationBuilder standardNotificationBuilder;
 
     @BeforeEach
     public void setup() {
-        notificationCommonMapper = new NotificationCommonMapper("alternativeEmail", registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
+        NotificationConfig.Consumer consumer = mock(NotificationConfig.Consumer.class);
+        when(consumer.topic()).thenReturn(SC_CONTRACTS.getValue());
+        standardNotificationBuilder = new StandardNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
     }
 
     @Test
@@ -63,7 +67,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -71,6 +75,7 @@ class NotificationCommonMapperTest {
         assertEquals(tokenId, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+        assertEquals(token.getContractSigned(), notification.getFilePath());
         assertEquals(QueueEvent.ADD, notification.getNotificationType());
     }
 
@@ -95,7 +100,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -127,7 +132,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -159,7 +164,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
@@ -191,7 +196,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
         assertNotNull(notification);
         assertEquals("CLOSED", notification.getState());
@@ -223,7 +228,7 @@ class NotificationCommonMapperTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
         assertNotNull(notification);
         assertEquals("CLOSED", notification.getState());
@@ -260,7 +265,7 @@ class NotificationCommonMapperTest {
 
 
         //when
-        NotificationToSend notificationToSend = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
         //then
         assertNotNull(notificationToSend);
         verifyNoInteractions(registryProxyInstitutionsApi);
@@ -292,7 +297,7 @@ class NotificationCommonMapperTest {
         mockPartyRegistryProxy(registryProxyInstitutionsApi, geographicTaxonomiesApi, institution);
 
         //when
-        NotificationToSend notificationToSend = notificationCommonMapper.toNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
         //then
         assertNotNull(notificationToSend);
         verify(registryProxyInstitutionsApi).findInstitutionUsingGET(any(), any(), any());

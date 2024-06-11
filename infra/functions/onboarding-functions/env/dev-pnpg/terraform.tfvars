@@ -85,4 +85,6 @@ app_settings = {
   "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
   "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "string"
   "FD_TOPIC_NAME"                                      = "Selfcare-FD"
+  "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP"
+  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
 }
