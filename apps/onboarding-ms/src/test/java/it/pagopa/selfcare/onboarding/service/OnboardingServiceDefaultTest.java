@@ -73,7 +73,7 @@ import java.util.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -1341,7 +1341,6 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -1367,6 +1366,60 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+    @Test
+    @RunOnVertxContext
+    void onboardingUsersWithNullOnboardingReeferenceId(UniAsserter asserter) {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setUsers(users);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.firstResult()).thenReturn(Uni.createFrom().nullItem());
+        when(Onboarding.find(any())).thenReturn(query);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
+        institutionResponse.setOrigin(Origin.IPA.name());
+        institutionResponse.setOriginId("originId");
+        InstitutionsResponse response = new InstitutionsResponse();
+        response.setInstitutions(List.of(institutionResponse));
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(response));
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId"), ResourceNotFoundException.class);
+
+    }
+
+    @Test
+    void onboardingUsersWithInstitutionNotFound() {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        List<UserRequest> users = List.of(manager);
+        request.setTaxCode("taxCode");
+        request.setSubunitCode("subunitCode");
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setUsers(users);
+
+        org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
+        institutionResponse.setOrigin(Origin.IPA.name());
+        institutionResponse.setOriginId("originId");
+        InstitutionsResponse response = new InstitutionsResponse();
+        response.setInstitutions(List.of(institutionResponse, institutionResponse));
+        when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null))
+                .thenReturn(Uni.createFrom().item(response));
+
+        onboardingService
+                .onboardingUsers(request, "userId")
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertFailedWith(ResourceNotFoundException.class);
+
+    }
+
 
     @Test
     void testInstitutionOnboardings() {
@@ -1381,7 +1434,7 @@ class OnboardingServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
-        assertTrue(!response.isEmpty());
+        assertFalse(response.isEmpty());
         assertEquals(1, response.size());
     }
 

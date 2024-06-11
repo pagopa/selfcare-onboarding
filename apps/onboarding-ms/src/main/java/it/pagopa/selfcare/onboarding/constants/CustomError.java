@@ -8,7 +8,7 @@ public enum CustomError {
     AOO_NOT_FOUND("0000","AOO  %s not found"),
     UO_NOT_FOUND("0000","UO %s not found"),
 
-    INSTITUTION_NOT_FOUND("0000","Institution  with taxCode %s origin %s originId % subunitCode %s not found"),
+    INSTITUTION_NOT_FOUND("0000","Institution with taxCode %s origin %s originId %s subunitCode %s not found"),
     USERS_UPDATE_NOT_ALLOWED("0025", "Invalid users information provided");
 
     private final String code;

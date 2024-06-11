@@ -306,7 +306,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).firstResult()
                 .map(Onboarding.class::cast)
-                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %S, origin %s, originId %s, productId %s, subunitCode %s not found",
+                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
                         onboarding.getInstitution().getTaxCode(),
                         onboarding.getInstitution().getOrigin().name(),
                         onboarding.getInstitution().getOriginId(),
@@ -380,10 +380,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return product(onboarding.getProductId())
                 .onFailure().transform(ex -> new OnboardingNotAllowedException(String.format(UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
                         onboarding.getInstitution().getTaxCode(),
-                        onboarding.getProductId()), DEFAULT_ERROR.getCode()))
-               //.onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
-                 //   .replaceWith(product))
-                ;
+                        onboarding.getProductId()), DEFAULT_ERROR.getCode()));
     }
 
     private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(Institution institution, String productId, String productParentId) {
