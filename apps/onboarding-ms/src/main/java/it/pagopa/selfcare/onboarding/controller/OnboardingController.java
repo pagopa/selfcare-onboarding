@@ -35,11 +35,10 @@ import java.util.List;
 @AllArgsConstructor
 public class OnboardingController {
 
-    @Inject
-    CurrentIdentityAssociation currentIdentityAssociation;
-
     private final OnboardingService onboardingService;
     private final OnboardingMapper onboardingMapper;
+    @Inject
+    CurrentIdentityAssociation currentIdentityAssociation;
 
     @Operation(summary = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
             "Users data will be saved on personal data vault if it doesn't already exist." +
@@ -154,7 +153,7 @@ public class OnboardingController {
                         return Uni.createFrom().failure(new InternalServerErrorException("Principal and JsonWebToken names do not match"));
                     }
 
-                    if(identity.getPrincipal() instanceof DefaultJWTCallerPrincipal jwtCallerPrincipal) {
+                    if (identity.getPrincipal() instanceof DefaultJWTCallerPrincipal jwtCallerPrincipal) {
                         String uid = jwtCallerPrincipal.getClaim("uid");
                         return Uni.createFrom().item(uid);
                     }
@@ -207,7 +206,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
-            "Function triggers async activities related to onboarding based on institution type or completing onboarding. " )
+            "Function triggers async activities related to onboarding based on institution type or completing onboarding. ")
 
     @PUT
     @Path("/{onboardingId}/approve")
@@ -233,7 +232,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +
-            "Function change status to REJECT for an onboarding request that is not COMPLETED. " )
+            "Function change status to REJECT for an onboarding request that is not COMPLETED. ")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/reject")
@@ -258,6 +257,7 @@ public class OnboardingController {
     public Uni<OnboardingGet> getByIdWithUserInfo(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGetWithUserInfo(onboardingId);
     }
+
     @Operation(summary = "Returns an onboarding record by its ID only if its status is PENDING. " +
             "This feature is crucial for ensuring that the onboarding process can be completed only when " +
             "the onboarding status is appropriately set to PENDING.")
@@ -266,6 +266,7 @@ public class OnboardingController {
     public Uni<OnboardingGet> getOnboardingPending(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingPending(onboardingId);
     }
+
     @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
     @GET
     @Produces(MediaType.APPLICATION_JSON)

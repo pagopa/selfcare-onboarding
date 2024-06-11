@@ -167,7 +167,7 @@ class OnboardingServiceDefaultTest {
         map.put(UUID.randomUUID().toString(), workContactResource);
         managerResourceWk.setWorkContacts(map);
 
-        managerResourceWkSpid  = new UserResource();
+        managerResourceWkSpid = new UserResource();
         managerResourceWkSpid.setId(UUID.randomUUID());
         managerResourceWkSpid.setName(new CertifiableFieldResourceOfstring()
                 .value(manager.getName())
@@ -269,7 +269,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound(asserter);
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
@@ -294,12 +294,11 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound(asserter);
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
     }
-
 
 
     @Test
@@ -343,7 +342,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -453,7 +452,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -501,7 +500,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
         uoResource.setCodiceFiscaleEnte("taxCode");
-        when(uoApi.findByUnicodeUsingGET1(any(),any()))
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
@@ -545,11 +544,11 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
     }
 
-    void mockSimpleSearchPOSTAndPersist(UniAsserter asserter){
+    void mockSimpleSearchPOSTAndPersist(UniAsserter asserter) {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
         asserter.execute(() -> when(Onboarding.persistOrUpdate(any(List.class)))
@@ -562,6 +561,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
+
     @Test
     @RunOnVertxContext
     void onboardingSa_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
@@ -588,7 +588,7 @@ class OnboardingServiceDefaultTest {
 
 
     Product mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter) {
-        Product productResource = createDummyProduct(productId,hasParent);
+        Product productResource = createDummyProduct(productId, hasParent);
         asserter.execute(() -> when(productService.getProductIsValid(productId))
                 .thenReturn(productResource));
         return productResource;
@@ -605,7 +605,7 @@ class OnboardingServiceDefaultTest {
         roleMapping.put(manager.getRole(), productRoleInfo);
         productResource.setRoleMappings(roleMapping);
 
-        if(hasParent) {
+        if (hasParent) {
             Product parent = new Product();
             parent.setId("productParentId");
             Map<PartyRole, ProductRoleInfo> roleParentMapping = new HashMap<>();
@@ -720,10 +720,10 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResourceWk)));
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockPersistOnboarding(asserter);
@@ -764,10 +764,10 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResourceWkSpid)));
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockPersistOnboarding(asserter);
@@ -803,10 +803,10 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResourceWk)));
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockPersistOnboarding(asserter);
@@ -839,7 +839,7 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().failure(new WebApplicationException(404))));
 
         asserter.execute(() -> when(userRegistryApi.saveUsingPATCH(any()))
@@ -878,13 +878,13 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().failure(new WebApplicationException())));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users), WebApplicationException.class);
     }
 
-    void mockVerifyOnboardingNotFound(UniAsserter asserter){
+    void mockVerifyOnboardingNotFound(UniAsserter asserter) {
         asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
     }
@@ -916,7 +916,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound(asserter);
 
         final String filepath = "upload-file-path";
-        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(filepath);
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
         asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId(), testFile),
@@ -945,7 +945,7 @@ class OnboardingServiceDefaultTest {
         //Mock contract signature fail
         asserter.execute(() -> doThrow(InvalidRequestException.class)
                 .when(signatureService)
-                .verifySignature(any(),any(),any()));
+                .verifySignature(any(), any(), any()));
 
         asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), testFile),
                 InvalidRequestException.class);
@@ -972,13 +972,13 @@ class OnboardingServiceDefaultTest {
         //Mock contract signature fail
         asserter.execute(() -> doNothing()
                 .when(signatureService)
-                .verifySignature(any(),any(),any()));
+                .verifySignature(any(), any(), any()));
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
         final String filepath = "upload-file-path";
-        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(filepath);
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
         asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), testFile),
@@ -1006,7 +1006,7 @@ class OnboardingServiceDefaultTest {
         //Mock contract signature fail
         asserter.execute(() -> doThrow(InvalidRequestException.class)
                 .when(signatureService)
-                .verifySignature(any(),any(),any()));
+                .verifySignature(any(), any(), any()));
 
         asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testFile),
                 InvalidRequestException.class);
@@ -1032,13 +1032,13 @@ class OnboardingServiceDefaultTest {
         //Mock contract signature fail
         asserter.execute(() -> doNothing()
                 .when(signatureService)
-                .verifySignature(any(),any(),any()));
+                .verifySignature(any(), any(), any()));
 
         mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
         final String filepath = "upload-file-path";
-        when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(filepath);
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
         asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testFile),
@@ -1083,7 +1083,7 @@ class OnboardingServiceDefaultTest {
         mockFindOnboarding(onboarding);
         OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding);
         UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
-                .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page,size)
+                .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page, size)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -1102,9 +1102,9 @@ class OnboardingServiceDefaultTest {
         ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
         ReactivePanacheQuery<Onboarding> queryPage = mock(ReactivePanacheQuery.class);
         PanacheMock.mock(Onboarding.class);
-        when(Onboarding.find(any(Document.class),any(Document.class))).thenReturn(query);
-        when(Onboarding.find(any(Document.class),eq(null))).thenReturn(query);
-        when(query.page(anyInt(),anyInt())).thenReturn(queryPage);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
+        when(Onboarding.find(any(Document.class), eq(null))).thenReturn(query);
+        when(query.page(anyInt(), anyInt())).thenReturn(queryPage);
         when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
         when(query.count()).thenReturn(Uni.createFrom().item(1L));
     }
@@ -1124,7 +1124,7 @@ class OnboardingServiceDefaultTest {
         ReactivePanacheUpdate panacheUpdate = mock(ReactivePanacheUpdate.class);
         asserter.execute(() -> when(panacheUpdate.where("contractSigned", filepath))
                 .thenReturn(Uni.createFrom().item(1L)));
-        asserter.execute(() -> when(Token.update(anyString(),any(Object[].class)))
+        asserter.execute(() -> when(Token.update(anyString(), any(Object[].class)))
                 .thenReturn(panacheUpdate));
     }
 
@@ -1423,7 +1423,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -1438,7 +1438,7 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
-     }
+    }
 
     @Test
     @RunOnVertxContext
@@ -1458,7 +1458,7 @@ class OnboardingServiceDefaultTest {
         when(query.firstResult()).thenReturn(Uni.createFrom().item(new Onboarding()));
         when(Onboarding.find(any())).thenReturn(query);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
@@ -1491,7 +1491,7 @@ class OnboardingServiceDefaultTest {
         when(query.firstResult()).thenReturn(Uni.createFrom().nullItem());
         when(Onboarding.find(any())).thenReturn(query);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(),any()))
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
