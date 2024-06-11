@@ -7,6 +7,8 @@ import com.microsoft.azure.functions.HttpStatus;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
+import it.pagopa.selfcare.onboarding.dto.FindNotificationToSendResponse;
+import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -16,6 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -172,6 +175,53 @@ public class NotificationFunctionsTest {
         // Invoke
         HttpResponseMessage responseMessage = function.sendNotification(req, context);
         assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+
+    }
+
+    @Test
+    public void findNotificationsToSend() {
+        // Setup
+        @SuppressWarnings("unchecked")
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        NotificationToSend notificationToSend = new NotificationToSend();
+        notificationToSend.setId("id");
+        when(notificationEventService.findNotificationToSend(any(), any()))
+                .thenReturn(new FindNotificationToSendResponse(List.of(notificationToSend), 1L));
+        // Invoke
+        HttpResponseMessage responseMessage = function.findNotificationsToSend(req, context);
+
+        // Verify
+        Mockito.verify(notificationEventService, times(1))
+                .findNotificationToSend(any(), any());
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void findNotificationsToSendTriggerError() {
+        // Setup
+        @SuppressWarnings("unchecked")
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        when(notificationEventService.findNotificationToSend(any(), any()))
+                .thenThrow(new IllegalArgumentException("Error"));
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.findNotificationsToSend(req, context);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseMessage.getStatusCode());
 
     }
 

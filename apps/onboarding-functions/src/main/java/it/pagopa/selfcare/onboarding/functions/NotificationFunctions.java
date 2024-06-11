@@ -6,10 +6,13 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.dto.FindNotificationToSendResponse;
+import it.pagopa.selfcare.onboarding.dto.NotificationToSendFilters;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.ws.rs.core.MediaType;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -97,5 +100,39 @@ public class NotificationFunctions {
         }
         notificationEventService.send(context, onboarding.get(), queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
+    }
+
+
+    @FunctionName("FindNotifications")
+    public HttpResponseMessage findNotificationsToSend(
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("findNotificationsToSend trigger processed a request");
+
+        final String productId = request.getQueryParameters().get("productId");
+        final String institutionId = request.getQueryParameters().get("institutionId");
+        final String onboardingId = request.getQueryParameters().get("onboardingId");
+        final String taxCode = request.getQueryParameters().get("taxCode");
+        final String from = request.getQueryParameters().get("from");
+        final String to = request.getQueryParameters().get("to");
+        final String status = request.getQueryParameters().get("status");
+        final Integer page = Integer.parseInt(request.getQueryParameters().getOrDefault("page", "0"));
+        final Integer size = Integer.parseInt(request.getQueryParameters().getOrDefault("size", "20"));
+
+        NotificationToSendFilters filters = new NotificationToSendFilters(productId, institutionId, onboardingId, taxCode, status, from, to, page, size);
+        FindNotificationToSendResponse response;
+        try {
+            response = notificationEventService.findNotificationToSend(context, filters);
+        } catch (Exception ex) {
+            context.getLogger().warning("Error during findNotificationToSend execution, msg: " + ex.getMessage());
+            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error during findNotificationToSend execution")
+                    .build();
+        }
+
+        return request.createResponseBuilder(HttpStatus.OK)
+                .body(response)
+                .header("Content-Type", MediaType.APPLICATION_JSON)
+                .build();
     }
 }

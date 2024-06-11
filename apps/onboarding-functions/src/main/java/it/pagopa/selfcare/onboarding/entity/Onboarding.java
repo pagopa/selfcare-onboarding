@@ -2,19 +2,21 @@ package it.pagopa.selfcare.onboarding.entity;
 
 
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntityBase;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.openapi.quarkus.core_json.model.AdditionalInformations;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 @MongoEntity(collection="onboardings")
-public class Onboarding  {
+public class Onboarding extends ReactivePanacheMongoEntityBase {
 
     @BsonId
-    private String id;
+    public String id;
+
     private String productId;
     private List<String> testEnvProductIds;
     private WorkflowType workflowType;
@@ -23,14 +25,16 @@ public class Onboarding  {
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime activatedAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
     private LocalDateTime expiringDate;
     private OnboardingStatus status;
     private String userRequestUid;
     private String workflowInstanceId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime activatedAt;
-    private LocalDateTime deletedAt;
+    private AdditionalInformations additionalInformations;
     private String reasonForReject;
 
     public String getId() {
