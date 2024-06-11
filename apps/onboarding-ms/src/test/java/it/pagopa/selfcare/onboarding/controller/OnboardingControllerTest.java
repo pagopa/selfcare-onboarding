@@ -25,9 +25,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -161,31 +159,34 @@ class OnboardingControllerTest {
 
     }
 
-    private OnboardingPaRequest dummyOnboardingPa() {
-        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
-        onboardingPaValid.setProductId("productId");
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingUsers() {
+        OnboardingUserRequest onboardingUserRequest = dummyOnboardingUser();
 
-        BillingPaRequest billingPaRequest = new BillingPaRequest();
-        billingPaRequest.setRecipientCode("code");
-        billingPaRequest.setVatNumber("vat");
+        Mockito.when(onboardingService.onboardingUsers(any(), anyString()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        onboardingPaValid.setUsers(List.of(userDTO));
-        onboardingPaValid.setInstitution(institution);
-        onboardingPaValid.setBilling(billingPaRequest);
-
-        return onboardingPaValid;
+        given()
+                .when()
+                .body(onboardingUserRequest)
+                .contentType(ContentType.JSON)
+                .post("/users")
+                .then()
+                .statusCode(204);
     }
 
-    private OnboardingImportRequest dummyOnboardingImport() {
-        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
-        importInstitution.setTaxCode("taxCode");
-        OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
-        onboardingImportValid.setProductId("productId");
-        onboardingImportValid.setContractImported(new OnboardingImportContract());
-        onboardingImportValid.setUsers(List.of(userDTO));
-        onboardingImportValid.setInstitution(importInstitution);
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingUsers_shouldNotValidBody() {
 
-        return onboardingImportValid;
+        given()
+                .when()
+                .body(new OnboardingUserRequest())
+                .contentType(ContentType.JSON)
+                .post("/users")
+                .then()
+                .statusCode(400);
     }
 
     @Test
@@ -204,19 +205,6 @@ class OnboardingControllerTest {
                 .statusCode(200);
     }
 
-    //@Test
-    void onboardingPg() {
-
-        given()
-                .when()
-                .body(onboardingPgValid)
-                .contentType(ContentType.JSON)
-                .post("/pg")
-                .then()
-                .statusCode(200);
-    }
-
-
     @Test
     void complete_unauthorized() {
 
@@ -231,7 +219,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void complete() throws IOException {
+    void complete() {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
@@ -255,7 +243,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void consume() throws IOException {
+    void consume() {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
@@ -607,6 +595,43 @@ class OnboardingControllerTest {
         institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
+    }
+
+    private OnboardingUserRequest dummyOnboardingUser() {
+        OnboardingUserRequest onboardingUserRequest = new OnboardingUserRequest();
+        onboardingUserRequest.setProductId("productId");
+        onboardingUserRequest.setTaxCode("taxCode");
+        onboardingUserRequest.setOriginId("originId");
+        onboardingUserRequest.setOrigin("origin");
+        onboardingUserRequest.setUsers(List.of(userDTO));
+        return onboardingUserRequest;
+    }
+
+    private OnboardingPaRequest dummyOnboardingPa() {
+        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
+        onboardingPaValid.setProductId("productId");
+
+        BillingPaRequest billingPaRequest = new BillingPaRequest();
+        billingPaRequest.setRecipientCode("code");
+        billingPaRequest.setVatNumber("vat");
+
+        onboardingPaValid.setUsers(List.of(userDTO));
+        onboardingPaValid.setInstitution(institution);
+        onboardingPaValid.setBilling(billingPaRequest);
+
+        return onboardingPaValid;
+    }
+
+    private OnboardingImportRequest dummyOnboardingImport() {
+        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
+        importInstitution.setTaxCode("taxCode");
+        OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
+        onboardingImportValid.setProductId("productId");
+        onboardingImportValid.setContractImported(new OnboardingImportContract());
+        onboardingImportValid.setUsers(List.of(userDTO));
+        onboardingImportValid.setInstitution(importInstitution);
+
+        return onboardingImportValid;
     }
 
 }

@@ -1054,6 +1054,34 @@ components:
       - REJECTED
       - DELETED
       type: string
+    OnboardingUserRequest:
+      required:
+      - productId
+      - origin
+      - originId
+      - users
+      type: object
+      properties:
+        productId:
+          minLength: 1
+          type: string
+        institutionType:
+          $ref: '#/components/schemas/InstitutionType'
+        subunitCode:
+          type: string
+        origin:
+          minLength: 1
+          type: string
+        originId:
+          minLength: 1
+          type: string
+        taxCode:
+          type: string
+        users:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRequest'
     Origin:
       enum:
       - MOCK
