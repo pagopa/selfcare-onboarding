@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.List;
 
 @Authenticated
 @Path("/v1/onboarding")
+@Tag(name = "Onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
@@ -171,6 +173,8 @@ public class OnboardingController {
 
     @PUT
     @Path("/{onboardingId}/consume")
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
         return onboardingService.completeWithoutSignatureVerification(onboardingId, file)
