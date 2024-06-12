@@ -81,7 +81,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
-    private static final String  ID_MAIL_PREFIX = "ID_MAIL#";
+    private static final String ID_MAIL_PREFIX = "ID_MAIL#";
 
     @RestClient
     @Inject
@@ -161,7 +161,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
                     return onboarding;
                 })
-                .onItem().transformToUni(onboarding ->  fillUsers(onboarding, request.getUsers(), null));
+                .onItem().transformToUni(onboarding -> fillUsers(onboarding, request.getUsers(), null));
     }
 
     /**
@@ -216,13 +216,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> this.addReferencedOnboardingId(onboarding)
-                /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                .onItem().invoke(current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
-                /* Update onboarding data with users and start orchestration */
-                .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
-                .onItem().transform(onboardingMapper::toResponse));
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem().invoke(current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                                orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                        .onItem().transform(onboardingMapper::toResponse));
     }
 
     /**
@@ -302,7 +302,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding.getInstitution().getOriginId(),
                 null,
                 onboarding.getProductId()
-                );
+        );
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).firstResult()
                 .map(Onboarding.class::cast)
@@ -346,18 +346,18 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     private WorkflowType getWorkflowType(Onboarding onboarding) {
         InstitutionType institutionType = onboarding.getInstitution().getInstitutionType();
-        if(InstitutionType.PT.equals(institutionType)){
+        if (InstitutionType.PT.equals(institutionType)) {
             return WorkflowType.FOR_APPROVE_PT;
         }
 
-        if(InstitutionType.PA.equals(institutionType)
+        if (InstitutionType.PA.equals(institutionType)
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
-        if(InstitutionType.PG.equals(institutionType)) {
+        if (InstitutionType.PG.equals(institutionType)) {
             return WorkflowType.CONFIRMATION;
         }
 
@@ -387,50 +387,80 @@ public class OnboardingServiceDefault implements OnboardingService {
         return (Objects.nonNull(productParentId)
                 //If product has parent, I must verify if onboarding is present for parent and child
                 ? checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
-                    .onFailure(ResourceConflictException.class)
-                    .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
+                .onFailure(ResourceConflictException.class)
+                .recoverWithUni(ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
                 //If product is a root, I must only verify if onboarding for root
                 : checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId)
         );
     }
 
-    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(Institution institution, String productId) {
+    private Uni<Boolean> verifyOnboardingNotExistForProductAndProductParent(Onboarding onboarding, String productId, String productParentId) {
+        return (Objects.nonNull(productParentId)
+                //If product has parent, I must verify if onboarding is present for parent and child
+                ? checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productParentId)
+                .onFailure(ResourceConflictException.class)
+                .recoverWithUni(ignore -> checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId))
+                //If product is a root, I must only verify if onboarding for root
+                : checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId)
+        );
+    }
 
-        Log.infof("Validating allowed map and verify an onboarding is present for: taxCode %s, subunitCode %s, product %s",
-                institution.getTaxCode(),
-                institution.getSubunitCode(),
-                productId);
+    private Uni<Boolean> validateAllowedMap(String taxCode, String subunitCode, String productId) {
+        Log.infof("Validating allowed map for: taxCode %s, subunitCode %s, product %s",
+                taxCode, subunitCode, productId);
 
-        if (!onboardingValidationStrategy.validate(productId, institution.getTaxCode())) {
-            return Uni.createFrom().failure(new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE,
-                    institution.getTaxCode(),
-                    productId),
+        if (!onboardingValidationStrategy.validate(productId, taxCode)) {
+            return Uni.createFrom().failure(new OnboardingNotAllowedException(
+                    String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
                     DEFAULT_ERROR.getCode()));
         }
 
-        String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
-        return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
-                .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
-                .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException)ex).getResponse().getStatus() == 404
-                    ? Uni.createFrom().item(Response.noContent().build())
-                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
-                .replaceWith(Boolean.TRUE);
+        return Uni.createFrom().item(Boolean.TRUE);
+    }
+
+    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(Institution institution, String productId) {
+        return validateAllowedMap(institution.getTaxCode(), institution.getSubunitCode(), productId)
+                .flatMap(ignored -> {
+                    String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+                    return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
+                            .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
+                            .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                                    ? Uni.createFrom().item(Response.noContent().build())
+                                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
+                            .replaceWith(Boolean.TRUE);
+                });
+    }
+
+    private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedMap(Onboarding onboarding, String productId) {
+        return validateAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getSubunitCode(), productId)
+                .flatMap(ignored -> {
+                    if (Objects.isNull(onboarding.getReferenceOnboardingId())) {
+                        return Uni.createFrom().failure(new InvalidRequestException(INVALID_REFERENCE_ONBORADING.getMessage(), INVALID_REFERENCE_ONBORADING.getCode()));
+                    }
+                    return Onboarding.findByIdOptional(onboarding.getReferenceOnboardingId())
+                            .onItem().transformToUni(opt -> opt
+                                    .map(Onboarding.class::cast)
+                                    .filter(referenceOnboarding -> referenceOnboarding.getStatus().equals(OnboardingStatus.COMPLETED))
+                                    .map(referenceOnboarding -> Uni.createFrom().item(Boolean.TRUE))
+                                    .orElse(Uni.createFrom().failure(new InvalidRequestException(
+                                            String.format(PRODUCT_NOT_ONBOARDED.getMessage(), onboarding.getProductId(), onboarding.getInstitution().getTaxCode(), PRODUCT_NOT_ONBOARDED.getCode())))));
+                });
     }
 
     private String retrieveProductRole(UserRequest userInfo, Map<PartyRole, ProductRoleInfo> roleMappings) {
         try {
-            if(Objects.isNull(roleMappings) || roleMappings.isEmpty())
+            if (Objects.isNull(roleMappings) || roleMappings.isEmpty())
                 throw new IllegalArgumentException("Role mappings is required");
 
-            if(Objects.isNull(roleMappings.get(userInfo.getRole())))
+            if (Objects.isNull(roleMappings.get(userInfo.getRole())))
                 throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-            if(Objects.isNull((roleMappings.get(userInfo.getRole()).getRoles())))
+            if (Objects.isNull((roleMappings.get(userInfo.getRole()).getRoles())))
                 throw new IllegalArgumentException(String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
-            if(roleMappings.get(userInfo.getRole()).getRoles().size() != 1)
+            if (roleMappings.get(userInfo.getRole()).getRoles().size() != 1)
                 throw new IllegalArgumentException(String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
             return roleMappings.get(userInfo.getRole()).getRoles().get(0).getCode();
 
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             throw new OnboardingNotAllowedException(e.getMessage(), DEFAULT_ERROR.getCode());
         }
     }
@@ -462,29 +492,29 @@ public class OnboardingServiceDefault implements OnboardingService {
                 : product.getRoleMappings();
 
         return Multi.createFrom().iterable(users)
-                    .onItem().transformToUni(user -> userRegistryApi
+                .onItem().transformToUni(user -> userRegistryApi
                         /* search user by tax code */
                         .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
 
                         /* retrieve userId, if found will eventually update some fields */
                         .onItem().transformToUni(userResource -> {
-                                Optional<String> optUserMailRandomUuid = Optional.ofNullable(user.getEmail()).map(mail -> retrieveUserMailUuid(userResource, mail));
-                                Optional<MutableUserFieldsDto> optUserFieldsDto = toUpdateUserRequest(user, userResource, optUserMailRandomUuid);
-                                return optUserFieldsDto
-                                        .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
-                                                .replaceWith(userResource.getId()))
-                                        .orElse(Uni.createFrom().item(userResource.getId()))
-                                        .map(userResourceId -> User.builder()
-                                                .id(userResourceId.toString())
-                                                .role(user.getRole())
-                                                .userMailUuid(optUserMailRandomUuid.orElse(null))
-                                                .productRole(retrieveProductRole(user, roleMappings))
-                                                .build());
-                            }
+                                    Optional<String> optUserMailRandomUuid = Optional.ofNullable(user.getEmail()).map(mail -> retrieveUserMailUuid(userResource, mail));
+                                    Optional<MutableUserFieldsDto> optUserFieldsDto = toUpdateUserRequest(user, userResource, optUserMailRandomUuid);
+                                    return optUserFieldsDto
+                                            .map(userUpdateRequest -> userRegistryApi.updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
+                                                    .replaceWith(userResource.getId()))
+                                            .orElse(Uni.createFrom().item(userResource.getId()))
+                                            .map(userResourceId -> User.builder()
+                                                    .id(userResourceId.toString())
+                                                    .role(user.getRole())
+                                                    .userMailUuid(optUserMailRandomUuid.orElse(null))
+                                                    .productRole(retrieveProductRole(user, roleMappings))
+                                                    .build());
+                                }
                         )
                         /* if not found 404, will create new user */
                         .onFailure(WebApplicationException.class).recoverWithUni(ex -> {
-                            if(((WebApplicationException) ex).getResponse().getStatus() != 404) {
+                            if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
                                 return Uni.createFrom().failure(ex);
                             }
 
@@ -522,7 +552,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private String retrieveUserMailUuid(UserResource foundUser, String userMail) {
-        if(Objects.isNull(foundUser.getWorkContacts())) {
+        if (Objects.isNull(foundUser.getWorkContacts())) {
             return ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
         }
 
@@ -551,11 +581,11 @@ public class OnboardingServiceDefault implements OnboardingService {
             mutableUserFieldsDto = Optional.of(dto);
         }
 
-        if(optUserMailRandomUuid.isPresent()) {
+        if (optUserMailRandomUuid.isPresent()) {
             Optional<String> entryMail = Objects.nonNull(foundUser.getWorkContacts())
                     ? foundUser.getWorkContacts().keySet().stream()
-                        .filter(key -> key.equals(optUserMailRandomUuid.get()))
-                        .findFirst()
+                    .filter(key -> key.equals(optUserMailRandomUuid.get()))
+                    .findFirst()
                     : Optional.empty();
 
             if (entryMail.isEmpty()) {
@@ -600,7 +630,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 )
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, null)
-                            .map(ignore -> onboarding)
+                        .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding))
                 .map(onboardingMapper::toGetResponse);
     }
@@ -615,18 +645,49 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
                     .asTuple()
                     .onItem().transformToUni(inputSignatureVerification ->
-                            Uni.createFrom().item(() -> { signatureService.verifySignature(contract,
-                                        inputSignatureVerification.getItem2(),
-                                        inputSignatureVerification.getItem1());
-                                return onboarding;
-                            })
-                            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                            Uni.createFrom().item(() -> {
+                                        signatureService.verifySignature(contract,
+                                                inputSignatureVerification.getItem2(),
+                                                inputSignatureVerification.getItem1());
+                                        return onboarding;
+                                    })
+                                    .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                     );
 
             return complete(onboardingId, contract, verification);
         } else {
             return completeWithoutSignatureVerification(onboardingId, contract);
         }
+    }
+
+    @Override
+    public Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract) {
+
+        if (Boolean.TRUE.equals(isVerifyEnabled)) {
+            //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
+            //At least, verify contract signature using both
+            Function<Onboarding, Uni<Onboarding>> verification = onboarding -> Uni.combine().all()
+                    .unis(retrieveOnboardingUserFiscalCodeList(onboarding), retrieveContractDigest(onboardingId))
+                    .asTuple()
+                    .onItem().transformToUni(inputSignatureVerification ->
+                            Uni.createFrom().item(() -> {
+                                        signatureService.verifySignature(contract,
+                                                inputSignatureVerification.getItem2(),
+                                                inputSignatureVerification.getItem1());
+                                        return onboarding;
+                                    })
+                                    .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                    );
+
+            return completeOnboardingUsers(onboardingId, contract, verification);
+        } else {
+            return completeOnboardingUsersWithoutSignatureVerification(onboardingId, contract);
+        }
+    }
+
+    public Uni<Onboarding> completeOnboardingUsersWithoutSignatureVerification(String onboardingId, File contract) {
+        Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
+        return completeOnboardingUsers(onboardingId, contract, verification);
     }
 
     @Override
@@ -648,7 +709,28 @@ public class OnboardingServiceDefault implements OnboardingService {
                 )
                 //Upload contract on storage
                 .onItem().transformToUni(onboarding -> uploadSignedContractAndUpdateToken(onboardingId, contract)
-                            .map(ignore -> onboarding))
+                        .map(ignore -> onboarding))
+                // Start async activity if onboardingOrchestrationEnabled is true
+                .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
+                        ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
+                        .map(ignore -> onboarding)
+                        : Uni.createFrom().item(onboarding));
+    }
+
+    private Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+
+        return retrieveOnboardingAndCheckIfExpired(onboardingId)
+                .onItem().transformToUni(verificationContractSignature::apply)
+                //Fail if onboarding exists for a product
+                .onItem().transformToUni(onboarding -> product(onboarding.getProductId())
+                        .onItem().transformToUni(product -> verifyOnboardingNotExistForProductAndProductParent(onboarding,
+                                product.getId(),
+                                product.getParentId()))
+                        .replaceWith(onboarding)
+                )
+                //Upload contract on storage
+                .onItem().transformToUni(onboarding -> uploadSignedContractAndUpdateToken(onboardingId, contract)
+                        .map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
@@ -658,22 +740,22 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<String> uploadSignedContractAndUpdateToken(String onboardingId, File contract) {
         return retrieveToken(onboardingId)
-            .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
-                    final String path = String.format("%s%s", pathContracts, onboardingId);
-                    final String filename = String.format("signed_%s", Optional.ofNullable(token.getContractFilename()).orElse(onboardingId));
+                .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
+                                    final String path = String.format("%s%s", pathContracts, onboardingId);
+                                    final String filename = String.format("signed_%s", Optional.ofNullable(token.getContractFilename()).orElse(onboardingId));
 
-                    try {
-                        return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.toPath()));
-                    } catch (IOException e) {
-                        throw new OnboardingNotAllowedException(GENERIC_ERROR.getCode(),
-                                "Error on upload contract for onboarding with id " + onboardingId);
-                    }
-                }))
-                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                .onItem().transformToUni(filepath -> Token.update("contractSigned", filepath)
-                                .where("_id", token.getId())
-                                .replaceWith(filepath))
-            );
+                                    try {
+                                        return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.toPath()));
+                                    } catch (IOException e) {
+                                        throw new OnboardingNotAllowedException(GENERIC_ERROR.getCode(),
+                                                "Error on upload contract for onboarding with id " + onboardingId);
+                                    }
+                                }))
+                                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                                .onItem().transformToUni(filepath -> Token.update("contractSigned", filepath)
+                                        .where("_id", token.getId())
+                                        .replaceWith(filepath))
+                );
     }
 
 
@@ -695,7 +777,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return OnboardingStatus.TOBEVALIDATED.equals(onboarding.getStatus())
                 ? Uni.createFrom().item(onboarding)
                 : Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
-                    onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
+                onboarding.getId(), ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
     }
 
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
@@ -704,11 +786,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
 
-
     private Uni<String> retrieveContractDigest(String onboardingId) {
         return retrieveToken(onboardingId)
                 .map(Token::getChecksum);
     }
+
     private Uni<Token> retrieveToken(String onboardingId) {
         return Token.list("onboardingId", onboardingId)
                 .map(tokens -> tokens.stream().findFirst()
@@ -759,7 +841,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject) {
         return Onboarding.findById(onboardingId)
-                        .onItem().transform(Onboarding.class::cast)
+                .onItem().transform(Onboarding.class::cast)
                 .onItem().transformToUni(onboardingGet -> OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
                         ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is COMPLETED!", onboardingId)))
                         : Uni.createFrom().item(onboardingGet))
@@ -767,7 +849,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem().transformToUni(onboarding -> onboardingOrchestrationEnabled
                         ? orchestrationApi.apiStartOnboardingOrchestrationGet(onboardingId, "60")
-                            .map(ignore -> onboarding)
+                        .map(ignore -> onboarding)
                         : Uni.createFrom().item(onboarding));
     }
 
@@ -775,6 +857,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * Returns an onboarding record by its ID only if its status is PENDING.
      * This feature is crucial for ensuring that the onboarding process can be completed only when
      * the onboarding status is appropriately set to PENDING.
+     *
      * @param onboardingId String
      * @return OnboardingGet
      */
@@ -782,9 +865,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingGet> onboardingPending(String onboardingId) {
         return onboardingGet(onboardingId)
                 .flatMap(onboardingGet -> OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
-                 ||  OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
-                    ? Uni.createFrom().item(onboardingGet)
-                    : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!",onboardingId))));
+                        || OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
+                        ? Uni.createFrom().item(onboardingGet)
+                        : Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found or not in PENDING status!", onboardingId))));
     }
 
     @Override
@@ -805,7 +888,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .map(Onboarding.class::cast)
                         .map(onboardingMapper::toGetResponse)
                         .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
-                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))));
+                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)))));
     }
 
     @Override
@@ -815,7 +898,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         //I must cast to Onboarding because findByIdOptional return a generic ReactiveEntity
                         .map(Onboarding.class::cast)
                         .map(onboardingGet -> Uni.createFrom().item(onboardingGet))
-                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!",onboardingId)))))
+                        .orElse(Uni.createFrom().failure(new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)))))
                 .flatMap(onboarding -> toUserResponseWithUserInfo(onboarding.getUsers())
                         .onItem().transform(userResponses -> {
                             OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
@@ -839,7 +922,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     .ifPresent(userResponse::setEmail);
                             return userResponse;
                         })
-                    )
+                )
                 .merge().collect().asList();
     }
 
@@ -847,7 +930,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                 .onItem()
                 .invoke(proxyInstitution -> {
-                    if(Objects.nonNull(proxyInstitution)) {
+                    if (Objects.nonNull(proxyInstitution)) {
                         InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
                         onboarding.getInstitution().setInstitutionType(institutionType);
 
@@ -864,7 +947,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private static Uni<Long> updateReasonForRejectAndUpdateStatus(String onboardingId, String reasonForReject) {
         Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingReject(reasonForReject, OnboardingStatus.REJECTED.name());
-        Document query =  QueryUtils.buildUpdateDocument(queryParameter);
+        Document query = QueryUtils.buildUpdateDocument(queryParameter);
         return Onboarding.update(query)
                 .where("_id", onboardingId)
                 .onItem().transformToUni(updateItemCount -> {

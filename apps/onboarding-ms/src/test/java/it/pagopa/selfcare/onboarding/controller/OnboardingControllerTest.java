@@ -108,7 +108,7 @@ class OnboardingControllerTest {
 
     @ParameterizedTest
     @TestSecurity(user = "userJwt")
-    @ValueSource(strings = {"/psp","/pa"})
+    @ValueSource(strings = {"/psp", "/pa"})
     void onboarding_shouldNotValidPspBody(String path) {
 
         given()
@@ -242,6 +242,42 @@ class OnboardingControllerTest {
     }
 
     @Test
+    void completeOnboardingUsers_unauthorized() {
+
+        given()
+                .when()
+                .pathParam("tokenId", "actual-token-id")
+                .contentType(ContentType.MULTIPART)
+                .put("/{tokenId}/completeOnboardingUsers")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void completeOnboardingUsers() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.completeOnboardingUsers(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/completeOnboardingUsers")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .completeOnboardingUsers(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
     @TestSecurity(user = "userJwt")
     void consume() {
         File testFile = new File("src/test/resources/application.properties");
@@ -267,7 +303,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void deleteOK(){
+    void deleteOK() {
         String onboardingId = "actual-onboarding-id";
         ReasonRequest reasonRequest = new ReasonRequest();
         reasonRequest.setReasonForReject("string");
@@ -292,7 +328,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void deleteInvalidOnboardingIdOrOnboardingNotFound(){
+    void deleteInvalidOnboardingIdOrOnboardingNotFound() {
         String onboardingId = "actual-onboarding-id";
         ReasonRequest reasonRequest = new ReasonRequest();
         reasonRequest.setReasonForReject("string");
@@ -317,7 +353,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboarding(){
+    void getOnboarding() {
         OnboardingGetResponse response = getOnboardingGetResponse();
         when(onboardingService.onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20))
                 .thenReturn(Uni.createFrom().item(response));
@@ -337,7 +373,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingById(){
+    void getOnboardingById() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingGet(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -354,7 +390,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingByIdWithUserInfo(){
+    void getOnboardingByIdWithUserInfo() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingGetWithUserInfo(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -371,7 +407,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingPending(){
+    void getOnboardingPending() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingPending(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -385,9 +421,10 @@ class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .onboardingPending(onboardingGet.getId());
     }
+
     @Test
     @TestSecurity(user = "userJwt")
-    void approve(){
+    void approve() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.approve(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -525,7 +562,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getInstitutionOnboardings(){
+    void getInstitutionOnboardings() {
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
         onboardingResponses.add(onboardingResponse);
@@ -547,21 +584,21 @@ class OnboardingControllerTest {
 
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
-        queryParameterMap.put("productId","prod-io");
-        queryParameterMap.put("taxCode","taxCode");
-        queryParameterMap.put("from","2023-12-01");
-        queryParameterMap.put("to","2023-12-31");
-        queryParameterMap.put("status","ACTIVE");
+        queryParameterMap.put("productId", "prod-io");
+        queryParameterMap.put("taxCode", "taxCode");
+        queryParameterMap.put("from", "2023-12-01");
+        queryParameterMap.put("to", "2023-12-31");
+        queryParameterMap.put("status", "ACTIVE");
         return queryParameterMap;
     }
 
     private static Map<String, String> getStringStringMapOnboardings() {
         Map<String, String> queryParameterMap = new HashMap<>();
-        queryParameterMap.put("taxCode","taxCode");
-        queryParameterMap.put("subunitCode","subunitCode");
-        queryParameterMap.put("origin","origin");
-        queryParameterMap.put("originId","originId");
-        queryParameterMap.put("status","PENDING");
+        queryParameterMap.put("taxCode", "taxCode");
+        queryParameterMap.put("subunitCode", "subunitCode");
+        queryParameterMap.put("origin", "origin");
+        queryParameterMap.put("originId", "originId");
+        queryParameterMap.put("status", "PENDING");
         return queryParameterMap;
     }
 

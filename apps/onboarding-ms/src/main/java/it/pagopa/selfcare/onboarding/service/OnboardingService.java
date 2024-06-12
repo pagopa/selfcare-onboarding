@@ -25,6 +25,8 @@ public interface OnboardingService {
 
     Uni<Onboarding> complete(String tokenId, File contract);
 
+    Uni<Onboarding> completeOnboardingUsers(String tokenId, File contract);
+
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
 
     Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size);

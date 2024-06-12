@@ -79,11 +79,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -113,11 +113,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -149,11 +149,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -210,11 +210,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -246,11 +246,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -282,11 +282,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -318,11 +318,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -353,11 +353,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -389,11 +389,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -425,11 +425,47 @@
               }
             }
           },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "401" : {
             "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/users" : {
+      "post" : {
+        "tags" : [ "Onboarding" ],
+        "summary" : "Perform onboarding users request, it is used all institution types.Users data will be saved on personal data vault if it doesn't already exist.At the end, function triggers async activities related to onboarding based on institution type.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingUserRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -460,11 +496,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -491,11 +527,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -538,11 +574,58 @@
               "application/json" : { }
             }
           },
+          "403" : {
+            "description" : "Not Allowed"
+          },
           "401" : {
             "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/{onboardingId}/completeOnboardingUsers" : {
+      "put" : {
+        "tags" : [ "Onboarding" ],
+        "summary" : "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution.It checks the contract's signature and upload the contract on an azure storageAt the end, function triggers async activities related to complete onboarding that consist of create the institution, activate the onboarding and sending data to notification queue.",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "contract" ],
+                "type" : "object",
+                "properties" : {
+                  "contract" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -585,11 +668,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -620,11 +703,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -660,11 +743,11 @@
               "application/json" : { }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -695,11 +778,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -732,11 +815,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
@@ -768,11 +851,11 @@
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
-          },
           "403" : {
             "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
         },
         "security" : [ {
