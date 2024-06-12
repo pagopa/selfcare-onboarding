@@ -6,6 +6,7 @@ import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
@@ -34,6 +35,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
+import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
@@ -47,8 +49,7 @@ import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
@@ -947,37 +948,9 @@ class OnboardingServiceDefaultTest {
 
     }
 
-    /* can't be tested because on test the signature is disabled. we should find a workaround */
-    //@Test
-    @RunOnVertxContext
-    void complete_shouldThrowExceptionWhenSignatureFail(UniAsserter asserter) {
-        Onboarding onboarding = createDummyOnboarding();
-        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
-        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
-                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
-
-        mockFindToken(asserter, onboarding.getId());
-
-        //Mock find manager fiscal code
-        String actualUseUid = onboarding.getUsers().get(0).getId();
-        UserResource actualUserResource = new UserResource();
-        actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
-        asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
-                .thenReturn(Uni.createFrom().item(actualUserResource)));
-
-        //Mock contract signature fail
-        asserter.execute(() -> doThrow(InvalidRequestException.class)
-                .when(signatureService)
-                .verifySignature(any(), any(), any()));
-
-        asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), testFile),
-                InvalidRequestException.class);
-    }
-
-
     @Test
     @RunOnVertxContext
-    void complete(UniAsserter asserter) {
+    void completeWithoutSignatureValidation(UniAsserter asserter) {
         Onboarding onboarding = createDummyOnboarding();
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
@@ -1009,36 +982,9 @@ class OnboardingServiceDefaultTest {
                 Assertions::assertNotNull);
     }
 
-    /* can't be tested because on test the signature is disabled. we should find a workaround */
-    //@Test
-    @RunOnVertxContext
-    void completeOnboardingUsers_shouldThrowExceptionWhenSignatureFail(UniAsserter asserter) {
-        Onboarding onboarding = createDummyUsersOnboarding();
-        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
-        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
-                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
-
-        mockFindToken(asserter, onboarding.getId());
-
-        //Mock find manager fiscal code
-        String actualUseUid = onboarding.getUsers().get(0).getId();
-        UserResource actualUserResource = new UserResource();
-        actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
-        asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
-                .thenReturn(Uni.createFrom().item(actualUserResource)));
-
-        //Mock contract signature fail
-        asserter.execute(() -> doThrow(InvalidRequestException.class)
-                .when(signatureService)
-                .verifySignature(any(), any(), any()));
-
-        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testFile),
-                InvalidRequestException.class);
-    }
-
     @Test
     @RunOnVertxContext
-    void completeOnboardingUsers(UniAsserter asserter) {
+    void completeOnboardingUsersWithoutSignatureValidation(UniAsserter asserter) {
         Onboarding onboarding = createDummyUsersOnboarding();
         onboarding.setProductId("productParentId");
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
@@ -1600,6 +1546,133 @@ class OnboardingServiceDefaultTest {
         List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
         assertFalse(response.isEmpty());
         assertEquals(1, response.size());
+    }
+
+    @Nested
+    @TestProfile(OnboardingTestProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class OnboardingServiceDefaultWithSignatureValidationTest {
+        // can't be tested
+        //@Test
+        @RunOnVertxContext
+        void complete_shouldThrowExceptionWhenSignatureFail(UniAsserter asserter) {
+            Onboarding onboarding = createDummyOnboarding();
+            asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+            asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                    .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+            mockFindToken(asserter, onboarding.getId());
+
+            //Mock find manager fiscal code
+            String actualUseUid = onboarding.getUsers().get(0).getId();
+            UserResource actualUserResource = new UserResource();
+            actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+            asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                    .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+            //Mock contract signature fail
+            asserter.execute(() -> doThrow(InvalidRequestException.class)
+                    .when(signatureService)
+                    .verifySignature(any(), any(), any()));
+
+            asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), testFile),
+                    InvalidRequestException.class);
+        }
+        // can't be tested
+        //@Test
+        @RunOnVertxContext
+        void completeOnboardingUsers_shouldThrowExceptionWhenSignatureFail(UniAsserter asserter) {
+            Onboarding onboarding = createDummyUsersOnboarding();
+            asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+            asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                    .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+            mockFindToken(asserter, onboarding.getId());
+
+            //Mock find manager fiscal code
+            String actualUseUid = onboarding.getUsers().get(0).getId();
+            UserResource actualUserResource = new UserResource();
+            actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+            asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                    .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+            //Mock contract signature fail
+            asserter.execute(() -> doThrow(InvalidRequestException.class)
+                    .when(signatureService)
+                    .verifySignature(any(), any(), any()));
+
+            asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testFile),
+                    InvalidRequestException.class);
+        }
+
+        @Test
+        @RunOnVertxContext
+        void completeOnboardingUsers(UniAsserter asserter) {
+            Onboarding onboarding = createDummyUsersOnboarding();
+            onboarding.setProductId("productParentId");
+            asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+            asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                    .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+            mockFindToken(asserter, onboarding.getId());
+
+            //Mock find manager fiscal code
+            String actualUseUid = onboarding.getUsers().get(0).getId();
+            UserResource actualUserResource = new UserResource();
+            actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+            asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                    .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+            //Mock contract signature fail
+            asserter.execute(() -> doNothing()
+                    .when(signatureService)
+                    .verifySignature(any(), any(), any()));
+
+            mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
+            mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
+            mockVerifyOnboardingNotFound(asserter);
+
+            final String filepath = "upload-file-path";
+            when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+            mockUpdateToken(asserter, filepath);
+
+            asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testFile),
+                    Assertions::assertNotNull);
+        }
+
+        @Test
+        @RunOnVertxContext
+        void complete(UniAsserter asserter) {
+            Onboarding onboarding = createDummyOnboarding();
+            asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+            asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                    .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+            mockFindToken(asserter, onboarding.getId());
+
+            //Mock find manager fiscal code
+            String actualUseUid = onboarding.getUsers().get(0).getId();
+            UserResource actualUserResource = new UserResource();
+            actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+            asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                    .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+            //Mock contract signature fail
+            asserter.execute(() -> doNothing()
+                    .when(signatureService)
+                    .verifySignature(any(), any(), any()));
+
+            mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+            mockVerifyOnboardingNotFound(asserter);
+            mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
+
+            final String filepath = "upload-file-path";
+            when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+            mockUpdateToken(asserter, filepath);
+
+            asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), testFile),
+                    Assertions::assertNotNull);
+        }
     }
 
     void mockPersistOnboarding(UniAsserter asserter) {
