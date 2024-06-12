@@ -93,7 +93,9 @@ public interface WorkflowExecutor {
 
     default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, Onboarding onboarding){
         String onboardingString = getOnboardingString(objectMapper(), onboarding);
-        ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        if (Objects.nonNull(onboarding.getReasonForReject()) && !onboarding.getReasonForReject().equals("REJECTED_BY_USER")) {
+            ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        }
         return Optional.empty();
     }
 }
