@@ -163,7 +163,7 @@
     },
     "/v1/onboarding/institutionOnboardings" : {
       "get" : {
-        "tags" : [ "Onboarding" ],
+        "tags" : [ "support", "Onboarding" ],
         "summary" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
         "parameters" : [ {
           "name" : "origin",

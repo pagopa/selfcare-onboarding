@@ -269,6 +269,8 @@ public class OnboardingController {
 
     @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
     @GET
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/institutionOnboardings")
     public Uni<List<OnboardingResponse>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,

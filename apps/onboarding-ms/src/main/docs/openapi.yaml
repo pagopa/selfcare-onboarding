@@ -116,6 +116,7 @@ paths:
   /v1/onboarding/institutionOnboardings:
     get:
       tags:
+      - support
       - Onboarding
       summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
       parameters:
