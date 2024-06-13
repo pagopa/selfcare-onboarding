@@ -40,4 +40,6 @@ public interface OnboardingService {
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
+
+    Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 }

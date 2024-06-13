@@ -16,9 +16,11 @@ import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,6 +35,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -669,6 +672,70 @@ class OnboardingControllerTest {
         onboardingImportValid.setInstitution(importInstitution);
 
         return onboardingImportValid;
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void updateOnboardingOK(){
+        String onboardingId = "actual-onboarding-id";
+        Onboarding onboardingUpdate = new Onboarding();
+        onboardingUpdate.setId(onboardingId);
+        Billing billing = new Billing();
+        billing.setRecipientCode("X123");
+        onboardingUpdate.setBilling(billing);
+
+        when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .body(onboardingUpdate)
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/update")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .updateOnboarding(any(), captor.capture());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), billing.getRecipientCode());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void updateOnboardingNotFound(){
+        String onboardingId = "actual-onboarding-id";
+        Onboarding onboardingUpdate = new Onboarding();
+
+        when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
+                .thenThrow(InvalidRequestException.class);
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .body(onboardingUpdate)
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/update")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .updateOnboarding(any(), captor.capture());
+        assertNotEquals(captor.getValue().getId(), onboardingId);
+    }
+
+    private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("status", "COMPLETED");
+        return  queryParameterMap;
     }
 
 }
