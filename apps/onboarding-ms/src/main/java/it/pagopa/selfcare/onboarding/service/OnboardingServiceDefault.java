@@ -1003,6 +1003,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding) {
         return Onboarding.findById(onboardingId)
                 .onItem().transform(Onboarding.class::cast)
+                .onItem().transformToUni(onboardingGet -> Objects.nonNull(onboardingGet)
+                    ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is not present!", onboardingId)))
+                    : Uni.createFrom().item(onboardingGet))
                 .onItem().transformToUni(id -> updateOnboardingValues(onboardingId, onboarding));
 
     }

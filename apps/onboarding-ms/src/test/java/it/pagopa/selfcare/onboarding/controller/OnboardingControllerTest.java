@@ -687,8 +687,11 @@ class OnboardingControllerTest {
         when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
                 .thenReturn(Uni.createFrom().item(1L));
 
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
         given()
                 .when()
+                .queryParams(queryParameterMap)
                 .body(onboardingUpdate)
                 .contentType(ContentType.JSON)
                 .pathParam("onboardingId", onboardingId)
@@ -707,27 +710,32 @@ class OnboardingControllerTest {
     void updateOnboardingNotFound(){
         String onboardingId = "actual-onboarding-id";
         Onboarding onboardingUpdate = new Onboarding();
-        onboardingUpdate.setId("another-onboarding-id");
-        Billing billing = new Billing();
-        billing.setRecipientCode("X123");
-        onboardingUpdate.setBilling(billing);
 
         when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
                 .thenThrow(InvalidRequestException.class);
 
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
         given()
                 .when()
+                .queryParams(queryParameterMap)
                 .body(onboardingUpdate)
                 .contentType(ContentType.JSON)
                 .pathParam("onboardingId", onboardingId)
                 .put("/{onboardingId}/update")
                 .then()
-                .statusCode(400);
+                .statusCode(204);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
                 .updateOnboarding(any(), captor.capture());
         assertNotEquals(captor.getValue().getId(), onboardingId);
+    }
+
+    private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("status", "COMPLETED");
+        return  queryParameterMap;
     }
 
 }

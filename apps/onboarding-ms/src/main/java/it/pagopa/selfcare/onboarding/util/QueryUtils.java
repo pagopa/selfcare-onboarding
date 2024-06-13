@@ -90,7 +90,9 @@ public class QueryUtils {
 
     public static Map<String, Object> createMapForOnboardingUpdate(Onboarding onboarding) {
         Map<String, Object> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put("status", value));
+        Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
+        Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
+        Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put("status", value.name()));
         Optional.ofNullable(onboarding.getBilling())
                 .ifPresent(billing -> {
                     Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));
