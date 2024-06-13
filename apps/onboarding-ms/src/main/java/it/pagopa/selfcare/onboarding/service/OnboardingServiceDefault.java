@@ -999,4 +999,24 @@ public class OnboardingServiceDefault implements OnboardingService {
         return token;
     }
 
+    @Override
+    public Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding) {
+        return Onboarding.findById(onboardingId)
+                .onItem().transform(Onboarding.class::cast)
+                .onItem().transformToUni(id -> updateOnboardingValues(onboardingId, onboarding));
+
+    }
+
+    private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
+        Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingUpdate(onboarding);
+        Document query =  QueryUtils.buildUpdateDocument(queryParameter);
+        return Onboarding.update(query)
+                .where("_id", onboardingId)
+                .onItem().transformToUni(updateItemCount -> {
+                    if (updateItemCount == 0) {
+                        return Uni.createFrom().failure(new InvalidRequestException(String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                    }
+                    return Uni.createFrom().item(updateItemCount);
+                });
+    }
 }

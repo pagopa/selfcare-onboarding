@@ -286,4 +286,15 @@ public class OnboardingController {
         return onboarding;
     }
 
+    @Operation(summary = "Update onboarding request receiving onboarding id." +
+            "Function can change some values. " )
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{onboardingId}/update")
+    public Uni<Response> update(@PathParam(value = "onboardingId") String onboardingId,
+                                @QueryParam(value = "status") OnboardingStatus status,
+                                OnboardingDefaultRequest onboardingRequest) {
+        return onboardingService.updateOnboarding(onboardingId, onboardingMapper.toEntity(onboardingRequest, status))
+                .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
+    }
 }

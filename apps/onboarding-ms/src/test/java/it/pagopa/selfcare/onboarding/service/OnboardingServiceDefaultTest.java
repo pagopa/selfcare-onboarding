@@ -25,10 +25,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -1698,5 +1695,46 @@ class OnboardingServiceDefaultTest {
     void mockVerifyAllowedMap(String taxCode, String productId, UniAsserter asserter) {
         asserter.execute(() -> when(onboardingValidationStrategy.validate(productId, taxCode))
                 .thenReturn(true));
+    }
+
+    private void mockUpdateOnboardingInfo(String onboardingId, Long updatedItemCount) {
+        ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.update(any(Document.class))).thenReturn(query);
+        when(query.where("_id", onboardingId)).thenReturn(Uni.createFrom().item(updatedItemCount));
+    }
+
+    @Test
+    void testUpdateOnboardingStatusOK() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboardingInfo(onboarding.getId(), 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .updateOnboarding(onboarding.getId(), onboarding)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(1L);
+    }
+
+    @Test
+    void testOnboardingUpdateOnboardingNotFound() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+        mockUpdateOnboardingInfo(onboarding.getId(), 0L);
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .updateOnboarding(onboarding.getId(), onboarding)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
     }
 }
