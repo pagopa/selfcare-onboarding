@@ -72,7 +72,7 @@ public class QueryUtils {
 
         Optional.ofNullable(filters.getProductId()).ifPresent(value -> queryParameterMap.put("productId", List.of(value)));
         Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> queryParameterMap.put("institution.id", List.of(value)));
-        Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> queryParameterMap.put("id", List.of(value)));
+        Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> queryParameterMap.put("_id", List.of(value)));
         Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> queryParameterMap.put("institution.taxCode", List.of(value)));
         Optional.ofNullable(filters.getStatus()).ifPresentOrElse(value -> queryParameterMap.put("status", List.of(value)),
                 () -> queryParameterMap.put("status", List.of(OnboardingStatus.COMPLETED.name(), OnboardingStatus.DELETED.name())));

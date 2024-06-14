@@ -176,6 +176,14 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
         this.deletedAt = deletedAt;
     }
 
+    public AdditionalInformations getAdditionalInformations() {
+        return additionalInformations;
+    }
+
+    public void setAdditionalInformations(AdditionalInformations additionalInformations) {
+        this.additionalInformations = additionalInformations;
+    }
+
     @Override
     public String toString() {
         return "Onboarding{" +

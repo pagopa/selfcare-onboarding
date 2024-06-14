@@ -3,12 +3,13 @@ package it.pagopa.selfcare.onboarding.entity;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 import java.util.List;
 
 public class Institution {
-
-    private String id;
+    @BsonProperty("id")
+    public String id;
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;

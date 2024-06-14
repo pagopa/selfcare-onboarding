@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -179,7 +180,7 @@ public class NotificationFunctionsTest {
     }
 
     @Test
-    public void findNotificationsToSend() {
+    public void findNotificationsToSend() throws JsonProcessingException {
         // Setup
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
@@ -205,7 +206,7 @@ public class NotificationFunctionsTest {
     }
 
     @Test
-    public void findNotificationsToSendTriggerError() {
+    public void findNotificationsToSendTriggerBadRequest() throws JsonProcessingException {
         // Setup
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
@@ -218,6 +219,27 @@ public class NotificationFunctionsTest {
 
         when(notificationEventService.findNotificationToSend(any(), any()))
                 .thenThrow(new IllegalArgumentException("Error"));
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.findNotificationsToSend(req, context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+
+    }
+
+    @Test
+    public void findNotificationsToSendTriggerInternalServerError() throws JsonProcessingException {
+        // Setup
+        @SuppressWarnings("unchecked")
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        when(notificationEventService.findNotificationToSend(any(), any()))
+                .thenThrow(new RuntimeException("Error"));
 
         // Invoke
         HttpResponseMessage responseMessage = function.findNotificationsToSend(req, context);

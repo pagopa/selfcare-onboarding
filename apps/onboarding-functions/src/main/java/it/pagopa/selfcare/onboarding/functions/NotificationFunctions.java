@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -106,7 +107,7 @@ public class NotificationFunctions {
     @FunctionName("FindNotifications")
     public HttpResponseMessage findNotificationsToSend(
             @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-            final ExecutionContext context) {
+            final ExecutionContext context) throws JsonProcessingException {
         context.getLogger().info("findNotificationsToSend trigger processed a request");
 
         final String productId = request.getQueryParameters().get("productId");
@@ -123,6 +124,11 @@ public class NotificationFunctions {
         FindNotificationToSendResponse response;
         try {
             response = notificationEventService.findNotificationToSend(context, filters);
+        } catch (IllegalArgumentException iex) {
+            context.getLogger().warning("Error during findNotificationToSend execution, msg: " + iex.getMessage());
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body(iex.getMessage())
+                    .build();
         } catch (Exception ex) {
             context.getLogger().warning("Error during findNotificationToSend execution, msg: " + ex.getMessage());
             return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -131,7 +137,7 @@ public class NotificationFunctions {
         }
 
         return request.createResponseBuilder(HttpStatus.OK)
-                .body(response)
+                .body(objectMapper.writeValueAsString(response))
                 .header("Content-Type", MediaType.APPLICATION_JSON)
                 .build();
     }

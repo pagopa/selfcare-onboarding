@@ -1,23 +1,28 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import com.microsoft.azure.functions.ExecutionContext;
+import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.dto.FindNotificationToSendResponse;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
+import it.pagopa.selfcare.onboarding.dto.NotificationToSendFilters;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
-import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
+import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import it.pagopa.selfcare.onboarding.utils.*;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -26,14 +31,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class NotificationEventServiceDefaultTest {
 
     @Inject
-    NotificationEventServiceDefault messageServiceDefault;
+    NotificationEventServiceDefault notificationEventServiceDefault;
 
     @InjectMock
     ProductService productService;
@@ -47,6 +54,12 @@ public class NotificationEventServiceDefaultTest {
 
     @InjectMock
     TokenRepository tokenRepository;
+
+    @InjectMock
+    OnboardingRepository onboardingRepository;
+
+    @InjectMock
+    QueueEventExaminer queueEventExaminer;
 
     @RestClient
     @InjectMock
@@ -64,16 +77,9 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
-    }
-
-    private void mockNotificationMapper(boolean shouldSendNotification) {
-        BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
-        when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
-        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
-        when(notificationMapper.shouldSendNotification(any(), any())).thenReturn(shouldSendNotification);
     }
 
     @Test
@@ -87,7 +93,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -103,7 +109,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
 
@@ -119,7 +125,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(9))
                 .sendMessage(anyString(), anyString());
     }
@@ -136,7 +142,7 @@ public class NotificationEventServiceDefaultTest {
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
+        assertThrows(NotificationException.class, () -> notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
@@ -149,8 +155,67 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(test);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationEventServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
+    }
+
+    @Test
+    @DisplayName("Should return correct notifications to send")
+    public void shouldReturnCorrectNotificationsToSend() {
+        NotificationToSendFilters filters = new NotificationToSendFilters();
+        filters.setPage(1);
+        filters.setSize(10);
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboarding-id");
+        Institution institution = new Institution();
+        institution.setId("institution-id");
+        onboarding.setInstitution(institution);
+        List<Onboarding> onboardings = List.of(onboarding);
+        PanacheQuery<Onboarding> panacheQuery = mock(PanacheQuery.class);
+        when(onboardingRepository.find((Document) any(), any())).thenReturn(panacheQuery);
+        when(panacheQuery.page(filters.getPage(), filters.getSize())).thenReturn(panacheQuery);
+        when(panacheQuery.list()).thenReturn(onboardings);
+        when(onboardingRepository.find((Document) any(), any()).count()).thenReturn((long) onboardings.size());
+
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("institution-id");
+        when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(institutionResponse);
+
+        mockNotificationMapper(true);
+        when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        when(queueEventExaminer.determineEventType(any())).thenReturn(QueueEvent.ADD);
+        FindNotificationToSendResponse response = notificationEventServiceDefault.findNotificationToSend(context, filters);
+
+        assertEquals(onboardings.size(), response.getCount());
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when size is greater than MAX_SIZE")
+    public void shouldThrowIllegalArgumentExceptionWhenSizeIsGreaterThanMaxSize() {
+        NotificationToSendFilters filters = new NotificationToSendFilters();
+        filters.setPage(1);
+        filters.setSize(101);
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        assertThrows(IllegalArgumentException.class, () -> notificationEventServiceDefault.findNotificationToSend(context, filters));
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when status is not COMPLETED or DELETED")
+    public void shouldThrowIllegalArgumentExceptionWhenStatusIsNotCompletedOrDeleted() {
+        NotificationToSendFilters filters = new NotificationToSendFilters();
+        filters.setPage(1);
+        filters.setSize(10);
+        filters.setStatus("INVALID_STATUS");
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        assertThrows(IllegalArgumentException.class, () -> notificationEventServiceDefault.findNotificationToSend(context, filters));
     }
 
     private Onboarding createOnboarding() {
@@ -176,6 +241,13 @@ public class NotificationEventServiceDefaultTest {
         var product = new Product();
         product.setConsumers(List.of("STANDARD", "SAP", "FD"));
         return product;
+    }
+
+    private void mockNotificationMapper(boolean shouldSendNotification) {
+        BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
+        when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
+        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn(new NotificationToSend());
+        when(notificationMapper.shouldSendNotification(any(), any())).thenReturn(shouldSendNotification);
     }
 
 }
