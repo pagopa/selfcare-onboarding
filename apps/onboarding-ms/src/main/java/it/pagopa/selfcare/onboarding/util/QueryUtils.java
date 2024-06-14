@@ -88,6 +88,21 @@ public class QueryUtils {
         return queryParameterMap;
     }
 
+    public static Map<String, Object> createMapForOnboardingUpdate(Onboarding onboarding) {
+        Map<String, Object> queryParameterMap = new HashMap<>();
+        Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
+        Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
+        Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put("status", value.name()));
+        Optional.ofNullable(onboarding.getBilling())
+                .ifPresent(billing -> {
+                    Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));
+                    Optional.ofNullable(billing.getVatNumber()).ifPresent(value -> queryParameterMap.put("billing.vatNumber", value));
+                    Optional.ofNullable(billing.getTaxCodeInvoicing()).ifPresent(value -> queryParameterMap.put("billing.taxCodeInvoicing()", value));
+                });
+        queryParameterMap.put("updatedAt", LocalDateTime.now());
+        return queryParameterMap;
+    }
+
     public static Document buildSortDocument(String field, SortEnum order) {
         if(SortEnum.ASC == order) {
             return bsonToDocument(Sorts.ascending(field));

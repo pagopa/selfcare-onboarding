@@ -31,15 +31,14 @@ import java.util.List;
 
 @Authenticated
 @Path("/v1/onboarding")
-@Tag(name = "Onboarding")
+@Tag(name = "Onboarding Controller")
 @AllArgsConstructor
 public class OnboardingController {
 
-    @Inject
-    CurrentIdentityAssociation currentIdentityAssociation;
-
     private final OnboardingService onboardingService;
     private final OnboardingMapper onboardingMapper;
+    @Inject
+    CurrentIdentityAssociation currentIdentityAssociation;
 
     @Operation(summary = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
             "Users data will be saved on personal data vault if it doesn't already exist." +
@@ -154,7 +153,7 @@ public class OnboardingController {
                         return Uni.createFrom().failure(new InternalServerErrorException("Principal and JsonWebToken names do not match"));
                     }
 
-                    if(identity.getPrincipal() instanceof DefaultJWTCallerPrincipal jwtCallerPrincipal) {
+                    if (identity.getPrincipal() instanceof DefaultJWTCallerPrincipal jwtCallerPrincipal) {
                         String uid = jwtCallerPrincipal.getClaim("uid");
                         return Uni.createFrom().item(uid);
                     }
@@ -178,6 +177,21 @@ public class OnboardingController {
                         .build());
     }
 
+    @Operation(summary = "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution." +
+            "It checks the contract's signature and upload the contract on an azure storage" +
+            "At the end, function triggers async activities related to complete onboarding " +
+            "that consist of create the institution, activate the onboarding and sending data to notification queue.")
+
+    @PUT
+    @Path("/{onboardingId}/completeOnboardingUsers")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
+        return onboardingService.completeOnboardingUsers(onboardingId, file)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
+
     @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract")
     @PUT
     @Path("/{onboardingId}/consume")
@@ -192,7 +206,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
-            "Function triggers async activities related to onboarding based on institution type or completing onboarding. " )
+            "Function triggers async activities related to onboarding based on institution type or completing onboarding. ")
 
     @PUT
     @Path("/{onboardingId}/approve")
@@ -218,7 +232,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +
-            "Function change status to REJECT for an onboarding request that is not COMPLETED. " )
+            "Function change status to REJECT for an onboarding request that is not COMPLETED. ")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/reject")
@@ -243,6 +257,7 @@ public class OnboardingController {
     public Uni<OnboardingGet> getByIdWithUserInfo(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGetWithUserInfo(onboardingId);
     }
+
     @Operation(summary = "Returns an onboarding record by its ID only if its status is PENDING. " +
             "This feature is crucial for ensuring that the onboarding process can be completed only when " +
             "the onboarding status is appropriately set to PENDING.")
@@ -251,8 +266,11 @@ public class OnboardingController {
     public Uni<OnboardingGet> getOnboardingPending(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingPending(onboardingId);
     }
+
     @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
     @GET
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/institutionOnboardings")
     public Uni<List<OnboardingResponse>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,
@@ -268,4 +286,15 @@ public class OnboardingController {
         return onboarding;
     }
 
+    @Operation(summary = "Update onboarding request receiving onboarding id." +
+            "Function can change some values. " )
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{onboardingId}/update")
+    public Uni<Response> update(@PathParam(value = "onboardingId") String onboardingId,
+                                @QueryParam(value = "status") OnboardingStatus status,
+                                OnboardingDefaultRequest onboardingRequest) {
+        return onboardingService.updateOnboarding(onboardingId, onboardingMapper.toEntity(onboardingRequest, status))
+                .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
+    }
 }

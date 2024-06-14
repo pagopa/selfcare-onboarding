@@ -8,8 +8,9 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.util.List;
 
 public class Institution {
+
     @BsonProperty("id")
-    public String id;
+    private String id;
     private InstitutionType institutionType;
     private String taxCode;
     private String subunitCode;

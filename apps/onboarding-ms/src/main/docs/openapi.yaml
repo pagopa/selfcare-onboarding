@@ -10,12 +10,13 @@ servers:
   description: Auto generated value
 tags:
 - name: Onboarding
+- name: Onboarding Controller
 - name: support
 paths:
   /v1/onboarding:
     get:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: "The API retrieves paged onboarding using optional filter, order by\
         \ descending creation date"
       parameters:
@@ -58,15 +59,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGetResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: "Perform default onboarding request, it is used for GSP/SA/AS institution\
         \ type.Users data will be saved on personal data vault if it doesn't already\
         \ exist.At the end, function triggers async activities related to onboarding\
@@ -83,16 +84,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/completion:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Perform onboarding as /onboarding but completing the onboarding request
         to COMPLETED phase.
       requestBody:
@@ -107,15 +108,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/institutionOnboardings:
     get:
       tags:
+      - support
       - Onboarding
       summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
       parameters:
@@ -148,16 +150,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: "Perform onboarding request for PA institution type, it require billing.recipientCode\
         \ in additition to default requestUsers data will be saved on personal data\
         \ vault if it doesn't already exist.At the end, function triggers async activities\
@@ -175,16 +177,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/completion:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
       requestBody:
@@ -199,16 +201,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/import:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Perform onboarding as /onboarding/pa but create token and completing
         the onboarding request to COMPLETED phase.
       requestBody:
@@ -223,16 +225,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/pg/completion:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       requestBody:
         content:
           application/json:
@@ -245,16 +247,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: "Perform onboarding request for PSP institution type.Users data will\
         \ be saved on personal data vault if it doesn't already exist.At the end,\
         \ function triggers async activities related to onboarding that consist of\
@@ -271,16 +273,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/psp/completion:
     post:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
       requestBody:
@@ -295,16 +297,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/users:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: "Perform onboarding users request, it is used all institution types.Users\
+        \ data will be saved on personal data vault if it doesn't already exist.At\
+        \ the end, function triggers async activities related to onboarding based\
+        \ on institution type."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingUserRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingResponse'
+        "403":
+          description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}:
     get:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Retrieve an onboarding record given its ID
       parameters:
       - name: onboardingId
@@ -319,16 +347,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/approve:
     put:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: 'Perform approve operation of an onboarding request receiving onboarding
         id.Function triggers async activities related to onboarding based on institution
         type or completing onboarding. '
@@ -343,16 +371,16 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/complete:
     put:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: "Perform complete operation of an onboarding request receiving onboarding\
         \ id and contract signed by the institution.It checks the contract's signature\
         \ and upload the contract on an azure storageAt the end, function triggers\
@@ -380,10 +408,48 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/{onboardingId}/completeOnboardingUsers:
+    put:
+      tags:
+      - Onboarding Controller
+      summary: "Perform complete operation of an user onboarding request receiving\
+        \ onboarding id and contract signed by the institution.It checks the contract's\
+        \ signature and upload the contract on an azure storageAt the end, function\
+        \ triggers async activities related to complete onboarding that consist of\
+        \ create the institution, activate the onboarding and sending data to notification\
+        \ queue."
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - contract
+              type: object
+              properties:
+                contract:
+                  format: binary
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "403":
+          description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/consume:
@@ -415,16 +481,16 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/pending:
     get:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Returns an onboarding record by its ID only if its status is PENDING.
         This feature is crucial for ensuring that the onboarding process can be completed
         only when the onboarding status is appropriately set to PENDING.
@@ -441,16 +507,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/reject:
     put:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: 'Perform reject operation of an onboarding request receiving onboarding
         id.Function change status to REJECT for an onboarding request that is not
         COMPLETED. '
@@ -470,16 +536,48 @@ paths:
           description: OK
           content:
             application/json: {}
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/{onboardingId}/update:
+    put:
+      tags:
+      - Onboarding
+      summary: 'Update onboarding request receiving onboarding id.Function can change
+        some values. '
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/OnboardingStatus'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingDefaultRequest'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "403":
+          description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/withUserInfo:
     get:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: Retrieve an onboarding record given its ID adding to user sensitive
         information
       parameters:
@@ -495,10 +593,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/tokens:
@@ -520,10 +618,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TokenResponse'
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
   /v1/tokens/{onboardingId}/contract:
@@ -545,10 +643,10 @@ paths:
               schema:
                 format: binary
                 type: string
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
+        "401":
+          description: Not Authorized
       security:
       - SecurityScheme: []
 components:
