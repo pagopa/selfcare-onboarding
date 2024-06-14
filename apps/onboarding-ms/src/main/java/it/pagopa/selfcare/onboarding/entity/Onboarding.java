@@ -38,4 +38,6 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private String userRequestUid;
     private AdditionalInformations additionalInformations;
     private String reasonForReject;
+
+    private String referenceOnboardingId;
 }

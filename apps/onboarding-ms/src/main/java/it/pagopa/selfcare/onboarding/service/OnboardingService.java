@@ -15,6 +15,8 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests);
 
+    Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest onboardingUserRequest, String userId);
+
     Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported);
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
@@ -22,6 +24,8 @@ public interface OnboardingService {
     Uni<OnboardingGet> approve(String onboardingId);
 
     Uni<Onboarding> complete(String tokenId, File contract);
+
+    Uni<Onboarding> completeOnboardingUsers(String tokenId, File contract);
 
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
 
@@ -36,4 +40,6 @@ public interface OnboardingService {
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
+
+    Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 }
