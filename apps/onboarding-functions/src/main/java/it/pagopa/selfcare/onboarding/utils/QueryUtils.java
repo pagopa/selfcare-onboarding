@@ -22,6 +22,8 @@ import java.util.Optional;
 
 public class QueryUtils {
 
+    private QueryUtils() { }
+
     public static Document buildQuery(Map<String, List<String>> parameters) {
         if (!parameters.isEmpty()) {
             return bsonToDocument(Filters.and(constructBsonFilter(parameters)));

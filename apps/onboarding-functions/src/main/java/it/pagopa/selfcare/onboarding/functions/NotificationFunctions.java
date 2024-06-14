@@ -110,17 +110,7 @@ public class NotificationFunctions {
             final ExecutionContext context) throws JsonProcessingException {
         context.getLogger().info("findNotificationsToSend trigger processed a request");
 
-        final String productId = request.getQueryParameters().get("productId");
-        final String institutionId = request.getQueryParameters().get("institutionId");
-        final String onboardingId = request.getQueryParameters().get("onboardingId");
-        final String taxCode = request.getQueryParameters().get("taxCode");
-        final String from = request.getQueryParameters().get("from");
-        final String to = request.getQueryParameters().get("to");
-        final String status = request.getQueryParameters().get("status");
-        final Integer page = Integer.parseInt(request.getQueryParameters().getOrDefault("page", "0"));
-        final Integer size = Integer.parseInt(request.getQueryParameters().getOrDefault("size", "20"));
-
-        NotificationToSendFilters filters = new NotificationToSendFilters(productId, institutionId, onboardingId, taxCode, status, from, to, page, size);
+        NotificationToSendFilters filters = getNotificationToSendFilters(request);
         FindNotificationToSendResponse response;
         try {
             response = notificationEventService.findNotificationToSend(context, filters);
@@ -140,5 +130,29 @@ public class NotificationFunctions {
                 .body(objectMapper.writeValueAsString(response))
                 .header("Content-Type", MediaType.APPLICATION_JSON)
                 .build();
+    }
+
+    private static NotificationToSendFilters getNotificationToSendFilters(HttpRequestMessage<Optional<String>> request) {
+        final String productId = request.getQueryParameters().get("productId");
+        final String institutionId = request.getQueryParameters().get("institutionId");
+        final String onboardingId = request.getQueryParameters().get("onboardingId");
+        final String taxCode = request.getQueryParameters().get("taxCode");
+        final String from = request.getQueryParameters().get("from");
+        final String to = request.getQueryParameters().get("to");
+        final String status = request.getQueryParameters().get("status");
+        final Integer page = Integer.parseInt(request.getQueryParameters().getOrDefault("page", "0"));
+        final Integer size = Integer.parseInt(request.getQueryParameters().getOrDefault("size", "20"));
+
+        NotificationToSendFilters filters = new NotificationToSendFilters();
+        filters.setProductId(productId);
+        filters.setInstitutionId(institutionId);
+        filters.setOnboardingId(onboardingId);
+        filters.setTaxCode(taxCode);
+        filters.setStatus(status);
+        filters.setFrom(from);
+        filters.setTo(to);
+        filters.setPage(page);
+        filters.setSize(size);
+        return filters;
     }
 }

@@ -74,7 +74,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent) {
         Product product = productService.getProduct(onboarding.getProductId());
         if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
-            context.getLogger().warning(String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
+            context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
             return;
         }
 
@@ -87,7 +87,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
             }
         } catch (Exception e) {
-            context.getLogger().warning(String.format("Error during send notification for onboarding with ID %s. Error: %s", onboarding.getId(), e.getMessage()));
+            context.getLogger().warning(() -> String.format("Error during send notification for onboarding with ID %s. Error: %s", onboarding.getId(), e.getMessage()));
             throw new NotificationException(String.format("Impossible to send notification for onboarding %s", onboarding));
         }
     }
@@ -100,20 +100,20 @@ public class NotificationEventServiceDefault implements NotificationEventService
             sendNotification(context, consumer.topic(), notificationToSend);
             sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend);
         } else {
-            context.getLogger().info(String.format("Notification not sent for onboarding %s on topic %s", onboarding.getId(), consumer.topic()));
+            context.getLogger().info(() -> String.format("Notification not sent for onboarding %s on topic %s", onboarding.getId(), consumer.topic()));
         }
     }
 
     private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
         String message = mapper.writeValueAsString(notificationToSend);
-        context.getLogger().info(String.format("Sending notification on topic: %s with message: %s", topic, message));
+        context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, message));
         eventHubRestClient.sendMessage(topic, message);
     }
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
         if (product.getTestEnvProductIds() != null) {
             for (String testEnvProductId : product.getTestEnvProductIds()) {
-                context.getLogger().info(String.format("Notification for onboarding with id: %s should be sent on topic: %s for envProduct : %s", notificationToSend.getOnboardingTokenId(), topic, testEnvProductId));
+                context.getLogger().info(() -> String.format("Notification for onboarding with id: %s should be sent on topic: %s for envProduct : %s", notificationToSend.getOnboardingTokenId(), topic, testEnvProductId));
                 notificationToSend.setId(UUID.randomUUID().toString());
                 notificationToSend.setProduct(testEnvProductId);
                 sendNotification(context, topic, notificationToSend);
@@ -123,7 +123,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
     @Override
     public FindNotificationToSendResponse findNotificationToSend(ExecutionContext context, NotificationToSendFilters filters) {
-        context.getLogger().info(String.format("Finding notifications to send with filters: %s", filters));
+        context.getLogger().info(() -> String.format("Finding notifications to send with filters: %s", filters));
         validateFilters(filters);
 
         Document sort = QueryUtils.buildSortDocument("createdAt", SortEnum.DESC);
@@ -132,7 +132,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
         List<Onboarding> onboardings = onboardingRepository.find(query, sort).page(filters.getPage(), filters.getSize()).list();
         long count = onboardingRepository.find(query, sort).count();
-        context.getLogger().info(String.format("Found %s onboardings to send with filters", onboardings.size()));
+        context.getLogger().info(() -> String.format("Found %s onboardings to send with filters", onboardings.size()));
 
         Map<String, InstitutionResponse> institutions = getInstitutions(onboardings);
 

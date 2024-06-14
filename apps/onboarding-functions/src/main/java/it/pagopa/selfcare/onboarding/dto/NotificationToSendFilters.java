@@ -11,21 +11,7 @@ public class NotificationToSendFilters {
     private Integer page;
     private Integer size;
 
-    public NotificationToSendFilters() {
-    }
-
-    public NotificationToSendFilters(String productId, String institutionId, String onboardingId, String taxCode, String status, String from, String to, Integer page, Integer size) {
-        this.productId = productId;
-        this.institutionId = institutionId;
-        this.onboardingId = onboardingId;
-        this.taxCode = taxCode;
-        this.status = status;
-        this.from = from;
-        this.to = to;
-        this.page = page;
-        this.size = size;
-    }
-
+    public NotificationToSendFilters() {}
     public String getProductId() {
         return productId;
     }
