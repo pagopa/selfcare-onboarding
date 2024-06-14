@@ -11,7 +11,6 @@ public class NotificationToSendFilters {
     private Integer page;
     private Integer size;
 
-    public NotificationToSendFilters() {}
     public String getProductId() {
         return productId;
     }
