@@ -24,6 +24,14 @@ paths:
         in: query
         schema:
           type: string
+      - name: institutionId
+        in: query
+        schema:
+          type: string
+      - name: onboardingId
+        in: query
+        schema:
+          type: string
       - name: page
         in: query
         schema:
@@ -545,7 +553,7 @@ paths:
   /v1/onboarding/{onboardingId}/update:
     put:
       tags:
-      - Onboarding
+      - Onboarding Controller
       summary: 'Update onboarding request receiving onboarding id.Function can change
         some values. '
       parameters:
