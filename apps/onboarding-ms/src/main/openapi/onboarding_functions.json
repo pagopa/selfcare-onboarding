@@ -85,6 +85,17 @@
         ],
         "summary": "",
         "description": "",
+        "parameters": [
+          {
+            "name": "queueEvent",
+            "in": "query",
+            "description": "Queue event type to process (ADD/UPDATE)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
