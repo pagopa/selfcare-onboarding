@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
+import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -52,6 +53,9 @@ public class NotificationEventServiceDefaultTest {
     @InjectMock
     InstitutionApi institutionApi;
 
+    @InjectMock
+    QueueEventExaminer queueEventExaminer;
+
 
     @Test
     void sendMessage() {
@@ -65,6 +69,23 @@ public class NotificationEventServiceDefaultTest {
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        verify(eventHubRestClient, times(3))
+                .sendMessage(anyString(), anyString());
+    }
+
+    @Test
+    void sendMessageWithoutQueueEvent() {
+        final Onboarding onboarding = createOnboarding();
+        final Product product = createProduct();
+        when(productService.getProduct(any())).thenReturn(product);
+        mockNotificationMapper(true);
+        when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
+        when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+        when(queueEventExaminer.determineEventType(any())).thenReturn(QueueEvent.ADD);
+        messageServiceDefault.send(context, onboarding, null);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }

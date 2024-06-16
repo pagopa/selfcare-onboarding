@@ -44,7 +44,7 @@ public class NotificationFunctions {
         context.getLogger().info("sendNotifications trigger processed a request");
 
         final String queueEventString = request.getQueryParameters().get("queueEvent");
-        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? QueueEvent.ADD : QueueEvent.valueOf(queueEventString);
+        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
 
         // Check request body
         if (request.getBody().isEmpty()) {

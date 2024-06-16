@@ -15,6 +15,7 @@ import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.utils.NotificationBuilder;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
+import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -23,6 +24,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,15 +44,18 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final NotificationBuilderFactory notificationBuilderFactory;
     private final TokenRepository tokenRepository;
     private final ObjectMapper mapper;
+    private final QueueEventExaminer queueEventExaminer;
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
-                                           TokenRepository tokenRepository) {
+                                           TokenRepository tokenRepository,
+                                           QueueEventExaminer queueEventExaminer) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.tokenRepository = tokenRepository;
+        this.queueEventExaminer = queueEventExaminer;
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
@@ -63,6 +68,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         try {
+            if(Objects.isNull(queueEvent)) {
+                queueEvent = queueEventExaminer.determineEventType(onboarding);
+            }
+
             Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
 
