@@ -6,11 +6,15 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -61,4 +65,52 @@ public interface OnboardingMapper {
         return Objects.nonNull(recipientCode) ? recipientCode.toUpperCase() : null;
     }
 
+    @Mapping(target = "workflowType", source = "workflowType", qualifiedByName = "toWorkflowType")
+    @Mapping(target = "users", source = "users", qualifiedByName = "toUsers")
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "toOffsetDateTime")
+    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "toOffsetDateTime")
+    @Mapping(target = "activatedAt", source = "activatedAt", qualifiedByName = "toOffsetDateTime")
+    @Mapping(target = "expiringDate", source = "expiringDate", qualifiedByName = "toOffsetDateTime")
+    org.openapi.quarkus.onboarding_functions_json.model.Onboarding mapOnboardingForNotification(Onboarding onboarding);
+
+    @Named("toWorkflowType")
+    default org.openapi.quarkus.onboarding_functions_json.model.WorkflowType toWorkflowType(WorkflowType workflowType) {
+        if (Objects.isNull(workflowType)) {
+            return null;
+        }
+
+        return org.openapi.quarkus.onboarding_functions_json.model.WorkflowType.valueOf(workflowType.name());
+    }
+
+    @Named("toUsers")
+    default List<org.openapi.quarkus.onboarding_functions_json.model.User> toUsers(List<User> users) {
+        if(Objects.isNull(users) || users.isEmpty()) {
+            return null;
+        }
+
+        return users.stream()
+                .map(user -> new org.openapi.quarkus.onboarding_functions_json.model.User()
+                        .id(user.getId())
+                        .productRole(user.getProductRole())
+                        .userMailUuid(user.getUserMailUuid())
+                        .role(toPartyRole(user.getRole())))
+                .toList();
+    }
+
+    default PartyRole toPartyRole(it.pagopa.selfcare.onboarding.common.PartyRole role) {
+        if(Objects.isNull(role)) {
+            return null;
+        }
+
+        return PartyRole.valueOf(role.name());
+    }
+
+    @Named("toOffsetDateTime")
+    default OffsetDateTime toOffsetDateTime(java.time.LocalDateTime localDateTime) {
+        if (Objects.isNull(localDateTime)) {
+            return null;
+        }
+
+        return localDateTime.atOffset(java.time.ZoneOffset.UTC);
+    }
 }

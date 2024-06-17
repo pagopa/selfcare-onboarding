@@ -12,6 +12,8 @@
     "description" : "Auto generated value"
   } ],
   "tags" : [ {
+    "name" : "Notification Controller"
+  }, {
     "name" : "Onboarding"
   }, {
     "name" : "Onboarding Controller"
@@ -19,6 +21,42 @@
     "name" : "support"
   } ],
   "paths" : {
+    "/v1/notification/resend" : {
+      "post" : {
+        "tags" : [ "Notification Controller" ],
+        "summary" : "Resend onboarding notifications for onboarding which are retrieved given a set of filters",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingGetFilters"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding" : {
       "get" : {
         "tags" : [ "Onboarding Controller" ],
@@ -1410,6 +1448,40 @@
           },
           "reasonForReject" : {
             "type" : "string"
+          }
+        }
+      },
+      "OnboardingGetFilters" : {
+        "type" : "object",
+        "properties" : {
+          "productId" : {
+            "type" : "string"
+          },
+          "institutionId" : {
+            "type" : "string"
+          },
+          "onboardingId" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "from" : {
+            "type" : "string"
+          },
+          "to" : {
+            "type" : "string"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : "integer"
           }
         }
       },
