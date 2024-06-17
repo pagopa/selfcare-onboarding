@@ -6,6 +6,7 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -59,13 +60,17 @@ public class QueryUtils {
     /**
      * The createMapForOnboardingQueryParameter function creates a map of query parameters for the Onboarding Collection.
      */
-    public static Map<String, String> createMapForOnboardingQueryParameter(String productId, String taxCode, String status, String from, String to) {
+    public static Map<String, String> createMapForOnboardingQueryParameter(OnboardingGetFilters filters) {
         Map<String, String> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put("productId", value));
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put("status", value));
-        Optional.ofNullable(from).ifPresent(value -> queryParameterMap.put("from", value));
-        Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put("to", value));
+
+
+        Optional.ofNullable(filters.getProductId()).ifPresent(value -> queryParameterMap.put("productId", value));
+        Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> queryParameterMap.put("institution.id", value));
+        Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> queryParameterMap.put("_id", value));
+        Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> queryParameterMap.put("institution.taxCode", value));
+        Optional.ofNullable(filters.getStatus()).ifPresent(value -> queryParameterMap.put("status", value));
+        Optional.ofNullable(filters.getFrom()).ifPresent(value -> queryParameterMap.put("from", value));
+        Optional.ofNullable(filters.getTo()).ifPresent(value -> queryParameterMap.put("to", value));
         return queryParameterMap;
     }
 

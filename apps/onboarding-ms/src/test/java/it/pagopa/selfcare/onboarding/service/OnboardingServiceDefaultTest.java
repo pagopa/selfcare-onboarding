@@ -32,6 +32,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
@@ -1071,8 +1072,17 @@ class OnboardingServiceDefaultTest {
         Onboarding onboarding = createDummyOnboarding();
         mockFindOnboarding(onboarding);
         OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding);
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .productId("prod-io")
+                .taxCode("taxCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .status("ACTIVE")
+                .page(page)
+                .size(size)
+                .build();
         UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
-                .onboardingGet("prod-io", null, null, "2023-11-10", "2021-12-10", page, size)
+                .onboardingGet(filters)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

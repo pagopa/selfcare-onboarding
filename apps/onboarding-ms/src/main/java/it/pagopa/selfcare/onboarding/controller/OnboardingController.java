@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -223,12 +224,25 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingGetResponse> getOnboardingWithFilter(@QueryParam(value = "productId") String productId,
                                                               @QueryParam(value = "taxCode") String taxCode,
+                                                              @QueryParam(value = "institutionId") String institutionId,
+                                                              @QueryParam(value = "onboardingId") String onboardingId,
                                                               @QueryParam(value = "from") String from,
                                                               @QueryParam(value = "to") String to,
                                                               @QueryParam(value = "status") String status,
                                                               @QueryParam(value = "page") @DefaultValue("0") Integer page,
                                                               @QueryParam(value = "size") @DefaultValue("20") Integer size) {
-        return onboardingService.onboardingGet(productId, taxCode, status, from, to, page, size);
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .productId(productId)
+                .taxCode(taxCode)
+                .institutionId(institutionId)
+                .onboardingId(onboardingId)
+                .from(from)
+                .to(to)
+                .status(status)
+                .page(page)
+                .size(size)
+                .build();
+        return onboardingService.onboardingGet(filters);
     }
 
     @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +

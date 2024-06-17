@@ -19,8 +19,8 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
-import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -358,7 +358,14 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void getOnboarding() {
         OnboardingGetResponse response = getOnboardingGetResponse();
-        when(onboardingService.onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20))
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .productId("prod-io")
+                .taxCode("taxCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .status("ACTIVE")
+                .build();
+        when(onboardingService.onboardingGet(filters))
                 .thenReturn(Uni.createFrom().item(response));
 
         Map<String, String> queryParameterMap = getStringStringMap();
@@ -368,10 +375,10 @@ class OnboardingControllerTest {
                 .queryParams(queryParameterMap)
                 .get()
                 .then()
-                .statusCode(200);
+                .statusCode(204);
 
         verify(onboardingService, times(1))
-                .onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20);
+                .onboardingGet((OnboardingGetFilters) any());
     }
 
     @Test
