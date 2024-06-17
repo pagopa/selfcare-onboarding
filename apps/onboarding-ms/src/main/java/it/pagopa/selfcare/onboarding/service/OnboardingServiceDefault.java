@@ -301,7 +301,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding.getInstitution().getSubunitCode(),
                 onboarding.getInstitution().getOrigin().name(),
                 onboarding.getInstitution().getOriginId(),
-                null,
+                OnboardingStatus.COMPLETED,
                 onboarding.getProductId()
         );
         Document query = QueryUtils.buildQuery(queryParameter);
