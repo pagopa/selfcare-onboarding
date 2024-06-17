@@ -42,8 +42,12 @@ public class NotificationServiceDefault implements NotificationService {
         checkFilters(filters);
         Uni.createFrom().item(filters)
                 .emitOn(Infrastructure.getDefaultWorkerPool())
+                .flatMap(this::asyncSendNotifications)
                 .subscribe()
-                .with(this::resendNotifications);
+                .with(
+                        ignored -> LOG.infof("Resent notifications for onboarding with filters: %s", filters),
+                        e -> LOG.errorf("Error resending notifications for onboarding with filters: %s", filters, e)
+                );
 
         return Uni.createFrom().voidItem();
     }
@@ -58,18 +62,14 @@ public class NotificationServiceDefault implements NotificationService {
         }
     }
 
-    public void resendNotifications(OnboardingGetFilters filters) {
+    public Uni<Void> asyncSendNotifications(OnboardingGetFilters filters) {
         LOG.infof("Resending notifications for onboarding with filters: %s", filters);
 
         Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
         Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(filters);
         Document query = QueryUtils.buildQuery(queryParameter);
 
-        executeResend(query, sort)
-                .subscribe().with(
-                        ignored -> LOG.info("Resend completed"),
-                        e -> LOG.error("Error resending notifications", e)
-                );
+        return executeResend(query, sort);
     }
 
     private Uni<Void> executeResend(Document query, Document sort) {
@@ -99,9 +99,10 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     private Uni<Void> sendNotification(org.openapi.quarkus.onboarding_functions_json.model.Onboarding onboarding) {
-        LOG.infof("Sending notification for onboarding with id %s", onboarding.getId());
+        LOG.infof("Trying to send notification for onboarding with id %s", onboarding.getId());
         return notificationsApi.apiNotificationsPost(null, onboarding)
-                .onFailure().invoke(e -> LOG.errorf("Error sending notification for onboarding with id %s", onboarding.getId(), e))
+                .onItem().invoke(ignored -> LOG.infof("Notification sent for onboarding with id %s", onboarding.getId()))
+                .onFailure().invoke(e -> LOG.errorv(e, "Error sending notification for onboarding with id %s", onboarding.getId()))
                 .onFailure(this::shouldIgnoreException).recoverWithNull()
                 .map(ignored -> null);
     }

@@ -13,10 +13,13 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import jakarta.inject.Inject;
+import org.apache.hc.core5.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
@@ -34,8 +37,7 @@ class NotificationServiceDefaultTest {
     @Inject
     NotificationServiceDefault notificationServiceDefault;
 
-    @InjectMock
-    OnboardingMapper onboardingMapper;
+    OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
     @InjectMock
     @RestClient
@@ -43,17 +45,71 @@ class NotificationServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    @DisplayName("Should resend notifications for completed status")
-    public void shouldResendNotificationsForCompletedStatus(UniAsserter asserter) {
+    @DisplayName("Should return void item and take in charge the notification resend")
+    public void shouldReturnVoidItemAndTakeInChargeNotificationResend(UniAsserter asserter) {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
-        mockOnboardingFind(asserter);
-        mockNotificationsApi();
 
         UniAssertSubscriber<Void> subscriber = notificationServiceDefault.resendOnboardingNotifications(filters)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
+        subscriber.assertCompleted().assertItem(null);
+    }
+
+    @Test
+    @RunOnVertxContext
+    @DisplayName("Should try to send all notifications when notifications api calls succeed")
+    public void shouldTryToSendAllNotifications(UniAsserter asserter) {
+        OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
+        mockOnboardingFind(asserter);
+        when(notificationsApi.apiNotificationsPost(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        UniAssertSubscriber<Void> subscriber = notificationServiceDefault.asyncSendNotifications(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().awaitSubscription().assertItem(null);
+        verify(notificationsApi, times(3)).apiNotificationsPost(any(), any());
+    }
+
+    @Test
+    @RunOnVertxContext
+    @DisplayName("Should try to send all notifications when notifications api calls throw ignorable error")
+    public void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError(UniAsserter asserter) {
+        OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
+        mockOnboardingFind(asserter);
+
+        when(notificationsApi.apiNotificationsPost(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem()) // first call
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(HttpStatus.SC_INTERNAL_SERVER_ERROR))) // second call
+                .thenReturn(Uni.createFrom().nullItem()); // third call
+
+        UniAssertSubscriber<Void> subscriber = notificationServiceDefault.asyncSendNotifications(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
         subscriber.assertCompleted().awaitSubscription();
+        verify(notificationsApi, times(3)).apiNotificationsPost(any(), any());
+    }
+
+    @Test
+    @RunOnVertxContext
+    @DisplayName("Should not send all notifications when notifications api calls throw non ignorable error")
+    public void shouldNotSendAllNotificationsWhenApiThrowNonIgnorableError(UniAsserter asserter) {
+        OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
+        mockOnboardingFind(asserter);
+
+        when(notificationsApi.apiNotificationsPost(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem()) // first call
+                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(HttpStatus.SC_TOO_MANY_REQUESTS))); // second call
+
+        UniAssertSubscriber<Void> subscriber = notificationServiceDefault.asyncSendNotifications(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailed().awaitSubscription();
+        verify(notificationsApi, times(2)).apiNotificationsPost(any(), any());
     }
 
     private void mockOnboardingFind(UniAsserter asserter) {
@@ -62,7 +118,8 @@ class NotificationServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.find((Document) any(), any())).thenReturn(query);
         when(query.page(anyInt(), anyInt())).thenReturn(queryPage);
-        when(queryPage.stream()).thenReturn(Multi.createFrom().iterable(List.of(createDummyOnboarding())));
+        List<Onboarding> onboardingList = List.of(createDummyOnboarding(), createDummyOnboarding(), createDummyOnboarding());
+        when(queryPage.stream()).thenReturn(Multi.createFrom().iterable(onboardingList));
 
     }
 
@@ -71,10 +128,6 @@ class NotificationServiceDefaultTest {
         onboarding.setId("id");
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         return onboarding;
-    }
-
-    private void mockNotificationsApi() {
-        when(notificationsApi.apiNotificationsPost(any(), any())).thenReturn(Uni.createFrom().nullItem());
     }
 
     @Test
