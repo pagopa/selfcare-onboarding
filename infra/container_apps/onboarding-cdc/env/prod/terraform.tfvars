@@ -28,7 +28,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING-CDC-MONGODB-WATCH-ENABLED"
-    value = "false"
+    value = "true"
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
