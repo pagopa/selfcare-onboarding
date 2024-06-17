@@ -21,17 +21,20 @@ public class NotificationService {
     @RestClient
     NotificationsApi notificationsApi;
     private final OnboardingMapper onboardingMapper;
+    private final Boolean watchEnabled;
     private final Integer retryMinBackOff;
     private final Integer retryMaxBackOff;
     private final Integer maxRetry;
     private final Integer minutesThresholdForUpdateNotification;
 
     public NotificationService(OnboardingMapper onboardingMapper,
+                               @ConfigProperty(name = "onboarding-cdc.mongodb.watch.enabled") Boolean watchEnabled,
                                @ConfigProperty(name = "onboarding-cdc.retry.min-backoff") Integer retryMinBackOff,
                                @ConfigProperty(name = "onboarding-cdc.retry.max-backoff") Integer retryMaxBackOff,
                                @ConfigProperty(name = "onboarding-cdc.retry") Integer maxRetry,
                                @ConfigProperty(name = "onboarding-cdc.minutes-threshold-for-update-notification") Integer minutesThresholdForUpdateNotification) {
         this.onboardingMapper = onboardingMapper;
+        this.watchEnabled = watchEnabled;
         this.retryMinBackOff = retryMinBackOff;
         this.retryMaxBackOff = retryMaxBackOff;
         this.maxRetry = maxRetry;
@@ -39,6 +42,11 @@ public class NotificationService {
     }
 
     public Uni<OrchestrationResponse> invokeNotificationApi(Onboarding onboarding) {
+        // If watch is disabled, return an empty response
+        if(!watchEnabled) {
+            return Uni.createFrom().item(new OrchestrationResponse());
+        }
+
         assert onboarding != null;
         QueueEvent queueEvent = determineEventType(onboarding);
         return notificationsApi.apiNotificationPost(queueEvent.name(), onboardingMapper.toEntity(onboarding))
