@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.mapper.impl;
+package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Institution;
@@ -20,7 +20,7 @@ import java.util.Objects;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class NotificationMapperTestUtil {
+public class NotificationBuilderTestUtil {
 
     public static final String institutionId = "i1";
     public static final String tokenId = "t1";

@@ -11,6 +11,13 @@
     "url" : "http://0.0.0.0:8080",
     "description" : "Auto generated value"
   } ],
+  "tags" : [ {
+    "name" : "Onboarding"
+  }, {
+    "name" : "Onboarding Controller"
+  }, {
+    "name" : "support"
+  } ],
   "paths" : {
     "/v1/onboarding" : {
       "get" : {
@@ -18,6 +25,18 @@
         "summary" : "The API retrieves paged onboarding using optional filter, order by descending creation date",
         "parameters" : [ {
           "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "institutionId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "onboardingId",
           "in" : "query",
           "schema" : {
             "type" : "string"
@@ -158,7 +177,7 @@
     },
     "/v1/onboarding/institutionOnboardings" : {
       "get" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "support", "Onboarding" ],
         "summary" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
         "parameters" : [ {
           "name" : "origin",
@@ -432,6 +451,42 @@
         } ]
       }
     },
+    "/v1/onboarding/users" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Perform onboarding users request, it is used all institution types.Users data will be saved on personal data vault if it doesn't already exist.At the end, function triggers async activities related to onboarding based on institution type.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingUserRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/{onboardingId}" : {
       "get" : {
         "tags" : [ "Onboarding Controller" ],
@@ -545,9 +600,56 @@
         } ]
       }
     },
-    "/v1/onboarding/{onboardingId}/consume" : {
+    "/v1/onboarding/{onboardingId}/completeOnboardingUsers" : {
       "put" : {
         "tags" : [ "Onboarding Controller" ],
+        "summary" : "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution.It checks the contract's signature and upload the contract on an azure storageAt the end, function triggers async activities related to complete onboarding that consist of create the institution, activate the onboarding and sending data to notification queue.",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "contract" ],
+                "type" : "object",
+                "properties" : {
+                  "contract" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/{onboardingId}/consume" : {
+      "put" : {
+        "tags" : [ "support", "Onboarding" ],
         "summary" : "Perform complete operation of an onboarding request as /complete but without signature verification of the contract",
         "parameters" : [ {
           "name" : "onboardingId",
@@ -644,6 +746,52 @@
             "application/json" : {
               "schema" : {
                 "$ref" : "#/components/schemas/ReasonRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/{onboardingId}/update" : {
+      "put" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Update onboarding request receiving onboarding id.Function can change some values. ",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/OnboardingStatus"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingDefaultRequest"
               }
             }
           }
@@ -1454,6 +1602,40 @@
       "OnboardingStatus" : {
         "enum" : [ "REQUEST", "TOBEVALIDATED", "PENDING", "COMPLETED", "FAILED", "REJECTED", "DELETED" ],
         "type" : "string"
+      },
+      "OnboardingUserRequest" : {
+        "required" : [ "productId", "origin", "originId", "users" ],
+        "type" : "object",
+        "properties" : {
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "institutionType" : {
+            "$ref" : "#/components/schemas/InstitutionType"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "originId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "users" : {
+            "minItems" : 1,
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserRequest"
+            }
+          }
+        }
       },
       "Origin" : {
         "enum" : [ "MOCK", "IPA", "SELC", "ANAC", "UNKNOWN", "ADE", "INFOCAMERE", "IVASS" ],

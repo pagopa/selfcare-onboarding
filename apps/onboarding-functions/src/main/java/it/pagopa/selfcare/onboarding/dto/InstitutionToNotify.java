@@ -15,6 +15,8 @@ public class InstitutionToNotify {
     private String origin;
     private String originId;
     private String zipCode;
+    private String fileName;//fixme: needs to be moved the the upper class
+    private String contentType;//fixme: ditto
     private PaymentServiceProvider paymentServiceProvider;
     private String istatCode;
     private String city;
@@ -87,6 +89,22 @@ public class InstitutionToNotify {
 
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 
     public PaymentServiceProvider getPaymentServiceProvider() {

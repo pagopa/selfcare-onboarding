@@ -35,7 +35,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_FUNCTIONS_URL"
-    value = "https://selc-u-onboarding-fn.azurewebsites.net"
+    value = "https://selc-u-pnpg-onboarding-fn.azurewebsites.net"
   }
 ]
 

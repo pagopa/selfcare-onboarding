@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 
 import java.io.File;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.List;
 public interface OnboardingService {
 
     Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests);
+
+    Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest onboardingUserRequest, String userId);
 
     Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported);
 
@@ -23,9 +26,11 @@ public interface OnboardingService {
 
     Uni<Onboarding> complete(String tokenId, File contract);
 
+    Uni<Onboarding> completeOnboardingUsers(String tokenId, File contract);
+
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
 
-    Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size);
+    Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters);
 
     Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject);
 
@@ -36,4 +41,6 @@ public interface OnboardingService {
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
+
+    Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 }
