@@ -26,6 +26,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
@@ -809,13 +810,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<OnboardingGetResponse> onboardingGet(String productId, String taxCode, String status, String from, String to, Integer page, Integer size) {
+    public Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters) {
         Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
-        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(productId, taxCode, status, from, to);
+        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(filters);
         Document query = QueryUtils.buildQuery(queryParameter);
 
         return Uni.combine().all().unis(
-                        runQuery(query, sort).page(page, size).list(),
+                        runQuery(query, sort).page(filters.getPage(), filters.getSize()).list(),
                         runQuery(query, null).count()
                 ).asTuple()
                 .map(this::constructOnboardingGetResponse);
