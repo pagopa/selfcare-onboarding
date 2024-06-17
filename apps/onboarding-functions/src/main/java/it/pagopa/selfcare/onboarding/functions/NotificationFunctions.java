@@ -51,21 +51,22 @@ public class NotificationFunctions {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
                     .body("Request body cannot be empty.")
                     .build();
-        }
+        } else {
+            final Onboarding onboarding;
+            final String onboardingString = request.getBody().get();
+            try {
+                onboarding = readOnboardingValue(objectMapper, onboardingString);
+                context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
+            } catch (Exception ex) {
+                context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
+                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                        .body("Malformed object onboarding in input.")
+                        .build();
+            }
 
-        final Onboarding onboarding;
-        final String onboardingString = request.getBody().get();
-        try {
-            onboarding = readOnboardingValue(objectMapper, onboardingString);
-            context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-        } catch (Exception ex) {
-            context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Malformed object onboarding in input.")
-                    .build();
+            notificationEventService.send(context, onboarding, queueEvent);
+            return request.createResponseBuilder(HttpStatus.OK).build();
         }
-        notificationEventService.send(context, onboarding, queueEvent);
-        return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
     /**
