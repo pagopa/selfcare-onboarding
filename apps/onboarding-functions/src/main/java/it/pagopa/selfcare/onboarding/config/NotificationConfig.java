@@ -8,6 +8,7 @@ import java.util.Map;
 @ConfigMapping(prefix = "notification")
 public interface NotificationConfig {
     Map<String, Consumer> consumers();
+    Integer minutesThresholdForUpdateNotification();
     interface Consumer {
         String topic();
         String name();
