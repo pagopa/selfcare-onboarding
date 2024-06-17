@@ -21,7 +21,7 @@ public class NotificationController {
     @Operation(summary = "Resend onboarding notifications for onboarding which are retrieved given a set of filters")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/resendsNotifications")
+    @Path("/resend")
     public Uni<String> resendOnboardingNotifications(OnboardingGetFilters filters) {
         return notificationService.resendOnboardingNotifications(filters)
                 .replaceWith("Request taken charge");

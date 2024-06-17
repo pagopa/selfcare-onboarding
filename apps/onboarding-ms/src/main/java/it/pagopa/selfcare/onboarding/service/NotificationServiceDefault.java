@@ -17,7 +17,7 @@ import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
-import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
+import org.openapi.quarkus.onboarding_functions_json.api.NotificationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OnboardingStatus;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class NotificationServiceDefault implements NotificationService {
 
     @RestClient
     @Inject
-    NotificationsApi notificationsApi;
+    NotificationApi notificationApi;
 
     @Override
     public Uni<Void> resendOnboardingNotifications(OnboardingGetFilters filters) {
@@ -69,12 +69,6 @@ public class NotificationServiceDefault implements NotificationService {
         Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(filters);
         Document query = QueryUtils.buildQuery(queryParameter);
 
-        return executeResend(query, sort);
-    }
-
-    private Uni<Void> executeResend(Document query, Document sort) {
-        LOG.infof("Executing resend");
-
         return Multi.createBy().repeating()
                 .uni(
                         AtomicInteger::new,
@@ -100,7 +94,7 @@ public class NotificationServiceDefault implements NotificationService {
 
     private Uni<Void> sendNotification(org.openapi.quarkus.onboarding_functions_json.model.Onboarding onboarding) {
         LOG.infof("Trying to send notification for onboarding with id %s", onboarding.getId());
-        return notificationsApi.apiNotificationsPost(null, onboarding)
+        return notificationApi.apiNotificationPost(null, onboarding)
                 .onItem().invoke(ignored -> LOG.infof("Notification sent for onboarding with id %s", onboarding.getId()))
                 .onFailure().invoke(e -> LOG.errorv(e, "Error sending notification for onboarding with id %s", onboarding.getId()))
                 .onFailure(this::shouldIgnoreException).recoverWithNull()

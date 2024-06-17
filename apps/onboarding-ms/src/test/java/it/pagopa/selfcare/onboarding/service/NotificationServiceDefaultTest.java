@@ -5,15 +5,12 @@ import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.vertx.RunOnVertxContext;
-import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
-import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import jakarta.inject.Inject;
 import org.apache.hc.core5.http.HttpStatus;
@@ -22,14 +19,13 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
+import org.openapi.quarkus.onboarding_functions_json.api.NotificationApi;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
 
 @QuarkusTest
 class NotificationServiceDefaultTest {
@@ -37,16 +33,14 @@ class NotificationServiceDefaultTest {
     @Inject
     NotificationServiceDefault notificationServiceDefault;
 
-    OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
-
     @InjectMock
     @RestClient
-    NotificationsApi notificationsApi;
+    NotificationApi notificationApi;
 
     @Test
     @RunOnVertxContext
     @DisplayName("Should return void item and take in charge the notification resend")
-    public void shouldReturnVoidItemAndTakeInChargeNotificationResend(UniAsserter asserter) {
+    public void shouldReturnVoidItemAndTakeInChargeNotificationResend() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
 
         UniAssertSubscriber<Void> subscriber = notificationServiceDefault.resendOnboardingNotifications(filters)
@@ -59,10 +53,10 @@ class NotificationServiceDefaultTest {
     @Test
     @RunOnVertxContext
     @DisplayName("Should try to send all notifications when notifications api calls succeed")
-    public void shouldTryToSendAllNotifications(UniAsserter asserter) {
+    public void shouldTryToSendAllNotifications() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
-        mockOnboardingFind(asserter);
-        when(notificationsApi.apiNotificationsPost(any(), any()))
+        mockOnboardingFind();
+        when(notificationApi.apiNotificationPost(any(), any()))
                 .thenReturn(Uni.createFrom().nullItem());
 
         UniAssertSubscriber<Void> subscriber = notificationServiceDefault.asyncSendNotifications(filters)
@@ -70,17 +64,17 @@ class NotificationServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted().awaitSubscription().assertItem(null);
-        verify(notificationsApi, times(3)).apiNotificationsPost(any(), any());
+        verify(notificationApi, times(3)).apiNotificationPost(any(), any());
     }
 
     @Test
     @RunOnVertxContext
     @DisplayName("Should try to send all notifications when notifications api calls throw ignorable error")
-    public void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError(UniAsserter asserter) {
+    public void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
-        mockOnboardingFind(asserter);
+        mockOnboardingFind();
 
-        when(notificationsApi.apiNotificationsPost(any(), any()))
+        when(notificationApi.apiNotificationPost(any(), any()))
                 .thenReturn(Uni.createFrom().nullItem()) // first call
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(HttpStatus.SC_INTERNAL_SERVER_ERROR))) // second call
                 .thenReturn(Uni.createFrom().nullItem()); // third call
@@ -90,17 +84,17 @@ class NotificationServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted().awaitSubscription();
-        verify(notificationsApi, times(3)).apiNotificationsPost(any(), any());
+        verify(notificationApi, times(3)).apiNotificationPost(any(), any());
     }
 
     @Test
     @RunOnVertxContext
     @DisplayName("Should not send all notifications when notifications api calls throw non ignorable error")
-    public void shouldNotSendAllNotificationsWhenApiThrowNonIgnorableError(UniAsserter asserter) {
+    public void shouldNotSendAllNotificationsWhenApiThrowNonIgnorableError() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
-        mockOnboardingFind(asserter);
+        mockOnboardingFind();
 
-        when(notificationsApi.apiNotificationsPost(any(), any()))
+        when(notificationApi.apiNotificationPost(any(), any()))
                 .thenReturn(Uni.createFrom().nullItem()) // first call
                 .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(HttpStatus.SC_TOO_MANY_REQUESTS))); // second call
 
@@ -109,10 +103,10 @@ class NotificationServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailed().awaitSubscription();
-        verify(notificationsApi, times(2)).apiNotificationsPost(any(), any());
+        verify(notificationApi, times(2)).apiNotificationPost(any(), any());
     }
 
-    private void mockOnboardingFind(UniAsserter asserter) {
+    private void mockOnboardingFind() {
         ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
         ReactivePanacheQuery<Onboarding> queryPage = mock(ReactivePanacheQuery.class);
         PanacheMock.mock(Onboarding.class);

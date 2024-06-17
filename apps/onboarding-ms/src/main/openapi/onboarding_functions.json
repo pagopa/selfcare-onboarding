@@ -78,10 +78,10 @@
         ]
       }
     },
-    "/api/Notifications": {
+    "/api/Notification": {
       "post": {
         "tags": [
-          "Notifications"
+          "Notification"
         ],
         "summary": "",
         "description": "",
