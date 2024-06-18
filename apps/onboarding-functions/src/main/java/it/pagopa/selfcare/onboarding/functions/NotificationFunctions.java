@@ -13,7 +13,6 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_ONBOARDING_NOTIFICATION;
@@ -47,23 +46,27 @@ public class NotificationFunctions {
         final String queueEventString = request.getQueryParameters().get("queueEvent");
         final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
 
-        AtomicReference<HttpResponseMessage> response = new AtomicReference<>();
-
-        request.getBody().ifPresentOrElse(onboardingString -> {
+        // Check request body
+        if (request.getBody().isEmpty()) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("Request body cannot be empty.")
+                    .build();
+        } else {
             final Onboarding onboarding;
-
+            final String onboardingString = request.getBody().get();
             try {
                 onboarding = readOnboardingValue(objectMapper, onboardingString);
                 context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-                notificationEventService.send(context, onboarding, queueEvent);
-                response.set(request.createResponseBuilder(HttpStatus.OK).build());
             } catch (Exception ex) {
                 context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
-                response.set(request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Malformed object onboarding in input.").build());
+                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                        .body("Malformed object onboarding in input.")
+                        .build();
             }
-            }, () -> response.set(request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Request body cannot be empty.").build()));
 
-        return response.get();
+            notificationEventService.send(context, onboarding, queueEvent);
+            return request.createResponseBuilder(HttpStatus.OK).build();
+        }
     }
 
     /**
