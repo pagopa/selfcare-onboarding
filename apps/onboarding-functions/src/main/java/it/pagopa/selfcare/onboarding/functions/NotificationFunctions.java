@@ -48,8 +48,8 @@ public class NotificationFunctions {
         final String queueEventString = request.getQueryParameters().get("queueEvent");
         final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
 
-        AtomicReference<ResponseWrapper> response = new AtomicReference<>();
 
+        AtomicReference<ResponseWrapper> response = new AtomicReference<>();
         request.getBody().ifPresentOrElse(onboardingString -> {
             final Onboarding onboarding;
 
