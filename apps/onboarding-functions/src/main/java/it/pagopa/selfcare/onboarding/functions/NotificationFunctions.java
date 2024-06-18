@@ -8,6 +8,7 @@ import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.ResponseWrapper;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
@@ -47,7 +48,7 @@ public class NotificationFunctions {
         final String queueEventString = request.getQueryParameters().get("queueEvent");
         final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
 
-        AtomicReference<HttpResponseMessage> response = new AtomicReference<>();
+        AtomicReference<ResponseWrapper> response = new AtomicReference<>();
 
         request.getBody().ifPresentOrElse(onboardingString -> {
             final Onboarding onboarding;
@@ -56,14 +57,16 @@ public class NotificationFunctions {
                 onboarding = readOnboardingValue(objectMapper, onboardingString);
                 context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
                 notificationEventService.send(context, onboarding, queueEvent);
-                response.set(request.createResponseBuilder(HttpStatus.OK).build());
+                response.set(new ResponseWrapper(HttpStatus.OK, ""));
             } catch (Exception ex) {
                 context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
-                response.set(request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Malformed object onboarding in input.").build());
+                response.set(new ResponseWrapper(HttpStatus.BAD_REQUEST, "Malformed object onboarding in input."));
             }
-            }, () -> response.set(request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Request body cannot be empty.").build()));
+            }, () -> response.set(new ResponseWrapper(HttpStatus.BAD_REQUEST, "Request body cannot be empty.")));
 
-        return response.get();
+        return (response.get().status() == HttpStatus.OK)
+                ? request.createResponseBuilder(HttpStatus.OK).build()
+                : request.createResponseBuilder(HttpStatus.BAD_REQUEST).body(response.get().body()).build();
     }
 
     /**
