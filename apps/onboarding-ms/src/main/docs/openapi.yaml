@@ -32,10 +32,10 @@ paths:
             application/json:
               schema:
                 type: string
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding:
@@ -92,10 +92,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGetResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
     post:
@@ -117,10 +117,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/completion:
@@ -141,10 +141,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/institutionOnboardings:
@@ -183,10 +183,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/pa:
@@ -210,10 +210,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/completion:
@@ -234,10 +234,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/pa/import:
@@ -258,10 +258,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/pg/completion:
@@ -280,10 +280,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/psp:
@@ -306,10 +306,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/psp/completion:
@@ -330,42 +330,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/users:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding users request, it is used all institution types.Users\
-        \ data will be saved on personal data vault if it doesn't already exist.At\
-        \ the end, function triggers async activities related to onboarding based\
-        \ on institution type."
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OnboardingUserRequest'
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OnboardingResponse'
-        "403":
-          description: Not Allowed
-        "401":
-          description: Not Authorized
-      security:
-      - SecurityScheme: []
-  /v1/onboarding/users:
-    post:
-      tags:
-      - Onboarding
       summary: "Perform onboarding users request, it is used all institution types.Users\
         \ data will be saved on personal data vault if it doesn't already exist.At\
         \ the end, function triggers async activities related to onboarding based\
@@ -406,10 +380,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/approve:
@@ -430,10 +404,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/complete:
@@ -467,10 +441,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/completeOnboardingUsers:
@@ -505,10 +479,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/consume:
@@ -540,10 +514,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/pending:
@@ -566,10 +540,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/reject:
@@ -595,10 +569,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/update:
@@ -627,10 +601,10 @@ paths:
           description: OK
           content:
             application/json: {}
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/onboarding/{onboardingId}/withUserInfo:
@@ -652,10 +626,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OnboardingGet'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/tokens:
@@ -677,10 +651,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TokenResponse'
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
   /v1/tokens/{onboardingId}/contract:
@@ -702,10 +676,10 @@ paths:
               schema:
                 format: binary
                 type: string
-        "403":
-          description: Not Allowed
         "401":
           description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme: []
 components:
@@ -1011,6 +985,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1141,6 +1121,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1191,6 +1177,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1224,6 +1216,8 @@ components:
           $ref: '#/components/schemas/AdditionalInformationsDto'
         userRequestUid:
           type: string
+        isAggregator:
+          type: boolean
     OnboardingStatus:
       enum:
       - REQUEST

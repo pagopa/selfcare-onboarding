@@ -18,5 +18,6 @@ public class OnboardingResponse {
     private String status;
     private AdditionalInformationsDto additionalInformations;
     private String userRequestUid;
+    private Boolean isAggregator;
 
 }
