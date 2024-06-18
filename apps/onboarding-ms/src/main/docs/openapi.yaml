@@ -985,6 +985,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1115,6 +1121,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1165,6 +1177,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserRequest'
+        aggregates:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionBaseRequest'
+        isAggregator:
+          type: boolean
         pricingPlan:
           type: string
         signContract:
@@ -1198,6 +1216,8 @@ components:
           $ref: '#/components/schemas/AdditionalInformationsDto'
         userRequestUid:
           type: string
+        isAggregator:
+          type: boolean
     OnboardingStatus:
       enum:
       - REQUEST

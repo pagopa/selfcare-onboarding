@@ -20,6 +20,7 @@ public class Onboarding  {
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
+    private List<Institution> aggregates;
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;
@@ -32,6 +33,7 @@ public class Onboarding  {
     private LocalDateTime activatedAt;
     private LocalDateTime deletedAt;
     private String reasonForReject;
+    private Boolean isAggregator;
 
     public String getId() {
         return id;
@@ -156,6 +158,7 @@ public class Onboarding  {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
     public LocalDateTime getActivatedAt() {
         return activatedAt;
     }
@@ -171,6 +174,14 @@ public class Onboarding  {
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    public List<Institution> getAggregates() { return aggregates; }
+
+    public void setAggregates(List<Institution> aggregates) { this.aggregates = aggregates; }
+
+    public Boolean getIsAggregator() { return isAggregator; }
+
+    public void setIsAggregator(Boolean isAggregator) { this.isAggregator = isAggregator; }
 
     @Override
     public String toString() {
@@ -191,6 +202,8 @@ public class Onboarding  {
                 ", activatedAt=" + activatedAt +
                 ", deletedAt=" + deletedAt +
                 ", reasonForReject='" + reasonForReject + '\'' +
+                ", aggregates=" + aggregates +
+                ", isAggregator='" + isAggregator + '\'' +
                 '}';
     }
 }

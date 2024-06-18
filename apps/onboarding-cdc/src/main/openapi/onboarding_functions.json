@@ -201,6 +201,12 @@
               "$ref": "#/components/schemas/User"
             }
           },
+          "aggregates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Institution"
+            }
+          },
           "billing": {
             "$ref": "#/components/schemas/Billing"
           },
@@ -223,6 +229,9 @@
             "$ref": "#/components/schemas/LocalDateTime"
           },
           "signContract": {
+            "type": "boolean"
+          },
+          "isAggregator": {
             "type": "boolean"
           },
           "userRequestUid": {
@@ -440,7 +449,9 @@
           "CONFIRMATION",
           "IMPORT",
           "USERS",
-          "USERS_IMPORT"
+          "USERS_IMPORT",
+          "CONTRACT_REGISTRATION_AGGREGATOR",
+          "CONFIRMATION_AGGREGATE"
         ],
         "type": "string"
       },

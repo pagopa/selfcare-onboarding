@@ -2,16 +2,20 @@ package it.pagopa.selfcare.onboarding.event;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.event.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.event.entity.util.QueueEvent;
 import it.pagopa.selfcare.onboarding.event.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.event.profile.NotificationTestProfile;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.openapi.quarkus.onboarding_functions_json.api.NotificationsApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
@@ -88,5 +92,28 @@ public class NotificationServiceTest {
         subscriber.assertCompleted().awaitItem();
 
         verify(notificationsApi, times(1)).apiNotificationPost(eq(QueueEvent.UPDATE.name()), any());
+    }
+
+    @Nested
+    @TestProfile(NotificationTestProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class NotificationServiceTestWithDisabledWatcherTest {
+        @Test
+        @DisplayName("Should not invoke Notification API when watcher is disabled")
+        public void shouldNotInvokeNotificationApiWhenWatcheIsDisabled() {
+            Onboarding onboarding = new Onboarding();
+            onboarding.setStatus(OnboardingStatus.DELETED);
+            onboarding.setUpdatedAt(LocalDateTime.now()); // 5 minutes should be the threshold
+            onboarding.setActivatedAt(LocalDateTime.now());
+
+
+            UniAssertSubscriber<OrchestrationResponse> subscriber = notificationService
+                    .invokeNotificationApi(onboarding)
+                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+            subscriber.assertCompleted().awaitItem();
+
+            verify(notificationsApi, times(0)).apiNotificationPost(any(), any());
+        }
     }
 }

@@ -1381,6 +1381,15 @@
               "$ref" : "#/components/schemas/UserRequest"
             }
           },
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+            }
+          },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -1558,6 +1567,15 @@
               "$ref" : "#/components/schemas/UserRequest"
             }
           },
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+            }
+          },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -1619,6 +1637,15 @@
               "$ref" : "#/components/schemas/UserRequest"
             }
           },
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+            }
+          },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -1668,6 +1695,9 @@
           },
           "userRequestUid" : {
             "type" : "string"
+          },
+          "isAggregator" : {
+            "type" : "boolean"
           }
         }
       },
