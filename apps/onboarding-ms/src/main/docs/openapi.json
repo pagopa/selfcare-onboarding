@@ -1695,6 +1695,9 @@
           },
           "userRequestUid" : {
             "type" : "string"
+          },
+          "isAggregator" : {
+            "type" : "boolean"
           }
         }
       },

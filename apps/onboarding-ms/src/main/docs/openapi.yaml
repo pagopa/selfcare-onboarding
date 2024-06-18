@@ -1216,6 +1216,8 @@ components:
           $ref: '#/components/schemas/AdditionalInformationsDto'
         userRequestUid:
           type: string
+        isAggregator:
+          type: boolean
     OnboardingStatus:
       enum:
       - REQUEST
