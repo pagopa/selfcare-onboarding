@@ -26,6 +26,7 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
+    private List<Institution> aggregates;
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;
@@ -38,6 +39,7 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private String userRequestUid;
     private AdditionalInformations additionalInformations;
     private String reasonForReject;
+    private Boolean isAggregator;
 
     private String referenceOnboardingId;
 }

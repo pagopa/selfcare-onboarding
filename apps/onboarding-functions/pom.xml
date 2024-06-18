@@ -192,6 +192,12 @@
       <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>it.pagopa.selfcare</groupId>
+          <artifactId>onboarding-sdk-common</artifactId>
+          <version>0.1.14</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
   <build>
     <plugins>
