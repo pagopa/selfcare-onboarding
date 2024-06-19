@@ -351,7 +351,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             return WorkflowType.FOR_APPROVE_PT;
         }
 
-        if (onboarding.getIsAggregator().equals(Boolean.TRUE)) {
+        if (Objects.nonNull(onboarding.getIsAggregator()) && onboarding.getIsAggregator().equals(Boolean.TRUE)) {
             return WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR;
         }
 
