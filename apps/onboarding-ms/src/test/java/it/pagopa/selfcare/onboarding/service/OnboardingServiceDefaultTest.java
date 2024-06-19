@@ -1205,7 +1205,6 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
@@ -1222,7 +1221,6 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void rejectOnboarding_statusIsCOMPLETED() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         PanacheMock.mock(Onboarding.class);
@@ -1240,7 +1238,6 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
