@@ -43,30 +43,23 @@ public class NotificationFunctions {
             final ExecutionContext context) {
         context.getLogger().info("sendNotifications trigger processed a request");
 
+        String onboardingString = request.getBody().orElseThrow(() -> new IllegalArgumentException("Request body cannot be empty."));
         final String queueEventString = request.getQueryParameters().get("queueEvent");
         final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
+        final Onboarding onboarding;
 
-        // Check request body
-        if (request.getBody().isEmpty()) {
+        try {
+            onboarding = readOnboardingValue(objectMapper, onboardingString);
+            context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
+        } catch (Exception ex) {
+            context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Request body cannot be empty.")
+                    .body("Malformed object onboarding in input.")
                     .build();
-        } else {
-            final Onboarding onboarding;
-            final String onboardingString = request.getBody().get();
-            try {
-                onboarding = readOnboardingValue(objectMapper, onboardingString);
-                context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-            } catch (Exception ex) {
-                context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
-                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                        .body("Malformed object onboarding in input.")
-                        .build();
-            }
-
-            notificationEventService.send(context, onboarding, queueEvent);
-            return request.createResponseBuilder(HttpStatus.OK).build();
         }
+
+        notificationEventService.send(context, onboarding, queueEvent);
+        return request.createResponseBuilder(HttpStatus.OK).build();
     }
 
     /**
@@ -97,36 +90,6 @@ public class NotificationFunctions {
                     .build();
         }
         notificationEventService.send(context, onboarding.get(), queueEvent);
-        return request.createResponseBuilder(HttpStatus.OK).build();
-    }
-
-    /**
-     * This HTTP-triggered function sends messages through event hub.
-     * It gets invoked by module onboarding-cdc when status is COMPLETED or DELETED
-     */
-    @FunctionName("NotificationTest")
-    @FixedDelayRetry(maxRetryCount = 3, delayInterval = "00:00:30")
-    public HttpResponseMessage sendNotificationTest (
-            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-            final ExecutionContext context) {
-        context.getLogger().info("sendNotifications trigger processed a request");
-
-        String onboardingString = request.getBody().orElseThrow(() -> new IllegalArgumentException("Request body cannot be empty."));
-        final String queueEventString = request.getQueryParameters().get("queueEvent");
-        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
-        final Onboarding onboarding;
-
-        try {
-            onboarding = readOnboardingValue(objectMapper, onboardingString);
-            context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
-        } catch (Exception ex) {
-            context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                    .body("Malformed object onboarding in input.")
-                    .build();
-        }
-
-        notificationEventService.send(context, onboarding, queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }
