@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static io.smallrye.common.constraint.Assert.assertFalse;
+import static io.smallrye.common.constraint.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -186,7 +188,8 @@ class OnboardingControllerTest {
         Mockito.verify(onboardingService, times(1))
                 .onboarding(captor.capture(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
-
+        assertTrue(captor.getValue().getIsAggregator());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
     @Test

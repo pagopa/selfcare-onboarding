@@ -130,7 +130,7 @@ class OnboardingServiceDefaultTest {
     @Spy
     OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
-    final static UserRequest manager = UserRequest.builder()
+    final static UserRequest managerUser = UserRequest.builder()
             .name("name")
             .surname("surname")
             .taxCode("taxCode")
@@ -147,19 +147,19 @@ class OnboardingServiceDefaultTest {
         managerResource = new UserResource();
         managerResource.setId(UUID.randomUUID());
         managerResource.setName(new CertifiableFieldResourceOfstring()
-                .value(manager.getName())
+                .value(managerUser.getName())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
         managerResource.setFamilyName(new CertifiableFieldResourceOfstring()
-                .value(manager.getSurname())
+                .value(managerUser.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
 
         managerResourceWk = new UserResource();
         managerResourceWk.setId(UUID.randomUUID());
         managerResourceWk.setName(new CertifiableFieldResourceOfstring()
-                .value(manager.getName())
+                .value(managerUser.getName())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
         managerResourceWk.setFamilyName(new CertifiableFieldResourceOfstring()
-                .value(manager.getSurname())
+                .value(managerUser.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
 
         Map<String, WorkContactResource> map = new HashMap<>();
@@ -173,10 +173,10 @@ class OnboardingServiceDefaultTest {
         managerResourceWkSpid = new UserResource();
         managerResourceWkSpid.setId(UUID.randomUUID());
         managerResourceWkSpid.setName(new CertifiableFieldResourceOfstring()
-                .value(manager.getName())
+                .value(managerUser.getName())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.SPID));
         managerResourceWkSpid.setFamilyName(new CertifiableFieldResourceOfstring()
-                .value(manager.getSurname())
+                .value(managerUser.getSurname())
                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.SPID));
         managerResourceWkSpid.setWorkContacts(map);
     }
@@ -185,7 +185,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductThrowException(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();onboardingRequest.setIsAggregator(Boolean.FALSE);
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
 
@@ -200,7 +200,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
 
@@ -214,7 +214,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductAlreadyOnboarded(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -239,7 +239,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductIsNotDelegable(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PT);
@@ -259,7 +259,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductRoleIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PG);
@@ -283,7 +283,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductParentRoleIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
 
@@ -330,14 +330,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Aoo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -374,14 +374,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -409,14 +409,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -444,14 +444,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Uo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -487,14 +487,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -524,14 +524,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -578,14 +578,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_Aggregator(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();request.setIsAggregator(Boolean.TRUE);
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
@@ -606,7 +606,6 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound(asserter);
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-
         asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
@@ -620,7 +619,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingSa_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.SA);
@@ -657,14 +656,14 @@ class OnboardingServiceDefaultTest {
         productRole.setCode("admin");
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
         productRoleInfo.setRoles(List.of(productRole));
-        roleMapping.put(manager.getRole(), productRoleInfo);
+        roleMapping.put(managerUser.getRole(), productRoleInfo);
         productResource.setRoleMappings(roleMapping);
 
         if (hasParent) {
             Product parent = new Product();
             parent.setId("productParentId");
             Map<PartyRole, ProductRoleInfo> roleParentMapping = new HashMap<>();
-            roleParentMapping.put(manager.getRole(), productRoleInfo);
+            roleParentMapping.put(managerUser.getRole(), productRoleInfo);
             parent.setRoleMappings(roleParentMapping);
 
             productResource.setParentId(parent.getId());
@@ -679,7 +678,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productId");
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
@@ -705,7 +704,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdateAndProductHasParent(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingRequest.setProductId("productParentId");
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
@@ -738,7 +737,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         onboardingDefaultRequest.setProductId("productId");
         onboardingDefaultRequest.setInstitution(new Institution());
 
@@ -760,14 +759,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResourceWk.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -805,14 +804,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundAndWillNotUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("wrong_name")
                 .taxCode(managerResourceWkSpid.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -844,7 +843,7 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdateMailUuid(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResourceWk.getFiscalCode())
                 .role(PartyRole.MANAGER)
@@ -852,7 +851,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -891,7 +890,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_whenUserNotFoundedAndWillSave(UniAsserter asserter) {
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId("productId");
         request.setInstitution(new Institution());
         final UUID createUserId = UUID.randomUUID();
@@ -933,7 +932,7 @@ class OnboardingServiceDefaultTest {
         Onboarding onboardingDefaultRequest = new Onboarding();
         onboardingDefaultRequest.setInstitution(new Institution());
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
 
         mockPersistOnboarding(asserter);
 
@@ -998,7 +997,7 @@ class OnboardingServiceDefaultTest {
 
         mockFindToken(asserter, onboarding.getId());
 
-        //Mock find manager fiscal code
+        //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
         UserResource actualUserResource = new UserResource();
         actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1033,7 +1032,7 @@ class OnboardingServiceDefaultTest {
 
         mockFindToken(asserter, onboarding.getId());
 
-        //Mock find manager fiscal code
+        //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
         UserResource actualUserResource = new UserResource();
         actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1213,7 +1212,7 @@ class OnboardingServiceDefaultTest {
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1231,7 +1230,7 @@ class OnboardingServiceDefaultTest {
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1247,7 +1246,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 0L);
+        mockUpdateOnboarding(onboarding.getId(), 0L);
 
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
@@ -1257,7 +1256,7 @@ class OnboardingServiceDefaultTest {
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
-    private void mockUpdateOnboarding(String onboardingId, String reasonForReject, Long updatedItemCount) {
+    private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.update(any(Document.class))).thenReturn(query);
@@ -1445,13 +1444,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_importPA(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest managerUser= UserRequest.builder()
                 .name("name")
                 .taxCode(managerResource.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
-        Onboarding request = new Onboarding();List<UserRequest> users = List.of(manager);
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setTaxCode("taxCode");
@@ -1491,7 +1491,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingUsers(UniAsserter asserter) {
         OnboardingUserRequest request = new OnboardingUserRequest();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
         mockPersistOnboarding(asserter);
@@ -1528,7 +1528,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingUsersWithNullOnboardingReeferenceId(UniAsserter asserter) {
         OnboardingUserRequest request = new OnboardingUserRequest();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
@@ -1556,7 +1556,7 @@ class OnboardingServiceDefaultTest {
     @Test
     void onboardingUsersWithInstitutionNotFound() {
         OnboardingUserRequest request = new OnboardingUserRequest();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(managerUser);
         request.setTaxCode("taxCode");
         request.setSubunitCode("subunitCode");
         request.setProductId(PROD_INTEROP.getValue());
@@ -1611,7 +1611,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1637,7 +1637,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1664,7 +1664,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1698,7 +1698,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
