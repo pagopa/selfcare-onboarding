@@ -34,6 +34,7 @@ public class Onboarding  {
     private LocalDateTime deletedAt;
     private String reasonForReject;
     private Boolean isAggregator;
+    private String referenceOnboardingId;
 
     public String getId() {
         return id;
@@ -183,6 +184,14 @@ public class Onboarding  {
 
     public void setIsAggregator(Boolean isAggregator) { this.isAggregator = isAggregator; }
 
+    public String getReferenceOnboardingId() {
+        return referenceOnboardingId;
+    }
+
+    public void setReferenceOnboardingId(String referenceOnboardingId) {
+        this.referenceOnboardingId = referenceOnboardingId;
+    }
+
     @Override
     public String toString() {
         return "Onboarding{" +
@@ -192,6 +201,7 @@ public class Onboarding  {
                 ", workflowType=" + workflowType +
                 ", institution=" + institution +
                 ", users=" + users +
+                ", aggregates=" + aggregates +
                 ", pricingPlan='" + pricingPlan + '\'' +
                 ", billing=" + billing +
                 ", signContract=" + signContract +
@@ -199,11 +209,13 @@ public class Onboarding  {
                 ", status=" + status +
                 ", userRequestUid='" + userRequestUid + '\'' +
                 ", workflowInstanceId='" + workflowInstanceId + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
                 ", activatedAt=" + activatedAt +
                 ", deletedAt=" + deletedAt +
                 ", reasonForReject='" + reasonForReject + '\'' +
-                ", aggregates=" + aggregates +
-                ", isAggregator='" + isAggregator + '\'' +
+                ", isAggregator=" + isAggregator +
+                ", referenceOnboardingId='" + referenceOnboardingId + '\'' +
                 '}';
     }
 }
