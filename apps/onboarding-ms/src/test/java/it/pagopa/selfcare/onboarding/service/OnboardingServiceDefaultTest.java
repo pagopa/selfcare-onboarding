@@ -18,6 +18,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionBaseRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -184,6 +185,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductThrowException(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
@@ -199,6 +201,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
@@ -213,6 +216,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductAlreadyOnboarded(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
@@ -238,6 +242,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductIsNotDelegable(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
@@ -258,6 +263,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductRoleIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
@@ -282,6 +288,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductParentRoleIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
@@ -308,6 +315,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfRoleNotValid(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
+        onboardingDefaultRequest.setIsAggregator(Boolean.FALSE);
         onboardingDefaultRequest.setInstitution(new Institution());
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
 
@@ -336,6 +344,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -380,6 +389,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -415,6 +425,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -450,6 +461,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -493,6 +505,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -530,6 +543,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -576,8 +590,51 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void onboarding_Onboarding_Aggregator(UniAsserter asserter) {
+        UserRequest manager = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.TRUE);
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        List<Institution> aggregates = new ArrayList<>();
+        Institution institution = new Institution();
+        aggregates.add(institution);
+        request.setAggregates(aggregates);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboardingSa_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
@@ -637,6 +694,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionPspRequest = new Institution();
@@ -663,6 +721,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdateAndProductHasParent(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productParentId");
         Institution institutionPspRequest = new Institution();
@@ -696,6 +755,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
+        onboardingDefaultRequest.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         onboardingDefaultRequest.setProductId("productId");
         onboardingDefaultRequest.setInstitution(new Institution());
@@ -725,6 +785,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
@@ -770,6 +831,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
@@ -810,6 +872,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
@@ -849,6 +912,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_whenUserNotFoundedAndWillSave(UniAsserter asserter) {
         Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.FALSE);
         List<UserRequest> users = List.of(manager);
         request.setProductId("productId");
         request.setInstitution(new Institution());
@@ -889,6 +953,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
+        onboardingDefaultRequest.setIsAggregator(Boolean.FALSE);
         onboardingDefaultRequest.setInstitution(new Institution());
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
         List<UserRequest> users = List.of(manager);
@@ -1129,6 +1194,7 @@ class OnboardingServiceDefaultTest {
 
     private Onboarding createDummyOnboarding() {
         Onboarding onboarding = new Onboarding();
+        onboarding.setIsAggregator(Boolean.FALSE);
         onboarding.setId(UUID.randomUUID().toString());
         onboarding.setProductId("prod-id");
 
@@ -1146,6 +1212,7 @@ class OnboardingServiceDefaultTest {
 
     private Onboarding createDummyUsersOnboarding() {
         Onboarding onboarding = new Onboarding();
+        onboarding.setIsAggregator(Boolean.FALSE);
         onboarding.setId(UUID.randomUUID().toString());
         onboarding.setProductId("prod-id");
         onboarding.setReferenceOnboardingId("referenceOnboardinId");
