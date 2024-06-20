@@ -311,4 +311,14 @@ public class OnboardingController {
         return onboardingService.updateOnboarding(onboardingId, onboardingMapper.toEntity(onboardingRequest, status))
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
+
+    @Operation(summary = "In the addition administrator flow, it checks " +
+            "if new manager is different from old one. " )
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/check-manager")
+    public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
+        return onboardingService.checkManager(onboardingUserRequest)
+                .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
+    }
 }

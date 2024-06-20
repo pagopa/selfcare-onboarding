@@ -296,25 +296,28 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
+        String taxCode = onboarding.getInstitution().getTaxCode();
+        String origin = onboarding.getInstitution().getOrigin().name();
+        String originId = onboarding.getInstitution().getOriginId();
+        String productId = onboarding.getProductId();
+        String subunitCode = onboarding.getInstitution().getSubunitCode();
+        Uni<Onboarding> result = getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId);
+        return result.onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
+                        taxCode, origin, originId, productId, subunitCode)))
+                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()))
+                .replaceWith(onboarding);
+    }
+
+    private static Uni<Onboarding> getOnboardingByFilters(String taxCode, String subunitCode, String origin,
+                                                          String originId, String productId) {
         final Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
-                onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(),
-                onboarding.getInstitution().getOrigin().name(),
-                onboarding.getInstitution().getOriginId(),
-                OnboardingStatus.COMPLETED,
-                onboarding.getProductId()
+                taxCode, subunitCode, origin,
+                originId, OnboardingStatus.COMPLETED,
+                productId
         );
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).firstResult()
-                .map(Onboarding.class::cast)
-                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
-                        onboarding.getInstitution().getTaxCode(),
-                        onboarding.getInstitution().getOrigin().name(),
-                        onboarding.getInstitution().getOriginId(),
-                        onboarding.getProductId(),
-                        onboarding.getInstitution().getSubunitCode())))
-                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()))
-                .replaceWith(onboarding);
+                .map(Onboarding.class::cast);
     }
 
     public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding, Uni<OrchestrationResponse> orchestration) {
@@ -1009,6 +1012,32 @@ public class OnboardingServiceDefault implements OnboardingService {
                     : Uni.createFrom().item(onboardingGet))
                 .onItem().transformToUni(id -> updateOnboardingValues(onboardingId, onboarding));
 
+    }
+
+    @Override
+    public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
+        getOnboardingByFilters(onboardingUserRequest.getTaxCode(),
+                onboardingUserRequest.getSubunitCode(),
+                onboardingUserRequest.getOrigin(),
+                onboardingUserRequest.getOriginId(),
+                onboardingUserRequest.getProductId())
+                .onItem().transformToUni(onboarding -> {
+                    Uni.createFrom().item(onboardingUserRequest.getUsers().stream()
+                            .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
+                            .map(UserRequest::getTaxCode)
+                            .findAny().orElse(null))
+                            .onItem().invoke(taxCodeManager -> userRegistryApi
+                                    /* search user by tax code */
+                                    .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(taxCodeManager))
+                                    .onItem().transformToUni(userResource -> {
+                                        if(userResource.getId().equals("")) {
+                                            return Uni.createFrom().item(true);
+                                        }
+                                        return Uni.createFrom().item(false);
+                                    }));
+                    return Uni.createFrom().item(false);
+                });
+        return Uni.createFrom().item(false);
     }
 
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
