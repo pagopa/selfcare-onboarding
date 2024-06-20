@@ -34,8 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -160,6 +159,34 @@ class OnboardingControllerTest {
                 .onboarding(captor.capture(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
 
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingPaAggregator() {
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+        onboardingPaValid.setIsAggregator(Boolean.TRUE);
+        List<InstitutionBaseRequest> institutionBaseRequests = new ArrayList<>();
+        institutionBaseRequests.add(institution);
+        onboardingPaValid.setAggregates(institutionBaseRequests);
+
+        Mockito.when(onboardingService.onboarding(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/pa/aggregation")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboarding(captor.capture(), any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+        assertTrue(captor.getValue().getIsAggregator());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
     @Test

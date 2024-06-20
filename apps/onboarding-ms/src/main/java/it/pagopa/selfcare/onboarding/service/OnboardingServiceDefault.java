@@ -351,6 +351,10 @@ public class OnboardingServiceDefault implements OnboardingService {
             return WorkflowType.FOR_APPROVE_PT;
         }
 
+        if (Objects.nonNull(onboarding.getIsAggregator()) && onboarding.getIsAggregator().equals(Boolean.TRUE)) {
+            return WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR;
+        }
+
         if (InstitutionType.PA.equals(institutionType)
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
