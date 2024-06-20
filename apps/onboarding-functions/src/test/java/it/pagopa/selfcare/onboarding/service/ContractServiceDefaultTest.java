@@ -4,17 +4,20 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
@@ -31,26 +34,24 @@ class ContractServiceDefaultTest {
 
     @Inject
     AzureStorageConfig azureStorageConfig;
-
     @InjectMock
     AzureBlobClient azureBlobClient;
+    @InjectMock
     PadesSignService padesSignService;
-
     @Inject
     ContractService contractService;
-
+    @InjectMock
+    @RestClient
+    UserApi userRegistryApi;
+    @InjectMock
+    OnboardingRepository onboardingRepository;
     @Inject
     PagoPaSignatureConfig pagoPaSignatureConfig;
 
-
     final static String productNameExample = "product-name";
 
-    @BeforeEach
-    void setup(){
-        padesSignService = mock(PadesSignService.class);
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo- path", true);
-    }
-
+    private final static String contractFilepath = "contract";
+    private final static String contractHtml = "contract";
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
@@ -90,8 +91,6 @@ class ContractServiceDefaultTest {
 
     @Test
     void createContractPDF() {
-        final String contractFilepath = "contract";
-        final String contractHtml = "contract";
         final String productNameAccent = "Interoperabilità";
 
         Onboarding onboarding = createOnboarding();
@@ -114,9 +113,6 @@ class ContractServiceDefaultTest {
 
     @Test
     void createContractPDFSA() {
-        final String contractFilepath = "contract";
-        final String contractHtml = "contract";
-
         Onboarding onboarding = createOnboarding();
         User userManager = onboarding.getUsers().get(0);
         UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
@@ -148,17 +144,42 @@ class ContractServiceDefaultTest {
     }
 
     @Test
-    void createContractPDFAndSigned() {
-        final String contractFilepath = "contract";
-        final String contractHtml = "contract";
+    void createContractPDFWithPreviousManagerData() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.setReferenceOnboardingId("previousOnboardingId");
+        Onboarding previousOnboarding = createOnboarding();
+        previousOnboarding.getUsers().get(0).setRole(PartyRole.MANAGER);
+        User userManager = onboarding.getUsers().get(0);
+        userManager.setRole(PartyRole.MANAGER);
+        User previousUserManager = previousOnboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        UserResource previousManager = createDummyUserResource(previousUserManager.getId(), previousUserManager.getUserMailUuid());
+        CertifiableFieldResourceOfstring certifiedField = new CertifiableFieldResourceOfstring();
+        certifiedField.setValue("name");
+        previousManager.setName(certifiedField);
+        previousManager.setFamilyName(certifiedField);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        onboarding.setProductId("prod-pagopa");
 
+        Mockito.when(onboardingRepository.findByIdOptional(anyString())).thenReturn(Optional.of(previousOnboarding));
+
+        Mockito.when(userRegistryApi.findByIdUsingGET(any(), anyString())).thenReturn(previousManager);
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+    }
+
+    @Test
+    void createContractPDFAndSigned() {
         Onboarding onboarding = createOnboarding();
         User userManager = onboarding.getUsers().get(0);
         UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
 
         PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo-path", true);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
@@ -173,9 +194,6 @@ class ContractServiceDefaultTest {
 
     @Test
     void loadContractPDF() {
-        final String contractFilepath = "contract";
-        final String contractHtml = "contract";
-
         Onboarding onboarding = createOnboarding();
 
         File pdf = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
@@ -203,7 +221,6 @@ class ContractServiceDefaultTest {
         assertTrue(filepathActual.getValue().contains(onboarding.getId()));
         assertTrue(filepathActual.getValue().contains(productNameExample));
     }
-
 
     @Test
     void getLogoFile() {

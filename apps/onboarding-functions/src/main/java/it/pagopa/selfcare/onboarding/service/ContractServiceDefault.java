@@ -4,19 +4,26 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
+import it.pagopa.selfcare.onboarding.utils.GenericError;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.UNABLE_TO_DOWNLOAD_FILE;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
@@ -41,31 +49,32 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
 
-
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
-
     private final AzureStorageConfig azureStorageConfig;
     private final AzureBlobClient azureBlobClient;
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
-
+    private final OnboardingRepository onboardingRepository;
     Boolean isLogoEnable;
-
     private final String logoPath;
-
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
                                   PagoPaSignatureConfig pagoPaSignatureConfig,
                                   @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
-                                  @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable) {
+                                  @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable,
+                                  OnboardingRepository onboardingRepository) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
         this.logoPath = logoPath;
         this.isLogoEnable = isLogoEnable;
+        this.onboardingRepository = onboardingRepository;
     }
 
     /**
@@ -95,8 +104,8 @@ public class ContractServiceDefault implements ContractService {
 
             // If contract template is a PDF, I get without parsing
             File temporaryPdfFile = "pdf".equals(fileType)
-                ? azureBlobClient.getFileAsPdf(contractTemplatePath)
-                : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
+                    ? azureBlobClient.getFileAsPdf(contractTemplatePath)
+                    : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
 
             // Define the filename and path for storage.
             final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
@@ -124,7 +133,10 @@ public class ContractServiceDefault implements ContractService {
         Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding);
-
+        // Set data of previous manager in case of users onboarding
+        if (Objects.nonNull(onboarding.getReferenceOnboardingId())) {
+            setPreviousManagerData(onboarding, manager, data);
+        }
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
@@ -145,6 +157,25 @@ public class ContractServiceDefault implements ContractService {
         log.debug("data Map for PDF: {}", data);
         fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
         return temporaryPdfFile.toFile();
+    }
+
+    private void setPreviousManagerData(Onboarding onboarding, UserResource manager, Map<String, Object> data) {
+        onboardingRepository.findByIdOptional(onboarding.getReferenceOnboardingId())
+                .ifPresent(previousOnboarding -> {
+                    final String previousManagerId =  previousOnboarding.getUsers().stream()
+                            .filter(user -> PartyRole.MANAGER == user.getRole())
+                            .map(User::getId)
+                            .findAny()
+                            .orElseThrow(() -> new GenericOnboardingException(
+                                    GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getMessage(),
+                                    GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getCode())
+                            );
+                    UserResource previousManager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, previousManagerId);
+                    if (!previousManager.getId().equals(manager.getId())) {
+                        data.put("previousManagerName", previousManager.getName().getValue());
+                        data.put("previousManagerSurname",previousManager.getFamilyName().getValue());
+                    }
+                });
     }
 
     private File signPdf(File pdf, String institutionDescription, String productId) throws IOException {
@@ -186,20 +217,20 @@ public class ContractServiceDefault implements ContractService {
         }
     }
 
-        private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
+    private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
         log.debug("Getting PDF for HTML template...");
         String html = StringSubstitutor.replace(contractTemplate, data);
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.useFastMode();
         builder.useProtocolsStreamImplementation(url -> {
-                URI fullUri;
-                try {
-                    fullUri = new URI(url);
-                    return new ClassPathStream(fullUri.getPath());
-                } catch (URISyntaxException e) {
-                    log.error("URISintaxException in ClassPathStreamFactory: ",e);
-                    throw new GenericOnboardingException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
-                }
+            URI fullUri;
+            try {
+                fullUri = new URI(url);
+                return new ClassPathStream(fullUri.getPath());
+            } catch (URISyntaxException e) {
+                log.error("URISintaxException in ClassPathStreamFactory: ",e);
+                throw new GenericOnboardingException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
+            }
         }, "classpath");
         var doc = Jsoup.parse(html, "UTF-8");
         var dom = W3CDom.convert(doc);
