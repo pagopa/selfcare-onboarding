@@ -310,6 +310,42 @@
         } ]
       }
     },
+    "/v1/onboarding/pa/aggregation" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in additition to default requestUsers data will be saved on personal data vault if it doesn't already exist.At the end, function triggers async activities related to onboarding aggregation that consist of create contract and sending mail to institution's digital address.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingPaRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/pa/completion" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
