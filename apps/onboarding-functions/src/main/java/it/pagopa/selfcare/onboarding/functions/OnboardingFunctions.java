@@ -167,6 +167,11 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString));
         service.sendMailRegistrationForContract(readOnboardingValue(objectMapper, onboardingString));
     }
+    @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR)
+    public void sendMailRegistrationForContractAggregator(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, onboardingString));
+        service.sendMailRegistrationForContractAggregator(readOnboardingValue(objectMapper, onboardingString));
+    }
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
     public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
