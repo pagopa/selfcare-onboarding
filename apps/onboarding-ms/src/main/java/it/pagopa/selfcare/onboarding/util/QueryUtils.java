@@ -7,8 +7,6 @@ import com.mongodb.client.model.Updates;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
@@ -40,6 +38,7 @@ public class QueryUtils {
         public static final String TO = "to";
         public static final String PRODUCT = "productId";
         public static final String INSTITUTION_TAX_CODE = "institution.taxCode";
+        public static final String INSTITUTION_ID = "institution.id";
         public static final String INSTITUTION_ORIGIN = "institution.origin";
         public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
         public static final String INSTITUTION_SUBUNIT_CODE =  "institution.subunitCode";
@@ -82,12 +81,12 @@ public class QueryUtils {
      */
     public static Map<String, String> createMapForOnboardingQueryParameter(OnboardingGetFilters filters) {
         Map<String, String> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value));
-        Optional.ofNullable(from).ifPresent(value -> queryParameterMap.put(FROM, value));
-        Optional.ofNullable(to).ifPresent(value -> queryParameterMap.put(TO, value));
-        Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> queryParameterMap.put("institution.id", value));
+        Optional.ofNullable(filters.getProductId()).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
+        Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        Optional.ofNullable(filters.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value));
+        Optional.ofNullable(filters.getFrom()).ifPresent(value -> queryParameterMap.put(FROM, value));
+        Optional.ofNullable(filters.getTo()).ifPresent(value -> queryParameterMap.put(TO, value));
+        Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> queryParameterMap.put(INSTITUTION_ID, value));
         Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> queryParameterMap.put("_id", value));
         return queryParameterMap;
     }
@@ -99,7 +98,7 @@ public class QueryUtils {
         Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
         Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
         Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT", value));
+        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
         return queryParameterMap;
     }
 
@@ -115,7 +114,7 @@ public class QueryUtils {
         Map<String, Object> queryParameterMap = new HashMap<>();
         Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
         Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
-        Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put("status", value.name()));
+        Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
         Optional.ofNullable(onboarding.getBilling())
                 .ifPresent(billing -> {
                     Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));

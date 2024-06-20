@@ -25,7 +25,10 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -47,7 +50,10 @@ import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
@@ -1163,13 +1169,12 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1180,14 +1185,13 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void rejectOnboarding_statusIsCOMPLETED() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1202,7 +1206,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 0L);
+        mockUpdateOnboarding(onboarding.getId(), 0L);
 
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
