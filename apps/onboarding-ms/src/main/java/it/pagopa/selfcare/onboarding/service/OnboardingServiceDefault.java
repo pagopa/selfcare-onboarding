@@ -301,7 +301,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding.getInstitution().getSubunitCode(),
                 onboarding.getInstitution().getOrigin().name(),
                 onboarding.getInstitution().getOriginId(),
-                null,
+                OnboardingStatus.COMPLETED,
                 onboarding.getProductId()
         );
         Document query = QueryUtils.buildQuery(queryParameter);
@@ -349,6 +349,10 @@ public class OnboardingServiceDefault implements OnboardingService {
         InstitutionType institutionType = onboarding.getInstitution().getInstitutionType();
         if (InstitutionType.PT.equals(institutionType)) {
             return WorkflowType.FOR_APPROVE_PT;
+        }
+
+        if (Objects.nonNull(onboarding.getIsAggregator()) && onboarding.getIsAggregator().equals(Boolean.TRUE)) {
+            return WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR;
         }
 
         if (InstitutionType.PA.equals(institutionType)
