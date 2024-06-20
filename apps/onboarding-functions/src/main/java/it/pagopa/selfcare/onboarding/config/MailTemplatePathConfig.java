@@ -14,6 +14,7 @@ public interface MailTemplatePathConfig {
     String delegationNotificationPath();
 
     String registrationPath();
+    String registrationAggregatorPath();
 
     String onboardingApprovePath();
 

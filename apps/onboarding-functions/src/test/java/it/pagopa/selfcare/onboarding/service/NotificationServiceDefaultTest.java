@@ -81,12 +81,45 @@ class NotificationServiceDefaultTest {
     }
 
     @Test
+    void sendMailRegistrationWithContractAggregator() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+
+        final String onboardingId = "onboardingId";
+        final String destination = "test@test.it";
+        final String productName = "productName";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationAggregatorPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRegistrationForContractAggregator(onboardingId, destination,"","", productName);
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
     void sendMailRegistrationWithContract_shouldThrowException() {
         final String onboardingId = "onboardingId";
         final String productName = "productName";
       //  final File file = mock(File.class);
       //  Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
         assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
+    }
+
+    @Test
+    void sendMailRegistrationWithContractAggregator_shouldThrowException() {
+        final String onboardingId = "onboardingId";
+        final String productName = "productName";
+      //  final File file = mock(File.class);
+      //  Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContractAggregator(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
     }
 
     @Test
