@@ -29,6 +29,6 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        return Optional.empty();
+        return onboardingCompletionActivity(ctx, onboarding);
     }
 }

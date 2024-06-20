@@ -254,6 +254,31 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingOrchestratorConfirmationAggregator(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(5))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+    }
+    @Test
     void onboardingsOrchestratorConfirmationWithTestProductIds() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
