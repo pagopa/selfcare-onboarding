@@ -166,9 +166,10 @@ class OnboardingControllerTest {
     void onboardingPaAggregator() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
         onboardingPaValid.setIsAggregator(Boolean.TRUE);
-        List<InstitutionBaseRequest> institutionBaseRequests = new ArrayList<>();
-        institutionBaseRequests.add(institution);
-        onboardingPaValid.setAggregates(institutionBaseRequests);
+        List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutions.add(aggregateInstitutionRequest);
+        onboardingPaValid.setAggregates(aggregateInstitutions);
 
         Mockito.when(onboardingService.onboarding(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));

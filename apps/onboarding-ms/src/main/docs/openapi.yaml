@@ -733,6 +733,32 @@ components:
           type: string
         otherNote:
           type: string
+    AggregateInstitutionRequest:
+      required:
+      - taxCode
+      - description
+      type: object
+      properties:
+        taxCode:
+          type: string
+        description:
+          type: string
+        subunitCode:
+          type: string
+        subunitType:
+          type: string
+        geographicTaxonomies:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeographicTaxonomy"
+        address:
+          type: string
+        zipCode:
+          type: string
+        originId:
+          type: string
+        origin:
+          $ref: "#/components/schemas/Origin"
     BillingPaRequest:
       type: object
       properties:
@@ -770,6 +796,13 @@ components:
         email:
           type: string
         pec:
+          type: string
+    GeographicTaxonomy:
+      type: object
+      properties:
+        code:
+          type: string
+        desc:
           type: string
     GeographicTaxonomyDto:
       type: object
@@ -1016,7 +1049,7 @@ components:
         aggregates:
           type: array
           items:
-            $ref: "#/components/schemas/InstitutionBaseRequest"
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
@@ -1152,7 +1185,7 @@ components:
         aggregates:
           type: array
           items:
-            $ref: "#/components/schemas/InstitutionBaseRequest"
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
@@ -1208,7 +1241,7 @@ components:
         aggregates:
           type: array
           items:
-            $ref: "#/components/schemas/InstitutionBaseRequest"
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
