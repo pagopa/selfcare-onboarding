@@ -201,6 +201,12 @@
               "$ref": "#/components/schemas/User"
             }
           },
+          "aggregates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AggregateInstitution"
+            }
+          },
           "billing": {
             "$ref": "#/components/schemas/Billing"
           },
@@ -223,6 +229,9 @@
             "$ref": "#/components/schemas/LocalDateTime"
           },
           "signContract": {
+            "type": "boolean"
+          },
+          "isAggregator": {
             "type": "boolean"
           },
           "userRequestUid": {
@@ -307,6 +316,42 @@
             "$ref": "#/components/schemas/DataProtectionOfficer"
           },
           "parentDescription": {
+            "type": "string"
+          }
+        }
+      },
+      "AggregateInstitution": {
+        "title": "AggregateInstitution",
+        "type": "object",
+        "properties": {
+          "taxCode": {
+            "type": "string"
+          },
+          "subunitCode": {
+            "type": "string"
+          },
+          "subunitType": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Origin"
+          },
+          "originId": {
+            "type": "string"
+          },
+          "geographicTaxonomies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeographicTaxonomy"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "zipCode": {
             "type": "string"
           }
         }
