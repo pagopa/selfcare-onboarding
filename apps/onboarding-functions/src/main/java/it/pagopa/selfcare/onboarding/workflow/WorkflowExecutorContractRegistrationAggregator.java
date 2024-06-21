@@ -17,7 +17,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
         String onboardingString = getOnboardingString(objectMapper, onboarding);
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString, optionsRetry, String.class).await();//fixme: need to call the new fn SEND_MAIL_REGISTRATION_FOR_AGGREGATOR_CONTRACT
+        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, onboardingString, optionsRetry, String.class).await();
 
         return Optional.of(OnboardingStatus.PENDING);
     }
