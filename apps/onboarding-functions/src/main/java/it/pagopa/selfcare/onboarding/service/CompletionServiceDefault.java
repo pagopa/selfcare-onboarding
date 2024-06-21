@@ -308,10 +308,11 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+    public Onboarding createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
         Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
         onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
         onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
-        onboardingRepository.update(onboardingToUpdate);
+        onboardingRepository.persistOrUpdate(onboardingToUpdate);
+        return onboardingToUpdate;
     }
 }

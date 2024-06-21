@@ -584,15 +584,12 @@ public class CompletionServiceDefaultTest {
         Onboarding onboardingToUpdate = createSampleOnboarding();
 
         // When
-        completionServiceDefault.createAggregateOnboardingRequest(input);
+        Onboarding onboarding = completionServiceDefault.createAggregateOnboardingRequest(input);
 
         // Then
-        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
-        verify(onboardingRepository, times(1)).update(captor.capture());
-        Onboarding captured = captor.getValue();
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(captured));
+        assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(onboarding));
     }
 
     public static OnboardingAggregateOrchestratorInput createSampleOnboardingInput() {

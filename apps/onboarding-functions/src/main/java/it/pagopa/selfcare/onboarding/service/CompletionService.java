@@ -17,5 +17,5 @@ public interface CompletionService {
 
     void persistUsers(Onboarding onboarding);
 
-    void createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+    Onboarding createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 }

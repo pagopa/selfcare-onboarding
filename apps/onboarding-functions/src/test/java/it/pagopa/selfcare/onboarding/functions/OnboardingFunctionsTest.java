@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -560,14 +561,15 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    void confirmationAggregate() {
-        final String onboardingAggregateOrchestratorInputString = "{\"id\":\"id\"}";
+    void createAggregateOnboardingRequest() {
+        final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(completionService).createAggregateOnboardingRequest(any());
 
-        function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
+        Onboarding onboarding = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
 
+        Assertions.assertEquals("prod-io", onboarding.getProductId());
         Mockito.verify(completionService, times(1))
                 .createAggregateOnboardingRequest(any());
     }
