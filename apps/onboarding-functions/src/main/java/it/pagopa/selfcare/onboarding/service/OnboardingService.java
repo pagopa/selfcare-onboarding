@@ -1,11 +1,13 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -18,6 +20,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -64,7 +67,7 @@ public class OnboardingService {
 
     public void createContract(Onboarding onboarding) {
         String validManagerId = getValidManagerId(onboarding.getUsers());
-        UserResource manager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,validManagerId);
+        UserResource manager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, validManagerId);
 
         List<UserResource> delegates = onboarding.getUsers()
                 .stream()
@@ -86,11 +89,12 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
+
     public void saveTokenWithContract(Onboarding onboarding) {
 
         // Skip if token already exists
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
-        if(optToken.isPresent()) {
+        if (optToken.isPresent()) {
             log.debug("Token has already exists for onboarding {}", onboarding.getId());
             return;
         }
@@ -221,6 +225,32 @@ public class OnboardingService {
                 .update("status = ?1 and workflowInstanceId = ?2 and updatedAt = ?3",
                         status.name(), instanceId, LocalDateTime.now())
                 .where("_id", onboardingId);
+    }
+
+    public List<OnboardingCountResult> countOnboarding(ExecutionContext context) {
+        return productService.getProducts(false, false)
+                .parallelStream()
+                .map(product -> countOnboarding(product.getId(), context))
+                .collect(Collectors.toList());
+    }
+
+    private OnboardingCountResult countOnboarding(String productId, ExecutionContext context) {
+
+        Document queryCompleted = createQuery(productId, OnboardingStatus.COMPLETED);
+        Document queryDeleted = createQuery(productId, OnboardingStatus.DELETED);
+
+        long countCompleted = repository.find(queryCompleted).count();
+        long countDeleted = repository.find(queryDeleted).count();
+
+        context.getLogger().info("Counted onboarding for product: " + productId + " completed: " + countCompleted + " deleted: " + countDeleted);
+        return new OnboardingCountResult(productId, countCompleted, countDeleted);
+    }
+
+    private Document createQuery(String productId, OnboardingStatus status) {
+        Document query = new Document();
+        query.append("productId", productId);
+        query.append("status", status);
+        return query;
     }
 
     static class SendMailInput {

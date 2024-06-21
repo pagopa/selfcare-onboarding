@@ -7,6 +7,7 @@ import com.microsoft.azure.functions.HttpStatus;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
+import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -15,9 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,8 +51,7 @@ public class NotificationFunctionsTest {
     @Test
     public void sendNotificationTrigger() {
         // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
 
         final Optional<String> queryBody = Optional.of(onboardinString);
         doReturn(queryBody).when(req).getBody();
@@ -79,8 +77,7 @@ public class NotificationFunctionsTest {
     @Test
     public void resendNotificationTrigger() {
         // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
 
         final Map<String, String> queryParams = new HashMap<>();
         final String onboardingId = "onboardingId";
@@ -109,8 +106,7 @@ public class NotificationFunctionsTest {
     @Test
     public void resendNotificationNullOnboardingId() {
         // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
 
         final Map<String, String> queryParams = new HashMap<>();
         doReturn(queryParams).when(req).getQueryParameters();
@@ -132,8 +128,7 @@ public class NotificationFunctionsTest {
     @Test
     public void resendNotificationOnboardingNotFound() {
         // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
 
         final Map<String, String> queryParams = new HashMap<>();
         final String onboardingId = "onboardingId";
@@ -158,8 +153,7 @@ public class NotificationFunctionsTest {
     @Test
     public void sendNotificationTriggerError() {
         // Setup
-        @SuppressWarnings("unchecked")
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final String malformedOnboarding = "{\"onboardingId\":\"onboardingId\"";
         final Optional<String> queryBody = Optional.of(malformedOnboarding);
         doReturn(queryBody).when(req).getBody();
@@ -175,4 +169,49 @@ public class NotificationFunctionsTest {
 
     }
 
+    @Test
+    public void countOnboardingShouldReturnOkWhenServiceDoesNotThrow() {
+        // Given
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        when(onboardingService.countOnboarding(context)).thenReturn(new ArrayList<>());
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        // When
+        HttpResponseMessage responseMessage = function.countOnboarding(req, context);
+
+        // Then
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
+        verify(onboardingService, times(1)).countOnboarding(context);
+    }
+
+
+    @Test
+    public void countOnboardingShouldReturnOkWithCorrectBodyWhenServiceReturnsData() {
+        // Given
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        List<OnboardingCountResult> expectedResults = List.of(new OnboardingCountResult("product1", 1L, 1L));
+        when(onboardingService.countOnboarding(context)).thenReturn(expectedResults);
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        // When
+        HttpResponseMessage responseMessage = function.countOnboarding(req, context);
+
+        // Then
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
+        assertEquals(expectedResults, responseMessage.getBody());
+        verify(onboardingService, times(1)).countOnboarding(context);
+    }
 }
+

@@ -6,11 +6,15 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FixedDelayRetry;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.ws.rs.core.MediaType;
+import org.apache.http.HttpHeaders;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -38,7 +42,7 @@ public class NotificationFunctions {
      */
     @FunctionName("Notification")
     @FixedDelayRetry(maxRetryCount = 3, delayInterval = "00:00:30")
-    public HttpResponseMessage sendNotification (
+    public HttpResponseMessage sendNotification(
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("sendNotifications trigger processed a request");
@@ -91,12 +95,30 @@ public class NotificationFunctions {
 
 
         final Optional<Onboarding> onboarding = onboardingService.getOnboarding(onboardingId);
-        if(onboarding.isEmpty()) {
+        if (onboarding.isEmpty()) {
             return request.createResponseBuilder(HttpStatus.NOT_FOUND)
                     .body("Onboarding with ID: " + onboardingId + " not found")
                     .build();
         }
         notificationEventService.send(context, onboarding.get(), queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
+    }
+
+    /**
+     * This HTTP-triggered function performs for every product a count of relative onboardings in COMPLETED
+     * and DELETE status. It is useful to the external consumer services of the queues, as it provides them
+     * a comparison tool to compare the data they have with the situation on the selfcare domain
+     */
+    @FunctionName("CountOnboardings")
+    public HttpResponseMessage countOnboarding(
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("count trigger processed a request");
+
+        List<OnboardingCountResult> countedResult = onboardingService.countOnboarding(context);
+        return request.createResponseBuilder(HttpStatus.OK)
+                .body(countedResult)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .build();
     }
 }
