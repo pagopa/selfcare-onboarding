@@ -60,7 +60,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
         mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
         notificationToSend.setInstitution(retrieveInstitution(institution));
-        setTokenData(notificationToSend, token);
+        if (Objects.nonNull(token)) {
+            setTokenData(notificationToSend, token);
+        }
 
         return notificationToSend;
     }
@@ -70,6 +72,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         notificationToSend.setBilling(retrieveBilling(onboarding));
         notificationToSend.setPricingPlan(onboarding.getPricingPlan());
         notificationToSend.setCreatedAt(OffsetDateTime.of(Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()), ZoneOffset.UTC));
+        notificationToSend.setProduct(onboarding.getProductId());
 
         if (queueEvent.equals(QueueEvent.ADD)) {
             // when onboarding complete last update is activated date
@@ -181,12 +184,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
 
     @Override
     public void setTokenData(NotificationToSend notificationToSend, Token token) {
-        if(Objects.isNull(token)) {
-            return;
+        if (Objects.nonNull(token)) {
+            notificationToSend.setFileName(Paths.get(token.getContractSigned()).getFileName().toString());
+            notificationToSend.setContentType(token.getContractSigned());
         }
-
-        notificationToSend.setProduct(token.getProductId());
-        notificationToSend.setFileName(Objects.isNull(token.getContractSigned()) ? "" : Paths.get(token.getContractSigned()).getFileName().toString());
-        notificationToSend.setContentType(token.getContractSigned());
     }
 }

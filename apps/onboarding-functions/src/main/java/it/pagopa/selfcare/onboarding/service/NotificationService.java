@@ -16,6 +16,8 @@ public interface NotificationService {
 
     void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName);
 
+    void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName);
+
     void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType);
 
     void sendMailRejection(List<String> destinationMails, Product product, String reasonForReject);

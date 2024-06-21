@@ -5,7 +5,7 @@ public class ActivityName {
     public static final String SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME = "SaveTokenWithContract";
     public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
     public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT = "SendMailRegistrationForContract";
-
+    public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR = "SendMailRegistrationForContractAggregator";
     public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY = "SendMailRegistrationForContractWhenApprove";
     public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY = "SendMailRegistrationRequest";
     public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY = "SendMailRegistrationApprove";

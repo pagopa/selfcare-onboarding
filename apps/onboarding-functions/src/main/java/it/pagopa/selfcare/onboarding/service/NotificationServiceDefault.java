@@ -118,6 +118,20 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
+    public void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName) {
+
+        // Prepare data for email
+        Map<String, String> mailParameters = new HashMap<>();
+        mailParameters.put(templatePlaceholdersConfig.productName(), productName);
+        Optional.ofNullable(name).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
+        Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
+
+        sendMailWithFile(List.of(destination), templatePathConfig.registrationAggregatorPath(), mailParameters, productName, null);
+    }
+
+    @Override
     public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType) {
 
         String templatePath;
