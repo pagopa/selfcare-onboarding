@@ -6,6 +6,7 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Product {
 
@@ -37,6 +38,8 @@ public class Product {
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
     private List<String> consumers;
+    private String userContractTemplatePath;
+    private String userContractTemplateVersion;
 
     public String getId() {
         return id;
@@ -260,5 +263,25 @@ public class Product {
 
     public void setConsumers(List<String> consumers) {
         this.consumers = consumers;
+    }
+
+    public String getUserContractTemplatePath() {
+        return userContractTemplatePath;
+    }
+
+    public void setUserContractTemplatePath(String userContractTemplatePath) {
+        this.userContractTemplatePath = userContractTemplatePath;
+    }
+
+    public String getUserContractTemplateVersion() {
+        return userContractTemplateVersion;
+    }
+
+    public void setUserContractTemplateVersion(String userContractTemplateVersion) {
+        this.userContractTemplateVersion = userContractTemplateVersion;
+    }
+
+    public boolean canAddAdmin() {
+        return Objects.nonNull(userContractTemplateVersion);
     }
 }
