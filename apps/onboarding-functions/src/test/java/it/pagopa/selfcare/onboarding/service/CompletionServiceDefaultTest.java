@@ -487,6 +487,9 @@ public class CompletionServiceDefaultTest {
         Map<String, WorkContactResource> map = new HashMap<>();
         userResource.setWorkContacts(map);
         Onboarding onboarding = createOnboarding();
+        Aggregator aggregator= new Aggregator();
+        aggregator.setDescription("description");
+        onboarding.setAggregator(aggregator);
 
         User user = new User();
         user.setRole(PartyRole.MANAGER);
