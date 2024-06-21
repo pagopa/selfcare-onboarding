@@ -69,7 +69,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName);
+        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName, "");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -110,7 +110,7 @@ class NotificationServiceDefaultTest {
         final String productName = "productName";
       //  final File file = mock(File.class);
       //  Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
-        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example", ""));
     }
 
     @Test

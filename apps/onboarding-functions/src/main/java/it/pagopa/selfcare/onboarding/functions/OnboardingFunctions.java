@@ -11,12 +11,16 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
+import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -26,26 +30,34 @@ import java.util.concurrent.TimeoutException;
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingWorkflowValue;
 
 /**
  * Azure Functions with HTTP Trigger integrated with Quarkus
  */
 public class OnboardingFunctions {
-    public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
 
+    public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
 
     private final OnboardingService service;
     private final CompletionService completionService;
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
+    private final ProductService productService;
+    private final MailTemplatePathConfig mailTemplatePathConfig;
+
 
     public OnboardingFunctions(OnboardingService service,
                                ObjectMapper objectMapper,
                                RetryPolicyConfig retryPolicyConfig,
-                               CompletionService completionService) {
+                               CompletionService completionService,
+                               ProductService productService,
+                               MailTemplatePathConfig mailTemplatePathConfig) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
+        this.productService = productService;
+        this.mailTemplatePathConfig = mailTemplatePathConfig;
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -112,7 +124,7 @@ public class OnboardingFunctions {
         String onboardingId = ctx.getInput(String.class);
         Onboarding onboarding;
 
-        WorkflowExecutor workflowExecutor;
+        WorkflowExecutorTemplate workflowExecutor;
 
         try {
             onboarding = service.getOnboarding(onboardingId)
@@ -128,7 +140,12 @@ public class OnboardingFunctions {
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
-            Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
+            Product product = productService.getProductIsValid(onboarding.getProductId());
+            OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflow();
+            onboardingWorkflow.setOnboarding(onboarding);
+            onboardingWorkflow.setContractTemplatePath(workflowExecutor.getContractTemplatePath(product, onboarding));
+            onboardingWorkflow.setEmailRegistrationPath(workflowExecutor.getEmailRegistrationPath(mailTemplatePathConfig));
+            Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboardingWorkflow);
             optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
@@ -145,9 +162,9 @@ public class OnboardingFunctions {
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
-    public void buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
-        service.createContract(readOnboardingValue(objectMapper, onboardingString));
+    public void buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString));
+        service.createContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     /**
@@ -165,7 +182,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT)
     public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString));
-        service.sendMailRegistrationForContract(readOnboardingValue(objectMapper, onboardingString));
+        service.sendMailRegistrationForContract(readOnboardingWorkflowValue(objectMapper, onboardingString));
     }
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR)
     public void sendMailRegistrationForContractAggregator(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
@@ -175,7 +192,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
     public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
-        service.sendMailRegistrationForContractWhenApprove(readOnboardingValue(objectMapper, onboardingString));
+        service.sendMailRegistrationForContractWhenApprove(readOnboardingWorkflowValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)

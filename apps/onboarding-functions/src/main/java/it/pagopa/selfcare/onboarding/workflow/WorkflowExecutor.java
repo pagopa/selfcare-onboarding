@@ -6,6 +6,8 @@ import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.product.entity.Product;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,26 +20,27 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 public interface WorkflowExecutor {
 
-    Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding);
+    Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
     Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding);
-    Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding);
+    Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
 
     ObjectMapper objectMapper();
 
     TaskOptions optionsRetry();
 
-    default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding){
+    default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        final Onboarding onboarding = onboardingWorkflow.getOnboarding();
         return switch (onboarding.getStatus()) {
-            case REQUEST -> executeRequestState(ctx, onboarding);
+            case REQUEST -> executeRequestState(ctx, onboardingWorkflow);
             case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboarding);
-            case PENDING -> executePendingState(ctx, onboarding);
+            case PENDING -> executePendingState(ctx, onboardingWorkflow);
             case REJECTED -> executeRejectedState(ctx, onboarding);
             default -> Optional.empty();
         };
 
     }
 
-    default String createInstitutionAndOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding){
+    default String createInstitutionAndOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding) {
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity

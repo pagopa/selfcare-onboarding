@@ -104,7 +104,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName) {
+    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String templatePath) {
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -114,7 +114,7 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
 
-        sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, null);
+        sendMailWithFile(List.of(destination), templatePath, mailParameters, productName, null);
     }
 
     @Override
