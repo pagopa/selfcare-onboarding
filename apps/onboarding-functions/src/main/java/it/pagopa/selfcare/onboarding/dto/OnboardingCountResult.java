@@ -2,22 +2,22 @@ package it.pagopa.selfcare.onboarding.dto;
 
 public class OnboardingCountResult {
 
-    private String prod;
+    private String productId;
     private long countCompleted;
     private long countDeleted;
 
-    public OnboardingCountResult( String prod,long countCompleted, long countDeleted) {
-        this.prod = prod;
+    public OnboardingCountResult(String productId, long countCompleted, long countDeleted) {
+        this.productId = productId;
         this.countCompleted = countCompleted;
         this.countDeleted = countDeleted;
     }
 
-    public String getProd() {
-        return prod;
+    public String getProductId() {
+        return productId;
     }
 
-    public void setProd(String prod) {
-        this.prod = prod;
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
 
@@ -25,7 +25,7 @@ public class OnboardingCountResult {
         return countCompleted;
     }
 
-    public void setCountCompleted(long count) {
+    public void setCountCompleted(long countCompleted) {
         this.countCompleted = countCompleted;
     }
 
@@ -33,7 +33,7 @@ public class OnboardingCountResult {
         return countDeleted;
     }
 
-    public void setCountDeleted(long count) {
+    public void setCountDeleted(long countDeleted) {
         this.countDeleted = countDeleted;
     }
 }

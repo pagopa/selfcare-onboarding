@@ -231,7 +231,7 @@ public class OnboardingService {
         return productService.getProducts(false, false)
                 .parallelStream()
                 .map(product -> countOnboarding(product.getId(), context))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private OnboardingCountResult countOnboarding(String productId, ExecutionContext context) {
@@ -242,7 +242,7 @@ public class OnboardingService {
         long countCompleted = repository.find(queryCompleted).count();
         long countDeleted = repository.find(queryDeleted).count();
 
-        context.getLogger().info("Counted onboarding for product: " + productId + " completed: " + countCompleted + " deleted: " + countDeleted);
+        context.getLogger().info(() -> String.format("Counted onboarding for productId: %s completed: %s deleted: %s", productId, countCompleted, countDeleted));
         return new OnboardingCountResult(productId, countCompleted, countDeleted);
     }
 
