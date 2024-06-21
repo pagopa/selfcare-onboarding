@@ -25,6 +25,7 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 /**
@@ -232,4 +233,9 @@ public class OnboardingFunctions {
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
+    public void createAggregateOnboardingRequest(@DurableActivityTrigger(name = "onboardingString") String onboardingAggregateOrchestratorInputString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregateOrchestratorInputString));
+        completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
+    }
 }

@@ -2,13 +2,16 @@ package it.pagopa.selfcare.onboarding.service;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.ProductMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -40,6 +43,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
@@ -85,6 +89,9 @@ public class CompletionServiceDefault implements CompletionService {
     NotificationService notificationService;
     @Inject
     ProductService productService;
+
+    @Inject
+    OnboardingMapper onboardingMapper;
 
     @ConfigProperty(name = "onboarding-functions.persist-users.active")
     private boolean isUserMSActive;
@@ -298,5 +305,13 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRepository
                 .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
                 .where("_id", onboarding.getId());
+    }
+
+    @Override
+    public void createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+        Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
+        onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
+        onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
+        onboardingRepository.update(onboardingToUpdate);
     }
 }

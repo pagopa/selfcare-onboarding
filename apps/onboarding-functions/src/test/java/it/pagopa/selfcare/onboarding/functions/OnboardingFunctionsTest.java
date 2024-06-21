@@ -559,4 +559,16 @@ public class OnboardingFunctionsTest {
                 .persistUsers(any());
     }
 
+    @Test
+    void confirmationAggregate() {
+        final String onboardingAggregateOrchestratorInputString = "{\"id\":\"id\"}";
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).createAggregateOnboardingRequest(any());
+
+        function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .createAggregateOnboardingRequest(any());
+    }
 }
