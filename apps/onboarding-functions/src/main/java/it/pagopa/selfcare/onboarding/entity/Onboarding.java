@@ -34,6 +34,7 @@ public class Onboarding  {
     private LocalDateTime deletedAt;
     private String reasonForReject;
     private Boolean isAggregator;
+    private Aggregator aggregator;
 
     public String getId() {
         return id;
@@ -183,6 +184,14 @@ public class Onboarding  {
 
     public void setIsAggregator(Boolean isAggregator) { this.isAggregator = isAggregator; }
 
+    public void setAggregator(Aggregator aggregator) {
+        this.aggregator = aggregator;
+    }
+
+    public Aggregator getAggregator() {
+        return aggregator;
+    }
+
     @Override
     public String toString() {
         return "Onboarding{" +
@@ -202,6 +211,7 @@ public class Onboarding  {
                 ", activatedAt=" + activatedAt +
                 ", deletedAt=" + deletedAt +
                 ", reasonForReject='" + reasonForReject + '\'' +
+                ", aggregator=" + aggregator +
                 ", aggregates=" + aggregates +
                 ", isAggregator='" + isAggregator + '\'' +
                 '}';

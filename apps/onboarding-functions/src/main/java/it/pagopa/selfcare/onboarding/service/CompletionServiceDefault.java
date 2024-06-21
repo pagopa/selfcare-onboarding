@@ -318,7 +318,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         destinationMails.add(onboarding.getInstitution().getDigitalAddress());
 
-        notificationService.sendCompletedEmailAggregate(onboarding.getInstitution().getDescription(),
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(),
                 destinationMails);
     }
 }
