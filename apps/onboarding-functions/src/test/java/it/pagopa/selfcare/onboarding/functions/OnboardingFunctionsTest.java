@@ -548,6 +548,19 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void sendCompletedEmailAggregate() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any());
+
+        function.sendMailCompletionAggregate(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendCompletedEmailAggregate(any());
+    }
+
+
+    @Test
     void createUsersOnboarding() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());

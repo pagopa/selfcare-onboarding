@@ -10,9 +10,6 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -480,6 +477,30 @@ public class CompletionServiceDefaultTest {
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRejection(any(), any(), any());
+    }
+
+    @Test
+    void sendCompletedEmailAggregate() {
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        Map<String, WorkContactResource> map = new HashMap<>();
+        userResource.setWorkContacts(map);
+        Onboarding onboarding = createOnboarding();
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
+
+        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmailAggregate(any(), any());
     }
 
     @Test

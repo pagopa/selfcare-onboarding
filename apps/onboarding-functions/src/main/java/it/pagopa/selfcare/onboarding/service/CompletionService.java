@@ -14,5 +14,7 @@ public interface CompletionService {
 
     void sendCompletedEmail(Onboarding onboarding);
 
+    void sendCompletedEmailAggregate(Onboarding onboarding);
+
     void persistUsers(Onboarding onboarding);
 }

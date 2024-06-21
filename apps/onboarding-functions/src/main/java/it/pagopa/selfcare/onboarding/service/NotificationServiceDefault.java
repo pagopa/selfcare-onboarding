@@ -164,6 +164,16 @@ public class NotificationServiceDefault implements NotificationService {
         sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
     }
 
+    @Override
+    public void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails) {
+
+        Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
+        mailParameter.put(templatePlaceholdersConfig.completeSelfcareName(), templatePlaceholdersConfig.completeSelfcarePlaceholder());
+
+        sendMailWithFile(destinationMails, templatePathConfig.completePathAggregate(), mailParameter, null, retrieveFileMetadataPagopaLogo());
+    }
+
     private FileMailData retrieveFileMetadataPagopaLogo() {
         FileMailData fileMailData = null;
         Optional<File> optFileLogo = contractService.getLogoFile();
@@ -193,7 +203,13 @@ public class NotificationServiceDefault implements NotificationService {
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
 
-            final String subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
+            final String subject;
+
+            if(Objects.nonNull(prefixSubject)) {
+                subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
+            } else {
+                subject = mailTemplate.getSubject();
+            }
 
             Mail mail = Mail
                     .withHtml(destination, subject, html)
