@@ -26,7 +26,7 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
-    private List<Institution> aggregates;
+    private List<AggregateInstitution> aggregates;
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;

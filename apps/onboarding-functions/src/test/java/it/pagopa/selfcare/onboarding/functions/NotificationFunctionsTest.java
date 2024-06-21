@@ -8,6 +8,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.service.CheckOrganizationService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
@@ -39,6 +40,9 @@ public class NotificationFunctionsTest {
 
     @InjectMock
     NotificationEventService notificationEventService;
+
+    @InjectMock
+    CheckOrganizationService checkOrganizationService;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -173,6 +177,82 @@ public class NotificationFunctionsTest {
         HttpResponseMessage responseMessage = function.sendNotification(req, context);
         assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
 
+    }
+
+    @Test
+    public void checkOrganizationTest() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("fiscalCode", "someFiscalCode");
+        queryParams.put("vatNumber", "someVatNumber");
+        queryParams.put("Authorization", "someToken");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        when(checkOrganizationService.checkOrganization(any(), any(), any())).thenReturn(true);
+        HttpResponseMessage responseMessage = function.checkOrganization(req, context);
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void checkOrganizationFiscalCodeNullTest() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("vatNumber", "vatNumber");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        HttpResponseMessage responseMessage = function.checkOrganization(req, context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void checkOrganizationVatNumberNullTest() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("fiscalCode", "fiscalCode");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        HttpResponseMessage responseMessage = function.checkOrganization(req, context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void checkOrganizationAlreadyRegisteredNullTest() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("fiscalCode", "fiscalCode");
+        queryParams.put("vatNumber", "vatNumber");
+        doReturn(queryParams).when(req).getQueryParameters();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        when(checkOrganizationService.checkOrganization(any(), any(), any())).thenReturn(false);
+        HttpResponseMessage responseMessage = function.checkOrganization(req, context);
+        assertEquals(HttpStatus.NOT_FOUND.value(), responseMessage.getStatusCode());
     }
 
 }

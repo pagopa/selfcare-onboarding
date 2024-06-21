@@ -120,9 +120,11 @@ public class OnboardingFunctions {
 
             switch (onboarding.getWorkflowType()) {
                 case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
+                case CONTRACT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry);
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
+                case CONFIRMATION_AGGREGATE -> workflowExecutor = new WorkflowExecutorConfirmationAggregate(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
