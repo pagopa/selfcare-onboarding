@@ -25,10 +25,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -560,8 +557,8 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        List<Institution> aggregates = new ArrayList<>();
-        Institution institution = new Institution();
+        List<AggregateInstitution> aggregates = new ArrayList<>();
+        AggregateInstitution institution = new AggregateInstitution();
         aggregates.add(institution);
         request.setAggregates(aggregates);
 

@@ -1032,6 +1032,42 @@
           }
         }
       },
+      "AggregateInstitutionRequest" : {
+        "required" : [ "taxCode", "description" ],
+        "type" : "object",
+        "properties" : {
+          "taxCode" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "type" : "string"
+          },
+          "geographicTaxonomies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeographicTaxonomy"
+            }
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "zipCode" : {
+            "type" : "string"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "$ref" : "#/components/schemas/Origin"
+          }
+        }
+      },
       "BillingPaRequest" : {
         "type" : "object",
         "properties" : {
@@ -1087,6 +1123,17 @@
             "type" : "string"
           },
           "pec" : {
+            "type" : "string"
+          }
+        }
+      },
+      "GeographicTaxonomy" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "desc" : {
             "type" : "string"
           }
         }
@@ -1420,7 +1467,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {
@@ -1606,7 +1653,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {
@@ -1676,7 +1723,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {
