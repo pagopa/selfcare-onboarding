@@ -44,7 +44,9 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
 
     @Override
     public void setTokenData(NotificationToSend notificationToSend, Token token) {
-        super.setTokenData(notificationToSend, token);
-        notificationToSend.setFilePath(token.getContractSigned());
+        if (Objects.nonNull(token)) {
+            super.setTokenData(notificationToSend, token);
+            notificationToSend.setFilePath(token.getContractSigned());
+        }
     }
 }
