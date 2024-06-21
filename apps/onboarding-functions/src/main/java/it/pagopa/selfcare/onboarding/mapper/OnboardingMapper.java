@@ -14,7 +14,8 @@ import java.util.Objects;
 public interface OnboardingMapper {
 
     @Mapping(target = "institution", expression = "java(mapInstitution(input.getAggregate(), input.getInstitution()))")
-    @Mapping(target = "aggregator", expression = "java(mapAggregator(input.getInstitution()))")
+    @Mapping(target = "aggregator", source = "institution")
+    @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Named("mapInstitution")
@@ -22,17 +23,6 @@ public interface OnboardingMapper {
         if (Objects.nonNull(institution)) {
             aggregator.setOrigin(institution.getOrigin());
             aggregator.setInstitutionType(institution.getInstitutionType());
-        }
-        return aggregator;
-    }
-
-    @Named("mapAggregator")
-    default Aggregator mapAggregator(Institution institution) {
-        Aggregator aggregator = new Aggregator();
-        if (Objects.nonNull(institution)) {
-            aggregator.setDescription(institution.getDescription());
-            aggregator.setTaxCode(institution.getTaxCode());
-            aggregator.setId(institution.getId());
         }
         return aggregator;
     }

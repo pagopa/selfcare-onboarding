@@ -586,7 +586,7 @@ public class CompletionServiceDefaultTest {
         // When
         Onboarding onboarding = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        // Then
+        onboardingToUpdate.setId(onboarding.getId());
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(onboarding));

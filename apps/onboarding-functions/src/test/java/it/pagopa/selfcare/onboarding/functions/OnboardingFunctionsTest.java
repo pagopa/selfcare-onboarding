@@ -564,12 +564,14 @@ public class OnboardingFunctionsTest {
     void createAggregateOnboardingRequest() {
         final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
 
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId("prod-io");
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).createAggregateOnboardingRequest(any());
+        when(completionService.createAggregateOnboardingRequest(any())).thenReturn(onboarding);
 
-        Onboarding onboarding = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
+        Onboarding response = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
 
-        Assertions.assertEquals("prod-io", onboarding.getProductId());
+        Assertions.assertEquals("prod-io", response.getProductId());
         Mockito.verify(completionService, times(1))
                 .createAggregateOnboardingRequest(any());
     }
