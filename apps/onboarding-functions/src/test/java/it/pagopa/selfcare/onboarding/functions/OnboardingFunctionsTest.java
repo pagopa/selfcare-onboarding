@@ -447,6 +447,18 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void sendMailRegistrationWithContractAggregator() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(service).sendMailRegistrationForContractAggregator(any());
+
+        function.sendMailRegistrationForContractAggregator(onboardinString, executionContext);
+
+        Mockito.verify(service, times(1))
+                .sendMailRegistrationForContractAggregator(any());
+    }
+
+    @Test
     void sendMailRegistration() {
         
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
