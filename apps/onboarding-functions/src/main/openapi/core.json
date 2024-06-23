@@ -33,9 +33,6 @@
   }, {
     "name" : "Onboarding",
     "description" : "Onboarding Controller"
-  }, {
-    "name" : "kafka",
-    "description" : "Queue Notification Controller"
   } ],
   "paths" : {
     "/delegations" : {
@@ -340,7 +337,7 @@
     },
     "/v2/delegations" : {
       "get" : {
-        "tags" : [ "Delegation", "external-v2", "support" ],
+        "tags" : [ "Delegation" ],
         "summary" : "Retrieve institution's delegations with pagination",
         "description" : "Retrieve institution's delegations with pagination",
         "operationId" : "getDelegationsUsingGET_1",
@@ -500,68 +497,6 @@
           },
           "404" : {
             "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ "global" ]
-        } ]
-      }
-    },
-    "/external/institutions/pn-pg" : {
-      "post" : {
-        "tags" : [ "External" ],
-        "summary" : "create an institution (PG) using external institution id fetching data from info-camere",
-        "description" : "create an institution (PG) using external institution id fetching data from info-camere",
-        "operationId" : "createPnPgInstitutionUsingPOST",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreatePnPgInstitutionRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/InstitutionPnPgResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Conflict",
             "content" : {
               "application/problem+json" : {
                 "schema" : {
@@ -813,7 +748,7 @@
     },
     "/institutions" : {
       "get" : {
-        "tags" : [ "Institution", "external-v2", "support" ],
+        "tags" : [ "Institution", "external-v2", "support", "support-pnpg" ],
         "summary" : "Gets institutions filtering by taxCode and/or subunitCode",
         "description" : "Gets institutions filtering by taxCode and/or subunitCode",
         "operationId" : "getInstitutionsUsingGET",
@@ -2390,71 +2325,6 @@
           "bearerAuth" : [ "global" ]
         } ]
       }
-    },
-    "/notification-event/contracts" : {
-      "put" : {
-        "tags" : [ "kafka" ],
-        "summary" : "resendContractsByInstitutionIdAndTokenId",
-        "description" : "Function to send a specific onboarding using institutionId and tokenId ",
-        "operationId" : "resendContractsByInstitutionIdAndTokenIdUsingPUT",
-        "parameters" : [ {
-          "name" : "tokenId",
-          "in" : "query",
-          "description" : "tokenId",
-          "required" : true,
-          "style" : "form",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "institutionId",
-          "in" : "query",
-          "description" : "institutionId",
-          "required" : true,
-          "style" : "form",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ "global" ]
-        } ]
-      }
     }
   },
   "components" : {
@@ -2720,18 +2590,6 @@
           }
         }
       },
-      "CreatePnPgInstitutionRequest" : {
-        "title" : "CreatePnPgInstitutionRequest",
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          },
-          "taxId" : {
-            "type" : "string"
-          }
-        }
-      },
       "CreatedAtRequest" : {
         "title" : "CreatedAtRequest",
         "type" : "object",
@@ -2815,7 +2673,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           }
         }
       },
@@ -2846,7 +2704,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           }
         }
       },
@@ -2898,7 +2756,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           },
           "updatedAt" : {
             "type" : "string",
@@ -3083,6 +2941,9 @@
           "contractPath" : {
             "type" : "string"
           },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -3091,12 +2952,6 @@
           },
           "tokenId" : {
             "type" : "string"
-          },
-          "users" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/Person"
-            }
           }
         }
       },
@@ -3196,15 +3051,6 @@
           }
         }
       },
-      "InstitutionPnPgResponse" : {
-        "title" : "InstitutionPnPgResponse",
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          }
-        }
-      },
       "InstitutionProduct" : {
         "title" : "InstitutionProduct",
         "type" : "object",
@@ -3233,6 +3079,9 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "parentDescription" : {
+            "type" : "string"
           }
         }
       },
@@ -3514,6 +3363,9 @@
           "ivassCode" : {
             "type" : "string"
           },
+          "parentDescription" : {
+            "type" : "string"
+          },
           "paymentServiceProvider" : {
             "$ref" : "#/components/schemas/PaymentServiceProvider"
           },
@@ -3559,6 +3411,9 @@
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "isAggregator" : {
+            "type" : "boolean"
           },
           "productId" : {
             "type" : "string"
@@ -3656,6 +3511,9 @@
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "isAggregator" : {
+            "type" : "boolean"
           },
           "pricingPlan" : {
             "type" : "string"
@@ -3784,41 +3642,6 @@
             "type" : "string"
           },
           "injectionInstitutionType" : {
-            "type" : "string"
-          },
-          "taxCode" : {
-            "type" : "string"
-          }
-        }
-      },
-      "Person" : {
-        "title" : "Person",
-        "type" : "object",
-        "properties" : {
-          "email" : {
-            "type" : "string"
-          },
-          "env" : {
-            "type" : "string",
-            "enum" : [ "COLL", "DEV", "PROD", "ROOT" ]
-          },
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "productRole" : {
-            "type" : "string"
-          },
-          "role" : {
-            "type" : "string",
-            "enum" : [ "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
-          },
-          "roleLabel" : {
-            "type" : "string"
-          },
-          "surname" : {
             "type" : "string"
           },
           "taxCode" : {
