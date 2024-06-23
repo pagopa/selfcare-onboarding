@@ -17,7 +17,7 @@ public class ActivityName {
     public static final String STORE_ONBOARDING_ACTIVATEDAT = "StoreOnboardingActivatedAt";
     public static final String CREATE_USERS_ACTIVITY = "CreateUsers";
     public static final String SEND_ONBOARDING_NOTIFICATION = "SendOnboardingNotification";
-
+    public static final String CREATE_DELEGATION_ACTIVITY = "CreateDelegation";
     private ActivityName() {
     }
 }
