@@ -10,9 +10,6 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -44,8 +41,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -360,13 +357,6 @@ public class CompletionServiceDefaultTest {
     @Test
     void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
-        User manager = new User();
-        manager.setId("id");
-        manager.setRole(PartyRole.MANAGER);
-        onboarding.setUsers(List.of(manager));
-
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-                .thenReturn(new UserResource());
 
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
@@ -387,25 +377,13 @@ public class CompletionServiceDefaultTest {
                 .findByOnboardingId(onboarding.getId());
 
         InstitutionOnboardingRequest actual = captor.getValue();
-        assertEquals(1, actual.getUsers().size());
-        assertNull(actual.getUsers().get(0).getEmail());
+        assertEquals(productId, actual.getProductId());
     }
 
     @Test
     void persistOnboarding() {
         Onboarding onboarding = createOnboarding();
-
-        User manager = new User();
-        manager.setId("id");
-        manager.setRole(PartyRole.MANAGER);
-        manager.setUserMailUuid(UUID.randomUUID().toString());
-        onboarding.setUsers(List.of(manager));
         onboarding.setActivatedAt(LocalDateTime.now());
-
-        UserResource userResource = dummyUserResource(manager.getUserMailUuid());
-
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-                .thenReturn(userResource);
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
         Token token = new Token();
@@ -427,9 +405,6 @@ public class CompletionServiceDefaultTest {
         InstitutionOnboardingRequest actual = captor.getValue();
         assertEquals(onboarding.getProductId(), actual.getProductId());
         assertEquals(onboarding.getPricingPlan(), actual.getPricingPlan());
-        assertEquals(1, actual.getUsers().size());
-        assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
-        assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
         assertEquals(token.getContractSigned(), actual.getContractPath());
         assertEquals(actual.getActivatedAt().getDayOfYear(), onboarding.getActivatedAt().getDayOfYear());
     }
