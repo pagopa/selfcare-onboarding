@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.Aggregator;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import org.mapstruct.Mapper;
