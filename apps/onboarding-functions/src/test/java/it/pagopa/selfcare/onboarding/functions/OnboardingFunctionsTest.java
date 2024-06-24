@@ -612,14 +612,15 @@ public class OnboardingFunctionsTest {
                 .createAggregateOnboardingRequest(any());
     }
     @Test
-    void createEADelegation() {
+    void createDelegationForAggregation() {
         final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).createDelegation(any());
+        when(completionService.createDelegation(any())).thenReturn("delegationId");
 
-        function.createDelegationForAggregation(onboardingString, executionContext);
+        String delegationId = function.createDelegationForAggregation(onboardingString, executionContext);
 
+        Assertions.assertEquals("delegationId", delegationId);
         Mockito.verify(completionService, times(1))
                 .createDelegation(any());
     }
