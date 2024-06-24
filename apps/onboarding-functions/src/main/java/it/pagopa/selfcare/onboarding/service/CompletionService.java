@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 
 public interface CompletionService {
@@ -14,7 +15,11 @@ public interface CompletionService {
 
     void sendCompletedEmail(Onboarding onboarding);
 
+    void sendCompletedEmailAggregate(Onboarding onboarding);
+
     void persistUsers(Onboarding onboarding);
 
     void createDelegation(Onboarding onboarding);
+
+    Onboarding createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 }

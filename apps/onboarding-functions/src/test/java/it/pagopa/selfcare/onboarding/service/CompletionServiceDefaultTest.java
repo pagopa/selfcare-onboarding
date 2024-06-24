@@ -1,14 +1,15 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
@@ -461,6 +462,33 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void sendCompletedEmailAggregate() {
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        Map<String, WorkContactResource> map = new HashMap<>();
+        userResource.setWorkContacts(map);
+        Onboarding onboarding = createOnboarding();
+        Aggregator aggregator= new Aggregator();
+        aggregator.setDescription("description");
+        onboarding.setAggregator(aggregator);
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
+
+        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmailAggregate(any(), any());
+    }
+
+    @Test
     void persistUsers() {
 
         Onboarding onboarding = createOnboarding();
@@ -568,5 +596,99 @@ public class CompletionServiceDefaultTest {
         product.setId(productId);
         return product;
     }
+
+    @Test
+    void testCreateAggregateOnboardingRequest() throws JsonProcessingException {
+        // Given
+        OnboardingAggregateOrchestratorInput input = createSampleOnboardingInput();
+        Onboarding onboardingToUpdate = createSampleOnboarding();
+
+        // When
+        Onboarding onboarding = completionServiceDefault.createAggregateOnboardingRequest(input);
+
+        onboardingToUpdate.setId(onboarding.getId());
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(onboarding));
+    }
+
+    public static OnboardingAggregateOrchestratorInput createSampleOnboardingInput() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+
+        input.setId("1");
+        input.setProductId("productId");
+        input.setTestEnvProductIds(Collections.singletonList("testEnvProductId"));
+        input.setPricingPlan("pricingPlan");
+
+        Billing billing = new Billing();
+        input.setBilling(billing);
+
+        input.setSignContract(true);
+        input.setExpiringDate(LocalDateTime.MAX);
+        input.setUserRequestUid("example-uid");
+        input.setWorkflowInstanceId("workflowInstanceId");
+        input.setCreatedAt(LocalDateTime.MAX);
+        input.setUpdatedAt(LocalDateTime.MAX);
+        input.setActivatedAt(LocalDateTime.MAX);
+        input.setDeletedAt(null);
+        input.setReasonForReject(null);
+
+        Institution institution = new Institution();
+        institution.setOrigin(Origin.IPA);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setId("institutionId");
+        institution.setDescription("description");
+        institution.setTaxCode("taxCode");
+        input.setInstitution(institution);
+
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCodeAggregate");
+        aggregate.setDescription("descriptionAggregate");
+        input.setAggregate(aggregate);
+
+        User user = new User();
+        input.setUsers(Collections.singletonList(user));
+
+        return input;
+    }
+
+    // Method to create sample Onboarding
+    public static Onboarding createSampleOnboarding() {
+        Onboarding onboarding = new Onboarding();
+
+        onboarding.setId("1");
+        onboarding.setProductId("productId");
+        onboarding.setTestEnvProductIds(Collections.singletonList("testEnvProductId"));
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setOrigin(Origin.IPA);
+        institution.setDescription("descriptionAggregate");
+        institution.setTaxCode("taxCodeAggregate");
+        onboarding.setInstitution(institution);
+        onboarding.setUsers(Collections.singletonList(new User()));
+        onboarding.setPricingPlan("pricingPlan");
+        onboarding.setBilling(new Billing());
+        onboarding.setSignContract(true);
+        onboarding.setExpiringDate(LocalDateTime.MAX);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setUserRequestUid("example-uid");
+        onboarding.setWorkflowInstanceId("workflowInstanceId");
+        onboarding.setCreatedAt(LocalDateTime.MAX);
+        onboarding.setUpdatedAt(LocalDateTime.MAX);
+        onboarding.setActivatedAt(LocalDateTime.MAX);
+        onboarding.setDeletedAt(null);
+        onboarding.setReasonForReject(null);;
+
+        Aggregator aggregator = new Aggregator();
+        aggregator.setId("institutionId");
+        aggregator.setDescription("description");
+        aggregator.setTaxCode("taxCode");
+        onboarding.setAggregator(aggregator);
+
+        return onboarding;
+    }
+
+
 }
 
