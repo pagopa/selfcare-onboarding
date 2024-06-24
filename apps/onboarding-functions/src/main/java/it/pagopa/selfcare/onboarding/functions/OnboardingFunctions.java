@@ -246,8 +246,8 @@ public class OnboardingFunctions {
         return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
     }
     @FunctionName(CREATE_DELEGATION_ACTIVITY)
-    public void createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public String createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
-        completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
+        return completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
     }
 }

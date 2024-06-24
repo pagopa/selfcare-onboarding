@@ -26,11 +26,17 @@ public record WorkflowExecutorConfirmAggregate(ObjectMapper objectMapper, TaskOp
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
-        ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        String institutionId = ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        onboarding.getInstitution().setId(institutionId);
+
+        final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
+        ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry, String.class).await();
+        String delegationId = ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry, String.class).await();
+        onboarding.setDelegationId(delegationId);
+
+        final String onboardingWithDelegationIdString = getOnboardingString(objectMapper(), onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithDelegationIdString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingWithDelegationIdString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 }
