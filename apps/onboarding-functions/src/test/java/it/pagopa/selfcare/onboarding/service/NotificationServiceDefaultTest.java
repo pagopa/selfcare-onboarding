@@ -9,10 +9,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,7 +154,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(new Onboarding(), OnboardingWorkflowType.INSTITUTION.name());
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowUser(new Onboarding(), OnboardingWorkflowType.USER.name());
 
         notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA, onboardingWorkflow);
 
