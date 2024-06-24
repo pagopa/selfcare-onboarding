@@ -144,6 +144,7 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
+                sendMailInput.institutionName,
                 onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
     }
 
@@ -165,7 +166,7 @@ public class OnboardingService {
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
-                product.getTitle(),
+                product.getTitle(), "description",
                 onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
     }
 
@@ -210,6 +211,7 @@ public class OnboardingService {
                 .orElseThrow(() -> new GenericOnboardingException(String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
         sendMailInput.userRequestName = Optional.ofNullable(userRequest.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         sendMailInput.userRequestSurname = Optional.ofNullable(userRequest.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
+        sendMailInput.institutionName = Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse("");
         return sendMailInput;
     }
 
@@ -230,5 +232,6 @@ public class OnboardingService {
         Product product;
         String userRequestName;
         String userRequestSurname;
+        String institutionName;
     }
 }

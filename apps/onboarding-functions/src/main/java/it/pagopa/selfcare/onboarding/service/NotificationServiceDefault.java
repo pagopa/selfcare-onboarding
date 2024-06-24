@@ -99,7 +99,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String templatePath) {
+    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath) {
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -108,6 +108,7 @@ public class NotificationServiceDefault implements NotificationService {
         Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
 
         sendMailWithFile(List.of(destination), templatePath, mailParameters, productName, null);
     }

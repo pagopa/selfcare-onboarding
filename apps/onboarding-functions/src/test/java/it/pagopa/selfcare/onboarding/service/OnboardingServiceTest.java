@@ -281,7 +281,7 @@ class OnboardingServiceTest {
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle(),
+                        product.getTitle(), "description",
                         "default");
 
         onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
@@ -290,7 +290,7 @@ class OnboardingServiceTest {
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle(),
+                        product.getTitle(), "description",
                         "default");
     }
 
@@ -345,7 +345,7 @@ class OnboardingServiceTest {
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
-                        product.getTitle(),
+                        product.getTitle(), "description",
                         "default");
 
         onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
@@ -354,7 +354,7 @@ class OnboardingServiceTest {
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
-                        product.getTitle(),
+                        product.getTitle(), "description",
                         "default");
     }
 
