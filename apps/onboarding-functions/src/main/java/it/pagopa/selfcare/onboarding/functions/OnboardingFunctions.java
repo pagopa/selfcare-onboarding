@@ -233,4 +233,10 @@ public class OnboardingFunctions {
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY)
+    public void sendMailCompletionAggregate(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString));
+        completionService.sendCompletedEmailAggregate(readOnboardingValue(objectMapper, onboardingString));
+    }
+
 }
