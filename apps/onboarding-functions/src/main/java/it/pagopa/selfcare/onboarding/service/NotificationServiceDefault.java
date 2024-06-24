@@ -203,13 +203,7 @@ public class NotificationServiceDefault implements NotificationService {
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
 
-            final String subject;
-
-            if(Objects.nonNull(prefixSubject)) {
-                subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
-            } else {
-                subject = mailTemplate.getSubject();
-            }
+            final String subject = Optional.ofNullable(prefixSubject).map(value -> String.format("%s: %s", value, mailTemplate.getSubject())).orElse(mailTemplate.getSubject());
 
             Mail mail = Mail
                     .withHtml(destination, subject, html)
