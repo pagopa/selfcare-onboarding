@@ -9,7 +9,7 @@ public interface MailTemplatePathConfig {
     String completePathFd();
     String completePathPt();
     String completePathUser();
-    String completePathAggregator();
+    String completePathAggregate();
 
     String autocompletePath();
 

@@ -22,4 +22,7 @@ public interface NotificationService {
     void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow);
 
     void sendMailRejection(List<String> destinationMails, Product product, String reasonForReject);
+
+    void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails);
+
 }

@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
@@ -21,6 +22,14 @@ public class Utils {
     public static Onboarding readOnboardingValue(ObjectMapper objectMapper, String onboardingString) {
         try {
             return objectMapper.readValue(onboardingString, Onboarding.class);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+    }
+
+    public static OnboardingAggregateOrchestratorInput readOnboardingAggregateOrchestratorInputValue(ObjectMapper objectMapper, String onboardingAggregateOrchestratorInputString) {
+        try {
+            return objectMapper.readValue(onboardingAggregateOrchestratorInputString, OnboardingAggregateOrchestratorInput.class);
         } catch (JsonProcessingException e) {
             throw new FunctionOrchestratedException(e);
         }

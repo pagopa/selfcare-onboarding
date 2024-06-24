@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingWorkflowValue;
 
@@ -231,4 +232,20 @@ public class OnboardingFunctions {
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY)
+    public void sendMailCompletionAggregate(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString));
+        completionService.sendCompletedEmailAggregate(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
+    public Onboarding createAggregateOnboardingRequest(@DurableActivityTrigger(name = "onboardingString") String onboardingAggregateOrchestratorInputString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregateOrchestratorInputString));
+        return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
+    }
+    @FunctionName(CREATE_DELEGATION_ACTIVITY)
+    public void createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
+        completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
+    }
 }

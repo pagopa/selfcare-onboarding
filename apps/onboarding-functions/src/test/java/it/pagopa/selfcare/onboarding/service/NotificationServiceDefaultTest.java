@@ -199,6 +199,32 @@ class NotificationServiceDefaultTest {
         assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
     }
 
+    @Test
+    void sendCompletedEmailAggregate() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+        final String destination = "test@test.it";
+
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+
+        Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.completePathAggregate()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendCompletedEmailAggregate(institutionName, List.of(destination));
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
 
     @Test
     void sendMailRegistrationApprove() {
