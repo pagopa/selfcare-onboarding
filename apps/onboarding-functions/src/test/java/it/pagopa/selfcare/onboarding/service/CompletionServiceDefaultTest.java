@@ -410,6 +410,7 @@ public class CompletionServiceDefaultTest {
         assertEquals(onboarding.getProductId(), actual.getProductId());
         assertEquals(onboarding.getPricingPlan(), actual.getPricingPlan());
         assertEquals(token.getContractSigned(), actual.getContractPath());
+        assertEquals(onboarding.getIsAggregator(), actual.getIsAggregator());
         assertEquals(actual.getActivatedAt().getDayOfYear(), onboarding.getActivatedAt().getDayOfYear());
     }
 
