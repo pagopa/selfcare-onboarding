@@ -18,7 +18,7 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
 
     @Override
     public String emailRegistrationPath(MailTemplatePathConfig config) {
-        return config.registrationUserPath();
+        return config.completePathUser();
     }
 
     @Override

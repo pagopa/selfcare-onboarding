@@ -9,8 +9,6 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowAggregator;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowUser;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,17 +17,11 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_COMPRESS_FILE;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND_MAIL;
 
 
@@ -137,17 +129,7 @@ public class NotificationServiceDefault implements NotificationService {
     @Override
     public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow) {
 
-        String templatePath;
-
-        if (onboardingWorkflow instanceof OnboardingWorkflowUser || onboardingWorkflow instanceof OnboardingWorkflowAggregator) {
-            templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
-        }  else if(InstitutionType.PT.equals(institutionType)) {
-            templatePath = templatePathConfig.completePathPt();
-        } else {
-            templatePath =product.getId().equals(PROD_FD.getValue()) || product.getId().equals(PROD_FD_GARANTITO.getValue())
-                    ? templatePathConfig.completePathFd()
-                    : templatePathConfig.completePath();
-        }
+        String templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
 
         Map<String, String> mailParameter = new HashMap<>();
         mailParameter.put(templatePlaceholdersConfig.businessName(), institutionName);
@@ -224,22 +206,6 @@ public class NotificationServiceDefault implements NotificationService {
         } catch (Exception e) {
             log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
             throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
-        }
-    }
-
-    public byte[] zipBytes(String filename, byte[] data)  {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ZipOutputStream zos = new ZipOutputStream(baos)) {
-            ZipEntry entry = new ZipEntry(filename);
-
-            zos.putNextEntry(entry);
-            zos.write(data);
-            zos.closeEntry();
-            zos.finish();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename), e);
-            throw new RuntimeException(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename));
         }
     }
 

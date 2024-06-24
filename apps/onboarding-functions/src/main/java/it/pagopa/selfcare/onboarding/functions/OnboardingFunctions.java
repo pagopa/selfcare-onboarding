@@ -13,7 +13,6 @@ import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -26,9 +25,7 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingWorkflowValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 /**
  * Azure Functions with HTTP Trigger integrated with Quarkus
