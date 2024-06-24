@@ -248,28 +248,6 @@ public class CompletionServiceDefault implements CompletionService {
     public void persistOnboarding(Onboarding onboarding) {
         //Prepare data for request
         InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
-        onboardingRequest.setUsers(onboarding.getUsers().stream()
-                .map(user -> {
-                    UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
-                    Person person = userMapper.toPerson(userResource);
-                    person.setProductRole(user.getProductRole());
-                    person.setRole(Person.RoleEnum.valueOf(user.getRole().name()));
-
-                    //Retrieve mail if exists (for PNPG is not stored)
-                    if(Objects.nonNull(user.getUserMailUuid())) {
-                        String mailWork = Optional.ofNullable(userResource.getWorkContacts())
-                                .map(worksContract -> worksContract.get(user.getUserMailUuid()))
-                                .map(workContactResource -> workContactResource.getEmail())
-                                .map(certifiable -> certifiable.getValue())
-                                .orElse(null);
-
-                        person.setEmail(mailWork);
-                    }
-
-                    return person;
-                })
-                .toList()
-        );
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
         onboardingRequest.setTokenId(onboarding.getId());
