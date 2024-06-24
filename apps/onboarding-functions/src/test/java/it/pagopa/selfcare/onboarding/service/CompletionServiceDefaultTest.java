@@ -34,7 +34,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
-import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
@@ -68,7 +67,7 @@ public class CompletionServiceDefaultTest {
     InstitutionApi institutionApi;
     @RestClient
     @InjectMock
-    UserControllerApi userControllerApi;
+    org.openapi.quarkus.user_json.api.UserApi userControllerApi;
     @RestClient
     @InjectMock
     UserApi userRegistryApi;
@@ -497,6 +496,7 @@ public class CompletionServiceDefaultTest {
         user.setRole(PartyRole.MANAGER);
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
+        onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
         when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
