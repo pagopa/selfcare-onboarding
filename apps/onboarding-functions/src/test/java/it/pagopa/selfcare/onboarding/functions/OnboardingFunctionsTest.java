@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -571,6 +572,19 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void sendCompletedEmailAggregate() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any());
+
+        function.sendMailCompletionAggregate(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendCompletedEmailAggregate(any());
+    }
+
+
+    @Test
     void createUsersOnboarding() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
@@ -582,4 +596,31 @@ public class OnboardingFunctionsTest {
                 .persistUsers(any());
     }
 
+    @Test
+    void createAggregateOnboardingRequest() {
+        final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setProductId("prod-io");
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        when(completionService.createAggregateOnboardingRequest(any())).thenReturn(onboarding);
+
+        Onboarding response = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
+
+        Assertions.assertEquals("prod-io", response.getProductId());
+        Mockito.verify(completionService, times(1))
+                .createAggregateOnboardingRequest(any());
+    }
+    @Test
+    void createEADelegation() {
+        final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).createDelegation(any());
+
+        function.createDelegationForAggregation(onboardingString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .createDelegation(any());
+    }
 }

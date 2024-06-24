@@ -8,8 +8,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import java.util.logging.Level;
-
 @ApplicationScoped
 public class CheckOrganizationServiceDefault implements CheckOrganizationService {
     @RestClient
@@ -18,8 +16,7 @@ public class CheckOrganizationServiceDefault implements CheckOrganizationService
 
     private final FDConfig fdConfig;
 
-    public CheckOrganizationServiceDefault(
-            FDConfig fdConfig) {
+    public CheckOrganizationServiceDefault(FDConfig fdConfig) {
         this.fdConfig = fdConfig;
     }
 
@@ -40,7 +37,6 @@ public class CheckOrganizationServiceDefault implements CheckOrganizationService
                 context.getLogger().info("checkOrganization end");
                 return alreadyRegistered;
             } catch (Exception e) {
-                context.getLogger().log(Level.WARNING, e, () -> "An error occurred while checking the organization");
                 throw new NotificationException(String.format("Error during organization check: %s", e.getMessage()));
             }
         }
