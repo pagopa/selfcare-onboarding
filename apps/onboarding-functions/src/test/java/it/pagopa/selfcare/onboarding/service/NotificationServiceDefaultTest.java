@@ -150,7 +150,7 @@ class NotificationServiceDefaultTest {
 
         Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
 
-        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.completePath()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
