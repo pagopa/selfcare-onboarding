@@ -140,6 +140,29 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingOrchestratorContractRegistrationAggregator(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
+        assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, captorActivity.getAllValues().get(2));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+    }
+
+    @Test
     void onboardingsOrchestratorNewAdminRequest() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
@@ -547,6 +570,19 @@ public class OnboardingFunctionsTest {
         Mockito.verify(completionService, times(1))
                 .sendMailRejection(any());
     }
+
+    @Test
+    void sendCompletedEmailAggregate() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any());
+
+        function.sendMailCompletionAggregate(onboardinString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .sendCompletedEmailAggregate(any());
+    }
+
 
     @Test
     void createUsersOnboarding() {

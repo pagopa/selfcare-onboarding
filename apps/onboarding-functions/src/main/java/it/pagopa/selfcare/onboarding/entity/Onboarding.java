@@ -20,7 +20,7 @@ public class Onboarding  {
     private WorkflowType workflowType;
     private Institution institution;
     private List<User> users;
-    private List<Institution> aggregates;
+    private List<AggregateInstitution> aggregates;
     private String pricingPlan;
     private Billing billing;
     private Boolean signContract;
@@ -176,9 +176,9 @@ public class Onboarding  {
         this.deletedAt = deletedAt;
     }
 
-    public List<Institution> getAggregates() { return aggregates; }
+    public List<AggregateInstitution> getAggregates() { return aggregates; }
 
-    public void setAggregates(List<Institution> aggregates) { this.aggregates = aggregates; }
+    public void setAggregates(List<AggregateInstitution> aggregates) { this.aggregates = aggregates; }
 
     public Boolean getIsAggregator() { return isAggregator; }
 

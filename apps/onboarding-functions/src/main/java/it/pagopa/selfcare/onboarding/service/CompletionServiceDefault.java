@@ -255,28 +255,6 @@ public class CompletionServiceDefault implements CompletionService {
     public void persistOnboarding(Onboarding onboarding) {
         //Prepare data for request
         InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
-        onboardingRequest.setUsers(onboarding.getUsers().stream()
-                .map(user -> {
-                    UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
-                    Person person = userMapper.toPerson(userResource);
-                    person.setProductRole(user.getProductRole());
-                    person.setRole(Person.RoleEnum.valueOf(user.getRole().name()));
-
-                    //Retrieve mail if exists (for PNPG is not stored)
-                    if(Objects.nonNull(user.getUserMailUuid())) {
-                        String mailWork = Optional.ofNullable(userResource.getWorkContacts())
-                                .map(worksContract -> worksContract.get(user.getUserMailUuid()))
-                                .map(workContactResource -> workContactResource.getEmail())
-                                .map(certifiable -> certifiable.getValue())
-                                .orElse(null);
-
-                        person.setEmail(mailWork);
-                    }
-
-                    return person;
-                })
-                .toList()
-        );
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
         onboardingRequest.setTokenId(onboarding.getId());
@@ -305,6 +283,28 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRepository
                 .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
                 .where("_id", onboarding.getId());
+    }
+
+    @Override
+    public void sendCompletedEmailAggregate(Onboarding onboarding) {
+
+        List<String> destinationMails = onboarding.getUsers().stream()
+                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                .map(workContract -> workContract.getEmail().getValue())
+                .collect(Collectors.toList());
+
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(),
+                destinationMails);
     }
 
     @Override

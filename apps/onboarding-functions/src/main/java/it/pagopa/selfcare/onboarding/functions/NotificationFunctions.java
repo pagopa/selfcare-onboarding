@@ -2,12 +2,10 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
-import com.microsoft.azure.functions.annotation.AuthorizationLevel;
-import com.microsoft.azure.functions.annotation.FixedDelayRetry;
-import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.HttpTrigger;
+import com.microsoft.azure.functions.annotation.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.service.CheckOrganizationService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 
@@ -22,14 +20,16 @@ public class NotificationFunctions {
 
     private final NotificationEventService notificationEventService;
     private final OnboardingService onboardingService;
+    private final CheckOrganizationService checkOrganizationService;
     private final ObjectMapper objectMapper;
 
     public NotificationFunctions(ObjectMapper objectMapper,
                                  NotificationEventService notificationEventService,
-                                 OnboardingService onboardingService) {
+                                 OnboardingService onboardingService, CheckOrganizationService checkOrganizationService) {
         this.objectMapper = objectMapper;
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;
+        this.checkOrganizationService = checkOrganizationService;
     }
 
     /**
@@ -91,5 +91,31 @@ public class NotificationFunctions {
         }
         notificationEventService.send(context, onboarding.get(), queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
+    }
+
+    @FunctionName("CheckOrganization")
+    public HttpResponseMessage checkOrganization(
+            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, route = "organizations", authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+
+        context.getLogger().info("checkOrganization trigger processed a request");
+
+        String fiscalCode = request.getQueryParameters().get("fiscalCode");
+        String vatNumber = request.getQueryParameters().get("vatNumber");
+
+        if (fiscalCode == null || vatNumber == null) {
+            context.getLogger().warning("fiscalCode, vatNumber are required.");
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("fiscalCode, vatNumber are required.")
+                    .build();
+        }
+
+        boolean alreadyRegistered =  checkOrganizationService.checkOrganization(context, fiscalCode, vatNumber);
+
+        if (alreadyRegistered) {
+            return request.createResponseBuilder(HttpStatus.OK).build();
+        } else {
+            return request.createResponseBuilder(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

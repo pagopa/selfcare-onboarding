@@ -10,7 +10,6 @@ public interface MailTemplatePlaceholdersConfig {
     String productName();
     String institutionDescription();
     String businessName();
-
     String adminLink();
     String completeSelfcareName();
     String completeProductName();
