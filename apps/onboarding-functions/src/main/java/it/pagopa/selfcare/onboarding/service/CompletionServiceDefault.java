@@ -298,4 +298,26 @@ public class CompletionServiceDefault implements CompletionService {
                 .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
                 .where("_id", onboarding.getId());
     }
+
+    @Override
+    public void sendCompletedEmailAggregate(Onboarding onboarding) {
+
+        List<String> destinationMails = onboarding.getUsers().stream()
+                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                .map(workContract -> workContract.getEmail().getValue())
+                .collect(Collectors.toList());
+
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(),
+                destinationMails);
+    }
 }
