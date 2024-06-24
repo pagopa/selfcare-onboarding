@@ -589,7 +589,7 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(completionService).createDelegation(any());
 
-        function.createEADelegation(onboardingString, executionContext);
+        function.createDelegationForAggregation(onboardingString, executionContext);
 
         Mockito.verify(completionService, times(1))
                 .createDelegation(any());
