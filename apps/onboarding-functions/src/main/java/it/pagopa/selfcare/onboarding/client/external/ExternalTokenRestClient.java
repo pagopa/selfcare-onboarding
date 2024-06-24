@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.client.fd;
+package it.pagopa.selfcare.onboarding.client.external;
 
 import it.pagopa.selfcare.onboarding.dto.OauthToken;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,12 +8,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Form;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-@RegisterRestClient(configKey = "fd-token")
+@RegisterRestClient(configKey = "external-token")
 @ApplicationScoped
 @Path("/")
-public interface FDTokenRestClient {
+public interface ExternalTokenRestClient {
     @POST
     @Path("/auth/realms/fideiussioni-portal1/protocol/openid-connect/token")
     @Consumes("application/x-www-form-urlencoded; charset=UTF-8")
-    OauthToken getFDToken(Form fdTokenParam);
+    OauthToken getToken(Form tokenParam);
 }

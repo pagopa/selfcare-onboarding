@@ -2,8 +2,8 @@ package it.pagopa.selfcare.onboarding.config;
 
 import io.smallrye.config.ConfigMapping;
 
-@ConfigMapping(prefix = "fd")
-public interface FDConfig {
+@ConfigMapping(prefix = "external")
+public interface ExternalConfig {
     boolean byPassCheckOrganization();
 
     String grantType();

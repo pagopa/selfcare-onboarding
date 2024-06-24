@@ -2,7 +2,7 @@ package it.pagopa.selfcare.onboarding.client.auth;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.client.fd.FDTokenRestClient;
+import it.pagopa.selfcare.onboarding.client.external.ExternalTokenRestClient;
 import it.pagopa.selfcare.onboarding.dto.OauthToken;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.ClientRequestContext;
@@ -18,13 +18,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-class FDOauthAuthorizationTest {
+class ExternalOauthAuthorizationTest {
     @Inject
-    FDOauthAuthorization fdOauthAuthorization;
+    ExternalOauthAuthorization externalOauthAuthorization;
 
     @InjectMock
     @RestClient
-    FDTokenRestClient tokenRestClient;
+    ExternalTokenRestClient tokenRestClient;
 
     @Test
     void filter() throws IOException {
@@ -32,8 +32,8 @@ class FDOauthAuthorizationTest {
         when(clientRequest.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         OauthToken oauthToken = new OauthToken();
         oauthToken.setAccessToken("test");
-        when(tokenRestClient.getFDToken(any())).thenReturn(oauthToken);
-        fdOauthAuthorization.filter(clientRequest);
+        when(tokenRestClient.getToken(any())).thenReturn(oauthToken);
+        externalOauthAuthorization.filter(clientRequest);
         assertFalse(clientRequest.getHeaders().isEmpty());
     }
 }
