@@ -246,22 +246,25 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void createDelegation(Onboarding onboarding) {
+    public String createDelegation(Onboarding onboarding) {
         if (Objects.nonNull(onboarding.getAggregator())) {
-
-            DelegationRequest delegationRequest = new DelegationRequest();
-            delegationRequest.setProductId(onboarding.getProductId());
-            delegationRequest.setType(DelegationRequest.TypeEnum.EA);
-            delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
-            delegationRequest.setFrom(onboarding.getInstitution().getId());
-            delegationRequest.setTo(onboarding.getAggregator().getId());
-            delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
-
-            delegationApi.createDelegationUsingPOST(delegationRequest);
+            DelegationRequest delegationRequest = getDelegationRequest(onboarding);
+            return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
         }
         else {
             throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
         }
+    }
+
+    private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
+        DelegationRequest delegationRequest = new DelegationRequest();
+        delegationRequest.setProductId(onboarding.getProductId());
+        delegationRequest.setType(DelegationRequest.TypeEnum.EA);
+        delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
+        delegationRequest.setFrom(onboarding.getInstitution().getId());
+        delegationRequest.setTo(onboarding.getAggregator().getId());
+        delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        return delegationRequest;
     }
 
     @Override

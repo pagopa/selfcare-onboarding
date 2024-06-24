@@ -535,12 +535,14 @@ public class CompletionServiceDefaultTest {
         aggregator.setId("aggregator-id");
         onboarding.setAggregator(aggregator);
 
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponse.setId("delegation-id");
 
         ArgumentCaptor<DelegationRequest> capture = ArgumentCaptor.forClass(DelegationRequest.class);
         when(delegationApi.createDelegationUsingPOST(capture.capture()))
-                .thenReturn(new DelegationResponse());
+                .thenReturn(delegationResponse);
 
-        completionServiceDefault.createDelegation(onboarding);
+        String delegationId = completionServiceDefault.createDelegation(onboarding);
 
         Assertions.assertEquals(onboarding.getInstitution().getId(), capture.getValue().getFrom());
         Assertions.assertEquals(onboarding.getInstitution().getDescription(), capture.getValue().getInstitutionFromName());
@@ -548,6 +550,7 @@ public class CompletionServiceDefaultTest {
         Assertions.assertEquals(onboarding.getAggregator().getDescription(), capture.getValue().getInstitutionToName());
         Assertions.assertEquals(onboarding.getProductId(), capture.getValue().getProductId());
         Assertions.assertEquals("EA", capture.getValue().getType().name());
+        Assertions.assertEquals("delegation-id", delegationId);
         Mockito.verify(delegationApi, times(1))
                 .createDelegationUsingPOST(capture.capture());
     }
