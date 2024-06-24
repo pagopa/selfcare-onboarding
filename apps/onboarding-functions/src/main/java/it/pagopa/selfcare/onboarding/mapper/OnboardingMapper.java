@@ -18,12 +18,17 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
+    /**
+     * We need to create an explicit method to map the aggregate into the institution field of the new onboarding entity
+     * because the data related to institutionType and origin must be retrieved from the aggregator,
+     * which corresponds to the institution field in the input object.
+     */
     @Named("mapInstitution")
-    default Institution mapInstitution(Institution aggregator, Institution institution) {
+    default Institution mapInstitution(Institution aggregate, Institution institution) {
         if (Objects.nonNull(institution)) {
-            aggregator.setOrigin(institution.getOrigin());
-            aggregator.setInstitutionType(institution.getInstitutionType());
+            aggregate.setOrigin(institution.getOrigin());
+            aggregate.setInstitutionType(institution.getInstitutionType());
         }
-        return aggregator;
+        return aggregate;
     }
 }
