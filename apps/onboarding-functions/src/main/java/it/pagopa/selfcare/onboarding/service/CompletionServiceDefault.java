@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.core_json.api.DelegationApi;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -32,7 +33,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
@@ -66,6 +65,9 @@ public class CompletionServiceDefault implements CompletionService {
     @RestClient
     @Inject
     UoApi uoApi;
+    @RestClient
+    @Inject
+    DelegationApi delegationApi;
     @RestClient
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
@@ -237,6 +239,25 @@ public class CompletionServiceDefault implements CompletionService {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void createDelegation(Onboarding onboarding) {
+        if (Objects.nonNull(onboarding.getAggregator())) {
+
+            DelegationRequest delegationRequest = new DelegationRequest();
+            delegationRequest.setProductId(onboarding.getProductId());
+            delegationRequest.setType(DelegationRequest.TypeEnum.EA);
+            delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
+            delegationRequest.setFrom(onboarding.getInstitution().getId());
+            delegationRequest.setTo(onboarding.getAggregator().getId());
+            delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+
+            delegationApi.createDelegationUsingPOST(delegationRequest);
+        }
+        else {
+            throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
         }
     }
 

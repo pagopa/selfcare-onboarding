@@ -19,5 +19,7 @@ public interface CompletionService {
 
     void persistUsers(Onboarding onboarding);
 
+    void createDelegation(Onboarding onboarding);
+
     Onboarding createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 }
