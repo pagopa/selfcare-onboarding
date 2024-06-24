@@ -95,7 +95,7 @@ public class NotificationFunctions {
 
     @FunctionName("CheckOrganization")
     public HttpResponseMessage checkOrganization(
-            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, route = "organizations", authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
 
         context.getLogger().info("checkOrganization trigger processed a request");
