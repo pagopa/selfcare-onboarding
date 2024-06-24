@@ -6,6 +6,7 @@ import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -59,6 +60,9 @@ public class OnboardingService {
     @Inject
     TokenRepository tokenRepository;
 
+    @Inject
+    MailTemplatePathConfig mailTemplatePathConfig;
+
     public Optional<Onboarding> getOnboarding(String onboardingId) {
         return repository.findByIdOptional(onboardingId);
     }
@@ -74,7 +78,7 @@ public class OnboardingService {
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(), onboarding, manager, delegates, product.getTitle());
+        contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle());
     }
 
     public void loadContract(Onboarding onboarding) {
@@ -140,7 +144,7 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
-                onboardingWorkflow.getEmailRegistrationPath());
+                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
     }
 
     public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
@@ -162,7 +166,7 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle(),
-                onboardingWorkflow.getEmailRegistrationPath());
+                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {

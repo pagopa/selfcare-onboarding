@@ -443,6 +443,7 @@ public class CompletionServiceDefaultTest {
         userResource.setWorkContacts(map);
         Product product = createDummyProduct();
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
 
         User user = new User();
         user.setRole(PartyRole.MANAGER);
@@ -453,12 +454,12 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
-        doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any());
+        doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
 
-        completionServiceDefault.sendCompletedEmail(onboarding);
+        completionServiceDefault.sendCompletedEmail(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
-                .sendCompletedEmail(any(), any(), any(), any());
+                .sendCompletedEmail(any(), any(), any(), any(), any());
     }
 
     @Test

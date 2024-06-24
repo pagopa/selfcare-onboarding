@@ -11,16 +11,13 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.workflow.*;
-import it.pagopa.selfcare.product.entity.Product;
-import it.pagopa.selfcare.product.service.ProductService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.workflow.*;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -43,21 +40,14 @@ public class OnboardingFunctions {
     private final CompletionService completionService;
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
-    private final ProductService productService;
-    private final MailTemplatePathConfig mailTemplatePathConfig;
-
 
     public OnboardingFunctions(OnboardingService service,
                                ObjectMapper objectMapper,
                                RetryPolicyConfig retryPolicyConfig,
-                               CompletionService completionService,
-                               ProductService productService,
-                               MailTemplatePathConfig mailTemplatePathConfig) {
+                               CompletionService completionService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
-        this.productService = productService;
-        this.mailTemplatePathConfig = mailTemplatePathConfig;
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -124,7 +114,7 @@ public class OnboardingFunctions {
         String onboardingId = ctx.getInput(String.class);
         Onboarding onboarding;
 
-        WorkflowExecutorTemplate workflowExecutor;
+        WorkflowExecutor workflowExecutor;
 
         try {
             onboarding = service.getOnboarding(onboardingId)
@@ -141,12 +131,7 @@ public class OnboardingFunctions {
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
-            Product product = productService.getProductIsValid(onboarding.getProductId());
-            OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflow();
-            onboardingWorkflow.setOnboarding(onboarding);
-            onboardingWorkflow.setContractTemplatePath(workflowExecutor.getContractTemplatePath(product, onboarding));
-            onboardingWorkflow.setEmailRegistrationPath(workflowExecutor.getEmailRegistrationPath(mailTemplatePathConfig));
-            Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboardingWorkflow);
+            Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
             optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
@@ -181,19 +166,15 @@ public class OnboardingFunctions {
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT)
-    public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString));
-        service.sendMailRegistrationForContract(readOnboardingWorkflowValue(objectMapper, onboardingString));
+    public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString));
+        service.sendMailRegistrationForContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
-    @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR)
-    public void sendMailRegistrationForContractAggregator(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, onboardingString));
-        service.sendMailRegistrationForContractAggregator(readOnboardingValue(objectMapper, onboardingString));
-    }
+
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
-    public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
-        service.sendMailRegistrationForContractWhenApprove(readOnboardingWorkflowValue(objectMapper, onboardingString));
+    public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString));
+        service.sendMailRegistrationForContractWhenApprove(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)
@@ -233,9 +214,9 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
-    public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
-        completionService.sendCompletedEmail(readOnboardingValue(objectMapper, onboardingString));
+    public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString));
+        completionService.sendCompletedEmail(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)

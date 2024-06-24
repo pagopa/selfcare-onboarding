@@ -8,6 +8,8 @@ public interface MailTemplatePathConfig {
     String completePath();
     String completePathFd();
     String completePathPt();
+    String completePathUser();
+    String completePathAggregator();
 
     String autocompletePath();
 

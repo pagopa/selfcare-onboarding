@@ -8,6 +8,9 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowAggregator;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowUser;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -132,11 +135,13 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType) {
+    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow) {
 
         String templatePath;
 
-        if(InstitutionType.PT.equals(institutionType)) {
+        if (onboardingWorkflow instanceof OnboardingWorkflowUser || onboardingWorkflow instanceof OnboardingWorkflowAggregator) {
+            templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
+        }  else if(InstitutionType.PT.equals(institutionType)) {
             templatePath = templatePathConfig.completePathPt();
         } else {
             templatePath =product.getId().equals(PROD_FD.getValue()) || product.getId().equals(PROD_FD_GARANTITO.getValue())

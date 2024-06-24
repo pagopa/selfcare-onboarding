@@ -1,17 +1,31 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-public class OnboardingWorkflow {
-    private String contractTemplatePath;
-    private String emailRegistrationPath;
-    private Onboarding onboarding;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.product.entity.Product;
 
-    public String getContractTemplatePath() {
-        return contractTemplatePath;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = OnboardingWorkflowAggregator.class, name = "AGGREGATOR"),
+        @JsonSubTypes.Type(value = OnboardingWorkflowInstitution.class, name = "INSTITUTION"),
+        @JsonSubTypes.Type(value = OnboardingWorkflowUser.class, name = "USER")
+})
+public abstract class OnboardingWorkflow {
+
+    OnboardingWorkflow(Onboarding onboarding) {
+        this.onboarding = onboarding;
     }
 
-    public void setContractTemplatePath(String contractTemplatePath) {
-        this.contractTemplatePath = contractTemplatePath;
+    public OnboardingWorkflow() {
     }
+
+    protected Onboarding onboarding;
+    public abstract String emailRegistrationPath(MailTemplatePathConfig config);
+
+    public abstract String getEmailCompletionPath(MailTemplatePathConfig config);
+
+    public abstract String getContractTemplatePath(Product product);
 
     public Onboarding getOnboarding() {
         return onboarding;
@@ -20,17 +34,5 @@ public class OnboardingWorkflow {
     public void setOnboarding(Onboarding onboarding) {
         this.onboarding = onboarding;
     }
-
-    public void setEmailRegistrationPath(String emailRegistrationPath) {
-        this.emailRegistrationPath = emailRegistrationPath;
-    }
-
-    public String getEmailRegistrationPath() {
-        return emailRegistrationPath;
-    }
-
-    public OnboardingWorkflow() {
-    }
-
 
 }
