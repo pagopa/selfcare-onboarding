@@ -25,6 +25,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 @QuarkusTest
@@ -150,11 +151,15 @@ class NotificationServiceDefaultTest {
 
         Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
 
-        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.completePath()))
+        Mockito.when(azureBlobClient.getFileAsText(anyString()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowUser(new Onboarding(), OnboardingWorkflowType.USER.name());
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PT);
+        Onboarding onboarding = new Onboarding();
+        onboarding.setInstitution(institution);
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, OnboardingWorkflowType.INSTITUTION.name());
 
         notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA, onboardingWorkflow);
 
