@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -62,6 +63,9 @@ public class OnboardingService {
 
     @Inject
     MailTemplatePathConfig mailTemplatePathConfig;
+
+    @Inject
+    MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
 
     public Optional<Onboarding> getOnboarding(String onboardingId) {
         return repository.findByIdOptional(onboardingId);
@@ -140,12 +144,16 @@ public class OnboardingService {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
+        final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
+        final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
+
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
                 sendMailInput.institutionName,
-                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
+                templatePath,
+                confirmTokenUrl);
     }
 
     public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
@@ -167,7 +175,8 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle(), "description",
-                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig));
+                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
+                onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {

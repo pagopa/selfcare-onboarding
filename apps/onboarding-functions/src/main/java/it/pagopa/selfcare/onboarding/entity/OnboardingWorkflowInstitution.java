@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.ContractStorage;
 import it.pagopa.selfcare.product.entity.Product;
 
@@ -36,6 +37,16 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
                     ? config.completePathFd()
                     : config.completePath();
         }
+    }
+
+    @Override
+    public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
+        return config.confirmTokenPlaceholder();
+    }
+
+    @Override
+    public String getRejectTokenUrl(MailTemplatePlaceholdersConfig config) {
+        return config.rejectTokenPlaceholder();
     }
 
     @Override

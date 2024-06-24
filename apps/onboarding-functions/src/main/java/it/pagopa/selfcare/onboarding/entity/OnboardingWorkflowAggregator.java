@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.ContractStorage;
 import it.pagopa.selfcare.product.entity.Product;
 
@@ -34,6 +35,16 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
                 .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType()))
                 .map(ContractStorage::getContractTemplatePath)
                 .orElse(product.getContractTemplatePath());
+    }
+
+    @Override
+    public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
+        return config.confirmTokenPlaceholder();
+    }
+
+    @Override
+    public String getRejectTokenUrl(MailTemplatePlaceholdersConfig config) {
+        return config.rejectTokenPlaceholder();
     }
 
     public String getType() {

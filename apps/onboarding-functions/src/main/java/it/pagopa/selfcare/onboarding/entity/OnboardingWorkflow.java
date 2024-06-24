@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.entity;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.Product;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -24,6 +25,10 @@ public abstract class OnboardingWorkflow {
     public abstract String emailRegistrationPath(MailTemplatePathConfig config);
 
     public abstract String getEmailCompletionPath(MailTemplatePathConfig config);
+
+    public abstract String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config);
+
+    public abstract String getRejectTokenUrl(MailTemplatePlaceholdersConfig config);
 
     public abstract String getContractTemplatePath(Product product);
 

@@ -282,7 +282,7 @@ class OnboardingServiceTest {
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle(), "description",
-                        "default");
+                        "default", "default");
 
         onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
@@ -291,7 +291,7 @@ class OnboardingServiceTest {
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle(), "description",
-                        "default");
+                        "default", "default");
     }
 
     @Test
@@ -346,7 +346,7 @@ class OnboardingServiceTest {
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
                         product.getTitle(), "description",
-                        "default");
+                        "default", "default");
 
         onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
@@ -355,7 +355,7 @@ class OnboardingServiceTest {
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
                         product.getTitle(), "description",
-                        "default");
+                        "default", "default");
     }
 
 
