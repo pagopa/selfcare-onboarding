@@ -65,6 +65,19 @@ app_settings = {
   "RETRY_MAX_ATTEMPTS"    = "3"
   "FIRST_RETRY_INTERVAL"  = "5"
   "BACKOFF_COEFFICIENT"   = "1"
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-u-eventhub-ns.servicebus.windows.net",
+  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
+  "EVENTHUB-SC-CONTRACTS-SELFCARE-WO-KEY-LC"           = "string"
+  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-SAP-SELFCARE-WO-KEY-LC"       = "string"
+  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
+  "EVENTHUB-SC-CONTRACTS-FD-SELFCARE-WO-KEY-LC"        = "string"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
+  "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP"
+  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
+  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
 
   ## IGNORE VALUES
 
@@ -73,14 +86,19 @@ app_settings = {
   "MAIL_TEMPLATE_NOTIFICATION_PATH"                    = "contracts/template/mail/onboarding-notification/1.0.0.json",
   "ADDRESS_EMAIL_NOTIFICATION_ADMIN"                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/portal-admin-operator-email/)",
   "MAIL_TEMPLATE_FD_COMPLETE_NOTIFICATION_PATH"        = "contracts/template/mail/onboarding-complete-fd/1.0.0.json",
+  "MAIL_TEMPLATE_AGGREGATE_COMPLETE_PATH"              = "contracts/template/mail/onboarding-complete-aggregate/1.0.0.json",
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
   "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/onboarding-request/1.0.1.json",
-  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
+  "MAIL_TEMPLATE_REGISTRATION_AGGREGATOR_PATH"         = "contracts/template/mail/onboarding-request-aggregator/1.0.0.json"
+  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://imprese.uat.notifichedigitali.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://imprese.uat.notifichedigitali.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.uat.notifichedigitali.it/onboarding/confirm?jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.uat.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.uat.notifichedigitali.it/onboarding/",
+  "USER_MS_ACTIVE"                                     = "true",
+  "FORCE_INSTITUTION_PERSIST"                          = "true"
+
 }

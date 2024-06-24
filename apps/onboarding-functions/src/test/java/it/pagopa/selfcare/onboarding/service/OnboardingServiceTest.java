@@ -285,6 +285,37 @@ class OnboardingServiceTest {
                         product.getTitle());
     }
 
+    @Test
+    void sendMailRegistrationWithContractAggregator() {
+
+        Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
+        UserResource userResource = createUserResource();
+        Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
+
+        when(tokenRepository.findByOnboardingId(onboarding.getId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService)
+                .sendMailRegistrationForContractAggregator(onboarding.getId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+
+        onboardingService.sendMailRegistrationForContractAggregator(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationForContractAggregator(onboarding.getId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+    }
+
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {

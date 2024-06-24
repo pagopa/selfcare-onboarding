@@ -35,6 +35,17 @@
                 <module>onboarding-functions</module>
             </modules>
         </profile>
+        <profile>
+            <id>onboarding-cdc</id>
+            <activation>
+                <file>
+                    <exists>onboarding-cdc/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>onboarding-cdc</module>
+            </modules>
+        </profile>
     </profiles>
 
 </project>

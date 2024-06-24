@@ -49,7 +49,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -57,11 +57,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.selfcare.pagopa.it/ms-core/v1"
+    value = "http://selc-p-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://selc.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc-p-party-reg-proxy-ca"
   },
   {
     name  = "STORAGE_CONTAINER_CONTRACT"
@@ -73,7 +73,7 @@ secrets_names = {
   "JWT-PUBLIC-KEY"                          = "jwt-public-key"
   "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
   "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
-  "ONBOARDING-FUNCTIONS-API-KEY"            = "onboarding-functions-api-key"
+  "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"
   "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
   "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"

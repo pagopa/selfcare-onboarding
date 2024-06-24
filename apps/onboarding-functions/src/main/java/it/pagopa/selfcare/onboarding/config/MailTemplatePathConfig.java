@@ -8,12 +8,14 @@ public interface MailTemplatePathConfig {
     String completePath();
     String completePathFd();
     String completePathPt();
+    String completePathAggregate();
 
     String autocompletePath();
 
     String delegationNotificationPath();
 
     String registrationPath();
+    String registrationAggregatorPath();
 
     String onboardingApprovePath();
 

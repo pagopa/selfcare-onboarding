@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
@@ -48,6 +47,7 @@ public interface WorkflowExecutor {
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
         if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
@@ -73,6 +73,13 @@ public interface WorkflowExecutor {
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
+    default Optional<OnboardingStatus> onboardingCompletionUsersActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        final String onboardingString = getOnboardingString(objectMapper(), onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        return Optional.of(OnboardingStatus.COMPLETED);
+    }
+
     default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
         createInstitutionAndOnboarding(ctx, onboarding);
         return Optional.of(OnboardingStatus.COMPLETED);
@@ -86,7 +93,10 @@ public interface WorkflowExecutor {
 
     default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, Onboarding onboarding){
         String onboardingString = getOnboardingString(objectMapper(), onboarding);
-        ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        if (Objects.isNull(onboarding.getReasonForReject()) ||
+                (Objects.nonNull(onboarding.getReasonForReject()) && !onboarding.getReasonForReject().equals("REJECTED_BY_USER"))) {
+            ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        }
         return Optional.empty();
     }
 }

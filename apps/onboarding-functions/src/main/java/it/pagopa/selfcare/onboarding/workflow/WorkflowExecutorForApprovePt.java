@@ -12,15 +12,8 @@ import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MA
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
-public class WorkflowExecutorForApprovePt implements WorkflowExecutor {
+public record WorkflowExecutorForApprovePt(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
 
-    private final ObjectMapper objectMapper;
-    private final TaskOptions optionsRetry;
-
-    public WorkflowExecutorForApprovePt(ObjectMapper objectMapper, TaskOptions optionsRetry) {
-        this.objectMapper = objectMapper;
-        this.optionsRetry = optionsRetry;
-    }
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         String onboardingString = getOnboardingString(objectMapper, onboarding);
@@ -37,15 +30,5 @@ public class WorkflowExecutorForApprovePt implements WorkflowExecutor {
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
         return Optional.empty();
-    }
-
-    @Override
-    public ObjectMapper objectMapper() {
-        return this.objectMapper;
-    }
-
-    @Override
-    public TaskOptions optionsRetry() {
-        return this.optionsRetry;
     }
 }

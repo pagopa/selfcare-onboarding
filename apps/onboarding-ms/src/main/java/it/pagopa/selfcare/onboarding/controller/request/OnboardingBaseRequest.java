@@ -14,6 +14,10 @@ public class OnboardingBaseRequest {
     @NotEmpty(message = "at least one user is required")
     private List<UserRequest> users;
 
+    private List<AggregateInstitutionRequest> aggregates;
+
+    private Boolean isAggregator;
+
     private String pricingPlan;
 
     private Boolean signContract;

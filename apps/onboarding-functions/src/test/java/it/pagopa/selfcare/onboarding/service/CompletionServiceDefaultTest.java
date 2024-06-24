@@ -1,18 +1,16 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -24,9 +22,11 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.openapi.quarkus.core_json.api.DelegationApi;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -36,7 +36,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
@@ -44,15 +43,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
-    public static final String MANAGER_WORKCONTRACT_MAIL = "mail@mail.it";
     @Inject
     CompletionServiceDefault completionServiceDefault;
 
@@ -83,6 +81,9 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    @RestClient
+    @InjectMock
+    DelegationApi delegationApi;
 
     final String productId = "productId";
 
@@ -105,7 +106,6 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
-
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
         Onboarding onboarding = createOnboarding();
@@ -139,6 +139,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institutionSa = new Institution();
+        institutionSa.setTaxCode("taxCode");
         institutionSa.setInstitutionType(InstitutionType.SA);
         institutionSa.setOrigin(Origin.ANAC);
         onboarding.setInstitution(institutionSa);
@@ -155,10 +156,11 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvass() {
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvassWithTaxCode() {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.AS);
         institution.setOrigin(Origin.IVASS);
         onboarding.setInstitution(institution);
@@ -173,11 +175,32 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
     }
+
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateAsIvassWithOrigin() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.AS);
+        institution.setOrigin(Origin.IVASS);
+        institution.setOriginId("originId");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(null, null, Origin.IVASS.getValue(), "originId"))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionFromIvassUsingPOST(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+    }
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePgAde() {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PG);
         institution.setOrigin(Origin.ADE);
         onboarding.setInstitution(institution);
@@ -197,6 +220,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.AOO);
         institution.setSubunitCode("code");
@@ -232,6 +256,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.UO);
         institution.setSubunitCode("code");
@@ -313,29 +338,29 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
-        when(institutionApi.createInstitutionUsingPOST1(any())).thenReturn(institutionResponse);
+        when(institutionApi.createInstitutionUsingPOST(any())).thenReturn(institutionResponse);
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
 
         ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
         verify(institutionApi, times(1))
-                .createInstitutionUsingPOST1(captor.capture());
+                .createInstitutionUsingPOST(captor.capture());
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
 
 
 
+    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("_id", onboarding.getId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("activatedAt = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+    }
+
     @Test
     void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
-
-        User manager = new User();
-        manager.setId("id");
-        manager.setRole(PartyRole.MANAGER);
-        onboarding.setUsers(List.of(manager));
-
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-                .thenReturn(new UserResource());
 
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
@@ -343,6 +368,8 @@ public class CompletionServiceDefaultTest {
         token.setContractSigned("contract-signed-path");
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
+
+        mockOnboardingUpdateWhenPersistOnboarding(onboarding);
 
         completionServiceDefault.persistOnboarding(onboarding);
 
@@ -354,31 +381,21 @@ public class CompletionServiceDefaultTest {
                 .findByOnboardingId(onboarding.getId());
 
         InstitutionOnboardingRequest actual = captor.getValue();
-        assertEquals(1, actual.getUsers().size());
-        assertNull(actual.getUsers().get(0).getEmail());
+        assertEquals(productId, actual.getProductId());
     }
 
     @Test
     void persistOnboarding() {
         Onboarding onboarding = createOnboarding();
-
-        User manager = new User();
-        manager.setId("id");
-        manager.setRole(PartyRole.MANAGER);
-        manager.setUserMailUuid(UUID.randomUUID().toString());
-        onboarding.setUsers(List.of(manager));
         onboarding.setActivatedAt(LocalDateTime.now());
-
-        UserResource userResource = dummyUserResource(manager.getUserMailUuid());
-
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-                .thenReturn(userResource);
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
         Token token = new Token();
         token.setContractSigned("contract-signed-path");
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
+
+        mockOnboardingUpdateWhenPersistOnboarding(onboarding);
 
         completionServiceDefault.persistOnboarding(onboarding);
 
@@ -392,9 +409,6 @@ public class CompletionServiceDefaultTest {
         InstitutionOnboardingRequest actual = captor.getValue();
         assertEquals(onboarding.getProductId(), actual.getProductId());
         assertEquals(onboarding.getPricingPlan(), actual.getPricingPlan());
-        assertEquals(1, actual.getUsers().size());
-        assertEquals(MANAGER_WORKCONTRACT_MAIL, actual.getUsers().get(0).getEmail());
-        assertEquals(manager.getRole().name(), actual.getUsers().get(0).getRole().name());
         assertEquals(token.getContractSigned(), actual.getContractPath());
         assertEquals(actual.getActivatedAt().getDayOfYear(), onboarding.getActivatedAt().getDayOfYear());
     }
@@ -448,6 +462,33 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void sendCompletedEmailAggregate() {
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        Map<String, WorkContactResource> map = new HashMap<>();
+        userResource.setWorkContacts(map);
+        Onboarding onboarding = createOnboarding();
+        Aggregator aggregator= new Aggregator();
+        aggregator.setDescription("description");
+        onboarding.setAggregator(aggregator);
+
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+                .thenReturn(userResource);
+        doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
+
+        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmailAggregate(any(), any());
+    }
+
+    @Test
     void persistUsers() {
 
         Onboarding onboarding = createOnboarding();
@@ -483,6 +524,45 @@ public class CompletionServiceDefaultTest {
 
     }
 
+    @Test
+    void createDelegation(){
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setDescription("institution-description");
+        Aggregator aggregator = new Aggregator();
+        aggregator.setDescription("aggregator-description");
+        aggregator.setId("aggregator-id");
+        onboarding.setAggregator(aggregator);
+
+
+        ArgumentCaptor<DelegationRequest> capture = ArgumentCaptor.forClass(DelegationRequest.class);
+        when(delegationApi.createDelegationUsingPOST(capture.capture()))
+                .thenReturn(new DelegationResponse());
+
+        completionServiceDefault.createDelegation(onboarding);
+
+        Assertions.assertEquals(onboarding.getInstitution().getId(), capture.getValue().getFrom());
+        Assertions.assertEquals(onboarding.getInstitution().getDescription(), capture.getValue().getInstitutionFromName());
+        Assertions.assertEquals(onboarding.getAggregator().getId(), capture.getValue().getTo());
+        Assertions.assertEquals(onboarding.getAggregator().getDescription(), capture.getValue().getInstitutionToName());
+        Assertions.assertEquals(onboarding.getProductId(), capture.getValue().getProductId());
+        Assertions.assertEquals("EA", capture.getValue().getType().name());
+        Mockito.verify(delegationApi, times(1))
+                .createDelegationUsingPOST(capture.capture());
+    }
+
+    @Test
+    void createDelegationWithNullAggregator(){
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setDescription("institution-description");
+
+        Assertions.assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.createDelegation(onboarding),
+                "Aggregator is null, impossible to create delegation");
+        Mockito.verifyNoInteractions(delegationApi);
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
@@ -503,6 +583,7 @@ public class CompletionServiceDefaultTest {
         billing.setPublicServices(true);
         billing.setRecipientCode("example");
         billing.setVatNumber("example");
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
         return onboarding;
     }
@@ -516,31 +597,98 @@ public class CompletionServiceDefaultTest {
         return product;
     }
 
-    private UserResource dummyUserResource(String userMailUuid){
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
+    @Test
+    void testCreateAggregateOnboardingRequest() throws JsonProcessingException {
+        // Given
+        OnboardingAggregateOrchestratorInput input = createSampleOnboardingInput();
+        Onboarding onboardingToUpdate = createSampleOnboarding();
 
-        CertifiableFieldResourceOfstring resourceOfName = new CertifiableFieldResourceOfstring();
-        resourceOfName.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfName.setValue("name");
-        userResource.setName(resourceOfName);
+        // When
+        Onboarding onboarding = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        CertifiableFieldResourceOfstring resourceOfSurname = new CertifiableFieldResourceOfstring();
-        resourceOfSurname.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfSurname.setValue("surname");
-        userResource.setFamilyName(resourceOfSurname);
-
-
-        CertifiableFieldResourceOfstring resourceOfMail = new CertifiableFieldResourceOfstring();
-        resourceOfMail.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfMail.setValue(MANAGER_WORKCONTRACT_MAIL);
-        WorkContactResource workContactResource = new WorkContactResource();
-        workContactResource.email(resourceOfMail);
-
-        Map<String, WorkContactResource> map = new HashMap<>();
-        map.put(userMailUuid, workContactResource);
-        userResource.setWorkContacts(map);
-        return userResource;
+        onboardingToUpdate.setId(onboarding.getId());
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(onboarding));
     }
+
+    public static OnboardingAggregateOrchestratorInput createSampleOnboardingInput() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+
+        input.setId("1");
+        input.setProductId("productId");
+        input.setTestEnvProductIds(Collections.singletonList("testEnvProductId"));
+        input.setPricingPlan("pricingPlan");
+
+        Billing billing = new Billing();
+        input.setBilling(billing);
+
+        input.setSignContract(true);
+        input.setExpiringDate(LocalDateTime.MAX);
+        input.setUserRequestUid("example-uid");
+        input.setWorkflowInstanceId("workflowInstanceId");
+        input.setCreatedAt(LocalDateTime.MAX);
+        input.setUpdatedAt(LocalDateTime.MAX);
+        input.setActivatedAt(LocalDateTime.MAX);
+        input.setDeletedAt(null);
+        input.setReasonForReject(null);
+
+        Institution institution = new Institution();
+        institution.setOrigin(Origin.IPA);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setId("institutionId");
+        institution.setDescription("description");
+        institution.setTaxCode("taxCode");
+        input.setInstitution(institution);
+
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCodeAggregate");
+        aggregate.setDescription("descriptionAggregate");
+        input.setAggregate(aggregate);
+
+        User user = new User();
+        input.setUsers(Collections.singletonList(user));
+
+        return input;
+    }
+
+    // Method to create sample Onboarding
+    public static Onboarding createSampleOnboarding() {
+        Onboarding onboarding = new Onboarding();
+
+        onboarding.setId("1");
+        onboarding.setProductId("productId");
+        onboarding.setTestEnvProductIds(Collections.singletonList("testEnvProductId"));
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setOrigin(Origin.IPA);
+        institution.setDescription("descriptionAggregate");
+        institution.setTaxCode("taxCodeAggregate");
+        onboarding.setInstitution(institution);
+        onboarding.setUsers(Collections.singletonList(new User()));
+        onboarding.setPricingPlan("pricingPlan");
+        onboarding.setBilling(new Billing());
+        onboarding.setSignContract(true);
+        onboarding.setExpiringDate(LocalDateTime.MAX);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setUserRequestUid("example-uid");
+        onboarding.setWorkflowInstanceId("workflowInstanceId");
+        onboarding.setCreatedAt(LocalDateTime.MAX);
+        onboarding.setUpdatedAt(LocalDateTime.MAX);
+        onboarding.setActivatedAt(LocalDateTime.MAX);
+        onboarding.setDeletedAt(null);
+        onboarding.setReasonForReject(null);;
+
+        Aggregator aggregator = new Aggregator();
+        aggregator.setId("institutionId");
+        aggregator.setDescription("description");
+        aggregator.setTaxCode("taxCode");
+        onboarding.setAggregator(aggregator);
+
+        return onboarding;
+    }
+
+
 }
 

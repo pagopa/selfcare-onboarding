@@ -25,6 +25,7 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 /**
@@ -36,15 +37,16 @@ public class OnboardingFunctions {
 
     private final OnboardingService service;
     private final CompletionService completionService;
-
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
 
-    public OnboardingFunctions(OnboardingService service, ObjectMapper objectMapper, RetryPolicyConfig retryPolicyConfig, CompletionService completionService) {
+    public OnboardingFunctions(OnboardingService service,
+                               ObjectMapper objectMapper,
+                               RetryPolicyConfig retryPolicyConfig,
+                               CompletionService completionService) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
-
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -91,9 +93,9 @@ public class OnboardingFunctions {
 
             return isFailed
                     ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .build()
+                    .build()
                     : request.createResponseBuilder(HttpStatus.OK)
-                        .build();
+                    .build();
         } catch (TimeoutException timeoutEx) {
             // timeout expired - return a 202 response
             return durableContext.createCheckStatusResponse(request, instanceId);
@@ -119,10 +121,12 @@ public class OnboardingFunctions {
 
             switch (onboarding.getWorkflowType()) {
                 case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
+                case CONTRACT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry);
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
+                case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
@@ -165,6 +169,11 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString));
         service.sendMailRegistrationForContract(readOnboardingValue(objectMapper, onboardingString));
     }
+    @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR)
+    public void sendMailRegistrationForContractAggregator(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, onboardingString));
+        service.sendMailRegistrationForContractAggregator(readOnboardingValue(objectMapper, onboardingString));
+    }
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
     public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
@@ -201,6 +210,12 @@ public class OnboardingFunctions {
         completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(STORE_ONBOARDING_ACTIVATEDAT)
+    public void storeOnboardingActivatedAt(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, STORE_ONBOARDING_ACTIVATEDAT, onboardingString));
+        completionService.persistActivatedAt(readOnboardingValue(objectMapper, onboardingString));
+    }
+
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
     public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
@@ -217,5 +232,22 @@ public class OnboardingFunctions {
     public void createOnboardedUsers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         completionService.persistUsers(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY)
+    public void sendMailCompletionAggregate(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString));
+        completionService.sendCompletedEmailAggregate(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
+    public Onboarding createAggregateOnboardingRequest(@DurableActivityTrigger(name = "onboardingString") String onboardingAggregateOrchestratorInputString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregateOrchestratorInputString));
+        return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
+    }
+    @FunctionName(CREATE_DELEGATION_ACTIVITY)
+    public void createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
+        completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
     }
 }

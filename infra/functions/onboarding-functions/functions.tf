@@ -37,11 +37,10 @@ module "selc_onboarding_fn" {
   runtime_version                          = "~4"
 
   system_identity_enabled = true
-
-  storage_account_name = replace(format("%s-sa", local.app_name), "-", "")
-
-  app_service_plan_info = var.app_service_plan_info
-  storage_account_info  = var.storage_account_info
+  storage_account_name    = replace(format("%s-sa", local.app_name), "-", "")
+  export_keys             = true
+  app_service_plan_info   = var.app_service_plan_info
+  storage_account_info    = var.storage_account_info
 
   app_settings = var.app_settings
 
@@ -85,4 +84,11 @@ resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway"
 resource "azurerm_subnet_nat_gateway_association" "functions_subnet_nat_gateway" {
   subnet_id      = module.onboarding_fn_snet[0].id
   nat_gateway_id = data.azurerm_nat_gateway.nat_gateway.id
+}
+
+resource "azurerm_key_vault_secret" "fn_primary_key" {
+  name         = "fn-onboarding-primary-key"
+  value        = module.selc_onboarding_fn.primary_key
+  content_type = "text/plain"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
 }
