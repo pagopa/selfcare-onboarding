@@ -595,4 +595,16 @@ public class OnboardingFunctionsTest {
                 .persistUsers(any());
     }
 
+    @Test
+    void createEADelegation() {
+        final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).createDelegation(any());
+
+        function.createDelegationForAggregation(onboardingString, executionContext);
+
+        Mockito.verify(completionService, times(1))
+                .createDelegation(any());
+    }
 }

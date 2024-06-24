@@ -21,9 +21,11 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.openapi.quarkus.core_json.api.DelegationApi;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -33,7 +35,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
@@ -49,7 +50,6 @@ import static org.mockito.Mockito.*;
 @TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
-    public static final String MANAGER_WORKCONTRACT_MAIL = "mail@mail.it";
     @Inject
     CompletionServiceDefault completionServiceDefault;
 
@@ -80,6 +80,9 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    @RestClient
+    @InjectMock
+    DelegationApi delegationApi;
 
     final String productId = "productId";
 
@@ -520,6 +523,45 @@ public class CompletionServiceDefaultTest {
 
     }
 
+    @Test
+    void createDelegation(){
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setDescription("institution-description");
+        Aggregator aggregator = new Aggregator();
+        aggregator.setDescription("aggregator-description");
+        aggregator.setId("aggregator-id");
+        onboarding.setAggregator(aggregator);
+
+
+        ArgumentCaptor<DelegationRequest> capture = ArgumentCaptor.forClass(DelegationRequest.class);
+        when(delegationApi.createDelegationUsingPOST(capture.capture()))
+                .thenReturn(new DelegationResponse());
+
+        completionServiceDefault.createDelegation(onboarding);
+
+        Assertions.assertEquals(onboarding.getInstitution().getId(), capture.getValue().getFrom());
+        Assertions.assertEquals(onboarding.getInstitution().getDescription(), capture.getValue().getInstitutionFromName());
+        Assertions.assertEquals(onboarding.getAggregator().getId(), capture.getValue().getTo());
+        Assertions.assertEquals(onboarding.getAggregator().getDescription(), capture.getValue().getInstitutionToName());
+        Assertions.assertEquals(onboarding.getProductId(), capture.getValue().getProductId());
+        Assertions.assertEquals("EA", capture.getValue().getType().name());
+        Mockito.verify(delegationApi, times(1))
+                .createDelegationUsingPOST(capture.capture());
+    }
+
+    @Test
+    void createDelegationWithNullAggregator(){
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setDescription("institution-description");
+
+        Assertions.assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.createDelegation(onboarding),
+                "Aggregator is null, impossible to create delegation");
+        Mockito.verifyNoInteractions(delegationApi);
+    }
+
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
@@ -552,33 +594,6 @@ public class CompletionServiceDefaultTest {
         product.setTitle("Title");
         product.setId(productId);
         return product;
-    }
-
-    private UserResource dummyUserResource(String userMailUuid){
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-
-        CertifiableFieldResourceOfstring resourceOfName = new CertifiableFieldResourceOfstring();
-        resourceOfName.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfName.setValue("name");
-        userResource.setName(resourceOfName);
-
-        CertifiableFieldResourceOfstring resourceOfSurname = new CertifiableFieldResourceOfstring();
-        resourceOfSurname.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfSurname.setValue("surname");
-        userResource.setFamilyName(resourceOfSurname);
-
-
-        CertifiableFieldResourceOfstring resourceOfMail = new CertifiableFieldResourceOfstring();
-        resourceOfMail.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
-        resourceOfMail.setValue(MANAGER_WORKCONTRACT_MAIL);
-        WorkContactResource workContactResource = new WorkContactResource();
-        workContactResource.email(resourceOfMail);
-
-        Map<String, WorkContactResource> map = new HashMap<>();
-        map.put(userMailUuid, workContactResource);
-        userResource.setWorkContacts(map);
-        return userResource;
     }
 }
 
