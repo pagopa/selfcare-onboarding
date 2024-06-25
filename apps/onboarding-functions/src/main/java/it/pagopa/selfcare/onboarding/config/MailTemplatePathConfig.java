@@ -17,6 +17,7 @@ public interface MailTemplatePathConfig {
 
     String registrationPath();
     String registrationUserPath();
+    String registrationUserNewManagerPath();
     String registrationAggregatorPath();
 
     String onboardingApprovePath();
