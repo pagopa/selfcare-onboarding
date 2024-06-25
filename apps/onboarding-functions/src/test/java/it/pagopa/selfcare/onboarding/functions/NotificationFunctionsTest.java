@@ -39,6 +39,7 @@ public class NotificationFunctionsTest {
     @InjectMock
     NotificationEventService notificationEventService;
 
+
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
     static ExecutionContext executionContext;
