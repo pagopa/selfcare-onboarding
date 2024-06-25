@@ -118,10 +118,10 @@ public class CompletionServiceDefaultTest {
                 onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
 
-    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding, InstitutionResponse institutionResponse){
+    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
@@ -152,7 +152,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromAnacUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
 
     @Test
@@ -173,7 +173,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromIvassUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromIvassUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePgAde() {
@@ -213,7 +213,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromInfocamereUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePaAOO() {
@@ -238,7 +238,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromIpaUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
 
         ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
         ArgumentCaptor<String> subunitCodeCaptor = ArgumentCaptor.forClass(String.class);
@@ -274,7 +274,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromIpaUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
 
         ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
         ArgumentCaptor<String> subunitCodeCaptor = ArgumentCaptor.forClass(String.class);
@@ -308,7 +308,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionFromIpaUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
 
         ArgumentCaptor<InstitutionFromIpaPost> captor = ArgumentCaptor.forClass(InstitutionFromIpaPost.class);
         ArgumentCaptor<String> taxCodeCaptor = ArgumentCaptor.forClass(String.class);
@@ -340,7 +340,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionUsingPOST(any())).thenReturn(institutionResponse);
 
-        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding, institutionResponse);
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
 
         ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
         verify(institutionApi, times(1))
