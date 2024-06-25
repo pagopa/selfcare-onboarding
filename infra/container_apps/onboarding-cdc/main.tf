@@ -31,9 +31,9 @@ module "container_app_onboarding_cdc" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      type             = "Liveness"
-      failureThreshold = 3
+      timeoutSeconds      = 5
+      type                = "Liveness"
+      failureThreshold    = 3
       initialDelaySeconds = 1
     },
     {
@@ -42,9 +42,9 @@ module "container_app_onboarding_cdc" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      type             = "Readiness"
-      failureThreshold = 30
+      timeoutSeconds      = 5
+      type                = "Readiness"
+      failureThreshold    = 30
       initialDelaySeconds = 3
     },
     {
@@ -53,9 +53,9 @@ module "container_app_onboarding_cdc" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      failureThreshold = 5
-      type             = "Startup"
+      timeoutSeconds      = 5
+      failureThreshold    = 5
+      type                = "Startup"
       initialDelaySeconds = 5
     }
   ]

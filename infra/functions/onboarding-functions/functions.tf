@@ -76,12 +76,12 @@ data "azurerm_public_ip" "functions_pip_outboud" {
   //selc-d-onboarding-fn-pip-outbound -> selc-d-aksoutbound-pip-01
 
 
-#  selc-d-pnpg-onboarding-fn-pip-outbound su azure
-# "selc-d-pnpg-onboarding-fn-pip-outbound
+  #  selc-d-pnpg-onboarding-fn-pip-outbound su azure
+  # "selc-d-pnpg-onboarding-fn-pip-outbound
 }
 
 data "azurerm_nat_gateway" "nat_gateway" {
-  name                = "${local.base_domain_name}-nat_gw"
+  name = "${local.base_domain_name}-nat_gw"
   // selc-d-nat_gw
   resource_group_name = data.azurerm_resource_group.nat_rg.name
 }
