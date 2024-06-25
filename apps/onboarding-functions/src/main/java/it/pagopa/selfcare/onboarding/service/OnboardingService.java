@@ -7,7 +7,7 @@ import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
-import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
+import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
@@ -29,8 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +47,8 @@ public class OnboardingService {
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String USERS_WORKS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
+    public static final String ACTIVATED_AT_FIELD = "activatedAt";
+    public static final String DELETED_AT_FIELD = "deletedAt";
 
     @RestClient
     @Inject
@@ -227,29 +232,39 @@ public class OnboardingService {
                 .where("_id", onboardingId);
     }
 
-    public List<OnboardingCountResult> countOnboarding(ExecutionContext context) {
+    public List<NotificationCountResult> countNotifications(String productId, String from, String to, ExecutionContext context) {
+        context.getLogger().info(() -> String.format("Starting countOnboarding with filters productId: %s from: %s to: %s", productId, from, to));
         return productService.getProducts(false, false)
-                .parallelStream()
-                .map(product -> countOnboarding(product.getId(), context))
+                .stream()
+                .filter(product -> Objects.isNull(productId) || product.getId().equals(productId))
+                .map(product -> countNotificationsByFilters(product.getId(), from, to, context))
                 .toList();
     }
 
-    private OnboardingCountResult countOnboarding(String productId, ExecutionContext context) {
 
-        Document queryCompleted = createQuery(productId, OnboardingStatus.COMPLETED);
-        Document queryDeleted = createQuery(productId, OnboardingStatus.DELETED);
+    public NotificationCountResult countNotificationsByFilters(String productId, String from, String to, ExecutionContext context) {
+        Document queryAddEvent = createQuery(productId, List.of(OnboardingStatus.COMPLETED, OnboardingStatus.DELETED), from, to, ACTIVATED_AT_FIELD);
+        Document queryUpdateEvent = createQuery(productId, List.of(OnboardingStatus.DELETED), from, to, DELETED_AT_FIELD);
 
-        long countCompleted = repository.find(queryCompleted).count();
-        long countDeleted = repository.find(queryDeleted).count();
+        long countAddEvents = repository.find(queryAddEvent).count();
+        long countUpdateEvents= repository.find(queryUpdateEvent).count();
+        long total = countUpdateEvents + countAddEvents;
 
-        context.getLogger().info(() -> String.format("Counted onboarding for productId: %s completed: %s deleted: %s", productId, countCompleted, countDeleted));
-        return new OnboardingCountResult(productId, countCompleted, countDeleted);
+        context.getLogger().info(() -> String.format("Counted onboardings for productId: %s add events: %s update events: %s", productId, countAddEvents, countUpdateEvents));
+        return new NotificationCountResult(productId, total);
     }
 
-    private Document createQuery(String productId, OnboardingStatus status) {
+    private Document createQuery(String productId, List<OnboardingStatus> status, String from, String to, String dateField) {
         Document query = new Document();
         query.append("productId", productId);
-        query.append("status", status);
+        query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
+
+        Document dateQuery = new Document();
+        Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
+        Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE))));
+        if(!dateQuery.isEmpty()) {
+            query.append(dateField, dateQuery);
+        }
         return query;
     }
 

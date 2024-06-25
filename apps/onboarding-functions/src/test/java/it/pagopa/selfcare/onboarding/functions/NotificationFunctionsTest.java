@@ -7,7 +7,7 @@ import com.microsoft.azure.functions.HttpStatus;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
-import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
+import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -170,12 +170,20 @@ public class NotificationFunctionsTest {
     }
 
     @Test
-    public void countOnboardingShouldReturnOkWhenServiceDoesNotThrow() {
+    public void countOnboardingShouldReturnOkWhenEmptyList() {
         // Given
+        final String from = "from";
+        final String to = "to";
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("productId", null);
+        queryParams.put("from", from);
+        queryParams.put("to", to);
+        doReturn(queryParams).when(req).getQueryParameters();
+
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(onboardingService.countOnboarding(context)).thenReturn(new ArrayList<>());
+        when(onboardingService.countNotifications(null, from, to, context)).thenReturn(new ArrayList<>());
 
         doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
             HttpStatus status = (HttpStatus) invocation.getArguments()[0];
@@ -183,22 +191,30 @@ public class NotificationFunctionsTest {
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         // When
-        HttpResponseMessage responseMessage = function.countOnboarding(req, context);
+        HttpResponseMessage responseMessage = function.countNotifications(req, context);
 
         // Then
         assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
-        verify(onboardingService, times(1)).countOnboarding(context);
+        verify(onboardingService, times(1)).countNotifications(null, from, to, context);
     }
 
 
     @Test
     public void countOnboardingShouldReturnOkWithCorrectBodyWhenServiceReturnsData() {
         // Given
+        final String productId = "productId";
+        final String from = "from";
+        final String to = "to";
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("productId", productId);
+        queryParams.put("from", from);
+        queryParams.put("to", to);
+        doReturn(queryParams).when(req).getQueryParameters();
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        List<OnboardingCountResult> expectedResults = List.of(new OnboardingCountResult("product1", 1L, 1L));
-        when(onboardingService.countOnboarding(context)).thenReturn(expectedResults);
+        List<NotificationCountResult> expectedResults = List.of(new NotificationCountResult("product1", 1L));
+        when(onboardingService.countNotifications(productId, from, to, context)).thenReturn(expectedResults);
 
         doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
             HttpStatus status = (HttpStatus) invocation.getArguments()[0];
@@ -206,12 +222,12 @@ public class NotificationFunctionsTest {
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         // When
-        HttpResponseMessage responseMessage = function.countOnboarding(req, context);
+        HttpResponseMessage responseMessage = function.countNotifications(req, context);
 
         // Then
         assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
         assertEquals(expectedResults, responseMessage.getBody());
-        verify(onboardingService, times(1)).countOnboarding(context);
+        verify(onboardingService, times(1)).countNotifications(productId, from, to, context);
     }
 }
 

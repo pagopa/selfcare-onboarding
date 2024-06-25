@@ -9,7 +9,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.dto.OnboardingCountResult;
+import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -453,36 +453,37 @@ class OnboardingServiceTest {
         assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(onboarding));
     }
 
-    @Test
-    void countOnboardingShouldReturnCorrectResultsWhenProductsExist() {
+@Test
+void countOnboardingShouldReturnCorrectResultsWhenProductsExist() {
+    String from = "2021-01-01";
+    String to = "2021-12-31";
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+    ExecutionContext context = mock(ExecutionContext.class);
+    doReturn(Logger.getGlobal()).when(context).getLogger();
 
-        PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
+    PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
 
-        Product product1 = new Product();
-        product1.setId("product1");
-        when(productService.getProducts(false, false))
-                .thenReturn(List.of(product1));
+    Product product1 = new Product();
+    product1.setId("product1");
+    when(productService.getProducts(false, false))
+            .thenReturn(List.of(product1));
 
+    when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
+    when(onboardingQuery.count()).thenReturn(5L).thenReturn(3L);
 
-        when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
-        when(onboardingQuery.count()).thenReturn(5L).thenReturn(3L);
+    List<NotificationCountResult> results = onboardingService.countNotifications(product1.getId(),from,to,context);
 
+    assertEquals(1, results.size());
+    assertEquals(8, results.get(0).getNotificationCount());
+}
 
-        List<OnboardingCountResult> results = onboardingService.countOnboarding(context);
+@Test
+void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
+    ExecutionContext context = mock(ExecutionContext.class);
+    doReturn(Logger.getGlobal()).when(context).getLogger();
 
-        assertEquals(1, results.size());
-        assertEquals(5, results.get(0).getCountCompleted());
-        assertEquals(3, results.get(0).getCountDeleted());
-    }
-
-    @Test
-    void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
-
-        when(productService.getProducts(true, false)).thenReturn(List.of());
-        List<OnboardingCountResult> results = onboardingService.countOnboarding(null);
-        assertTrue(results.isEmpty());
-    }
+    when(productService.getProducts(true, false)).thenReturn(List.of());
+    List<NotificationCountResult> results = onboardingService.countNotifications(null, null, null, context);
+    assertTrue(results.isEmpty());
+}
 }
