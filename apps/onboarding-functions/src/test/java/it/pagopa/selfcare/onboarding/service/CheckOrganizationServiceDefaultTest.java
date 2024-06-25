@@ -3,7 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
-import it.pagopa.selfcare.onboarding.client.fd.FDRestClient;
+import it.pagopa.selfcare.onboarding.client.external.ExternalRestClient;
 import it.pagopa.selfcare.onboarding.dto.OrganizationLightBeanResponse;
 import it.pagopa.selfcare.onboarding.dto.OrganizationResponse;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
@@ -27,14 +27,14 @@ class CheckOrganizationServiceDefaultTest {
 
     @InjectMock
     @RestClient
-    FDRestClient fdRestClient;
+    ExternalRestClient externalRestClient;
 
     @Test
     void checkOrganizationSucceedsWhenFDApiInvocationSucceeds() {
         String fiscalCode = "fiscalCode";
         String vatNumber = "vatNumber";
 
-        when(fdRestClient.checkOrganization(fiscalCode, vatNumber)).thenReturn(getDummyOrganizationLightBeanResponse());
+        when(externalRestClient.checkOrganization(fiscalCode, vatNumber)).thenReturn(getDummyOrganizationLightBeanResponse());
         assertTrue(checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
     }
 
@@ -42,7 +42,7 @@ class CheckOrganizationServiceDefaultTest {
     void checkOrganizationFailsWhenFDApiInvocationFails() {
         String fiscalCode = "fiscalCode";
         String vatNumber = "vatNumber";
-        when(fdRestClient.checkOrganization(fiscalCode, vatNumber)).thenThrow(new RuntimeException());
+        when(externalRestClient.checkOrganization(fiscalCode, vatNumber)).thenThrow(new RuntimeException());
         assertThrows(NotificationException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
     }
 
