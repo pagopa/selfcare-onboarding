@@ -31,7 +31,6 @@ import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 
@@ -56,7 +55,7 @@ public class CompletionServiceDefault implements CompletionService {
     InstitutionApi institutionApi;
     @RestClient
     @Inject
-    UserControllerApi userApi;
+    org.openapi.quarkus.user_json.api.UserApi userApi;
     @RestClient
     @Inject
     UserApi userRegistryApi;
