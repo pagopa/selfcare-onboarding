@@ -5,23 +5,33 @@ import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType;
 
 import java.util.Optional;
+
+import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.INSTITUTION;
 
 public record WorkflowExecutorConfirmation(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
 
     @Override
-    public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        return onboardingCompletionActivity(ctx, onboarding);
+    public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        return onboardingCompletionActivity(ctx, onboardingWorkflow.getOnboarding());
+    }
+
+    @Override
+    public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
+        return new OnboardingWorkflowInstitution(onboarding, INSTITUTION.name());
     }
 }

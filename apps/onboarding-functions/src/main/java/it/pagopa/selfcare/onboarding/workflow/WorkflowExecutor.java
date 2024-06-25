@@ -6,6 +6,7 @@ import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,31 +14,30 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 public interface WorkflowExecutor {
 
-    Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, Onboarding onboarding);
-    Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, Onboarding onboarding);
-    Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, Onboarding onboarding);
-
+    Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+    Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+    Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+    OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding);
     ObjectMapper objectMapper();
-
     TaskOptions optionsRetry();
 
-    default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding){
+    default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflow(onboarding);
         return switch (onboarding.getStatus()) {
-            case REQUEST -> executeRequestState(ctx, onboarding);
-            case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboarding);
-            case PENDING -> executePendingState(ctx, onboarding);
-            case REJECTED -> executeRejectedState(ctx, onboarding);
+            case REQUEST -> executeRequestState(ctx, onboardingWorkflow);
+            case TOBEVALIDATED -> executeToBeValidatedState(ctx, onboardingWorkflow);
+            case PENDING -> executePendingState(ctx, onboardingWorkflow);
+            case REJECTED -> executeRejectedState(ctx, onboardingWorkflow);
             default -> Optional.empty();
         };
 
     }
 
-    default String createInstitutionAndOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding){
+    default String createInstitutionAndOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding) {
         final String onboardingString = getOnboardingString(objectMapper(), onboarding);
 
         //CreateInstitution activity return an institutionId that is used by CreateOnboarding activity
@@ -73,10 +73,11 @@ public interface WorkflowExecutor {
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionUsersActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        final String onboardingString = getOnboardingString(objectMapper(), onboarding);
+    default Optional<OnboardingStatus> onboardingCompletionUsersActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        final String onboardingString = getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding());
+        final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
@@ -91,7 +92,8 @@ public interface WorkflowExecutor {
         return getOnboardingString(objectMapper(), onboardingTestEnv);
     }
 
-    default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, Onboarding onboarding){
+    default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
         String onboardingString = getOnboardingString(objectMapper(), onboarding);
         if (Objects.isNull(onboarding.getReasonForReject()) ||
                 (Objects.nonNull(onboarding.getReasonForReject()) && !onboarding.getReasonForReject().equals("REJECTED_BY_USER"))) {
@@ -99,4 +101,5 @@ public interface WorkflowExecutor {
         }
         return Optional.empty();
     }
+
 }

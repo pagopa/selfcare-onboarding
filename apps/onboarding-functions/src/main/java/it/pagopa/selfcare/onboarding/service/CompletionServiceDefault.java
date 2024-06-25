@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -201,7 +202,8 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void sendCompletedEmail(Onboarding onboarding) {
+    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
         List<String> destinationMails = onboarding.getUsers().stream()
                 .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
@@ -221,7 +223,8 @@ public class CompletionServiceDefault implements CompletionService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                destinationMails, product, onboarding.getInstitution().getInstitutionType());
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
     }
 
     @Override
