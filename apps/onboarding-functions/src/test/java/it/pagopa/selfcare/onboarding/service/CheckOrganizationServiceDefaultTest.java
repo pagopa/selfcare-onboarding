@@ -29,10 +29,11 @@ class CheckOrganizationServiceDefaultTest {
     @RestClient
     ExternalRestClient externalRestClient;
 
+    private static final String fiscalCode = "fiscalCode";
+    private static final String vatNumber = "vatNumber";
+
     @Test
     void checkOrganizationSucceedsWhenFDApiInvocationSucceeds() {
-        String fiscalCode = "fiscalCode";
-        String vatNumber = "vatNumber";
 
         when(externalRestClient.checkOrganization(fiscalCode, vatNumber)).thenReturn(getDummyOrganizationLightBeanResponse());
         assertTrue(checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
@@ -40,8 +41,7 @@ class CheckOrganizationServiceDefaultTest {
 
     @Test
     void checkOrganizationFailsWhenFDApiInvocationFails() {
-        String fiscalCode = "fiscalCode";
-        String vatNumber = "vatNumber";
+
         when(externalRestClient.checkOrganization(fiscalCode, vatNumber)).thenThrow(new RuntimeException());
         assertThrows(NotificationException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
     }
