@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.pagopa.selfcare.onboarding.dto.AckPayloadRequest;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
@@ -63,5 +64,13 @@ public class Utils {
             throw new FunctionOrchestratedException(e);
         }
         return onboardingWorkflowString;
+    }
+
+    public static AckPayloadRequest readAckPayloadValue(ObjectMapper objectMapper, String ackPayloadString) {
+        try {
+            return objectMapper.readValue(ackPayloadString, AckPayloadRequest.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
