@@ -48,7 +48,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
         for (AggregateInstitution aggregate : onboarding.getAggregates()) {
             OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
             final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callSubOrchestrator("OnboardingsAggregate", onboardingAggregateString));
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString));
         }
 
         ctx.allOf(parallelTasks).await();
