@@ -9,6 +9,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -74,7 +75,7 @@ class OnboardingServiceTest {
         return onboarding;
     }
 
-    private UserResource createUserResource() {
+    private UserResource createUserResource(){
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
 
@@ -103,7 +104,8 @@ class OnboardingServiceTest {
     @Test
     void createContract_shouldThrowIfManagerNotfound() {
         Onboarding onboarding = createOnboarding();
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.createContract(onboarding));
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.createContract(onboardingWorkflow));
     }
 
     @Test
@@ -125,16 +127,17 @@ class OnboardingServiceTest {
         contractStorageMap.put(onboarding.getInstitution().getInstitutionType(), contractStorage);
         product.setInstitutionContractMappings(contractStorageMap);
 
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
                 .thenReturn(userResource);
 
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(product);
 
-        onboardingService.createContract(onboarding);
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+        onboardingService.createContract(onboardingWorkflow);
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
-                .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId());
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
@@ -143,6 +146,10 @@ class OnboardingServiceTest {
         Mockito.verify(contractService, Mockito.times(1))
                 .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
         assertEquals(captorTemplatePath.getValue(), contractStorage.getContractTemplatePath());
+    }
+
+    private static OnboardingWorkflow getOnboardingWorkflowInstitution(Onboarding onboarding) {
+        return new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
     }
 
     @Test
@@ -162,22 +169,23 @@ class OnboardingServiceTest {
 
         Product product = createDummyProduct();
 
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-                .thenReturn(userResource);
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
+                        .thenReturn(userResource);
 
-        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, delegate.getId()))
+        when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,delegate.getId()))
                 .thenReturn(delegateResource);
 
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(product);
 
-        onboardingService.createContract(onboarding);
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+        onboardingService.createContract(onboardingWorkflow);
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
-                .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId());
 
         Mockito.verify(userRegistryApi, Mockito.times(1))
-                .findByIdUsingGET(USERS_WORKS_FIELD_LIST, delegate.getId());
+                .findByIdUsingGET(USERS_WORKS_FIELD_LIST,delegate.getId());
 
         Mockito.verify(productService, Mockito.times(1))
                 .getProductIsValid(onboarding.getProductId());
@@ -196,7 +204,6 @@ class OnboardingServiceTest {
         product.setId(productId);
         return product;
     }
-
     @Test
     void saveToken_shouldSkipIfTokenExists() {
         Onboarding onboarding = createOnboarding();
@@ -275,19 +282,24 @@ class OnboardingServiceTest {
 
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
+
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+
         doNothing().when(notificationService)
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
+                        product.getTitle(), "description",
+                        "default", "default");
 
-        onboardingService.sendMailRegistrationForContract(onboarding);
+        onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
+                        product.getTitle(), "description",
+                        "default", "default");
     }
 
     @Test
@@ -335,28 +347,33 @@ class OnboardingServiceTest {
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
 
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+
         doNothing().when(notificationService)
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
-                        product.getTitle());
+                        product.getTitle(), "description",
+                        "default", "default");
 
-        onboardingService.sendMailRegistrationForContractWhenApprove(onboarding);
+        onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
                         onboarding.getInstitution().getDescription(), "",
-                        product.getTitle());
+                        product.getTitle(), "description",
+                        "default", "default");
     }
 
 
     @Test
     void sendMailRegistrationWithContract_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboarding));
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
     }
 
 
@@ -372,17 +389,17 @@ class OnboardingServiceTest {
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailRegistration(onboarding.getInstitution().getDescription(),
-                onboarding.getInstitution().getDigitalAddress(),
-                userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                product.getTitle());
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
 
         onboardingService.sendMailRegistration(onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistration(onboarding.getInstitution().getDescription(),
-                        onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                    product.getTitle());
     }
 
     @Test
@@ -398,7 +415,7 @@ class OnboardingServiceTest {
                 .thenReturn(userResource);
 
         doNothing().when(notificationService)
-                .sendMailRegistrationApprove(any(), any(), any(), any(), any());
+                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
 
         onboardingService.sendMailRegistrationApprove(onboarding);
 
@@ -431,7 +448,7 @@ class OnboardingServiceTest {
                 .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .thenReturn(userResource);
-        doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(), any(), any());
+        doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
 
         onboardingService.sendMailOnboardingApprove(onboarding);
 
