@@ -64,4 +64,15 @@ public class Utils {
         }
         return onboardingWorkflowString;
     }
+
+    public static String getOnboardingAggregateString(ObjectMapper objectMapper, OnboardingAggregateOrchestratorInput onboarding) {
+
+        String onboardingAggregateString;
+        try {
+            onboardingAggregateString = objectMapper.writeValueAsString(onboarding);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingAggregateString;
+    }
 }
