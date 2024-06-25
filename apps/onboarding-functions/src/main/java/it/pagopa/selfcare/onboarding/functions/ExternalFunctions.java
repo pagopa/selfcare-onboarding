@@ -40,4 +40,16 @@ public class ExternalFunctions {
             return request.createResponseBuilder(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    @FunctionName("TestToken")
+    public HttpResponseMessage testToken(
+            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+
+        context.getLogger().info("testToken trigger processed a request");
+
+        String accessToken = checkOrganizationService.testToken(context);
+
+        return request.createResponseBuilder(HttpStatus.OK).body(accessToken).build();
+    }
 }
