@@ -5,6 +5,7 @@ locals {
 
   app_name                 = "${local.project}${local.pnpg_suffix}-onboarding-fn"
   base_domain_name         = "${local.project}${local.pnpg_domain_suffix}"
+  base_domain_name_pip     = "${local.project}${local.pnpg_suffix}"
   vnet_name                = "${local.project}-vnet-rg"
   monitor_rg_name          = "${local.project}-monitor-rg"
   monitor_appinsights_name = "${local.project}-appinsights"

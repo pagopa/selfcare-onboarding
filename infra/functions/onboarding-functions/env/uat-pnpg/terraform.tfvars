@@ -38,6 +38,9 @@ storage_account_info = {
   advanced_threat_protection_enable = false
 }
 
+fn-pip = "onboarding-fn-pip-outbound"
+fn-rg  = "nat-rg"
+
 app_settings = {
   "USER_REGISTRY_URL"                = "https://api.uat.pdv.pagopa.it/user-registry/v1",
   "MONGODB_CONNECTION_URI"           = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
