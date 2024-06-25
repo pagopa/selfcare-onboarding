@@ -88,6 +88,11 @@ app_settings = {
   "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
   "BYPASS_CHECK_ORGANIZATION"                          = "false"
+  "PROD_FD_URL"                                        = "https://fid00001fe.siachain.sv.sia.eu:30008"
+  "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
+  "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-id/)"
+  "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
