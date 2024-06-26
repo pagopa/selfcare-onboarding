@@ -3,11 +3,15 @@ package it.pagopa.selfcare.onboarding.functions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
+import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.ws.rs.core.MediaType;
+import org.apache.http.HttpHeaders;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -88,5 +92,27 @@ public class NotificationFunctions {
         }
         notificationEventService.send(context, onboarding.get(), queueEvent);
         return request.createResponseBuilder(HttpStatus.OK).build();
+    }
+
+    /**
+     * This HTTP-triggered function performs for every product a count of relative onboardings in COMPLETED
+     * and DELETE status in a given range of dates. It is useful to the external consumer services of the queues, as it provides them
+     * a comparison tool to compare the data they have with the situation on the selfcare domain
+     */
+    @FunctionName("CountNotifications")
+    public HttpResponseMessage countNotifications(
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("count trigger processed a request");
+
+        String from = request.getQueryParameters().get("from");
+        String to = request.getQueryParameters().get("to");
+        String productId = request.getQueryParameters().get("productId");
+
+        List<NotificationCountResult> countedResult = onboardingService.countNotifications(productId, from, to, context);
+        return request.createResponseBuilder(HttpStatus.OK)
+                .body(countedResult)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .build();
     }
 }
