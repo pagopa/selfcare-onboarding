@@ -43,7 +43,7 @@ public class ExternalFunctions {
 
     @FunctionName("TestToken")
     public HttpResponseMessage testToken(
-            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
 
         context.getLogger().info("testToken trigger processed a request");
