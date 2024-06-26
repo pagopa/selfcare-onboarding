@@ -25,7 +25,10 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -47,7 +50,10 @@ import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
@@ -72,8 +78,7 @@ import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -1461,7 +1466,7 @@ class OnboardingServiceDefaultTest {
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.firstResult()).thenReturn(Uni.createFrom().item(new Onboarding()));
+        when(query.stream()).thenReturn(Multi.createFrom().item(new Onboarding()));
         when(Onboarding.find(any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -1746,5 +1751,80 @@ class OnboardingServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void testCheckManager() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+        when(Onboarding.find(any())).thenReturn(query);
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().item(userResource));
+
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        assertFalse(subscriber.getItem());
+    }
+
+    @Test
+    void testCheckManagerWithTrueCheck() {
+        final UUID uuid = UUID.randomUUID();
+        OnboardingUserRequest request = createDummyUserRequest();
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.getUsers().get(0).setId(uuid.toString());
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+        when(Onboarding.find(any())).thenReturn(query);
+        UserResource userResource = new UserResource();
+        userResource.setId(uuid);
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().item(userResource));
+
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        assertTrue(subscriber.getItem());
+    }
+
+    private static OnboardingUserRequest createDummyUserRequest() {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        UserRequest user = new UserRequest();
+        user.setTaxCode("taxCode");
+        user.setRole(PartyRole.MANAGER);
+        request.setUsers(List.of(user));
+        return request;
+    }
+
+    @Test
+    void testCheckManageResourceNotFound() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().empty());
+        when(Onboarding.find(any())).thenReturn(query);
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().item(userResource));
+
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(ResourceNotFoundException.class);
     }
 }
