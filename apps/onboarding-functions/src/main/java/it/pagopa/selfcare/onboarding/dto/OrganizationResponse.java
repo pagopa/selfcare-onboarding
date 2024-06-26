@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import it.pagopa.selfcare.onboarding.utils.CustomOffsetDateTimeDeserializer;
+
 import java.time.OffsetDateTime;
 
 public class OrganizationResponse {
@@ -17,7 +20,9 @@ public class OrganizationResponse {
     private Boolean garantito;
     private Boolean contraente;
     private String typeOfCounterparty;
+    @JsonDeserialize(using = CustomOffsetDateTimeDeserializer.class)
     private OffsetDateTime creationDate;
+    @JsonDeserialize(using = CustomOffsetDateTimeDeserializer.class)
     private OffsetDateTime activationDate;
 
     public String getId() {
