@@ -6,7 +6,10 @@ import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
@@ -58,11 +61,18 @@ public class OnboardingService {
     @Inject
     TokenRepository tokenRepository;
 
+    @Inject
+    MailTemplatePathConfig mailTemplatePathConfig;
+
+    @Inject
+    MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+
     public Optional<Onboarding> getOnboarding(String onboardingId) {
         return repository.findByIdOptional(onboardingId);
     }
 
-    public void createContract(Onboarding onboarding) {
+    public void createContract(OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
         String validManagerId = getValidManagerId(onboarding.getUsers());
         UserResource manager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,validManagerId);
 
@@ -72,14 +82,7 @@ public class OnboardingService {
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        String contractTemplatePath = Optional.ofNullable(product.getInstitutionContractMappings())
-                .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType()))
-                .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType()))
-                .map(ContractStorage::getContractTemplatePath)
-                .orElse(product.getContractTemplatePath());
-
-
-        contractService.createContractPDF(contractTemplatePath, onboarding, manager, delegates, product.getTitle());
+        contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle());
     }
 
     public void loadContract(Onboarding onboarding) {
@@ -136,14 +139,21 @@ public class OnboardingService {
 
     }
 
-    public void sendMailRegistrationForContract(Onboarding onboarding) {
+    public void sendMailRegistrationForContract(OnboardingWorkflow onboardingWorkflow) {
 
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+
+        final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
+        final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
 
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle());
+                sendMailInput.product.getTitle(),
+                sendMailInput.institutionName,
+                templatePath,
+                confirmTokenUrl);
     }
 
     public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
@@ -156,14 +166,17 @@ public class OnboardingService {
                 sendMailInput.product.getTitle());
     }
 
-    public void sendMailRegistrationForContractWhenApprove(Onboarding onboarding) {
+    public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
 
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
         Product product = productService.getProduct(onboarding.getProductId());
 
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
-                product.getTitle());
+                product.getTitle(), "description",
+                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
+                onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {
@@ -207,6 +220,7 @@ public class OnboardingService {
                 .orElseThrow(() -> new GenericOnboardingException(String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
         sendMailInput.userRequestName = Optional.ofNullable(userRequest.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         sendMailInput.userRequestSurname = Optional.ofNullable(userRequest.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
+        sendMailInput.institutionName = Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse("");
         return sendMailInput;
     }
 
@@ -227,5 +241,6 @@ public class OnboardingService {
         Product product;
         String userRequestName;
         String userRequestSurname;
+        String institutionName;
     }
 }

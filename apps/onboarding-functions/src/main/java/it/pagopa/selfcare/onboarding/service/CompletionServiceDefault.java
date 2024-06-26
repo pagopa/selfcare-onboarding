@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -30,7 +31,6 @@ import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 
@@ -55,7 +55,7 @@ public class CompletionServiceDefault implements CompletionService {
     InstitutionApi institutionApi;
     @RestClient
     @Inject
-    UserControllerApi userApi;
+    org.openapi.quarkus.user_json.api.UserApi userApi;
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -201,7 +201,8 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void sendCompletedEmail(Onboarding onboarding) {
+    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
         List<String> destinationMails = onboarding.getUsers().stream()
                 .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
@@ -221,7 +222,8 @@ public class CompletionServiceDefault implements CompletionService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                destinationMails, product, onboarding.getInstitution().getInstitutionType());
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
     }
 
     @Override
@@ -243,22 +245,25 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void createDelegation(Onboarding onboarding) {
+    public String createDelegation(Onboarding onboarding) {
         if (Objects.nonNull(onboarding.getAggregator())) {
-
-            DelegationRequest delegationRequest = new DelegationRequest();
-            delegationRequest.setProductId(onboarding.getProductId());
-            delegationRequest.setType(DelegationRequest.TypeEnum.EA);
-            delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
-            delegationRequest.setFrom(onboarding.getInstitution().getId());
-            delegationRequest.setTo(onboarding.getAggregator().getId());
-            delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
-
-            delegationApi.createDelegationUsingPOST(delegationRequest);
+            DelegationRequest delegationRequest = getDelegationRequest(onboarding);
+            return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
         }
         else {
             throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
         }
+    }
+
+    private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
+        DelegationRequest delegationRequest = new DelegationRequest();
+        delegationRequest.setProductId(onboarding.getProductId());
+        delegationRequest.setType(DelegationRequest.TypeEnum.EA);
+        delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
+        delegationRequest.setFrom(onboarding.getInstitution().getId());
+        delegationRequest.setTo(onboarding.getAggregator().getId());
+        delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        return delegationRequest;
     }
 
     @Override

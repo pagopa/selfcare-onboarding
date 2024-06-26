@@ -34,7 +34,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
-import org.openapi.quarkus.user_json.api.UserControllerApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
@@ -68,7 +67,7 @@ public class CompletionServiceDefaultTest {
     InstitutionApi institutionApi;
     @RestClient
     @InjectMock
-    UserControllerApi userControllerApi;
+    org.openapi.quarkus.user_json.api.UserApi userControllerApi;
     @RestClient
     @InjectMock
     UserApi userRegistryApi;
@@ -423,6 +422,7 @@ public class CompletionServiceDefaultTest {
         userResource.setWorkContacts(map);
         Product product = createDummyProduct();
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
 
         User user = new User();
         user.setRole(PartyRole.MANAGER);
@@ -433,12 +433,12 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
-        doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any());
+        doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
 
-        completionServiceDefault.sendCompletedEmail(onboarding);
+        completionServiceDefault.sendCompletedEmail(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
-                .sendCompletedEmail(any(), any(), any(), any());
+                .sendCompletedEmail(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -498,6 +498,7 @@ public class CompletionServiceDefaultTest {
         user.setRole(PartyRole.MANAGER);
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
+        onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
         when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
@@ -535,12 +536,14 @@ public class CompletionServiceDefaultTest {
         aggregator.setId("aggregator-id");
         onboarding.setAggregator(aggregator);
 
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponse.setId("delegation-id");
 
         ArgumentCaptor<DelegationRequest> capture = ArgumentCaptor.forClass(DelegationRequest.class);
         when(delegationApi.createDelegationUsingPOST(capture.capture()))
-                .thenReturn(new DelegationResponse());
+                .thenReturn(delegationResponse);
 
-        completionServiceDefault.createDelegation(onboarding);
+        String delegationId = completionServiceDefault.createDelegation(onboarding);
 
         Assertions.assertEquals(onboarding.getInstitution().getId(), capture.getValue().getFrom());
         Assertions.assertEquals(onboarding.getInstitution().getDescription(), capture.getValue().getInstitutionFromName());
@@ -548,6 +551,7 @@ public class CompletionServiceDefaultTest {
         Assertions.assertEquals(onboarding.getAggregator().getDescription(), capture.getValue().getInstitutionToName());
         Assertions.assertEquals(onboarding.getProductId(), capture.getValue().getProductId());
         Assertions.assertEquals("EA", capture.getValue().getType().name());
+        Assertions.assertEquals("delegation-id", delegationId);
         Mockito.verify(delegationApi, times(1))
                 .createDelegationUsingPOST(capture.capture());
     }

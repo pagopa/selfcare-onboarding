@@ -59,12 +59,15 @@ public class OnboardingFunctionsTest {
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
+    final String onboardingWorkflowString = "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":null,\"testEnvProductIds\":null,\"workflowType\":null,\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":null,\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+
     static ExecutionContext executionContext;
 
     static {
         executionContext = mock(ExecutionContext.class);
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     }
+
     @Test
     public void startAndWaitOrchestration_failedOrchestration() throws Exception {
         // Setup
@@ -154,7 +157,7 @@ public class OnboardingFunctionsTest {
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
-        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, captorActivity.getAllValues().get(2));
+        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
@@ -392,7 +395,7 @@ public class OnboardingFunctionsTest {
 
         doNothing().when(service).createContract(any());
 
-        function.buildContract(onboardinString, executionContext);
+        function.buildContract(onboardingWorkflowString, executionContext);
 
         Mockito.verify(service, times(1))
                 .createContract(any());
@@ -416,22 +419,10 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistrationForContract(any());
 
-        function.sendMailRegistrationForContract(onboardinString, executionContext);
+        function.sendMailRegistrationForContract(onboardingWorkflowString, executionContext);
 
         Mockito.verify(service, times(1))
                 .sendMailRegistrationForContract(any());
-    }
-
-    @Test
-    void sendMailRegistrationWithContractAggregator() {
-
-        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContractAggregator(any());
-
-        function.sendMailRegistrationForContractAggregator(onboardinString, executionContext);
-
-        Mockito.verify(service, times(1))
-                .sendMailRegistrationForContractAggregator(any());
     }
 
     @Test
@@ -476,7 +467,7 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).sendMailRegistrationForContractWhenApprove(any());
 
-        function.sendMailRegistrationForContractWhenApprove(onboardinString, executionContext);
+        function.sendMailRegistrationForContractWhenApprove(onboardingWorkflowString, executionContext);
 
         Mockito.verify(service, times(1))
                 .sendMailRegistrationForContractWhenApprove(any());
@@ -553,7 +544,7 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(completionService).sendCompletedEmail(any());
 
-        function.sendMailCompletion(onboardinString, executionContext);
+        function.sendMailCompletion(onboardingWorkflowString, executionContext);
 
         Mockito.verify(completionService, times(1))
                 .sendCompletedEmail(any());
@@ -612,14 +603,15 @@ public class OnboardingFunctionsTest {
                 .createAggregateOnboardingRequest(any());
     }
     @Test
-    void createEADelegation() {
+    void createDelegationForAggregation() {
         final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).createDelegation(any());
+        when(completionService.createDelegation(any())).thenReturn("delegationId");
 
-        function.createDelegationForAggregation(onboardingString, executionContext);
+        String delegationId = function.createDelegationForAggregation(onboardingString, executionContext);
 
+        Assertions.assertEquals("delegationId", delegationId);
         Mockito.verify(completionService, times(1))
                 .createDelegation(any());
     }

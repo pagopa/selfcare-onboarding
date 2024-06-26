@@ -65,9 +65,13 @@ app_settings = {
   "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/onboarding-request/1.0.1.json",
   "MAIL_TEMPLATE_REGISTRATION_AGGREGATOR_PATH"         = "contracts/template/mail/onboarding-request-aggregator/1.0.0.json"
   "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_USER_PATH"               = "contracts/template/mail/onboarding-request-admin/1.0.0.json",
+  "MAIL_TEMPLATE_USER_COMPLETE_NOTIFICATION_PATH"      = "contracts/template/mail/onboarding-complete-user/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_USER_NEW_MANAGER_PATH"   = "contracts/template/mail/onboarding-request-manager/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://selfcare.pagopa.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://selfcare.pagopa.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://selfcare.pagopa.it/onboarding/confirm?jwt=",
+  "MAIL_USER_CONFIRMATION_LINK"                        = "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=%s#add-user=true",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://selfcare.pagopa.it/onboarding/",
   "MS_CORE_URL"                                        = "https://selc-p-ms-core-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
@@ -89,6 +93,11 @@ app_settings = {
   "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
   "BYPASS_CHECK_ORGANIZATION"                          = "false"
+  "PROD_FD_URL"                                        = "https://portale.fideiussionidigitali.it"
+  "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
+  "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/prod-fd-client-id/)"
+  "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+
 
   ##ARUBA SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                        = "aruba",
