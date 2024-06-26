@@ -133,7 +133,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingUserRequest'
+              $ref: "#/components/schemas/OnboardingUserRequest"
       responses:
         "200":
           description: OK
