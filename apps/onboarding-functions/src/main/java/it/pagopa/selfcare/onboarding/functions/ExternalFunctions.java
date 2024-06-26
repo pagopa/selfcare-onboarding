@@ -52,4 +52,30 @@ public class ExternalFunctions {
 
         return request.createResponseBuilder(HttpStatus.OK).body(accessToken).build();
     }
+
+    @FunctionName("TestCheckOrganization")
+    public HttpResponseMessage testCheckOrganization(
+            @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+
+        context.getLogger().info("testToken trigger processed a request");
+
+        String fiscalCode = request.getQueryParameters().get("fiscalCode");
+        String vatNumber = request.getQueryParameters().get("vatNumber");
+
+        if (fiscalCode == null || vatNumber == null) {
+            context.getLogger().warning("fiscalCode, vatNumber are required.");
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("fiscalCode, vatNumber are required.")
+                    .build();
+        }
+
+        boolean alreadyRegistered = checkOrganizationService.testCheckOrganization(context, fiscalCode, vatNumber);
+
+        if (alreadyRegistered) {
+            return request.createResponseBuilder(HttpStatus.OK).build();
+        } else {
+            return request.createResponseBuilder(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

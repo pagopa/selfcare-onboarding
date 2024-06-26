@@ -147,4 +147,26 @@ public class OrganizationResponse {
     public void setActivationDate(OffsetDateTime activationDate) {
         this.activationDate = activationDate;
     }
+
+    @Override
+    public String toString() {
+        return "OrganizationResponse{" +
+                "id='" + id + '\'' +
+                ", codiceFiscale='" + codiceFiscale + '\'' +
+                ", partitaIva='" + partitaIva + '\'' +
+                ", legalName='" + legalName + '\'' +
+                ", status='" + status + '\'' +
+                ", city='" + city + '\'' +
+                ", province='" + province + '\'' +
+                ", address='" + address + '\'' +
+                ", streetNumber='" + streetNumber + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", garante=" + garante +
+                ", garantito=" + garantito +
+                ", contraente=" + contraente +
+                ", typeOfCounterparty='" + typeOfCounterparty + '\'' +
+                ", creationDate=" + creationDate +
+                ", activationDate=" + activationDate +
+                '}';
+    }
 }

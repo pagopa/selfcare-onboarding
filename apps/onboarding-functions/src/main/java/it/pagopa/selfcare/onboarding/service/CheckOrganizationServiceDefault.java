@@ -5,6 +5,7 @@ import it.pagopa.selfcare.onboarding.client.external.ExternalRestClient;
 import it.pagopa.selfcare.onboarding.client.external.ExternalTokenRestClient;
 import it.pagopa.selfcare.onboarding.config.ExternalConfig;
 import it.pagopa.selfcare.onboarding.dto.OauthToken;
+import it.pagopa.selfcare.onboarding.dto.OrganizationLightBeanResponse;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -60,6 +61,23 @@ public class CheckOrganizationServiceDefault implements CheckOrganizationService
         context.getLogger().info(() -> String.format("testToken response %s", oauthToken));
         context.getLogger().info("testToken end");
         return oauthToken.getAccessToken();
+    }
+
+    @Override
+    public boolean testCheckOrganization(ExecutionContext context, String fiscalCode, String vatNumber) {
+        context.getLogger().info("testCheckOrganization start");
+
+        Form form = buildTokenEntity();
+        context.getLogger().info(String.format("testToken calling external service with form %s", form.asMap()));
+
+        OauthToken oauthToken = externalTokenRestClient.getToken(buildTokenEntity());
+        context.getLogger().info(() -> String.format("getToken response %s", oauthToken.toString()));
+
+        context.getLogger().info("performing checkOrganization");
+        OrganizationLightBeanResponse response = externalRestClient.checkOrganization2(fiscalCode, vatNumber, "Bearer " + oauthToken.getAccessToken());
+        context.getLogger().info(() -> String.format("checkOrganization2 result = %s", response.toString()));
+        context.getLogger().info("testCheckOrganization end");
+        return response.isAlreadyRegistered();
     }
 
     private Form buildTokenEntity() {
