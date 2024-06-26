@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
@@ -38,14 +39,17 @@ public class OnboardingFunctions {
     private final CompletionService completionService;
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
+    private final OnboardingMapper onboardingMapper;
 
     public OnboardingFunctions(OnboardingService service,
                                ObjectMapper objectMapper,
                                RetryPolicyConfig retryPolicyConfig,
-                               CompletionService completionService) {
+                               CompletionService completionService,
+                               OnboardingMapper onboardingMapper) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
+        this.onboardingMapper = onboardingMapper;
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
         RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -120,7 +124,7 @@ public class OnboardingFunctions {
 
             switch (onboarding.getWorkflowType()) {
                 case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
-                case CONTRACT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry);
+                case CONTRACT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);

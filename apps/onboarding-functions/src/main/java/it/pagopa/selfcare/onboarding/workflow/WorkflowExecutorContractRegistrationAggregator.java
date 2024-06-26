@@ -20,9 +20,7 @@ import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.AGGREG
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
-public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
-
-    public static OnboardingMapper onboardingMapper;
+public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
