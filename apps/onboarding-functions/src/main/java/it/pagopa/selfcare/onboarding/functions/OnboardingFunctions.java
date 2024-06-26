@@ -101,6 +101,14 @@ public class OnboardingFunctions {
             return durableContext.createCheckStatusResponse(request, instanceId);
         }
     }
+    @FunctionName(ONBOARDINGS_AGGREGATE_ORCHESTRATOR)
+    public void onboardingsAggregateOrchestrator(
+            @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+            ExecutionContext functionContext) {
+        String onboardingAggregate = ctx.getInput(String.class);
+        String onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
+        ctx.callSubOrchestrator("Onboardings", onboardingId);
+    }
 
     /**
      * This is the orchestrator function, which can schedule activity functions, create durable timers,
@@ -125,6 +133,7 @@ public class OnboardingFunctions {
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
+                case CONFIRMATION_AGGREGATE -> workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
