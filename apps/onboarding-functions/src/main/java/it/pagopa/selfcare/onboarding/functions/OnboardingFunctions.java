@@ -107,7 +107,7 @@ public class OnboardingFunctions {
             ExecutionContext functionContext) {
         String onboardingAggregate = ctx.getInput(String.class);
         String onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
-        ctx.callSubOrchestrator("Onboardings", onboardingId);
+        ctx.callSubOrchestrator("Onboardings", onboardingId).await();
     }
 
     /**
