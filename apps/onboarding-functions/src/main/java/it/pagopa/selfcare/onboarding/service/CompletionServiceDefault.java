@@ -296,6 +296,7 @@ public class CompletionServiceDefault implements CompletionService {
             onboardingRequest.billing(billingRequest);
         }
 
+        onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
         //If contract exists we send the path of the contract
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
         optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
