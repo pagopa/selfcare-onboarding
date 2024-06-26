@@ -9,6 +9,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 
 @QuarkusTest
@@ -60,16 +62,35 @@ class NotificationServiceDefaultTest {
         final String destination = "test@test.it";
         final String productName = "productName";
 
-       // final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
-//
-       // Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName))
-       //         .thenReturn(file);
-
         Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName);
+        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName, "description", "default", "default");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
+    void sendMailRegistrationWithContractAggregator() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+
+        final String onboardingId = "onboardingId";
+        final String destination = "test@test.it";
+        final String productName = "productName";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationAggregatorPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendMailRegistrationForContractAggregator(onboardingId, destination,"","", productName);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -83,10 +104,13 @@ class NotificationServiceDefaultTest {
     @Test
     void sendMailRegistrationWithContract_shouldThrowException() {
         final String onboardingId = "onboardingId";
-        final String productName = "productName";
-      //  final File file = mock(File.class);
-      //  Mockito.when(contractService.retrieveContractNotSigned(onboardingId, productName)).thenReturn(file);
-        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example", "", "", ""));
+    }
+
+    @Test
+    void sendMailRegistrationWithContractAggregator_shouldThrowException() {
+        final String onboardingId = "onboardingId";
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContractAggregator(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
     }
 
     @Test
@@ -127,11 +151,17 @@ class NotificationServiceDefaultTest {
 
         Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
 
-        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
+        Mockito.when(azureBlobClient.getFileAsText(anyString()))
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA);
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PT);
+        Onboarding onboarding = new Onboarding();
+        onboarding.setInstitution(institution);
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, OnboardingWorkflowType.INSTITUTION.name());
+
+        notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA, onboardingWorkflow);
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -161,6 +191,32 @@ class NotificationServiceDefaultTest {
         Mockito.doNothing().when(mailer).send(any());
 
         notificationService.sendMailRejection(List.of(destination), product, reasonForReject);
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
+    void sendCompletedEmailAggregate() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+        final String destination = "test@test.it";
+
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+
+        Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.completePathAggregate()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        notificationService.sendCompletedEmailAggregate(institutionName, List.of(destination));
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

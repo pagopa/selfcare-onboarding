@@ -346,6 +346,42 @@
         } ]
       }
     },
+    "/v1/onboarding/pa/aggregation" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in additition to default requestUsers data will be saved on personal data vault if it doesn't already exist.At the end, function triggers async activities related to onboarding aggregation that consist of create contract and sending mail to institution's digital address.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingPaRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/pa/completion" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
@@ -1032,6 +1068,42 @@
           }
         }
       },
+      "AggregateInstitutionRequest" : {
+        "required" : [ "taxCode", "description" ],
+        "type" : "object",
+        "properties" : {
+          "taxCode" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "type" : "string"
+          },
+          "geographicTaxonomies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeographicTaxonomy"
+            }
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "zipCode" : {
+            "type" : "string"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "$ref" : "#/components/schemas/Origin"
+          }
+        }
+      },
       "BillingPaRequest" : {
         "type" : "object",
         "properties" : {
@@ -1087,6 +1159,17 @@
             "type" : "string"
           },
           "pec" : {
+            "type" : "string"
+          }
+        }
+      },
+      "GeographicTaxonomy" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "desc" : {
             "type" : "string"
           }
         }
@@ -1420,7 +1503,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {
@@ -1606,7 +1689,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {
@@ -1676,7 +1759,7 @@
           "aggregates" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/InstitutionBaseRequest"
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
             }
           },
           "isAggregator" : {

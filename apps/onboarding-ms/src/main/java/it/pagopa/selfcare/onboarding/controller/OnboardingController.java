@@ -79,6 +79,19 @@ public class OnboardingController {
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
+    @Operation(summary = "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in additition to default request" +
+            "Users data will be saved on personal data vault if it doesn't already exist." +
+            "At the end, function triggers async activities related to onboarding aggregation that consist of create contract and sending mail to institution's digital address.")
+    @POST
+    @Path("/pa/aggregation")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPaAggregation(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    }
+
     @Operation(summary = "Perform onboarding request for PSP institution type." +
             "Users data will be saved on personal data vault if it doesn't already exist." +
             "At the end, function triggers async activities related to onboarding that consist of sending mail to Selfcare admin for approve request.")

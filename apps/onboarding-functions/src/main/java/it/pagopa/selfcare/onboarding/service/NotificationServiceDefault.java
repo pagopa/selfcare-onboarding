@@ -8,6 +8,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,17 +17,11 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_COMPRESS_FILE;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND_MAIL;
 
 
@@ -103,8 +98,24 @@ public class NotificationServiceDefault implements NotificationService {
         sendMailWithFile(List.of(notificationAdminMail), templatePath, mailParameters, productName, null);
     }
 
+    //TODO create an object to avoid multiple parameters in input
     @Override
-    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName) {
+    public void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath, String confirmTokenUrl) {
+
+        // Prepare data for email
+        Map<String, String> mailParameters = new HashMap<>();
+        mailParameters.put(templatePlaceholdersConfig.productName(), productName);
+        Optional.ofNullable(name).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
+        Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), confirmTokenUrl + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
+
+        sendMailWithFile(List.of(destination), templatePath, mailParameters, productName, null);
+    }
+
+    @Override
+    public void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName) {
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -114,21 +125,13 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), templatePlaceholdersConfig.confirmTokenPlaceholder() + onboardingId);
 
-        sendMailWithFile(List.of(destination), templatePathConfig.registrationPath(), mailParameters, productName, null);
+        sendMailWithFile(List.of(destination), templatePathConfig.registrationAggregatorPath(), mailParameters, productName, null);
     }
 
     @Override
-    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType) {
+    public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow) {
 
-        String templatePath;
-
-        if(InstitutionType.PT.equals(institutionType)) {
-            templatePath = templatePathConfig.completePathPt();
-        } else {
-            templatePath =product.getId().equals(PROD_FD.getValue()) || product.getId().equals(PROD_FD_GARANTITO.getValue())
-                    ? templatePathConfig.completePathFd()
-                    : templatePathConfig.completePath();
-        }
+        String templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
 
         Map<String, String> mailParameter = new HashMap<>();
         mailParameter.put(templatePlaceholdersConfig.businessName(), institutionName);
@@ -148,6 +151,16 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameter.put(templatePlaceholdersConfig.reasonForReject(), reasonForReject);
         mailParameter.put(templatePlaceholdersConfig.rejectOnboardingUrlPlaceholder(), templatePlaceholdersConfig.rejectOnboardingUrlValue() + product.getId());
         sendMailWithFile(destinationMails, templatePathConfig.rejectPath(), mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
+    }
+
+    @Override
+    public void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails) {
+
+        Map<String, String> mailParameter = new HashMap<>();
+        mailParameter.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
+        mailParameter.put(templatePlaceholdersConfig.completeSelfcareName(), templatePlaceholdersConfig.completeSelfcarePlaceholder());
+
+        sendMailWithFile(destinationMails, templatePathConfig.completePathAggregate(), mailParameter, null, retrieveFileMetadataPagopaLogo());
     }
 
     private FileMailData retrieveFileMetadataPagopaLogo() {
@@ -179,7 +192,7 @@ public class NotificationServiceDefault implements NotificationService {
             MailTemplate mailTemplate = objectMapper.readValue(template, MailTemplate.class);
             String html = StringSubstitutor.replace(mailTemplate.getBody(), mailParameters);
 
-            final String subject = String.format("%s: %s", prefixSubject, mailTemplate.getSubject());
+            final String subject = Optional.ofNullable(prefixSubject).map(value -> String.format("%s: %s", value, mailTemplate.getSubject())).orElse(mailTemplate.getSubject());
 
             Mail mail = Mail
                     .withHtml(destination, subject, html)
@@ -195,22 +208,6 @@ public class NotificationServiceDefault implements NotificationService {
         } catch (Exception e) {
             log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
             throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
-        }
-    }
-
-    public byte[] zipBytes(String filename, byte[] data)  {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ZipOutputStream zos = new ZipOutputStream(baos)) {
-            ZipEntry entry = new ZipEntry(filename);
-
-            zos.putNextEntry(entry);
-            zos.write(data);
-            zos.closeEntry();
-            zos.finish();
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename), e);
-            throw new RuntimeException(String.format(ERROR_DURING_COMPRESS_FILE.getMessage(), filename));
         }
     }
 

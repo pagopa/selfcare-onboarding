@@ -334,12 +334,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Aoo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -378,12 +372,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -413,12 +401,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_AooException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -448,12 +430,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_Uo(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -491,12 +467,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoNotFound(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -528,12 +498,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_addParentDescriptionForAooOrUo_UoException(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -577,6 +541,46 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_Aggregator(UniAsserter asserter) {
+        UserRequest managerUser= UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        Onboarding request = new Onboarding();request.setIsAggregator(Boolean.TRUE);
+        List<UserRequest> users = List.of(managerUser);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        List<AggregateInstitution> aggregates = new ArrayList<>();
+        AggregateInstitution institution = new AggregateInstitution();
+        aggregates.add(institution);
+        request.setAggregates(aggregates);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
     }
 
     @Test
@@ -723,12 +727,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResourceWk.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -768,14 +766,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundAndWillNotUpdate(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest wrongManager = UserRequest.builder()
                 .name("wrong_name")
                 .taxCode(managerResourceWkSpid.getFiscalCode())
                 .role(PartyRole.MANAGER)
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(wrongManager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -807,7 +805,7 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdateMailUuid(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
+        UserRequest newManager = UserRequest.builder()
                 .name("name")
                 .taxCode(managerResourceWk.getFiscalCode())
                 .role(PartyRole.MANAGER)
@@ -815,7 +813,7 @@ class OnboardingServiceDefaultTest {
                 .build();
 
         Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
+        List<UserRequest> users = List.of(newManager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
@@ -961,7 +959,7 @@ class OnboardingServiceDefaultTest {
 
         mockFindToken(asserter, onboarding.getId());
 
-        //Mock find manager fiscal code
+        //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
         UserResource actualUserResource = new UserResource();
         actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -996,7 +994,7 @@ class OnboardingServiceDefaultTest {
 
         mockFindToken(asserter, onboarding.getId());
 
-        //Mock find manager fiscal code
+        //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
         UserResource actualUserResource = new UserResource();
         actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1170,13 +1168,12 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingUpdateStatusOK() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1187,14 +1184,13 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void rejectOnboarding_statusIsCOMPLETED() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 1L);
+        mockUpdateOnboarding(onboarding.getId(), 1L);
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
                 .subscribe()
@@ -1205,12 +1201,11 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testOnboardingDeleteOnboardingNotFoundOrAlreadyDeleted() {
-        String reasonForReject = "string";
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(onboarding));
-        mockUpdateOnboarding(onboarding.getId(), reasonForReject, 0L);
+        mockUpdateOnboarding(onboarding.getId(), 0L);
 
         UniAssertSubscriber<Long> subscriber = onboardingService
                 .rejectOnboarding(onboarding.getId(), "string")
@@ -1220,7 +1215,7 @@ class OnboardingServiceDefaultTest {
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
-    private void mockUpdateOnboarding(String onboardingId, String reasonForReject, Long updatedItemCount) {
+    private void mockUpdateOnboarding(String onboardingId, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.update(any(Document.class))).thenReturn(query);
@@ -1250,8 +1245,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.empty()));
-
-        UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
+        onboardingService
                 .onboardingGet(UUID.randomUUID().toString())
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create())
@@ -1408,12 +1402,6 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_Onboarding_importPA(UniAsserter asserter) {
-        UserRequest manager = UserRequest.builder()
-                .name("name")
-                .taxCode(managerResource.getFiscalCode())
-                .role(PartyRole.MANAGER)
-                .build();
-
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
@@ -1542,7 +1530,6 @@ class OnboardingServiceDefaultTest {
 
     }
 
-
     @Test
     void testInstitutionOnboardings() {
         Onboarding onboarding1 = mock(Onboarding.class);
@@ -1575,7 +1562,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1601,7 +1588,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1628,7 +1615,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
@@ -1662,7 +1649,7 @@ class OnboardingServiceDefaultTest {
 
             mockFindToken(asserter, onboarding.getId());
 
-            //Mock find manager fiscal code
+            //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
             UserResource actualUserResource = new UserResource();
             actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");

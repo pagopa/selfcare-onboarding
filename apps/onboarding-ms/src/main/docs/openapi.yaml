@@ -24,7 +24,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingGetFilters'
+              $ref: "#/components/schemas/OnboardingGetFilters"
       responses:
         "200":
           description: OK
@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingGetResponse'
+                $ref: "#/components/schemas/OnboardingGetResponse"
         "401":
           description: Not Authorized
         "403":
@@ -109,14 +109,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingDefaultRequest'
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -157,14 +157,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingDefaultRequest'
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -189,7 +189,7 @@ paths:
       - name: status
         in: query
         schema:
-          $ref: '#/components/schemas/OnboardingStatus'
+          $ref: "#/components/schemas/OnboardingStatus"
       - name: subunitCode
         in: query
         schema:
@@ -206,7 +206,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/OnboardingResponse'
+                  $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -226,14 +226,42 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingPaRequest'
+              $ref: "#/components/schemas/OnboardingPaRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/pa/aggregation:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: "Perform onboarding aggregation request for PA institution type, it\
+        \ require billing.recipientCode in additition to default requestUsers data\
+        \ will be saved on personal data vault if it doesn't already exist.At the\
+        \ end, function triggers async activities related to onboarding aggregation\
+        \ that consist of create contract and sending mail to institution's digital\
+        \ address."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingPaRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -250,14 +278,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingPaRequest'
+              $ref: "#/components/schemas/OnboardingPaRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -274,14 +302,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingImportRequest'
+              $ref: "#/components/schemas/OnboardingImportRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -296,14 +324,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingPgRequest'
+              $ref: "#/components/schemas/OnboardingPgRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -322,14 +350,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingPspRequest'
+              $ref: "#/components/schemas/OnboardingPspRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -346,14 +374,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingPspRequest'
+              $ref: "#/components/schemas/OnboardingPspRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -372,14 +400,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingUserRequest'
+              $ref: "#/components/schemas/OnboardingUserRequest"
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingResponse'
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -403,7 +431,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingGet'
+                $ref: "#/components/schemas/OnboardingGet"
         "401":
           description: Not Authorized
         "403":
@@ -563,7 +591,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingGet'
+                $ref: "#/components/schemas/OnboardingGet"
         "401":
           description: Not Authorized
         "403":
@@ -587,7 +615,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReasonRequest'
+              $ref: "#/components/schemas/ReasonRequest"
       responses:
         "200":
           description: OK
@@ -614,12 +642,12 @@ paths:
       - name: status
         in: query
         schema:
-          $ref: '#/components/schemas/OnboardingStatus'
+          $ref: "#/components/schemas/OnboardingStatus"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OnboardingDefaultRequest'
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
       responses:
         "200":
           description: OK
@@ -649,7 +677,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingGet'
+                $ref: "#/components/schemas/OnboardingGet"
         "401":
           description: Not Authorized
         "403":
@@ -674,7 +702,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TokenResponse'
+                  $ref: "#/components/schemas/TokenResponse"
         "401":
           description: Not Authorized
         "403":
@@ -729,6 +757,32 @@ components:
           type: string
         otherNote:
           type: string
+    AggregateInstitutionRequest:
+      required:
+      - taxCode
+      - description
+      type: object
+      properties:
+        taxCode:
+          type: string
+        description:
+          type: string
+        subunitCode:
+          type: string
+        subunitType:
+          type: string
+        geographicTaxonomies:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeographicTaxonomy"
+        address:
+          type: string
+        zipCode:
+          type: string
+        originId:
+          type: string
+        origin:
+          $ref: "#/components/schemas/Origin"
     BillingPaRequest:
       type: object
       properties:
@@ -767,6 +821,13 @@ components:
           type: string
         pec:
           type: string
+    GeographicTaxonomy:
+      type: object
+      properties:
+        code:
+          type: string
+        desc:
+          type: string
     GeographicTaxonomyDto:
       type: object
       properties:
@@ -781,15 +842,15 @@ components:
       type: object
       properties:
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         taxCode:
           type: string
         subunitCode:
           type: string
         subunitType:
-          $ref: '#/components/schemas/InstitutionPaSubunitType'
+          $ref: "#/components/schemas/InstitutionPaSubunitType"
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         originId:
           type: string
         city:
@@ -810,7 +871,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomyDto'
+            $ref: "#/components/schemas/GeographicTaxonomyDto"
         rea:
           type: string
         shareCapital:
@@ -829,16 +890,16 @@ components:
       type: object
       properties:
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         taxCode:
           minLength: 1
           type: string
         subunitCode:
           type: string
         subunitType:
-          $ref: '#/components/schemas/InstitutionPaSubunitType'
+          $ref: "#/components/schemas/InstitutionPaSubunitType"
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         city:
           type: string
         country:
@@ -856,7 +917,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomyDto'
+            $ref: "#/components/schemas/GeographicTaxonomyDto"
         rea:
           type: string
         shareCapital:
@@ -882,15 +943,15 @@ components:
       type: object
       properties:
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         taxCode:
           type: string
         subunitCode:
           type: string
         subunitType:
-          $ref: '#/components/schemas/InstitutionPaSubunitType'
+          $ref: "#/components/schemas/InstitutionPaSubunitType"
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         originId:
           type: string
         city:
@@ -911,7 +972,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomyDto'
+            $ref: "#/components/schemas/GeographicTaxonomyDto"
         rea:
           type: string
         shareCapital:
@@ -925,16 +986,16 @@ components:
         imported:
           type: boolean
         paymentServiceProvider:
-          $ref: '#/components/schemas/PaymentServiceProviderRequest'
+          $ref: "#/components/schemas/PaymentServiceProviderRequest"
         dataProtectionOfficer:
-          $ref: '#/components/schemas/DataProtectionOfficerRequest'
+          $ref: "#/components/schemas/DataProtectionOfficerRequest"
     InstitutionResponse:
       type: object
       properties:
         id:
           type: string
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         taxCode:
           type: string
         taxCodeInvoicing:
@@ -942,9 +1003,9 @@ components:
         subunitCode:
           type: string
         subunitType:
-          $ref: '#/components/schemas/InstitutionPaSubunitType'
+          $ref: "#/components/schemas/InstitutionPaSubunitType"
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         city:
           type: string
         country:
@@ -962,7 +1023,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomyDto'
+            $ref: "#/components/schemas/GeographicTaxonomyDto"
         rea:
           type: string
         shareCapital:
@@ -974,9 +1035,9 @@ components:
         supportPhone:
           type: string
         paymentServiceProvider:
-          $ref: '#/components/schemas/PaymentServiceProviderRequest'
+          $ref: "#/components/schemas/PaymentServiceProviderRequest"
         dataProtectionOfficer:
-          $ref: '#/components/schemas/DataProtectionOfficerRequest'
+          $ref: "#/components/schemas/DataProtectionOfficerRequest"
     InstitutionType:
       enum:
       - PA
@@ -1008,11 +1069,11 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
         aggregates:
           type: array
           items:
-            $ref: '#/components/schemas/InstitutionBaseRequest'
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
@@ -1020,11 +1081,11 @@ components:
         signContract:
           type: boolean
         institution:
-          $ref: '#/components/schemas/InstitutionBaseRequest'
+          $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
-          $ref: '#/components/schemas/BillingRequest'
+          $ref: "#/components/schemas/BillingRequest"
         additionalInformations:
-          $ref: '#/components/schemas/AdditionalInformationsDto'
+          $ref: "#/components/schemas/AdditionalInformationsDto"
     OnboardingGet:
       type: object
       properties:
@@ -1035,25 +1096,25 @@ components:
         workflowType:
           type: string
         institution:
-          $ref: '#/components/schemas/InstitutionResponse'
+          $ref: "#/components/schemas/InstitutionResponse"
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserResponse'
+            $ref: "#/components/schemas/UserResponse"
         pricingPlan:
           type: string
         billing:
-          $ref: '#/components/schemas/BillingResponse'
+          $ref: "#/components/schemas/BillingResponse"
         signContract:
           type: boolean
         additionalInformations:
-          $ref: '#/components/schemas/AdditionalInformationsDto'
+          $ref: "#/components/schemas/AdditionalInformationsDto"
         createdAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         updatedAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         expiringDate:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         status:
           type: string
         userRequestUid:
@@ -1092,7 +1153,7 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/OnboardingGet'
+            $ref: "#/components/schemas/OnboardingGet"
     OnboardingImportContract:
       required:
       - fileName
@@ -1109,7 +1170,7 @@ components:
         contractType:
           type: string
         createdAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
     OnboardingImportRequest:
       required:
       - institution
@@ -1119,7 +1180,7 @@ components:
       type: object
       properties:
         institution:
-          $ref: '#/components/schemas/InstitutionImportRequest'
+          $ref: "#/components/schemas/InstitutionImportRequest"
         productId:
           minLength: 1
           type: string
@@ -1127,9 +1188,9 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
         contractImported:
-          $ref: '#/components/schemas/OnboardingImportContract'
+          $ref: "#/components/schemas/OnboardingImportContract"
     OnboardingPaRequest:
       required:
       - productId
@@ -1144,11 +1205,11 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
         aggregates:
           type: array
           items:
-            $ref: '#/components/schemas/InstitutionBaseRequest'
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
@@ -1156,9 +1217,9 @@ components:
         signContract:
           type: boolean
         institution:
-          $ref: '#/components/schemas/InstitutionBaseRequest'
+          $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
-          $ref: '#/components/schemas/BillingPaRequest'
+          $ref: "#/components/schemas/BillingPaRequest"
     OnboardingPgRequest:
       required:
       - productId
@@ -1172,18 +1233,18 @@ components:
           minLength: 1
           type: string
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         users:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
         taxCode:
           type: string
         businessName:
           type: string
         origin:
-          $ref: '#/components/schemas/Origin'
+          $ref: "#/components/schemas/Origin"
         digitalAddress:
           type: string
     OnboardingPspRequest:
@@ -1200,11 +1261,11 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
         aggregates:
           type: array
           items:
-            $ref: '#/components/schemas/InstitutionBaseRequest'
+            $ref: "#/components/schemas/AggregateInstitutionRequest"
         isAggregator:
           type: boolean
         pricingPlan:
@@ -1212,9 +1273,9 @@ components:
         signContract:
           type: boolean
         institution:
-          $ref: '#/components/schemas/InstitutionPspRequest'
+          $ref: "#/components/schemas/InstitutionPspRequest"
         billing:
-          $ref: '#/components/schemas/BillingRequest'
+          $ref: "#/components/schemas/BillingRequest"
     OnboardingResponse:
       type: object
       properties:
@@ -1225,19 +1286,19 @@ components:
         workflowType:
           type: string
         institution:
-          $ref: '#/components/schemas/InstitutionResponse'
+          $ref: "#/components/schemas/InstitutionResponse"
         pricingPlan:
           type: string
         users:
           type: array
           items:
-            $ref: '#/components/schemas/UserOnboardingResponse'
+            $ref: "#/components/schemas/UserOnboardingResponse"
         billing:
-          $ref: '#/components/schemas/BillingResponse'
+          $ref: "#/components/schemas/BillingResponse"
         status:
           type: string
         additionalInformations:
-          $ref: '#/components/schemas/AdditionalInformationsDto'
+          $ref: "#/components/schemas/AdditionalInformationsDto"
         userRequestUid:
           type: string
         isAggregator:
@@ -1264,7 +1325,7 @@ components:
           minLength: 1
           type: string
         institutionType:
-          $ref: '#/components/schemas/InstitutionType'
+          $ref: "#/components/schemas/InstitutionType"
         subunitCode:
           type: string
         origin:
@@ -1279,7 +1340,7 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/UserRequest'
+            $ref: "#/components/schemas/UserRequest"
     Origin:
       enum:
       - MOCK
@@ -1323,7 +1384,7 @@ components:
         id:
           type: string
         type:
-          $ref: '#/components/schemas/TokenType'
+          $ref: "#/components/schemas/TokenType"
         productId:
           type: string
         checksum:
@@ -1335,13 +1396,13 @@ components:
         contractSigned:
           type: string
         createdAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         updatedAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         closedAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
         deletedAt:
-          $ref: '#/components/schemas/LocalDateTime'
+          $ref: "#/components/schemas/LocalDateTime"
     TokenType:
       enum:
       - INSTITUTION
@@ -1353,7 +1414,7 @@ components:
         id:
           type: string
         role:
-          $ref: '#/components/schemas/PartyRole'
+          $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
         userMailUuid:
@@ -1370,7 +1431,7 @@ components:
         email:
           type: string
         role:
-          $ref: '#/components/schemas/PartyRole'
+          $ref: "#/components/schemas/PartyRole"
     UserResponse:
       type: object
       properties:
@@ -1385,7 +1446,7 @@ components:
         email:
           type: string
         role:
-          $ref: '#/components/schemas/PartyRole'
+          $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
   securitySchemes:
