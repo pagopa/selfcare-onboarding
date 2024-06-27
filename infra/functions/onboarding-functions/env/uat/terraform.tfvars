@@ -70,7 +70,7 @@ app_settings = {
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://uat.selfcare.pagopa.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://selfcare.pagopa.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://uat.selfcare.pagopa.it/onboarding/confirm?jwt=",
-  "MAIL_USER_CONFIRMATION_LINK"                        = "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=%s#add-user=true",
+  "MAIL_USER_CONFIRMATION_LINK"                        = "https://uat.selfcare.pagopa.it/onboarding/confirm?add-user=true&jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://uat.selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://uat.selfcare.pagopa.it/onboarding/",
   "MS_CORE_URL"                                        = "https://selc-u-ms-core-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
