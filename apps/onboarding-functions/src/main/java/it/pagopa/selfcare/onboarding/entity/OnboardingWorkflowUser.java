@@ -37,7 +37,7 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
 
     @Override
     public TokenType getTokenType() {
-        return TokenType.LEGALS;
+        return TokenType.USER;
     }
 
     @Override
