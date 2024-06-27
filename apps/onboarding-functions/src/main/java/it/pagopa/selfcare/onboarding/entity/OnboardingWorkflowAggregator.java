@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.ContractStorage;
@@ -16,6 +17,16 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
     public OnboardingWorkflowAggregator(Onboarding onboarding, String type) {
         super(onboarding);
         this.type = type;
+    }
+
+    @Override
+    public TokenType getTokenType() {
+        return TokenType.INSTITUTION;
+    }
+
+    @Override
+    public String getPdfFormatFilename() {
+        return PDF_FORMAT_FILENAME;
     }
 
     @Override

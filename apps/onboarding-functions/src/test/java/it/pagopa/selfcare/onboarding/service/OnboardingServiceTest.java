@@ -140,7 +140,7 @@ class OnboardingServiceTest {
 
         ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
         Mockito.verify(contractService, Mockito.times(1))
-                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
         assertEquals(captorTemplatePath.getValue(), contractStorage.getContractTemplatePath());
     }
 
@@ -188,7 +188,7 @@ class OnboardingServiceTest {
 
         ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
         Mockito.verify(contractService, Mockito.times(1))
-                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
         assertEquals(captorTemplatePath.getValue(), product.getContractTemplatePath());
     }
 

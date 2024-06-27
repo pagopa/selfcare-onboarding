@@ -90,14 +90,17 @@ public class OnboardingService {
                 .map(userToOnboard -> userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId())).collect(Collectors.toList());
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle());
+        contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle(), onboardingWorkflow.getPdfFormatFilename());
     }
 
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
         contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
-    public void saveTokenWithContract(Onboarding onboarding) {
+
+    public void saveTokenWithContract(OnboardingWorkflow onboardingWorkflow) {
+
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
         // Skip if token already exists
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
@@ -113,10 +116,10 @@ public class OnboardingService {
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
-        saveToken(onboarding, product, digest);
+        saveToken(onboarding, product, digest, onboardingWorkflow.getTokenType());
     }
 
-    private void saveToken(Onboarding onboarding, Product product, String digest) {
+    private void saveToken(Onboarding onboarding, Product product, String digest, TokenType tokenType) {
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
@@ -131,7 +134,7 @@ public class OnboardingService {
         token.setUpdatedAt(LocalDateTime.now());
         token.setProductId(onboarding.getProductId());
         token.setChecksum(digest);
-        token.setType(TokenType.INSTITUTION);
+        token.setType(tokenType);
 
         tokenRepository.persist(token);
     }

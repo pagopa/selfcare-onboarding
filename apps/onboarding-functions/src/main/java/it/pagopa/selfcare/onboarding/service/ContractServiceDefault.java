@@ -82,7 +82,7 @@ public class ContractServiceDefault implements ContractService {
      * @throws GenericOnboardingException If an error occurs during PDF generation.
      */
     @Override
-    public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users, String productName) {
+    public File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users, String productName, String pdfFormatFilename) {
 
         log.info("START - createContractPdf for template: {}", contractTemplatePath);
         // Generate a unique filename for the PDF.
@@ -99,7 +99,7 @@ public class ContractServiceDefault implements ContractService {
                 : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
 
             // Define the filename and path for storage.
-            final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
+            final String filename = CONTRACT_FILENAME_FUNC.apply(productName, pdfFormatFilename);
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
             File signedPath = signPdf(temporaryPdfFile, institution.getDescription(), productId);
