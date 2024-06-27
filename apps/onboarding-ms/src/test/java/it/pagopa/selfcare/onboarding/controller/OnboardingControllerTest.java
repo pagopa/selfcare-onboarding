@@ -767,6 +767,26 @@ class OnboardingControllerTest {
         assertNotEquals(captor.getValue().getId(), onboardingId);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void checkManager() {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+
+        when(onboardingService.checkManager(any()))
+                .thenReturn(Uni.createFrom().item(true));
+
+        given()
+                .when()
+                .body(request)
+                .contentType(ContentType.JSON)
+                .post("/check-manager")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .checkManager(any());
+    }
+
     private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("status", "COMPLETED");
