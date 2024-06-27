@@ -29,6 +29,9 @@ public class ExternalFunctionsTest {
     @InjectMock
     CheckOrganizationService checkOrganizationService;
 
+    final String ACK_PAYLOAD_OK = "{\"message\":\"message\"}";
+    final String ACK_PAYLOAD_BLANK = "{\"message\": \"\"}";
+
     @Test
     public void checkOrganizationTest() {
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
@@ -103,5 +106,63 @@ public class ExternalFunctionsTest {
         when(checkOrganizationService.checkOrganization(any(), any(), any())).thenReturn(false);
         HttpResponseMessage responseMessage = function.checkOrganization(req, context);
         assertEquals(HttpStatus.NOT_FOUND.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void messageAcknowledgmentRequestBodyEmpty() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doReturn(Optional.empty()).when(req).getBody();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        HttpResponseMessage responseMessage = function.messageAcknowledgment(req, "productId", "messageId", "status", context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+        assertEquals("Request body cannot be empty.", responseMessage.getBody());
+    }
+
+    @Test
+    public void messageAcknowledgmentRequestBodyHasBlankMessageInPayload() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doReturn(Optional.of(ACK_PAYLOAD_BLANK)).when(req).getBody();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        HttpResponseMessage responseMessage = function.messageAcknowledgment(req, "productId", "messageId", "status", context);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+        assertEquals("Field message is required in request body and cannot be blank.", responseMessage.getBody());
+    }
+
+    @Test
+    public void messageAcknowledgmentOkStatusIsAck() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doReturn(Optional.of(ACK_PAYLOAD_OK)).when(req).getBody();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        HttpResponseMessage responseMessage = function.messageAcknowledgment(req, "productId", "messageId", "ACK", context);
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    public void messageAcknowledgmentOkStatusIsNack() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doReturn(Optional.of(ACK_PAYLOAD_OK)).when(req).getBody();
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        HttpResponseMessage responseMessage = function.messageAcknowledgment(req, "productId", "messageId", "NACK", context);
+        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
     }
 }
