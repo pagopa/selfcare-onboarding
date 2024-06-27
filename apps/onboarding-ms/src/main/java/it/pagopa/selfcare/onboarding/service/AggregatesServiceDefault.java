@@ -19,6 +19,7 @@ import jakarta.ws.rs.WebApplicationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
@@ -32,10 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.opencsv.ICSVParser.DEFAULT_QUOTE_CHARACTER;
+import static io.vertx.core.http.impl.HttpClientConnection.log;
 
 @ApplicationScoped
 @Slf4j
 public class AggregatesServiceDefault implements AggregatesService{
+
+    private static final Logger LOG = Logger.getLogger(AggregatesServiceDefault.class);
 
     @Inject
     OnboardingMapper onboardingMapper;
@@ -66,7 +70,7 @@ public class AggregatesServiceDefault implements AggregatesService{
                 .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAndFillErrorList(csvAggregate, aggregatesCsvResponse))
                 .collect().asList()
                 .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
-                .onItem().invoke(() -> log.info("CSV file validated end: {} valid row and {} invalid row",
+                .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
                         aggregatesCsvResponse.getValidAggregates().size(),
                         aggregatesCsvResponse.getRowErrorList().size()));
     }
@@ -127,18 +131,13 @@ public class AggregatesServiceDefault implements AggregatesService{
             byte[] fileBytes = Files.readAllBytes(file.toPath());
             StringReader stringReader = new StringReader(new String(fileBytes, StandardCharsets.UTF_8));
             BufferedReader bufferedReader = new BufferedReader(stringReader);
-            bufferedReader.readLine();
+            String skip = bufferedReader.readLine();
+            log.info("Skip header: " + skip);
             int lineNumber = 1;
             String nextLine;
 
             while ((nextLine = bufferedReader.readLine()) != null) {
-                try {
-                    parseLine(nextLine, lineNumber, resultList);
-                    log.debug("Row " + lineNumber + ": ");
-                } catch (Exception e) {
-                    log.error("Error to the row " + lineNumber + ": " + e.getMessage());
-                    errors.add(new RowError(lineNumber, "", MALFORMED_ROW));
-                }
+                parseLine(nextLine, lineNumber, resultList, errors);
                 lineNumber++;
             }
 
@@ -150,14 +149,20 @@ public class AggregatesServiceDefault implements AggregatesService{
         }
     }
 
-    private void parseLine(String nextLine, int lineNumber, List<CsvAggregate> resultList) {
-        StringReader lineReader = new StringReader(nextLine);
-        CsvToBean<CsvAggregate> csvToBean = getAggregateCsvToBean(new BufferedReader(lineReader));
-        List<CsvAggregate> csvAggregateList = csvToBean.parse();
-        if (!csvAggregateList.isEmpty()) {
-            CsvAggregate csvAggregate = csvAggregateList.get(0);
-            csvAggregate.setRowNumber(lineNumber);
-            resultList.add(csvAggregateList.get(0));
+    private void parseLine(String nextLine, int lineNumber, List<CsvAggregate> resultList, List<RowError> errors) {
+        try {
+            StringReader lineReader = new StringReader(nextLine);
+            CsvToBean<CsvAggregate> csvToBean = getAggregateCsvToBean(new BufferedReader(lineReader));
+            List<CsvAggregate> csvAggregateList = csvToBean.parse();
+            if (!csvAggregateList.isEmpty()) {
+                CsvAggregate csvAggregate = csvAggregateList.get(0);
+                csvAggregate.setRowNumber(lineNumber);
+                resultList.add(csvAggregateList.get(0));
+            }
+            log.debug("Row " + lineNumber + ": ");
+        } catch (Exception e) {
+            log.error("Error to the row " + lineNumber + ": " + e.getMessage());
+            errors.add(new RowError(lineNumber, "", MALFORMED_ROW));
         }
     }
 

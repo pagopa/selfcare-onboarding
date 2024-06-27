@@ -48,12 +48,8 @@ public class AggregatesServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void validateAggregates() throws IOException {
+    void validateAggregates(){
         File testFile = new File("src/test/resources/aggregates.csv");
-        File expectationFile = new File("src/test/resources/verifyAggregatesResponse.json");
-        byte[] fileBytes = Files.readAllBytes(expectationFile.toPath());
-        ObjectMapper objectMapper = new ObjectMapper();
-        VerifyAggregateResponse expectedResponse = objectMapper.readValue(fileBytes, VerifyAggregateResponse.class);
 
         when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
         when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));

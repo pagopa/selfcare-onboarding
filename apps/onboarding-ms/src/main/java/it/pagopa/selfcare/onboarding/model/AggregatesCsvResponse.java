@@ -1,13 +1,8 @@
 package it.pagopa.selfcare.onboarding.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 public class AggregatesCsvResponse {
     private List<CsvAggregate> csvAggregateList;
     private List<CsvAggregate> validAggregates = new ArrayList<>();
@@ -18,6 +13,28 @@ public class AggregatesCsvResponse {
         this.rowErrorList = rowErrorList;
     }
 
-    public AggregatesCsvResponse() {
+    public List<CsvAggregate> getCsvAggregateList() {
+        return csvAggregateList;
     }
+
+    public void setCsvAggregateList(List<CsvAggregate> csvAggregateList) {
+        this.csvAggregateList = csvAggregateList;
+    }
+
+    public List<CsvAggregate> getValidAggregates() {
+        return validAggregates;
+    }
+
+    public void setValidAggregates(List<CsvAggregate> validAggregates) {
+        this.validAggregates = validAggregates;
+    }
+
+    public List<RowError> getRowErrorList() {
+        return rowErrorList;
+    }
+
+    public void setRowErrorList(List<RowError> rowErrorList) {
+        this.rowErrorList = rowErrorList;
+    }
+
 }

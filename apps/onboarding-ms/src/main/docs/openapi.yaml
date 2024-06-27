@@ -24,6 +24,8 @@ paths:
         content:
           multipart/form-data:
             schema:
+              required:
+              - aggregates
               type: object
               properties:
                 aggregates:
