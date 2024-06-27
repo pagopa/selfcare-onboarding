@@ -8,14 +8,13 @@ import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Utils {
 
-    public static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
-
-    public static final Function<String, String> CONTRACT_FILENAME_FUNC =
-            productName -> String.format(PDF_FORMAT_FILENAME, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
+    public static final BiFunction<String, String, String> CONTRACT_FILENAME_FUNC =
+            (filename, productName) -> String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 
 
 

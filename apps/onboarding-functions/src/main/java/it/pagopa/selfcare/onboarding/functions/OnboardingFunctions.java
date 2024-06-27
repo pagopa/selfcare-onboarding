@@ -155,9 +155,9 @@ public class OnboardingFunctions {
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME)
-    public void saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
-        service.saveTokenWithContract(readOnboardingValue(objectMapper, onboardingString));
+    public void saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString));
+        service.saveTokenWithContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     /**

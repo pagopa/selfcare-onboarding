@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.ContractStorage;
@@ -40,6 +41,16 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
     }
 
     @Override
+    public TokenType getTokenType() {
+        return TokenType.INSTITUTION;
+    }
+
+    @Override
+    public String getPdfFormatFilename() {
+        return PDF_FORMAT_FILENAME;
+    }
+
+    @Override
     public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
         return config.confirmTokenPlaceholder();
     }
@@ -57,6 +68,11 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
                 .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType()))
                 .map(ContractStorage::getContractTemplatePath)
                 .orElse(product.getContractTemplatePath());
+    }
+
+    @Override
+    public String getContractTemplateVersion(Product product) {
+        return product.getContractTemplateVersion();
     }
 
     public String getType() {

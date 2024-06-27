@@ -44,6 +44,7 @@ class ContractServiceDefaultTest {
 
 
     final static String productNameExample = "product-name";
+    final static String pdfFormatFilename =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){
@@ -102,7 +103,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent);
+        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent, pdfFormatFilename);
 
         assertNotNull(contract);
 
@@ -126,7 +127,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
     }
 
     @Test
@@ -144,7 +145,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
     }
 
     @Test
@@ -166,7 +167,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
     }
 
 
