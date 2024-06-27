@@ -32,7 +32,7 @@ public class ExternalFunctions {
             @HttpTrigger(name = "req", methods = {HttpMethod.HEAD}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
 
-        context.getLogger().info("testToken trigger processed a request");
+        context.getLogger().info("checkOrganization trigger processed a request");
 
         String fiscalCode = request.getQueryParameters().get("fiscalCode");
         String vatNumber = request.getQueryParameters().get("vatNumber");
