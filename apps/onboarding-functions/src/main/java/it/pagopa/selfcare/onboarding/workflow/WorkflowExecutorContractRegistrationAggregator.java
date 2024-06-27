@@ -41,12 +41,12 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
         String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboardingWorkflow.getOnboarding());
         Onboarding onboarding = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
 
-        List<Task<Void>> parallelTasks = new ArrayList<>();
+        List<Task<String>> parallelTasks = new ArrayList<>();
 
         for (AggregateInstitution aggregate : onboarding.getAggregates()) {
             OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
             final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString));
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
         }
 
         ctx.allOf(parallelTasks).await();
