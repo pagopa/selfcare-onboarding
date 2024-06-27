@@ -7,9 +7,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,11 +190,13 @@ class ContractServiceDefaultTest {
     void retrieveContractNotSigned() {
 
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
+        onboardingWorkflow.setOnboarding(onboarding);
 
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboarding.getId(), productNameExample);
+        contractService.retrieveContractNotSigned(onboardingWorkflow, productNameExample);
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))
