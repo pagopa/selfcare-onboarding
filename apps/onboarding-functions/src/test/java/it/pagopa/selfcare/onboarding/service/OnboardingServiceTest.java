@@ -229,7 +229,7 @@ class OnboardingServiceTest {
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
         Product productExpected = createDummyProduct();
-        when(contractService.retrieveContractNotSigned(onboarding.getId(), productExpected.getTitle()))
+        when(contractService.retrieveContractNotSigned(onboardingWorkflow, productExpected.getTitle()))
                 .thenReturn(contract);
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(productExpected);

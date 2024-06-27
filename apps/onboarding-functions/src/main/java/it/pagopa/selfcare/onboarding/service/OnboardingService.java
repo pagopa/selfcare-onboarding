@@ -110,7 +110,7 @@ public class OnboardingService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         // Load PDF contract and create digest
-        File contract = contractService.retrieveContractNotSigned(onboarding.getId(), product.getTitle());
+        File contract = contractService.retrieveContractNotSigned(onboardingWorkflow, product.getTitle());
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
