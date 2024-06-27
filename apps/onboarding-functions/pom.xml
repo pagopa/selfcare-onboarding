@@ -21,8 +21,7 @@
     <quarkus.platform.version>3.5.1</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <onboarding-sdk.version>0.1.14</onboarding-sdk.version>
-    <onboarding-sdk-product.version>0.1.15</onboarding-sdk-product.version>
+    <onboarding-sdk.version>0.1.16</onboarding-sdk.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
   </properties>
 
@@ -75,7 +74,7 @@
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-product</artifactId>
-      <version>${onboarding-sdk-product.version}</version>
+      <version>${onboarding-sdk.version}</version>
     </dependency>
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
