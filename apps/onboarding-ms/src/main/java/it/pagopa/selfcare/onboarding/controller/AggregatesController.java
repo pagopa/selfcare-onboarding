@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -31,7 +32,7 @@ public class AggregatesController {
     @Path("/verification")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<VerifyAggregateResponse> verifyAggregatesCsv(@RestForm("aggregates") File file){
+    public Uni<VerifyAggregateResponse> verifyAggregatesCsv(@NotNull @RestForm("aggregates") File file){
 
         return aggregatesService.validateAggregatesCsv(file);
     }
