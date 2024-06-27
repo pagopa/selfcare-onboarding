@@ -6,7 +6,7 @@
     <artifactId>onboarding-sdk-pom</artifactId>
     <packaging>pom</packaging>
     <name>onboarding-sdk-pom</name>
-    <version>0.1.14</version>
+    <version>0.1.15</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
