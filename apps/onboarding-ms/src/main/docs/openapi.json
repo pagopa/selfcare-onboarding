@@ -12,6 +12,8 @@
     "description" : "Auto generated value"
   } ],
   "tags" : [ {
+    "name" : "Aggregates Controller"
+  }, {
     "name" : "Notification Controller"
   }, {
     "name" : "Onboarding"
@@ -21,6 +23,48 @@
     "name" : "support"
   } ],
   "paths" : {
+    "/v1/aggregates/verification" : {
+      "post" : {
+        "tags" : [ "Aggregates Controller" ],
+        "summary" : "",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "aggregates" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/notification/resend" : {
       "post" : {
         "tags" : [ "Notification Controller" ],
@@ -1113,6 +1157,20 @@
           }
         }
       },
+      "DataProtectionOfficer" : {
+        "type" : "object",
+        "properties" : {
+          "address" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "pec" : {
+            "type" : "string"
+          }
+        }
+      },
       "DataProtectionOfficerRequest" : {
         "type" : "object",
         "properties" : {
@@ -1145,6 +1203,86 @@
             "type" : "string"
           },
           "desc" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Institution" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "institutionType" : {
+            "$ref" : "#/components/schemas/InstitutionType"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "$ref" : "#/components/schemas/InstitutionPaSubunitType"
+          },
+          "origin" : {
+            "$ref" : "#/components/schemas/Origin"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "city" : {
+            "type" : "string"
+          },
+          "country" : {
+            "type" : "string"
+          },
+          "county" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "digitalAddress" : {
+            "type" : "string"
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "zipCode" : {
+            "type" : "string"
+          },
+          "geographicTaxonomies" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeographicTaxonomy"
+            }
+          },
+          "rea" : {
+            "type" : "string"
+          },
+          "shareCapital" : {
+            "type" : "string"
+          },
+          "businessRegisterPlace" : {
+            "type" : "string"
+          },
+          "supportEmail" : {
+            "type" : "string"
+          },
+          "supportPhone" : {
+            "type" : "string"
+          },
+          "imported" : {
+            "type" : "boolean"
+          },
+          "paymentServiceProvider" : {
+            "$ref" : "#/components/schemas/PaymentServiceProvider"
+          },
+          "dataProtectionOfficer" : {
+            "$ref" : "#/components/schemas/DataProtectionOfficer"
+          },
+          "parentDescription" : {
             "type" : "string"
           }
         }
@@ -1830,6 +1968,26 @@
         "enum" : [ "MANAGER", "DELEGATE", "SUB_DELEGATE", "OPERATOR", "ADMIN_EA" ],
         "type" : "string"
       },
+      "PaymentServiceProvider" : {
+        "type" : "object",
+        "properties" : {
+          "abiCode" : {
+            "type" : "string"
+          },
+          "businessRegisterNumber" : {
+            "type" : "string"
+          },
+          "legalRegisterNumber" : {
+            "type" : "string"
+          },
+          "legalRegisterName" : {
+            "type" : "string"
+          },
+          "vatNumberGroup" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "PaymentServiceProviderRequest" : {
         "type" : "object",
         "properties" : {
@@ -1854,6 +2012,22 @@
         "type" : "object",
         "properties" : {
           "reasonForReject" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RowError" : {
+        "required" : [ "row", "cf" ],
+        "type" : "object",
+        "properties" : {
+          "row" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "cf" : {
+            "type" : "string"
+          },
+          "reason" : {
             "type" : "string"
           }
         }
@@ -1960,6 +2134,23 @@
           },
           "productRole" : {
             "type" : "string"
+          }
+        }
+      },
+      "VerifyAggregateResponse" : {
+        "type" : "object",
+        "properties" : {
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Institution"
+            }
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RowError"
+            }
           }
         }
       }
