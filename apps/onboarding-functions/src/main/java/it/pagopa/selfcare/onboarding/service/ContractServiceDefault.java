@@ -99,7 +99,7 @@ public class ContractServiceDefault implements ContractService {
                 : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
 
             // Define the filename and path for storage.
-            final String filename = CONTRACT_FILENAME_FUNC.apply(productName, pdfFormatFilename);
+            final String filename = CONTRACT_FILENAME_FUNC.apply(pdfFormatFilename, productName);
             final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
             File signedPath = signPdf(temporaryPdfFile, institution.getDescription(), productId);
@@ -171,12 +171,15 @@ public class ContractServiceDefault implements ContractService {
         );
     }
 
+    /**
+     * Only for test
+     */
     @Override
     public File loadContractPDF(String contractTemplatePath, String onboardingId, String productName) {
         try {
             File pdf = azureBlobClient.getFileAsPdf(contractTemplatePath);
 
-            final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
+            final String filename = CONTRACT_FILENAME_FUNC.apply("%s.pdf", productName);
             final String path = String.format("%s/%s", azureStorageConfig.contractPath(), onboardingId);
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(pdf.toPath()));
 
@@ -218,7 +221,7 @@ public class ContractServiceDefault implements ContractService {
 
     @Override
     public File retrieveContractNotSigned(String onboardingId, String productName) {
-        final String filename = CONTRACT_FILENAME_FUNC.apply(productName);
+        final String filename = CONTRACT_FILENAME_FUNC.apply("%s_test.pdf", productName);
         final String path = String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
         return azureBlobClient.getFileAsPdf(path);
     }

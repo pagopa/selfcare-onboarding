@@ -49,6 +49,11 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
     }
 
     @Override
+    public String getContractTemplateVersion(Product product) {
+        return product.getContractTemplateVersion();
+    }
+
+    @Override
     public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
         return config.confirmTokenPlaceholder();
     }

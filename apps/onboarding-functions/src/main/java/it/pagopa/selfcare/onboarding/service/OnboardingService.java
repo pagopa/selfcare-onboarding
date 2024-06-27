@@ -6,7 +6,6 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
@@ -18,7 +17,6 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
-import it.pagopa.selfcare.product.entity.ContractStorage;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -116,10 +114,12 @@ public class OnboardingService {
         DSSDocument document = new FileDocument(contract);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
 
-        saveToken(onboarding, product, digest, onboardingWorkflow.getTokenType());
+        saveToken(onboardingWorkflow, product, digest);
     }
 
-    private void saveToken(Onboarding onboarding, Product product, String digest, TokenType tokenType) {
+    private void saveToken(OnboardingWorkflow onboardingWorkflow, Product product, String digest) {
+
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
         log.debug("creating Token for onboarding {} ...", onboarding.getId());
 
@@ -127,14 +127,14 @@ public class OnboardingService {
         Token token = new Token();
         token.setId(onboarding.getId());
         token.setOnboardingId(onboarding.getId());
-        token.setContractTemplate(product.getContractTemplatePath());
+        token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
         token.setContractVersion(product.getContractTemplateVersion());
-        token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(product.getTitle()));
+        token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(onboardingWorkflow.getPdfFormatFilename(), product.getTitle()));
         token.setCreatedAt(LocalDateTime.now());
         token.setUpdatedAt(LocalDateTime.now());
         token.setProductId(onboarding.getProductId());
         token.setChecksum(digest);
-        token.setType(tokenType);
+        token.setType(onboardingWorkflow.getTokenType());
 
         tokenRepository.persist(token);
     }

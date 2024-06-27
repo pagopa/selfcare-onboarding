@@ -70,6 +70,11 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
                 .orElse(product.getContractTemplatePath());
     }
 
+    @Override
+    public String getContractTemplateVersion(Product product) {
+        return product.getContractTemplateVersion();
+    }
+
     public String getType() {
         return type;
     }

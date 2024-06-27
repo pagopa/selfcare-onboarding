@@ -20,8 +20,9 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
+        String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper, onboardingWorkflow);
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, getOnboardingWorkflowString(objectMapper, onboardingWorkflow), optionsRetry, String.class).await();
-        ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString, optionsRetry, String.class).await();
+        ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.PENDING);
     }

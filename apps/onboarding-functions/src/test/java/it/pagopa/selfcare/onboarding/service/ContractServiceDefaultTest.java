@@ -44,7 +44,7 @@ class ContractServiceDefaultTest {
 
 
     final static String productNameExample = "product-name";
-    final static String pdfFormatFilename =  "%test.pdf";
+    final static String pdfFormatFilename =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){

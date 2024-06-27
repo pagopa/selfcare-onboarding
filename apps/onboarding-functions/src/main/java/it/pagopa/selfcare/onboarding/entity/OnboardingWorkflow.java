@@ -39,6 +39,8 @@ public abstract class OnboardingWorkflow {
 
     public abstract String getContractTemplatePath(Product product);
 
+    public abstract String getContractTemplateVersion(Product product);
+
     public Onboarding getOnboarding() {
         return onboarding;
     }
