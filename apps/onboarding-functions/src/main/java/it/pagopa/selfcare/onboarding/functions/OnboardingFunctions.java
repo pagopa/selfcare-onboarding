@@ -105,9 +105,20 @@ public class OnboardingFunctions {
     public void onboardingsAggregateOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
             ExecutionContext functionContext) {
-        String onboardingAggregate = ctx.getInput(String.class);
-        String onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
-        ctx.callSubOrchestrator("Onboardings", onboardingId).await();
+        String onboardingId = null;
+        try {
+            String onboardingAggregate = ctx.getInput(String.class);
+            onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
+            ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
+        } catch (TaskFailedException ex) {
+            functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
+            service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+            throw ex;
+        } catch (ResourceNotFoundException ex) {
+            functionContext.getLogger().warning(ex.getMessage());
+            service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+            throw ex;
+        }
     }
 
     /**
