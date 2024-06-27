@@ -4,6 +4,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
@@ -174,8 +175,24 @@ public class NotificationEventServiceDefaultTest {
         verifyNoInteractions(eventHubRestClient);
     }
 
+    @Test
+    void sendMessageWontProceedsWhenOnboardingIsNotReferredToInstitution() {
+        final Onboarding onboarding = createOnboarding();
+        onboarding.setWorkflowType(WorkflowType.USERS);
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        verifyNoInteractions(productService);
+        verifyNoInteractions(tokenRepository);
+        verifyNoInteractions(institutionApi);
+        verifyNoInteractions(eventHubRestClient);
+    }
+
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
         onboarding.setId(onboarding.getId());
         String productId = "prod-io";
         onboarding.setProductId(productId);
