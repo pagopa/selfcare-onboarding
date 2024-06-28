@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.utils.Utils.ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
 @ApplicationScoped
@@ -274,6 +275,7 @@ public class OnboardingService {
         Document query = new Document();
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
+        query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
 
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
