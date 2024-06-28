@@ -6,6 +6,7 @@ import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
 import com.microsoft.durabletask.DurableTaskClient;
 import com.microsoft.durabletask.Task;
+import com.microsoft.durabletask.TaskFailedException;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
@@ -101,7 +102,7 @@ public class OnboardingFunctionsTest {
         HttpResponseMessage responseMessage = function.startOrchestration(req, durableContext, context);
 
         // Verify
-        Mockito.verify(client, times(1))
+        verify(client, times(1))
                 .waitForInstanceCompletion(anyString(), any(), anyBoolean());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseMessage.getStatusCode());
 
@@ -116,7 +117,7 @@ public class OnboardingFunctionsTest {
         when(service.getOnboarding(onboardingId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> function.onboardingsOrchestrator(orchestrationContext, executionContext));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
     }
 
@@ -132,13 +133,13 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
@@ -153,13 +154,13 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
@@ -177,13 +178,13 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
@@ -200,11 +201,11 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(1))
+        verify(orchestrationContext, times(1))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);
     }
 
@@ -221,13 +222,13 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(3))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
@@ -245,7 +246,7 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(5))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
@@ -253,7 +254,7 @@ public class OnboardingFunctionsTest {
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
@@ -272,7 +273,7 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(7))
+        verify(orchestrationContext, times(7))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
@@ -282,8 +283,85 @@ public class OnboardingFunctionsTest {
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(5));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(6));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+    }
+
+    @Test
+    void onboardingsAggregateOrchestrator(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        Task<Object> mockTask = Mockito.mock(Task.class);
+        when(orchestrationContext.callSubOrchestrator(any(), any(), any()))
+                .thenReturn(mockTask);
+
+        function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        verify(orchestrationContext, times(1))
+                .callSubOrchestrator(eq("Onboardings"), any(), any());
+
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+
+    }
+    @Test
+    void onboardingsAggregateOrchestrator_resourceNotFound(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenThrow(ResourceNotFoundException.class);
+
+        assertThrows(ResourceNotFoundException.class, () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+
+    }
+    @Test
+    void onboardingsAggregateOrchestrator_taskFailed(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenThrow(TaskFailedException.class);
+
+        assertThrows(TaskFailedException.class, () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+
+
     }
 
     @Test
@@ -299,14 +377,14 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(4))
+        verify(orchestrationContext, times(4))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
@@ -323,11 +401,11 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(2))
+        verify(orchestrationContext, times(2))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(1));
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
@@ -344,12 +422,12 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(2))
+        verify(orchestrationContext, times(2))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, captorActivity.getAllValues().get(1));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);
     }
 
@@ -366,7 +444,7 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(5))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
@@ -374,7 +452,7 @@ public class OnboardingFunctionsTest {
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
@@ -397,7 +475,7 @@ public class OnboardingFunctionsTest {
 
         function.buildContract(onboardingWorkflowString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .createContract(any());
     }
 
@@ -409,7 +487,7 @@ public class OnboardingFunctionsTest {
 
         function.saveToken(onboardingWorkflowString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .saveTokenWithContract(any());
     }
 
@@ -421,9 +499,10 @@ public class OnboardingFunctionsTest {
 
         function.sendMailRegistrationForContract(onboardingWorkflowString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .sendMailRegistrationForContract(any());
     }
+
 
     @Test
     void sendMailRegistration() {
@@ -433,7 +512,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailRegistration(onboardinString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .sendMailRegistration(any());
     }
 
@@ -445,7 +524,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailRegistrationApprove(onboardinString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .sendMailRegistrationApprove(any());
     }
 
@@ -457,7 +536,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailOnboardingApprove(onboardinString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .sendMailOnboardingApprove(any());
     }
 
@@ -469,7 +548,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailRegistrationForContractWhenApprove(onboardingWorkflowString, executionContext);
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .sendMailRegistrationForContractWhenApprove(any());
     }
 
@@ -488,7 +567,7 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(5))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
@@ -497,7 +576,7 @@ public class OnboardingFunctionsTest {
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
         assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
-        Mockito.verify(service, times(1))
+        verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
 
@@ -518,7 +597,7 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(1))
+        verify(orchestrationContext, times(1))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(SEND_MAIL_REJECTION_ACTIVITY, captorActivity.getAllValues().get(0));
     }
@@ -534,7 +613,7 @@ public class OnboardingFunctionsTest {
         String actualInstitutionId = function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
 
         assertEquals(institutionId, actualInstitutionId);
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .createInstitutionAndPersistInstitutionId(any());
     }
 
@@ -546,7 +625,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailCompletion(onboardingWorkflowString, executionContext);
 
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .sendCompletedEmail(any());
     }
 
@@ -558,7 +637,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailRejection(onboardinString, executionContext);
 
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .sendMailRejection(any());
     }
 
@@ -570,7 +649,7 @@ public class OnboardingFunctionsTest {
 
         function.sendMailCompletionAggregate(onboardinString, executionContext);
 
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .sendCompletedEmailAggregate(any());
     }
 
@@ -583,7 +662,7 @@ public class OnboardingFunctionsTest {
 
         function.createOnboardedUsers(onboardinString, executionContext);
 
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .persistUsers(any());
     }
 
@@ -599,7 +678,7 @@ public class OnboardingFunctionsTest {
         Onboarding response = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
 
         Assertions.assertEquals("prod-io", response.getProductId());
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .createAggregateOnboardingRequest(any());
     }
     @Test
@@ -612,7 +691,7 @@ public class OnboardingFunctionsTest {
         String delegationId = function.createDelegationForAggregation(onboardingString, executionContext);
 
         Assertions.assertEquals("delegationId", delegationId);
-        Mockito.verify(completionService, times(1))
+        verify(completionService, times(1))
                 .createDelegation(any());
     }
 }
