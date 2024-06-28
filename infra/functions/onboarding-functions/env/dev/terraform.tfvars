@@ -37,6 +37,9 @@ storage_account_info = {
   advanced_threat_protection_enable = false
 }
 
+fn-pip = "aksoutbound-pip-01"
+fn-rg  = "vnet-rg"
+
 app_settings = {
   "USER_REGISTRY_URL"                                  = "https://api.uat.pdv.pagopa.it/user-registry/v1",
   "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/mongodb-connection-string/)",
@@ -93,7 +96,7 @@ app_settings = {
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
   "BYPASS_CHECK_ORGANIZATION"                          = "false"
   "PROD_FD_URL"                                        = "https://fid00001fe.siachain.sv.sia.eu:30008"
-  "FD_TOKEN_GRANT_TYPE"                          = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
-  "FD_TOKEN_CLIENT_ID"                           = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-id/)"
-  "FD_TOKEN_CLIENT_SECRET"                       = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+  "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
+  "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-id/)"
+  "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
 }

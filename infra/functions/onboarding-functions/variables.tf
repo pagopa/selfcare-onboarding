@@ -103,3 +103,13 @@ variable "function_always_on" {
 variable "app_settings" {
   type = map(any)
 }
+
+variable "fn-pip" {
+  type        = string
+  description = "PIP Outbound name"
+}
+
+variable "fn-rg" {
+  type        = string
+  description = "PIP Resource group"
+}
