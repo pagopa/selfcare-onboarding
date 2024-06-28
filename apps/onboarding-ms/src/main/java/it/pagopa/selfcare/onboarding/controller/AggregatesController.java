@@ -27,7 +27,7 @@ public class AggregatesController {
     @Inject
     AggregatesService aggregatesService;
 
-    @Operation(summary = "")
+    @Operation(summary = "Validate the data related to the aggregated entities present in a CSV file")
     @POST
     @Path("/verification")
     @Produces(MediaType.APPLICATION_JSON)

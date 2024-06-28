@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.opencsv.ICSVParser.DEFAULT_QUOTE_CHARACTER;
-import static io.vertx.core.http.impl.HttpClientConnection.log;
 
 @ApplicationScoped
 @Slf4j
@@ -61,13 +60,14 @@ public class AggregatesServiceDefault implements AggregatesService{
     public static final String ERROR_IPA = "Codice fiscale non presente su IPA";
     public static final String ERROR_TAXCODE = "Il codice fiscale è obbligatorio";
     public static final String ERROR_DESCRIPTION = "La ragione sociale è obbligatoria";
+    public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
 
     @Override
     public Uni<VerifyAggregateResponse> validateAggregatesCsv(File file){
         AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file);
         List<CsvAggregate> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
         return Multi.createFrom().iterable(csvAggregates)
-                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAndFillErrorList(csvAggregate, aggregatesCsvResponse))
+                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
                 .collect().asList()
                 .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
                 .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
@@ -75,7 +75,7 @@ public class AggregatesServiceDefault implements AggregatesService{
                         aggregatesCsvResponse.getRowErrorList().size()));
     }
 
-    private Uni<Void> checkCsvAggregateAndFillErrorList(CsvAggregate csvAggregate, AggregatesCsvResponse aggregatesCsvResponse) {
+    private Uni<Void> checkCsvAggregateAndFillAggregateOrErrorList(CsvAggregate csvAggregate, AggregatesCsvResponse aggregatesCsvResponse) {
         return checkCsvAggregate(csvAggregate)
                 .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregate))
                 .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse))
@@ -106,7 +106,7 @@ public class AggregatesServiceDefault implements AggregatesService{
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .replaceWith(Uni.createFrom().voidItem());
         } else {
-            return Uni.createFrom().failure(new InvalidRequestException("SubunitType non valido"));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SUBUNIT_TYPE));
         }
     }
 
