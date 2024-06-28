@@ -6,6 +6,7 @@ import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
 import com.microsoft.durabletask.DurableTaskClient;
 import com.microsoft.durabletask.Task;
+import com.microsoft.durabletask.TaskFailedException;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
@@ -312,7 +313,7 @@ public class OnboardingFunctionsTest {
 
     }
     @Test
-    void onboardingsAggregateOrchestrator_taskFailedException(){
+    void onboardingsAggregateOrchestrator_resourceNotFound(){
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
@@ -335,6 +336,30 @@ public class OnboardingFunctionsTest {
         assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
         verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
 
+    }
+    @Test
+    void onboardingsAggregateOrchestrator_taskFailed(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenThrow(TaskFailedException.class);
+
+        assertThrows(TaskFailedException.class, () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
 
 
     }
