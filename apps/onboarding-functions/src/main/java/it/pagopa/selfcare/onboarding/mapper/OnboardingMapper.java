@@ -16,6 +16,7 @@ public interface OnboardingMapper {
     @Mapping(target = "institution", expression = "java(mapInstitution(input.getAggregate(), input.getInstitution()))")
     @Mapping(target = "aggregator", source = "institution")
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
+    @Mapping(target = "activatedAt", ignore = true)
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
