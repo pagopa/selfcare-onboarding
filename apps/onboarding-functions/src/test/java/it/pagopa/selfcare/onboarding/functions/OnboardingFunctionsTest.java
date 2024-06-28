@@ -288,6 +288,35 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingOrchestratorConfirmAggregate(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        Institution institution = new Institution();
+        institution.setId("id");
+        onboarding.setInstitution(institution);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(orchestrationContext, times(6))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(CREATE_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
+        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, captorActivity.getAllValues().get(5));
+
+        Mockito.verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+    }
+
+    @Test
     void onboardingsAggregateOrchestrator(){
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
@@ -670,15 +699,14 @@ public class OnboardingFunctionsTest {
     void createAggregateOnboardingRequest() {
         final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
 
-        Onboarding onboarding = new Onboarding();
-        onboarding.setProductId("prod-io");
+        String onboardingId = "id";
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        when(completionService.createAggregateOnboardingRequest(any())).thenReturn(onboarding);
+        when(completionService.createAggregateOnboardingRequest(any())).thenReturn(onboardingId);
 
-        Onboarding response = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
+        String response = function.createAggregateOnboardingRequest(onboardingAggregateOrchestratorInputString, executionContext);
 
-        Assertions.assertEquals("prod-io", response.getProductId());
-        verify(completionService, times(1))
+        Assertions.assertEquals(onboardingId, response);
+        Mockito.verify(completionService, times(1))
                 .createAggregateOnboardingRequest(any());
     }
     @Test

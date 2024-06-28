@@ -29,6 +29,7 @@ public record WorkflowExecutorConfirmAggregate(ObjectMapper objectMapper, TaskOp
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
+
         String onboardingString = getOnboardingString(objectMapper, onboarding);
         String institutionId = ctx.callActivity(CREATE_INSTITUTION_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         onboarding.getInstitution().setId(institutionId);
@@ -40,6 +41,10 @@ public record WorkflowExecutorConfirmAggregate(ObjectMapper objectMapper, TaskOp
 
         final String onboardingWithDelegationIdString = getOnboardingString(objectMapper(), onboarding);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithDelegationIdString, optionsRetry, String.class).await();
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+
+        createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
+
         ctx.callActivity(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingWithDelegationIdString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }

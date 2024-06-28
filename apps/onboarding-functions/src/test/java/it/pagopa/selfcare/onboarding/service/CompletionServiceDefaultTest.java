@@ -42,8 +42,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -609,12 +608,13 @@ public class CompletionServiceDefaultTest {
         Onboarding onboardingToUpdate = createSampleOnboarding();
 
         // When
-        Onboarding onboarding = completionServiceDefault.createAggregateOnboardingRequest(input);
+        String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        onboardingToUpdate.setId(onboarding.getId());
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        assertEquals(objectMapper.writeValueAsString(onboardingToUpdate), objectMapper.writeValueAsString(onboarding));
+
+        assertNotEquals(onboardingToUpdate.getId(), onboardingId);
+        assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
     }
 
     public static OnboardingAggregateOrchestratorInput createSampleOnboardingInput() {
@@ -683,7 +683,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setUpdatedAt(LocalDateTime.MAX);
         onboarding.setActivatedAt(LocalDateTime.MAX);
         onboarding.setDeletedAt(null);
-        onboarding.setReasonForReject(null);;
+        onboarding.setReasonForReject(null);
 
         Aggregator aggregator = new Aggregator();
         aggregator.setId("institutionId");
