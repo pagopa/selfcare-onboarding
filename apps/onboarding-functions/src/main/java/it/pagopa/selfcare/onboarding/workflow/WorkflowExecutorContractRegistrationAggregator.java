@@ -52,7 +52,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
 
         ctx.allOf(parallelTasks).await();
 
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
