@@ -1,5 +1,7 @@
-prefix    = "selc"
-env_short = "u"
+prefix           = "selc"
+env_short        = "u"
+suffix_increment = "-001"
+cae_name         = "cae-001"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -19,6 +21,14 @@ container_app = {
 
 app_settings = [
   {
+    name  = "JAVA_TOOL_OPTIONS"
+    value = "-javaagent:applicationinsights-agent.jar",
+  },
+  {
+    name  = "APPLICATIONINSIGHTS_ROLE_NAME"
+    value = "onboarding-ms",
+  },
+  {
     name  = "USER_REGISTRY_URL"
     value = "https://api.uat.pdv.pagopa.it/user-registry/v1"
   },
@@ -28,7 +38,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -36,11 +46,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://selc.internal.uat.selfcare.pagopa.it/ms-core/v1"
+    value = "http://selc-u-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "http://selc.internal.uat.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc-u-party-reg-proxy-ca"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
@@ -52,11 +62,12 @@ app_settings = [
   }
 ]
 
-secrets_names = [
-  "jwt-public-key",
-  "mongodb-connection-string",
-  "user-registry-api-key",
-  "onboarding-functions-api-key",
-  "blob-storage-product-connection-string",
-  "blob-storage-contract-connection-string"
-]
+secrets_names = {
+  "JWT-PUBLIC-KEY"                          = "jwt-public-key"
+  "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
+  "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
+  "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"
+  "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
+  "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
+  "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
+}

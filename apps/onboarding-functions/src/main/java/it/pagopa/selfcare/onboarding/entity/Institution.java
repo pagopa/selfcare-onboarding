@@ -3,11 +3,13 @@ package it.pagopa.selfcare.onboarding.entity;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 import java.util.List;
 
 public class Institution {
 
+    @BsonProperty("id")
     private String id;
     private InstitutionType institutionType;
     private String taxCode;
@@ -15,6 +17,7 @@ public class Institution {
     private InstitutionPaSubunitType subunitType;
 
     private Origin origin;
+    private String originId;
     private String city;
     private String country;
     private String county;
@@ -172,6 +175,14 @@ public class Institution {
 
     public void setOrigin(Origin origin) {
         this.origin = origin;
+    }
+
+    public String getOriginId() {
+        return originId;
+    }
+
+    public void setOriginId(String originId) {
+        this.originId = originId;
     }
 
     public InstitutionPaSubunitType getSubunitType() {

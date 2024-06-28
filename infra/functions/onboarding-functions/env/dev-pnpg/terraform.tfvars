@@ -56,20 +56,42 @@ app_settings = {
   "MAIL_TEMPLATE_NOTIFICATION_PATH"                    = "contracts/template/mail/onboarding-notification/1.0.0.json",
   "ADDRESS_EMAIL_NOTIFICATION_ADMIN"                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/portal-admin-operator-email/)",
   "MAIL_TEMPLATE_COMPLETE_PATH"                        = "resources/templates/email/onboarding_1.0.0.json",
+  "MAIL_TEMPLATE_AGGREGATE_COMPLETE_PATH"              = "contracts/template/mail/onboarding-complete-aggregate/1.0.0.json",
   "MAIL_TEMPLATE_FD_COMPLETE_NOTIFICATION_PATH"        = "contracts/template/mail/onboarding-complete-fd/1.0.0.json",
   "MAIL_TEMPLATE_AUTOCOMPLETE_PATH"                    = "contracts/template/mail/import-massivo-io/1.0.0.json",
   "MAIL_TEMPLATE_DELEGATION_NOTIFICATION_PATH"         = "contracts/template/mail/delegation-notification/1.0.0.json",
-  "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/1.0.0.json",
-  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.1.json",
+  "MAIL_TEMPLATE_REGISTRATION_PATH"                    = "contracts/template/mail/onboarding-request/1.0.1.json",
+  "MAIL_TEMPLATE_REGISTRATION_AGGREGATOR_PATH"         = "contracts/template/mail/onboarding-request-aggregator/1.0.0.json"
+  "MAIL_TEMPLATE_REJECT_PATH"                          = "contracts/template/mail/onboarding-refused/1.0.0.json",
   "MAIL_TEMPLATE_PT_COMPLETE_PATH"                     = "contracts/template/mail/registration-complete-pt/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_USER_PATH"               = "contracts/template/mail/onboarding-request-admin/1.0.0.json",
+  "MAIL_TEMPLATE_REGISTRATION_USER_NEW_MANAGER_PATH"   = "contracts/template/mail/onboarding-request-manager/1.0.0.json",
+  "MAIL_TEMPLATE_USER_COMPLETE_NOTIFICATION_PATH"      = "contracts/template/mail/onboarding-complete-user/1.0.0.json",
   "SELFCARE_ADMIN_NOTIFICATION_URL"                    = "https://imprese.dev.notifichedigitali.it/dashboard/admin/onboarding/",
   "SELFCARE_URL"                                       = "https://imprese.dev.notifichedigitali.it",
   "MAIL_ONBOARDING_CONFIRMATION_LINK"                  = "https://imprese.dev.notifichedigitali.it/onboarding/confirm?jwt=",
+  "MAIL_USER_CONFIRMATION_LINK"                        = "https://imprese.dev.notifichedigitali.it/onboarding/confirm?add-user=true&jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.dev.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.dev.notifichedigitali.it/onboarding/",
-  "MS_CORE_URL"                                        = "https://dev01.pnpg.internal.dev.selfcare.pagopa.it/ms-core/v1",
+  "MS_USER_URL"                                        = "https://selc-d-pnpg-user-ms-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"                                        = "https://selc-d-pnpg-ms-core-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL"                              = "http://dev01.pnpg.internal.dev.selfcare.pagopa.it/party-registry-proxy/v1",
+  "MS_PARTY_REGISTRY_URL"                              = "https://selc-d-pnpg-party-reg-proxy-ca.victoriousfield-e39534b8.westeurope.azurecontainerapps.io",
   "PAGOPA_LOGO_ENABLE"                                 = "false",
-  "STORAGE_CONTAINER_CONTRACT"                         = "$web"
+  "STORAGE_CONTAINER_CONTRACT"                         = "$web",
+  "USER_MS_ACTIVE"                                     = "true",
+  "FORCE_INSTITUTION_PERSIST"                          = "true",
+  "EVENT_HUB_BASE_PATH"                                = "https://selc-d-eventhub-ns.servicebus.windows.net",
+  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
+  "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"           = "string"
+  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
+  "EVENTHUB_SC_CONTRACTS_SAP_SELFCARE_WO_KEY_LC"       = "string"
+  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
+  "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "string"
+  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
+  "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP"
+  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
+  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
 }

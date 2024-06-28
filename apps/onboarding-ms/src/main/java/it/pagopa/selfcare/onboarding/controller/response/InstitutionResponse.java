@@ -16,9 +16,11 @@ public class InstitutionResponse {
     private String id;
     private InstitutionType institutionType;
     private String taxCode;
+    private String taxCodeInvoicing;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
     private Origin origin;
+    private String originId;
     private String city;
     private String country;
     private String county;

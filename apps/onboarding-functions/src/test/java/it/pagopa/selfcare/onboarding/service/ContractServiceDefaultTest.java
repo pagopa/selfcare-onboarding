@@ -7,9 +7,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +42,7 @@ class ContractServiceDefaultTest {
 
 
     final static String productNameExample = "product-name";
+    final static String pdfFormatFilename =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){
@@ -102,7 +101,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent);
+        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent, pdfFormatFilename);
 
         assertNotNull(contract);
 
@@ -126,7 +125,25 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
+    }
+
+    @Test
+    void createContractPDFForECAndProdPagoPA() {
+        final String contractFilepath = "contract";
+        final String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        onboarding.setProductId("prod-pagopa");
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
     }
 
     @Test
@@ -148,7 +165,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
     }
 
 
@@ -173,11 +190,13 @@ class ContractServiceDefaultTest {
     void retrieveContractNotSigned() {
 
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
+        onboardingWorkflow.setOnboarding(onboarding);
 
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboarding.getId(), productNameExample);
+        contractService.retrieveContractNotSigned(onboardingWorkflow, productNameExample);
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))

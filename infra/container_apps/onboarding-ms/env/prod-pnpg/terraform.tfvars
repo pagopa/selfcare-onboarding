@@ -33,6 +33,14 @@ container_app = {
 
 app_settings = [
   {
+    name  = "JAVA_TOOL_OPTIONS"
+    value = "-javaagent:applicationinsights-agent.jar",
+  },
+  {
+    name  = "APPLICATIONINSIGHTS_ROLE_NAME"
+    value = "onboarding-ms",
+  },
+  {
     name  = "USER_REGISTRY_URL"
     value = "https://api.pdv.pagopa.it/user-registry/v1"
   },
@@ -50,11 +58,11 @@ app_settings = [
   },
   {
     name  = "MS_CORE_URL"
-    value = "https://prod01.pnpg.internal.selfcare.pagopa.it/ms-core/v1"
+    value = "http://selc-p-pnpg-ms-core-ca"
   },
   {
     name  = "MS_PARTY_REGISTRY_URL"
-    value = "https://prod01.pnpg.internal.selfcare.pagopa.it/party-registry-proxy/v1"
+    value = "http://selc-p-pnpg-party-reg-proxy-ca"
   },
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
@@ -62,11 +70,12 @@ app_settings = [
   }
 ]
 
-secrets_names = [
-  "jwt-public-key",
-  "mongodb-connection-string",
-  "user-registry-api-key",
-  "onboarding-functions-api-key",
-  "blob-storage-product-connection-string",
-  "blob-storage-contract-connection-string"
-]
+secrets_names = {
+  "JWT-PUBLIC-KEY"                          = "jwt-public-key"
+  "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
+  "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
+  "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"
+  "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
+  "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
+  "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
+}

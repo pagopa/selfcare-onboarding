@@ -1,6 +1,6 @@
 # Selfcare Onboarding
 
-This repo structure and build monorepo with Apache Maven for selfcare onboarding domain. 
+This repo structure and build monorepo with Apache Maven for selfcare onboarding domain.
 
 Applications under apps/ depend on shared code under libs/. test-coverage/ is used to assess the test coverage of the entire project.
 

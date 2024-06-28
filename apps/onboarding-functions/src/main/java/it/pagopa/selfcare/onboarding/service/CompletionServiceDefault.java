@@ -2,12 +2,14 @@ package it.pagopa.selfcare.onboarding.service;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.mapper.ProductMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -16,14 +18,17 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.core_json.api.DelegationApi;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -34,16 +39,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
 
-
     @RestClient
     @Inject
     InstitutionApi institutionApi;
+    @RestClient
+    @Inject
+    org.openapi.quarkus.user_json.api.UserApi userApi;
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -53,6 +61,9 @@ public class CompletionServiceDefault implements CompletionService {
     @RestClient
     @Inject
     UoApi uoApi;
+    @RestClient
+    @Inject
+    DelegationApi delegationApi;
     @RestClient
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
@@ -68,31 +79,60 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Inject
     UserMapper userMapper;
+
+    @Inject
+    ProductMapper productMapper;
+
     @Inject
     NotificationService notificationService;
     @Inject
     ProductService productService;
 
+    @Inject
+    OnboardingMapper onboardingMapper;
+
+    @ConfigProperty(name = "onboarding-functions.persist-users.active")
+    private boolean isUserMSActive;
+
+    @ConfigProperty(name = "onboarding-function.force-institution-persist")
+    private boolean forceInstitutionCreation;
+
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
+        InstitutionResponse institutionResponse = null;
+        //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
+        if(forceInstitutionCreation){
+            institutionResponse = createInstitution(onboarding.getInstitution());
+        }else {
+            Institution institution = onboarding.getInstitution();
+            InstitutionsResponse institutionsResponse = getInstitutions(institution);
+            if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
+                throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+            }
 
-        Institution institution = onboarding.getInstitution();
+            institutionResponse =
+                    Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
+                            ? createInstitution(institution)
+                            : institutionsResponse.getInstitutions().get(0);
 
-        InstitutionsResponse institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
-        if(Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1){
-            throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+            onboardingRepository
+                    .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
+                    .where("_id", onboarding.getId());
+
         }
-
-        InstitutionResponse institutionResponse =
-                Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                    ? createInstitution(institution)
-                    : institutionsResponse.getInstitutions().get(0);
-
-        onboardingRepository
-                .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
-                .where("_id", onboarding.getId());
-
         return institutionResponse.getId();
+    }
+
+    private InstitutionsResponse getInstitutions(Institution institution) {
+        InstitutionsResponse institutionsResponse;
+
+        if(StringUtils.isNotBlank(institution.getTaxCode())) {
+            institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
+        } else {
+            String origin = Objects.nonNull(institution.getOrigin()) ? institution.getOrigin().getValue() : null;
+            institutionsResponse = institutionApi.getInstitutionsUsingGET(null, null, origin, institution.getOriginId());
+        }
+        return institutionsResponse;
     }
 
     /**
@@ -135,7 +175,7 @@ public class CompletionServiceDefault implements CompletionService {
             return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
-        return institutionApi.createInstitutionUsingPOST1(institutionMapper.toInstitutionRequest(institution));
+        return institutionApi.createInstitutionUsingPOST(institutionMapper.toInstitutionRequest(institution));
     }
 
     private boolean isInstitutionPresentOnIpa(Institution institution) {
@@ -157,7 +197,8 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void sendCompletedEmail(Onboarding onboarding) {
+    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
         List<String> destinationMails = onboarding.getUsers().stream()
                 .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
@@ -177,7 +218,48 @@ public class CompletionServiceDefault implements CompletionService {
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
         notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                destinationMails, product, onboarding.getInstitution().getInstitutionType());
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
+    }
+
+    @Override
+    public void persistUsers(Onboarding onboarding) {
+        if(isUserMSActive) {
+
+            for(User user: onboarding.getUsers()) {
+                AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+                userRoleDto.setUserMailUuid(user.getUserMailUuid());
+                userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+                userRoleDto.getProduct().setTokenId(onboarding.getId());
+                try (Response response = userApi.usersUserIdPost(user.getId(), userRoleDto)) {
+                    if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                        throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public String createDelegation(Onboarding onboarding) {
+        if (Objects.nonNull(onboarding.getAggregator())) {
+            DelegationRequest delegationRequest = getDelegationRequest(onboarding);
+            return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
+        }
+        else {
+            throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
+        }
+    }
+
+    private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
+        DelegationRequest delegationRequest = new DelegationRequest();
+        delegationRequest.setProductId(onboarding.getProductId());
+        delegationRequest.setType(DelegationRequest.TypeEnum.EA);
+        delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
+        delegationRequest.setFrom(onboarding.getInstitution().getId());
+        delegationRequest.setTo(onboarding.getAggregator().getId());
+        delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        return delegationRequest;
     }
 
     @Override
@@ -195,28 +277,6 @@ public class CompletionServiceDefault implements CompletionService {
     public void persistOnboarding(Onboarding onboarding) {
         //Prepare data for request
         InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
-        onboardingRequest.setUsers(onboarding.getUsers().stream()
-                .map(user -> {
-                    UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
-                    Person person = userMapper.toPerson(userResource);
-                    person.setProductRole(user.getProductRole());
-                    person.setRole(Person.RoleEnum.valueOf(user.getRole().name()));
-
-                    //Retrieve mail if exists (for PNPG is not stored)
-                    if(Objects.nonNull(user.getUserMailUuid())) {
-                        String mailWork = Optional.ofNullable(userResource.getWorkContacts())
-                                .map(worksContract -> worksContract.get(user.getUserMailUuid()))
-                                .map(workContactResource -> workContactResource.getEmail())
-                                .map(certifiable -> certifiable.getValue())
-                                .orElse(null);
-
-                        person.setEmail(mailWork);
-                    }
-
-                    return person;
-                })
-                .toList()
-        );
         onboardingRequest.pricingPlan(onboarding.getPricingPlan());
         onboardingRequest.productId(onboarding.getProductId());
         onboardingRequest.setTokenId(onboarding.getId());
@@ -228,13 +288,54 @@ public class CompletionServiceDefault implements CompletionService {
             billingRequest.recipientCode(onboarding.getBilling().getRecipientCode());
             billingRequest.publicServices(onboarding.getBilling().isPublicServices());
             billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
+            billingRequest.setTaxCodeInvoicing(onboarding.getBilling().getTaxCodeInvoicing());
             onboardingRequest.billing(billingRequest);
         }
 
+        onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
         //If contract exists we send the path of the contract
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
         optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
 
         institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
+    }
+
+    @Override
+    public void persistActivatedAt(Onboarding onboarding) {
+        LocalDateTime now = LocalDateTime.now();
+        onboardingRepository
+                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
+                .where("_id", onboarding.getId());
+    }
+
+    @Override
+    public void sendCompletedEmailAggregate(Onboarding onboarding) {
+
+        List<String> destinationMails = onboarding.getUsers().stream()
+                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                .map(workContract -> workContract.getEmail().getValue())
+                .collect(Collectors.toList());
+
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(),
+                destinationMails);
+    }
+
+    @Override
+    public String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+        Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
+        onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
+        onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
+        onboardingRepository.persistOrUpdate(onboardingToUpdate);
+        return onboardingToUpdate.getId();
     }
 }

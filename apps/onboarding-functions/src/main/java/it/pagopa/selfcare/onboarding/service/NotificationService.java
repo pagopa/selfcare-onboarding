@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.product.entity.Product;
 
 import java.util.List;
@@ -14,9 +15,14 @@ public interface NotificationService {
 
     void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String onboardingId);
 
-    void sendMailRegistrationWithContract(String onboardingId, String destination, String name, String username, String productName);
+    void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath, String confirmTokenUrl);
 
-    void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType);
+    void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName);
+
+    void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow);
 
     void sendMailRejection(List<String> destinationMails, Product product, String reasonForReject);
+
+    void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails);
+
 }

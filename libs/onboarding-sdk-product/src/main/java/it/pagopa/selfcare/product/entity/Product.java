@@ -6,6 +6,7 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Product {
 
@@ -29,12 +30,16 @@ public class Product {
     private Map<InstitutionType, ContractStorage> institutionContractMappings;
     private boolean enabled = true;
     private boolean delegable;
+    private boolean invoiceable;
     private ProductStatus status;
     private String parentId;
     private List<String> testEnvProductIds;
     private String identityTokenAudience;
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
+    private List<String> consumers;
+    private String userContractTemplatePath;
+    private String userContractTemplateVersion;
 
     public String getId() {
         return id;
@@ -196,6 +201,14 @@ public class Product {
         this.delegable = delegable;
     }
 
+    public boolean isInvoiceable() {
+        return invoiceable;
+    }
+
+    public void setInvoiceable(boolean invoiceable) {
+        this.invoiceable = invoiceable;
+    }
+
     public ProductStatus getStatus() {
         return status;
     }
@@ -242,5 +255,33 @@ public class Product {
 
     public void setTestEnvProductIds(List<String> testEnvProductIds) {
         this.testEnvProductIds = testEnvProductIds;
+    }
+
+    public List<String> getConsumers() {
+        return consumers;
+    }
+
+    public void setConsumers(List<String> consumers) {
+        this.consumers = consumers;
+    }
+
+    public String getUserContractTemplatePath() {
+        return userContractTemplatePath;
+    }
+
+    public void setUserContractTemplatePath(String userContractTemplatePath) {
+        this.userContractTemplatePath = userContractTemplatePath;
+    }
+
+    public String getUserContractTemplateVersion() {
+        return userContractTemplateVersion;
+    }
+
+    public void setUserContractTemplateVersion(String userContractTemplateVersion) {
+        this.userContractTemplateVersion = userContractTemplateVersion;
+    }
+
+    public boolean canAddAdmin() {
+        return Objects.nonNull(userContractTemplateVersion);
     }
 }

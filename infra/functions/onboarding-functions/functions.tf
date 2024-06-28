@@ -78,9 +78,8 @@ data "azurerm_public_ip" "functions_pip_outboud" {
 }
 
 data "azurerm_nat_gateway" "nat_gateway" {
-  name                    = "${local.base_domain_name}-nat_gw"
-  resource_group_name     = data.azurerm_resource_group.nat_rg.name
-}
+  name                = "${local.base_domain_name}-nat_gw"
+  resource_group_name = data.azurerm_resource_group.nat_rg.name
 
 resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway" {
   nat_gateway_id       = data.azurerm_nat_gateway.nat_gateway.id
@@ -90,4 +89,11 @@ resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway"
 resource "azurerm_subnet_nat_gateway_association" "functions_subnet_nat_gateway" {
   subnet_id      = module.onboarding_fn_snet[0].id
   nat_gateway_id = data.azurerm_nat_gateway.nat_gateway.id
+}
+
+resource "azurerm_key_vault_secret" "fn_primary_key" {
+  name         = "fn-onboarding-primary-key"
+  value        = module.selc_onboarding_fn.primary_key
+  content_type = "text/plain"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
 }

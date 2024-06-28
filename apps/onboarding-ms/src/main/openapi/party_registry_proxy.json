@@ -910,6 +910,79 @@
         } ]
       }
     },
+    "/insurance-companies/origin/{originId}" : {
+      "get" : {
+        "tags" : [ "insurance-companies" ],
+        "summary" : "Search insurance company by its IVASS code",
+        "description" : "Returns only one insurance company.",
+        "operationId" : "searchByOriginIdUsingGET",
+        "parameters" : [ {
+          "name" : "originId",
+          "in" : "path",
+          "description" : "insurance company's IVASS unique identifier",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InsuranceCompanyResource"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/insurance-companies/{taxId}" : {
       "get" : {
         "tags" : [ "insurance-companies" ],
@@ -978,6 +1051,7 @@
             }
           }
         },
+        "deprecated" : true,
         "security" : [ {
           "bearerAuth" : [ "global" ]
         } ]
@@ -1311,6 +1385,16 @@
         "description" : "Returns the UO list",
         "operationId" : "findAllUsingGET_1",
         "parameters" : [ {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Maximum number of items per page. It is optional, and the default value is 10 when not specified",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
           "name" : "page",
           "in" : "query",
           "description" : "Desired page number for result pagination. It is optional, and the default value is 1 when not specified",
@@ -1321,14 +1405,13 @@
             "format" : "int32"
           }
         }, {
-          "name" : "limit",
+          "name" : "taxCodeInvoicing",
           "in" : "query",
-          "description" : "Maximum number of items per page. It is optional, and the default value is 10 when not specified",
+          "description" : "UO fiscal code for billing",
           "required" : false,
           "style" : "form",
           "schema" : {
-            "type" : "integer",
-            "format" : "int32"
+            "type" : "string"
           }
         } ],
         "responses" : {
@@ -2013,6 +2096,10 @@
           "codiceFiscaleEnte" : {
             "type" : "string",
             "description" : "UO fiscal code"
+          },
+          "codiceFiscaleSfe" : {
+            "type" : "string",
+            "description" : "UO fiscal code for billing"
           },
           "codiceIpa" : {
             "type" : "string",

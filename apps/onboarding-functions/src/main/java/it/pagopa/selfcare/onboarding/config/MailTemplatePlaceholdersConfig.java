@@ -10,7 +10,6 @@ public interface MailTemplatePlaceholdersConfig {
     String productName();
     String institutionDescription();
     String businessName();
-
     String adminLink();
     String completeSelfcareName();
     String completeProductName();
@@ -18,8 +17,10 @@ public interface MailTemplatePlaceholdersConfig {
 
     String confirmTokenName();
     String confirmTokenPlaceholder();
+    String confirmTokenUserPlaceholder();
     String rejectTokenName();
     String rejectTokenPlaceholder();
+    String rejectTokenUserPlaceholder();
     String notificationProductName();
     String notificationRequesterName();
     String  notificationRequesterSurname();

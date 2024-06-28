@@ -9,14 +9,17 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,13 +28,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -107,7 +110,7 @@ class OnboardingControllerTest {
 
     @ParameterizedTest
     @TestSecurity(user = "userJwt")
-    @ValueSource(strings = {"/psp","/pa"})
+    @ValueSource(strings = {"/psp", "/pa"})
     void onboarding_shouldNotValidPspBody(String path) {
 
         given()
@@ -158,31 +161,63 @@ class OnboardingControllerTest {
 
     }
 
-    private OnboardingPaRequest dummyOnboardingPa() {
-        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
-        onboardingPaValid.setProductId("productId");
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingPaAggregator() {
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+        onboardingPaValid.setIsAggregator(Boolean.TRUE);
+        List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutions.add(aggregateInstitutionRequest);
+        onboardingPaValid.setAggregates(aggregateInstitutions);
 
-        BillingPaRequest billingPaRequest = new BillingPaRequest();
-        billingPaRequest.setRecipientCode("code");
-        billingPaRequest.setVatNumber("vat");
+        Mockito.when(onboardingService.onboarding(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        onboardingPaValid.setUsers(List.of(userDTO));
-        onboardingPaValid.setInstitution(institution);
-        onboardingPaValid.setBilling(billingPaRequest);
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/pa/aggregation")
+                .then()
+                .statusCode(200);
 
-        return onboardingPaValid;
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboarding(captor.capture(), any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+        assertTrue(captor.getValue().getIsAggregator());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
-    private OnboardingImportRequest dummyOnboardingImport() {
-        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
-        importInstitution.setTaxCode("taxCode");
-        OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
-        onboardingImportValid.setProductId("productId");
-        onboardingImportValid.setContractImported(new OnboardingImportContract());
-        onboardingImportValid.setUsers(List.of(userDTO));
-        onboardingImportValid.setInstitution(importInstitution);
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingUsers() {
+        OnboardingUserRequest onboardingUserRequest = dummyOnboardingUser();
 
-        return onboardingImportValid;
+        Mockito.when(onboardingService.onboardingUsers(any(), anyString()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingUserRequest)
+                .contentType(ContentType.JSON)
+                .post("/users")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingUsers_shouldNotValidBody() {
+
+        given()
+                .when()
+                .body(new OnboardingUserRequest())
+                .contentType(ContentType.JSON)
+                .post("/users")
+                .then()
+                .statusCode(400);
     }
 
     @Test
@@ -201,19 +236,6 @@ class OnboardingControllerTest {
                 .statusCode(200);
     }
 
-    //@Test
-    void onboardingPg() {
-
-        given()
-                .when()
-                .body(onboardingPgValid)
-                .contentType(ContentType.JSON)
-                .post("/pg")
-                .then()
-                .statusCode(200);
-    }
-
-
     @Test
     void complete_unauthorized() {
 
@@ -228,7 +250,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void complete() throws IOException {
+    void complete() {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
@@ -251,8 +273,44 @@ class OnboardingControllerTest {
     }
 
     @Test
+    void completeOnboardingUsers_unauthorized() {
+
+        given()
+                .when()
+                .pathParam("tokenId", "actual-token-id")
+                .contentType(ContentType.MULTIPART)
+                .put("/{tokenId}/completeOnboardingUsers")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
     @TestSecurity(user = "userJwt")
-    void consume() throws IOException {
+    void completeOnboardingUsers() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.completeOnboardingUsers(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/completeOnboardingUsers")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .completeOnboardingUsers(expectedId.capture(), any());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void consume() {
         File testFile = new File("src/test/resources/application.properties");
         String onboardingId = "actual-onboarding-id";
 
@@ -276,7 +334,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void deleteOK(){
+    void deleteOK() {
         String onboardingId = "actual-onboarding-id";
         ReasonRequest reasonRequest = new ReasonRequest();
         reasonRequest.setReasonForReject("string");
@@ -301,7 +359,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void deleteInvalidOnboardingIdOrOnboardingNotFound(){
+    void deleteInvalidOnboardingIdOrOnboardingNotFound() {
         String onboardingId = "actual-onboarding-id";
         ReasonRequest reasonRequest = new ReasonRequest();
         reasonRequest.setReasonForReject("string");
@@ -326,9 +384,16 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboarding(){
+    void getOnboarding() {
         OnboardingGetResponse response = getOnboardingGetResponse();
-        when(onboardingService.onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20))
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .productId("prod-io")
+                .taxCode("taxCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .status("ACTIVE")
+                .build();
+        when(onboardingService.onboardingGet(filters))
                 .thenReturn(Uni.createFrom().item(response));
 
         Map<String, String> queryParameterMap = getStringStringMap();
@@ -338,15 +403,15 @@ class OnboardingControllerTest {
                 .queryParams(queryParameterMap)
                 .get()
                 .then()
-                .statusCode(200);
+                .statusCode(204);
 
         verify(onboardingService, times(1))
-                .onboardingGet("prod-io", "taxCode", "ACTIVE", "2023-12-01", "2023-12-31", 0, 20);
+                .onboardingGet((OnboardingGetFilters) any());
     }
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingById(){
+    void getOnboardingById() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingGet(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -363,7 +428,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingByIdWithUserInfo(){
+    void getOnboardingByIdWithUserInfo() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingGetWithUserInfo(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -380,7 +445,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getOnboardingPending(){
+    void getOnboardingPending() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.onboardingPending(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -394,9 +459,10 @@ class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .onboardingPending(onboardingGet.getId());
     }
+
     @Test
     @TestSecurity(user = "userJwt")
-    void approve(){
+    void approve() {
         OnboardingGet onboardingGet = dummyOnboardingGet();
         when(onboardingService.approve(onboardingGet.getId()))
                 .thenReturn(Uni.createFrom().item(onboardingGet));
@@ -532,13 +598,45 @@ class OnboardingControllerTest {
                 .statusCode(400);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getInstitutionOnboardings() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+        when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .get("/institutionOnboardings")
+                .then()
+                .statusCode(200);
+
+        verify(onboardingService, times(1))
+                .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
+    }
+
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
-        queryParameterMap.put("productId","prod-io");
-        queryParameterMap.put("taxCode","taxCode");
-        queryParameterMap.put("from","2023-12-01");
-        queryParameterMap.put("to","2023-12-31");
-        queryParameterMap.put("status","ACTIVE");
+        queryParameterMap.put("productId", "prod-io");
+        queryParameterMap.put("taxCode", "taxCode");
+        queryParameterMap.put("from", "2023-12-01");
+        queryParameterMap.put("to", "2023-12-31");
+        queryParameterMap.put("status", "ACTIVE");
+        return queryParameterMap;
+    }
+
+    private static Map<String, String> getStringStringMapOnboardings() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("taxCode", "taxCode");
+        queryParameterMap.put("subunitCode", "subunitCode");
+        queryParameterMap.put("origin", "origin");
+        queryParameterMap.put("originId", "originId");
+        queryParameterMap.put("status", "PENDING");
         return queryParameterMap;
     }
 
@@ -557,8 +655,142 @@ class OnboardingControllerTest {
         onboarding.setProductId("prod-io");
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
+        institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setInstitution(institutionResponse);
         return onboarding;
+    }
+
+    private static OnboardingResponse dummyOnboardingResponse() {
+        OnboardingResponse onboarding = new OnboardingResponse();
+        onboarding.setId("id");
+        onboarding.setStatus("PENDING");
+        onboarding.setProductId("prod-io");
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setTaxCode("taxCode");
+        institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setInstitution(institutionResponse);
+        return onboarding;
+    }
+
+    private OnboardingUserRequest dummyOnboardingUser() {
+        OnboardingUserRequest onboardingUserRequest = new OnboardingUserRequest();
+        onboardingUserRequest.setProductId("productId");
+        onboardingUserRequest.setTaxCode("taxCode");
+        onboardingUserRequest.setOriginId("originId");
+        onboardingUserRequest.setOrigin("origin");
+        onboardingUserRequest.setUsers(List.of(userDTO));
+        return onboardingUserRequest;
+    }
+
+    private OnboardingPaRequest dummyOnboardingPa() {
+        OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
+        onboardingPaValid.setProductId("productId");
+
+        BillingPaRequest billingPaRequest = new BillingPaRequest();
+        billingPaRequest.setRecipientCode("code");
+        billingPaRequest.setVatNumber("vat");
+
+        onboardingPaValid.setUsers(List.of(userDTO));
+        onboardingPaValid.setInstitution(institution);
+        onboardingPaValid.setBilling(billingPaRequest);
+
+        return onboardingPaValid;
+    }
+
+    private OnboardingImportRequest dummyOnboardingImport() {
+        InstitutionImportRequest importInstitution = new InstitutionImportRequest();
+        importInstitution.setTaxCode("taxCode");
+        OnboardingImportRequest onboardingImportValid = new OnboardingImportRequest();
+        onboardingImportValid.setProductId("productId");
+        onboardingImportValid.setContractImported(new OnboardingImportContract());
+        onboardingImportValid.setUsers(List.of(userDTO));
+        onboardingImportValid.setInstitution(importInstitution);
+
+        return onboardingImportValid;
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void updateOnboardingOK(){
+        String onboardingId = "actual-onboarding-id";
+        Onboarding onboardingUpdate = new Onboarding();
+        onboardingUpdate.setId(onboardingId);
+        Billing billing = new Billing();
+        billing.setRecipientCode("X123");
+        onboardingUpdate.setBilling(billing);
+
+        when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .body(onboardingUpdate)
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/update")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .updateOnboarding(any(), captor.capture());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), billing.getRecipientCode());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void updateOnboardingNotFound(){
+        String onboardingId = "actual-onboarding-id";
+        Onboarding onboardingUpdate = new Onboarding();
+
+        when(onboardingService.updateOnboarding(onboardingId, onboardingUpdate))
+                .thenThrow(InvalidRequestException.class);
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardingStatusUpdate();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .body(onboardingUpdate)
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .put("/{onboardingId}/update")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .updateOnboarding(any(), captor.capture());
+        assertNotEquals(captor.getValue().getId(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void checkManager() {
+        OnboardingUserRequest request = new OnboardingUserRequest();
+
+        when(onboardingService.checkManager(any()))
+                .thenReturn(Uni.createFrom().item(true));
+
+        given()
+                .when()
+                .body(request)
+                .contentType(ContentType.JSON)
+                .post("/check-manager")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .checkManager(any());
+    }
+
+    private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put("status", "COMPLETED");
+        return  queryParameterMap;
     }
 
 }
