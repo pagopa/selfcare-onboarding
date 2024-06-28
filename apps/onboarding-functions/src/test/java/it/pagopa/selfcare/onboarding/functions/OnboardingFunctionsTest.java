@@ -312,6 +312,34 @@ public class OnboardingFunctionsTest {
 
     }
     @Test
+    void onboardingsAggregateOrchestrator_taskFailedException(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
+        onboarding.setInstitution(new Institution());
+        onboarding.setTestEnvProductIds(List.of("test1"));
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenThrow(ResourceNotFoundException.class);
+
+        assertThrows(ResourceNotFoundException.class, () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+
+
+
+    }
+
+    @Test
     void onboardingsOrchestratorImport() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
