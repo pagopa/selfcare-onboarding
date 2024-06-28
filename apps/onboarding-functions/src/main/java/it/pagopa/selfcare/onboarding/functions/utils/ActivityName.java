@@ -19,6 +19,7 @@ public class ActivityName {
     public static final String CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY = "CreateAggregateOnboardingRequest";
     public static final String SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY = "SendMailCompletionAggregate";
     public static final String CREATE_DELEGATION_ACTIVITY = "CreateDelegation";
+    public static final String ONBOARDINGS_AGGREGATE_ORCHESTRATOR =  "OnboardingsAggregate";
 
     private ActivityName() {
     }
