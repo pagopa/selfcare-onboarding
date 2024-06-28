@@ -12,8 +12,8 @@ import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilder;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
+import it.pagopa.selfcare.onboarding.utils.NotificationBuilder;
 import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
 import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
 import it.pagopa.selfcare.product.entity.Product;
@@ -27,6 +27,8 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboarding;
 
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
@@ -61,6 +63,11 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent) {
+        if(isNotInstitutionOnboarding(onboarding)) {
+            context.getLogger().info(() -> String.format("Onboarding with ID %s doesn't refer to an institution onboarding, skipping send notification", onboarding.getId()));
+            return;
+        }
+
         Product product = productService.getProduct(onboarding.getProductId());
         if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
             context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
@@ -84,7 +91,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
             throw new NotificationException(String.format("Impossible to send notification for onboarding %s", onboarding));
         }
     }
-
 
     private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) throws JsonProcessingException {
         NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);

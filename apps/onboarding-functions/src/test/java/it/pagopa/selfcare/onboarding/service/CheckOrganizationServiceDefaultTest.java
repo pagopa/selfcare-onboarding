@@ -3,10 +3,11 @@ package it.pagopa.selfcare.onboarding.service;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
-import it.pagopa.selfcare.onboarding.client.fd.FDRestClient;
+import it.pagopa.selfcare.onboarding.client.external.ExternalRestClient;
+import it.pagopa.selfcare.onboarding.client.external.ExternalTokenRestClient;
+import it.pagopa.selfcare.onboarding.dto.OauthToken;
 import it.pagopa.selfcare.onboarding.dto.OrganizationLightBeanResponse;
 import it.pagopa.selfcare.onboarding.dto.OrganizationResponse;
-import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.service.profile.CheckOrganizationByPassTestProfile;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -18,6 +19,7 @@ import java.time.OffsetDateTime;
 
 import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -27,23 +29,29 @@ class CheckOrganizationServiceDefaultTest {
 
     @InjectMock
     @RestClient
-    FDRestClient fdRestClient;
+    ExternalRestClient externalRestClient;
+
+    @InjectMock
+    @RestClient
+    ExternalTokenRestClient externalTokenRestClient;
+
+    private static final String fiscalCode = "fiscalCode";
+    private static final String vatNumber = "vatNumber";
+
+    private static final String accessToken = "accessToken";
 
     @Test
     void checkOrganizationSucceedsWhenFDApiInvocationSucceeds() {
-        String fiscalCode = "fiscalCode";
-        String vatNumber = "vatNumber";
-
-        when(fdRestClient.checkOrganization(fiscalCode, vatNumber)).thenReturn(getDummyOrganizationLightBeanResponse());
+        when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
+        when(externalRestClient.checkOrganization(fiscalCode, vatNumber, "Bearer " + accessToken)).thenReturn(getDummyOrganizationLightBeanResponse());
         assertTrue(checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
     }
 
     @Test
     void checkOrganizationFailsWhenFDApiInvocationFails() {
-        String fiscalCode = "fiscalCode";
-        String vatNumber = "vatNumber";
-        when(fdRestClient.checkOrganization(fiscalCode, vatNumber)).thenThrow(new RuntimeException());
-        assertThrows(NotificationException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
+        when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
+        when(externalRestClient.checkOrganization(fiscalCode, vatNumber, "Bearer " + accessToken)).thenThrow(new RuntimeException());
+        assertThrows(RuntimeException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
     }
 
     @Nested
@@ -54,6 +62,12 @@ class CheckOrganizationServiceDefaultTest {
         void checkOrganizationWhenByPassCheckOrganizationIsTrue() {
             assertFalse(checkOrganizationService.checkOrganization(getMockedContext(), null, null));
         }
+    }
+
+    @Test
+    void testTokenSucceedsWhenFDApiInvocationSucceeds() {
+        when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
+        assertEquals(accessToken, checkOrganizationService.testToken(getMockedContext()));
     }
 
     private OrganizationLightBeanResponse getDummyOrganizationLightBeanResponse() {
@@ -78,5 +92,12 @@ class CheckOrganizationServiceDefaultTest {
         organizationResponse.setActivationDate(OffsetDateTime.now());
         organizationLightBeanResponse.setOrganization(organizationResponse);
         return organizationLightBeanResponse;
+    }
+
+    private OauthToken getDummyOauthToken() {
+        OauthToken oauthToken = new OauthToken();
+        oauthToken.setAccessToken(accessToken);
+        oauthToken.setExpiresIn("3600");
+        return oauthToken;
     }
 }

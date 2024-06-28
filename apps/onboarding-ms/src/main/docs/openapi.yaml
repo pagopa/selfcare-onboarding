@@ -123,6 +123,30 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/check-manager:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: "In the addition administrator flow, it checks if the new manager is\
+        \ equal from old one, returning true "
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingUserRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: boolean
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/completion:
     post:
       tags:
