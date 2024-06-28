@@ -683,7 +683,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setUpdatedAt(LocalDateTime.MAX);
         onboarding.setActivatedAt(LocalDateTime.MAX);
         onboarding.setDeletedAt(null);
-        onboarding.setReasonForReject(null);;
+        onboarding.setReasonForReject(null);
 
         Aggregator aggregator = new Aggregator();
         aggregator.setId("institutionId");
