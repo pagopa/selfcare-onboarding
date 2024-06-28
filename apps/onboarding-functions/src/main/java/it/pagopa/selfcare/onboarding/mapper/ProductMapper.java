@@ -14,6 +14,7 @@ import java.util.Objects;
 public interface ProductMapper {
 
     @Mapping(source = "onboarding.productId", target = "productId")
+    @Mapping(source = "onboarding.delegationId", target = "delegationId")
     @Mapping(target = "productRoles", expression = "java(setProductRoles(user))")
     @Mapping(target = "role", expression = "java(setRole(user))")
     org.openapi.quarkus.user_json.model.Product toProduct(Onboarding onboarding, User user);

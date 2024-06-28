@@ -19,4 +19,12 @@ public class OrganizationLightBeanResponse {
     public void setOrganization(OrganizationResponse organization) {
         this.organization = organization;
     }
+
+    @Override
+    public String toString() {
+        return "OrganizationLightBeanResponse{" +
+                "alreadyRegistered=" + alreadyRegistered +
+                ", organization=" + organization +
+                '}';
+    }
 }

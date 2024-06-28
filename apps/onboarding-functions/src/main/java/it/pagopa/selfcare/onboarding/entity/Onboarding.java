@@ -36,6 +36,16 @@ public class Onboarding  {
     private Boolean isAggregator;
     private Aggregator aggregator;
 
+    private String delegationId;
+
+    public String getDelegationId() {
+        return delegationId;
+    }
+
+    public void setDelegationId(String delegationId) {
+        this.delegationId = delegationId;
+    }
+
     public String getId() {
         return id;
     }

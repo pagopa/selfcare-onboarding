@@ -45,4 +45,6 @@ public interface OnboardingService {
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
 
     Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
+
+    Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
 }

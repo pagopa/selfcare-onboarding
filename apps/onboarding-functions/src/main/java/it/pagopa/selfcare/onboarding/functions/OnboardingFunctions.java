@@ -25,15 +25,14 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 /**
  * Azure Functions with HTTP Trigger integrated with Quarkus
  */
 public class OnboardingFunctions {
-    public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
 
+    public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
 
     private final OnboardingService service;
     private final CompletionService completionService;
@@ -147,37 +146,33 @@ public class OnboardingFunctions {
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(BUILD_CONTRACT_ACTIVITY_NAME)
-    public void buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingString));
-        service.createContract(readOnboardingValue(objectMapper, onboardingString));
+    public void buildContract(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString));
+        service.createContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME)
-    public void saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingString));
-        service.saveTokenWithContract(readOnboardingValue(objectMapper, onboardingString));
+    public void saveToken(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString));
+        service.saveTokenWithContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     /**
      * This is the activity function that gets invoked by the orchestrator function.
      */
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT)
-    public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingString));
-        service.sendMailRegistrationForContract(readOnboardingValue(objectMapper, onboardingString));
+    public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString));
+        service.sendMailRegistrationForContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
-    @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR)
-    public void sendMailRegistrationForContractAggregator(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_AGGREGATOR, onboardingString));
-        service.sendMailRegistrationForContractAggregator(readOnboardingValue(objectMapper, onboardingString));
-    }
+
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
-    public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingString));
-        service.sendMailRegistrationForContractWhenApprove(readOnboardingValue(objectMapper, onboardingString));
+    public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString));
+        service.sendMailRegistrationForContractWhenApprove(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)
@@ -217,9 +212,9 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
-    public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingString));
-        completionService.sendCompletedEmail(readOnboardingValue(objectMapper, onboardingString));
+    public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString));
+        completionService.sendCompletedEmail(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)
@@ -246,8 +241,8 @@ public class OnboardingFunctions {
         return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
     }
     @FunctionName(CREATE_DELEGATION_ACTIVITY)
-    public void createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public String createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
-        completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
+        return completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
     }
 }

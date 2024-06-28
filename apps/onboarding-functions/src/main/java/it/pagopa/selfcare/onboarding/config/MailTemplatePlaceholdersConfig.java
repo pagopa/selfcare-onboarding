@@ -17,8 +17,10 @@ public interface MailTemplatePlaceholdersConfig {
 
     String confirmTokenName();
     String confirmTokenPlaceholder();
+    String confirmTokenUserPlaceholder();
     String rejectTokenName();
     String rejectTokenPlaceholder();
+    String rejectTokenUserPlaceholder();
     String notificationProductName();
     String notificationRequesterName();
     String  notificationRequesterSurname();
