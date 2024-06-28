@@ -22,5 +22,5 @@ public interface CompletionService {
 
     String createDelegation(Onboarding onboarding);
 
-    Onboarding createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+    String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 }
