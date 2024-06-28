@@ -1529,10 +1529,10 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void testInstitutionOnboardings() {
-        Onboarding onboarding1 = mock(Onboarding.class);
+        Onboarding onboarding = mock(Onboarding.class);
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding1));
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
         when(Onboarding.find(any())).thenReturn(query);
         UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING)
