@@ -124,6 +124,7 @@ public class OnboardingFunctions {
                 case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
+                case CONFIRMATION_AGGREGATE -> workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
@@ -236,7 +237,7 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
-    public Onboarding createAggregateOnboardingRequest(@DurableActivityTrigger(name = "onboardingString") String onboardingAggregateOrchestratorInputString, final ExecutionContext context) {
+    public String createAggregateOnboardingRequest(@DurableActivityTrigger(name = "onboardingString") String onboardingAggregateOrchestratorInputString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregateOrchestratorInputString));
         return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
     }
