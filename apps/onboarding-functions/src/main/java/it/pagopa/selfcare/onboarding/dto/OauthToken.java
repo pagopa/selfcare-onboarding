@@ -25,4 +25,12 @@ public class OauthToken  {
     public void setExpiresIn(String expiresIn) {
         this.expiresIn = expiresIn;
     }
+
+    @Override
+    public String toString() {
+        return "OauthToken{" +
+                "accessToken='" + accessToken + '\'' +
+                ", expiresIn='" + expiresIn + '\'' +
+                '}';
+    }
 }

@@ -451,7 +451,7 @@ public class OnboardingFunctionsTest {
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
         doNothing().when(service).saveTokenWithContract(any());
 
-        function.saveToken(onboardinString, executionContext);
+        function.saveToken(onboardingWorkflowString, executionContext);
 
         Mockito.verify(service, times(1))
                 .saveTokenWithContract(any());

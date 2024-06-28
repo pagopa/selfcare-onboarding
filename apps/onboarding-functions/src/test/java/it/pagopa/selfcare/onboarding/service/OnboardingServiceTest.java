@@ -140,7 +140,7 @@ class OnboardingServiceTest {
 
         ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
         Mockito.verify(contractService, Mockito.times(1))
-                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
         assertEquals(captorTemplatePath.getValue(), contractStorage.getContractTemplatePath());
     }
 
@@ -188,7 +188,7 @@ class OnboardingServiceTest {
 
         ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
         Mockito.verify(contractService, Mockito.times(1))
-                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any());
+                .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
         assertEquals(captorTemplatePath.getValue(), product.getContractTemplatePath());
     }
 
@@ -202,14 +202,16 @@ class OnboardingServiceTest {
     }
     @Test
     void saveToken_shouldSkipIfTokenExists() {
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
         Onboarding onboarding = createOnboarding();
         Token token = new Token();
         token.setId(UUID.randomUUID().toString());
+        onboardingWorkflow.setOnboarding(onboarding);
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
 
-        onboardingService.saveTokenWithContract(onboarding);
+        onboardingService.saveTokenWithContract(onboardingWorkflow);
 
         Mockito.verify(tokenRepository, Mockito.times(1))
                 .findByOnboardingId(onboarding.getId());
@@ -220,19 +222,21 @@ class OnboardingServiceTest {
     @Test
     void saveToken() {
         Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
+        onboardingWorkflow.setOnboarding(onboarding);
         File contract = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
         DSSDocument document = new FileDocument(contract);
         String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
 
         Product productExpected = createDummyProduct();
-        when(contractService.retrieveContractNotSigned(onboarding.getId(), productExpected.getTitle()))
+        when(contractService.retrieveContractNotSigned(onboardingWorkflow, productExpected.getTitle()))
                 .thenReturn(contract);
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(productExpected);
 
         Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
 
-        onboardingService.saveTokenWithContract(onboarding);
+        onboardingService.saveTokenWithContract(onboardingWorkflow);
 
 
         ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
