@@ -18,7 +18,7 @@ public class Utils {
     public static final BiFunction<String, String, String> CONTRACT_FILENAME_FUNC =
             (filename, productName) -> String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 
-    private static final List<WorkflowType> ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS = List.of(
+    public static final List<WorkflowType> ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS = List.of(
             WorkflowType.CONFIRMATION,
             WorkflowType.FOR_APPROVE,
             WorkflowType.IMPORT,
