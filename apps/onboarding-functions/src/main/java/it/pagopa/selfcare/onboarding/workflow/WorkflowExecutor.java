@@ -49,6 +49,12 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
+        createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
+
+        return onboardingWithInstitutionIdString;
+    }
+
+    default void createTestEnvironmentsOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding, String onboardingWithInstitutionIdString) {
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
         if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
@@ -63,8 +69,6 @@ public interface WorkflowExecutor {
             // Wait for all tasks to complete
             ctx.allOf(parallelTasks).await();
         }
-
-        return onboardingWithInstitutionIdString;
     }
 
     default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {

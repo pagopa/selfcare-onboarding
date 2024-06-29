@@ -1565,6 +1565,9 @@
           "origin" : {
             "$ref" : "#/components/schemas/Origin"
           },
+          "originId" : {
+            "type" : "string"
+          },
           "city" : {
             "type" : "string"
           },
