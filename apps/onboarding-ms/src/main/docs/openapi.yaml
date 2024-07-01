@@ -1409,6 +1409,7 @@ components:
       enum:
       - INSTITUTION
       - LEGALS
+      - USER
       type: string
     UserOnboardingResponse:
       type: object
