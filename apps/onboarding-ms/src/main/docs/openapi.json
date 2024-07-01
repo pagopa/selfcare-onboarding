@@ -1426,6 +1426,9 @@
           "origin" : {
             "$ref" : "#/components/schemas/Origin"
           },
+          "originId" : {
+            "type" : "string"
+          },
           "city" : {
             "type" : "string"
           },
@@ -1933,7 +1936,7 @@
         }
       },
       "TokenType" : {
-        "enum" : [ "INSTITUTION", "LEGALS" ],
+        "enum" : [ "INSTITUTION", "LEGALS", "USER" ],
         "type" : "string"
       },
       "UserOnboardingResponse" : {

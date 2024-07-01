@@ -1006,6 +1006,8 @@ components:
           $ref: "#/components/schemas/InstitutionPaSubunitType"
         origin:
           $ref: "#/components/schemas/Origin"
+        originId:
+          type: string
         city:
           type: string
         country:
@@ -1407,6 +1409,7 @@ components:
       enum:
       - INSTITUTION
       - LEGALS
+      - USER
       type: string
     UserOnboardingResponse:
       type: object
