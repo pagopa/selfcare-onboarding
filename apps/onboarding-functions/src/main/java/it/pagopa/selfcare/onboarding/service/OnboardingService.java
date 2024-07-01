@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
+import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -283,6 +284,28 @@ public class OnboardingService {
         if(!dateQuery.isEmpty()) {
             query.append(dateField, dateQuery);
         }
+        return query;
+    }
+
+    public List<Onboarding> getOnboardingsToResend(ResendNotificationsFilters filters, int page, int pageSize) {
+        return repository.find(createQueryByFilters(filters)).page(page, pageSize).list();
+    }
+
+    private Document createQueryByFilters(ResendNotificationsFilters filters) {
+        Document query = new Document();
+        Optional.ofNullable(filters.getProductId()).ifPresent(value -> query.append("productId", value));
+        Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> query.append("institution.id", value));
+        Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> query.append("_id", value));
+        Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> query.append("institution.taxCode", value));
+        query.append("status", new Document("$in", filters.getStatus()));
+
+        Document dateQuery = new Document();
+        Optional.ofNullable(filters.getFrom()).ifPresent(value -> query.append("createdAt", dateQuery.append("$gte", LocalDate.parse(filters.getFrom(), DateTimeFormatter.ISO_LOCAL_DATE))));
+        Optional.ofNullable(filters.getTo()).ifPresent(value -> query.append("createdAt", dateQuery.append("$lte", LocalDate.parse(filters.getTo(), DateTimeFormatter.ISO_LOCAL_DATE))));
+        if(!dateQuery.isEmpty()) {
+            query.append("createdAt", dateQuery);
+        }
+        query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
         return query;
     }
 
