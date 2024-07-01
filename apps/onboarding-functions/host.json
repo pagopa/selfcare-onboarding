@@ -8,7 +8,8 @@
   },
   "extensions": {
     "durableTask": {
-      "hubName": "JavaTestHub"
+      "hubName": "JavaTestHub",
+      "maxConcurrentActivityFunctions": 10
     }
   },
   "extensionBundle": {
