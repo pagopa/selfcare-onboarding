@@ -30,7 +30,7 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
 
         while (thereAreNotificationsToSend) {
             List<Onboarding> onboardingsToResend = onboardingService.getOnboardingsToResend(filters, page, pageSize);
-            context.getLogger().info(String.format("Found: %s onboardings to send for page: %s ", onboardingsToResend.size(), page));
+            context.getLogger().info("Found: "+ onboardingsToResend.size() +" onboardings to send for page: " + page);
 
             for (Onboarding onboarding : onboardingsToResend) {
                 try {
@@ -49,6 +49,7 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
             page++;
         }
 
-        context.getLogger().info(String.format("Resend notifications completed successfully in: %s ms with %s notifications sent successfully and %s notifications not sent ", System.currentTimeMillis() - start, notificationsSent, notificationsFailed));
+        long effort = System.currentTimeMillis() - start;
+        context.getLogger().info("Resend notifications completed successfully in: " + effort + " ms with " + notificationsSent + " notifications sent successfully and " + notificationsFailed + " notifications not sent");
     }
 }
