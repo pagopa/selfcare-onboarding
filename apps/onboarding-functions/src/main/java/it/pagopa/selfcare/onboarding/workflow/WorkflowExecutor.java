@@ -71,9 +71,10 @@ public interface WorkflowExecutor {
         }
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+    default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
