@@ -1936,7 +1936,7 @@
         }
       },
       "TokenType" : {
-        "enum" : [ "INSTITUTION", "LEGALS" ],
+        "enum" : [ "INSTITUTION", "LEGALS", "USER" ],
         "type" : "string"
       },
       "UserOnboardingResponse" : {
