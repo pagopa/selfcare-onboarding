@@ -2,15 +2,19 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.functions.HttpRequestMessage;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.AckPayloadRequest;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
+import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 public class Utils {
@@ -84,5 +88,47 @@ public class Utils {
 
     public static boolean isNotInstitutionOnboarding(Onboarding onboarding) {
         return !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
+    }
+
+    public static ResendNotificationsFilters getResendNotificationsFilters(HttpRequestMessage<Optional<String>> request) {
+        String from = request.getQueryParameters().get("from");
+        String to = request.getQueryParameters().get("to");
+        String productId = request.getQueryParameters().get("productId");
+        List<String> status = request.getQueryParameters().get("status") == null
+                ? List.of(OnboardingStatus.COMPLETED.name(), OnboardingStatus.DELETED.name())
+                : List.of(request.getQueryParameters().get("status"));
+        String institutionId = request.getQueryParameters().get("institutionId");
+        String onboardingId = request.getQueryParameters().get("onboardingId");
+        String taxCode = request.getQueryParameters().get("taxCode");
+
+        return ResendNotificationsFilters.builder()
+                .from(from)
+                .to(to)
+                .productId(productId)
+                .institutionId(institutionId)
+                .onboardingId(onboardingId)
+                .taxCode(taxCode)
+                .status(status)
+                .build();
+    }
+
+    public static void checkResendNotificationsFilters(ResendNotificationsFilters filters) {
+        boolean allowedStatus = filters.getStatus().stream()
+                .allMatch(status -> status.equals(OnboardingStatus.COMPLETED.name()) || status.equals(OnboardingStatus.DELETED.name()));
+        if (!allowedStatus) {
+            throw new IllegalArgumentException("Status not allowed (accepted values are: " + OnboardingStatus.COMPLETED.name() + ", " + OnboardingStatus.DELETED.name() + ")");
+        }
+
+        if (StringUtils.isNotBlank(filters.getFrom()) && checkIsoDateFormat(filters.getFrom())) {
+            throw new IllegalArgumentException("field from has an invalid date format (accepted format is: yyyy-MM-dd)");
+        }
+
+        if (StringUtils.isNotBlank(filters.getTo()) && checkIsoDateFormat(filters.getTo())) {
+            throw new IllegalArgumentException("field to has an invalid date format (accepted format is: yyyy-MM-dd)");
+        }
+    }
+
+    private static boolean checkIsoDateFormat(String date) {
+        return !date.matches("\\d{4}-\\d{2}-\\d{2}");
     }
 }

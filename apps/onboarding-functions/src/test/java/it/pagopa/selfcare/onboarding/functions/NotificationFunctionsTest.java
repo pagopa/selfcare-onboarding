@@ -1,24 +1,35 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
 import com.microsoft.azure.functions.HttpStatus;
+import com.microsoft.durabletask.DurableTaskClient;
+import com.microsoft.durabletask.Task;
+import com.microsoft.durabletask.TaskOrchestrationContext;
+import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
+import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.NotificationException;
+import it.pagopa.selfcare.onboarding.service.NotificationEventResenderService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 import java.util.*;
 import java.util.logging.Logger;
 
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RESEND_NOTIFICATIONS_ACTIVITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -38,6 +49,9 @@ public class NotificationFunctionsTest {
 
     @InjectMock
     NotificationEventService notificationEventService;
+
+    @InjectMock
+    NotificationEventResenderService notificationEventResenderService;
 
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
@@ -229,6 +243,137 @@ public class NotificationFunctionsTest {
         assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
         assertEquals(expectedResults, responseMessage.getBody());
         verify(onboardingService, times(1)).countNotifications(productId, from, to, context);
+    }
+
+    @Test
+    void resendNotification_shouldCallOrchestratorAndTerminate() throws JsonProcessingException {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        final Map<String, String> queryParams = new HashMap<>();
+        final String filtersAsJson = "{\"productId\":\"prod-pagoPa\", \"status\":\"[COMPLETED]\"}";
+        queryParams.put("productId", "prod-pagoPa");
+        queryParams.put("status", "COMPLETED");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        final Optional<String> queryBody = Optional.empty();
+        doReturn(queryBody).when(req).getBody();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        final DurableClientContext durableContext = mock(DurableClientContext.class);
+        final DurableTaskClient client = mock(DurableTaskClient.class);
+        final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
+        doReturn(client).when(durableContext).getClient();
+        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("NotificationsSender", filtersAsJson);
+        when(durableContext.createCheckStatusResponse(any(), any())).thenReturn(new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(HttpStatus.ACCEPTED).build());
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
+
+        // Verify
+        assertEquals(HttpStatus.ACCEPTED.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    void resendNotification_shouldThrowBadRequestWhenFieldStatusIsNotAllowed() throws JsonProcessingException {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("productId", "prod-pagoPa");
+        queryParams.put("status", "TEST");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        final DurableClientContext durableContext = mock(DurableClientContext.class);
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
+
+        // Verify
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    void resendNotification_shouldThrowBadRequestWhenFieldsDateHaveWrongFormat() throws JsonProcessingException {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        final Map<String, String> queryParams = new HashMap<>();
+        queryParams.put("productId", "prod-pagoPa");
+        queryParams.put("from", "TEST");
+        queryParams.put("to", "TEST");
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        final DurableClientContext durableContext = mock(DurableClientContext.class);
+
+        // Invoke
+        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
+
+        // Verify
+        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+    }
+
+    @Test
+    void notificationsSenderOrchestrator_invokeActivity() {
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        String filtersString = "{\"productId\":\"prod-pagoPa\", \"status\":\"[COMPLETED]\"}";
+        when(orchestrationContext.getInput(String.class)).thenReturn(filtersString);
+
+        Task task = mock(Task.class);
+        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString)).thenReturn(task);
+
+        function.notificationsSenderOrchestrator(orchestrationContext, executionContext);
+
+        Mockito.verify(orchestrationContext, times(1))
+                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString);
+    }
+
+    @Test
+    void resendNotificationsActivity_shouldResendNotifications() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":[\"COMPLETED\"]}";
+
+        doNothing().when(notificationEventResenderService).resendNotifications(any(), any());
+
+        function.resendNotificationsActivity(filtersString, context);
+
+        ArgumentCaptor<ResendNotificationsFilters> filtersStringCaptor = ArgumentCaptor.forClass(ResendNotificationsFilters.class);
+        Mockito.verify(notificationEventResenderService, times(1))
+                .resendNotifications(filtersStringCaptor.capture(), any());
+        assertEquals("prod-pagopa", filtersStringCaptor.getValue().getProductId());
+    }
+
+    @Test
+    void resendNotificationsActivity_failsParsingFilters() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":\"[COMPLETED]\"}";
+
+
+        Assertions.assertThrows(NotificationException.class, () -> function.resendNotificationsActivity(filtersString, context));
+
+        Mockito.verifyNoInteractions(notificationEventResenderService);
     }
 }
 
