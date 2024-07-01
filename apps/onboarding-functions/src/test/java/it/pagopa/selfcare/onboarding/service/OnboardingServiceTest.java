@@ -507,9 +507,13 @@ class OnboardingServiceTest {
 
     @Test
     void getOnboardingsToResendShouldReturnResults() {
-        ResendNotificationsFilters filters = new ResendNotificationsFilters();
-        filters.setFrom("2021-01-01");
-        filters.setTo("2021-12-31");
+        ResendNotificationsFilters filters = ResendNotificationsFilters.builder()
+                .from("2021-01-01")
+                .to("2021-12-31")
+                .onboardingId("onboardingId")
+                .institutionId("institutionId")
+                .productId("productId")
+                .build();
 
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
