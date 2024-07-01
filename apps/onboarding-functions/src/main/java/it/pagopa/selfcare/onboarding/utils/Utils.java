@@ -85,4 +85,15 @@ public class Utils {
     public static boolean isNotInstitutionOnboarding(Onboarding onboarding) {
         return !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
     }
+
+    public static String getOnboardingAggregateString(ObjectMapper objectMapper, OnboardingAggregateOrchestratorInput onboarding) {
+
+        String onboardingAggregateString;
+        try {
+            onboardingAggregateString = objectMapper.writeValueAsString(onboarding);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingAggregateString;
+    }
 }

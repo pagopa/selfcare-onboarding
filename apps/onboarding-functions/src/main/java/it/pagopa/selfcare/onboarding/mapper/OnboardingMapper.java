@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import org.mapstruct.Mapper;
@@ -18,6 +19,9 @@ public interface OnboardingMapper {
     @Mapping(target = "activatedAt", ignore = true)
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
+    @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
+    OnboardingAggregateOrchestratorInput mapToOnboardingAggregateOrchestratorInput(Onboarding onboarding, AggregateInstitution aggregateInstitution);
+
     /**
      * We need to create an explicit method to map the aggregate into the institution field of the new onboarding entity
      * because the data related to institutionType and origin must be retrieved from the aggregator,
@@ -31,4 +35,6 @@ public interface OnboardingMapper {
         }
         return aggregate;
     }
+
+    Institution mapFromAggregateInstitution(AggregateInstitution aggregateInstitution);
 }
