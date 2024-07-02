@@ -15,7 +15,6 @@ import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
-
 public interface WorkflowExecutor {
 
     Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);

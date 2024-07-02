@@ -36,7 +36,7 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
 
     @Override
     public String getEmailCompletionPath(MailTemplatePathConfig config) {
-        return config.completePathAggregate();
+        return config.completePath();
     }
 
     @Override

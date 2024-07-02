@@ -236,13 +236,13 @@
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.4</version>
     </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-common</artifactId>
-      <version>0.1.16</version>
-      <scope>compile</scope>
-    </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.7.1</version>
+    </dependency>
 
   </dependencies>
   <build>
