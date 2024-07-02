@@ -16,10 +16,8 @@ public class OnboardingUserRequest {
 
     private String subunitCode;
 
-    @NotEmpty(message = "origin is required")
     private String origin;
 
-    @NotEmpty(message = "originId is required")
     private String originId;
 
     private String taxCode;
