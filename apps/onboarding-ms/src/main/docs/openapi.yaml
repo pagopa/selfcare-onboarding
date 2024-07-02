@@ -19,7 +19,8 @@ paths:
     post:
       tags:
       - Aggregates Controller
-      summary: ""
+      summary: Validate the data related to the aggregated entities present in a CSV
+        file
       requestBody:
         content:
           multipart/form-data:
@@ -1410,8 +1411,6 @@ components:
     OnboardingUserRequest:
       required:
       - productId
-      - origin
-      - originId
       - users
       type: object
       properties:
@@ -1423,10 +1422,8 @@ components:
         subunitCode:
           type: string
         origin:
-          minLength: 1
           type: string
         originId:
-          minLength: 1
           type: string
         taxCode:
           type: string

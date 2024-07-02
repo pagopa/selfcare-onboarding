@@ -26,7 +26,7 @@
     "/v1/aggregates/verification" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],
-        "summary" : "",
+        "summary" : "Validate the data related to the aggregated entities present in a CSV file",
         "requestBody" : {
           "content" : {
             "multipart/form-data" : {
@@ -1967,7 +1967,7 @@
         "type" : "string"
       },
       "OnboardingUserRequest" : {
-        "required" : [ "productId", "origin", "originId", "users" ],
+        "required" : [ "productId", "users" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -1981,11 +1981,9 @@
             "type" : "string"
           },
           "origin" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "originId" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "taxCode" : {

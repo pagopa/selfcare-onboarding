@@ -1043,8 +1043,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 items.stream().map(onboarding -> onboarding.getUsers().stream()
                                                 .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
                                                 .map(User::getId)
-                                                .findAny().orElse(null))
-                                        .toList())
+                                                .findAny().orElse(null)).toList())
                         .onItem().transformToUni(uuids -> {
                             if (uuids.contains(uuid.toString())) {
                                 return Uni.createFrom().item(true);
