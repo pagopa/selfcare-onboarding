@@ -138,11 +138,11 @@ class OnboardingServiceDefaultTest {
             .role(PartyRole.MANAGER)
             .build();
 
-    final static UserResource managerResource;
-    final static UserResource managerResourceWk;
-    final static UserResource managerResourceWkSpid;
+    static final UserResource managerResource;
+    static final UserResource managerResourceWk;
+    static final UserResource managerResourceWkSpid;
 
-    final static File testFile = new File("src/test/resources/application.properties");
+    static final File testFile = new File("src/test/resources/application.properties");
 
     static {
         managerResource = new UserResource();
