@@ -63,6 +63,9 @@ public class OnboardingService {
     ProductService productService;
 
     @Inject
+    OnboardingRepository onboardingRepository;
+
+    @Inject
     OnboardingRepository repository;
 
     @Inject
@@ -161,9 +164,7 @@ public class OnboardingService {
 
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
-                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle(),
-                sendMailInput.institutionName,
+                sendMailInput,
                 templatePath,
                 confirmTokenUrl);
     }
@@ -227,6 +228,11 @@ public class OnboardingService {
         SendMailInput sendMailInput = new SendMailInput();
         sendMailInput.product = productService.getProduct(onboarding.getProductId());
 
+        // Set data of previousManager in case of workflowType USERS
+        if (Objects.nonNull(onboarding.getPreviousManagerId())) {
+            setPreviousManager(onboarding, sendMailInput);
+        }
+
         // Retrieve user request name and surname
         UserResource userRequest = Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
                 .orElseThrow(() -> new GenericOnboardingException(String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
@@ -289,7 +295,25 @@ public class OnboardingService {
     static class SendMailInput {
         Product product;
         String userRequestName;
+        // Used in case of workflowType USER
+        String previousUserName;
         String userRequestSurname;
+        // Used in case of workflowType USER
+        String previousUserSurname;
         String institutionName;
+    }
+
+    private void setPreviousManager(Onboarding onboarding, SendMailInput sendMailInput) {
+        final String managerId =  onboarding.getUsers().stream()
+                .filter(user -> PartyRole.MANAGER == user.getRole())
+                .map(User::getId)
+                .findAny()
+                .orElse(null);
+
+        if (!onboarding.getPreviousManagerId().equals(managerId)) {
+            UserResource previousManager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, onboarding.getPreviousManagerId());
+            sendMailInput.previousUserName = previousManager.getName().getValue();
+            sendMailInput.previousUserSurname = previousManager.getFamilyName().getValue();
+        }
     }
 }

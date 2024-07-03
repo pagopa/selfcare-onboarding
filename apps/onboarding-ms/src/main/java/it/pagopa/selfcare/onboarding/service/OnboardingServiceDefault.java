@@ -297,16 +297,23 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
-        String taxCode = onboarding.getInstitution().getTaxCode();
-        String origin = onboarding.getInstitution().getOrigin().name();
-        String originId = onboarding.getInstitution().getOriginId();
-        String productId = onboarding.getProductId();
-        String subunitCode = onboarding.getInstitution().getSubunitCode();
-        return  getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId)
-                .filter(item -> Objects.isNull(item.getReferenceOnboardingId()))
+        final String taxCode = onboarding.getInstitution().getTaxCode();
+        final String origin = onboarding.getInstitution().getOrigin().name();
+        final String originId = onboarding.getInstitution().getOriginId();
+        final String productId = onboarding.getProductId();
+        final String subunitCode = onboarding.getInstitution().getSubunitCode();
+        Multi<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId);
+        Uni<Onboarding> current = onboardings.filter(item -> Objects.isNull(item.getReferenceOnboardingId()))
                 .toUni().onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
                         taxCode, origin, originId, productId, subunitCode)))
-                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()))
+                .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()));
+        return current.onItem()
+                .invoke(() ->
+                    onboarding.setPreviousManagerId(onboardings.collect().first()
+                            .map(previousOnboarding -> previousOnboarding.getUsers().stream()
+                                    .filter(user -> user.getRole().equals(PartyRole.MANAGER))
+                                    .map(User::getId).findFirst().orElse(null))
+                            .toString()))
                 .replaceWith(onboarding);
     }
 
@@ -317,8 +324,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                 originId, OnboardingStatus.COMPLETED,
                 productId
         );
+        Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
         Document query = QueryUtils.buildQuery(queryParameter);
-        return Onboarding.find(query).stream();
+        return Onboarding.find(query, sort).stream();
     }
 
     public Uni<Onboarding> persistAndStartOrchestrationOnboarding(Onboarding onboarding, Uni<OrchestrationResponse> orchestration) {

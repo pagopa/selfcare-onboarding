@@ -17,6 +17,8 @@ public interface NotificationService {
 
     void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath, String confirmTokenUrl);
 
+    void sendMailRegistrationForContract(String onboardingId, String destination, OnboardingService.SendMailInput sendMailInput, String templatePath, String confirmTokenUrl);
+
     void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName);
 
     void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow);
