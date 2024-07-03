@@ -307,14 +307,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .toUni().onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
                         taxCode, origin, originId, productId, subunitCode)))
                 .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()));
-        return current.onItem()
-                .invoke(() ->
-                    onboarding.setPreviousManagerId(onboardings.collect().first()
-                            .map(previousOnboarding -> previousOnboarding.getUsers().stream()
+        return current.onItem().transformToUni(ignored -> onboardings.collect().first()).onItem()
+                .invoke(lastOnboarding -> {
+                            String previousManagerId = lastOnboarding.getUsers().stream()
                                     .filter(user -> user.getRole().equals(PartyRole.MANAGER))
-                                    .map(User::getId).findFirst().orElse(null))
-                            .toString()))
-                .replaceWith(onboarding);
+                                    .map(User::getId).findFirst().orElse(null);
+                            onboarding.setPreviousManagerId(previousManagerId);
+                        }).replaceWith(onboarding);
     }
 
     private Multi<Onboarding> getOnboardingByFilters(String taxCode, String subunitCode, String origin,

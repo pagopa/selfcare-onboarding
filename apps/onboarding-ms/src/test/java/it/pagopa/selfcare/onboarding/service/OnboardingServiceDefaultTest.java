@@ -1449,9 +1449,10 @@ class OnboardingServiceDefaultTest {
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
 
+        Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(new Onboarding()));
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
         when(Onboarding.find((Document) any(), any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
