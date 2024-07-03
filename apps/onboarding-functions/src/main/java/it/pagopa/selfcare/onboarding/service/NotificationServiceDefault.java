@@ -124,6 +124,10 @@ public class NotificationServiceDefault implements NotificationService {
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), confirmTokenUrl + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.institutionDescription(), sendMailInput.institutionName);
+        Optional.ofNullable(sendMailInput.managerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerName(), value));
+        Optional.ofNullable(sendMailInput.managerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerSurname(), value));
+        Optional.ofNullable(sendMailInput.previousManagerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerName(), value));
+        Optional.ofNullable(sendMailInput.previousManagerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerSurname(), value));
 
         sendMailWithFile(List.of(destination), templatePath, mailParameters, sendMailInput.product.getTitle(), null);
 
