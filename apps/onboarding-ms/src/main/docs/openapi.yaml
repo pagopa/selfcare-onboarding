@@ -1115,6 +1115,8 @@ components:
           type: string
         zipCode:
           type: string
+        parentDescription:
+          type: string
         geographicTaxonomies:
           type: array
           items:
