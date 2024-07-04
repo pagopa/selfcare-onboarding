@@ -7,6 +7,8 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.model.AggregatesCsvResponse;
+import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -113,4 +115,8 @@ public interface OnboardingMapper {
 
         return localDateTime.atOffset(java.time.ZoneOffset.UTC);
     }
+
+    @Mapping(target = "errors", source = "rowErrorList")
+    @Mapping(target = "aggregates", source = "validAggregates")
+    VerifyAggregateResponse toVerifyAggregateResponse(AggregatesCsvResponse aggregatesCsvResponse);
 }
