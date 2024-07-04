@@ -28,6 +28,7 @@ public class InstitutionResponse {
     private String digitalAddress;
     private String address;
     private String zipCode;
+    private String parentDescription;
 
     private List<GeographicTaxonomyDto> geographicTaxonomies;
 
