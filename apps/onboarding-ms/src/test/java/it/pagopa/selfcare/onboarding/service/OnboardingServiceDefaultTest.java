@@ -138,11 +138,11 @@ class OnboardingServiceDefaultTest {
             .role(PartyRole.MANAGER)
             .build();
 
-    final static UserResource managerResource;
-    final static UserResource managerResourceWk;
-    final static UserResource managerResourceWkSpid;
+    static final UserResource managerResource;
+    static final UserResource managerResourceWk;
+    static final UserResource managerResourceWkSpid;
 
-    final static File testFile = new File("src/test/resources/application.properties");
+    static final File testFile = new File("src/test/resources/application.properties");
 
     static {
         managerResource = new UserResource();
@@ -1449,10 +1449,11 @@ class OnboardingServiceDefaultTest {
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
 
+        Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(new Onboarding()));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
@@ -1485,7 +1486,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.firstResult()).thenReturn(Uni.createFrom().nullItem());
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
@@ -1744,7 +1745,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
         when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -1768,7 +1769,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(uuid);
         when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -1798,7 +1799,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().empty());
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
         when(userRegistryApi.searchUsingPOST(any(), any()))

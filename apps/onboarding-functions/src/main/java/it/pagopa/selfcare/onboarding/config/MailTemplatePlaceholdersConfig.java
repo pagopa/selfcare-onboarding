@@ -7,6 +7,10 @@ public interface MailTemplatePlaceholdersConfig {
 
     String userName();
     String userSurname();
+    String managerName();
+    String managerSurname();
+    String previousManagerName();
+    String previousManagerSurname();
     String productName();
     String institutionDescription();
     String businessName();

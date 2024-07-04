@@ -1,9 +1,12 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.Product;
+
+import java.util.Objects;
 
 public class OnboardingWorkflowUser extends OnboardingWorkflow {
 
@@ -22,7 +25,16 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
 
     @Override
     public String emailRegistrationPath(MailTemplatePathConfig config) {
-        return config.registrationUserPath();
+        final String managerId =  this.onboarding.getUsers().stream()
+                .filter(user -> PartyRole.MANAGER == user.getRole())
+                .map(User::getId)
+                .findAny()
+                .orElse(null);
+        if (Objects.nonNull(this.onboarding.getPreviousManagerId())
+                && this.onboarding.getPreviousManagerId().equals(managerId)) {
+            return config.registrationUserPath();
+        }
+        return config.registrationUserNewManagerPath();
     }
 
     @Override

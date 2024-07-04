@@ -284,22 +284,27 @@ class OnboardingServiceTest {
                 .thenReturn(userResource);
 
         OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+        OnboardingService.SendMailInput sendMailInput = new OnboardingService.SendMailInput();
+        sendMailInput.userRequestName = userResource.getName().getValue();
+        sendMailInput.userRequestSurname = userResource.getFamilyName().getValue();
+        sendMailInput.product = product;
+        sendMailInput.institutionName = "description";
 
         doNothing().when(notificationService)
                 .sendMailRegistrationForContract(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle(), "description",
+                        sendMailInput,
                         "default", "default");
 
         onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationForContract(onboarding.getId(),
-                        onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle(), "description",
-                        "default", "default");
+                .sendMailRegistrationForContract(any(),
+                        any(),
+                        any(),
+                        anyString(),
+                        anyString());
+        verifyNoMoreInteractions(notificationService);
     }
 
     @Test

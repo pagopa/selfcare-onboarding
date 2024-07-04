@@ -115,6 +115,25 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
+    public void sendMailRegistrationForContract(String onboardingId, String destination, OnboardingService.SendMailInput sendMailInput, String templatePath, String confirmTokenUrl) {
+        // Prepare data for email
+        Map<String, String> mailParameters = new HashMap<>();
+        mailParameters.put(templatePlaceholdersConfig.productName(), sendMailInput.product.getTitle());
+        Optional.ofNullable(sendMailInput.userRequestName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
+        Optional.ofNullable(sendMailInput.userRequestSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), confirmTokenUrl + onboardingId);
+        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), sendMailInput.institutionName);
+        Optional.ofNullable(sendMailInput.managerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerName(), value));
+        Optional.ofNullable(sendMailInput.managerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerSurname(), value));
+        Optional.ofNullable(sendMailInput.previousManagerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerName(), value));
+        Optional.ofNullable(sendMailInput.previousManagerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerSurname(), value));
+
+        sendMailWithFile(List.of(destination), templatePath, mailParameters, sendMailInput.product.getTitle(), null);
+
+    }
+
+    @Override
     public void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName) {
 
         // Prepare data for email
