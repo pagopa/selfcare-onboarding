@@ -18,6 +18,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -58,6 +59,9 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     NotificationEventService notificationEventService;
+
+    @Inject
+    OnboardingMapper onboardingMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -531,6 +535,7 @@ public class OnboardingFunctionsTest {
 
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
+        when(orchestrationContext.callSubOrchestrator(any(),any())).thenReturn(task);
         when(task.await()).thenReturn("example");
         when(orchestrationContext.allOf(anyList())).thenReturn(task);
         return orchestrationContext;
