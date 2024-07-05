@@ -192,7 +192,11 @@ public class NotificationFunctions {
             throw new NotificationException("Error occurred during json parsing of filters", e);
         }
 
-        // This method returns a new set of filters for the next page of onboardings to be resent, or null if there are no more onboardings to resend
+        /*
+        * At the end of the resendNotifications it is checked whether there are more onboardings to resend, if there are, the method
+        * returns the same filters received as input by incrementing the page by one to fetch on next iteration the next page of onboardings.
+        * Otherwise it returns null.
+        */
         ResendNotificationsFilters nextFilters = notificationEventResenderService.resendNotifications(filters, context);
 
         context.getLogger().info(() -> "Resend notifications activity completed, nextFilter = " + nextFilters);
