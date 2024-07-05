@@ -334,7 +334,7 @@ public class OnboardingController {
         return onboardingService.checkManager(onboardingUserRequest);
     }
 
-    @Operation(summary = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase.")
+    @Operation(summary = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take.")
     @Path("/aggregation/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
