@@ -67,33 +67,22 @@ data "azurerm_resource_group" "nat_rg" {
 }
 
 data "azurerm_resource_group" "vnet_rg" {
-  name     = "${local.base_domain_name}-vnet-rg"
-}
-
-
-data "azurerm_public_ip" "aks_pip_outbound" {
-  resource_group_name = data.azurerm_resource_group.vnet_rg.name
-  name                = "${local.base_domain_name}-aksoutbound-pip-01" //selc-d-aksoutbound-pip-01
+  name     = "${local.base_domain_vnet_name}-vnet-rg"
 }
 
 data "azurerm_public_ip" "pip_outbound" {
-  resource_group_name = data.azurerm_resource_group.nat_rg.name
-  name                = "${local.base_domain_name}-pip-outbound" //selc-d-pip-outbound
-}
-
-data "azurerm_public_ip" "functions_pip_outbound" {
-  resource_group_name = data.azurerm_resource_group.nat_rg.name
-  name                = "${local.app_name}-pip-outbound" //selc-d-onboarding-fn-pip-outbound
+  resource_group_name = var.is_pnpg == true ? data.azurerm_resource_group.nat_rg.name : data.azurerm_resource_group.vnet_rg.name
+  name                = var.is_pnpg == true ? "${local.base_domain_name}-pip-outbound" : "${local.base_domain_name}-aksoutbound-pip-01"
 }
 
 data "azurerm_nat_gateway" "nat_gateway" {
-  name                = "${local.base_domain_name}-nat_gw"      //selc-d-nat_gw
+  name                = "${local.base_domain_name}-nat_gw"
   resource_group_name = data.azurerm_resource_group.nat_rg.name
 }
 
 resource "azurerm_nat_gateway_public_ip_association" "functions_pip_nat_gateway" {
   nat_gateway_id       = data.azurerm_nat_gateway.nat_gateway.id
-  public_ip_address_id = var.is_pnpg == true ? data.azurerm_public_ip.functions_pip_outbound.id : data.azurerm_public_ip.aks_pip_outbound.id
+  public_ip_address_id = data.azurerm_public_ip.pip_outbound.id
 }
 
 resource "azurerm_subnet_nat_gateway_association" "functions_subnet_nat_gateway" {
