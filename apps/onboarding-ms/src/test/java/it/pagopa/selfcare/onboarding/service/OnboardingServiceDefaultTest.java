@@ -74,6 +74,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -138,11 +139,11 @@ class OnboardingServiceDefaultTest {
             .role(PartyRole.MANAGER)
             .build();
 
-    final static UserResource managerResource;
-    final static UserResource managerResourceWk;
-    final static UserResource managerResourceWkSpid;
+    static final UserResource managerResource;
+    static final UserResource managerResourceWk;
+    static final UserResource managerResourceWkSpid;
 
-    final static File testFile = new File("src/test/resources/application.properties");
+    static final File testFile = new File("src/test/resources/application.properties");
 
     static {
         managerResource = new UserResource();
@@ -1438,6 +1439,41 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void onboarding_aggregationCompletion(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_IO.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertThat(() -> onboardingService.onboardingAggregationCompletion(request, users), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboardingUsers(UniAsserter asserter) {
         OnboardingUserRequest request = new OnboardingUserRequest();
         List<UserRequest> users = List.of(manager);
@@ -1449,10 +1485,11 @@ class OnboardingServiceDefaultTest {
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
 
+        Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(new Onboarding()));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
@@ -1485,7 +1522,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.firstResult()).thenReturn(Uni.createFrom().nullItem());
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
@@ -1744,7 +1781,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
         when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -1768,7 +1805,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(uuid);
         when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -1798,7 +1835,7 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().empty());
-        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
         UserResource userResource = new UserResource();
         userResource.setId(UUID.randomUUID());
         when(userRegistryApi.searchUsingPOST(any(), any()))

@@ -90,6 +90,17 @@ public class Utils {
         return !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
     }
 
+    public static String getOnboardingAggregateString(ObjectMapper objectMapper, OnboardingAggregateOrchestratorInput onboarding) {
+
+        String onboardingAggregateString;
+        try {
+            onboardingAggregateString = objectMapper.writeValueAsString(onboarding);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingAggregateString;
+    }
+
     public static ResendNotificationsFilters getResendNotificationsFilters(HttpRequestMessage<Optional<String>> request) {
         String from = request.getQueryParameters().get("from");
         String to = request.getQueryParameters().get("to");

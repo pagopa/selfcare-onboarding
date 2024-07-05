@@ -35,7 +35,7 @@ public record WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions 
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return onboardingCompletionActivity(ctx, onboardingWorkflow.getOnboarding());
+        return onboardingCompletionActivity(ctx, onboardingWorkflow);
     }
 
     @Override

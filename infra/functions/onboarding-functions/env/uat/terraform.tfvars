@@ -77,7 +77,7 @@ app_settings = {
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
   "MS_USER_URL"                                        = "https://selc-u-user-ms-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
   "MS_PARTY_REGISTRY_URL"                              = "https://selc-u-party-reg-proxy-ca.proudglacier-20652b81.westeurope.azurecontainerapps.io",
-  "USER_MS_ACTIVE"                                     = "true",
+  "USER_MS_SEND_MAIL"                                  = "false",
   "EVENT_HUB_BASE_PATH"                                = "https://selc-u-eventhub-ns.servicebus.windows.net",
   "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
   "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"           = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/eventhub-sc-contracts-selfcare-wo-key-lc/)"
@@ -92,7 +92,7 @@ app_settings = {
   "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
   "BYPASS_CHECK_ORGANIZATION"                          = "false"
-  "PROD_FD_URL"                                        = "https://fid00001fe.siachain.sv.sia.eu:30008"
+  "PROD_FD_URL"                                        = "https://fid00001fe.siachain.ti.sia.eu:30008"
   "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
   "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-id/)"
   "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"

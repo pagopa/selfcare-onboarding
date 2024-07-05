@@ -2,7 +2,9 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -21,6 +23,8 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported);
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
+
+    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests);
 
     Uni<OnboardingGet> approve(String onboardingId);
 

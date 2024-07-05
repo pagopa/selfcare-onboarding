@@ -22,7 +22,7 @@
     <quarkus.platform.version>3.11.2</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <onboarding-sdk.version>0.1.16</onboarding-sdk.version>
+    <onboarding-sdk.version>0.1.18</onboarding-sdk.version>
     <quarkus-openapi-generator.version>2.4.1</quarkus-openapi-generator.version>
   </properties>
   <dependencyManagement>
@@ -236,13 +236,13 @@
       <artifactId>jaxb-impl</artifactId>
       <version>2.3.4</version>
     </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-common</artifactId>
-      <version>0.1.16</version>
-      <scope>compile</scope>
-    </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.7.1</version>
+    </dependency>
 
   </dependencies>
   <build>

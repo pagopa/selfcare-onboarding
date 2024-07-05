@@ -35,8 +35,10 @@ public class Onboarding  {
     private String reasonForReject;
     private Boolean isAggregator;
     private Aggregator aggregator;
-
     private String delegationId;
+
+    //This field is used in case of workflowType USER
+    private String previousManagerId;
 
     public String getDelegationId() {
         return delegationId;
@@ -200,6 +202,14 @@ public class Onboarding  {
 
     public Aggregator getAggregator() {
         return aggregator;
+    }
+
+    public String getPreviousManagerId() {
+        return previousManagerId;
+    }
+
+    public void setPreviousManagerId(String previousManagerId) {
+        this.previousManagerId = previousManagerId;
     }
 
     @Override

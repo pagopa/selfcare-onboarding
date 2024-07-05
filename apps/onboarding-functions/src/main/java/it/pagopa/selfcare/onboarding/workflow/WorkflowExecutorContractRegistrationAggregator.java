@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowAggregator;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.Optional;
 
@@ -15,8 +16,8 @@ import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 
-public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
-    
+public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
+
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
@@ -34,7 +35,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return onboardingCompletionActivity(ctx, onboardingWorkflow.getOnboarding());
+        return onboardingCompletionActivity(ctx, onboardingWorkflow);
     }
 
     @Override
