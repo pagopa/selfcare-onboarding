@@ -10,6 +10,15 @@ public class ResendNotificationsFilters {
     private List<String> status;
     private String from;
     private String to;
+    private Integer page;
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
 
     public ResendNotificationsFilters() {
     }
@@ -22,6 +31,7 @@ public class ResendNotificationsFilters {
         this.status = builder.status;
         this.from = builder.from;
         this.to = builder.to;
+        this.page = builder.page;
     }
 
     public static Builder builder() {
@@ -36,6 +46,8 @@ public class ResendNotificationsFilters {
         private List<String> status;
         private String from;
         private String to;
+
+        private Integer page;
 
         public Builder productId(String productId) {
             this.productId = productId;
@@ -69,6 +81,11 @@ public class ResendNotificationsFilters {
 
         public Builder to(String to) {
             this.to = to;
+            return this;
+        }
+
+        public Builder page(Integer page) {
+            this.page = page;
             return this;
         }
 
@@ -143,6 +160,7 @@ public class ResendNotificationsFilters {
                 ", status=" + status +
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
+                ", page='" + page + '\'' +
                 '}';
     }
 }

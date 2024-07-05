@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RESEND_NOTIFICATIONS_ACTIVITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -336,32 +337,33 @@ public class NotificationFunctionsTest {
     @Test
     void notificationsSenderOrchestrator_invokeActivity() {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        String filtersString = "{\"productId\":\"prod-pagoPa\", \"status\":\"[COMPLETED]\"}";
+        String filtersString = "{\"productId\":\"prod-pagoPa\", \"status\":[\"COMPLETED\"]}";
         when(orchestrationContext.getInput(String.class)).thenReturn(filtersString);
 
         Task task = mock(Task.class);
-        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString)).thenReturn(task);
-
+        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class)).thenReturn(task);
+        when(task.await()).thenReturn(null);
         function.notificationsSenderOrchestrator(orchestrationContext, executionContext);
 
         Mockito.verify(orchestrationContext, times(1))
-                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString);
+                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class);
     }
 
     @Test
-    void resendNotificationsActivity_shouldResendNotifications() {
+    void resendNotificationsActivity_shouldResendNotificationsAndReturnNullFiltersIfThereArentMoreOnboardings() throws JsonProcessingException {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":[\"COMPLETED\"]}";
 
-        doNothing().when(notificationEventResenderService).resendNotifications(any(), any());
+        when(notificationEventResenderService.resendNotifications(any(), any())).thenReturn(null);
 
-        function.resendNotificationsActivity(filtersString, context);
+        String nextFilter = function.resendNotificationsActivity(filtersString, context);
 
         ArgumentCaptor<ResendNotificationsFilters> filtersStringCaptor = ArgumentCaptor.forClass(ResendNotificationsFilters.class);
         Mockito.verify(notificationEventResenderService, times(1))
                 .resendNotifications(filtersStringCaptor.capture(), any());
         assertEquals("prod-pagopa", filtersStringCaptor.getValue().getProductId());
+        assertNull(nextFilter);
     }
 
     @Test

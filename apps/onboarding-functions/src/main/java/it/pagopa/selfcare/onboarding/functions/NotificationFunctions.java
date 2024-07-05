@@ -166,21 +166,28 @@ public class NotificationFunctions {
             ExecutionContext functionContext) {
         String filtersString = ctx.getInput(String.class);
         functionContext.getLogger().info("Resend notifications orchestration started with input: " + filtersString);
-        ctx.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString);
+        do {
+            filtersString = ctx.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class).await();
+        } while (filtersString != null);
+
         functionContext.getLogger().info("Resend notifications orchestration completed");
     }
 
     @FunctionName(RESEND_NOTIFICATIONS_ACTIVITY)
-    public void resendNotificationsActivity(@DurableActivityTrigger(name = "filtersString") String filtersString, final ExecutionContext context) {
+    public String resendNotificationsActivity(@DurableActivityTrigger(name = "filtersString") String filtersString, final ExecutionContext context) throws JsonProcessingException {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, RESEND_NOTIFICATIONS_ACTIVITY, filtersString));
+
         ResendNotificationsFilters filters;
         try {
             filters = objectMapper.readValue(filtersString, ResendNotificationsFilters.class);
         } catch (JsonProcessingException e) {
             throw new NotificationException("Error occurred during json parsing of filters", e);
         }
-        notificationEventResenderService.resendNotifications(filters, context);
-        context.getLogger().info("Resend notifications activity completed");
+
+        ResendNotificationsFilters nextFilters = notificationEventResenderService.resendNotifications(filters, context);
+
+        context.getLogger().info("Resend notifications activity completed, nextFilter = " + nextFilters);
+        return Objects.nonNull(nextFilters) ? objectMapper.writeValueAsString(nextFilters) : null;
     }
 
 }
