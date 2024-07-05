@@ -10,6 +10,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
+import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -475,37 +476,73 @@ class OnboardingServiceTest {
         assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(onboarding));
     }
 
-@Test
-void countOnboardingShouldReturnCorrectResultsWhenProductsExist() {
-    String from = "2021-01-01";
-    String to = "2021-12-31";
+    @Test
+    void countOnboardingShouldReturnCorrectResultsWhenProductsExist() {
+        String from = "2021-01-01";
+        String to = "2021-12-31";
 
-    ExecutionContext context = mock(ExecutionContext.class);
-    doReturn(Logger.getGlobal()).when(context).getLogger();
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
-    PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
+        PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
 
-    Product product1 = new Product();
-    product1.setId("product1");
-    when(productService.getProducts(false, false))
-            .thenReturn(List.of(product1));
+        Product product1 = new Product();
+        product1.setId("product1");
+        when(productService.getProducts(false, false))
+                .thenReturn(List.of(product1));
 
-    when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
-    when(onboardingQuery.count()).thenReturn(5L).thenReturn(3L);
+        when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
+        when(onboardingQuery.count()).thenReturn(5L).thenReturn(3L);
 
-    List<NotificationCountResult> results = onboardingService.countNotifications(product1.getId(),from,to,context);
+        List<NotificationCountResult> results = onboardingService.countNotifications(product1.getId(),from,to,context);
 
-    assertEquals(1, results.size());
-    assertEquals(8, results.get(0).getNotificationCount());
-}
+        assertEquals(1, results.size());
+        assertEquals(8, results.get(0).getNotificationCount());
+    }
 
-@Test
-void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
-    ExecutionContext context = mock(ExecutionContext.class);
-    doReturn(Logger.getGlobal()).when(context).getLogger();
+    @Test
+    void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
-    when(productService.getProducts(true, false)).thenReturn(List.of());
-    List<NotificationCountResult> results = onboardingService.countNotifications(null, null, null, context);
-    assertTrue(results.isEmpty());
-}
+        when(productService.getProducts(true, false)).thenReturn(List.of());
+        List<NotificationCountResult> results = onboardingService.countNotifications(null, null, null, context);
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void getOnboardingsToResendShouldReturnResults() {
+        ResendNotificationsFilters filters = new ResendNotificationsFilters();
+        filters.setFrom("2021-01-01");
+        filters.setTo("2021-12-31");
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
+        when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
+        when(onboardingQuery.page(anyInt(), anyInt())).thenReturn(onboardingQuery);
+        when(onboardingQuery.list()).thenReturn(List.of(new Onboarding(), new Onboarding()));
+
+        List<Onboarding> onboardings = onboardingService.getOnboardingsToResend(filters, 0, 100);
+        assertEquals(2, onboardings.size());
+    }
+
+    @Test
+    void getOnboardingsToResendShouldReturnEmptyList() {
+        ResendNotificationsFilters filters = new ResendNotificationsFilters();
+        filters.setFrom("2021-01-01");
+        filters.setTo("2021-12-31");
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
+        when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
+        when(onboardingQuery.page(anyInt(), anyInt())).thenReturn(onboardingQuery);
+        when(onboardingQuery.list()).thenReturn(List.of());
+
+        List<Onboarding> onboardings = onboardingService.getOnboardingsToResend(filters, 0, 100);
+        assertTrue(onboardings.isEmpty());
+    }
 }

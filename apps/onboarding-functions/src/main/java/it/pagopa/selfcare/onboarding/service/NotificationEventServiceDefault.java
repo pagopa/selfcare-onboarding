@@ -87,8 +87,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
             }
         } catch (Exception e) {
-            context.getLogger().warning(() -> String.format("Error during send notification for onboarding with ID %s. Error: %s", onboarding.getId(), e.getMessage()));
-            throw new NotificationException(String.format("Impossible to send notification for onboarding %s", onboarding));
+            throw new NotificationException(String.format("Impossible to send notification for onboarding with ID %s", onboarding.getId()), e);
         }
     }
 
