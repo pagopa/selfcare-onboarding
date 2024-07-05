@@ -11,7 +11,6 @@ public interface UserMapper {
     @Mapping(source = "institution.id", target = "institutionId")
     @Mapping(source = "institution.description", target = "institutionDescription")
     @Mapping(source = "institution.parentDescription", target = "institutionRootName")
-    @Mapping(target = "hasToSendEmail", constant = "false")
     @Mapping(target = "product", source = ".")
     AddUserRoleDto toUserRole(Onboarding onboarding);
 

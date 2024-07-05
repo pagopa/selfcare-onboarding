@@ -102,7 +102,7 @@ app_settings = {
   "MAIL_USER_CONFIRMATION_LINK"                        = "https://imprese.uat.notifichedigitali.it/onboarding/confirm?add-user=true&jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.uat.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.uat.notifichedigitali.it/onboarding/",
-  "USER_MS_ACTIVE"                                     = "true",
+  "USER_MS_SEND_MAIL"                                  = "false",
   "FORCE_INSTITUTION_PERSIST"                          = "true"
 
 }
