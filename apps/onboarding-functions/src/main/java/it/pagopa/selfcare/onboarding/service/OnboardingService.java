@@ -52,6 +52,7 @@ public class OnboardingService {
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
     public static final String ACTIVATED_AT_FIELD = "activatedAt";
     public static final String DELETED_AT_FIELD = "deletedAt";
+    public static final String CREATED_AT = "createdAt";
 
     @RestClient
     @Inject
@@ -303,10 +304,10 @@ public class OnboardingService {
         query.append("status", new Document("$in", filters.getStatus()));
 
         Document dateQuery = new Document();
-        Optional.ofNullable(filters.getFrom()).ifPresent(value -> query.append("createdAt", dateQuery.append("$gte", LocalDate.parse(filters.getFrom(), DateTimeFormatter.ISO_LOCAL_DATE))));
-        Optional.ofNullable(filters.getTo()).ifPresent(value -> query.append("createdAt", dateQuery.append("$lte", LocalDate.parse(filters.getTo(), DateTimeFormatter.ISO_LOCAL_DATE))));
+        Optional.ofNullable(filters.getFrom()).ifPresent(value -> query.append(CREATED_AT, dateQuery.append("$gte", LocalDate.parse(filters.getFrom(), DateTimeFormatter.ISO_LOCAL_DATE))));
+        Optional.ofNullable(filters.getTo()).ifPresent(value -> query.append(CREATED_AT, dateQuery.append("$lte", LocalDate.parse(filters.getTo(), DateTimeFormatter.ISO_LOCAL_DATE))));
         if(!dateQuery.isEmpty()) {
-            query.append("createdAt", dateQuery);
+            query.append(CREATED_AT, dateQuery);
         }
         query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
         return query;

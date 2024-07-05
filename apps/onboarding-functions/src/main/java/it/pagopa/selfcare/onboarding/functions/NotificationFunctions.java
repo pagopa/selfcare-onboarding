@@ -151,7 +151,7 @@ public class NotificationFunctions {
         String filtersInJson = objectMapper.writeValueAsString(filters);
         DurableTaskClient client = durableContext.getClient();
         String instanceId = client.scheduleNewOrchestrationInstance("NotificationsSender", filtersInJson);
-        context.getLogger().info(String.format("%s %s", CREATED_NEW_RESEND_NOTIFICATIONS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
+        context.getLogger().info(() -> String.format("%s %s", CREATED_NEW_RESEND_NOTIFICATIONS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
         return durableContext.createCheckStatusResponse(request, instanceId);
     }
@@ -175,7 +175,7 @@ public class NotificationFunctions {
 
     @FunctionName(RESEND_NOTIFICATIONS_ACTIVITY)
     public String resendNotificationsActivity(@DurableActivityTrigger(name = "filtersString") String filtersString, final ExecutionContext context) throws JsonProcessingException {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, RESEND_NOTIFICATIONS_ACTIVITY, filtersString));
+        context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, RESEND_NOTIFICATIONS_ACTIVITY, filtersString));
 
         ResendNotificationsFilters filters;
         try {
@@ -186,7 +186,7 @@ public class NotificationFunctions {
 
         ResendNotificationsFilters nextFilters = notificationEventResenderService.resendNotifications(filters, context);
 
-        context.getLogger().info("Resend notifications activity completed, nextFilter = " + nextFilters);
+        context.getLogger().info(() -> "Resend notifications activity completed, nextFilter = " + nextFilters);
         return Objects.nonNull(nextFilters) ? objectMapper.writeValueAsString(nextFilters) : null;
     }
 

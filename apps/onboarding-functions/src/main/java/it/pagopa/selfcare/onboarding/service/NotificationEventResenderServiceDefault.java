@@ -15,8 +15,8 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
     private final NotificationEventService notificationEventService;
     private final OnboardingService onboardingService;
 
-    private final static String RESEND_ENDING_LOG = "Resend notifications for page %s completed with %s notifications sent successfully and %s notifications not sent";
-    private final static String RESEND_ENDING_LOG_LAST_PAGE = "There aren't more notifications to resend, page %s completed with %s notifications sent successfully and %s notifications not sent";
+    private static final String RESEND_ENDING_LOG = "Resend notifications for page %s completed with %s notifications sent successfully and %s notifications not sent";
+    private static final String RESEND_ENDING_LOG_LAST_PAGE = "There aren't more notifications to resend, page %s completed with %s notifications sent successfully and %s notifications not sent";
 
 
     public NotificationEventResenderServiceDefault(NotificationEventService notificationEventService, OnboardingService onboardingService) {
