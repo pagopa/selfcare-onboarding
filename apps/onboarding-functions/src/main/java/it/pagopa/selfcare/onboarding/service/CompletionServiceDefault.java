@@ -91,15 +91,15 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     OnboardingMapper onboardingMapper;
 
-    @ConfigProperty(name = "onboarding-functions.persist-users.active")
-    private boolean isUserMSActive;
+    @ConfigProperty(name = "onboarding-functions.persist-users.send-mail")
+    private boolean hasToSendEmail;
 
     @ConfigProperty(name = "onboarding-function.force-institution-persist")
     private boolean forceInstitutionCreation;
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
-        InstitutionResponse institutionResponse = null;
+        InstitutionResponse institutionResponse;
         //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
         if(forceInstitutionCreation){
             institutionResponse = createInstitution(onboarding.getInstitution());
@@ -224,17 +224,15 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistUsers(Onboarding onboarding) {
-        if(isUserMSActive) {
-
-            for(User user: onboarding.getUsers()) {
-                AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
-                userRoleDto.setUserMailUuid(user.getUserMailUuid());
-                userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
-                userRoleDto.getProduct().setTokenId(onboarding.getId());
-                try (Response response = userApi.usersUserIdPost(user.getId(), userRoleDto)) {
-                    if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                        throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
-                    }
+        for (User user: onboarding.getUsers()) {
+            AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+            userRoleDto.hasToSendEmail(hasToSendEmail);
+            userRoleDto.setUserMailUuid(user.getUserMailUuid());
+            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+            userRoleDto.getProduct().setTokenId(onboarding.getId());
+            try (Response response = userApi.usersUserIdPost(user.getId(), userRoleDto)) {
+                if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
                 }
             }
         }
