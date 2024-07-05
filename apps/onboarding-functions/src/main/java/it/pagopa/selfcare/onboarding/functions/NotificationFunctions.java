@@ -157,8 +157,8 @@ public class NotificationFunctions {
     }
 
     /**
-     * This function is the orchestrator that manages the resend notifications process, it just calls the activity
-     * that performs the actual work
+     * This function is the orchestrator that manages the resend notifications process, it is responsible for invoking
+     * the activity function "NotificationsSender" until there are no more notifications to resend.
      */
     @FunctionName("NotificationsSender")
     public void notificationsSenderOrchestrator(
@@ -173,6 +173,14 @@ public class NotificationFunctions {
         functionContext.getLogger().info("Resend notifications orchestration completed");
     }
 
+    /**
+     * It is triggered by the orchestrator function "NotificationsSender", and is responsible for a resend of single page of notifications.
+     *
+     * @param filtersString JSON string representing the filters to be applied when resending notifications.
+     * @param context ExecutionContext provided by the Azure Functions runtime, used for logging.
+     * @return JSON string representing the next set of filters to be applied in the next iteration of the activity, or null if there are no more notifications to resend.
+     * @throws JsonProcessingException if there is an error parsing the filtersString into a ResendNotificationsFilters object.
+     */
     @FunctionName(RESEND_NOTIFICATIONS_ACTIVITY)
     public String resendNotificationsActivity(@DurableActivityTrigger(name = "filtersString") String filtersString, final ExecutionContext context) throws JsonProcessingException {
         context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, RESEND_NOTIFICATIONS_ACTIVITY, filtersString));
@@ -184,6 +192,7 @@ public class NotificationFunctions {
             throw new NotificationException("Error occurred during json parsing of filters", e);
         }
 
+        // This method returns a new set of filters for the next page of onboardings to be resent, or null if there are no more onboardings to resend
         ResendNotificationsFilters nextFilters = notificationEventResenderService.resendNotifications(filters, context);
 
         context.getLogger().info(() -> "Resend notifications activity completed, nextFilter = " + nextFilters);
