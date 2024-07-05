@@ -24,6 +24,8 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
 
+    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests);
+
     Uni<OnboardingGet> approve(String onboardingId);
 
     Uni<Onboarding> complete(String tokenId, File contract);

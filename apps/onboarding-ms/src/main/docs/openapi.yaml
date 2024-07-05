@@ -154,6 +154,31 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/aggregation/completion:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: Perform onboarding aggregation as /onboarding but completing the onboarding
+        request to COMPLETED phase. The operation will be performed async due to the
+        possible amount of time the process could take.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/check-manager:
     post:
       tags:

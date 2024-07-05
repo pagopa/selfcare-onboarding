@@ -787,6 +787,26 @@ class OnboardingControllerTest {
                 .checkManager(any());
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationComplete() {
+
+        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingBaseValid)
+                .contentType(ContentType.JSON)
+                .post("/aggregation/completion")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingAggregationCompletion(any(), any());
+    }
+
+
     private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("status", "COMPLETED");
