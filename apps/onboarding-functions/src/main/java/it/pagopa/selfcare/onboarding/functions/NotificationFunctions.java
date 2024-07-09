@@ -114,7 +114,7 @@ public class NotificationFunctions {
      */
     @FunctionName("CountNotifications")
     public HttpResponseMessage countNotifications(
-            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            @HttpTrigger(name = "req", route = "onboardings/notifications/count", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("count trigger processed a request");
 
