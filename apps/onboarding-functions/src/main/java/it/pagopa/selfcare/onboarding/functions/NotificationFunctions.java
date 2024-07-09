@@ -64,7 +64,7 @@ public class NotificationFunctions {
 
         try {
             onboarding = readOnboardingValue(objectMapper, onboardingString);
-            context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
+            context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_ONBOARDING_NOTIFICATION, onboardingString));
         } catch (Exception ex) {
             context.getLogger().warning(() -> "Error during sendNotifications execution, msg: " + ex.getMessage());
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
