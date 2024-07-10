@@ -986,6 +986,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
             responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), request.getSubunitCode(), null, null);
+        } else  if (Objects.nonNull(request.getTaxCode())) {
+            responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), null, null, null);
         } else {
             responseUni = institutionApi.getInstitutionsUsingGET(null, null, request.getOrigin(), request.getOriginId());
         }

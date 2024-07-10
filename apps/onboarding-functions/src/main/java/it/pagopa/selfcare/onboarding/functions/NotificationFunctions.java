@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.durabletask.DurableTaskClient;
@@ -37,9 +38,11 @@ public class NotificationFunctions {
     private final NotificationEventResenderService notificationEventResenderService;
     private final ObjectMapper objectMapper;
 
+
     public NotificationFunctions(ObjectMapper objectMapper,
                                  NotificationEventService notificationEventService,
-                                 OnboardingService onboardingService, NotificationEventResenderService notificationEventResenderService) {
+                                 OnboardingService onboardingService,
+                                 NotificationEventResenderService notificationEventResenderService) {
         this.objectMapper = objectMapper;
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;

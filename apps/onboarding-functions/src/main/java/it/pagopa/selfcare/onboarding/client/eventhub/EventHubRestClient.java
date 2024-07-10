@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.client.eventhub;
 
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.client.auth.EventhubSasTokenAuthorization;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.POST;
@@ -16,7 +17,7 @@ public interface EventHubRestClient {
 
     @POST
     @Path("{hubName}/messages")
-    void sendMessage(@PathParam("hubName") String topicName, String notification);
+    Uni<Void> sendMessage(@PathParam("hubName") String topicName, String notification);
 
 }
 

@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -40,6 +41,9 @@ public class NotificationEventServiceDefaultTest {
     @InjectMock
     ProductService productService;
 
+    @InjectMock
+    private TelemetryClient telemetryClient;
+
     @RestClient
     @InjectMock
     EventHubRestClient eventHubRestClient;
@@ -68,7 +72,9 @@ public class NotificationEventServiceDefaultTest {
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+
+//        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
