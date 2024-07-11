@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -53,21 +52,23 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final TokenRepository tokenRepository;
     private final ObjectMapper mapper;
     private final QueueEventExaminer queueEventExaminer;
-
+    @ConfigProperty(name = "onboarding-functions.appinsights.connection-string")
+    private String appInsightsConnectionString;
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
                                            TokenRepository tokenRepository,
-                                           QueueEventExaminer queueEventExaminer,
-                                           TelemetryClient telemetryClient) {
+                                           QueueEventExaminer queueEventExaminer
+            , TelemetryClient telemetryClient
+    ) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
         this.telemetryClient = telemetryClient;
-        telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
+        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }

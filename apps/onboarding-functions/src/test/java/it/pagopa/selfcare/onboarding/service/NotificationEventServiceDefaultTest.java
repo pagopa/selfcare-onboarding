@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
