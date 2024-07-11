@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -21,6 +22,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -52,6 +54,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final ObjectMapper mapper;
     private final QueueEventExaminer queueEventExaminer;
 
+
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
@@ -62,7 +65,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.tokenRepository = tokenRepository;
-        this.queueEventExaminer = queueEventExaminer;this.telemetryClient = telemetryClient;
+        this.queueEventExaminer = queueEventExaminer;
+        this.telemetryClient = telemetryClient;
         telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

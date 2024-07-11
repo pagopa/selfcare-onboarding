@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -96,7 +94,7 @@ public class CompletionServiceDefault implements CompletionService {
     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail")
     private boolean hasToSendEmail;
 
-    @ConfigProperty(name = "onboarding-function.force-institution-persist")
+    @ConfigProperty(name = "onboarding-functions.force-institution-persist")
     private boolean forceInstitutionCreation;
 
     @Override
@@ -337,12 +335,5 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
         onboardingRepository.persistOrUpdate(onboardingToUpdate);
         return onboardingToUpdate.getId();
-    }
-
-    @ApplicationScoped
-    public TelemetryClient telemetryClient(@ConfigProperty(name = "onboarding-function.appinsights.connection-string") String appInsightsConnectionString) {
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        return new TelemetryClient(telemetryConfiguration);
     }
 }
