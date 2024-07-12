@@ -109,4 +109,9 @@ app_settings = {
   "ARUBA_SIGN_SERVICE_BASE_URL"                    = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
   "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"          = "60000"
   "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"          = "60000"
+
+  "JWT_TOKEN_EXCHANGE_ISSUER"                          = "https://uat.selfcare.pagopa.it"
+  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-exchange-private-key/)"
+  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-exchange-kid/)"
+
 }

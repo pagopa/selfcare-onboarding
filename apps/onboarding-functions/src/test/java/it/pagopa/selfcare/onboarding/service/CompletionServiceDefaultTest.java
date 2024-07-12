@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
@@ -500,12 +499,12 @@ public class CompletionServiceDefaultTest {
         onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
-        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+        when(userControllerApi.usersUserIdPost(any(), any(), any())).thenReturn(response);
 
         completionServiceDefault.persistUsers(onboarding);
 
         Mockito.verify(userControllerApi, times(1))
-                .usersUserIdPost(any(), any());
+                .usersUserIdPost(any(), any(), any());
     }
 
     @Test
@@ -519,7 +518,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setUsers(List.of(user));
 
         Response response = new ServerResponse(null, 500, null);
-        when(userControllerApi.usersUserIdPost(any(), any())).thenReturn(response);
+        when(userControllerApi.usersUserIdPost(any(), any(), any())).thenReturn(response);
 
         assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
 
@@ -602,7 +601,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void testCreateAggregateOnboardingRequest() throws JsonProcessingException {
+    void testCreateAggregateOnboardingRequest() {
         // Given
         OnboardingAggregateOrchestratorInput input = createSampleOnboardingInput();
         Onboarding onboardingToUpdate = createSampleOnboarding();
