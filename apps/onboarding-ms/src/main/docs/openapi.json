@@ -2055,7 +2055,7 @@
         }
       },
       "RowError" : {
-        "required" : [ "row", "cf" ],
+        "required" : [ "row" ],
         "type" : "object",
         "properties" : {
           "row" : {

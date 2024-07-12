@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 public class RowError {
     @NotNull
     private Integer row;
-    @NotNull
+
     private String cf;
     private String reason;
 
