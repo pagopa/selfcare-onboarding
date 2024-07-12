@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.service;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
@@ -69,7 +68,7 @@ public class NotificationEventServiceDefaultTest {
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(eventHubRestClient.sendMessage(anyString(), anyString())).thenReturn(Uni.createFrom().nullItem());
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
@@ -85,7 +84,7 @@ public class NotificationEventServiceDefaultTest {
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(eventHubRestClient.sendMessage(anyString(), anyString())).thenReturn(Uni.createFrom().nullItem());
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         when(queueEventExaminer.determineEventType(any())).thenReturn(QueueEvent.ADD);
         messageServiceDefault.send(context, onboarding, null);
         verify(eventHubRestClient, times(3))
@@ -109,7 +108,7 @@ public class NotificationEventServiceDefaultTest {
         mockNotificationMapper(true);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(eventHubRestClient.sendMessage(anyString(), anyString())).thenReturn(Uni.createFrom().nullItem());
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
@@ -125,7 +124,7 @@ public class NotificationEventServiceDefaultTest {
         mockNotificationMapper(false);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(eventHubRestClient.sendMessage(anyString(), anyString())).thenReturn(Uni.createFrom().nullItem());
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
@@ -141,7 +140,7 @@ public class NotificationEventServiceDefaultTest {
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(eventHubRestClient.sendMessage(anyString(), anyString())).thenReturn(Uni.createFrom().nullItem());
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(9))
                 .sendMessage(anyString(), anyString());

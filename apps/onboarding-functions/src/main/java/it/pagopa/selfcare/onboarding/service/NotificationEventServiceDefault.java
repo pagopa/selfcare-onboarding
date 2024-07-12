@@ -120,9 +120,13 @@ public class NotificationEventServiceDefault implements NotificationEventService
         String message = mapper.writeValueAsString(notificationToSend);
         context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, message));
 
-        eventHubRestClient.sendMessage(topic, message)
-                .onItem().invoke(() -> telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D)))
-                .onFailure().invoke(() -> telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D)));
+        try {
+            eventHubRestClient.sendMessage(topic, message);
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
+            throw new NotificationException(e.getMessage());
+        }
     }
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
