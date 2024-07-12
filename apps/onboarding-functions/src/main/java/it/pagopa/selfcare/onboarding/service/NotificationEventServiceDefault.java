@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -21,6 +22,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
@@ -33,7 +35,7 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboardi
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
 
-    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDINF_FN";
+    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING_FN";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
     private static final String OPERATION_NAME = "ONBOARDING-FN";
@@ -52,22 +54,23 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final TokenRepository tokenRepository;
     private final ObjectMapper mapper;
     private final QueueEventExaminer queueEventExaminer;
-    @ConfigProperty(name = "onboarding-functions.appinsights.connection-string")
-    private String appInsightsConnectionString;
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
                                            TokenRepository tokenRepository,
-                                           QueueEventExaminer queueEventExaminer
-            , TelemetryClient telemetryClient
+                                           QueueEventExaminer queueEventExaminer,
+                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString
+//            , TelemetryClient telemetryClient
     ) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
-        this.telemetryClient = telemetryClient;
+        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
         this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.json.jackson.DatabindCodec;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -85,12 +83,5 @@ public class OnboardingFunctionConfig {
             case SIGNATURE_SOURCE_DISABLED -> new PadesSignServiceImpl(disabledPkcs7HashSignService());
             default -> new PadesSignServiceImpl(pkcs7HashSignService());
         };
-    }
-
-    @ApplicationScoped
-    public TelemetryClient telemetryClient(@ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        return new TelemetryClient(telemetryConfiguration);
     }
 }
