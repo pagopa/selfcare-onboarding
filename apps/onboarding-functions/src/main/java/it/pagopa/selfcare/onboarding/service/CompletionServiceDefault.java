@@ -175,6 +175,10 @@ public class CompletionServiceDefault implements CompletionService {
             return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
+        if(InstitutionType.SCP.equals(institution.getInstitutionType())) {
+            return institutionApi.createInstitutionFromInfocamerePdndUsingPOST(institutionMapper.toInstitutionRequest(institution));
+        }
+
         return institutionApi.createInstitutionUsingPOST(institutionMapper.toInstitutionRequest(institution));
     }
 

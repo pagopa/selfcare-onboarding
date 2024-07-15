@@ -1010,6 +1010,68 @@
         } ]
       }
     },
+    "/institutions/from-infocamere-pdnd" : {
+      "post" : {
+        "tags" : [ "Institution" ],
+        "summary" : "create an institution from infocamere registry using PDND",
+        "description" : "create an institution from infocamere registry using PDND",
+        "operationId" : "createInstitutionFromInfocamerePdndUsingPOST",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/InstitutionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstitutionResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/institutions/from-ipa" : {
       "post" : {
         "tags" : [ "Institution" ],
@@ -1548,7 +1610,7 @@
     },
     "/institutions/{id}" : {
       "get" : {
-        "tags" : [ "Institution", "external-v2" ],
+        "tags" : [ "Institution", "external-pnpg", "external-v2", "internal-v1" ],
         "summary" : "Gets the corresponding institution using internal institution id",
         "description" : "Gets the corresponding institution using internal institution id",
         "operationId" : "retrieveInstitutionByIdUsingGET",
@@ -1751,6 +1813,16 @@
           }
         },
         "responses" : {
+          "200" : {
+            "description" : "User already exists an onboarding in status ACTIVE or SUSPENDED with that productId",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstitutionResponse"
+                }
+              }
+            }
+          },
           "201" : {
             "description" : "Created",
             "content" : {
@@ -1861,9 +1933,74 @@
         } ]
       }
     },
+    "/institutions/{id}/products/{productId}" : {
+      "delete" : {
+        "tags" : [ "Institution" ],
+        "summary" : "The service set DELETE status on onboarding association with the product and institutionId",
+        "description" : "The service set DELETE status on onboarding association with the product and institutionId",
+        "operationId" : "deleteOnboardedInstitutionUsingDELETE",
+        "parameters" : [ {
+          "name" : "productId",
+          "in" : "path",
+          "description" : "productId",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/institutions/{institutionId}/createdAt" : {
       "put" : {
-        "tags" : [ "Institution" ],
+        "tags" : [ "Institution", "internal-v1" ],
         "summary" : "The service updates the createdAt field for the institution-product pair",
         "description" : "The service updates the createdAt field for the institution-product pair",
         "operationId" : "updateCreatedAtUsingPUT",

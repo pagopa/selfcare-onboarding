@@ -346,6 +346,34 @@ public class CompletionServiceDefaultTest {
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
 
+    @Test
+    void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateSCP() {
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.SCP);
+        onboarding.setInstitution(institution);
+
+        WebApplicationException e = new WebApplicationException(404);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+                .thenThrow(e);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
+                null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        when(institutionApi.createInstitutionFromInfocamerePdndUsingPOST(any())).thenReturn(institutionResponse);
+
+        mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
+
+        ArgumentCaptor<InstitutionRequest> captor = ArgumentCaptor.forClass(InstitutionRequest.class);
+        verify(institutionApi, times(1))
+                .createInstitutionFromInfocamerePdndUsingPOST(captor.capture());
+        assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
+    }
+
 
 
     void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
