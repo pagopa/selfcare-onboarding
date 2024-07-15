@@ -1514,7 +1514,6 @@ components:
     RowError:
       required:
       - row
-      - cf
       type: object
       properties:
         row:
