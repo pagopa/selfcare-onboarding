@@ -101,6 +101,7 @@ public class NotificationEventServiceDefaultTest {
     @Test
     void sendMessageWithoutToken() {
         final Onboarding onboarding = createOnboarding();
+        onboarding.setId("123");
         final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.empty());
