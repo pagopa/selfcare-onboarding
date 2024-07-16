@@ -4,7 +4,9 @@ import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.dto.InstitutionToNotify;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
@@ -25,10 +27,11 @@ import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -189,6 +192,36 @@ public class NotificationEventServiceDefaultTest {
         verifyNoInteractions(tokenRepository);
         verifyNoInteractions(institutionApi);
         verifyNoInteractions(eventHubRestClient);
+    }
+
+    @Test
+    void notificationEventMapTest() {
+        NotificationToSend notificationToSend =  new NotificationToSend();
+        notificationToSend.setId("id");
+        InstitutionToNotify institution = new InstitutionToNotify();
+        institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.SA);
+        institution.setDigitalAddress("mail");
+        notificationToSend.setInstitution(institution);
+        notificationToSend.setInternalIstitutionID("internal");
+        notificationToSend.setProduct("prod");
+        notificationToSend.setState("state");
+        notificationToSend.setFileName("fileName");
+        notificationToSend.setFilePath("filePath");
+        notificationToSend.setContentType("contentType");
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend);
+        assertNotNull(properties);
+        assertEquals(properties.get("id"), "id");
+        assertEquals(properties.get("internalIstitutionID"), "internal");
+        assertEquals(properties.get("product"), "prod");
+        assertEquals(properties.get("state"), "state");
+        assertEquals(properties.get("fileName"), "fileName");
+        assertEquals(properties.get("filePath"), "filePath");
+        assertEquals(properties.get("contentType"), "contentType");
+
+        assertEquals(properties.get("description"), "description");
+        assertEquals(properties.get("digitalAddress"), "mail");
+        assertEquals(properties.get("institutionType"), "SA");
     }
 
     private Onboarding createOnboarding() {
