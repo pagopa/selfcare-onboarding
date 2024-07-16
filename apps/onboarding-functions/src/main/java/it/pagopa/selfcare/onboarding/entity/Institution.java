@@ -232,4 +232,16 @@ public class Institution {
     public void setParentDescription(String parentDescription) {
         this.parentDescription = parentDescription;
     }
+
+    @Override
+    public String toString() {
+        return "Institution{" +
+                "id='" + id + '\'' +
+                ", taxCode='" + taxCode + '\'' +
+                ", description=" + description +
+                ", digitalAddress=" + digitalAddress +
+                ", origin=" + origin +
+                ", originId=" + originId +
+                '}';
+    }
 }

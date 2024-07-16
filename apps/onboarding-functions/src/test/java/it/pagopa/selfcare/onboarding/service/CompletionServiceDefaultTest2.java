@@ -34,7 +34,7 @@ public class CompletionServiceDefaultTest2 {
     public static class ForceCreationProfile implements QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
-            return Map.of("onboarding-function.force-institution-persist", "true");
+            return Map.of("onboarding-functions.force-institution-persist", "true");
         }
     }
 

@@ -37,9 +37,11 @@ public class NotificationFunctions {
     private final NotificationEventResenderService notificationEventResenderService;
     private final ObjectMapper objectMapper;
 
+
     public NotificationFunctions(ObjectMapper objectMapper,
                                  NotificationEventService notificationEventService,
-                                 OnboardingService onboardingService, NotificationEventResenderService notificationEventResenderService) {
+                                 OnboardingService onboardingService,
+                                 NotificationEventResenderService notificationEventResenderService) {
         this.objectMapper = objectMapper;
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;

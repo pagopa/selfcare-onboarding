@@ -4,6 +4,8 @@ package it.pagopa.selfcare.onboarding.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -20,19 +22,24 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboarding;
 
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
 
+    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING-FN";
+    public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
+    public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
+    private static final String OPERATION_NAME = "ONBOARDING-FN";
+    private final TelemetryClient telemetryClient;
     @RestClient
     @Inject
     EventHubRestClient eventHubRestClient;
@@ -52,12 +59,17 @@ public class NotificationEventServiceDefault implements NotificationEventService
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
                                            TokenRepository tokenRepository,
-                                           QueueEventExaminer queueEventExaminer) {
+                                           QueueEventExaminer queueEventExaminer,
+                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
+        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
@@ -79,9 +91,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 queueEvent = queueEventExaminer.determineEventType(onboarding);
             }
 
-            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
-
+            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             for (String consumer : product.getConsumers()) {
                 NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
@@ -105,7 +116,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
         String message = mapper.writeValueAsString(notificationToSend);
         context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, message));
-        eventHubRestClient.sendMessage(topic, message);
+
+        try {
+            eventHubRestClient.sendMessage(topic, message);
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
+            throw new NotificationException(e.getMessage());
+        }
     }
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
@@ -119,4 +137,48 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
     }
 
+    public static Map<String, String> notificationEventMap(NotificationToSend notificationToSend) {
+        Map<String, String> propertiesMap = new HashMap<>();
+        Optional.ofNullable(notificationToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
+        Optional.ofNullable(notificationToSend.getInternalIstitutionID()).ifPresent(value -> propertiesMap.put("internalIstitutionID", value));
+        Optional.ofNullable(notificationToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));
+        Optional.ofNullable(notificationToSend.getProduct()).ifPresent(value -> propertiesMap.put("product", value));
+        Optional.ofNullable(notificationToSend.getState()).ifPresent(value -> propertiesMap.put("state", value));
+        Optional.ofNullable(notificationToSend.getFilePath()).ifPresent(value -> propertiesMap.put("filePath", value));
+        Optional.ofNullable(notificationToSend.getFileName()).ifPresent(value -> propertiesMap.put("fileName", value));
+        Optional.ofNullable(notificationToSend.getContentType()).ifPresent(value -> propertiesMap.put("contentType", value));
+        Optional.ofNullable(notificationToSend.getOnboardingTokenId()).ifPresent(value -> propertiesMap.put("onboardingTokenId", value));
+        Optional.ofNullable(notificationToSend.getPricingPlan()).ifPresent(value -> propertiesMap.put("pricingPlan", value));
+
+        if (Optional.ofNullable(notificationToSend.getInstitution()).isPresent()) {
+            Optional.ofNullable(notificationToSend.getInstitution().getDescription()).ifPresent(value -> propertiesMap.put("description", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getInstitutionType()).ifPresent(value -> propertiesMap.put("institutionType", value.name()));
+            Optional.ofNullable(notificationToSend.getInstitution().getDigitalAddress()).ifPresent(value -> propertiesMap.put("digitalAddress", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getAddress()).ifPresent(value -> propertiesMap.put("address", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getTaxCode()).ifPresent(value -> propertiesMap.put("taxCode", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getOrigin()).ifPresent(value -> propertiesMap.put("origin", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getOriginId()).ifPresent(value -> propertiesMap.put("originId", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getIstatCode()).ifPresent(value -> propertiesMap.put("istatCode", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getCity()).ifPresent(value -> propertiesMap.put("city", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getCountry()).ifPresent(value -> propertiesMap.put("country", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getCounty()).ifPresent(value -> propertiesMap.put("county", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getSubUnitCode()).ifPresent(value -> propertiesMap.put("subUnitCode", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getCategory()).ifPresent(value -> propertiesMap.put("category", value));
+            Optional.ofNullable(notificationToSend.getInstitution().getSubUnitType()).ifPresent(value -> propertiesMap.put("subUnitType", value));
+            if (Optional.ofNullable(notificationToSend.getInstitution().getRootParent()).isPresent()) {
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getId()).ifPresent(value -> propertiesMap.put("root.parentId", value));
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getDescription()).ifPresent(value -> propertiesMap.put("root.parentDescription", value));
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getOriginId()).ifPresent(value -> propertiesMap.put("root.parentOriginId", value));
+            }
+        }
+
+        if (Optional.ofNullable(notificationToSend.getBilling()).isPresent()) {
+            Optional.ofNullable(notificationToSend.getBilling().getRecipientCode()).ifPresent(value -> propertiesMap.put("billing.recipientCode", value));
+            Optional.ofNullable(notificationToSend.getBilling().getTaxCodeInvoicing()).ifPresent(value -> propertiesMap.put("billing.TaxCodeInvoicing", value));
+            Optional.ofNullable(notificationToSend.getBilling().getVatNumber()).ifPresent(value -> propertiesMap.put("billing.VatNumber", value));
+            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "true" : "false"));
+        }
+
+        return propertiesMap;
+    }
 }

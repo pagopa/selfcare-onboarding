@@ -84,5 +84,4 @@ public class OnboardingFunctionConfig {
             default -> new PadesSignServiceImpl(pkcs7HashSignService());
         };
     }
-
 }
