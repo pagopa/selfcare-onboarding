@@ -176,7 +176,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             Optional.ofNullable(notificationToSend.getBilling().getRecipientCode()).ifPresent(value -> propertiesMap.put("billing.recipientCode", value));
             Optional.ofNullable(notificationToSend.getBilling().getTaxCodeInvoicing()).ifPresent(value -> propertiesMap.put("billing.TaxCodeInvoicing()", value));
             Optional.ofNullable(notificationToSend.getBilling().getVatNumber()).ifPresent(value -> propertiesMap.put("billing.VatNumber", value));
-            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "si" : "no"));
+            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "yes" : "false"));
         }
 
         return propertiesMap;

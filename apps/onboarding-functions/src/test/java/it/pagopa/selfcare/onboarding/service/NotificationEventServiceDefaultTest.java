@@ -6,6 +6,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.dto.BillingToSend;
 import it.pagopa.selfcare.onboarding.dto.InstitutionToNotify;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -198,17 +199,24 @@ public class NotificationEventServiceDefaultTest {
     void notificationEventMapTest() {
         NotificationToSend notificationToSend =  new NotificationToSend();
         notificationToSend.setId("id");
-        InstitutionToNotify institution = new InstitutionToNotify();
-        institution.setDescription("description");
-        institution.setInstitutionType(InstitutionType.SA);
-        institution.setDigitalAddress("mail");
-        notificationToSend.setInstitution(institution);
         notificationToSend.setInternalIstitutionID("internal");
         notificationToSend.setProduct("prod");
         notificationToSend.setState("state");
         notificationToSend.setFileName("fileName");
         notificationToSend.setFilePath("filePath");
         notificationToSend.setContentType("contentType");
+
+        InstitutionToNotify institution = new InstitutionToNotify();
+        institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.SA);
+        institution.setDigitalAddress("mail");
+        notificationToSend.setInstitution(institution);
+
+        BillingToSend billing = new BillingToSend();
+        billing.setRecipientCode("12345");
+        billing.setPublicService(false);
+        notificationToSend.setBilling(billing);
+
         Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend);
         assertNotNull(properties);
         assertEquals(properties.get("id"), "id");
@@ -222,6 +230,9 @@ public class NotificationEventServiceDefaultTest {
         assertEquals(properties.get("description"), "description");
         assertEquals(properties.get("digitalAddress"), "mail");
         assertEquals(properties.get("institutionType"), "SA");
+
+        assertEquals(properties.get("billing.recipientCode"), "12345");
+        assertEquals(properties.get("billing.isPublicService"), "false");
     }
 
     private Onboarding createOnboarding() {
