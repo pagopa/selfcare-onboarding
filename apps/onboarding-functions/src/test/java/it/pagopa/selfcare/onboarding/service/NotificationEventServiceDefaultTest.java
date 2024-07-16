@@ -6,10 +6,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.dto.BillingToSend;
-import it.pagopa.selfcare.onboarding.dto.InstitutionToNotify;
-import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
-import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -233,6 +230,58 @@ public class NotificationEventServiceDefaultTest {
 
         assertEquals(properties.get("billing.recipientCode"), "12345");
         assertEquals(properties.get("billing.isPublicService"), "false");
+    }
+
+    @Test
+    void notificationEventMapRootParentTest() {
+        NotificationToSend notificationToSend =  new NotificationToSend();
+        notificationToSend.setId("id");
+        notificationToSend.setInternalIstitutionID("internal");
+        notificationToSend.setProduct("prod");
+        notificationToSend.setState("state");
+        notificationToSend.setFileName("fileName");
+        notificationToSend.setFilePath("filePath");
+        notificationToSend.setContentType("contentType");
+
+        InstitutionToNotify institution = new InstitutionToNotify();
+        institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.SA);
+        institution.setDigitalAddress("mail");
+        RootParent rootParent = new RootParent();
+        rootParent.setDescription("RootDescription");
+        rootParent.setId("RootId");
+        rootParent.setOriginId("RootOriginId");
+        institution.setRootParent(rootParent);
+        notificationToSend.setInstitution(institution);
+
+        BillingToSend billing = new BillingToSend();
+        billing.setRecipientCode("12345");
+        billing.setPublicService(true);
+        billing.setVatNumber("123");
+        billing.setTaxCodeInvoicing("456");
+        notificationToSend.setBilling(billing);
+
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend);
+        assertNotNull(properties);
+        assertEquals(properties.get("id"), "id");
+        assertEquals(properties.get("internalIstitutionID"), "internal");
+        assertEquals(properties.get("product"), "prod");
+        assertEquals(properties.get("state"), "state");
+        assertEquals(properties.get("fileName"), "fileName");
+        assertEquals(properties.get("filePath"), "filePath");
+        assertEquals(properties.get("contentType"), "application/octet-stream");
+
+        assertEquals(properties.get("description"), "description");
+        assertEquals(properties.get("digitalAddress"), "mail");
+        assertEquals(properties.get("institutionType"), "SA");
+        assertEquals(properties.get("root.parentId"), "RootId");
+        assertEquals(properties.get("root.parentDescription"), "RootDescription");
+        assertEquals(properties.get("root.parentOriginId"), "RootOriginId");
+
+        assertEquals(properties.get("billing.recipientCode"), "12345");
+        assertEquals(properties.get("billing.isPublicService"), "true");
+        assertEquals(properties.get("billing.VatNumber"), "123");
+        assertEquals(properties.get("billing.TaxCodeInvoicing"), "456");
     }
 
     private Onboarding createOnboarding() {

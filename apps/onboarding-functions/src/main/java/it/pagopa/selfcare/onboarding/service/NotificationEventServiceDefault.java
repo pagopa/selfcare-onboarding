@@ -166,17 +166,17 @@ public class NotificationEventServiceDefault implements NotificationEventService
             Optional.ofNullable(notificationToSend.getInstitution().getCategory()).ifPresent(value -> propertiesMap.put("category", value));
             Optional.ofNullable(notificationToSend.getInstitution().getSubUnitType()).ifPresent(value -> propertiesMap.put("subUnitType", value));
             if (Optional.ofNullable(notificationToSend.getInstitution().getRootParent()).isPresent()) {
-                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getId()).ifPresent(value -> propertiesMap.put("RootParentId", value));
-                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getDescription()).ifPresent(value -> propertiesMap.put("RootParentDescription", value));
-                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getOriginId()).ifPresent(value -> propertiesMap.put("RootParentOriginId", value));
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getId()).ifPresent(value -> propertiesMap.put("root.parentId", value));
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getDescription()).ifPresent(value -> propertiesMap.put("root.parentDescription", value));
+                Optional.ofNullable(notificationToSend.getInstitution().getRootParent().getOriginId()).ifPresent(value -> propertiesMap.put("root.parentOriginId", value));
             }
         }
 
         if (Optional.ofNullable(notificationToSend.getBilling()).isPresent()) {
             Optional.ofNullable(notificationToSend.getBilling().getRecipientCode()).ifPresent(value -> propertiesMap.put("billing.recipientCode", value));
-            Optional.ofNullable(notificationToSend.getBilling().getTaxCodeInvoicing()).ifPresent(value -> propertiesMap.put("billing.TaxCodeInvoicing()", value));
+            Optional.ofNullable(notificationToSend.getBilling().getTaxCodeInvoicing()).ifPresent(value -> propertiesMap.put("billing.TaxCodeInvoicing", value));
             Optional.ofNullable(notificationToSend.getBilling().getVatNumber()).ifPresent(value -> propertiesMap.put("billing.VatNumber", value));
-            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "yes" : "false"));
+            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "true" : "false"));
         }
 
         return propertiesMap;
