@@ -217,7 +217,7 @@ public class NotificationEventServiceDefaultTest {
         assertEquals(properties.get("state"), "state");
         assertEquals(properties.get("fileName"), "fileName");
         assertEquals(properties.get("filePath"), "filePath");
-        assertEquals(properties.get("contentType"), "contentType");
+        assertEquals(properties.get("contentType"), "application/octet-stream");
 
         assertEquals(properties.get("description"), "description");
         assertEquals(properties.get("digitalAddress"), "mail");
