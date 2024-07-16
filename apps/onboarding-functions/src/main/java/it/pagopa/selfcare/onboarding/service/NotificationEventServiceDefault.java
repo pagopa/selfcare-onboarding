@@ -35,7 +35,7 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboardi
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
 
-    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING_FN";
+    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING-FN";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
     private static final String OPERATION_NAME = "ONBOARDING-FN";
@@ -60,9 +60,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                                            NotificationBuilderFactory notificationBuilderFactory,
                                            TokenRepository tokenRepository,
                                            QueueEventExaminer queueEventExaminer,
-                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString
-//            , TelemetryClient telemetryClient
-    ) {
+                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
@@ -93,9 +91,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 queueEvent = queueEventExaminer.determineEventType(onboarding);
             }
 
-            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
-
+            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
             for (String consumer : product.getConsumers()) {
                 NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
