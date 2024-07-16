@@ -37,7 +37,7 @@ app_settings = [
     value = "https://selc-u-onboarding-fn.azurewebsites.net"
   },
   {
-    name = "ONBOARDING-CDC-MINUTES-THRESHOLD-FOR-UPDATE-NOTIFICATION"
+    name  = "ONBOARDING-CDC-MINUTES-THRESHOLD-FOR-UPDATE-NOTIFICATION"
     value = "5"
   }
 ]
