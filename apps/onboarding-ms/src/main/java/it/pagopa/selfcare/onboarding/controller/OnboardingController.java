@@ -183,6 +183,7 @@ public class OnboardingController {
 
     @PUT
     @Path("/{onboardingId}/complete")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
         return onboardingService.complete(onboardingId, file)
@@ -210,6 +211,7 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/consume")
     @Tag(name = "support")
+    @Tag(name = "internal-v1")
     @Tag(name = "Onboarding")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {

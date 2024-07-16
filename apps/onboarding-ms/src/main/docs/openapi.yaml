@@ -13,6 +13,7 @@ tags:
 - name: Notification Controller
 - name: Onboarding
 - name: Onboarding Controller
+- name: internal-v1
 - name: support
 paths:
   /v1/aggregates/verification:
@@ -521,7 +522,7 @@ paths:
   /v1/onboarding/{onboardingId}/complete:
     put:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: "Perform complete operation of an onboarding request receiving onboarding\
         \ id and contract signed by the institution.It checks the contract's signature\
         \ and upload the contract on an azure storageAt the end, function triggers\
@@ -597,6 +598,7 @@ paths:
     put:
       tags:
       - support
+      - internal-v1
       - Onboarding
       summary: Perform complete operation of an onboarding request as /complete but
         without signature verification of the contract
@@ -1512,7 +1514,6 @@ components:
     RowError:
       required:
       - row
-      - cf
       type: object
       properties:
         row:

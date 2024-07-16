@@ -34,7 +34,6 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 public class OnboardingFunctions {
 
     public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
-
     private final OnboardingService service;
     private final CompletionService completionService;
     private final ObjectMapper objectMapper;

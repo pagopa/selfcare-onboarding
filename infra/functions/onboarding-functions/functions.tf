@@ -63,11 +63,11 @@ resource "azurerm_key_vault_access_policy" "keyvault_functions_access_policy" {
 }
 
 data "azurerm_resource_group" "nat_rg" {
-  name     = "${local.base_domain_name}-nat-rg"
+  name = "${local.base_domain_name}-nat-rg"
 }
 
 data "azurerm_resource_group" "vnet_rg" {
-  name     = "${local.base_domain_vnet_name}-vnet-rg"
+  name = "${local.base_domain_vnet_name}-vnet-rg"
 }
 
 data "azurerm_public_ip" "pip_outbound" {
