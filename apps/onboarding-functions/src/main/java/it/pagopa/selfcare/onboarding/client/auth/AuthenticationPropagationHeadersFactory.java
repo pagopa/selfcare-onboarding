@@ -18,7 +18,7 @@ public class AuthenticationPropagationHeadersFactory implements ClientHeadersFac
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
         String bearerToken;
-        if (!incomingHeaders.isEmpty()) {
+        if (!clientOutgoingHeaders.isEmpty() && clientOutgoingHeaders.containsKey("user-uuid")) {
             final String uuid = incomingHeaders.get("user-uuid").get(0);
             bearerToken = tokenService.createJwt(uuid);
         } else {
