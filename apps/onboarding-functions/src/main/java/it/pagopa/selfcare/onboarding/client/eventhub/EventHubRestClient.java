@@ -8,6 +8,8 @@ import jakarta.ws.rs.PathParam;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
+import java.util.concurrent.CompletionStage;
+
 @RegisterRestClient(configKey = "event-hub")
 @ApplicationScoped
 @Path("/")
@@ -16,7 +18,7 @@ public interface EventHubRestClient {
 
     @POST
     @Path("{hubName}/messages")
-    void sendMessage(@PathParam("hubName") String topicName, String notification);
+    Void sendMessage(@PathParam("hubName") String topicName, String notification);
 
 }
 
