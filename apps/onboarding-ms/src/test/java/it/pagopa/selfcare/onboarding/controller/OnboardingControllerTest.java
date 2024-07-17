@@ -21,8 +21,6 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
-import jakarta.ws.rs.core.Response;
-import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -624,9 +622,12 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void verifyOnboarding() {
+    void verifyOnboardingNoContentType() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
         when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
-                .thenReturn(Uni.createFrom().item(Response.status(HttpStatus.SC_NO_CONTENT).build()));
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
 
@@ -636,6 +637,26 @@ class OnboardingControllerTest {
                 .head("/verify")
                 .then()
                 .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingResourceNotFound() {
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(404);
 
         verify(onboardingService, times(1))
                 .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
