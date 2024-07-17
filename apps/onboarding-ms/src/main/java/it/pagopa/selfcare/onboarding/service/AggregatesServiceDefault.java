@@ -83,7 +83,7 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private static Uni<Void> mapToErrorRow(CsvAggregate csvAggregate, Throwable throwable, AggregatesCsvResponse aggregatesCsvResponse) {
-        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregate.getRowNumber(), "", throwable.getMessage()));
+        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregate.getRowNumber(), csvAggregate.getTaxCode(), throwable.getMessage()));
         return Uni.createFrom().voidItem();
     }
 

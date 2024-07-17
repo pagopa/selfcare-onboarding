@@ -94,7 +94,7 @@ public class CompletionServiceDefault implements CompletionService {
     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail")
     private boolean hasToSendEmail;
 
-    @ConfigProperty(name = "onboarding-function.force-institution-persist")
+    @ConfigProperty(name = "onboarding-functions.force-institution-persist")
     private boolean forceInstitutionCreation;
 
     @Override

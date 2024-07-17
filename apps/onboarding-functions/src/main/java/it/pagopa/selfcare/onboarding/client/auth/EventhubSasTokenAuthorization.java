@@ -35,8 +35,9 @@ public class EventhubSasTokenAuthorization implements ClientRequestFilter {
         NotificationConfig.Consumer consumerConfiguration = notificationConfig.consumers().values().stream()
                 .filter(consumer -> consumer.topic().equals(topic))
                 .findFirst().orElse(null);
-        if(Objects.nonNull(consumerConfiguration))
+        if (Objects.nonNull(consumerConfiguration)) {
             clientRequestContext.getHeaders().add("Authorization", getSASToken(resourceUri.toString(), consumerConfiguration.name(), consumerConfiguration.key()));
+        }
     }
 
     private static String getSASToken(String resourceUri, String keyName, String key) {

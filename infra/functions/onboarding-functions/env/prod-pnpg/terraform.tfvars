@@ -39,11 +39,12 @@ storage_account_info = {
 }
 
 app_settings = {
-  "USER_REGISTRY_URL"                = "https://api.pdv.pagopa.it/user-registry/v1",
-  "MONGODB_CONNECTION_URI"           = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
-  "USER_REGISTRY_API_KEY"            = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
-  "BLOB_STORAGE_CONN_STRING_PRODUCT" = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
-  "STORAGE_CONTAINER_PRODUCT"        = "selc-p-product",
+  "APPLICATIONINSIGHTS_CONNECTION_STRING" = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/appinsights-connection-string/)",
+  "USER_REGISTRY_URL"                     = "https://api.pdv.pagopa.it/user-registry/v1",
+  "MONGODB_CONNECTION_URI"                = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/mongodb-connection-string/)",
+  "USER_REGISTRY_API_KEY"                 = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/user-registry-api-key/)",
+  "BLOB_STORAGE_CONN_STRING_PRODUCT"      = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-product-connection-string/)",
+  "STORAGE_CONTAINER_PRODUCT"             = "selc-p-product",
 
   ## PNPG contains template mail in checkout storage
   "BLOB_STORAGE_CONN_STRING_CONTRACT" = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/blob-storage-contract-connection-string/)",
@@ -58,27 +59,27 @@ app_settings = {
   "MAIL_SERVER_PORT"              = "465",
   "MAIL_TEMPLATE_COMPLETE_PATH"   = "resources/templates/email/onboarding_1.0.0.json",
 
-  "MS_USER_URL"           = "https://selc-p-pnpg-user-ms-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
-  "MS_CORE_URL"           = "https://selc-p-pnpg-ms-core-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
-  "JWT_BEARER_TOKEN"      = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_PARTY_REGISTRY_URL" = "https://selc-p-pnpg-party-reg-proxy-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
-  "PAGOPA_LOGO_ENABLE"    = "false"
-  "RETRY_MAX_ATTEMPTS"    = "3"
-  "FIRST_RETRY_INTERVAL"  = "5"
-  "BACKOFF_COEFFICIENT"   = "1"
-  "EVENT_HUB_BASE_PATH"                                = "https://selc-p-eventhub-ns.servicebus.windows.net",
-  "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
-  "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"           = "string"
-  "STANDARD_TOPIC_NAME"                                = "SC-Contracts"
-  "SAP_SHARED_ACCESS_KEY_NAME"                         = "external-interceptor-wo"
-  "EVENTHUB_SC_CONTRACTS_SAP_SELFCARE_WO_KEY_LC"       = "string"
-  "SAP_TOPIC_NAME"                                     = "SC-Contracts-SAP"
-  "FD_SHARED_ACCESS_KEY_NAME"                          = "external-interceptor-wo"
-  "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "string"
-  "FD_TOPIC_NAME"                                      = "Selfcare-FD"
-  "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP"
-  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
-  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
+  "MS_USER_URL"                                  = "https://selc-p-pnpg-user-ms-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"                                  = "https://selc-p-pnpg-ms-core-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
+  "JWT_BEARER_TOKEN"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
+  "MS_PARTY_REGISTRY_URL"                        = "https://selc-p-pnpg-party-reg-proxy-ca.calmmoss-0be48755.westeurope.azurecontainerapps.io",
+  "PAGOPA_LOGO_ENABLE"                           = "false"
+  "RETRY_MAX_ATTEMPTS"                           = "3"
+  "FIRST_RETRY_INTERVAL"                         = "5"
+  "BACKOFF_COEFFICIENT"                          = "1"
+  "EVENT_HUB_BASE_PATH"                          = "https://selc-p-eventhub-ns.servicebus.windows.net",
+  "STANDARD_SHARED_ACCESS_KEY_NAME"              = "selfcare-wo"
+  "EVENTHUB_SC_CONTRACTS_SELFCARE_WO_KEY_LC"     = "string"
+  "STANDARD_TOPIC_NAME"                          = "SC-Contracts"
+  "SAP_SHARED_ACCESS_KEY_NAME"                   = "external-interceptor-wo"
+  "EVENTHUB_SC_CONTRACTS_SAP_SELFCARE_WO_KEY_LC" = "string"
+  "SAP_TOPIC_NAME"                               = "SC-Contracts-SAP"
+  "FD_SHARED_ACCESS_KEY_NAME"                    = "external-interceptor-wo"
+  "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"  = "string"
+  "FD_TOPIC_NAME"                                = "Selfcare-FD"
+  "SAP_ALLOWED_INSTITUTION_TYPE"                 = "PA,GSP,SA,AS,SCP"
+  "SAP_ALLOWED_ORIGINS"                          = "IPA,SELC"
+  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"    = "5"
 
   ## IGNORE VALUES
 
