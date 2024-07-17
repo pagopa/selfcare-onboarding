@@ -40,6 +40,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -902,6 +903,23 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .map(Onboarding.class::cast)
                 .map(onboardingMapper::toResponse)
                 .collect().asList();
+    }
+
+    @Override
+    public Uni<Response> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
+        Map<String, String> queryParameter = QueryUtils.createMapForVerifyOnboardingQueryParameter(taxCode, subunitCode, origin, originId, status, productId);
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return Onboarding.find(query).stream()
+                .map(Onboarding.class::cast)
+                .map(onboardingMapper::toResponse)
+                .collect().asList().onItem().transform(onboardingList -> {
+                    if (onboardingList.isEmpty()) {
+                        throw new ResourceNotFoundException(CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getMessage(),
+                                CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getCode());
+                    } else {
+                        return Response.status(HttpStatus.SC_NO_CONTENT).build();
+                    }
+                });
     }
 
     @Override

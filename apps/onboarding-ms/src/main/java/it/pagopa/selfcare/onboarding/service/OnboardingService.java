@@ -10,6 +10,8 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.model.VerifyOnboardingFilters;
+import jakarta.ws.rs.core.Response;
 
 import java.io.File;
 import java.util.List;
@@ -42,6 +44,8 @@ public interface OnboardingService {
 
     Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
 
+    Uni<Response> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId);
+
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
@@ -49,4 +53,5 @@ public interface OnboardingService {
     Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 
     Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
+
 }

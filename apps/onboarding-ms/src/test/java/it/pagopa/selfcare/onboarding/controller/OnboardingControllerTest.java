@@ -21,6 +21,8 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -620,6 +622,25 @@ class OnboardingControllerTest {
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboarding() {
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+                .thenReturn(Uni.createFrom().item(Response.status(HttpStatus.SC_NO_CONTENT).build()));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+    }
+
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId", "prod-io");
@@ -637,6 +658,7 @@ class OnboardingControllerTest {
         queryParameterMap.put("origin", "origin");
         queryParameterMap.put("originId", "originId");
         queryParameterMap.put("status", "PENDING");
+        queryParameterMap.put("productId", "prod-interop");
         return queryParameterMap;
     }
 

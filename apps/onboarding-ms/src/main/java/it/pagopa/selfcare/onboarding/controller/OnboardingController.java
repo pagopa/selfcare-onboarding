@@ -12,7 +12,9 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.model.VerifyOnboardingFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.util.GenericError;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +26,8 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 
@@ -345,5 +349,16 @@ public class OnboardingController {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    }
+
+    @HEAD
+    @Path("/verify")
+    @Operation(summary = "Verify if the onboarded product is already onboarded for the institution")
+    public Uni<Response> verifyOnboardingInfoByFilters(@QueryParam("productId") String productId,
+                                                       @QueryParam("taxCode") String taxCode,
+                                                       @QueryParam("origin") String origin,
+                                                       @QueryParam("originId") String originId,
+                                                       @QueryParam("subunitCode") String subunitCode) {
+        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId);
     }
 }
