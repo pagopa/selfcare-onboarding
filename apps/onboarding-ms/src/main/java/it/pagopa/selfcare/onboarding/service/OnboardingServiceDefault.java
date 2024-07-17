@@ -82,7 +82,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "65";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
 
     @RestClient
