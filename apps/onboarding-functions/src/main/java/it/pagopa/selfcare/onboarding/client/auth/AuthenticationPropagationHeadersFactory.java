@@ -19,7 +19,7 @@ public class AuthenticationPropagationHeadersFactory implements ClientHeadersFac
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
         String bearerToken;
         if (!clientOutgoingHeaders.isEmpty() && clientOutgoingHeaders.containsKey("user-uuid")) {
-            final String uuid = incomingHeaders.get("user-uuid").get(0);
+            final String uuid = clientOutgoingHeaders.get("user-uuid").get(0);
             bearerToken = tokenService.createJwt(uuid);
         } else {
             bearerToken = System.getenv("JWT_BEARER_TOKEN");
