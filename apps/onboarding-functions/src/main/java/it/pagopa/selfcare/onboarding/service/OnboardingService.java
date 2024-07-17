@@ -34,6 +34,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -276,18 +277,30 @@ public class OnboardingService {
         return new NotificationCountResult(productId, total);
     }
 
-    private Document createQuery(String productId, List<OnboardingStatus> status, String from, String to, String dateField) {
+    private Document createQuery(String productId, List<OnboardingStatus> status, String from, String to, String dateField, boolean workflowTypeExist) {
         Document query = new Document();
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
-        query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
-
+         if (workflowTypeExist) {
+             query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+         } else {
+             query.append("workflowType", new Document("$exists", false));
+         }
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
         Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE))));
         if(!dateQuery.isEmpty()) {
             query.append(dateField, dateQuery);
         }
+        return query;
+    }
+
+    private Document createQuery(String productId, List<OnboardingStatus> status, String from, String to, String dateField) {
+        Document query = new Document();
+        List<Document> workflowCriteria = new ArrayList<>();
+        workflowCriteria.add(createQuery(productId, status, from, to, dateField, true));
+        workflowCriteria.add(createQuery(productId, status, from, to, dateField, false));
+        query.append("$or", workflowCriteria);
         return query;
     }
 
