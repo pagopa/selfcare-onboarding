@@ -1,7 +1,7 @@
 prefix           = "selc"
 env_short        = "u"
-suffix_increment = "-001"
-cae_name         = "cae-001"
+suffix_increment = "-002"
+cae_name         = "cae-002"
 
 tags = {
   CreatedBy   = "Terraform"
