@@ -98,6 +98,6 @@ app_settings = {
   "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-id/)"
   "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
   "JWT_TOKEN_EXCHANGE_ISSUER"                          = "https://dev.selfcare.pagopa.it"
-  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-exchange-private-key/)"
-  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-exchange-kid/)"
+  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-private-key/)"
+  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
 }

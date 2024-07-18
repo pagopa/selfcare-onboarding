@@ -1,10 +1,15 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -15,6 +20,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @TestProfile(TokenServiceDefaultTest.TokenProfile.class)
@@ -22,6 +29,10 @@ class TokenServiceDefaultTest {
 
     @Inject
     TokenServiceDefault tokenService;
+
+    @RestClient
+    @InjectMock
+    UserApi userRegistryApi;
 
     public static class TokenProfile implements QuarkusTestProfile {
         @Override
@@ -31,7 +42,8 @@ class TokenServiceDefaultTest {
                     new InputStreamReader(is, StandardCharsets.UTF_8)).lines()
                     .collect(Collectors.joining("\n"));
             return Map.of("onboarding-functions.jwt.token.signing-key", privateKey,
-                    "onboarding-functions.jwt.token.issuer", "https://dev.selfcare.pagopa.it"
+                    "onboarding-functions.jwt.token.issuer", "SPID",
+                    "onboarding-functions.jwt.token.kid", "kid"
             );
         }
     }
@@ -39,6 +51,13 @@ class TokenServiceDefaultTest {
     @Test
     void createJwt() {
         final String userId = "userId";
+        UserResource userResource = new UserResource();
+        userResource.setFiscalCode("fiscalCode");
+        CertifiableFieldResourceOfstring certifiedField = new CertifiableFieldResourceOfstring();
+        certifiedField.setValue("name");
+        userResource.setName(certifiedField);
+        userResource.setFamilyName(certifiedField);
+        when(userRegistryApi.findByIdUsingGET(any(), any())).thenReturn(userResource);
         String jwt = tokenService.createJwt(userId);
         assertTrue(Objects.nonNull(jwt));
     }

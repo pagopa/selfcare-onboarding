@@ -8,6 +8,9 @@ import it.pagopa.selfcare.onboarding.config.TokenConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +26,16 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
 
     @Inject
     TokenConfig tokenConfig;
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
 
     private static final String PRIVATE_KEY_HEADER_TEMPLATE = "-----BEGIN %s-----";
     private static final String PRIVATE_KEY_FOOTER_TEMPLATE = "-----END %s-----";
@@ -42,11 +50,15 @@ public class TokenServiceDefault implements TokenService {
             logger.error("Impossible to get private key. Error: {}", e.getMessage(), e);
             return null;
         }
+        UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userId);
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(new Date())
                 .setIssuer(tokenConfig.issuer())
                 .setExpiration(Date.from(new Date().toInstant().plus(Duration.parse(tokenConfig.duration()))))
+                .claim("family_name", userResource.getFamilyName().getValue())
+                .claim("fiscal_number", userResource.getFiscalCode())
+                .claim("name", userResource.getName().getValue())
                 .claim("uid", userId)
                 .signWith(SignatureAlgorithm.RS256, privateKey)
                 .setHeaderParam(JwsHeader.KEY_ID, tokenConfig.kid())

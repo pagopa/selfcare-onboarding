@@ -106,9 +106,9 @@ app_settings = {
   "MAIL_ONBOARDING_URL"                                = "https://imprese.notifichedigitali.it/onboarding/",
   "USER_MS_SEND_MAIL"                                  = "false",
   "FORCE_INSTITUTION_PERSIST"                          = "true",
-  "JWT_TOKEN_EXCHANGE_ISSUER"                          = "https://pnpg.selfcare.pagopa.it"
-  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-exchange-private-key/)"
-  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-exchange-kid/)"
+  "JWT_TOKEN_EXCHANGE_ISSUER"                          = "SPID"
+  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-private-key/)"
+  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-kid/)"
 
 
 }

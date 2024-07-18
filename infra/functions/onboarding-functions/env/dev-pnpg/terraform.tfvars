@@ -97,7 +97,7 @@ app_settings = {
   "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP"
   "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
-  "JWT_TOKEN_EXCHANGE_ISSUER"                          = "https://pnpg.dev.selfcare.pagopa.it"
-  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-exchange-private-key/)"
-  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-exchange-kid/)"
+  "JWT_TOKEN_EXCHANGE_ISSUER"                          = "SPID"
+  "JWT_TOKEN_EXCHANGE_PRIVATE_KEY"                     = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-private-key/)"
+  "JWT_TOKEN_EXCHANGE_KID"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-pnpg-kv.vault.azure.net/secrets/jwt-kid/)"
 }
