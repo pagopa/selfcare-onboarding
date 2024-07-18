@@ -241,7 +241,6 @@ public class NotificationServiceDefault implements NotificationService {
         try {
             log.info("Sending Test email to {}", senderMail);
 
-
             String html = "TEST EMAIL";
 
             Mail mail = Mail

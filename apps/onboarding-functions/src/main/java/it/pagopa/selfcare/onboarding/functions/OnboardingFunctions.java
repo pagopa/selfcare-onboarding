@@ -274,13 +274,11 @@ public class OnboardingFunctions {
      * After that, It sends a message on topics through the event bus
      */
     @FunctionName("TestSendEmail")
-    public HttpResponseMessage resendNotification(
+    public HttpResponseMessage sendTestEmail(
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("TestSendEmail trigger processed a request");
-
-
-
+        completionService.sendTestEmail();
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }
