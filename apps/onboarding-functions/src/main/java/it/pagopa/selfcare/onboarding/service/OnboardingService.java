@@ -265,9 +265,8 @@ public class OnboardingService {
     }
 
 
-    public NotificationCountResult countNotificationsByFilters(String productId, String from, String to, ExecutionContext context) {
-        Document queryAddEvent = createQuery(productId, List.of(OnboardingStatus.COMPLETED, OnboardingStatus.DELETED), from, to, ACTIVATED_AT_FIELD);
-        Document queryUpdateEvent = createQuery(productId, List.of(OnboardingStatus.DELETED), from, to, DELETED_AT_FIELD);
+    public NotificationCountResult countNotificationsByFilters(String productId, String from, String to, ExecutionContext context) {Document queryAddEvent = getQueryNotificationAdd(productId, from, to);
+        Document queryUpdateEvent = getQueryNotificationDelete(productId, from, to);
 
         long countAddEvents = repository.find(queryAddEvent).count();
         long countUpdateEvents= repository.find(queryUpdateEvent).count();
@@ -275,6 +274,14 @@ public class OnboardingService {
 
         context.getLogger().info(() -> String.format("Counted onboardings for productId: %s add events: %s update events: %s", productId, countAddEvents, countUpdateEvents));
         return new NotificationCountResult(productId, total);
+    }
+
+    private Document getQueryNotificationDelete(String productId, String from, String to) {
+        return createQuery(productId, List.of(OnboardingStatus.DELETED), from, to, DELETED_AT_FIELD);
+    }
+
+    private Document getQueryNotificationAdd(String productId, String from, String to) {
+        return createQuery(productId, List.of(OnboardingStatus.COMPLETED, OnboardingStatus.DELETED), from, to, ACTIVATED_AT_FIELD);
     }
 
     private Document createQuery(String productId, List<OnboardingStatus> status, String from, String to, String dateField, boolean workflowTypeExist) {
