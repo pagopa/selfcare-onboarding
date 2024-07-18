@@ -473,10 +473,11 @@ public class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(2))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(0));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(2));
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
@@ -765,5 +766,23 @@ public class OnboardingFunctionsTest {
         Assertions.assertEquals("delegationId", delegationId);
         verify(completionService, times(1))
                 .createDelegation(any());
+    }
+
+    @Test
+    void sendTestEmail() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendTestEmail(executionContext);
+
+        function.sendTestEmail(req, executionContext);
+
+        verify(completionService, times(1))
+                .sendTestEmail(executionContext);
     }
 }

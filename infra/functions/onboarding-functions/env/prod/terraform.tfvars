@@ -38,6 +38,7 @@ storage_account_info = {
 }
 
 app_settings = {
+  "APPLICATIONINSIGHTS_CONNECTION_STRING"              = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/appinsights-connection-string/)",
   "USER_REGISTRY_URL"                                  = "https://api.pdv.pagopa.it/user-registry/v1",
   "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/mongodb-connection-string/)",
   "USER_REGISTRY_API_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/user-registry-api-key/)",

@@ -34,7 +34,6 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 public class OnboardingFunctions {
 
     public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
-
     private final OnboardingService service;
     private final CompletionService completionService;
     private final ObjectMapper objectMapper;
@@ -268,5 +267,18 @@ public class OnboardingFunctions {
     public String createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         return completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    /**
+     * This HTTP-triggered function retrieves onboarding given its identifier
+     * After that, It sends a message on topics through the event bus
+     */
+    @FunctionName("TestSendEmail")
+    public HttpResponseMessage sendTestEmail(
+            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("TestSendEmail trigger processed a request");
+        completionService.sendTestEmail(context);
+        return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

@@ -102,6 +102,20 @@ public class QueryUtils {
         return queryParameterMap;
     }
 
+    public static Map<String, String> createMapForVerifyOnboardingQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
+        Map<String, String> queryParameterMap = new HashMap<>();
+
+        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
+        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
+        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
+        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
+
+        queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, subunitCode);
+
+        return queryParameterMap;
+    }
+
     public static Map<String, Object> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
         Map<String, Object> queryParameterMap = new HashMap<>();
         Optional.ofNullable(reasonForReject).ifPresent(value -> queryParameterMap.put("reasonForReject", value));

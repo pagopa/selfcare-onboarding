@@ -13,6 +13,7 @@ tags:
 - name: Notification Controller
 - name: Onboarding
 - name: Onboarding Controller
+- name: internal-v1
 - name: support
 paths:
   /v1/aggregates/verification:
@@ -470,6 +471,43 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/verify:
+    head:
+      tags:
+      - Onboarding Controller
+      summary: Verify if the onboarded product is already onboarded for the institution
+      parameters:
+      - name: origin
+        in: query
+        schema:
+          type: string
+      - name: originId
+        in: query
+        schema:
+          type: string
+      - name: productId
+        in: query
+        schema:
+          type: string
+      - name: subunitCode
+        in: query
+        schema:
+          type: string
+      - name: taxCode
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/{onboardingId}:
     get:
       tags:
@@ -521,7 +559,7 @@ paths:
   /v1/onboarding/{onboardingId}/complete:
     put:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: "Perform complete operation of an onboarding request receiving onboarding\
         \ id and contract signed by the institution.It checks the contract's signature\
         \ and upload the contract on an azure storageAt the end, function triggers\
@@ -597,6 +635,7 @@ paths:
     put:
       tags:
       - support
+      - internal-v1
       - Onboarding
       summary: Perform complete operation of an onboarding request as /complete but
         without signature verification of the contract
@@ -1512,7 +1551,6 @@ components:
     RowError:
       required:
       - row
-      - cf
       type: object
       properties:
         row:

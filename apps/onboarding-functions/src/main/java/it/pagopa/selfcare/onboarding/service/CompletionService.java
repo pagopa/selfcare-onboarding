@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
@@ -23,4 +24,6 @@ public interface CompletionService {
     String createDelegation(Onboarding onboarding);
 
     String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+
+    void sendTestEmail(ExecutionContext context);
 }

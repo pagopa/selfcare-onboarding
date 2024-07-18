@@ -82,7 +82,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED = "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "60";
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "65";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
 
     @RestClient
@@ -897,6 +897,16 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status) {
         Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(taxCode, subunitCode, origin, originId, status, null);
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return Onboarding.find(query).stream()
+                .map(Onboarding.class::cast)
+                .map(onboardingMapper::toResponse)
+                .collect().asList();
+    }
+
+    @Override
+    public Uni<List<OnboardingResponse>> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
+        Map<String, String> queryParameter = QueryUtils.createMapForVerifyOnboardingQueryParameter(taxCode, subunitCode, origin, originId, status, productId);
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)

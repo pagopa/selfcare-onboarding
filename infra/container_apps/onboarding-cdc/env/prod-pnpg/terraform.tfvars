@@ -1,6 +1,6 @@
 prefix    = "selc"
 env_short = "p"
-is_pnpg          = true
+is_pnpg   = true
 
 tags = {
   CreatedBy   = "Terraform"

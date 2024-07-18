@@ -1581,6 +1581,23 @@ class OnboardingServiceDefaultTest {
         assertEquals(1, response.size());
     }
 
+    @Test
+    void testVerifyOnboardingNonEmptyList() {
+        Onboarding onboarding = mock(Onboarding.class);
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find(any())).thenReturn(query);
+        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop")
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
+        assertFalse(response.isEmpty());
+        assertEquals(1, response.size());
+    }
+
     @Nested
     @TestProfile(OnboardingTestProfile.class)
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)

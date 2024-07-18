@@ -20,9 +20,9 @@ module "container_app_hub_spid_login" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      type             = "Liveness"
-      failureThreshold = 5
+      timeoutSeconds      = 5
+      type                = "Liveness"
+      failureThreshold    = 5
       initialDelaySeconds = 1
     },
     {
@@ -31,9 +31,9 @@ module "container_app_hub_spid_login" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      type             = "Readiness"
-      failureThreshold = 3
+      timeoutSeconds      = 5
+      type                = "Readiness"
+      failureThreshold    = 3
       initialDelaySeconds = 3
     },
     {
@@ -42,9 +42,9 @@ module "container_app_hub_spid_login" {
         port   = 8080
         scheme = "HTTP"
       }
-      timeoutSeconds   = 5
-      failureThreshold = 30
-      type             = "Startup"
+      timeoutSeconds      = 5
+      failureThreshold    = 30
+      type                = "Startup"
       initialDelaySeconds = 30
     }
   ]

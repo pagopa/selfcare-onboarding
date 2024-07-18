@@ -42,6 +42,8 @@ public interface OnboardingService {
 
     Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
 
+    Uni<List<OnboardingResponse>> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId);
+
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
     Uni<OnboardingGet> onboardingGetWithUserInfo(String onboardingId);
@@ -49,4 +51,5 @@ public interface OnboardingService {
     Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 
     Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
+
 }

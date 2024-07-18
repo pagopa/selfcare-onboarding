@@ -7,7 +7,6 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType;
 
 import java.util.Optional;
 

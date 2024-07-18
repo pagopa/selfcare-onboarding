@@ -20,6 +20,8 @@
   }, {
     "name" : "Onboarding Controller"
   }, {
+    "name" : "internal-v1"
+  }, {
     "name" : "support"
   } ],
   "paths" : {
@@ -678,6 +680,60 @@
         } ]
       }
     },
+    "/v1/onboarding/verify" : {
+      "head" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Verify if the onboarded product is already onboarded for the institution",
+        "parameters" : [ {
+          "name" : "origin",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "originId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "subunitCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taxCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/{onboardingId}" : {
       "get" : {
         "tags" : [ "Onboarding Controller" ],
@@ -746,7 +802,7 @@
     },
     "/v1/onboarding/{onboardingId}/complete" : {
       "put" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "internal-v1" ],
         "summary" : "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution.It checks the contract's signature and upload the contract on an azure storageAt the end, function triggers async activities related to complete onboarding that consist of create the institution, activate the onboarding and sending data to notification queue.",
         "parameters" : [ {
           "name" : "onboardingId",
@@ -840,7 +896,7 @@
     },
     "/v1/onboarding/{onboardingId}/consume" : {
       "put" : {
-        "tags" : [ "support", "Onboarding" ],
+        "tags" : [ "support", "internal-v1", "Onboarding" ],
         "summary" : "Perform complete operation of an onboarding request as /complete but without signature verification of the contract",
         "parameters" : [ {
           "name" : "onboardingId",
@@ -2094,7 +2150,7 @@
         }
       },
       "RowError" : {
-        "required" : [ "row", "cf" ],
+        "required" : [ "row" ],
         "type" : "object",
         "properties" : {
           "row" : {
