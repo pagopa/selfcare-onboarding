@@ -778,11 +778,11 @@ public class OnboardingFunctionsTest {
         }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendTestEmail();
+        doNothing().when(completionService).sendTestEmail(executionContext);
 
         function.sendTestEmail(req, executionContext);
 
         verify(completionService, times(1))
-                .sendTestEmail();
+                .sendTestEmail(executionContext);
     }
 }

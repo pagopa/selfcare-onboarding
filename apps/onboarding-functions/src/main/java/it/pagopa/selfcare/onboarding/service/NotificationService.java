@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 
+import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.product.entity.Product;
@@ -27,5 +28,5 @@ public interface NotificationService {
 
     void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails);
 
-    void sendTestEmail();
+    void sendTestEmail(ExecutionContext context);
 }
