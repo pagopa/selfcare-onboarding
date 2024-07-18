@@ -5,11 +5,13 @@ import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -345,5 +347,24 @@ public class OnboardingController {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    }
+
+    @HEAD
+    @Path("/verify")
+    @Operation(summary = "Verify if the onboarded product is already onboarded for the institution")
+    public Uni<Response> verifyOnboardingInfoByFilters(@QueryParam("productId") String productId,
+                                                       @QueryParam("taxCode") String taxCode,
+                                                       @QueryParam("origin") String origin,
+                                                       @QueryParam("originId") String originId,
+                                                       @QueryParam("subunitCode") String subunitCode) {
+        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId)
+                .onItem().transform(onboardingList -> {
+                    if (onboardingList.isEmpty()) {
+                        throw new ResourceNotFoundException(CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getMessage(),
+                                CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getCode());
+                    } else {
+                        return Response.status(HttpStatus.SC_NO_CONTENT).build();
+                    }
+                });
     }
 }

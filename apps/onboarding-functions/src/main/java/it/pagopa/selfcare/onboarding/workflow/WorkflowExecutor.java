@@ -81,6 +81,7 @@ public interface WorkflowExecutor {
         final String onboardingString = getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding());
         final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
