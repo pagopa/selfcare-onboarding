@@ -278,7 +278,7 @@ public class OnboardingFunctions {
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("TestSendEmail trigger processed a request");
-        completionService.sendTestEmail();
+        completionService.sendTestEmail(context);
         return request.createResponseBuilder(HttpStatus.OK).build();
     }
 }
