@@ -268,4 +268,17 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         return completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
     }
+
+    /**
+     * This HTTP-triggered function retrieves onboarding given its identifier
+     * After that, It sends a message on topics through the event bus
+     */
+    @FunctionName("TestSendEmail")
+    public HttpResponseMessage sendTestEmail(
+            @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("TestSendEmail trigger processed a request");
+        completionService.sendTestEmail();
+        return request.createResponseBuilder(HttpStatus.OK).build();
+    }
 }

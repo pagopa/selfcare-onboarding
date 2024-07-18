@@ -336,4 +336,9 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRepository.persistOrUpdate(onboardingToUpdate);
         return onboardingToUpdate.getId();
     }
+
+    @Override
+    public void sendTestEmail() {
+        notificationService.sendTestEmail();
+    }
 }

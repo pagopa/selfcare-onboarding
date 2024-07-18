@@ -694,6 +694,15 @@ public class CompletionServiceDefaultTest {
         return onboarding;
     }
 
+    @Test
+    void sendTestEmail() {
+        doNothing().when(notificationService).sendTestEmail();
+
+        completionServiceDefault.sendTestEmail();
+
+        Mockito.verify(notificationService, times(1))
+                .sendTestEmail();
+    }
 
 }
 

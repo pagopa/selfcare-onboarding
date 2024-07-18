@@ -767,4 +767,22 @@ public class OnboardingFunctionsTest {
         verify(completionService, times(1))
                 .createDelegation(any());
     }
+
+    @Test
+    void sendTestEmail() {
+        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).sendTestEmail();
+
+        function.sendTestEmail(req, executionContext);
+
+        verify(completionService, times(1))
+                .sendTestEmail();
+    }
 }
