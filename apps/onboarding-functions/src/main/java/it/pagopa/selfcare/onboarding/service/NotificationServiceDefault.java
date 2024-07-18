@@ -236,4 +236,24 @@ public class NotificationServiceDefault implements NotificationService {
         String contentType;
     }
 
+    @Override
+    public void sendTestEmail() {
+        try {
+            log.info("Sending Test email to {}", senderMail);
+
+
+            String html = "TEST EMAIL";
+
+            Mail mail = Mail
+                    .withHtml(senderMail, html, html)
+                    .setFrom(senderMail);
+
+            mailer.send(mail);
+
+            log.info("End of sending mail to {}, with subject {}", senderMail, mail);
+        } catch (Exception e) {
+            log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
+            throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
+        }
+    }
 }

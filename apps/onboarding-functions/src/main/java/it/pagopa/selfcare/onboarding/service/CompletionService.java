@@ -23,4 +23,6 @@ public interface CompletionService {
     String createDelegation(Onboarding onboarding);
 
     String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+
+    void sendTestEmail();
 }

@@ -27,4 +27,5 @@ public interface NotificationService {
 
     void sendCompletedEmailAggregate(String institutionName, List<String> destinationMails);
 
+    void sendTestEmail();
 }
