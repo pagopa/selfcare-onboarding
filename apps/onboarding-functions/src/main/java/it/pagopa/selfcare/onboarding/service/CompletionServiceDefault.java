@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -335,5 +336,10 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
         onboardingRepository.persistOrUpdate(onboardingToUpdate);
         return onboardingToUpdate.getId();
+    }
+
+    @Override
+    public void sendTestEmail(ExecutionContext context) {
+        notificationService.sendTestEmail(context);
     }
 }

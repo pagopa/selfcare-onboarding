@@ -620,6 +620,48 @@ class OnboardingControllerTest {
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingNoContentType() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingResourceNotFound() {
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(404);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+    }
+
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("productId", "prod-io");
@@ -637,6 +679,7 @@ class OnboardingControllerTest {
         queryParameterMap.put("origin", "origin");
         queryParameterMap.put("originId", "originId");
         queryParameterMap.put("status", "PENDING");
+        queryParameterMap.put("productId", "prod-interop");
         return queryParameterMap;
     }
 

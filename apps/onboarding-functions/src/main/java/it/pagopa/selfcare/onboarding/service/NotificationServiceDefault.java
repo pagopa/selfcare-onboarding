@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -236,4 +237,20 @@ public class NotificationServiceDefault implements NotificationService {
         String contentType;
     }
 
+    @Override
+    public void sendTestEmail(ExecutionContext context) {
+        try {
+            context.getLogger().info("Sending Test email to " + senderMail);
+            String html = "TEST EMAIL";
+            Mail mail = Mail
+                    .withHtml(senderMail, html, html)
+                    .setFrom(senderMail);
+
+            mailer.send(mail);
+            context.getLogger().info("End of sending mail to {}, with subject " + senderMail + " with subject " + mail);
+        } catch (Exception e) {
+            context.getLogger().severe(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
+            throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
+        }
+    }
 }

@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -39,6 +40,7 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static org.junit.jupiter.api.Assertions.*;
@@ -693,6 +695,18 @@ public class CompletionServiceDefaultTest {
         return onboarding;
     }
 
+    @Test
+    void sendTestEmail() {
+        ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        
+        doNothing().when(notificationService).sendTestEmail(executionContext);
+
+        completionServiceDefault.sendTestEmail(executionContext);
+
+        Mockito.verify(notificationService, times(1))
+                .sendTestEmail(executionContext);
+    }
 
 }
 
