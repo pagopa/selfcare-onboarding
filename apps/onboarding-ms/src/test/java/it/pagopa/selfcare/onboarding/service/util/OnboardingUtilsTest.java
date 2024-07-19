@@ -42,7 +42,6 @@ public class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithAdditionalInfo(String type) {
 
         Billing billing = new Billing();
-        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
@@ -64,7 +63,6 @@ public class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithAdditionalInfoRequiredException() {
 
         Billing billing = new Billing();
-        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
@@ -86,7 +84,6 @@ public class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithOtherNoteRequiredException() {
 
         Billing billing = new Billing();
-        billing.setRecipientCode("recipientCode");
         Onboarding onboarding =  new Onboarding();
         Institution institution =  new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
@@ -203,6 +200,75 @@ public class OnboardingUtilsTest {
         uOsResource.setItems(List.of(uoResource, uoResource2));
         when(uoApi.findAllUsingGET1(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(uOsResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void checkRecipientCodeNoBilling() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("ipaCode");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.AOO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        uoResource.setCodiceIpa("ipaCode");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UOsResource uOsResource = new UOsResource();
+        uOsResource.setItems(List.of(uoResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void checkRecipientCodeNoAssociation() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("codiceIpe");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.AOO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        uoResource.setCodiceIpa("ipaCode");
+        uoResource.setCodiceFiscaleSfe("taxCodeInvoicing");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UOsResource uOsResource = new UOsResource();
+        uOsResource.setItems(List.of(uoResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
                 .customValidationOnboardingData(onboarding, dummyProduct())

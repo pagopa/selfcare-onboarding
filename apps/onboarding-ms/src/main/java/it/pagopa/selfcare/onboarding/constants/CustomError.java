@@ -11,7 +11,12 @@ public enum CustomError {
     INSTITUTION_NOT_ONBOARDED_BY_FILTERS("0004", "Has not been found an onboarded Institution with the provided filters"),
 
     INSTITUTION_NOT_FOUND("0000","Institution with taxCode %s origin %s originId %s subunitCode %s not found"),
-    USERS_UPDATE_NOT_ALLOWED("0025", "Invalid users information provided");
+    USERS_UPDATE_NOT_ALLOWED("0025", "Invalid users information provided"),
+
+    DENIED_NO_BILLING("0040","Recipient code linked to an institution with invoicing service not active"),
+    DENIED_NO_ASSOCIATION("0041","Recipient code not linked to any institution"),
+    ;
+
 
     private final String code;
     private final String detail;
