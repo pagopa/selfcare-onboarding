@@ -111,5 +111,5 @@ app_settings = {
   "ARUBA_SIGN_SERVICE_BASE_URL"                    = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
   "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"          = "60000"
   "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"          = "60000"
-  "EMAIL_SERVICE_AVAILABLE"                            = "true"
+  "EMAIL_SERVICE_AVAILABLE"                        = "true"
 }
