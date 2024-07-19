@@ -278,6 +278,42 @@ public class OnboardingUtilsTest {
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
+    @Test
+    void checkRecipientCodeSuccess() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("ipaCode");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.AOO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleEnte("taxCode");
+        uoResource.setCodiceIpa("ipaCode");
+        uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UOsResource uOsResource = new UOsResource();
+        uOsResource.setItems(List.of(uoResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding actual = subscriber.awaitItem().getItem();
+        Assert.assertNotNull(actual);
+    }
+
 
     private static AdditionalInformations createSimpleAdditionalInformations(String type) {
         AdditionalInformations additionalInformations = new AdditionalInformations();
