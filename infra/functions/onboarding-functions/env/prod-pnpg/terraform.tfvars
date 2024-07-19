@@ -105,6 +105,6 @@ app_settings = {
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.notifichedigitali.it/onboarding/",
   "USER_MS_SEND_MAIL"                                  = "false",
-  "FORCE_INSTITUTION_PERSIST"                          = "true"
-
+  "FORCE_INSTITUTION_PERSIST"                          = "true",
+  "EMAIL_SERVICE_AVAILABLE"                            = "true"
 }

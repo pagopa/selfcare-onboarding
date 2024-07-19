@@ -100,14 +100,15 @@ app_settings = {
 
 
   ##ARUBA SIGNATURE
-  "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
-  "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"      = "faPagoPa",
-  "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"            = "dsign",
-  "ARUBA_SIGN_SERVICE_IDENTITY_USER"               = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-user/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-psw/)",
-  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_DOMAIN"   = "faPagoPa",
-  "ARUBA_SIGN_SERVICE_BASE_URL"                    = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
-  "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"          = "60000"
-  "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"          = "60000"
+  "PAGOPA_SIGNATURE_SOURCE"                            = "disabled",
+  "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"          = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"                = "dsign",
+  "ARUBA_SIGN_SERVICE_IDENTITY_USER"                   = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_USER"         = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-user/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_PASSWORD"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-delegated-psw/)",
+  "ARUBA_SIGN_SERVICE_IDENTITY_DELEGATED_DOMAIN"       = "faPagoPa",
+  "ARUBA_SIGN_SERVICE_BASE_URL"                        = "https://asbr-pagopa.arubapec.it/ArubaSignService/ArubaSignService"
+  "ARUBA_SIGN_SERVICE_REQUEST_TIMEOUT_MS"              = "60000"
+  "ARUBA_SIGN_SERVICE_CONNECT_TIMEOUT_MS"              = "60000",
+  "EMAIL_SERVICE_AVAILABLE"                            = "true"
 }
