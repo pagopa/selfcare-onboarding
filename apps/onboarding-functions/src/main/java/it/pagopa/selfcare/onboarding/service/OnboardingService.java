@@ -329,7 +329,11 @@ public class OnboardingService {
         if(!dateQuery.isEmpty()) {
             query.append(CREATED_AT, dateQuery);
         }
-        query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+
+        List<Document> workflowCriteria = new ArrayList<>();
+        workflowCriteria.add(new Document("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())));
+        workflowCriteria.add(new Document("workflowType", new Document("$exists", false)));
+        query.append("$or", workflowCriteria);
         return query;
     }
 
