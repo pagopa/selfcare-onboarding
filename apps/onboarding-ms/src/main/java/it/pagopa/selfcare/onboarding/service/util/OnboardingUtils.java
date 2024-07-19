@@ -47,7 +47,7 @@ public class OnboardingUtils {
         if (Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode())) {
             return uoApi.findByUnicodeUsingGET1(onboarding.getBilling().getRecipientCode(), null)
-                    .flatMap(uoResource -> validationRecipientCode(onboarding, uoResource))
+                    .flatMap(uoResource -> validationRecipientCode(onboarding.getInstitution().getOriginId(), uoResource))
                     .onItem().transformToUni(customError -> {
                         if (Objects.nonNull(customError)) {
                             return Uni.createFrom().failure(new InvalidRequestException(customError.getMessage()));
@@ -58,12 +58,12 @@ public class OnboardingUtils {
         return Uni.createFrom().nullItem();
     }
 
-    private Uni<CustomError> validationRecipientCode(Onboarding onboarding, UOResource uoResource) {
+    public Uni<CustomError> validationRecipientCode(String originId, UOResource uoResource) {
+        if (!originId.equals(uoResource.getCodiceIpa())) {
+            return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
+        }
         if (Objects.isNull(uoResource.getCodiceFiscaleSfe())) {
             return Uni.createFrom().item(DENIED_NO_BILLING);
-        }
-        if (!onboarding.getInstitution().getOriginId().equals(uoResource.getCodiceIpa())) {
-            return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
         }
         return Uni.createFrom().nullItem();
     }

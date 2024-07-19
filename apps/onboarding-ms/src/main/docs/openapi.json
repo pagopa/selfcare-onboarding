@@ -296,6 +296,46 @@
         } ]
       }
     },
+    "/v1/onboarding/checkRecipientCode" : {
+      "get" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "check if recipientCode is valid or not",
+        "parameters" : [ {
+          "name" : "originId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "recipientCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecipientCodeStatus"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/completion" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
@@ -2148,6 +2188,10 @@
             "type" : "string"
           }
         }
+      },
+      "RecipientCodeStatus" : {
+        "enum" : [ "DENIED_NO_BILLING", "DENIED_NO_ASSOCIATION", "ACCEPTED" ],
+        "type" : "string"
       },
       "RowError" : {
         "required" : [ "row" ],
