@@ -131,9 +131,6 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     OnboardingValidationStrategy onboardingValidationStrategy;
 
-    @InjectMock
-    OnboardingUtils onboardingUtils;
-
     @Spy
     OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
@@ -1607,8 +1604,9 @@ class OnboardingServiceDefaultTest {
     void checkRecipientCodeWithValidResponse() {
         String recipientCode = "recipientCode";
         String originId = "originId";
-        CustomError customError = CustomError.DENIED_NO_BILLING;
+        CustomError customError = CustomError.DENIED_NO_ASSOCIATION;
         UOResource uoResource = Mockito.mock(UOResource.class);
+        OnboardingUtils onboardingUtils = Mockito.mock(OnboardingUtils.class);
         // Mock the response from uoApi.findByUnicodeUsingGET1
         when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
