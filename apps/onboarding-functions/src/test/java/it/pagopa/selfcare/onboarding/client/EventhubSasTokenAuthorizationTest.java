@@ -23,7 +23,7 @@ public class EventhubSasTokenAuthorizationTest {
     @Test
     void filter() throws URISyntaxException {
         ClientRequestContext clientRequest = mock(ClientRequestContext.class);
-        URI uri = new URI("http://test.it/SC-Contracts-SAP");
+        final URI uri = new URI("http://test.it/SC-Contracts-SAP");
         when(clientRequest.getUri()).thenReturn(uri);
         when(clientRequest.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         eventhubSasTokenAuthorization.filter(clientRequest);

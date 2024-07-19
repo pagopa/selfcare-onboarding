@@ -80,13 +80,13 @@ public class NotificationEventServiceDefault implements NotificationEventService
             return;
         }
 
-        Product product = productService.getProduct(onboarding.getProductId());
-        if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
-            context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
-            return;
-        }
-
         try {
+            Product product = productService.getProduct(onboarding.getProductId());
+            if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
+                context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
+                return;
+            }
+
             if(Objects.isNull(queueEvent)) {
                 queueEvent = queueEventExaminer.determineEventType(onboarding);
             }
@@ -183,7 +183,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             Optional.ofNullable(notificationToSend.getBilling().getRecipientCode()).ifPresent(value -> propertiesMap.put("billing.recipientCode", value));
             Optional.ofNullable(notificationToSend.getBilling().getTaxCodeInvoicing()).ifPresent(value -> propertiesMap.put("billing.TaxCodeInvoicing", value));
             Optional.ofNullable(notificationToSend.getBilling().getVatNumber()).ifPresent(value -> propertiesMap.put("billing.VatNumber", value));
-            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", value ? "true" : "false"));
+            Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", Boolean.TRUE.equals(value) ? "true" : "false"));
         }
 
         return propertiesMap;

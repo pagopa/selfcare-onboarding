@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service.util;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
+import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
@@ -16,7 +17,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
 
-import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
 public class OnboardingUtils {
@@ -38,7 +39,33 @@ public class OnboardingUtils {
                     .flatMap(uoResource -> checkParentTaxCode(onboarding, uoResource))
                     .onItem().transformToUni(o -> checkTaxCodeInvoicing(onboarding, product));
         }
-        return additionalChecksForProduct(onboarding, product);
+        return checkRecipientCode(onboarding)
+                .replaceWith(additionalChecksForProduct(onboarding, product));
+    }
+
+    private Uni<Void> checkRecipientCode(Onboarding onboarding) {
+        if (Objects.nonNull(onboarding.getBilling())
+                && Objects.nonNull(onboarding.getBilling().getRecipientCode())) {
+            return uoApi.findByUnicodeUsingGET1(onboarding.getBilling().getRecipientCode(), null)
+                    .flatMap(uoResource -> validationRecipientCode(onboarding, uoResource))
+                    .onItem().transformToUni(customError -> {
+                        if (Objects.nonNull(customError)) {
+                            return Uni.createFrom().failure(new InvalidRequestException(customError.getMessage()));
+                        }
+                        return Uni.createFrom().nullItem();
+                    });
+        }
+        return Uni.createFrom().nullItem();
+    }
+
+    private Uni<CustomError> validationRecipientCode(Onboarding onboarding, UOResource uoResource) {
+        if (Objects.isNull(uoResource.getCodiceFiscaleSfe())) {
+            return Uni.createFrom().item(DENIED_NO_BILLING);
+        }
+        if (!onboarding.getInstitution().getOriginId().equals(uoResource.getCodiceIpa())) {
+            return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
+        }
+        return Uni.createFrom().nullItem();
     }
 
     private Uni<Void> checkParentTaxCode(Onboarding onboarding, UOResource uoResource) {

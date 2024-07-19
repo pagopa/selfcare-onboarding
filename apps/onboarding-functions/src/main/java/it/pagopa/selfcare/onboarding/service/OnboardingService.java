@@ -54,6 +54,7 @@ public class OnboardingService {
     public static final String ACTIVATED_AT_FIELD = "activatedAt";
     public static final String DELETED_AT_FIELD = "deletedAt";
     public static final String CREATED_AT = "createdAt";
+    private static final String WORKFLOW_TYPE = "workFlowType";
 
     @RestClient
     @Inject
@@ -289,9 +290,9 @@ public class OnboardingService {
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
          if (workflowTypeExist) {
-             query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+             query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
          } else {
-             query.append("workflowType", new Document("$exists", false));
+             query.append(WORKFLOW_TYPE, new Document("$exists", false));
          }
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
@@ -329,7 +330,11 @@ public class OnboardingService {
         if(!dateQuery.isEmpty()) {
             query.append(CREATED_AT, dateQuery);
         }
-        query.append("workflowType", new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+
+        List<Document> workflowCriteria = new ArrayList<>();
+        workflowCriteria.add(new Document(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())));
+        workflowCriteria.add(new Document(WORKFLOW_TYPE, new Document("$exists", false)));
+        query.append("$or", workflowCriteria);
         return query;
     }
 
