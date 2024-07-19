@@ -51,7 +51,6 @@ class NotificationServiceDefaultTest {
     }
 
     @Test
-    @RunOnVertxContext
     @DisplayName("Should try to send all notifications when notifications api calls succeed")
     public void shouldTryToSendAllNotifications() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
@@ -65,10 +64,10 @@ class NotificationServiceDefaultTest {
 
         subscriber.assertCompleted().awaitSubscription().assertItem(null);
         verify(notificationApi, times(3)).apiNotificationPost(any(), any());
+        subscriber.cancel();
     }
 
     @Test
-    @RunOnVertxContext
     @DisplayName("Should try to send all notifications when notifications api calls throw ignorable error")
     public void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
@@ -85,6 +84,7 @@ class NotificationServiceDefaultTest {
 
         subscriber.assertCompleted().awaitSubscription();
         verify(notificationApi, times(3)).apiNotificationPost(any(), any());
+        subscriber.cancel();
     }
 
     @Test
