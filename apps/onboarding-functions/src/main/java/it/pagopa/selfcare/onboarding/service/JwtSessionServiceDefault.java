@@ -29,7 +29,7 @@ import java.util.UUID;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 
 @ApplicationScoped
-public class TokenServiceDefault implements TokenService {
+public class JwtSessionServiceDefault implements JwtSessionService {
 
     @Inject
     TokenConfig tokenConfig;
@@ -39,7 +39,7 @@ public class TokenServiceDefault implements TokenService {
 
     private static final String PRIVATE_KEY_HEADER_TEMPLATE = "-----BEGIN %s-----";
     private static final String PRIVATE_KEY_FOOTER_TEMPLATE = "-----END %s-----";
-    private final Logger logger = LoggerFactory.getLogger(TokenServiceDefault.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(JwtSessionServiceDefault.class.getName());
 
     @Override
     public String createJwt(String userId) {

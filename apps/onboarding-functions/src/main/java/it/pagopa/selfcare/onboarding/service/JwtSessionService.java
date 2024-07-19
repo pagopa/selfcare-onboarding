@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
-public interface TokenService {
+public interface JwtSessionService {
 
     String createJwt(String userId);
 }

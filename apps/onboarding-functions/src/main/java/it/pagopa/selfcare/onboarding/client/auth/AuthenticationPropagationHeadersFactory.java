@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.client.auth;
 
-import it.pagopa.selfcare.onboarding.service.TokenService;
+import it.pagopa.selfcare.onboarding.service.JwtSessionService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -13,7 +13,7 @@ import java.util.List;
 public class AuthenticationPropagationHeadersFactory implements ClientHeadersFactory {
 
     @Inject
-    TokenService tokenService;
+    JwtSessionService tokenService;
 
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {

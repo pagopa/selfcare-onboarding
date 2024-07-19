@@ -24,17 +24,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-@TestProfile(TokenServiceDefaultTest.TokenProfile.class)
-class TokenServiceDefaultTest {
+@TestProfile(JwtSessionServiceDefaultTest.JwtProfile.class)
+class JwtSessionServiceDefaultTest {
 
     @Inject
-    TokenServiceDefault tokenService;
+    JwtSessionServiceDefault tokenService;
 
     @RestClient
     @InjectMock
     UserApi userRegistryApi;
 
-    public static class TokenProfile implements QuarkusTestProfile {
+    public static class JwtProfile implements QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             InputStream is = getClass().getClassLoader().getResourceAsStream("certs/PKCS1Key.pem");
