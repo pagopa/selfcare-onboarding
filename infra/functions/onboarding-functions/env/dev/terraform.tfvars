@@ -98,4 +98,7 @@ app_settings = {
   "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
   "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-id/)"
   "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+  "JWT_TOKEN_ISSUER"                                   = "SPID"
+  "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-private-key/)"
+  "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
 }

@@ -231,7 +231,7 @@ public class CompletionServiceDefault implements CompletionService {
             userRoleDto.setUserMailUuid(user.getUserMailUuid());
             userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
             userRoleDto.getProduct().setTokenId(onboarding.getId());
-            try (Response response = userApi.usersUserIdPost(user.getId(), userRoleDto)) {
+            try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
                 if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                     throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
                 }

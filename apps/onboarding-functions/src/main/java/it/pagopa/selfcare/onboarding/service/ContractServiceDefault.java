@@ -42,7 +42,6 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
 
-
     private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 

@@ -105,6 +105,10 @@ app_settings = {
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://imprese.notifichedigitali.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://imprese.notifichedigitali.it/onboarding/",
   "USER_MS_SEND_MAIL"                                  = "false",
-  "FORCE_INSTITUTION_PERSIST"                          = "true"
+  "FORCE_INSTITUTION_PERSIST"                          = "true",
+  "JWT_TOKEN_ISSUER"                                   = "SPID"
+  "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-private-key/)"
+  "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-p-pnpg-kv.vault.azure.net/secrets/jwt-kid/)"
+
 
 }
