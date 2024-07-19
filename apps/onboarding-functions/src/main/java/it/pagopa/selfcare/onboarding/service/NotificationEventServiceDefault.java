@@ -98,6 +98,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
             }
         } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
             throw new NotificationException(String.format("Impossible to send notification for onboarding with ID %s", onboarding.getId()), e);
         }
     }
@@ -135,6 +136,12 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 sendNotification(context, topic, notificationToSend);
             }
         }
+    }
+
+    public static Map<String, String> onboardingEventMap(Onboarding onboarding) {
+        Map<String, String> propertiesMap = new HashMap<>();
+        Optional.ofNullable(onboarding.getId()).ifPresent(value -> propertiesMap.put("id", value));
+        return propertiesMap;
     }
 
     public static Map<String, String> notificationEventMap(NotificationToSend notificationToSend) {
