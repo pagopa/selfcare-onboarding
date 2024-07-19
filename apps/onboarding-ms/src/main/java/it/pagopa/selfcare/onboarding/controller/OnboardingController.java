@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -31,6 +32,7 @@ import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -318,7 +320,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Update onboarding request receiving onboarding id." +
-            "Function can change some values. " )
+            "Function can change some values. ")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/update")
@@ -330,7 +332,7 @@ public class OnboardingController {
     }
 
     @Operation(summary = "In the addition administrator flow, it checks " +
-            "if the new manager is equal from old one, returning true " )
+            "if the new manager is equal from old one, returning true ")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
@@ -367,4 +369,22 @@ public class OnboardingController {
                     }
                 });
     }
+
+    @GET
+    @Path("/checkRecipientCode")
+    @Operation(summary = "check if recipientCode is valid or not")
+    public Uni<RecipientCodeStatus> checkRecipientCode(@QueryParam("recipientCode") String recipientCode,
+                                                       @QueryParam("originId") String originId) {
+        return onboardingService.checkRecipientCode(recipientCode, originId)
+                .onItem().transform(customError -> {
+                    if (Objects.nonNull(customError) && customError.name().equals(RecipientCodeStatus.DENIED_NO_BILLING.name())) {
+                        return  RecipientCodeStatus.DENIED_NO_BILLING;
+                    }
+                    if (Objects.nonNull(customError) && customError.name().equals(RecipientCodeStatus.DENIED_NO_ASSOCIATION.name())) {
+                        return  RecipientCodeStatus.DENIED_NO_ASSOCIATION;
+                    }
+                    return RecipientCodeStatus.ACCEPTED;
+                });
+    }
 }
+

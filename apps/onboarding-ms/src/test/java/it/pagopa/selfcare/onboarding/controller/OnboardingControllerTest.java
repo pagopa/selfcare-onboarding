@@ -7,10 +7,12 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
@@ -20,6 +22,7 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -661,6 +664,82 @@ class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
     }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void checkRecipientCodeValid() {
+        String recipientCode = "validRecipientCode";
+        String originId = "validOriginId";
+
+        when(onboardingService.checkRecipientCode(recipientCode, originId))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        Response response = given()
+                .when()
+                .queryParam("recipientCode", recipientCode)
+                .queryParam("originId", originId)
+                .get("/checkRecipientCode")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
+
+        RecipientCodeStatus responseBody = response.as(RecipientCodeStatus.class);
+        assertEquals(RecipientCodeStatus.ACCEPTED, responseBody);
+
+        verify(onboardingService, times(1)).checkRecipientCode(recipientCode, originId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void checkRecipientCodeDeniedNoBilling() {
+        String recipientCode = "recipientCodeNoBilling";
+        String originId = "originIdNoBilling";
+
+        when(onboardingService.checkRecipientCode(recipientCode, originId))
+                .thenReturn(Uni.createFrom().item(CustomError.DENIED_NO_BILLING));
+
+        Response response = given()
+                .when()
+                .queryParam("recipientCode", recipientCode)
+                .queryParam("originId", originId)
+                .get("/checkRecipientCode")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
+
+        RecipientCodeStatus responseBody = response.as(RecipientCodeStatus.class);
+        assertEquals(RecipientCodeStatus.DENIED_NO_BILLING, responseBody);
+
+        verify(onboardingService, times(1)).checkRecipientCode(recipientCode, originId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void checkRecipientCodeDeniedNoAssociation() {
+        String recipientCode = "recipientCodeNoAssociation";
+        String originId = "originIdNoAssociation";
+
+        when(onboardingService.checkRecipientCode(recipientCode, originId))
+                .thenReturn(Uni.createFrom().item(CustomError.DENIED_NO_ASSOCIATION));
+
+        Response response = given()
+                .when()
+                .queryParam("recipientCode", recipientCode)
+                .queryParam("originId", originId)
+                .get("/checkRecipientCode")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
+
+        RecipientCodeStatus responseBody = response.as(RecipientCodeStatus.class);
+        assertEquals(RecipientCodeStatus.DENIED_NO_ASSOCIATION, responseBody);
+
+        verify(onboardingService, times(1)).checkRecipientCode(recipientCode, originId);
+    }
+
 
     private static Map<String, String> getStringStringMap() {
         Map<String, String> queryParameterMap = new HashMap<>();

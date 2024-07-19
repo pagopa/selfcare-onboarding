@@ -18,6 +18,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -35,6 +36,7 @@ import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
+import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
@@ -1596,6 +1598,30 @@ class OnboardingServiceDefaultTest {
         List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
         assertFalse(response.isEmpty());
         assertEquals(1, response.size());
+    }
+
+    @Test
+    void checkRecipientCodeWithValidResponse() {
+        String recipientCode = "recipientCode";
+        String originId = "originId";
+        CustomError customError = CustomError.DENIED_NO_ASSOCIATION;
+        UOResource uoResource = Mockito.mock(UOResource.class);
+        OnboardingUtils onboardingUtils = Mockito.mock(OnboardingUtils.class);
+        // Mock the response from uoApi.findByUnicodeUsingGET1
+        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        // Mock the response from onboardingUtils.validationRecipientCode
+        when(onboardingUtils.validationRecipientCode(eq(originId), eq(uoResource)))
+                .thenReturn(Uni.createFrom().item(customError));
+
+        // Call the method under test
+        onboardingService
+                .checkRecipientCode(recipientCode, originId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted()
+                .assertItem(customError);
     }
 
     @Nested

@@ -1079,6 +1079,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                         }));
     }
 
+    public Uni<CustomError> checkRecipientCode(String recipientCode, String originId) {
+      return uoApi.findByUnicodeUsingGET1(recipientCode, null).onItem()
+               .transformToUni(uoResource ->
+                       onboardingUtils.validationRecipientCode(originId, uoResource));
+    }
+
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
         Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingUpdate(onboarding);
         Document query =  QueryUtils.buildUpdateDocument(queryParameter);

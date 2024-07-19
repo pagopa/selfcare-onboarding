@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -10,6 +11,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 
 import java.io.File;
 import java.util.List;
@@ -51,5 +53,7 @@ public interface OnboardingService {
     Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 
     Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
+
+    Uni<CustomError> checkRecipientCode(String recipientCode, String originId);
 
 }
