@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
@@ -87,7 +88,7 @@ public class Utils {
     }
 
     public static boolean isNotInstitutionOnboarding(Onboarding onboarding) {
-        return !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
+        return Objects.nonNull(onboarding.getWorkflowType()) && !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
     }
 
     public static String getOnboardingAggregateString(ObjectMapper objectMapper, OnboardingAggregateOrchestratorInput onboarding) {
