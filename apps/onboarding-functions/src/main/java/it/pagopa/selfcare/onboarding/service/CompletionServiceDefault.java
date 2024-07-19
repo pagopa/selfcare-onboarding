@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -19,6 +21,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -33,14 +36,12 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
+import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -69,34 +70,49 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
-    @Inject
-    InstitutionMapper institutionMapper;
+    private static final  String EVENT_SEND_COMPLETION_FN_FAILURE = "EventsSendCompletionEmail_failures";
 
-    @Inject
-    OnboardingRepository onboardingRepository;
+    private final InstitutionMapper institutionMapper;
+    private final OnboardingRepository onboardingRepository;
+    private final TokenRepository tokenRepository;
+    private final UserMapper userMapper;
+    private final ProductMapper productMapper;
+    private final NotificationService notificationService;
+    private final ProductService productService;
+    private final OnboardingMapper onboardingMapper;
+    private final TelemetryClient telemetryClient;
+    private final boolean hasToSendEmail;
+    private final boolean isEmailServiceAvailable;
+    private final boolean forceInstitutionCreation;
 
-    @Inject
-    TokenRepository tokenRepository;
-
-    @Inject
-    UserMapper userMapper;
-
-    @Inject
-    ProductMapper productMapper;
-
-    @Inject
-    NotificationService notificationService;
-    @Inject
-    ProductService productService;
-
-    @Inject
-    OnboardingMapper onboardingMapper;
-
-    @ConfigProperty(name = "onboarding-functions.persist-users.send-mail")
-    private boolean hasToSendEmail;
-
-    @ConfigProperty(name = "onboarding-functions.force-institution-persist")
-    private boolean forceInstitutionCreation;
+    public CompletionServiceDefault(ProductService productService,
+                                    NotificationService notificationService,
+                                    OnboardingMapper onboardingMapper,
+                                    UserMapper userMapper,
+                                    ProductMapper productMapper,
+                                    InstitutionMapper institutionMapper,
+                                    OnboardingRepository onboardingRepository,
+                                    TokenRepository tokenRepository,
+                                    @ConfigProperty(name = "onboarding-functions.email.service.available") boolean isEmailServiceAvailable,
+                                    @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
+                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation,
+                                    @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+        this.institutionMapper = institutionMapper;
+        this.onboardingRepository = onboardingRepository;
+        this.tokenRepository = tokenRepository;
+        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+        this.productService = productService;
+        this.notificationService = notificationService;
+        this.onboardingMapper = onboardingMapper;
+        this.userMapper = userMapper;
+        this.productMapper = productMapper;
+        this.isEmailServiceAvailable = isEmailServiceAvailable;
+        this.hasToSendEmail = hasToSendEmail;
+        this.forceInstitutionCreation = forceInstitutionCreation;
+        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
+    }
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
@@ -139,7 +155,7 @@ public class CompletionServiceDefault implements CompletionService {
     /**
      * Function that creates institution based on institution type and Origin,
      * Origin indicates which is the indexes where data come from, for ex. IPA comes from index of Pubbliche Amministrazioni
-     * Look at https://pagopa.atlassian.net/wiki/spaces/SCP/pages/708804909/Glossario for more information about institution type and indexes
+     * Look at <a href="https://pagopa.atlassian.net/wiki/spaces/SCP/pages/708804909/Glossario">...</a> for more information about institution type and indexes
      */
     private InstitutionResponse createInstitution(Institution institution) {
 
@@ -218,9 +234,13 @@ public class CompletionServiceDefault implements CompletionService {
 
         Product product = productService.getProductIsValid(onboarding.getProductId());
 
-        notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
-                onboardingWorkflow);
+        if (isEmailServiceAvailable) {
+            notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
+                    destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                    onboardingWorkflow);
+        } else {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
+        }
     }
 
     @Override

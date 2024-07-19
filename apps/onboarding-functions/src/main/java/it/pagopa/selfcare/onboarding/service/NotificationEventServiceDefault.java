@@ -38,7 +38,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING-FN";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
-    private static final String OPERATION_NAME = "ONBOARDING-FN";
+    public static final String OPERATION_NAME = "ONBOARDING-FN";
     private final TelemetryClient telemetryClient;
     @RestClient
     @Inject
