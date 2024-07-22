@@ -7,10 +7,12 @@ import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
@@ -48,7 +50,8 @@ public class OnboardingUtils {
                 && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
                 && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode())) {
-            return uoApi.findByUnicodeUsingGET1(onboarding.getBilling().getRecipientCode(), null)
+            final String recipientCode = onboarding.getBilling().getRecipientCode();
+            return getUoFromRecipientCode(recipientCode)
                     .flatMap(uoResource -> validationRecipientCode(onboarding.getInstitution().getOriginId(), uoResource))
                     .onItem().transformToUni(customError -> {
                         if (Objects.nonNull(customError)) {
@@ -58,6 +61,17 @@ public class OnboardingUtils {
                     });
         }
         return Uni.createFrom().nullItem();
+    }
+
+    public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
+        return uoApi.findByUnicodeUsingGET1(recipientCode, null)
+                .onFailure(WebApplicationException.class)
+                .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(
+                        String.format(UO_NOT_FOUND.getMessage(),
+                                recipientCode
+                        )))
+                        : Uni.createFrom().failure(ex));
     }
 
     public Uni<CustomError> validationRecipientCode(String originId, UOResource uoResource) {
