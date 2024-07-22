@@ -46,6 +46,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.ClientWebApplicationException;
@@ -1622,6 +1623,36 @@ class OnboardingServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted()
                 .assertItem(customError);
+    }
+
+    @Test
+    void checkRecipientCodeWithGenericError() {
+        final String recipientCode = "recipientCode";
+        final String originId = "originId";
+        RuntimeException exception = new RuntimeException("Generic error");
+        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<CustomError> subscriber = onboardingService
+                .checkRecipientCode(recipientCode, originId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(RuntimeException.class);
+    }
+
+    @Test
+    void checkRecipientCodeWithResourceNotFound() {
+        final String recipientCode = "recipientCode";
+        final String originId = "originId";
+        ClientWebApplicationException exception = new ClientWebApplicationException(HttpStatus.SC_NOT_FOUND);
+        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<CustomError> subscriber = onboardingService
+                .checkRecipientCode(recipientCode, originId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(ResourceNotFoundException.class);
     }
 
     @Nested
