@@ -44,7 +44,9 @@ public class OnboardingUtils {
     }
 
     private Uni<Void> checkRecipientCode(Onboarding onboarding) {
-        if (Objects.nonNull(onboarding.getBilling())
+        if (Objects.nonNull(onboarding.getInstitution())
+                && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
+                && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode())) {
             return uoApi.findByUnicodeUsingGET1(onboarding.getBilling().getRecipientCode(), null)
                     .flatMap(uoResource -> validationRecipientCode(onboarding.getInstitution().getOriginId(), uoResource))
