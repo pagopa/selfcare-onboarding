@@ -54,7 +54,7 @@ public class OnboardingService {
     public static final String ACTIVATED_AT_FIELD = "activatedAt";
     public static final String DELETED_AT_FIELD = "deletedAt";
     public static final String CREATED_AT = "createdAt";
-    private static final String WORKFLOW_TYPE = "workFlowType";
+    private static final String WORKFLOW_TYPE = "workflowType";
 
     @RestClient
     @Inject
