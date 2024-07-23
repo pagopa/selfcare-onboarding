@@ -214,7 +214,7 @@ public class NotificationEventServiceDefaultTest {
         billing.setPublicService(false);
         notificationToSend.setBilling(billing);
 
-        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend);
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic");
         assertNotNull(properties);
         assertEquals(properties.get("id"), "id");
         assertEquals(properties.get("internalIstitutionID"), "internal");
@@ -261,7 +261,7 @@ public class NotificationEventServiceDefaultTest {
         billing.setTaxCodeInvoicing("456");
         notificationToSend.setBilling(billing);
 
-        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend);
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic");
         assertNotNull(properties);
         assertEquals(properties.get("id"), "id");
         assertEquals(properties.get("internalIstitutionID"), "internal");
