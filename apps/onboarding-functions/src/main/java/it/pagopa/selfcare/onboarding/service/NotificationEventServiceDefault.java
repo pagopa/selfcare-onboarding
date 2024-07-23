@@ -100,7 +100,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             }
         } catch (Exception e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_ERROR, 1D));
-            context.getLogger().severe(String.format("Impossible to send notification for onboarding with ID %s %s", onboarding.getId(), e.getMessage()));
+            context.getLogger().severe(String.format("Impossible to send notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
             throw new NotificationException(String.format("Impossible to send notification for onboarding with ID %s", onboarding.getId()), e);
         }
     }
