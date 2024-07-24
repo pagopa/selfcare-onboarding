@@ -156,6 +156,22 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUpadatedAt(){
+        Onboarding onboarding = createOnboarding();
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("_id", onboarding.getId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("activatedAt.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        completionServiceDefault.persistActivatedAt(onboarding);
+
+        verify(onboardingRepository, times(1))
+                .update("activatedAt = ?1 and updatedAt = ?2 ", any(), any());
+    }
+
+    @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateSaAnac() {
         Onboarding onboarding = createOnboarding();
 
