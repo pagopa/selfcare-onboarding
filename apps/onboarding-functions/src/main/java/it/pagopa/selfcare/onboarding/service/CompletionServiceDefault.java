@@ -116,28 +116,35 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
-        InstitutionResponse institutionResponse;
-        //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
-        if(forceInstitutionCreation){
-            institutionResponse = createInstitution(onboarding.getInstitution());
-        }else {
-            Institution institution = onboarding.getInstitution();
-            InstitutionsResponse institutionsResponse = getInstitutions(institution);
-            if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
-                throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
-            }
+        InstitutionResponse institutionResponse = createOrRetrieveInstitution(onboarding);
 
-            institutionResponse =
-                    Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                            ? createInstitution(institution)
-                            : institutionsResponse.getInstitutions().get(0);
-
+        if (Objects.nonNull(institutionResponse)) {
             onboardingRepository
                     .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
                     .where("_id", onboarding.getId());
-
+            return institutionResponse.getId();
         }
-        return institutionResponse.getId();
+
+        throw new GenericOnboardingException("Error when create institutions!");
+    }
+
+    public InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
+        if (forceInstitutionCreation) {
+            //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
+            return createInstitution(onboarding.getInstitution());
+        }
+
+        Institution institution = onboarding.getInstitution();
+        InstitutionsResponse institutionsResponse = getInstitutions(institution);
+
+        if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
+            throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+        }
+
+        return
+                Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
+                        ? createInstitution(institution)
+                        : institutionsResponse.getInstitutions().get(0);
     }
 
     private InstitutionsResponse getInstitutions(Institution institution) {
