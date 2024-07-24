@@ -120,6 +120,28 @@ public class CompletionServiceDefaultTest {
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
 
+    @Test
+    void createOrRetrieveInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
+                .thenReturn(response);
+
+        assertNotNull(response);
+        assertNotNull(response.getInstitutions());
+        assertEquals(response.getInstitutions().size(), 1);
+        assertEquals(response.getInstitutions().get(0).getId(), "actual-id");
+    }
+
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))

@@ -128,7 +128,7 @@ public class CompletionServiceDefault implements CompletionService {
         throw new GenericOnboardingException("Error when create institutions!");
     }
 
-    private InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
+    public InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
         if (forceInstitutionCreation) {
             //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
             return createInstitution(onboarding.getInstitution());
