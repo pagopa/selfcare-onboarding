@@ -121,7 +121,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createOrRetrieveInstitution() {
+    void createOrRetrieveInstitutionSuccess() {
         Onboarding onboarding = createOnboarding();
         Institution institution = new Institution();
         institution.setId("actual-id");
@@ -136,10 +136,26 @@ public class CompletionServiceDefaultTest {
         when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
 
-        assertNotNull(response);
-        assertNotNull(response.getInstitutions());
-        assertEquals(response.getInstitutions().size(), 1);
-        assertEquals(response.getInstitutions().get(0).getId(), "actual-id");
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals(serviceResponse.getId(), "actual-id");
+    }
+
+    @Test
+    void createOrRetrieveInstitutionFailure() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
+                .thenReturn(response);
+
+        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
     }
 
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
