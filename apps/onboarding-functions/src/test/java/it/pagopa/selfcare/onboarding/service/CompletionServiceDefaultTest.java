@@ -38,6 +38,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -171,6 +172,27 @@ public class CompletionServiceDefaultTest {
 
         verify(onboardingRepository, times(1))
                 .update("institution.id = ?1 and updatedAt = ?2 ", any(), any());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionIdFailure() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
+                .thenReturn(response);
+
+        when(completionServiceDefault.createOrRetrieveInstitution(onboarding))
+                .thenReturn(null);
+
+        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
 
     @Test
