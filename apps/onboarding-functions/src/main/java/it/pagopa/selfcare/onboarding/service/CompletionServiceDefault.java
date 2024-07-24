@@ -137,8 +137,7 @@ public class CompletionServiceDefault implements CompletionService {
         Institution institution = onboarding.getInstitution();
         InstitutionsResponse institutionsResponse = getInstitutions(institution);
 
-        if (Objects.isNull(institutionsResponse.getInstitutions()) ||
-                (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1)) {
+        if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
             throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
         }
 

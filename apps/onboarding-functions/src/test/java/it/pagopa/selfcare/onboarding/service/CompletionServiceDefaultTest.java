@@ -151,6 +151,8 @@ public class CompletionServiceDefaultTest {
         onboarding.setInstitution(institution);
 
         InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        response.setInstitutions(List.of(institutionResponse, institutionResponse));
 
         when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
