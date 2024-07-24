@@ -75,10 +75,10 @@ app_settings = {
   "MAIL_USER_CONFIRMATION_LINK"                        = "https://selfcare.pagopa.it/onboarding/confirm?add-user=true&jwt=",
   "MAIL_ONBOARDING_REJECTION_LINK"                     = "https://selfcare.pagopa.it/onboarding/cancel?jwt=",
   "MAIL_ONBOARDING_URL"                                = "https://selfcare.pagopa.it/onboarding/",
-  "MS_CORE_URL"                                        = "https://selc-p-ms-core-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
+  "MS_CORE_URL"                                        = "https://selc-p-ms-core-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io",
   "JWT_BEARER_TOKEN"                                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)",
-  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
-  "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.greensand-62fc96da.westeurope.azurecontainerapps.io",
+  "MS_USER_URL"                                        = "https://selc-p-user-ms-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io",
+  "MS_PARTY_REGISTRY_URL"                              = "https://selc-p-party-reg-proxy-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io",
   "USER_MS_SEND_MAIL"                                  = "false",
   "EVENT_HUB_BASE_PATH"                                = "https://selc-p-eventhub-ns.servicebus.windows.net",
   "STANDARD_SHARED_ACCESS_KEY_NAME"                    = "selfcare-wo"
