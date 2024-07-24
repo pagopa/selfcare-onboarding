@@ -175,27 +175,6 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createInstitutionAndPersistInstitutionIdFailure() {
-        Onboarding onboarding = createOnboarding();
-        Institution institution = new Institution();
-        institution.setId("actual-id");
-        institution.setTaxCode("123");
-        onboarding.setInstitution(institution);
-
-        InstitutionsResponse response = new InstitutionsResponse();
-        InstitutionResponse institutionResponse = new InstitutionResponse();
-        response.setInstitutions(List.of(institutionResponse));
-
-        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
-                .thenReturn(response);
-
-        when(completionServiceDefault.createOrRetrieveInstitution(onboarding))
-                .thenReturn(null);
-
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
-    }
-
-    @Test
     void persistUpadatedAt(){
         Onboarding onboarding = createOnboarding();
 

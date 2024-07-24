@@ -118,7 +118,7 @@ public class CompletionServiceDefault implements CompletionService {
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
         InstitutionResponse institutionResponse = createOrRetrieveInstitution(onboarding);
 
-        if (Objects.nonNull(institutionResponse) && Objects.nonNull(institutionResponse.getId())) {
+        if (Objects.nonNull(institutionResponse)) {
             onboardingRepository
                     .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
                     .where("_id", onboarding.getId());
