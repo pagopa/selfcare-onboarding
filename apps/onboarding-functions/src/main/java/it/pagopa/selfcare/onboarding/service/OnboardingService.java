@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static it.pagopa.selfcare.onboarding.utils.Utils.ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
@@ -53,7 +54,6 @@ public class OnboardingService {
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
     public static final String ACTIVATED_AT_FIELD = "activatedAt";
     public static final String DELETED_AT_FIELD = "deletedAt";
-    public static final String CREATED_AT = "createdAt";
     private static final String WORKFLOW_TYPE = "workflowType";
 
     @RestClient
@@ -266,7 +266,8 @@ public class OnboardingService {
     }
 
 
-    public NotificationCountResult countNotificationsByFilters(String productId, String from, String to, ExecutionContext context) {Document queryAddEvent = getQueryNotificationAdd(productId, from, to);
+    public NotificationCountResult countNotificationsByFilters(String productId, String from, String to, ExecutionContext context) {
+        Document queryAddEvent = getQueryNotificationAdd(productId, from, to);
         Document queryUpdateEvent = getQueryNotificationDelete(productId, from, to);
 
         long countAddEvents = repository.find(queryAddEvent).count();
@@ -296,7 +297,7 @@ public class OnboardingService {
          }
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
-        Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE))));
+        Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1))));
         if(!dateQuery.isEmpty()) {
             query.append(dateField, dateQuery);
         }
@@ -324,18 +325,36 @@ public class OnboardingService {
         Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> query.append("institution.taxCode", value));
         query.append("status", new Document("$in", filters.getStatus()));
 
-        Document dateQuery = new Document();
-        Optional.ofNullable(filters.getFrom()).ifPresent(value -> query.append(CREATED_AT, dateQuery.append("$gte", LocalDate.parse(filters.getFrom(), DateTimeFormatter.ISO_LOCAL_DATE))));
-        Optional.ofNullable(filters.getTo()).ifPresent(value -> query.append(CREATED_AT, dateQuery.append("$lte", LocalDate.parse(filters.getTo(), DateTimeFormatter.ISO_LOCAL_DATE))));
-        if(!dateQuery.isEmpty()) {
-            query.append(CREATED_AT, dateQuery);
-        }
+        List<Document> dateQueries = createDateQueries(filters);
+        List<Document> workflowCriteria = createWorkflowCriteria();
 
-        List<Document> workflowCriteria = new ArrayList<>();
-        workflowCriteria.add(new Document(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())));
-        workflowCriteria.add(new Document(WORKFLOW_TYPE, new Document("$exists", false)));
-        query.append("$or", workflowCriteria);
+        query.append("$and", List.of(
+            new Document("$or", dateQueries),
+            new Document("$or", workflowCriteria)
+        ));
+
         return query;
+    }
+
+    private List<Document> createDateQueries(ResendNotificationsFilters filters) {
+        return Stream.of(
+            createIntervalQueryForDate(filters, ACTIVATED_AT_FIELD),
+            createIntervalQueryForDate(filters, DELETED_AT_FIELD)
+        ).filter(doc -> !doc.isEmpty()).collect(Collectors.toList());
+    }
+
+    private Document createIntervalQueryForDate(ResendNotificationsFilters filters, String dateField) {
+        Document dateQuery = new Document();
+        Optional.ofNullable(filters.getFrom()).ifPresent(value -> dateQuery.append("$gte", LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE)));
+        Optional.ofNullable(filters.getTo()).ifPresent(value -> dateQuery.append("$lte", LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1)));
+        return new Document(dateField, dateQuery);
+    }
+
+    private List<Document> createWorkflowCriteria() {
+        return List.of(
+            new Document(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())),
+            new Document(WORKFLOW_TYPE, new Document("$exists", false))
+        );
     }
 
     static class SendMailInput {
