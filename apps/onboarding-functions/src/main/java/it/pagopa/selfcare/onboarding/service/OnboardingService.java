@@ -340,7 +340,7 @@ public class OnboardingService {
         return Stream.of(
             createIntervalQueryForDate(filters, ACTIVATED_AT_FIELD),
             createIntervalQueryForDate(filters, DELETED_AT_FIELD)
-        ).filter(doc -> !doc.isEmpty()).collect(Collectors.toList());
+        ).filter(doc -> !doc.isEmpty()).toList();
     }
 
     private Document createIntervalQueryForDate(ResendNotificationsFilters filters, String dateField) {
