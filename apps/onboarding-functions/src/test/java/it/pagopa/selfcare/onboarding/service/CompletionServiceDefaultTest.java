@@ -38,6 +38,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -120,6 +121,46 @@ public class CompletionServiceDefaultTest {
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
 
+    @Test
+    void createOrRetrieveInstitutionSuccess() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals(serviceResponse.getId(), "actual-id");
+    }
+
+    @Test
+    void createOrRetrieveInstitutionFailure() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        response.setInstitutions(List.of(institutionResponse, institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
+                .thenReturn(response);
+
+        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
+    }
+
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
@@ -131,6 +172,22 @@ public class CompletionServiceDefaultTest {
 
         verify(onboardingRepository, times(1))
                 .update("institution.id = ?1 and updatedAt = ?2 ", any(), any());
+    }
+
+    @Test
+    void persistUpadatedAt(){
+        Onboarding onboarding = createOnboarding();
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("_id", onboarding.getId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("activatedAt.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        completionServiceDefault.persistActivatedAt(onboarding);
+
+        verify(onboardingRepository, times(1))
+                .update("activatedAt = ?1 and updatedAt = ?2 ", any(), any());
     }
 
     @Test
