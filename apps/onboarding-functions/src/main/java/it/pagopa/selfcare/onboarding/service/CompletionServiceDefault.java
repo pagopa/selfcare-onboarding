@@ -199,7 +199,19 @@ public class CompletionServiceDefault implements CompletionService {
             return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
+        InstitutionRequest institutionRequest = institutionMapper.toInstitutionRequest(institution);
+        // Override category in case of GSP not present in IPA
+        if (InstitutionType.GSP.equals(institution.getInstitutionType()) && !Origin.IPA.equals(institution.getOrigin())) {
+            setGSPCategory(institutionRequest);
+        }
         return institutionApi.createInstitutionUsingPOST(institutionMapper.toInstitutionRequest(institution));
+    }
+
+    private void setGSPCategory(InstitutionRequest institutionRequest) {
+        AttributesRequest category = new AttributesRequest();
+        category.setCode("L37");
+        category.setDescription("Gestori di Pubblici Servizi");
+        institutionRequest.setAttributes(List.of(category));
     }
 
     private boolean isInstitutionPresentOnIpa(Institution institution) {
