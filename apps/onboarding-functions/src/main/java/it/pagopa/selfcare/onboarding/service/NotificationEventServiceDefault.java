@@ -37,7 +37,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
     public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING-FN";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
-    public static final String EVENT_ONBOARDING_INSTTITUTION_FN_ERROR = "EventsOnboardingInstitution_error";
     public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
     public static final String OPERATION_NAME = "ONBOARDING-FN";
     private final TelemetryClient telemetryClient;
@@ -99,7 +98,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
             }
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_ERROR, 1D));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
             throw new NotificationException(String.format("Impossible to send notification for onboarding with ID %s", onboarding.getId()), e);
         }
@@ -124,7 +123,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
             eventHubRestClient.sendMessage(topic, message);
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
             throw new NotificationException(e.getMessage());
         }
     }
@@ -143,6 +141,12 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public static Map<String, String> onboardingEventMap(Onboarding onboarding) {
         Map<String, String> propertiesMap = new HashMap<>();
         Optional.ofNullable(onboarding.getId()).ifPresent(value -> propertiesMap.put("id", value));
+        return propertiesMap;
+    }
+
+    public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e) {
+        Map<String, String> propertiesMap = onboardingEventMap(onboarding);
+        Optional.ofNullable(e).ifPresent(value -> propertiesMap.put("error", Arrays.toString(e.getStackTrace())));
         return propertiesMap;
     }
 
