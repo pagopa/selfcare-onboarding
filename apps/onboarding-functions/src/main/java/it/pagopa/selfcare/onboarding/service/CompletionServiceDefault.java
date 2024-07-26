@@ -234,26 +234,28 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
+
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
-        List<String> destinationMails = onboarding.getUsers().stream()
-                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
-                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
-                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
-                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
-                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
-                )
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
-                .map(workContract -> workContract.getEmail().getValue())
-                .collect(Collectors.toList());
-
-        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
-
-        Product product = productService.getProductIsValid(onboarding.getProductId());
-
         if (isEmailServiceAvailable) {
+
+            List<String> destinationMails = onboarding.getUsers().stream()
+                    .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                    .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                            .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                    && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                            .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                    )
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                    .map(workContract -> workContract.getEmail().getValue())
+                    .collect(Collectors.toList());
+
+            destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+
+            Product product = productService.getProductIsValid(onboarding.getProductId());
+
             notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
                     destinationMails, product, onboarding.getInstitution().getInstitutionType(),
                     onboardingWorkflow);

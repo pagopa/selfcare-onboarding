@@ -38,7 +38,6 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -96,13 +95,14 @@ public class CompletionServiceDefaultTest {
 
     @Test
     void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
+
         Onboarding onboarding = createOnboarding();
 
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(new InstitutionResponse(), new InstitutionResponse()));
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getSubunitCode(), null, null))
-            .thenReturn(response);
+                .thenReturn(response);
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
@@ -404,7 +404,21 @@ public class CompletionServiceDefaultTest {
         assertEquals(institution.getTaxCode(), captor.getValue().getTaxCode());
     }
 
+    @Test
+    void createInstitutionAndPersistInstitutionId_notAuthorized() {
+        Onboarding onboarding = createOnboarding();
 
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.GSP);
+        onboarding.setInstitution(institution);
+
+        WebApplicationException e = new WebApplicationException(401);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+                .thenThrow(e);
+
+        assertThrows(RuntimeException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
+
+    }
 
     void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
@@ -756,7 +770,7 @@ public class CompletionServiceDefaultTest {
     void sendTestEmail() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        
+
         doNothing().when(notificationService).sendTestEmail(executionContext);
 
         completionServiceDefault.sendTestEmail(executionContext);
