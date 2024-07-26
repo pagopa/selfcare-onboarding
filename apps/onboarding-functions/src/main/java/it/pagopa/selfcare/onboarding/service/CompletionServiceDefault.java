@@ -237,31 +237,26 @@ public class CompletionServiceDefault implements CompletionService {
 
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
-        if (isEmailServiceAvailable) {
+        List<String> destinationMails = onboarding.getUsers().stream()
+                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
+                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
+                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
+                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
+                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
+                .map(workContract -> workContract.getEmail().getValue())
+                .collect(Collectors.toList());
 
-            List<String> destinationMails = onboarding.getUsers().stream()
-                    .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
-                    .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
-                            .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
-                                    && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
-                            .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
-                    )
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
-                    .map(workContract -> workContract.getEmail().getValue())
-                    .collect(Collectors.toList());
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
 
-            destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+        Product product = productService.getProductIsValid(onboarding.getProductId());
 
-            Product product = productService.getProductIsValid(onboarding.getProductId());
-
-            notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                    destinationMails, product, onboarding.getInstitution().getInstitutionType(),
-                    onboardingWorkflow);
-        } else {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
-        }
+        notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
     }
 
     @Override
