@@ -36,12 +36,15 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
-import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
+import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.OPERATION_NAME;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -70,8 +73,6 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
-    private static final  String EVENT_SEND_COMPLETION_FN_FAILURE = "EventsSendCompletionEmail_failures";
-
     private final InstitutionMapper institutionMapper;
     private final OnboardingRepository onboardingRepository;
     private final TokenRepository tokenRepository;
@@ -82,7 +83,6 @@ public class CompletionServiceDefault implements CompletionService {
     private final OnboardingMapper onboardingMapper;
     private final TelemetryClient telemetryClient;
     private final boolean hasToSendEmail;
-    private final boolean isEmailServiceAvailable;
     private final boolean forceInstitutionCreation;
 
     public CompletionServiceDefault(ProductService productService,
@@ -93,7 +93,6 @@ public class CompletionServiceDefault implements CompletionService {
                                     InstitutionMapper institutionMapper,
                                     OnboardingRepository onboardingRepository,
                                     TokenRepository tokenRepository,
-                                    @ConfigProperty(name = "onboarding-functions.email.service.available") boolean isEmailServiceAvailable,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
                                     @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation,
                                     @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
@@ -107,7 +106,6 @@ public class CompletionServiceDefault implements CompletionService {
         this.onboardingMapper = onboardingMapper;
         this.userMapper = userMapper;
         this.productMapper = productMapper;
-        this.isEmailServiceAvailable = isEmailServiceAvailable;
         this.hasToSendEmail = hasToSendEmail;
         this.forceInstitutionCreation = forceInstitutionCreation;
         this.telemetryClient = new TelemetryClient(telemetryConfiguration);
