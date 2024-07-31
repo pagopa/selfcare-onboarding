@@ -43,28 +43,26 @@ public class JwtSessionServiceDefault implements JwtSessionService {
 
     @Override
     public String createJwt(String userId) {
-        PrivateKey privateKey;
-        UserResource userResource;
         try {
-            privateKey = getPrivateKey(tokenConfig.signingKey());
-            userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userId);
+            PrivateKey privateKey = getPrivateKey(tokenConfig.signingKey());
+            UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userId);
+            return Jwts.builder()
+                    .setId(UUID.randomUUID().toString())
+                    .setIssuedAt(new Date())
+                    .setIssuer(tokenConfig.issuer())
+                    .setExpiration(Date.from(new Date().toInstant().plus(Duration.parse(tokenConfig.duration()))))
+                    .claim("family_name", userResource.getFamilyName().getValue())
+                    .claim("fiscal_number", userResource.getFiscalCode())
+                    .claim("name", userResource.getName().getValue())
+                    .claim("uid", userId)
+                    .signWith(SignatureAlgorithm.RS256, privateKey)
+                    .setHeaderParam(JwsHeader.KEY_ID, tokenConfig.kid())
+                    .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                    .compact();
         } catch (Exception e) {
             logger.error("Impossible to create jwt token. Error: {}", e.getMessage(), e);
             return null;
         }
-        return Jwts.builder()
-                .setId(UUID.randomUUID().toString())
-                .setIssuedAt(new Date())
-                .setIssuer(tokenConfig.issuer())
-                .setExpiration(Date.from(new Date().toInstant().plus(Duration.parse(tokenConfig.duration()))))
-                .claim("family_name", userResource.getFamilyName().getValue())
-                .claim("fiscal_number", userResource.getFiscalCode())
-                .claim("name", userResource.getName().getValue())
-                .claim("uid", userId)
-                .signWith(SignatureAlgorithm.RS256, privateKey)
-                .setHeaderParam(JwsHeader.KEY_ID, tokenConfig.kid())
-                .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                .compact();
     }
 
     private PrivateKey getPrivateKey(String signingKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
