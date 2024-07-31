@@ -44,13 +44,14 @@ public class JwtSessionServiceDefault implements JwtSessionService {
     @Override
     public String createJwt(String userId) {
         PrivateKey privateKey;
+        UserResource userResource;
         try {
             privateKey = getPrivateKey(tokenConfig.signingKey());
+            userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userId);
         } catch (Exception e) {
-            logger.error("Impossible to get private key. Error: {}", e.getMessage(), e);
+            logger.error("Impossible to create jwt token. Error: {}", e.getMessage(), e);
             return null;
         }
-        UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userId);
         return Jwts.builder()
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(new Date())
