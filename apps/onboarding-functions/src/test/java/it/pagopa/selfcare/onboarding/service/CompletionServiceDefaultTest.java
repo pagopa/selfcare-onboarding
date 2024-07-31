@@ -518,7 +518,10 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(userResource);
         GenericOnboardingException exception = new GenericOnboardingException("error");
         doThrow(exception).when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
+
         completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmail(any(), any(), any(), any(), any());
 
     }
 
