@@ -24,4 +24,13 @@ class AuthenticationPropagationHeadersFactoryTest {
         authenticationPropagationHeadersFactory.update(incomingHeaders, outgoingHeaders);
         assertTrue(outgoingHeaders.containsKey("Authorization"));
     }
+
+    @Test
+    void emptyHeader() {
+        MultivaluedHashMap<String, String> incomingHeaders = new MultivaluedHashMap<>();
+        MultivaluedHashMap<String, String> outgoingHeaders = new MultivaluedHashMap<>();
+        authenticationPropagationHeadersFactory.update(incomingHeaders, outgoingHeaders);
+        assertTrue(outgoingHeaders.containsKey("Authorization"));
+    }
+
 }
