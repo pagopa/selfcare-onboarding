@@ -18,9 +18,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
@@ -56,12 +54,6 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
-
-    @InjectMock
-    NotificationEventService notificationEventService;
-
-    @Inject
-    OnboardingMapper onboardingMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -695,36 +687,36 @@ public class OnboardingFunctionsTest {
     void sendCompletedEmail() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmail(any());
+        doNothing().when(completionService).sendCompletedEmail(any(), any());
 
         function.sendMailCompletion(onboardingWorkflowString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmail(any());
+                .sendCompletedEmail(any(), any());
     }
 
     @Test
     void sendMailRejection() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendMailRejection(any());
+        doNothing().when(completionService).sendMailRejection(any(), any());
 
         function.sendMailRejection(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendMailRejection(any());
+                .sendMailRejection(any(), any());
     }
 
     @Test
     void sendCompletedEmailAggregate() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmailAggregate(any());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any(), any());
 
         function.sendMailCompletionAggregate(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmailAggregate(any());
+                .sendCompletedEmailAggregate(any(), any());
     }
 
 

@@ -38,7 +38,6 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -486,13 +485,16 @@ public class CompletionServiceDefaultTest {
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
 
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
 
-        completionServiceDefault.sendCompletedEmail(onboardingWorkflow);
+        completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmail(any(), any(), any(), any(), any());
@@ -509,11 +511,13 @@ public class CompletionServiceDefaultTest {
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
 
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
         doNothing().when(notificationService).sendMailRejection(any(), any(), any());
-
-        completionServiceDefault.sendMailRejection(onboarding);
+        completionServiceDefault.sendMailRejection(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRejection(any(), any(), any());
@@ -536,11 +540,14 @@ public class CompletionServiceDefaultTest {
         user.setId("user-id");
         onboarding.setUsers(List.of(user));
 
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
 
-        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
+        completionServiceDefault.sendCompletedEmailAggregate(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmailAggregate(any(), any());
