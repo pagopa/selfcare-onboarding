@@ -78,6 +78,33 @@ class NotificationServiceDefaultTest {
     }
 
     @Test
+    void sendMailRegistrationWithContractAndSendMailInput() {
+
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String onboardingId = "onboardingId";
+        final String destination = "test@test.it";
+
+        Mockito.when(azureBlobClient.getFileAsText(templatePathConfig.registrationPath()))
+                .thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        OnboardingService.SendMailInput sendMailInput = new OnboardingService.SendMailInput();
+        Product product = new Product();
+        product.setTitle("title");
+        sendMailInput.product = product;
+
+        notificationService.sendMailRegistrationForContract(onboardingId, destination, sendMailInput, "default", "default");
+
+        Mockito.verify(azureBlobClient, Mockito.times(1))
+                .getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1))
+                .send(mailArgumentCaptor.capture());
+        assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
     void sendMailRegistrationWithContractAggregator() {
 
         final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
