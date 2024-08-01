@@ -205,8 +205,7 @@ class OnboardingServiceTest {
     void saveToken_shouldSkipIfTokenExists() {
         OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
         Onboarding onboarding = createOnboarding();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
         onboardingWorkflow.setOnboarding(onboarding);
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
@@ -270,8 +269,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
         UserResource userResource = createUserResource();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -313,8 +311,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
         UserResource userResource = createUserResource();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -341,12 +338,43 @@ class OnboardingServiceTest {
     }
 
     @Test
+    void sendMailRegistrationWithContractAggregatorWithError() {
+
+        Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
+        UserResource userResource = createUserResource();
+        Token token = createDummyToken();
+
+        when(tokenRepository.findByOnboardingId(onboarding.getId()))
+                .thenReturn(Optional.of(token));
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+
+        GenericOnboardingException exception = new GenericOnboardingException("errorCode");
+        doThrow(exception).when(notificationService)
+                .sendMailRegistrationForContractAggregator(onboarding.getId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+
+        ExecutionContext context = getExecutionContext();
+        onboardingService.sendMailRegistrationForContractAggregator(context, onboarding);
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationForContractAggregator(onboarding.getId(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+    }
+
+    @Test
     void sendMailRegistrationWithContractWhenApprove() {
 
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -412,6 +440,33 @@ class OnboardingServiceTest {
     }
 
     @Test
+    void sendMailRegistrationWithError() {
+
+        UserResource userResource = createUserResource();
+        Product product = createDummyProduct();
+        Onboarding onboarding = createOnboarding();
+
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+        GenericOnboardingException exception = new GenericOnboardingException("error");
+        doThrow(exception).when(notificationService).sendMailRegistration(onboarding.getInstitution().getDescription(),
+                onboarding.getInstitution().getDigitalAddress(),
+                userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                product.getTitle());
+
+        ExecutionContext context = getExecutionContext();
+        onboardingService.sendMailRegistration(context, onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistration(onboarding.getInstitution().getDescription(),
+                        onboarding.getInstitution().getDigitalAddress(),
+                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
+                        product.getTitle());
+    }
+
+    @Test
     void sendMailRegistrationApprove() {
 
         Onboarding onboarding = createOnboarding();
@@ -424,6 +479,33 @@ class OnboardingServiceTest {
                 .thenReturn(userResource);
 
         doNothing().when(notificationService)
+                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
+
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistrationApprove(context, onboarding);
+
+        Mockito.verify(notificationService, times(1))
+                .sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
+                        userResource.getName().getValue(),
+                        userResource.getFamilyName().getValue(),
+                        product.getTitle(),
+                        onboarding.getId());
+    }
+
+    @Test
+    void sendMailRegistrationApproveWithError() {
+
+        Onboarding onboarding = createOnboarding();
+        Product product = createDummyProduct();
+        UserResource userResource = createUserResource();
+
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+                .thenReturn(userResource);
+        GenericOnboardingException exception = new GenericOnboardingException("Something went wrong");
+        doThrow(exception).when(notificationService)
                 .sendMailRegistrationApprove(any(), any(), any(),any(),any());
 
         ExecutionContext context = getExecutionContext();
@@ -556,4 +638,11 @@ class OnboardingServiceTest {
         doReturn(Logger.getGlobal()).when(context).getLogger();
         return context;
     }
+
+    private Token createDummyToken() {
+        Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
+        return token;
+    }
+
 }
