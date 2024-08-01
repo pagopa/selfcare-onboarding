@@ -375,6 +375,6 @@ public class CompletionServiceDefault implements CompletionService {
                 .map(Optional::get)
                 .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
                 .map(workContract -> workContract.getEmail().getValue())
-                .toList();
+                .collect(Collectors.toList());
     }
 }
