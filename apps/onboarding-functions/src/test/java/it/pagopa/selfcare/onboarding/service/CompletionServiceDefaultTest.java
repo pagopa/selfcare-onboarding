@@ -38,7 +38,6 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
@@ -86,6 +85,14 @@ public class CompletionServiceDefaultTest {
     DelegationApi delegationApi;
 
     final String productId = "productId";
+    private static final UserResource userResource;
+
+    static {
+        userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        Map<String, WorkContactResource> map = new HashMap<>();
+        userResource.setWorkContacts(map);
+    }
 
     public static class UserMSProfile implements QuarkusTestProfile {
         @Override
@@ -102,7 +109,7 @@ public class CompletionServiceDefaultTest {
         response.setInstitutions(List.of(new InstitutionResponse(), new InstitutionResponse()));
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getSubunitCode(), null, null))
-            .thenReturn(response);
+                .thenReturn(response);
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
@@ -473,18 +480,13 @@ public class CompletionServiceDefaultTest {
     @Test
     void sendCompletedEmail() {
 
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-        Map<String, WorkContactResource> map = new HashMap<>();
-        userResource.setWorkContacts(map);
         Product product = createDummyProduct();
         Onboarding onboarding = createOnboarding();
         OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
+        User user = createDummyUser(onboarding);
 
-        User user = new User();
-        user.setRole(PartyRole.MANAGER);
-        user.setId("user-id");
-        onboarding.setUsers(List.of(user));
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
@@ -492,10 +494,35 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
 
-        completionServiceDefault.sendCompletedEmail(onboardingWorkflow);
+        completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmail(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void sendCompletedEmailWithError() {
+
+        Product product = createDummyProduct();
+        Onboarding onboarding = createOnboarding();
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
+
+        User user = createDummyUser(onboarding);
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        when(productService.getProduct(onboarding.getProductId()))
+                .thenReturn(product);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+                .thenReturn(userResource);
+        GenericOnboardingException exception = new GenericOnboardingException("error");
+        doThrow(exception).when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
+
+        completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
+        Mockito.verify(notificationService, times(1))
+                .sendCompletedEmail(any(), any(), any(), any(), any());
+
     }
 
     @Test
@@ -503,17 +530,15 @@ public class CompletionServiceDefaultTest {
 
         Product product = createDummyProduct();
         Onboarding onboarding = createOnboarding();
+        createDummyUser(onboarding);
 
-        User user = new User();
-        user.setRole(PartyRole.MANAGER);
-        user.setId("user-id");
-        onboarding.setUsers(List.of(user));
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
         when(productService.getProduct(onboarding.getProductId()))
                 .thenReturn(product);
         doNothing().when(notificationService).sendMailRejection(any(), any(), any());
-
-        completionServiceDefault.sendMailRejection(onboarding);
+        completionServiceDefault.sendMailRejection(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRejection(any(), any(), any());
@@ -522,25 +547,21 @@ public class CompletionServiceDefaultTest {
     @Test
     void sendCompletedEmailAggregate() {
 
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-        Map<String, WorkContactResource> map = new HashMap<>();
-        userResource.setWorkContacts(map);
         Onboarding onboarding = createOnboarding();
         Aggregator aggregator= new Aggregator();
         aggregator.setDescription("description");
         onboarding.setAggregator(aggregator);
 
-        User user = new User();
-        user.setRole(PartyRole.MANAGER);
-        user.setId("user-id");
-        onboarding.setUsers(List.of(user));
+        User user = createDummyUser(onboarding);
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
 
-        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
+        completionServiceDefault.sendCompletedEmailAggregate(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmailAggregate(any(), any());
@@ -550,11 +571,7 @@ public class CompletionServiceDefaultTest {
     void persistUsers() {
 
         Onboarding onboarding = createOnboarding();
-
-        User user = new User();
-        user.setRole(PartyRole.MANAGER);
-        user.setId("user-id");
-        onboarding.setUsers(List.of(user));
+        createDummyUser(onboarding);
         onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
@@ -568,13 +585,8 @@ public class CompletionServiceDefaultTest {
 
     @Test
     void persistUsersWithException() {
-
         Onboarding onboarding = createOnboarding();
-
-        User user = new User();
-        user.setRole(PartyRole.MANAGER);
-        user.setId("user-id");
-        onboarding.setUsers(List.of(user));
+        createDummyUser(onboarding);
 
         Response response = new ServerResponse(null, 500, null);
         when(userControllerApi.usersUserIdPost(any(), any(), any())).thenReturn(response);
@@ -623,40 +635,6 @@ public class CompletionServiceDefaultTest {
                 () -> completionServiceDefault.createDelegation(onboarding),
                 "Aggregator is null, impossible to create delegation");
         Mockito.verifyNoInteractions(delegationApi);
-    }
-
-    private InstitutionResponse dummyInstitutionResponse() {
-        InstitutionResponse response = new InstitutionResponse();
-        response.setId("response-id");
-        return  response;
-    }
-
-
-    private Onboarding createOnboarding() {
-        Onboarding onboarding = new Onboarding();
-        onboarding.setId(onboarding.getId());
-        onboarding.setProductId(productId);
-        onboarding.setPricingPlan("pricingPlan");
-        onboarding.setUsers(List.of());
-        onboarding.setInstitution(new Institution());
-        onboarding.setUserRequestUid("example-uid");
-
-        Billing billing = new Billing();
-        billing.setPublicServices(true);
-        billing.setRecipientCode("example");
-        billing.setVatNumber("example");
-        billing.setTaxCodeInvoicing("taxCodeInvoicing");
-        onboarding.setBilling(billing);
-        return onboarding;
-    }
-
-    private Product createDummyProduct() {
-        Product product = new Product();
-        product.setContractTemplatePath("example");
-        product.setContractTemplateVersion("version");
-        product.setTitle("Title");
-        product.setId(productId);
-        return product;
     }
 
     @Test
@@ -756,13 +734,55 @@ public class CompletionServiceDefaultTest {
     void sendTestEmail() {
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        
+
         doNothing().when(notificationService).sendTestEmail(executionContext);
 
         completionServiceDefault.sendTestEmail(executionContext);
 
         Mockito.verify(notificationService, times(1))
                 .sendTestEmail(executionContext);
+    }
+
+    private User createDummyUser(Onboarding onboarding) {
+        User user = new User();
+        user.setRole(PartyRole.MANAGER);
+        user.setId("user-id");
+        onboarding.setUsers(List.of(user));
+        return user;
+    }
+
+    private InstitutionResponse dummyInstitutionResponse() {
+        InstitutionResponse response = new InstitutionResponse();
+        response.setId("response-id");
+        return  response;
+    }
+
+
+    private Onboarding createOnboarding() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboarding.getId());
+        onboarding.setProductId(productId);
+        onboarding.setPricingPlan("pricingPlan");
+        onboarding.setUsers(List.of());
+        onboarding.setInstitution(new Institution());
+        onboarding.setUserRequestUid("example-uid");
+
+        Billing billing = new Billing();
+        billing.setPublicServices(true);
+        billing.setRecipientCode("example");
+        billing.setVatNumber("example");
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+        return onboarding;
+    }
+
+    private Product createDummyProduct() {
+        Product product = new Product();
+        product.setContractTemplatePath("example");
+        product.setContractTemplateVersion("version");
+        product.setTitle("Title");
+        product.setId(productId);
+        return product;
     }
 
 }

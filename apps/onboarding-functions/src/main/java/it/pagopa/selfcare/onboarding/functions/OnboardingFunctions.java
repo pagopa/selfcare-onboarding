@@ -237,13 +237,13 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
     public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString));
-        completionService.sendCompletedEmail(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+        completionService.sendCompletedEmail(context, readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)
     public void sendMailRejection(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString));
-        completionService.sendMailRejection(readOnboardingValue(objectMapper, onboardingString));
+        completionService.sendMailRejection(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_USERS_ACTIVITY)
@@ -255,7 +255,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY)
     public void sendMailCompletionAggregate(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString));
-        completionService.sendCompletedEmailAggregate(readOnboardingValue(objectMapper, onboardingString));
+        completionService.sendCompletedEmailAggregate(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
