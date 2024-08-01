@@ -160,7 +160,7 @@ public class CompletionServiceDefault implements CompletionService {
                     onboardingWorkflow);
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_SUCCESS, 1D));
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send completion email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
     }
@@ -200,7 +200,7 @@ public class CompletionServiceDefault implements CompletionService {
             notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding),  Map.of(EVENT_SEND_REJECTION_FN_SUCCESS, 1D));
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REJECTION_FN_FAILURE, 1D));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REJECTION_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send rejection email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
     }
@@ -248,7 +248,7 @@ public class CompletionServiceDefault implements CompletionService {
             notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(), destinationMails);
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_AGGREGATE_FN_SUCCESS, 1D));
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_AGGREGATE_FN_FAILURE, 1D));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_COMPLETION_AGGREGATE_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send completion aggregate email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
     }
@@ -375,6 +375,6 @@ public class CompletionServiceDefault implements CompletionService {
                 .map(Optional::get)
                 .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
                 .map(workContract -> workContract.getEmail().getValue())
-                .collect(Collectors.toList());
+                .toList();
     }
 }
