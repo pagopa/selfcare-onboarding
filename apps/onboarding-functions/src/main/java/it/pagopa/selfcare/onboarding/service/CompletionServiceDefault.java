@@ -43,6 +43,7 @@ import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.utils.Utils.TelemetryConstants.*;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
@@ -70,12 +71,6 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
-    private static final String EVENT_SEND_COMPLETION_FN_FAILURE = "EventsSendCompletionEmail_failures";
-    private static final String EVENT_SEND_COMPLETION_FN_SUCCESS = "EventsSendCompletionEmail_success";
-    private static final String EVENT_SEND_REJECTION_FN_FAILURE = "EventsSendRejectionEmail_failures";
-    private static final String EVENT_SEND_REJECTION_FN_SUCCESS = "EventsSendRejectionEmail_success";
-    private static final String EVENT_SEND_COMPLETION_AGGREGATE_FN_SUCCESS = "EventsSendCompletionAggregateEmail_success";
-    private static final String EVENT_SEND_COMPLETION_AGGREGATE_FN_FAILURE = "EventsSendCompletionAggregateEmail_failures";
     private final InstitutionMapper institutionMapper;
     private final OnboardingRepository onboardingRepository;
     private final TokenRepository tokenRepository;

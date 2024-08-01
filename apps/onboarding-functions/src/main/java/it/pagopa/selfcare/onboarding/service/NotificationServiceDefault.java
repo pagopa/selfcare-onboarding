@@ -30,7 +30,6 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND
 public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
-
     public static final String PAGOPA_LOGO_FILENAME = "pagopa-logo.png";
     private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
     private final MailTemplatePathConfig templatePathConfig;
@@ -40,7 +39,6 @@ public class NotificationServiceDefault implements NotificationService {
     private final String senderMail;
     private final Boolean destinationMailTest;
     private final String destinationMailTestAddress;
-
     private final String notificationAdminMail;
     private final Mailer mailer;
 

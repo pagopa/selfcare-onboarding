@@ -219,7 +219,6 @@ class OnboardingServiceTest {
         Mockito.verifyNoMoreInteractions(tokenRepository);
     }
 
-
     @Test
     void saveToken() {
         Onboarding onboarding = createOnboarding();
@@ -238,7 +237,6 @@ class OnboardingServiceTest {
         Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
 
         onboardingService.saveTokenWithContract(onboardingWorkflow);
-
 
         ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
         Mockito.verify(tokenRepository, Mockito.times(1))
@@ -265,7 +263,6 @@ class OnboardingServiceTest {
         Mockito.verify(contractService, Mockito.times(1))
                 .loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
-
 
     @Test
     void sendMailRegistrationWithContract() {
@@ -297,7 +294,9 @@ class OnboardingServiceTest {
                         sendMailInput,
                         "default", "default");
 
-        onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistrationForContract(context, onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(any(),
@@ -330,7 +329,9 @@ class OnboardingServiceTest {
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
 
-        onboardingService.sendMailRegistrationForContractAggregator(onboarding);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistrationForContractAggregator(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContractAggregator(onboarding.getId(),
@@ -338,7 +339,6 @@ class OnboardingServiceTest {
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
     }
-
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
@@ -362,7 +362,9 @@ class OnboardingServiceTest {
                         product.getTitle(), "description",
                         "default", "default");
 
-        onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistrationForContractWhenApprove(context, onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(onboarding.getId(),
@@ -372,16 +374,15 @@ class OnboardingServiceTest {
                         "default", "default");
     }
 
-
     @Test
     void sendMailRegistrationWithContract_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
         OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
+        ExecutionContext context = getExecutionContext();
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(context, onboardingWorkflow));
     }
-
 
     @Test
     void sendMailRegistration() {
@@ -399,7 +400,9 @@ class OnboardingServiceTest {
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
 
-        onboardingService.sendMailRegistration(onboarding);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistration(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistration(onboarding.getInstitution().getDescription(),
@@ -423,7 +426,9 @@ class OnboardingServiceTest {
         doNothing().when(notificationService)
                 .sendMailRegistrationApprove(any(), any(), any(),any(),any());
 
-        onboardingService.sendMailRegistrationApprove(onboarding);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailRegistrationApprove(context, onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
@@ -439,7 +444,8 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationApprove(onboarding));
+        ExecutionContext context = getExecutionContext();
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationApprove(context, onboarding));
     }
 
 
@@ -456,7 +462,9 @@ class OnboardingServiceTest {
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
 
-        onboardingService.sendMailOnboardingApprove(onboarding);
+        ExecutionContext context = getExecutionContext();
+
+        onboardingService.sendMailOnboardingApprove(context, onboarding);
 
 
         Mockito.verify(notificationService, times(1))
@@ -473,7 +481,8 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(onboarding));
+        ExecutionContext context = getExecutionContext();
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(context, onboarding));
     }
 
     @Test
@@ -481,8 +490,7 @@ class OnboardingServiceTest {
         String from = "2021-01-01";
         String to = "2021-12-31";
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        ExecutionContext context = getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
 
@@ -502,8 +510,7 @@ class OnboardingServiceTest {
 
     @Test
     void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        ExecutionContext context = getExecutionContext();
 
         when(productService.getProducts(true, false)).thenReturn(List.of());
         List<NotificationCountResult> results = onboardingService.countNotifications(null, null, null, context);
@@ -516,8 +523,7 @@ class OnboardingServiceTest {
         filters.setFrom("2021-01-01");
         filters.setTo("2021-12-31");
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
         when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
@@ -534,8 +540,7 @@ class OnboardingServiceTest {
         filters.setFrom("2021-01-01");
         filters.setTo("2021-12-31");
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
         when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
@@ -544,5 +549,11 @@ class OnboardingServiceTest {
 
         List<Onboarding> onboardings = onboardingService.getOnboardingsToResend(filters, 0, 100);
         assertTrue(onboardings.isEmpty());
+    }
+
+    private ExecutionContext getExecutionContext() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        return context;
     }
 }
