@@ -561,12 +561,12 @@ public class OnboardingFunctionsTest {
     void sendMailRegistrationWithContract() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContract(any());
+        doNothing().when(service).sendMailRegistrationForContract(any(), any());
 
         function.sendMailRegistrationForContract(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContract(any());
+                .sendMailRegistrationForContract(any(), any());
     }
 
 
@@ -574,48 +574,48 @@ public class OnboardingFunctionsTest {
     void sendMailRegistration() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistration(any());
+        doNothing().when(service).sendMailRegistration(any(), any());
 
         function.sendMailRegistration(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistration(any());
+                .sendMailRegistration(any(), any());
     }
 
     @Test
     void sendMailRegistrationApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationApprove(any());
+        doNothing().when(service).sendMailRegistrationApprove(any(), any());
 
         function.sendMailRegistrationApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationApprove(any());
+                .sendMailRegistrationApprove(any(), any());
     }
 
     @Test
     void sendMailOnboardingApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailOnboardingApprove(any());
+        doNothing().when(service).sendMailOnboardingApprove(any(), any());
 
         function.sendMailOnboardingApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailOnboardingApprove(any());
+                .sendMailOnboardingApprove(any(), any());
     }
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any());
+        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any(), any());
 
         function.sendMailRegistrationForContractWhenApprove(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContractWhenApprove(any());
+                .sendMailRegistrationForContractWhenApprove(any(), any());
     }
 
 
