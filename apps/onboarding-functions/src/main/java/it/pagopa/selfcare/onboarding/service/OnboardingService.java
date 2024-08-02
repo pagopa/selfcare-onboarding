@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
@@ -158,7 +159,7 @@ public class OnboardingService {
     }
 
     public void sendMailRegistration(ExecutionContext context, Onboarding onboarding) {
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(context, onboarding);
         try {
             notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
                     onboarding.getInstitution().getDigitalAddress(),
@@ -172,8 +173,9 @@ public class OnboardingService {
     }
 
     public void sendMailRegistrationForContract(ExecutionContext context, OnboardingWorkflow onboardingWorkflow) {
+        context.getLogger().log(Level.INFO, "sendMailRegistrationForContract :: START");
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(context, onboarding);
         final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
         final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
         try {
@@ -187,10 +189,11 @@ public class OnboardingService {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration contract email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
+        context.getLogger().log(Level.INFO, "sendMailRegistrationForContract :: END");
     }
 
     public void sendMailRegistrationForContractAggregator(ExecutionContext context, Onboarding onboarding) {
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(context, onboarding);
         try {
             notificationService.sendMailRegistrationForContractAggregator(onboarding.getId(),
                     onboarding.getInstitution().getDigitalAddress(),
@@ -221,7 +224,7 @@ public class OnboardingService {
     }
 
     public void sendMailRegistrationApprove(ExecutionContext context, Onboarding onboarding) {
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(context, onboarding);
         try {
             notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
                     sendMailInput.userRequestName, sendMailInput.userRequestSurname,
@@ -235,7 +238,7 @@ public class OnboardingService {
     }
 
     public void sendMailOnboardingApprove(ExecutionContext context, Onboarding onboarding) {
-        SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+        SendMailInput sendMailInput = builderWithProductAndUserRequest(context, onboarding);
         try {
             notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
                     sendMailInput.userRequestName, sendMailInput.userRequestSurname,
@@ -259,7 +262,8 @@ public class OnboardingService {
                         GenericError.MANAGER_NOT_FOUND_GENERIC_ERROR.getCode()));
     }
 
-    private SendMailInput builderWithProductAndUserRequest(Onboarding onboarding) {
+    private SendMailInput builderWithProductAndUserRequest(ExecutionContext context, Onboarding onboarding) {
+        context.getLogger().log(Level.INFO, "builderWithProductAndUserRequest :: START");
         SendMailInput sendMailInput = new SendMailInput();
         sendMailInput.product = productService.getProduct(onboarding.getProductId());
 
@@ -274,6 +278,7 @@ public class OnboardingService {
         sendMailInput.userRequestName = Optional.ofNullable(userRequest.getName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         sendMailInput.userRequestSurname = Optional.ofNullable(userRequest.getFamilyName()).map(CertifiableFieldResourceOfstring::getValue).orElse("");
         sendMailInput.institutionName = Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse("");
+        context.getLogger().log(Level.INFO, "builderWithProductAndUserRequest :: END");
         return sendMailInput;
     }
 
