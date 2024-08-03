@@ -62,6 +62,9 @@ public class AggregatesServiceDefault implements AggregatesService{
     public static final String ERROR_DESCRIPTION = "La ragione sociale è obbligatoria";
     public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
 
+    public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
+    public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
+
     @Override
     public Uni<VerifyAggregateResponse> validateAggregatesCsv(File file){
         AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file);
@@ -119,6 +122,11 @@ public class AggregatesServiceDefault implements AggregatesService{
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
         } else if (StringUtils.isEmpty(csvAggregate.getDescription())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
+        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+        } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
+                || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
         }
         return Uni.createFrom().voidItem();
     }
@@ -137,8 +145,10 @@ public class AggregatesServiceDefault implements AggregatesService{
             String nextLine;
 
             while ((nextLine = bufferedReader.readLine()) != null) {
-                parseLine(nextLine, lineNumber, resultList, errors);
-                lineNumber++;
+                if(!nextLine.startsWith("(*")){
+                    parseLine(nextLine, lineNumber, resultList, errors);
+                    lineNumber++;
+                }
             }
 
             return new AggregatesCsvResponse(resultList, errors);
