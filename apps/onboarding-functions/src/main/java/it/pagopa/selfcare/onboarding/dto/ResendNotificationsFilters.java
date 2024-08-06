@@ -11,14 +11,7 @@ public class ResendNotificationsFilters {
     private String from;
     private String to;
     private Integer page;
-
-    public Integer getPage() {
-        return page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
-    }
+    private String notificationEventTraceId;
 
     public ResendNotificationsFilters() {
     }
@@ -32,6 +25,7 @@ public class ResendNotificationsFilters {
         this.from = builder.from;
         this.to = builder.to;
         this.page = builder.page;
+        this.notificationEventTraceId = builder.notificationEventTraceId;
     }
 
     public static Builder builder() {
@@ -46,8 +40,8 @@ public class ResendNotificationsFilters {
         private List<String> status;
         private String from;
         private String to;
-
         private Integer page;
+        private String notificationEventTraceId;
 
         public Builder productId(String productId) {
             this.productId = productId;
@@ -86,6 +80,11 @@ public class ResendNotificationsFilters {
 
         public Builder page(Integer page) {
             this.page = page;
+            return this;
+        }
+
+        public Builder notificationEventTraceId(String notificationEventTraceId) {
+            this.notificationEventTraceId = notificationEventTraceId;
             return this;
         }
 
@@ -150,6 +149,22 @@ public class ResendNotificationsFilters {
         this.to = to;
     }
 
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public String getNotificationEventTraceId() {
+        return notificationEventTraceId;
+    }
+
+    public void setNotificationEventTraceId(String notificationEventTraceId) {
+        this.notificationEventTraceId = notificationEventTraceId;
+    }
+
     @Override
     public String toString() {
         return "ResendNotificationsFilters{" +
@@ -161,6 +176,7 @@ public class ResendNotificationsFilters {
                 ", from='" + from + '\'' +
                 ", to='" + to + '\'' +
                 ", page='" + page + '\'' +
+                ", notificationEventTraceId='" + notificationEventTraceId + '\'' +
                 '}';
     }
 }

@@ -5,7 +5,6 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
@@ -45,30 +44,7 @@ class NotificationEventResenderServiceDefaultTest {
         ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
 
         // Assert
-        verify(notificationEventService, times(2)).send(any(), any(), any());
-        verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
-        assertNull(resendNotificationsFilters);
-    }
-
-    @Test
-    void resendNotificationsDoesntStopWhenSendProcessFails() {
-        // Arrange
-        ResendNotificationsFilters filters = new ResendNotificationsFilters();
-        ExecutionContext context = getMockedContext();
-
-        Onboarding onboarding = new Onboarding();
-        onboarding.setId("id1");
-        Onboarding onboarding2 = new Onboarding();
-        onboarding2.setId("id2");
-
-        doThrow(new NotificationException("Error")).when(notificationEventService).send(context, onboarding, null);
-        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(List.of(onboarding, onboarding2));
-
-        // Act
-        ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
-
-        // Assert
-        verify(notificationEventService, times(2)).send(any(), any(), any());
+        verify(notificationEventService, times(2)).send(any(), any(), any(), any());
         verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
         assertNull(resendNotificationsFilters);
     }

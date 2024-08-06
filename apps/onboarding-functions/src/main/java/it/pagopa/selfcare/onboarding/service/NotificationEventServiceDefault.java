@@ -75,12 +75,19 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent) {
+        this.send(context, onboarding, queueEvent, null);
+    }
+
+    @Override
+    public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent, String notificationEventTraceId) {
+        context.getLogger().info(() -> String.format("Starting send method for onboarding with ID %s", onboarding.getId()));
         if(isNotInstitutionOnboarding(onboarding)) {
             context.getLogger().info(() -> String.format("Onboarding with ID %s doesn't refer to an institution onboarding, skipping send notification", onboarding.getId()));
             return;
         }
 
         try {
+            context.getLogger().info(() -> String.format("Getting product info for onboarding with ID %s and productId %s", onboarding.getId(), onboarding.getProductId()));
             Product product = productService.getProduct(onboarding.getProductId());
             if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
                 context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
@@ -91,49 +98,51 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 queueEvent = queueEventExaminer.determineEventType(onboarding);
             }
 
+            context.getLogger().info(() -> String.format("Retrieving institution having ID %s", onboarding.getInstitution().getId()));
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
-            Optional<Token> token = tokenRepository.findByOnboardingId(onboarding.getId());
+
+            Token token = tokenRepository.findByOnboardingId(onboarding.getId()).orElse(null);
             for (String consumer : product.getConsumers()) {
                 NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
-                prepareAndSendNotification(context, product, consumerConfig, onboarding, token.orElse(null), institution, queueEvent);
+                prepareAndSendNotification(context, product, consumerConfig, onboarding, token, institution, queueEvent, notificationEventTraceId);
             }
         } catch (Exception e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
-//            context.getLogger().severe(String.format("Impossible to send notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-            throw new NotificationException(String.format("Impossible to send notification for onboarding with ID %s", onboarding.getId()), e);
+            context.getLogger().severe(String.format("Error sending notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
         }
     }
 
-    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) throws JsonProcessingException {
+    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent, String notificationEventTraceId) throws JsonProcessingException {
         NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);
         if (notificationBuilder.shouldSendNotification(onboarding, institution)) {
             NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(onboarding, token, institution, queueEvent);
-            sendNotification(context, consumer.topic(), notificationToSend);
-            sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend);
+            sendNotification(context, consumer.topic(), notificationToSend, notificationEventTraceId);
+            sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend, notificationEventTraceId);
         } else {
-            context.getLogger().info(() -> String.format("Notification not sent for onboarding %s on topic %s", onboarding.getId(), consumer.topic()));
+            context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", onboarding.getId(), consumer.topic()));
         }
     }
 
-    private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
+    private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) throws JsonProcessingException {
         String message = mapper.writeValueAsString(notificationToSend);
         context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, message));
 
         try {
             eventHubRestClient.sendMessage(topic, message);
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
         } catch (Exception e) {
             throw new NotificationException(e.getMessage());
         }
     }
 
-    private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend) throws JsonProcessingException {
+    private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) throws JsonProcessingException {
+        context.getLogger().info(() -> String.format("Starting sendTestEnvProductsNotification with testEnv %s", product.getTestEnvProductIds()));
         if (product.getTestEnvProductIds() != null) {
             for (String testEnvProductId : product.getTestEnvProductIds()) {
                 context.getLogger().info(() -> String.format("Notification for onboarding with id: %s should be sent on topic: %s for envProduct : %s", notificationToSend.getOnboardingTokenId(), topic, testEnvProductId));
                 notificationToSend.setId(UUID.randomUUID().toString());
                 notificationToSend.setProduct(testEnvProductId);
-                sendNotification(context, topic, notificationToSend);
+                sendNotification(context, topic, notificationToSend, notificationEventTraceId);
             }
         }
     }
@@ -144,15 +153,17 @@ public class NotificationEventServiceDefault implements NotificationEventService
         return propertiesMap;
     }
 
-    public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e) {
+    public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e, String notificationEventTraceId) {
         Map<String, String> propertiesMap = onboardingEventMap(onboarding);
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
         Optional.ofNullable(e).ifPresent(value -> propertiesMap.put("error", Arrays.toString(e.getStackTrace())));
         return propertiesMap;
     }
 
-    public static Map<String, String> notificationEventMap(NotificationToSend notificationToSend, String topic) {
+    public static Map<String, String> notificationEventMap(NotificationToSend notificationToSend, String topic, String notificationEventTraceId) {
         Map<String, String> propertiesMap = new HashMap<>();
         Optional.ofNullable(topic).ifPresent(value -> propertiesMap.put("topic", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
         Optional.ofNullable(notificationToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
         Optional.ofNullable(notificationToSend.getInternalIstitutionID()).ifPresent(value -> propertiesMap.put("internalIstitutionID", value));
         Optional.ofNullable(notificationToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));

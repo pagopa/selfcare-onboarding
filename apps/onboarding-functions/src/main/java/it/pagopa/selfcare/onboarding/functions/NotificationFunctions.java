@@ -165,14 +165,30 @@ public class NotificationFunctions {
     @FunctionName("NotificationsSender")
     public void notificationsSenderOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
-            ExecutionContext functionContext) {
-        String filtersString = ctx.getInput(String.class);
+            ExecutionContext functionContext) throws JsonProcessingException {
+        String filtersString = getFiltersFromContextAndEnrichWithInstanceId(ctx);
         functionContext.getLogger().info("Resend notifications orchestration started with input: " + filtersString);
         do {
             filtersString = ctx.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class).await();
         } while (filtersString != null);
 
         functionContext.getLogger().info("Resend notifications orchestration completed");
+    }
+
+    /**
+     * It retrieves the filters from the orchestrator context and enriches them with the instanceId.
+     * For logging purposes, the instanceId will be used as the notificationEventTraceId.
+     *
+     * @param ctx TaskOrchestrationContext provided by the Azure Functions runtime.
+     * @return JSON string representing the filters to be applied when resending notifications.
+     * @throws JsonProcessingException if there is an error parsing the filtersString into a ResendNotificationsFilters object.
+     */
+    private String getFiltersFromContextAndEnrichWithInstanceId(TaskOrchestrationContext ctx) throws JsonProcessingException {
+        String filtersString = ctx.getInput(String.class);
+        String instanceId = ctx.getInstanceId();
+        ResendNotificationsFilters filters = objectMapper.readValue(filtersString, ResendNotificationsFilters.class);
+        filters.setNotificationEventTraceId(instanceId);
+        return objectMapper.writeValueAsString(filters);
     }
 
     /**
@@ -186,7 +202,6 @@ public class NotificationFunctions {
     @FunctionName(RESEND_NOTIFICATIONS_ACTIVITY)
     public String resendNotificationsActivity(@DurableActivityTrigger(name = "filtersString") String filtersString, final ExecutionContext context) throws JsonProcessingException {
         context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, RESEND_NOTIFICATIONS_ACTIVITY, filtersString));
-
         ResendNotificationsFilters filters;
         try {
             filters = objectMapper.readValue(filtersString, ResendNotificationsFilters.class);
@@ -197,7 +212,7 @@ public class NotificationFunctions {
         /*
         * At the end of the resendNotifications it is checked whether there are more onboardings to resend, if there are, the method
         * returns the same filters received as input by incrementing the page by one to fetch on next iteration the next page of onboardings.
-        * Otherwise it returns null.
+        * Otherwise, it returns null.
         */
         ResendNotificationsFilters nextFilters = notificationEventResenderService.resendNotifications(filters, context);
 
