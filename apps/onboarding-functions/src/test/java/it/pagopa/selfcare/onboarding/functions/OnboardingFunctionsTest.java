@@ -18,9 +18,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
@@ -56,12 +54,6 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
-
-    @InjectMock
-    NotificationEventService notificationEventService;
-
-    @Inject
-    OnboardingMapper onboardingMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -569,12 +561,12 @@ public class OnboardingFunctionsTest {
     void sendMailRegistrationWithContract() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContract(any());
+        doNothing().when(service).sendMailRegistrationForContract(any(), any());
 
         function.sendMailRegistrationForContract(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContract(any());
+                .sendMailRegistrationForContract(any(), any());
     }
 
 
@@ -582,48 +574,48 @@ public class OnboardingFunctionsTest {
     void sendMailRegistration() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistration(any());
+        doNothing().when(service).sendMailRegistration(any(), any());
 
         function.sendMailRegistration(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistration(any());
+                .sendMailRegistration(any(), any());
     }
 
     @Test
     void sendMailRegistrationApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationApprove(any());
+        doNothing().when(service).sendMailRegistrationApprove(any(), any());
 
         function.sendMailRegistrationApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationApprove(any());
+                .sendMailRegistrationApprove(any(), any());
     }
 
     @Test
     void sendMailOnboardingApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailOnboardingApprove(any());
+        doNothing().when(service).sendMailOnboardingApprove(any(), any());
 
         function.sendMailOnboardingApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailOnboardingApprove(any());
+                .sendMailOnboardingApprove(any(), any());
     }
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any());
+        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any(), any());
 
         function.sendMailRegistrationForContractWhenApprove(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContractWhenApprove(any());
+                .sendMailRegistrationForContractWhenApprove(any(), any());
     }
 
 
@@ -695,36 +687,36 @@ public class OnboardingFunctionsTest {
     void sendCompletedEmail() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmail(any());
+        doNothing().when(completionService).sendCompletedEmail(any(), any());
 
         function.sendMailCompletion(onboardingWorkflowString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmail(any());
+                .sendCompletedEmail(any(), any());
     }
 
     @Test
     void sendMailRejection() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendMailRejection(any());
+        doNothing().when(completionService).sendMailRejection(any(), any());
 
         function.sendMailRejection(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendMailRejection(any());
+                .sendMailRejection(any(), any());
     }
 
     @Test
     void sendCompletedEmailAggregate() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmailAggregate(any());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any(), any());
 
         function.sendMailCompletionAggregate(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmailAggregate(any());
+                .sendCompletedEmailAggregate(any(), any());
     }
 
 

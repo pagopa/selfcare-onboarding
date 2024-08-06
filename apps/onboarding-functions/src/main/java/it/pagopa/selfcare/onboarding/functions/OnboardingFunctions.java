@@ -189,31 +189,31 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT)
     public void sendMailRegistrationForContract(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString));
-        service.sendMailRegistrationForContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+        service.sendMailRegistrationForContract(context, readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY)
     public void sendMailRegistrationForContractWhenApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString));
-        service.sendMailRegistrationForContractWhenApprove(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+        service.sendMailRegistrationForContractWhenApprove(context, readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY)
     public void sendMailRegistration(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY, onboardingString));
-        service.sendMailRegistration(readOnboardingValue(objectMapper, onboardingString));
+        service.sendMailRegistration(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY)
     public void sendMailRegistrationApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY, onboardingString));
-        service.sendMailRegistrationApprove(readOnboardingValue(objectMapper, onboardingString));
+        service.sendMailRegistrationApprove(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY)
     public void sendMailOnboardingApprove(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString));
-        service.sendMailOnboardingApprove(readOnboardingValue(objectMapper, onboardingString));
+        service.sendMailOnboardingApprove(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_INSTITUTION_ACTIVITY)
@@ -237,13 +237,13 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
     public void sendMailCompletion(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString));
-        completionService.sendCompletedEmail(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+        completionService.sendCompletedEmail(context, readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
     @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)
     public void sendMailRejection(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString));
-        completionService.sendMailRejection(readOnboardingValue(objectMapper, onboardingString));
+        completionService.sendMailRejection(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_USERS_ACTIVITY)
@@ -255,7 +255,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY)
     public void sendMailCompletionAggregate(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingString));
-        completionService.sendCompletedEmailAggregate(readOnboardingValue(objectMapper, onboardingString));
+        completionService.sendCompletedEmailAggregate(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY)
@@ -274,11 +274,11 @@ public class OnboardingFunctions {
      * After that, It sends a message on topics through the event bus
      */
     @FunctionName("TestSendEmail")
-    public HttpResponseMessage sendTestEmail(
+    public void sendTestEmail(
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("TestSendEmail trigger processed a request");
         completionService.sendTestEmail(context);
-        return request.createResponseBuilder(HttpStatus.OK).build();
+        request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

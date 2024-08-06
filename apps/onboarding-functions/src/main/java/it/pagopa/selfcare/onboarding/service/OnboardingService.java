@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -22,7 +24,9 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
 import org.bson.Document;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -34,20 +38,18 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.onboarding.utils.Utils.TelemetryConstants.*;
 
 @ApplicationScoped
 public class OnboardingService {
 
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
-
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String USERS_WORKS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
@@ -61,22 +63,33 @@ public class OnboardingService {
     UserApi userRegistryApi;
     @Inject
     NotificationService notificationService;
-    @Inject
-    ContractService contractService;
-    @Inject
-    ProductService productService;
-
-    @Inject
-    OnboardingRepository repository;
-
-    @Inject
-    TokenRepository tokenRepository;
-
-    @Inject
-    MailTemplatePathConfig mailTemplatePathConfig;
-
-    @Inject
-    MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+    private final ContractService contractService;
+    private final ProductService productService;
+    private final OnboardingRepository repository;
+    private final TokenRepository tokenRepository;
+    private final MailTemplatePathConfig mailTemplatePathConfig;
+    private final MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+    private final TelemetryClient telemetryClient;
+    public OnboardingService(ProductService productService,
+                             ContractService contractService,
+                             OnboardingRepository repository,
+                             MailTemplatePathConfig mailTemplatePathConfig,
+                             MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig,
+                             TokenRepository tokenRepository,
+                             NotificationService notificationService,
+                             @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+        this.contractService = contractService;
+        this.repository = repository;
+        this.tokenRepository = tokenRepository;
+        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+        this.productService = productService;
+        this.notificationService = notificationService;
+        this.mailTemplatePathConfig = mailTemplatePathConfig;
+        this.mailTemplatePlaceholdersConfig = mailTemplatePlaceholdersConfig;
+        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
+    }
 
     public Optional<Onboarding> getOnboarding(String onboardingId) {
         return repository.findByIdOptional(onboardingId);
@@ -144,74 +157,95 @@ public class OnboardingService {
         tokenRepository.persist(token);
     }
 
-    public void sendMailRegistration(Onboarding onboarding) {
-
+    public void sendMailRegistration(ExecutionContext context, Onboarding onboarding) {
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
-        notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
-                onboarding.getInstitution().getDigitalAddress(),
-                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle());
-
+        try {
+            notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                    sendMailInput.product.getTitle());
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send registration email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
-    public void sendMailRegistrationForContract(OnboardingWorkflow onboardingWorkflow) {
-
+    public void sendMailRegistrationForContract(ExecutionContext context, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
         final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
         final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
-
-        notificationService.sendMailRegistrationForContract(onboarding.getId(),
-                onboarding.getInstitution().getDigitalAddress(),
-                sendMailInput,
-                templatePath,
-                confirmTokenUrl);
+        try {
+            notificationService.sendMailRegistrationForContract(onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput,
+                    templatePath,
+                    confirmTokenUrl);
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send registration contract email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
-    public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
-
+    public void sendMailRegistrationForContractAggregator(ExecutionContext context, Onboarding onboarding) {
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
-        notificationService.sendMailRegistrationForContractAggregator(onboarding.getId(),
-                onboarding.getInstitution().getDigitalAddress(),
-                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle());
+        try {
+            notificationService.sendMailRegistrationForContractAggregator(onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                    sendMailInput.product.getTitle());
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_AGGREGATOR_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_AGGREGATOR_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send registration contract aggregator email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
-    public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
-
+    public void sendMailRegistrationForContractWhenApprove(ExecutionContext context, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         Product product = productService.getProduct(onboarding.getProductId());
-
-        notificationService.sendMailRegistrationForContract(onboarding.getId(),
-                onboarding.getInstitution().getDigitalAddress(),
-                onboarding.getInstitution().getDescription(), "",
-                product.getTitle(), "description",
-                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
-                onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
+        try {
+            notificationService.sendMailRegistrationForContract(onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    onboarding.getInstitution().getDescription(), "",
+                    product.getTitle(), "description",
+                    onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
+                    onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send registration contract email in case of approve for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
-    public void sendMailRegistrationApprove(Onboarding onboarding) {
-
+    public void sendMailRegistrationApprove(ExecutionContext context, Onboarding onboarding) {
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
-        notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
-                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle(),
-                onboarding.getId());
-
+        try {
+            notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
+                    sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                    sendMailInput.product.getTitle(),
+                    onboarding.getId());
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_APPROVE_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_APPROVE_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send registration approve email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
-    public void sendMailOnboardingApprove(Onboarding onboarding) {
-
+    public void sendMailOnboardingApprove(ExecutionContext context, Onboarding onboarding) {
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
-        notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
-                sendMailInput.userRequestName, sendMailInput.userRequestSurname,
-                sendMailInput.product.getTitle(),
-                onboarding.getId());
+        try {
+            notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
+                    sendMailInput.userRequestName, sendMailInput.userRequestSurname,
+                    sendMailInput.product.getTitle(),
+                    onboarding.getId());
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_ONBOARDING_APPROVE_FN_SUCCESS, 1D));
+        } catch (Exception e) {
+            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_ONBOARDING_APPROVE_FN_FAILURE, 1D));
+            context.getLogger().severe(String.format("Impossible to send approve email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
+        }
     }
 
     public String getValidManagerId(List<User> users) {
@@ -289,11 +323,11 @@ public class OnboardingService {
         Document query = new Document();
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
-         if (workflowTypeExist) {
-             query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
-         } else {
-             query.append(WORKFLOW_TYPE, new Document("$exists", false));
-         }
+        if (workflowTypeExist) {
+            query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+        } else {
+            query.append(WORKFLOW_TYPE, new Document("$exists", false));
+        }
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
         Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE))));
