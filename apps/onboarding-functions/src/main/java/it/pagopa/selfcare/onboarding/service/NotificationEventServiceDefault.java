@@ -153,6 +153,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
         return propertiesMap;
     }
 
+    public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e) {
+        return onboardingEventFailureMap(onboarding, e, null);
+    }
+
     public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e, String notificationEventTraceId) {
         Map<String, String> propertiesMap = onboardingEventMap(onboarding);
         Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
