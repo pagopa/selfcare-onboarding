@@ -8,10 +8,11 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
@@ -27,17 +28,12 @@ class NotificationEventResenderServiceDefaultTest {
     OnboardingService onboardingService;
 
     @Test
-    void resendNotifications() {
+    void resendNotificationsEndsWithNullIfIsWorkingOnLastPage() {
         // Arrange
         ResendNotificationsFilters filters = ResendNotificationsFilters.builder().onboardingId("test").build();
         ExecutionContext context = getMockedContext();
 
-        Onboarding onboarding = new Onboarding();
-        onboarding.setId("id1");
-        Onboarding onboarding2 = new Onboarding();
-        onboarding2.setId("id2");
-
-        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(List.of(onboarding, onboarding2));
+        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(mockOnboardingList(2));
         doNothing().when(notificationEventService).send(any(), any(), any());
 
         // Act
@@ -47,5 +43,34 @@ class NotificationEventResenderServiceDefaultTest {
         verify(notificationEventService, times(2)).send(any(), any(), any(), any());
         verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
         assertNull(resendNotificationsFilters);
+    }
+
+    @Test
+    void resendNotificationsEndsIncrementingPageIfIsWorkingOnIntermediatePage() {
+        // Arrange
+        ResendNotificationsFilters filters = ResendNotificationsFilters.builder().onboardingId("test").build();
+        ExecutionContext context = getMockedContext();
+
+        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(mockOnboardingList(100));
+        doNothing().when(notificationEventService).send(any(), any(), any());
+
+        // Act
+        ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
+
+        // Assert
+        verify(notificationEventService, times(100)).send(any(), any(), any(), any());
+        verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
+        assertNotNull(resendNotificationsFilters);
+        assertEquals(1, resendNotificationsFilters.getPage());
+    }
+
+    private List<Onboarding> mockOnboardingList(int size) {
+        List<Onboarding> onboardings = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            Onboarding onboarding = new Onboarding();
+            onboarding.setId("id" + i);
+            onboardings.add(onboarding);
+        }
+        return onboardings;
     }
 }
