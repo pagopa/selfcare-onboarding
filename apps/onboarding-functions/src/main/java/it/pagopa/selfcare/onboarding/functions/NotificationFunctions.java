@@ -24,6 +24,7 @@ import org.apache.http.HttpHeaders;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -167,7 +168,10 @@ public class NotificationFunctions {
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
             ExecutionContext functionContext) throws JsonProcessingException {
         String filtersString = getFiltersFromContextAndEnrichWithInstanceId(ctx);
-        functionContext.getLogger().info("Resend notifications orchestration started with input: " + filtersString);
+        if (functionContext.getLogger().isLoggable(Level.INFO)) {
+            functionContext.getLogger().info("Resend notifications orchestration started with input: " + filtersString);
+        }
+
         do {
             filtersString = ctx.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class).await();
         } while (filtersString != null);

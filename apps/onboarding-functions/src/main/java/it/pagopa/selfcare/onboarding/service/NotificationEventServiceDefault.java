@@ -10,6 +10,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
+import it.pagopa.selfcare.onboarding.dto.NotificationsResources;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -102,9 +103,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
             InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
 
             Token token = tokenRepository.findByOnboardingId(onboarding.getId()).orElse(null);
+            NotificationsResources notificationsResources = new NotificationsResources(onboarding, institution, token, queueEvent);
             for (String consumer : product.getConsumers()) {
                 NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
-                prepareAndSendNotification(context, product, consumerConfig, onboarding, token, institution, queueEvent, notificationEventTraceId);
+                prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
             }
         } catch (Exception e) {
             context.getLogger().severe(String.format("Error sending notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
@@ -112,14 +114,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
     }
 
-    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent, String notificationEventTraceId) throws JsonProcessingException {
+    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) throws JsonProcessingException {
         NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);
-        if (notificationBuilder.shouldSendNotification(onboarding, institution)) {
-            NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(onboarding, token, institution, queueEvent);
+        if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
+            NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
             sendNotification(context, consumer.topic(), notificationToSend, notificationEventTraceId);
             sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend, notificationEventTraceId);
         } else {
-            context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", onboarding.getId(), consumer.topic()));
+            context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
         }
     }
 

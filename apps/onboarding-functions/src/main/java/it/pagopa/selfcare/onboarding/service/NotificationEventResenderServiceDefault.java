@@ -23,23 +23,23 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
     }
 
     public ResendNotificationsFilters resendNotifications(ResendNotificationsFilters filters, ExecutionContext context) {
-        context.getLogger().info("resendNotifications started with filters: " + filters.toString());
+        context.getLogger().info(() -> "resendNotifications started with filters: " + filters);
 
         int page = Optional.ofNullable(filters.getPage()).orElse(0);
         int pageSize = 100;
 
         List<Onboarding> onboardingsToResend = onboardingService.getOnboardingsToResend(filters, page, pageSize);
-        context.getLogger().info(String.format("Found: %s onboardings to send for page: %s ", onboardingsToResend.size(), page));
+        context.getLogger().info(() -> String.format("Found: %s onboardings to send for page: %s ", onboardingsToResend.size(), page));
         for (Onboarding onboarding : onboardingsToResend) {
             notificationEventService.send(context, onboarding, null, filters.getNotificationEventTraceId());
         }
 
         if(onboardingsToResend.isEmpty() || onboardingsToResend.size() < pageSize) {
-            context.getLogger().info(String.format(RESEND_ENDING_LOG_LAST_PAGE, filters.getPage()));
+            context.getLogger().info(() -> String.format(RESEND_ENDING_LOG_LAST_PAGE, filters.getPage()));
             return null;
         }
 
-        context.getLogger().info(String.format(RESEND_ENDING_LOG, filters.getPage()));
+        context.getLogger().info(() -> String.format(RESEND_ENDING_LOG, filters.getPage()));
 
         filters.setPage(page + 1);
         return filters;
