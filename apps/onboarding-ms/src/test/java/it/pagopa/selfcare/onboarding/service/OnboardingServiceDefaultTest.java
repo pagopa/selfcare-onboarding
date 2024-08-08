@@ -228,14 +228,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
-
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(onboardingRequest.getProductId(),
-                null,
-                institutionBaseRequest.getTaxCode(),
-                null,
-                null,
-                institutionBaseRequest.getSubunitCode())
-        ).thenReturn(Uni.createFrom().item(Response.noContent().build())));
+        mockVerifyOnboardingNotEmpty(asserter);
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), ResourceConflictException.class);
     }
@@ -255,7 +248,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
     }
@@ -275,7 +268,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -300,7 +293,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenReturn(productResource));
 
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -323,7 +316,7 @@ class OnboardingServiceDefaultTest {
                 .build());
 
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockPersistOnboarding(asserter);
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
 
@@ -354,7 +347,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
 
         AOOResource aooResource = new AOOResource();
         aooResource.setDenominazioneEnte("TEST");
@@ -366,6 +359,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -384,7 +378,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         AOOResource aooResource = new AOOResource();
@@ -413,7 +407,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         AOOResource aooResource = new AOOResource();
@@ -448,7 +442,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         UOResource uoResource = new UOResource();
@@ -461,6 +455,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -479,7 +474,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         ResourceNotFoundException resourceNotFoundException = new ResourceNotFoundException("Resource not found");
@@ -510,7 +505,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         WebApplicationException exception = mock(WebApplicationException.class);
@@ -572,7 +567,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
@@ -580,6 +575,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -597,7 +593,7 @@ class OnboardingServiceDefaultTest {
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
@@ -605,6 +601,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -656,7 +653,7 @@ class OnboardingServiceDefaultTest {
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
@@ -664,6 +661,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -687,16 +685,13 @@ class OnboardingServiceDefaultTest {
 
         // mock parent has already onboarding
 
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(product.getId(), null, institutionPspRequest.getTaxCode(), null, null, null))
-                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD("productId", null, institutionPspRequest.getTaxCode(), null, null, null))
-                .thenReturn(Uni.createFrom().failure(new ResourceConflictException("", ""))));
-
+        mockVerifyOnboardingNotFound();
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -713,7 +708,7 @@ class OnboardingServiceDefaultTest {
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users), Assertions::assertNotNull);
@@ -721,6 +716,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -736,7 +732,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionPspRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
@@ -760,6 +756,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -781,7 +778,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionPspRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
@@ -798,6 +795,7 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -821,7 +819,7 @@ class OnboardingServiceDefaultTest {
         request.setInstitution(institutionPspRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
@@ -845,6 +843,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -869,7 +868,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(UserId.builder().id(createUserId).build())));
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> when(Onboarding.persistOrUpdate(any(List.class)))
@@ -884,6 +883,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -900,7 +900,7 @@ class OnboardingServiceDefaultTest {
         mockPersistOnboarding(asserter);
 
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
 
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
@@ -909,9 +909,21 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users), WebApplicationException.class);
     }
 
-    void mockVerifyOnboardingNotFound(UniAsserter asserter) {
-        asserter.execute(() -> when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(any(), any(), any(), any(), any(), any()))
-                .thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404))));
+    void mockVerifyOnboardingNotFound() {
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().empty());
+            when(Onboarding.find(any())).thenReturn(query);
+    }
+
+    void mockVerifyOnboardingNotEmpty(UniAsserter asserter) {
+
+        asserter.execute(() -> {
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().items(createDummyOnboarding()));
+            when(Onboarding.find(any())).thenReturn(query);});
+
     }
 
     @Test
@@ -938,7 +950,7 @@ class OnboardingServiceDefaultTest {
         mockFindToken(asserter, onboarding.getId());
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
 
         final String filepath = "upload-file-path";
@@ -973,7 +985,7 @@ class OnboardingServiceDefaultTest {
                 .verifySignature(any(), any(), any()));
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
 
         final String filepath = "upload-file-path";
@@ -1009,7 +1021,7 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
         mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
 
         final String filepath = "upload-file-path";
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
@@ -1322,14 +1334,7 @@ class OnboardingServiceDefaultTest {
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(createDummyProduct(onboarding.getProductId(), false));
 
-        when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(
-                onboarding.getProductId(),
-                null,
-                onboarding.getInstitution().getTaxCode(),
-                null,
-                null,
-                onboarding.getInstitution().getSubunitCode())
-        ).thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+        mockVerifyOnboardingNotFound();
 
         when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
@@ -1375,14 +1380,7 @@ class OnboardingServiceDefaultTest {
         when(productService.getProductIsValid(onboarding.getProductId()))
                 .thenReturn(createDummyProduct(onboarding.getProductId(), false));
 
-        when(onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(
-                onboarding.getProductId(),
-                null,
-                onboarding.getInstitution().getTaxCode(),
-                null,
-                null,
-                onboarding.getInstitution().getSubunitCode())
-        ).thenReturn(Uni.createFrom().failure(new ClientWebApplicationException(404)));
+       mockVerifyOnboardingNotFound();
 
         when(onboardingValidationStrategy.validate(onboarding.getProductId(), onboarding.getInstitution().getTaxCode()))
                 .thenReturn(true);
@@ -1420,7 +1418,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -1436,6 +1434,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -1455,7 +1454,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
-        mockVerifyOnboardingNotFound(asserter);
+        mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -1471,6 +1470,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
@@ -1737,7 +1737,7 @@ class OnboardingServiceDefaultTest {
 
             mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
             mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
-            mockVerifyOnboardingNotFound(asserter);
+            mockVerifyOnboardingNotFound();
 
             final String filepath = "upload-file-path";
             when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
@@ -1770,7 +1770,7 @@ class OnboardingServiceDefaultTest {
                     .verifySignature(any(), any(), any()));
 
             mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
-            mockVerifyOnboardingNotFound(asserter);
+            mockVerifyOnboardingNotFound();
             mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
 
             final String filepath = "upload-file-path";

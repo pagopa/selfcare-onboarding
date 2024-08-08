@@ -38,13 +38,11 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -446,12 +444,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         return validateAllowedMap(institution.getTaxCode(), institution.getSubunitCode(), productId)
                 .flatMap(ignored -> {
                     String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
-                    return onboardingApi.verifyOnboardingInfoByFiltersUsingHEAD(productId, null, institution.getTaxCode(), origin, institution.getOriginId(), institution.getSubunitCode())
-                            .onItem().failWith(() -> new ResourceConflictException(String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()), PRODUCT_ALREADY_ONBOARDED.getCode()))
-                            .onFailure(ClientWebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                                    ? Uni.createFrom().item(Response.noContent().build())
-                                    : Uni.createFrom().failure(new RuntimeException(ex.getMessage())))
-                            .replaceWith(Boolean.TRUE);
+                    return verifyOnboarding(institution.getTaxCode(), institution.getSubunitCode(), origin, institution.getOriginId(), OnboardingStatus.COMPLETED, productId)
+                            .flatMap(onboardingResponses -> onboardingResponses.isEmpty()
+                                    ? Uni.createFrom().item(Boolean.TRUE)
+                                    : Uni.createFrom().failure(new ResourceConflictException(
+                                    String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), productId, institution.getTaxCode()),
+                                    PRODUCT_ALREADY_ONBOARDED.getCode())));
                 });
     }
 
