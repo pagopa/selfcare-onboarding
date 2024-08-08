@@ -54,7 +54,6 @@ public class NotificationFunctions {
      * It gets invoked by module onboarding-cdc when status is COMPLETED or DELETED
      */
     @FunctionName("Notification")
-    @FixedDelayRetry(maxRetryCount = 3, delayInterval = "00:00:30")
     public HttpResponseMessage sendNotification (
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
