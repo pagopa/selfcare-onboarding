@@ -335,18 +335,20 @@ public class NotificationFunctionsTest {
     }
 
     @Test
-    void notificationsSenderOrchestrator_invokeActivity() {
+    void notificationsSenderOrchestrator_invokeActivity() throws JsonProcessingException {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         String filtersString = "{\"productId\":\"prod-pagoPa\", \"status\":[\"COMPLETED\"]}";
         when(orchestrationContext.getInput(String.class)).thenReturn(filtersString);
-
         Task task = mock(Task.class);
-        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class)).thenReturn(task);
+        when(orchestrationContext.getInstanceId()).thenReturn("instanceId");
+        String enrichedFiltersString = "{\"productId\":\"prod-pagoPa\",\"status\":[\"COMPLETED\"],\"notificationEventTraceId\":\"instanceId\"}";
+
+        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, enrichedFiltersString, String.class)).thenReturn(task);
         when(task.await()).thenReturn(null);
         function.notificationsSenderOrchestrator(orchestrationContext, executionContext);
 
         Mockito.verify(orchestrationContext, times(1))
-                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, filtersString, String.class);
+                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, enrichedFiltersString, String.class);
     }
 
     @Test

@@ -160,7 +160,7 @@ public class NotificationEventServiceDefaultTest {
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
+        assertDoesNotThrow(() -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
@@ -214,8 +214,9 @@ public class NotificationEventServiceDefaultTest {
         billing.setPublicService(false);
         notificationToSend.setBilling(billing);
 
-        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic");
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic", "traceId");
         assertNotNull(properties);
+        assertEquals(properties.get("notificationEventTraceId"), "traceId");
         assertEquals(properties.get("id"), "id");
         assertEquals(properties.get("internalIstitutionID"), "internal");
         assertEquals(properties.get("product"), "prod");
@@ -261,7 +262,7 @@ public class NotificationEventServiceDefaultTest {
         billing.setTaxCodeInvoicing("456");
         notificationToSend.setBilling(billing);
 
-        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic");
+        Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic", null);
         assertNotNull(properties);
         assertEquals(properties.get("id"), "id");
         assertEquals(properties.get("internalIstitutionID"), "internal");
