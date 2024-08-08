@@ -1093,6 +1093,30 @@ class OnboardingServiceDefaultTest {
         subscriber.assertCompleted().assertItem(getResponse);
     }
 
+    @Test
+    void testOnboardingGet2() {
+        int page = 0, size = 3;
+        Onboarding onboarding = createDummyOnboarding();
+        mockFindOnboarding(onboarding);
+        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding);
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .productId("prod-io")
+                .taxCode("taxCode")
+                .subunitCode("subunitCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .status("ACTIVE")
+                .page(page)
+                .size(size)
+                .build();
+        UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
+                .onboardingGet(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(getResponse);
+    }
+
     private OnboardingGetResponse getOnboardingGetResponse(Onboarding onboarding) {
         OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
         OnboardingGetResponse response = new OnboardingGetResponse();
