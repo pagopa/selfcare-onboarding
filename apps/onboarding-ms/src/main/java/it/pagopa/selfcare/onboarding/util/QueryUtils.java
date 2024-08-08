@@ -83,6 +83,7 @@ public class QueryUtils {
         Map<String, String> queryParameterMap = new HashMap<>();
         Optional.ofNullable(filters.getProductId()).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
         Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        Optional.ofNullable(filters.getSubunitCode()).ifPresent(value -> queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, value));
         Optional.ofNullable(filters.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value));
         Optional.ofNullable(filters.getFrom()).ifPresent(value -> queryParameterMap.put(FROM, value));
         Optional.ofNullable(filters.getTo()).ifPresent(value -> queryParameterMap.put(TO, value));
