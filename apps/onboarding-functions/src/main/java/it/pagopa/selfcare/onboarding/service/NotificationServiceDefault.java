@@ -30,7 +30,6 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.ERROR_DURING_SEND
 public class NotificationServiceDefault implements NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationServiceDefault.class);
-
     public static final String PAGOPA_LOGO_FILENAME = "pagopa-logo.png";
     private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
     private final MailTemplatePathConfig templatePathConfig;
@@ -40,16 +39,18 @@ public class NotificationServiceDefault implements NotificationService {
     private final String senderMail;
     private final Boolean destinationMailTest;
     private final String destinationMailTestAddress;
-
     private final String notificationAdminMail;
     private final Mailer mailer;
+
+    private final boolean isEmailServiceAvailable;
 
     public NotificationServiceDefault(MailTemplatePlaceholdersConfig templatePlaceholdersConfig, MailTemplatePathConfig templatePathConfig,
                                       AzureBlobClient azureBlobClient, ObjectMapper objectMapper, Mailer mailer, ContractService contractService,
                                       @ConfigProperty(name = "onboarding-functions.notification-admin-email") String notificationAdminMail,
                                       @ConfigProperty(name = "onboarding-functions.sender-mail") String senderMail,
                                       @ConfigProperty(name = "onboarding-functions.destination-mail-test") Boolean destinationMailTest,
-                                      @ConfigProperty(name = "onboarding-functions.destination-mail-test-address") String destinationMailTestAddress) {
+                                      @ConfigProperty(name = "onboarding-functions.destination-mail-test-address") String destinationMailTestAddress,
+                                      @ConfigProperty(name = "onboarding-functions.email.service.available") boolean isEmailServiceAvailable) {
         this.templatePlaceholdersConfig = templatePlaceholdersConfig;
         this.templatePathConfig = templatePathConfig;
         this.azureBlobClient = azureBlobClient;
@@ -60,6 +61,7 @@ public class NotificationServiceDefault implements NotificationService {
         this.destinationMailTestAddress = destinationMailTestAddress;
         this.notificationAdminMail = notificationAdminMail;
         this.mailer = mailer;
+        this.isEmailServiceAvailable = isEmailServiceAvailable;
     }
 
     @Override
@@ -222,12 +224,18 @@ public class NotificationServiceDefault implements NotificationService {
                 mail.addAttachment(fileMailData.name, fileMailData.data, fileMailData.contentType);
             }
 
-            mailer.send(mail);
+            send(mail);
 
             log.info("End of sending mail to {}, with subject {}", destination, subject);
         } catch (Exception e) {
             log.error(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));
             throw new GenericOnboardingException(ERROR_DURING_SEND_MAIL.getMessage());
+        }
+    }
+
+    private void send(Mail mail) {
+        if (isEmailServiceAvailable) {
+            mailer.send(mail);
         }
     }
 
@@ -246,7 +254,7 @@ public class NotificationServiceDefault implements NotificationService {
                     .withHtml(senderMail, html, html)
                     .setFrom(senderMail);
 
-            mailer.send(mail);
+            send(mail);
             context.getLogger().info("End of sending mail to {}, with subject " + senderMail + " with subject " + mail);
         } catch (Exception e) {
             context.getLogger().severe(String.format("%s: %s", ERROR_DURING_SEND_MAIL, e.getMessage()));

@@ -155,6 +155,12 @@
             "type" : "string"
           }
         }, {
+          "name" : "subunitCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "taxCode",
           "in" : "query",
           "schema" : {
@@ -1866,6 +1872,9 @@
             "type" : "string"
           },
           "onboardingId" : {
+            "type" : "string"
+          },
+          "subunitCode" : {
             "type" : "string"
           },
           "taxCode" : {

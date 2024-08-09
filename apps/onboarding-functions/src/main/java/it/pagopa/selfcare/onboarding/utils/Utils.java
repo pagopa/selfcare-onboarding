@@ -22,6 +22,28 @@ public class Utils {
 
     private Utils() { }
 
+    public static class TelemetryConstants {
+        private TelemetryConstants() { }
+        public static final String EVENT_SEND_REGISTRATION_FN_FAILURE = "EventsSendRegistrationEmail_failures";
+        public static final String EVENT_SEND_REGISTRATION_FN_SUCCESS = "EventsSendRegistrationEmail_success";
+        public static final String EVENT_SEND_REGISTRATION_CONTRACT_FN_FAILURE = "EventsSendRegistrationContractEmail_failures";
+        public static final String EVENT_SEND_REGISTRATION_CONTRACT_FN_SUCCESS = "EventsSendRegistrationContractEmail_success";
+        public static final String EVENT_SEND_ONBOARDING_APPROVE_FN_FAILURE = "EventsSendOnboardingApproveEmail_failures";
+        public static final String EVENT_SEND_ONBOARDING_APPROVE_FN_SUCCESS = "EventsSendOnboardingApproveEmail_success";
+        public static final String EVENT_SEND_REGISTRATION_APPROVE_FN_FAILURE = "EventsSendRegistrationApproveEmail_failures";
+        public static final String EVENT_SEND_REGISTRATION_APPROVE_FN_SUCCESS = "EventsSendRegistrationApproveEmail_success";
+        public static final String EVENT_SEND_REGISTRATION_AGGREGATOR_FN_FAILURE = "EventsSendRegistrationAggregatorEmail_failures";
+        public static final String EVENT_SEND_REGISTRATION_AGGREGATOR_FN_SUCCESS = "EventsSendRegistrationAggregatorEmail_success";
+        public static final String EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_FAILURE = "EventsSendRegistrationContractApproveEmail_failures";
+        public static final String EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_SUCCESS = "EventsSendRegistrationContractApproveEmail_success";
+        public static final String EVENT_SEND_COMPLETION_FN_FAILURE = "EventsSendCompletionEmail_failures";
+        public static final String EVENT_SEND_COMPLETION_FN_SUCCESS = "EventsSendCompletionEmail_success";
+        public static final String EVENT_SEND_REJECTION_FN_FAILURE = "EventsSendRejectionEmail_failures";
+        public static final String EVENT_SEND_REJECTION_FN_SUCCESS = "EventsSendRejectionEmail_success";
+        public static final String EVENT_SEND_COMPLETION_AGGREGATE_FN_SUCCESS = "EventsSendCompletionAggregateEmail_success";
+        public static final String EVENT_SEND_COMPLETION_AGGREGATE_FN_FAILURE = "EventsSendCompletionAggregateEmail_failures";
+    }
+
     public static final BinaryOperator<String> CONTRACT_FILENAME_FUNC =
             (filename, productName) -> String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 

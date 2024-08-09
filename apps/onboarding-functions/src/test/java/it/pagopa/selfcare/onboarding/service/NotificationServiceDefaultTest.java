@@ -50,7 +50,7 @@ class NotificationServiceDefaultTest {
     void startup() {
         mailer = mock(Mailer.class);
         this.notificationService = new NotificationServiceDefault(templatePlaceholdersConfig, templatePathConfig,
-                azureBlobClient, objectMapper, mailer, contractService, notificationAdminMail, "senderMail", false, "destinationMailTestAddress");
+                azureBlobClient, objectMapper, mailer, contractService, notificationAdminMail, "senderMail", false, "destinationMailTestAddress", true);
     }
 
     @Test

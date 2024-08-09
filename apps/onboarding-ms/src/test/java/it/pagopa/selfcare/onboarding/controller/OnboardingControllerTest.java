@@ -392,6 +392,7 @@ class OnboardingControllerTest {
         OnboardingGetFilters filters = OnboardingGetFilters.builder()
                 .productId("prod-io")
                 .taxCode("taxCode")
+                .subunitCode("subunitCode")
                 .from("2023-12-01")
                 .to("2023-12-31")
                 .status("ACTIVE")

@@ -245,6 +245,7 @@ public class OnboardingController {
                                                               @QueryParam(value = "taxCode") String taxCode,
                                                               @QueryParam(value = "institutionId") String institutionId,
                                                               @QueryParam(value = "onboardingId") String onboardingId,
+                                                              @QueryParam(value = "subunitCode") String subunitCode,
                                                               @QueryParam(value = "from") String from,
                                                               @QueryParam(value = "to") String to,
                                                               @QueryParam(value = "status") String status,
@@ -255,6 +256,7 @@ public class OnboardingController {
                 .taxCode(taxCode)
                 .institutionId(institutionId)
                 .onboardingId(onboardingId)
+                .subunitCode(subunitCode)
                 .from(from)
                 .to(to)
                 .status(status)

@@ -11,11 +11,11 @@ public class CsvAggregate {
     @CsvBindByPosition(position = 1)
     private String description;
     @CsvBindByPosition(position = 2)
-    private String subunitCode;
+    private String vatNumber;
     @CsvBindByPosition(position = 3)
     private String subunitType;
     @CsvBindByPosition(position = 4)
-    private String geoTaxonomy;
+    private String subunitCode;
     @CsvBindByPosition(position = 5)
     private String address;
     @CsvBindByPosition(position = 6)

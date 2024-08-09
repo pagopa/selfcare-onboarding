@@ -7,4 +7,6 @@ import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 public interface NotificationEventService {
 
     void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent);
+
+    void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent, String notificationEventTraceId);
 }

@@ -9,15 +9,15 @@ public interface CompletionService {
 
     String createInstitutionAndPersistInstitutionId(Onboarding onboarding);
 
-    void sendMailRejection(Onboarding onboarding);
+    void sendMailRejection(ExecutionContext context, Onboarding onboarding);
 
     void persistOnboarding(Onboarding onboarding);
 
     void persistActivatedAt(Onboarding onboarding);
 
-    void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow);
+    void sendCompletedEmail(ExecutionContext context, OnboardingWorkflow onboardingWorkflow);
 
-    void sendCompletedEmailAggregate(Onboarding onboarding);
+    void sendCompletedEmailAggregate(ExecutionContext context, Onboarding onboarding);
 
     void persistUsers(Onboarding onboarding);
 

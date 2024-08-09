@@ -11,6 +11,7 @@ public class OnboardingGetFilters {
     private String productId;
     private String institutionId;
     private String onboardingId;
+    private String subunitCode;
     private String taxCode;
     private String status;
     private String from;
