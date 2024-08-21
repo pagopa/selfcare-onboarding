@@ -165,7 +165,7 @@ public class OnboardingService {
                     sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                     sendMailInput.product.getTitle());
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
@@ -183,7 +183,7 @@ public class OnboardingService {
                     templatePath,
                     confirmTokenUrl);
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration contract email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
@@ -197,7 +197,7 @@ public class OnboardingService {
                     sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                     sendMailInput.product.getTitle());
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_AGGREGATOR_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_AGGREGATOR_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration contract aggregator email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
@@ -214,7 +214,7 @@ public class OnboardingService {
                     onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
                     onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_APPROVE_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration contract email in case of approve for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
@@ -228,7 +228,7 @@ public class OnboardingService {
                     sendMailInput.product.getTitle(),
                     onboarding.getId());
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_APPROVE_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_REGISTRATION_APPROVE_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration approve email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
@@ -242,7 +242,7 @@ public class OnboardingService {
                     sendMailInput.product.getTitle(),
                     onboarding.getId());
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_ONBOARDING_APPROVE_FN_SUCCESS, 1D));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e), Map.of(EVENT_SEND_ONBOARDING_APPROVE_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send approve email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
         }
