@@ -176,17 +176,23 @@ public class OnboardingService {
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
         final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
         final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
-        try {
+        /*try {
             notificationService.sendMailRegistrationForContract(onboarding.getId(),
                     onboarding.getInstitution().getDigitalAddress(),
                     sendMailInput,
                     templatePath,
                     confirmTokenUrl);
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_SUCCESS, 1D));
-        } catch (Throwable e) {
+        } catch (Exception e) {
             telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, new Exception(e)), Map.of(EVENT_SEND_REGISTRATION_CONTRACT_FN_FAILURE, 1D));
             context.getLogger().severe(String.format("Impossible to send registration contract email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-        }
+        }*/
+
+        notificationService.sendMailRegistrationForContract(onboarding.getId(),
+                onboarding.getInstitution().getDigitalAddress(),
+                sendMailInput,
+                templatePath,
+                confirmTokenUrl);
     }
 
     public void sendMailRegistrationForContractAggregator(ExecutionContext context, Onboarding onboarding) {
