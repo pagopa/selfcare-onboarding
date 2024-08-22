@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -21,7 +19,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -36,14 +33,15 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
-import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.utils.Utils.TelemetryConstants.*;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
@@ -79,7 +77,6 @@ public class CompletionServiceDefault implements CompletionService {
     private final NotificationService notificationService;
     private final ProductService productService;
     private final OnboardingMapper onboardingMapper;
-    private final TelemetryClient telemetryClient;
     private final boolean hasToSendEmail;
     private final boolean forceInstitutionCreation;
 
@@ -92,13 +89,10 @@ public class CompletionServiceDefault implements CompletionService {
                                     OnboardingRepository onboardingRepository,
                                     TokenRepository tokenRepository,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
-                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation,
-                                    @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation) {
         this.institutionMapper = institutionMapper;
         this.onboardingRepository = onboardingRepository;
         this.tokenRepository = tokenRepository;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
         this.productService = productService;
         this.notificationService = notificationService;
         this.onboardingMapper = onboardingMapper;
@@ -106,8 +100,6 @@ public class CompletionServiceDefault implements CompletionService {
         this.productMapper = productMapper;
         this.hasToSendEmail = hasToSendEmail;
         this.forceInstitutionCreation = forceInstitutionCreation;
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
     }
 
     @Override
@@ -144,20 +136,14 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void sendCompletedEmail(ExecutionContext context, OnboardingWorkflow onboardingWorkflow) {
+    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         List<String> destinationMails = getDestinationMails(onboarding);
         destinationMails.add(onboarding.getInstitution().getDigitalAddress());
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        try {
-            notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                    destinationMails, product, onboarding.getInstitution().getInstitutionType(),
-                    onboardingWorkflow);
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_SUCCESS, 1D));
-        } catch (Throwable e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, new Exception(e)), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
-            context.getLogger().severe(String.format("Impossible to send completion email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-        }
+        notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
     }
 
     @Override
@@ -191,13 +177,7 @@ public class CompletionServiceDefault implements CompletionService {
     public void sendMailRejection(ExecutionContext context, Onboarding onboarding) {
         List<String> destinationMails = Collections.singletonList(onboarding.getInstitution().getDigitalAddress());
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        try {
-            notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding),  Map.of(EVENT_SEND_REJECTION_FN_SUCCESS, 1D));
-        } catch (Throwable e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, new Exception(e)), Map.of(EVENT_SEND_REJECTION_FN_FAILURE, 1D));
-            context.getLogger().severe(String.format("Impossible to send rejection email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-        }
+        notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
     }
 
     @Override
@@ -236,16 +216,10 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void sendCompletedEmailAggregate(ExecutionContext context, Onboarding onboarding) {
+    public void sendCompletedEmailAggregate(Onboarding onboarding) {
         List<String> destinationMails = getDestinationMails(onboarding);
         destinationMails.add(onboarding.getInstitution().getDigitalAddress());
-        try {
-            notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(), destinationMails);
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_AGGREGATE_FN_SUCCESS, 1D));
-        } catch (Throwable e) {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, new Exception(e)), Map.of(EVENT_SEND_COMPLETION_AGGREGATE_FN_FAILURE, 1D));
-            context.getLogger().severe(String.format("Impossible to send completion aggregate email for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-        }
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(), destinationMails);
     }
 
     @Override
@@ -259,7 +233,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void sendTestEmail(ExecutionContext context) {
-            notificationService.sendTestEmail(context);
+        notificationService.sendTestEmail(context);
     }
 
     private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
