@@ -1895,6 +1895,39 @@ class OnboardingServiceDefaultTest {
     }
 
     @Test
+    void testCheckManagerWith404FromUserRegistry() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(404);
+        when(exception.getResponse()).thenReturn(response);
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+        subscriber.assertCompleted();
+        assertFalse(subscriber.getItem());
+    }
+
+    @Test
+    void testCheckManagerWith500FromUserRegistry() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(500);
+        when(exception.getResponse()).thenReturn(response);
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+        subscriber.assertFailedWith(WebApplicationException.class);
+    }
+
+    @Test
     void testCheckManagerWithTrueCheck() {
         final UUID uuid = UUID.randomUUID();
         OnboardingUserRequest request = createDummyUserRequest();
