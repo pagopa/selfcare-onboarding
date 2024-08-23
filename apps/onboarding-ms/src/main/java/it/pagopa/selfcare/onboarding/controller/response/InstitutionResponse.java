@@ -1,11 +1,11 @@
 package it.pagopa.selfcare.onboarding.controller.response;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
 import it.pagopa.selfcare.onboarding.controller.request.GeographicTaxonomyDto;
 import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import lombok.Data;
 
 import java.util.List;
