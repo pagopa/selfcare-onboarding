@@ -1600,7 +1600,7 @@
         }
       },
       "InstitutionPaSubunitType" : {
-        "enum" : [ "AOO", "UO" ],
+        "enum" : [ "AOO", "UO", "EC" ],
         "type" : "string"
       },
       "InstitutionPspRequest" : {
