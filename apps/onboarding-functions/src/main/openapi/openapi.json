@@ -14,7 +14,7 @@
     "/api/ResendNotification": {
       "post": {
         "tags": [
-          "Notification"
+          "Notification", "support"
         ],
         "operationId": "sendOnboardigNotificationUsingPOST",
         "summary": "",
@@ -50,7 +50,7 @@
     "/api/onboardings/notifications/count": {
       "get": {
         "tags": [
-          "Notification"
+          "Notification", "support"
         ],
         "summary": "Count notifications by filters",
         "description": "Performs for every product a count of relative onboarding notifications sent",
