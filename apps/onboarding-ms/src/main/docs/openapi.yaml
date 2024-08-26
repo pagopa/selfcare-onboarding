@@ -756,7 +756,8 @@ paths:
   /v1/onboarding/{onboardingId}/update:
     put:
       tags:
-      - Onboarding Controller
+      - support
+      - Onboarding
       summary: 'Update onboarding request receiving onboarding id.Function can change
         some values. '
       parameters:

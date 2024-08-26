@@ -324,6 +324,8 @@ public class OnboardingController {
     @Operation(summary = "Update onboarding request receiving onboarding id." +
             "Function can change some values. ")
     @PUT
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/update")
     public Uni<Response> update(@PathParam(value = "onboardingId") String onboardingId,

@@ -30,6 +30,7 @@ jobs:
     with:
       environment: dev
       short_env: d
+      upload_openapi_enabled: true
 
   release_uat:
     uses: ./.github/workflows/call_release_function.yml
@@ -39,6 +40,7 @@ jobs:
     with:
       environment: uat
       short_env: u
+      upload_openapi_enabled: true
 
   release_prod:
     uses: ./.github/workflows/call_release_function.yml
@@ -48,3 +50,4 @@ jobs:
     with:
       environment: prod
       short_env: p
+      upload_openapi_enabled: true
