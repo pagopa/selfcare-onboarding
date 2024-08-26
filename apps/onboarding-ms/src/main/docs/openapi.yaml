@@ -265,6 +265,7 @@ paths:
       - support
       - Onboarding
       summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
+      operationId: onboardingInstitutionUsingGET
       parameters:
       - name: origin
         in: query
@@ -596,6 +597,7 @@ paths:
         \ and upload the contract on an azure storageAt the end, function triggers\
         \ async activities related to complete onboarding that consist of create the\
         \ institution, activate the onboarding and sending data to notification queue."
+      operationId: completeOnboardingUsingPUT
       parameters:
       - name: onboardingId
         in: path
@@ -670,6 +672,7 @@ paths:
       - Onboarding
       summary: Perform complete operation of an onboarding request as /complete but
         without signature verification of the contract
+      operationId: completeOnboardingTokenConsume
       parameters:
       - name: onboardingId
         in: path
@@ -760,6 +763,7 @@ paths:
       - Onboarding
       summary: 'Update onboarding request receiving onboarding id.Function can change
         some values. '
+      operationId: updateOnboardiUsingPUT
       parameters:
       - name: onboardingId
         in: path
