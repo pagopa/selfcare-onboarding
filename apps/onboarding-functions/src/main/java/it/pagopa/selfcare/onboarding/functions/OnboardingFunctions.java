@@ -281,4 +281,30 @@ public class OnboardingFunctions {
         completionService.sendTestEmail(context);
         request.createResponseBuilder(HttpStatus.OK).build();
     }
+
+    /**
+     * This HTTP-triggered function persists users given an onboarding's identifier
+     * After that, It sends a message on topics through the event bus
+     */
+    @FunctionName("TestPersistUsers")
+    public void persistUsersTest(
+            @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+        context.getLogger().info("TestPersistUsers trigger processed a request");
+        final String onboardingId = request.getQueryParameters().get("onboardingId");
+        if (Objects.isNull(onboardingId)) {
+            request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .body("onboardingId cannot be empty.")
+                    .build();
+        }
+        Optional<Onboarding> onboarding = service.getOnboarding(onboardingId);
+        if (onboarding.isPresent()) {
+            completionService.createInstitutionAndPersistInstitutionId(onboarding.get());
+            completionService.persistUsers(onboarding.get());
+            request.createResponseBuilder(HttpStatus.OK).build();
+        }
+        else {
+            request.createResponseBuilder(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }
