@@ -119,7 +119,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         if (Objects.nonNull(institution.getRootParent())) {
             rootParent.setId(institution.getRootParent().getId());
             rootParent.setDescription(institution.getRootParent().getDescription());
-            InstitutionResponse parentInstitution = coreInstitutionApi.retrieveInstitutionByIdUsingGET(institution.getId());
+            InstitutionResponse parentInstitution = coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId());
             rootParent.setOriginId(Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
             toNotify.setRootParent(rootParent);
         }
