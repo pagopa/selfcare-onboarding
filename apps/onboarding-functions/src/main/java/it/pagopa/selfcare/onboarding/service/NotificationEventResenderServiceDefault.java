@@ -35,7 +35,7 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
             try {
                 notificationEventService.send(context, onboarding, null, filters.getNotificationEventTraceId());
             } catch (Exception e) {
-                context.getLogger().info(() -> String.format("ERROR sending onboarding %s  to send for page: %s ", onboarding.getId(), ExceptionUtil.generateStackTrace(e)));
+                context.getLogger().severe(() -> String.format("ERROR sending onboarding %s  to send for page: %s ", onboarding.getId(), ExceptionUtil.generateStackTrace(e)));
             }
         }
 
