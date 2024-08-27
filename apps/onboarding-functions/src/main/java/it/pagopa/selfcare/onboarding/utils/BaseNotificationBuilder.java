@@ -153,18 +153,13 @@ public class BaseNotificationBuilder implements NotificationBuilder {
 
     @Override
     public void retrieveAndSetGeographicData(InstitutionToNotify institution) {
-        try {
-            InstitutionResource institutionProxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
-            institution.setIstatCode(institutionProxyInfo.getIstatCode());
-            institution.setCategory(institutionProxyInfo.getCategory());
-            GeographicTaxonomyResource geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(institutionProxyInfo.getIstatCode());
-            institution.setCounty(geographicTaxonomies.getProvinceAbbreviation());
-            institution.setCountry(geographicTaxonomies.getCountryAbbreviation());
-            institution.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
-        } catch (Exception e) {
-            log.warn("Error while searching institution {} on IPA, {} ", institution.getTaxCode(), e.getMessage());
-            institution.setIstatCode(null);
-        }
+        InstitutionResource institutionProxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
+        institution.setIstatCode(institutionProxyInfo.getIstatCode());
+        institution.setCategory(institutionProxyInfo.getCategory());
+        GeographicTaxonomyResource geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(institutionProxyInfo.getIstatCode());
+        institution.setCounty(geographicTaxonomies.getProvinceAbbreviation());
+        institution.setCountry(geographicTaxonomies.getCountryAbbreviation());
+        institution.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
     }
 
     @Override

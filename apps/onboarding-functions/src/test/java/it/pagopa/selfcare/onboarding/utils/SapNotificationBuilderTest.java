@@ -263,21 +263,22 @@ class SapNotificationBuilderTest {
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(any(), any(), any()))
                 .thenThrow(new RuntimeException("Error"));
 
-        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+//        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        assertThrows(RuntimeException.class, () -> sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD));
 
-        assertNotNull(notification);
-        assertNull(notification.getClosedAt());
-        assertEquals("ACTIVE", notification.getState());
-        assertNotEquals(onboarding.getId(), notification.getId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertNull(notification.getBilling().getTaxCodeInvoicing());
-        assertNull(notification.getBilling().isPublicServices());
-        assertNull(notification.getNotificationType());
-        assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
-        assertNull(notification.getBilling().getTaxCodeInvoicing());
-        assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
-        assertNull(notification.getInstitution().getIstatCode());
+//        assertNotNull(notification);
+//        assertNull(notification.getClosedAt());
+//        assertEquals("ACTIVE", notification.getState());
+//        assertNotEquals(onboarding.getId(), notification.getId());
+//        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+//        assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+//        assertNull(notification.getBilling().getTaxCodeInvoicing());
+//        assertNull(notification.getBilling().isPublicServices());
+//        assertNull(notification.getNotificationType());
+//        assertEquals(NotificationType.ADD_INSTITUTE, notification.getType());
+//        assertNull(notification.getBilling().getTaxCodeInvoicing());
+//        assertEquals("taxCodeInvoicing", notification.getInstitution().getTaxCode());
+//        assertNull(notification.getInstitution().getIstatCode());
     }
 
     @Test
