@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import com.microsoft.azure.functions.ExecutionContext;
+import io.quarkus.runtime.util.ExceptionUtil;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -31,7 +32,11 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
         List<Onboarding> onboardingsToResend = onboardingService.getOnboardingsToResend(filters, page, pageSize);
         context.getLogger().info(() -> String.format("Found: %s onboardings to send for page: %s ", onboardingsToResend.size(), page));
         for (Onboarding onboarding : onboardingsToResend) {
-            notificationEventService.send(context, onboarding, null, filters.getNotificationEventTraceId());
+            try {
+                notificationEventService.send(context, onboarding, null, filters.getNotificationEventTraceId());
+            } catch (Exception e) {
+                context.getLogger().info(() -> String.format("ERROR sending onboarding %s  to send for page: %s ", onboarding.getId(), ExceptionUtil.generateStackTrace(e)));
+            }
         }
 
         if(onboardingsToResend.isEmpty() || onboardingsToResend.size() < pageSize) {
