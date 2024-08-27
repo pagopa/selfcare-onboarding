@@ -80,40 +80,35 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
     }
     @Override
     public void retrieveAndSetGeographicData(InstitutionToNotify institutionToNotify) {
-        try {
-            GeographicTaxonomyResource geographicTaxonomies;
-            if (institutionToNotify.getSubUnitType() != null) {
-                switch (Objects.requireNonNull(institutionToNotify.getSubUnitType())) {
-                    case "UO" -> {
-                        UOResource organizationUnit = proxyRegistryUoApi.findByUnicodeUsingGET1(institutionToNotify.getSubUnitCode(), null);
-                        institutionToNotify.setIstatCode(organizationUnit.getCodiceComuneISTAT());
-                        geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(organizationUnit.getCodiceComuneISTAT());
-                    }
-                    case "AOO" -> {
-                        AOOResource homogeneousOrganizationalArea = proxyRegistryAooApi.findByUnicodeUsingGET(institutionToNotify.getSubUnitCode(), null);
-                        institutionToNotify.setIstatCode(homogeneousOrganizationalArea.getCodiceComuneISTAT());
-                        geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(homogeneousOrganizationalArea.getCodiceComuneISTAT());
-                    }
-                    default -> {
-                        InstitutionResource proxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institutionToNotify.getTaxCode(), null, null);
-                        institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
-                        geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
-                    }
+        GeographicTaxonomyResource geographicTaxonomies;
+        if (institutionToNotify.getSubUnitType() != null) {
+            switch (Objects.requireNonNull(institutionToNotify.getSubUnitType())) {
+                case "UO" -> {
+                    UOResource organizationUnit = proxyRegistryUoApi.findByUnicodeUsingGET1(institutionToNotify.getSubUnitCode(), null);
+                    institutionToNotify.setIstatCode(organizationUnit.getCodiceComuneISTAT());
+                    geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(organizationUnit.getCodiceComuneISTAT());
                 }
-            } else {
-                InstitutionResource proxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institutionToNotify.getTaxCode(), null, null);
-                institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
-                geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
+                case "AOO" -> {
+                    AOOResource homogeneousOrganizationalArea = proxyRegistryAooApi.findByUnicodeUsingGET(institutionToNotify.getSubUnitCode(), null);
+                    institutionToNotify.setIstatCode(homogeneousOrganizationalArea.getCodiceComuneISTAT());
+                    geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(homogeneousOrganizationalArea.getCodiceComuneISTAT());
+                }
+                default -> {
+                    InstitutionResource proxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institutionToNotify.getTaxCode(), null, null);
+                    institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
+                    geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
+                }
             }
+        } else {
+            InstitutionResource proxyInfo = proxyRegistryInstitutionApi.findInstitutionUsingGET(institutionToNotify.getTaxCode(), null, null);
+            institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
+            geographicTaxonomies = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
+        }
 
-            if (geographicTaxonomies != null) {
-                institutionToNotify.setCounty(geographicTaxonomies.getProvinceAbbreviation());
-                institutionToNotify.setCountry(geographicTaxonomies.getCountryAbbreviation());
-                institutionToNotify.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
-            }
-        } catch (Exception e) {
-            log.warn("Error while searching institution {} on IPA, {} ", institutionToNotify.getDescription(), e.getMessage());
-            institutionToNotify.setIstatCode(null);
+        if (geographicTaxonomies != null) {
+            institutionToNotify.setCounty(geographicTaxonomies.getProvinceAbbreviation());
+            institutionToNotify.setCountry(geographicTaxonomies.getCountryAbbreviation());
+            institutionToNotify.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
         }
     }
     @Override

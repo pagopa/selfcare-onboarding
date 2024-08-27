@@ -160,7 +160,7 @@ public class NotificationEventServiceDefaultTest {
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        assertDoesNotThrow(() -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
+        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
