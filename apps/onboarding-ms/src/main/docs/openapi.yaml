@@ -1127,6 +1127,7 @@ components:
       enum:
       - AOO
       - UO
+      - EC
       type: string
     InstitutionPspRequest:
       required:

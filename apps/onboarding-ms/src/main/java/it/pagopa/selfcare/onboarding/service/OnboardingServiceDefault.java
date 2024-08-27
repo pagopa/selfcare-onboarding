@@ -29,7 +29,6 @@ import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.product.entity.Product;

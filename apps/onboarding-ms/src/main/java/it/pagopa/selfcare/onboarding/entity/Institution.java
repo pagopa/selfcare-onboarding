@@ -1,8 +1,8 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
