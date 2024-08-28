@@ -87,34 +87,29 @@ public class NotificationEventServiceDefault implements NotificationEventService
             return;
         }
 
-        try {
-            context.getLogger().info(() -> String.format("Getting product info for onboarding with ID %s and productId %s", onboarding.getId(), onboarding.getProductId()));
-            Product product = productService.getProduct(onboarding.getProductId());
-            if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
-                context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
-                return;
-            }
+        context.getLogger().info(() -> String.format("Getting product info for onboarding with ID %s and productId %s", onboarding.getId(), onboarding.getProductId()));
+        Product product = productService.getProduct(onboarding.getProductId());
+        if (product.getConsumers() == null || product.getConsumers().isEmpty()) {
+            context.getLogger().warning(() -> String.format("Node consumers is null or empty for product with ID %s", onboarding.getProductId()));
+            return;
+        }
 
-            if(Objects.isNull(queueEvent)) {
-                queueEvent = queueEventExaminer.determineEventType(onboarding);
-            }
+        if(Objects.isNull(queueEvent)) {
+            queueEvent = queueEventExaminer.determineEventType(onboarding);
+        }
 
-            context.getLogger().info(() -> String.format("Retrieving institution having ID %s", onboarding.getInstitution().getId()));
-            InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
+        context.getLogger().info(() -> String.format("Retrieving institution having ID %s", onboarding.getInstitution().getId()));
+        InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
 
-            Token token = tokenRepository.findByOnboardingId(onboarding.getId()).orElse(null);
-            NotificationsResources notificationsResources = new NotificationsResources(onboarding, institution, token, queueEvent);
-            for (String consumer : product.getConsumers()) {
-                NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
-                prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
-            }
-        } catch (Exception e) {
-            context.getLogger().severe(String.format("Error sending notification for onboarding with ID %s %s", onboarding.getId(), Arrays.toString(e.getStackTrace())));
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
+        Token token = tokenRepository.findByOnboardingId(onboarding.getId()).orElse(null);
+        NotificationsResources notificationsResources = new NotificationsResources(onboarding, institution, token, queueEvent);
+        for (String consumer : product.getConsumers()) {
+            NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
+            prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
         }
     }
 
-    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) throws JsonProcessingException {
+    private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
         NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);
         if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
@@ -125,19 +120,22 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
     }
 
-    private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) throws JsonProcessingException {
-        String message = mapper.writeValueAsString(notificationToSend);
-        context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, message));
-
+    private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
+        String message = null;
         try {
-            eventHubRestClient.sendMessage(topic, message);
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
-        } catch (Exception e) {
-            throw new NotificationException(e.getMessage());
+            message = mapper.writeValueAsString(notificationToSend);
+        } catch (JsonProcessingException e) {
+            throw new NotificationException("Notification cannot be serialized");
+        } finally {
+            String finalMessage = message;
+            context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, finalMessage));
         }
+
+        eventHubRestClient.sendMessage(topic, message);
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
-    private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) throws JsonProcessingException {
+    private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
         context.getLogger().info(() -> String.format("Starting sendTestEnvProductsNotification with testEnv %s", product.getTestEnvProductIds()));
         if (product.getTestEnvProductIds() != null) {
             for (String testEnvProductId : product.getTestEnvProductIds()) {
