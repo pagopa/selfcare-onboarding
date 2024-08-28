@@ -387,7 +387,10 @@ public class NotificationFunctionsTest {
         String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":[\"COMPLETED\"]}";
 
         doThrow(new NotificationException("Error")).when(notificationEventService).send(any(), any(), any(), any());
-        when(notificationEventResenderService.resendNotifications(any(), any())).thenReturn(null);
+        // when(notificationEventResenderService.resendNotifications(any(), any())).thenReturn(null);
+        List<Onboarding> onboardings = new ArrayList<>();
+        onboardings.add(new Onboarding());
+        when(onboardingService.getOnboardingsToResend(any(), anyInt(), anyInt())).thenReturn(onboardings);
 
         String nextFilter = function.resendNotificationsActivity(filtersString, context);
 
