@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -20,6 +19,8 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
@@ -32,7 +33,7 @@ public class OnboardingUtils {
     @RestClient
     @Inject
     AooApi aooApi;
-
+    private static final String DEFAULT_VALUE = "EC";
     private static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
     private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
     private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
@@ -66,7 +67,8 @@ public class OnboardingUtils {
     }
 
     private Uni<CustomError> validationRecipientCode(Onboarding onboarding, UOResource uoResource) {
-        switch (onboarding.getInstitution().getSubunitType()) {
+
+        switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC ) {
             case AOO -> {
                 return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                         .onItem().transformToUni(aooResource -> getValidationRecipientCodeError(aooResource.getCodiceIpa(), uoResource));
@@ -154,7 +156,7 @@ public class OnboardingUtils {
 
     private boolean isUO(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getInstitution().getSubunitCode())
-                && onboarding.getInstitution().getSubunitType().equals(InstitutionPaSubunitType.UO)
+                && UO.equals(onboarding.getInstitution().getSubunitType())
                 && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
                 && Objects.nonNull(onboarding.getInstitution().getTaxCode());
