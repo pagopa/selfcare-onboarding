@@ -259,6 +259,40 @@ public class OnboardingUtilsTest {
     }
 
     @Test
+    void checkRecipientCodeUONoBilling() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("ipaCode");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.UO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        AOOResource resource = new AOOResource();
+        resource.setCodiceFiscaleEnte("taxCode");
+        resource.setCodiceIpa("ipaCode");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("ipaCode");
+        uoResource.setCodiceFiscaleEnte("taxCode1");
+
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
     void checkRecipientCodeNoAssociation() {
 
         Onboarding onboarding = new Onboarding();
