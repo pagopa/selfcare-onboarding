@@ -291,7 +291,7 @@ public class NotificationEventServiceDefaultTest {
     }
 
     @Test
-    void sendNotificationsJsonError() throws JsonProcessingException {
+    void sendNotificationsJsonError() {
         final Onboarding onboarding = createOnboarding();
         final Product product = createProduct();
         when(productService.getProduct(any())).thenReturn(product);
@@ -302,10 +302,10 @@ public class NotificationEventServiceDefaultTest {
         BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
         when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
 
-        Object mockNotificationToSend = mock(NotificationToSend.class);
+        NotificationToSend mockNotificationToSend = mock(NotificationToSend.class);
         when(mockNotificationToSend.toString()).thenReturn(mockNotificationToSend.getClass().getName());
 
-        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn((NotificationToSend) mockNotificationToSend);
+        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn(mockNotificationToSend);
         when(notificationMapper.shouldSendNotification(any(), any())).thenReturn(true);
 
         ExecutionContext context = mock(ExecutionContext.class);
