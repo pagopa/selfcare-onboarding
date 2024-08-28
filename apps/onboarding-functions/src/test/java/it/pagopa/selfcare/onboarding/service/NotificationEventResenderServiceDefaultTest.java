@@ -5,11 +5,13 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
 import static org.junit.jupiter.api.Assertions.*;
@@ -62,6 +64,25 @@ class NotificationEventResenderServiceDefaultTest {
         verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
         assertNotNull(resendNotificationsFilters);
         assertEquals(1, resendNotificationsFilters.getPage());
+    }
+
+    @Test
+    void resendNotificationsActivityException() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        doThrow(new NotificationException("Error")).when(notificationEventService).send(any(), any(), any(), any());
+
+        List<Onboarding> onboardings = new ArrayList<>();
+        onboardings.add(new Onboarding());
+        when(onboardingService.getOnboardingsToResend(any(), anyInt(), anyInt())).thenReturn(onboardings);
+
+        ResendNotificationsFilters resendNotificationsFilters = new ResendNotificationsFilters();
+        resendNotificationsFilters.setProductId("prod-pagopa");
+
+        ResendNotificationsFilters nextFilter = notificationEventResenderServiceDefault.resendNotifications(resendNotificationsFilters, context);
+
+        assertNull(nextFilter);
     }
 
     private List<Onboarding> mockOnboardingList(int size) {

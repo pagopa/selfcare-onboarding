@@ -379,26 +379,5 @@ public class NotificationFunctionsTest {
 
         Mockito.verifyNoInteractions(notificationEventResenderService);
     }
-
-    @Test
-    void resendNotificationsActivityException() throws JsonProcessingException {
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":[\"COMPLETED\"]}";
-
-        doThrow(new NotificationException("Error")).when(notificationEventService).send(any(), any(), any(), any());
-        // when(notificationEventResenderService.resendNotifications(any(), any())).thenReturn(null);
-        List<Onboarding> onboardings = new ArrayList<>();
-        onboardings.add(new Onboarding());
-        when(onboardingService.getOnboardingsToResend(any(), anyInt(), anyInt())).thenReturn(onboardings);
-
-        String nextFilter = function.resendNotificationsActivity(filtersString, context);
-
-        ArgumentCaptor<ResendNotificationsFilters> filtersStringCaptor = ArgumentCaptor.forClass(ResendNotificationsFilters.class);
-        Mockito.verify(notificationEventResenderService, times(1))
-                .resendNotifications(filtersStringCaptor.capture(), any());
-        assertEquals("prod-pagopa", filtersStringCaptor.getValue().getProductId());
-        assertNull(nextFilter);
-    }
 }
 
