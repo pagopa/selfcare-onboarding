@@ -15,9 +15,9 @@ public interface CompletionService {
 
     void persistActivatedAt(Onboarding onboarding);
 
-    void sendCompletedEmail(ExecutionContext context, OnboardingWorkflow onboardingWorkflow);
+    void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow);
 
-    void sendCompletedEmailAggregate(ExecutionContext context, Onboarding onboarding);
+    void sendCompletedEmailAggregate(Onboarding onboarding);
 
     void persistUsers(Onboarding onboarding);
 

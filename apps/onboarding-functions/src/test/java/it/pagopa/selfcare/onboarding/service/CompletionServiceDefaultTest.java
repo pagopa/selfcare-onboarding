@@ -494,35 +494,10 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
 
-        completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
+        completionServiceDefault.sendCompletedEmail(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmail(any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void sendCompletedEmailWithError() {
-
-        Product product = createDummyProduct();
-        Onboarding onboarding = createOnboarding();
-        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, "INSTITUTION");
-
-        User user = createDummyUser(onboarding);
-
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(product);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
-                .thenReturn(userResource);
-        GenericOnboardingException exception = new GenericOnboardingException("error");
-        doThrow(exception).when(notificationService).sendCompletedEmail(any(), any(), any(), any(), any());
-
-        completionServiceDefault.sendCompletedEmail(context, onboardingWorkflow);
-        Mockito.verify(notificationService, times(1))
-                .sendCompletedEmail(any(), any(), any(), any(), any());
-
     }
 
     @Test
@@ -561,7 +536,7 @@ public class CompletionServiceDefaultTest {
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendCompletedEmailAggregate(any(), any());
 
-        completionServiceDefault.sendCompletedEmailAggregate(context, onboarding);
+        completionServiceDefault.sendCompletedEmailAggregate(onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendCompletedEmailAggregate(any(), any());

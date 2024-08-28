@@ -292,9 +292,7 @@ class OnboardingServiceTest {
                         sendMailInput,
                         "default", "default");
 
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailRegistrationForContract(context, onboardingWorkflow);
+        onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(any(),
@@ -326,42 +324,8 @@ class OnboardingServiceTest {
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
 
-        ExecutionContext context = getExecutionContext();
+        onboardingService.sendMailRegistrationForContractAggregator(onboarding);
 
-        onboardingService.sendMailRegistrationForContractAggregator(context, onboarding);
-
-        Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationForContractAggregator(onboarding.getId(),
-                        onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
-    }
-
-    @Test
-    void sendMailRegistrationWithContractAggregatorWithError() {
-
-        Onboarding onboarding = createOnboarding();
-        Product product = createDummyProduct();
-        UserResource userResource = createUserResource();
-        Token token = createDummyToken();
-
-        when(tokenRepository.findByOnboardingId(onboarding.getId()))
-                .thenReturn(Optional.of(token));
-        when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(product);
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-                .thenReturn(userResource);
-
-        GenericOnboardingException exception = new GenericOnboardingException("errorCode");
-        doThrow(exception).when(notificationService)
-                .sendMailRegistrationForContractAggregator(onboarding.getId(),
-                        onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
-
-        ExecutionContext context = getExecutionContext();
-        onboardingService.sendMailRegistrationForContractAggregator(context, onboarding);
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContractAggregator(onboarding.getId(),
                         onboarding.getInstitution().getDigitalAddress(),
@@ -390,9 +354,7 @@ class OnboardingServiceTest {
                         product.getTitle(), "description",
                         "default", "default");
 
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailRegistrationForContractWhenApprove(context, onboardingWorkflow);
+        onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationForContract(onboarding.getId(),
@@ -408,8 +370,7 @@ class OnboardingServiceTest {
         OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        ExecutionContext context = getExecutionContext();
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(context, onboardingWorkflow));
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
     }
 
     @Test
@@ -428,42 +389,13 @@ class OnboardingServiceTest {
                         userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                         product.getTitle());
 
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailRegistration(context, onboarding);
+        onboardingService.sendMailRegistration(onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistration(onboarding.getInstitution().getDescription(),
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(), userResource.getFamilyName().getValue(),
                     product.getTitle());
-    }
-
-    @Test
-    void sendMailRegistrationWithError() {
-
-        UserResource userResource = createUserResource();
-        Product product = createDummyProduct();
-        Onboarding onboarding = createOnboarding();
-
-        when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(product);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-                .thenReturn(userResource);
-        GenericOnboardingException exception = new GenericOnboardingException("error");
-        doThrow(exception).when(notificationService).sendMailRegistration(onboarding.getInstitution().getDescription(),
-                onboarding.getInstitution().getDigitalAddress(),
-                userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                product.getTitle());
-
-        ExecutionContext context = getExecutionContext();
-        onboardingService.sendMailRegistration(context, onboarding);
-
-        Mockito.verify(notificationService, times(1))
-                .sendMailRegistration(onboarding.getInstitution().getDescription(),
-                        onboarding.getInstitution().getDigitalAddress(),
-                        userResource.getName().getValue(), userResource.getFamilyName().getValue(),
-                        product.getTitle());
     }
 
     @Test
@@ -481,9 +413,7 @@ class OnboardingServiceTest {
         doNothing().when(notificationService)
                 .sendMailRegistrationApprove(any(), any(), any(),any(),any());
 
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailRegistrationApprove(context, onboarding);
+        onboardingService.sendMailRegistrationApprove(onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
@@ -492,42 +422,13 @@ class OnboardingServiceTest {
                         product.getTitle(),
                         onboarding.getId());
     }
-
-    @Test
-    void sendMailRegistrationApproveWithError() {
-
-        Onboarding onboarding = createOnboarding();
-        Product product = createDummyProduct();
-        UserResource userResource = createUserResource();
-
-        when(productService.getProduct(onboarding.getProductId()))
-                .thenReturn(product);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-                .thenReturn(userResource);
-        GenericOnboardingException exception = new GenericOnboardingException("Something went wrong");
-        doThrow(exception).when(notificationService)
-                .sendMailRegistrationApprove(any(), any(), any(),any(),any());
-
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailRegistrationApprove(context, onboarding);
-
-        Mockito.verify(notificationService, times(1))
-                .sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
-                        userResource.getName().getValue(),
-                        userResource.getFamilyName().getValue(),
-                        product.getTitle(),
-                        onboarding.getId());
-    }
-
 
     @Test
     void sendMailRegistrationApprove_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        ExecutionContext context = getExecutionContext();
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationApprove(context, onboarding));
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationApprove(onboarding));
     }
 
 
@@ -544,10 +445,7 @@ class OnboardingServiceTest {
                 .thenReturn(userResource);
         doNothing().when(notificationService).sendMailOnboardingApprove(any(), any(), any(),any(),any());
 
-        ExecutionContext context = getExecutionContext();
-
-        onboardingService.sendMailOnboardingApprove(context, onboarding);
-
+        onboardingService.sendMailOnboardingApprove(onboarding);
 
         Mockito.verify(notificationService, times(1))
                 .sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
@@ -563,8 +461,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.empty());
-        ExecutionContext context = getExecutionContext();
-        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(context, onboarding));
+        assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailOnboardingApprove(onboarding));
     }
 
     @Test

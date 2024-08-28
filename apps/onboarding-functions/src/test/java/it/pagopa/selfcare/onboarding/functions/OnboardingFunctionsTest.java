@@ -561,63 +561,61 @@ public class OnboardingFunctionsTest {
     void sendMailRegistrationWithContract() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContract(any(), any());
+        doNothing().when(service).sendMailRegistrationForContract(any());
 
         function.sendMailRegistrationForContract(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContract(any(), any());
+                .sendMailRegistrationForContract(any());
     }
-
 
     @Test
     void sendMailRegistration() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistration(any(), any());
+        doNothing().when(service).sendMailRegistration(any());
 
         function.sendMailRegistration(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistration(any(), any());
+                .sendMailRegistration(any());
     }
 
     @Test
     void sendMailRegistrationApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationApprove(any(), any());
+        doNothing().when(service).sendMailRegistrationApprove(any());
 
         function.sendMailRegistrationApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationApprove(any(), any());
+                .sendMailRegistrationApprove(any());
     }
 
     @Test
     void sendMailOnboardingApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailOnboardingApprove(any(), any());
+        doNothing().when(service).sendMailOnboardingApprove(any());
 
         function.sendMailOnboardingApprove(onboardinString, executionContext);
 
         verify(service, times(1))
-                .sendMailOnboardingApprove(any(), any());
+                .sendMailOnboardingApprove(any());
     }
 
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any(), any());
+        doNothing().when(service).sendMailRegistrationForContractWhenApprove(any());
 
         function.sendMailRegistrationForContractWhenApprove(onboardingWorkflowString, executionContext);
 
         verify(service, times(1))
-                .sendMailRegistrationForContractWhenApprove(any(), any());
+                .sendMailRegistrationForContractWhenApprove(any());
     }
-
 
     @Test
     void onboardingCompletionOrchestrator() {
@@ -645,9 +643,6 @@ public class OnboardingFunctionsTest {
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
-
-
-
 
     @Test
     void onboardingRejectedOrchestrator() {
@@ -684,15 +679,27 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void createOnboarding() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).persistOnboarding(any());
+
+        function.createOnboarding(onboardinString, executionContext);
+
+        verify(completionService, times(1))
+                .persistOnboarding(any());
+    }
+
+    @Test
     void sendCompletedEmail() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmail(any(), any());
+        doNothing().when(completionService).sendCompletedEmail(any());
 
         function.sendMailCompletion(onboardingWorkflowString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmail(any(), any());
+                .sendCompletedEmail(any());
     }
 
     @Test
@@ -711,12 +718,12 @@ public class OnboardingFunctionsTest {
     void sendCompletedEmailAggregate() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmailAggregate(any(), any());
+        doNothing().when(completionService).sendCompletedEmailAggregate(any());
 
         function.sendMailCompletionAggregate(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendCompletedEmailAggregate(any(), any());
+                .sendCompletedEmailAggregate(any());
     }
 
 
