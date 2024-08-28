@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -21,6 +24,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
@@ -29,6 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -36,7 +41,7 @@ import static org.mockito.Mockito.*;
 public class NotificationEventServiceDefaultTest {
 
     @Inject
-    NotificationEventServiceDefault messageServiceDefault;
+    NotificationEventServiceDefault notificationServiceDefault;
 
     @InjectMock
     ProductService productService;
@@ -70,7 +75,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -87,7 +92,7 @@ public class NotificationEventServiceDefaultTest {
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
         when(queueEventExaminer.determineEventType(any())).thenReturn(QueueEvent.ADD);
-        messageServiceDefault.send(context, onboarding, null);
+        notificationServiceDefault.send(context, onboarding, null);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -111,7 +116,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(3))
                 .sendMessage(anyString(), anyString());
     }
@@ -127,7 +132,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
 
@@ -143,7 +148,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verify(eventHubRestClient, times(9))
                 .sendMessage(anyString(), anyString());
     }
@@ -160,7 +165,7 @@ public class NotificationEventServiceDefaultTest {
                 .when(eventHubRestClient).sendMessage(anyString(), anyString());
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        assertThrows(NotificationException.class, () -> messageServiceDefault.send(context, onboarding, QueueEvent.ADD));
+        assertThrows(NotificationException.class, () -> notificationServiceDefault.send(context, onboarding, QueueEvent.ADD));
         verify(eventHubRestClient, times(1))
                 .sendMessage(anyString(), anyString());
     }
@@ -173,7 +178,7 @@ public class NotificationEventServiceDefaultTest {
         when(productService.getProduct(any())).thenReturn(test);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(eventHubRestClient);
     }
 
@@ -185,7 +190,7 @@ public class NotificationEventServiceDefaultTest {
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
 
-        messageServiceDefault.send(context, onboarding, QueueEvent.ADD);
+        notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
         verifyNoInteractions(productService);
         verifyNoInteractions(tokenRepository);
         verifyNoInteractions(institutionApi);
@@ -283,6 +288,33 @@ public class NotificationEventServiceDefaultTest {
         assertEquals(properties.get("billing.isPublicService"), "true");
         assertEquals(properties.get("billing.VatNumber"), "123");
         assertEquals(properties.get("billing.TaxCodeInvoicing"), "456");
+    }
+
+    @Test
+    void sendNotificationsJsonError() throws JsonProcessingException {
+        final Onboarding onboarding = createOnboarding();
+        final Product product = createProduct();
+        when(productService.getProduct(any())).thenReturn(product);
+
+        when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
+        when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+
+        BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
+        when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
+
+        Object mockNotificationToSend = mock(NotificationToSend.class);
+        when(mockNotificationToSend.toString()).thenReturn(mockNotificationToSend.getClass().getName());
+
+        when(notificationMapper.buildNotificationToSend(any(), any(), any(), any())).thenReturn((NotificationToSend) mockNotificationToSend);
+        when(notificationMapper.shouldSendNotification(any(), any())).thenReturn(true);
+
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+        TelemetryClient telemetryClient = mock(TelemetryClient.class);
+        doNothing().when(telemetryClient).trackEvent(anyString(), any(), any());
+
+        assertThrows(RuntimeException.class, () -> notificationServiceDefault.send(context, onboarding, QueueEvent.ADD));
     }
 
     private Onboarding createOnboarding() {
