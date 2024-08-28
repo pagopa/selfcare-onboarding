@@ -33,7 +33,6 @@ public class OnboardingUtils {
     @RestClient
     @Inject
     AooApi aooApi;
-    private static final String DEFAULT_VALUE = "EC";
     private static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
     private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
     private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
