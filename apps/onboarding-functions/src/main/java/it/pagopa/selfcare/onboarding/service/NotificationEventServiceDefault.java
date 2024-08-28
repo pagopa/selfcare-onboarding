@@ -125,7 +125,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         try {
             message = mapper.writeValueAsString(notificationToSend);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new NotificationException("Notification cannot be serialized");
         } finally {
             String finalMessage = message;
             context.getLogger().info(() -> String.format("Sending notification on topic: %s with message: %s", topic, finalMessage));

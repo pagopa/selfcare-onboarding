@@ -314,7 +314,7 @@ public class NotificationEventServiceDefaultTest {
         TelemetryClient telemetryClient = mock(TelemetryClient.class);
         doNothing().when(telemetryClient).trackEvent(anyString(), any(), any());
 
-        assertThrows(RuntimeException.class, () -> notificationServiceDefault.send(context, onboarding, QueueEvent.ADD));
+        assertThrows(NotificationException.class, () -> notificationServiceDefault.send(context, onboarding, QueueEvent.ADD));
     }
 
     private Onboarding createOnboarding() {
