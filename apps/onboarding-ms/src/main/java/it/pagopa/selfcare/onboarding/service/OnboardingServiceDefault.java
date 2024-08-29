@@ -207,6 +207,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                        //.onItem().transformToUni(this::addLocationData)
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
@@ -319,6 +320,18 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     .map(User::getId).findFirst().orElse(null);
                             onboarding.setPreviousManagerId(previousManagerId);
                         }).replaceWith(onboarding);
+    }
+
+    private Uni<Onboarding> addLocationData(Onboarding onboarding) {
+
+        if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
+            if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
+                return addParentDescriptionForAOO(onboarding);
+            } else if (InstitutionPaSubunitType.UO == onboarding.getInstitution().getSubunitType()) {
+                return addParentDescriptionForUO(onboarding);
+            }
+        }
+        return Uni.createFrom().item(onboarding);
     }
 
     private Multi<Onboarding> getOnboardingByFilters(String taxCode, String subunitCode, String origin,
