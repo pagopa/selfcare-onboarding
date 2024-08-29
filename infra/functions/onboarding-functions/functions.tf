@@ -29,7 +29,7 @@ module "selc_onboarding_fn" {
   location            = azurerm_resource_group.onboarding_fn_rg.location
   resource_group_name = azurerm_resource_group.onboarding_fn_rg.name
 
-  health_check_path                        = "/api/v1/info"
+  enable_healthcheck                       = false
   always_on                                = var.function_always_on
   subnet_id                                = module.onboarding_fn_snet[0].id
   application_insights_instrumentation_key = data.azurerm_application_insights.application_insights.instrumentation_key
