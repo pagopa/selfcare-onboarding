@@ -509,7 +509,8 @@
           "PSP",
           "AS",
           "REC",
-          "CON"
+          "CON",
+          "PRV"
         ],
         "type": "string"
       },
