@@ -1248,6 +1248,7 @@ components:
       - AS
       - REC
       - CON
+      - PRV
       type: string
     LocalDateTime:
       format: date-time

@@ -21,7 +21,7 @@
     <quarkus.platform.version>3.5.1</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <onboarding-sdk.version>0.1.18</onboarding-sdk.version>
+    <onboarding-sdk.version>0.1.19</onboarding-sdk.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
   </properties>
 
