@@ -1082,7 +1082,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<CustomError> checkRecipientCode(String recipientCode, String originId) {
       return onboardingUtils.getUoFromRecipientCode(recipientCode).onItem()
                .transformToUni(uoResource ->
-                       onboardingUtils.validationRecipientCode(originId, uoResource));
+                       onboardingUtils.getValidationRecipientCodeError(originId, uoResource));
     }
 
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
