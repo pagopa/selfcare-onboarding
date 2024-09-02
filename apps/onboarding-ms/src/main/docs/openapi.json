@@ -382,6 +382,7 @@
       "get" : {
         "tags" : [ "support", "Onboarding" ],
         "summary" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
+        "operationId" : "onboardingInstitutionUsingGET",
         "parameters" : [ {
           "name" : "origin",
           "in" : "query",
@@ -850,6 +851,7 @@
       "put" : {
         "tags" : [ "internal-v1" ],
         "summary" : "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution.It checks the contract's signature and upload the contract on an azure storageAt the end, function triggers async activities related to complete onboarding that consist of create the institution, activate the onboarding and sending data to notification queue.",
+        "operationId" : "completeOnboardingUsingPUT",
         "parameters" : [ {
           "name" : "onboardingId",
           "in" : "path",
@@ -944,6 +946,7 @@
       "put" : {
         "tags" : [ "support", "internal-v1", "Onboarding" ],
         "summary" : "Perform complete operation of an onboarding request as /complete but without signature verification of the contract",
+        "operationId" : "completeOnboardingTokenConsume",
         "parameters" : [ {
           "name" : "onboardingId",
           "in" : "path",
@@ -1064,8 +1067,9 @@
     },
     "/v1/onboarding/{onboardingId}/update" : {
       "put" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "support", "Onboarding" ],
         "summary" : "Update onboarding request receiving onboarding id.Function can change some values. ",
+        "operationId" : "updateOnboardiUsingPUT",
         "parameters" : [ {
           "name" : "onboardingId",
           "in" : "path",
@@ -1600,7 +1604,7 @@
         }
       },
       "InstitutionPaSubunitType" : {
-        "enum" : [ "AOO", "UO" ],
+        "enum" : [ "AOO", "UO", "EC" ],
         "type" : "string"
       },
       "InstitutionPspRequest" : {
@@ -1760,7 +1764,7 @@
         }
       },
       "InstitutionType" : {
-        "enum" : [ "PA", "PG", "GSP", "SA", "PT", "SCP", "PSP", "AS", "REC", "CON" ],
+        "enum" : [ "PA", "PG", "GSP", "SA", "PT", "SCP", "PSP", "AS", "REC", "CON", "PRV" ],
         "type" : "string"
       },
       "LocalDateTime" : {

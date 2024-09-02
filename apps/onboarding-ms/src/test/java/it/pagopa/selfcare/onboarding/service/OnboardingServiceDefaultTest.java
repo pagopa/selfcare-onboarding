@@ -14,10 +14,7 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
@@ -37,7 +34,6 @@ import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
@@ -1637,7 +1633,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         // Mock the response from onboardingUtils.validationRecipientCode
-        when(onboardingUtils.validationRecipientCode(eq(originId), eq(uoResource)))
+        when(onboardingUtils.getValidationRecipientCodeError(eq(originId), eq(uoResource)))
                 .thenReturn(Uni.createFrom().item(customError));
 
         // Call the method under test
@@ -1892,6 +1888,39 @@ class OnboardingServiceDefaultTest {
 
         subscriber.assertCompleted();
         assertFalse(subscriber.getItem());
+    }
+
+    @Test
+    void testCheckManagerWith404FromUserRegistry() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(404);
+        when(exception.getResponse()).thenReturn(response);
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+        subscriber.assertCompleted();
+        assertFalse(subscriber.getItem());
+    }
+
+    @Test
+    void testCheckManagerWith500FromUserRegistry() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        WebApplicationException exception = mock(WebApplicationException.class);
+        Response response = mock(Response.class);
+        when(response.getStatus()).thenReturn(500);
+        when(exception.getResponse()).thenReturn(response);
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+        UniAssertSubscriber<Boolean> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+        subscriber.assertFailedWith(WebApplicationException.class);
     }
 
     @Test

@@ -1,8 +1,8 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 

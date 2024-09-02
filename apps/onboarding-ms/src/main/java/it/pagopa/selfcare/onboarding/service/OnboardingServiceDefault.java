@@ -29,7 +29,6 @@ import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.product.entity.Product;
@@ -1064,23 +1063,26 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .collect().asList()
                         .onItem().transformToUni(this::getOnboardingList)
                         .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboardingUserRequest))
-                        .onItem().transform(items ->
-                                items.stream().map(onboarding -> onboarding.getUsers().stream()
-                                                .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
-                                                .map(User::getId)
-                                                .findAny().orElse(null)).toList())
+                        .onItem().transform(this::getManagerIds)
                         .onItem().transformToUni(uuids -> {
                             if (uuids.contains(uuid.toString())) {
                                 return Uni.createFrom().item(true);
                             }
                             return Uni.createFrom().item(false);
-                        }));
+                        }))
+                .onFailure().recoverWithUni(ex -> {
+                    if (ex instanceof ResourceNotFoundException
+                            || ((WebApplicationException) ex).getResponse().getStatus() != 404) {
+                        return Uni.createFrom().failure(ex);
+                    }
+                    return Uni.createFrom().item(false);
+                });
     }
 
     public Uni<CustomError> checkRecipientCode(String recipientCode, String originId) {
       return onboardingUtils.getUoFromRecipientCode(recipientCode).onItem()
                .transformToUni(uoResource ->
-                       onboardingUtils.validationRecipientCode(originId, uoResource));
+                       onboardingUtils.getValidationRecipientCodeError(originId, uoResource));
     }
 
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
@@ -1109,5 +1111,13 @@ public class OnboardingServiceDefault implements OnboardingService {
             return Uni.createFrom().nullItem();
         }
         return Uni.createFrom().item(onboardings);
+    }
+
+    // Retrieve manager uuids from previous onboardings in case of workflowType USERS
+    private List<String> getManagerIds(List<Onboarding> onboardings) {
+        return onboardings.stream().map(onboarding -> onboarding.getUsers().stream()
+                .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
+                .map(User::getId)
+                .findAny().orElse(null)).toList();
     }
 }

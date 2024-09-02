@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -8,17 +9,19 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.util.InstitutionPaSubunitType;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
@@ -28,6 +31,9 @@ public class OnboardingUtils {
     @Inject
     UoApi uoApi;
 
+    @RestClient
+    @Inject
+    AooApi aooApi;
     private static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
     private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
     private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
@@ -46,13 +52,10 @@ public class OnboardingUtils {
     }
 
     private Uni<Void> checkRecipientCode(Onboarding onboarding) {
-        if (Objects.nonNull(onboarding.getInstitution())
-                && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
-                && Objects.nonNull(onboarding.getBilling())
-                && Objects.nonNull(onboarding.getBilling().getRecipientCode())) {
+        if (isInvoiceablePA(onboarding)) {
             final String recipientCode = onboarding.getBilling().getRecipientCode();
             return getUoFromRecipientCode(recipientCode)
-                    .flatMap(uoResource -> validationRecipientCode(onboarding.getInstitution().getOriginId(), uoResource))
+                    .onItem().transformToUni(uoResource -> validationRecipientCode(onboarding, uoResource))
                     .onItem().transformToUni(customError -> {
                         if (Objects.nonNull(customError)) {
                             return Uni.createFrom().failure(new InvalidRequestException(customError.getMessage()));
@@ -61,6 +64,23 @@ public class OnboardingUtils {
                     });
         }
         return Uni.createFrom().nullItem();
+    }
+
+    private Uni<CustomError> validationRecipientCode(Onboarding onboarding, UOResource uoResource) {
+
+        switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC ) {
+            case AOO -> {
+                return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+                        .onItem().transformToUni(aooResource -> getValidationRecipientCodeError(aooResource.getCodiceIpa(), uoResource));
+            }
+            case UO -> {
+                return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                        .onItem().transformToUni(innerUoResource -> getValidationRecipientCodeError(innerUoResource.getCodiceIpa(), uoResource));
+            }
+            default -> {
+                return getValidationRecipientCodeError(onboarding.getInstitution().getOriginId(), uoResource);
+            }
+        }
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
@@ -74,8 +94,8 @@ public class OnboardingUtils {
                         : Uni.createFrom().failure(ex));
     }
 
-    public Uni<CustomError> validationRecipientCode(String originId, UOResource uoResource) {
-        if (!originId.equals(uoResource.getCodiceIpa())) {
+    public Uni<CustomError> getValidationRecipientCodeError(String originIdEC, UOResource uoResource) {
+        if (!originIdEC.equals(uoResource.getCodiceIpa())) {
             return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
         }
         if (Objects.isNull(uoResource.getCodiceFiscaleSfe())) {
@@ -136,9 +156,16 @@ public class OnboardingUtils {
 
     private boolean isUO(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getInstitution().getSubunitCode())
-                && onboarding.getInstitution().getSubunitType().equals(InstitutionPaSubunitType.UO)
+                && UO.equals(onboarding.getInstitution().getSubunitType())
                 && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
                 && Objects.nonNull(onboarding.getInstitution().getTaxCode());
+    }
+
+    private boolean isInvoiceablePA(Onboarding onboarding) {
+        return Objects.nonNull(onboarding.getInstitution())
+                && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
+                && Objects.nonNull(onboarding.getBilling())
+                && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 }
