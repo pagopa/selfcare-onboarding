@@ -14,7 +14,10 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -292,6 +295,47 @@ public class OnboardingUtilsTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void checkRecipientCodeFailure() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("ipaCode");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.AOO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        AOOResource resource = new AOOResource();
+        resource.setCodiceFiscaleEnte("taxCode");
+        resource.setCodiceIpa("ipaCode");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("ipaCode");
+        uoResource.setCodiceFiscaleEnte("taxCode1");
+
+        ClientWebApplicationException exception = new ClientWebApplicationException(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.AOO)
+                .resource(resource)
+                .build();
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(Exception.class);
     }
 
     @Test
