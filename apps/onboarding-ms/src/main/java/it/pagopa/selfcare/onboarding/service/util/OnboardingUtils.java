@@ -14,7 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
-import lombok.Data;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
@@ -23,7 +22,8 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
@@ -169,7 +169,6 @@ public class OnboardingUtils {
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 
-    @Data
     @Builder
     public static class ProxyResource<T> {
         private InstitutionPaSubunitType type;
