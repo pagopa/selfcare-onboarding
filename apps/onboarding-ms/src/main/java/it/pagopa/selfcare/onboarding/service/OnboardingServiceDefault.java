@@ -375,18 +375,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 }).replaceWith(onboarding);
     }
 
-    private Uni<Onboarding> addLocationData(Onboarding onboarding) {
-
-        if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
-            if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
-                return addParentDescriptionForAOO(onboarding);
-            } else if (InstitutionPaSubunitType.UO == onboarding.getInstitution().getSubunitType()) {
-                return addParentDescriptionForUO(onboarding);
-            }
-        }
-        return Uni.createFrom().item(onboarding);
-    }
-
     private Multi<Onboarding> getOnboardingByFilters(String taxCode, String subunitCode, String origin,
                                                      String originId, String productId) {
         final Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
