@@ -1633,7 +1633,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         // Mock the response from onboardingUtils.validationRecipientCode
-        when(onboardingUtils.validationRecipientCode(eq(originId), eq(uoResource)))
+        when(onboardingUtils.getValidationRecipientCodeError(eq(originId), eq(uoResource)))
                 .thenReturn(Uni.createFrom().item(customError));
 
         // Call the method under test
