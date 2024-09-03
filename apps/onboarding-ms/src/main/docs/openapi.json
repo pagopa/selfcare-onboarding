@@ -25,7 +25,24 @@
     "name" : "support"
   } ],
   "paths" : {
-    "/v1/aggregates/verification" : {
+    "/v1/aggregates/prova" : {
+      "get" : {
+        "tags" : [ "Aggregates Controller" ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "text/plain" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/aggregates/verification/appio" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],
         "summary" : "Validate the data related to the aggregated entities present in a CSV file",
@@ -55,17 +72,76 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
+          }
+        }
+      }
+    },
+    "/v1/aggregates/verification/pagopa" : {
+      "post" : {
+        "tags" : [ "Aggregates Controller" ],
+        "summary" : "Validate the data related to the aggregated entities present in a CSV file",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "aggregates" ],
+                "type" : "object",
+                "properties" : {
+                  "aggregates" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
           }
         },
-        "security" : [ {
-          "SecurityScheme" : [ ]
-        } ]
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/aggregates/verification/send" : {
+      "post" : {
+        "tags" : [ "Aggregates Controller" ],
+        "summary" : "Validate the data related to the aggregated entities present in a CSV file",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "aggregates" ],
+                "type" : "object",
+                "properties" : {
+                  "aggregates" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/notification/resend" : {

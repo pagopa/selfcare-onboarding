@@ -4,28 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AggregatesCsvResponse {
-    private List<CsvAggregate> csvAggregateList;
-    private List<CsvAggregate> validAggregates = new ArrayList<>();
+    private List<Csv> csvAggregateList;
+    private List<Csv> validAggregates = new ArrayList<>();
     private List<RowError> rowErrorList;
 
-    public AggregatesCsvResponse(List<CsvAggregate> csvAggregateList, List<RowError> rowErrorList) {
+    public AggregatesCsvResponse(List<Csv> csvAggregateList, List<RowError> rowErrorList) {
         this.csvAggregateList = csvAggregateList;
         this.rowErrorList = rowErrorList;
     }
 
-    public List<CsvAggregate> getCsvAggregateList() {
+    public List<Csv> getCsvAggregateList() {
         return csvAggregateList;
     }
 
-    public void setCsvAggregateList(List<CsvAggregate> csvAggregateList) {
+    public void setCsvAggregateList(List<Csv> Csv) {
         this.csvAggregateList = csvAggregateList;
     }
 
-    public List<CsvAggregate> getValidAggregates() {
+    public List<Csv> getValidAggregates() {
         return validAggregates;
     }
 
-    public void setValidAggregates(List<CsvAggregate> validAggregates) {
+    public void setValidAggregates(List<Csv> Csv) {
         this.validAggregates = validAggregates;
     }
 

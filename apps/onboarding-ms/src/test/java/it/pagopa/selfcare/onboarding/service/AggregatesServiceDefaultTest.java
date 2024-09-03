@@ -59,7 +59,7 @@ public class AggregatesServiceDefaultTest {
         when(institutionApi.findInstitutionUsingGET("345645", null, null)).thenThrow(ResourceNotFoundException.class);
         when(uoApi.findByUnicodeUsingGET1("AQ66",null)).thenThrow(ResourceNotFoundException.class);
 
-        aggregatesServiceDefault.validateAggregatesCsv(testFile)
+        aggregatesServiceDefault.validateAppIoAggregatesCsv(testFile)
                         .subscribe().withSubscriber(UniAssertSubscriber.create())
                         .assertCompleted();
     }

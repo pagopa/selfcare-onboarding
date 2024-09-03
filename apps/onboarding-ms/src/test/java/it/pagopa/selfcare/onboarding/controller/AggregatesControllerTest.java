@@ -31,7 +31,7 @@ public class AggregatesControllerTest {
     void verifyAggregatesCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates.csv");
 
-        when(aggregatesService.validateAggregatesCsv(any()))
+        when(aggregatesService.validateAppIoAggregatesCsv(any()))
                 .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
 
         given()
@@ -43,6 +43,6 @@ public class AggregatesControllerTest {
                 .statusCode(200);
 
         verify(aggregatesService, times(1))
-                .validateAggregatesCsv(any());
+                .validateAppIoAggregatesCsv(any());
     }
 }
