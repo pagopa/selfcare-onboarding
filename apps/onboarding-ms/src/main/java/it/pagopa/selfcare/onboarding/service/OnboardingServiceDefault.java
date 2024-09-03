@@ -208,10 +208,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .replaceWith(product))
                 .onItem().transformToUni(product -> getRegistryResource(onboarding)
                         .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
-                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)))
+                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
+                                        .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                        .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
@@ -249,10 +249,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .replaceWith(product))
                 .onItem().transformToUni(product -> getRegistryResource(onboarding)
                         .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
-                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)))
+                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
+                                        .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
                                 /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                                 .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
                                 .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
                                 .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                                 .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
@@ -301,7 +301,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
     }
 
-    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding) {
+    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
 
         Log.infof("Adding parent description AOO/UOO for: taxCode %s, subunitCode %s, type %s",
                 onboarding.getInstitution().getTaxCode(),
@@ -309,10 +309,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding.getInstitution().getInstitutionType());
 
         if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
-            if (InstitutionPaSubunitType.AOO == onboarding.getInstitution().getSubunitType()) {
-                return addParentDescriptionForAOO(onboarding);
-            } else if (InstitutionPaSubunitType.UO == onboarding.getInstitution().getSubunitType()) {
-                return addParentDescriptionForUO(onboarding);
+            if (AOO == proxyResource.getType()) {
+                AOOResource resource = (AOOResource) proxyResource.getResource();
+                return addParentDescriptionForAOO(onboarding, resource);
+            } else if (UO == onboarding.getInstitution().getSubunitType()) {
+                UOResource resource = (UOResource) proxyResource.getResource();
+                return addParentDescriptionForUO(onboarding, resource);
             }
         }
         return Uni.createFrom().item(onboarding);
@@ -334,25 +336,20 @@ public class OnboardingServiceDefault implements OnboardingService {
         };
     }
 
-    private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding) {
-        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .onItem().invoke(uoResource -> LOG.infof("Founded parent %s for UO institution with subunitCode %s", uoResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode()))
-                .onItem().invoke(uoResource -> onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte()))
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .replaceWith(onboarding);
-
+    private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding, UOResource uoResource) {
+        LOG.infof("Founded parent %s for UO institution with subunitCode %s", uoResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode());
+        return Uni.createFrom().item(() -> {
+            onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
+            return onboarding;
+        });
     }
 
-    private Uni<Onboarding> addParentDescriptionForAOO(Onboarding onboarding) {
-        return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
-                .onItem().invoke(aooResource -> LOG.infof("Founded parent %s for AOO institution with subunitCode %s", aooResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode()))
-                .onItem().invoke(aooResource -> onboarding.getInstitution().setParentDescription(aooResource.getDenominazioneEnte()))
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .replaceWith(onboarding);
+    private Uni<Onboarding> addParentDescriptionForAOO(Onboarding onboarding, AOOResource aooResource) {
+        LOG.infof("Founded parent %s for AOO institution with subunitCode %s", aooResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode());
+        return Uni.createFrom().item(() -> {
+            onboarding.getInstitution().setParentDescription(aooResource.getDenominazioneEnte());
+            return onboarding;
+        });
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
