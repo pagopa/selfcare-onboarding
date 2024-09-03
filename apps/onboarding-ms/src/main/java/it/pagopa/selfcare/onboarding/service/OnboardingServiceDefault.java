@@ -50,6 +50,8 @@ import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
@@ -63,6 +65,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.GenericError.*;
@@ -203,11 +206,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
-                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
+                .onItem().transformToUni(product -> getRegistryResource(onboarding)
+                        .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
+                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                        .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                        //.onItem().transformToUni(this::addLocationData)
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
@@ -243,17 +247,50 @@ public class OnboardingServiceDefault implements OnboardingService {
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
-                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
-                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                        .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                        .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
-                        .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
-                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
-                        .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
-                        /* Update onboarding data with users and start orchestration */
-                        .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                                orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
-                        .onItem().transform(onboardingMapper::toResponse));
+                .onItem().transformToUni(product -> getRegistryResource(onboarding)
+                        .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
+                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)))
+                                /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                                .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                                .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
+                                .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
+                                .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                                .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
+                                /* Update onboarding data with users and start orchestration */
+                                .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                                .onItem().transform(onboardingMapper::toResponse));
+    }
+
+    private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
+
+        switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC ) {
+            case AOO -> {
+                return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+                        .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                                ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                                : Uni.createFrom().failure(ex))
+                        .onItem().transformToUni(aooResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
+                                .resource(aooResource)
+                                .type(AOO)
+                                .build()));
+            }
+            case UO -> {
+                return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                        .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                                ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                                : Uni.createFrom().failure(ex))
+                        .onItem().transformToUni(uoResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
+                                .resource(uoResource)
+                                .type(UO)
+                                .build()));
+            }
+            default -> {
+                return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
+                        .type(EC)
+                        .build());
+            }
+        }
     }
 
     private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product) {
@@ -279,6 +316,22 @@ public class OnboardingServiceDefault implements OnboardingService {
             }
         }
         return Uni.createFrom().item(onboarding);
+    }
+
+    private Uni<Onboarding> setIstatCode(Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
+        return switch (proxyResource.getType()) {
+            case AOO -> Uni.createFrom().item(() -> {
+                AOOResource resource = (AOOResource) proxyResource.getResource();
+                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
+                return onboarding;
+            });
+            case UO -> Uni.createFrom().item(() -> {
+                UOResource resource = (UOResource) proxyResource.getResource();
+                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
+                return onboarding;
+            });
+            default -> Uni.createFrom().item(onboarding);
+        };
     }
 
     private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding) {
@@ -315,11 +368,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .invoke(previousOnboarding -> onboarding.setReferenceOnboardingId(previousOnboarding.getId()));
         return current.onItem().transformToUni(ignored -> onboardings.collect().first()).onItem()
                 .invoke(lastOnboarding -> {
-                            String previousManagerId = lastOnboarding.getUsers().stream()
-                                    .filter(user -> user.getRole().equals(PartyRole.MANAGER))
-                                    .map(User::getId).findFirst().orElse(null);
-                            onboarding.setPreviousManagerId(previousManagerId);
-                        }).replaceWith(onboarding);
+                    String previousManagerId = lastOnboarding.getUsers().stream()
+                            .filter(user -> user.getRole().equals(PartyRole.MANAGER))
+                            .map(User::getId).findFirst().orElse(null);
+                    onboarding.setPreviousManagerId(previousManagerId);
+                }).replaceWith(onboarding);
     }
 
     private Uni<Onboarding> addLocationData(Onboarding onboarding) {
@@ -1050,8 +1103,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.findById(onboardingId)
                 .onItem().transform(Onboarding.class::cast)
                 .onItem().transformToUni(onboardingGet -> Objects.isNull(onboardingGet)
-                    ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is not present!", onboardingId)))
-                    : Uni.createFrom().item(onboardingGet))
+                        ? Uni.createFrom().failure(new InvalidRequestException(String.format("Onboarding with id %s is not present!", onboardingId)))
+                        : Uni.createFrom().item(onboardingGet))
                 .onItem().transformToUni(id -> updateOnboardingValues(onboardingId, onboarding));
 
     }
@@ -1093,9 +1146,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     public Uni<CustomError> checkRecipientCode(String recipientCode, String originId) {
-      return onboardingUtils.getUoFromRecipientCode(recipientCode).onItem()
-               .transformToUni(uoResource ->
-                       onboardingUtils.getValidationRecipientCodeError(originId, uoResource));
+        return onboardingUtils.getUoFromRecipientCode(recipientCode).onItem()
+                .transformToUni(uoResource ->
+                        onboardingUtils.getValidationRecipientCodeError(originId, uoResource));
     }
 
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
