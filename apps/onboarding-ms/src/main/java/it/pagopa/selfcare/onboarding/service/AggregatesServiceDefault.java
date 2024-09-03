@@ -64,7 +64,7 @@ public class AggregatesServiceDefault implements AggregatesService{
 
     @Override
     public Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv(File file){
-        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregate.class);
+        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregateAppIo.class);
         List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
         return Multi.createFrom().iterable(csvAggregates)
                 .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
@@ -104,11 +104,11 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
-        CsvAggregate csvAggregate = (CsvAggregate) csv;
-        return checkCsvAggregateAppIo(csvAggregate)
-                .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregate))
-                .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse))
-                .onFailure(InvalidRequestException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse));
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+        return checkCsvAggregateAppIo(csvAggregateAppIo)
+                .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregateAppIo))
+                .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregateAppIo, throwable, aggregatesCsvResponse))
+                .onFailure(InvalidRequestException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregateAppIo, throwable, aggregatesCsvResponse));
     }
 
     private Uni<Void> checkCsvAggregateSendAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
@@ -137,8 +137,8 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private static Uni<Void> mapToErrorRow(Csv csv, Throwable throwable, AggregatesCsvResponse aggregatesCsvResponse) {
-        CsvAggregate csvAggregate = (CsvAggregate) csv;
-        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregate.getRowNumber(), csvAggregate.getTaxCode(), throwable.getMessage()));
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregateAppIo.getRowNumber(), csvAggregateAppIo.getTaxCode(), throwable.getMessage()));
         return Uni.createFrom().voidItem();
     }
 
@@ -157,18 +157,18 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private Uni<Void> checkSubunitTypeAppIo(Csv csv) {
-        CsvAggregate csvAggregate = (CsvAggregate) csv;
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
 
-        if (StringUtils.isEmpty(csvAggregate.getSubunitType())) {
-            return institutionApi.findInstitutionUsingGET(csvAggregate.getTaxCode(), null, null)
+        if (StringUtils.isEmpty(csvAggregateAppIo.getSubunitType())) {
+            return institutionApi.findInstitutionUsingGET(csvAggregateAppIo.getTaxCode(), null, null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .replaceWith(Uni.createFrom().voidItem());
-        } else if (InstitutionPaSubunitType.AOO.name().equals(csvAggregate.getSubunitType())) {
-            return aooApi.findByUnicodeUsingGET(csvAggregate.getSubunitCode(), null)
+        } else if (InstitutionPaSubunitType.AOO.name().equals(csvAggregateAppIo.getSubunitType())) {
+            return aooApi.findByUnicodeUsingGET(csvAggregateAppIo.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .replaceWith(Uni.createFrom().voidItem());
-        } else if (InstitutionPaSubunitType.UO.name().equals(csvAggregate.getSubunitType())) {
-            return uoApi.findByUnicodeUsingGET1(csvAggregate.getSubunitCode(), null)
+        } else if (InstitutionPaSubunitType.UO.name().equals(csvAggregateAppIo.getSubunitType())) {
+            return uoApi.findByUnicodeUsingGET1(csvAggregateAppIo.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .replaceWith(Uni.createFrom().voidItem());
         } else {
@@ -200,15 +200,15 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private Uni<Void> checkRequiredFieldsAppIo(Csv csv) {
-        CsvAggregate csvAggregate = (CsvAggregate) csv;
-        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+        if (StringUtils.isEmpty(csvAggregateAppIo.getTaxCode())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
-        } else if (StringUtils.isEmpty(csvAggregate.getDescription())) {
+        } else if (StringUtils.isEmpty(csvAggregateAppIo.getDescription())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
-        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+        } else if (StringUtils.isEmpty(csvAggregateAppIo.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
-                || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
+        } else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
+                || (StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
         }
         return Uni.createFrom().voidItem();

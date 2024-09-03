@@ -4,7 +4,7 @@ import com.opencsv.bean.CsvBindByPosition;
 import lombok.Data;
 
 @Data
-public class CsvAggregateSend implements Csv {
+public class CsvAggregateAppIo implements Csv {
 
     @CsvBindByPosition(position = 0)
     private String aggregateName;
@@ -19,38 +19,27 @@ public class CsvAggregateSend implements Csv {
     private String vatNumber;
 
     @CsvBindByPosition(position = 4)
-    private String codeSDI;
-
-    @CsvBindByPosition(position = 5)
     private String address;
 
-    @CsvBindByPosition(position = 6)
+    @CsvBindByPosition(position = 5)
     private String city;
 
-    @CsvBindByPosition(position = 7)
+    @CsvBindByPosition(position = 6)
     private String province;
 
-    @CsvBindByPosition(position = 8)
+    @CsvBindByPosition(position = 7)
     private String ipaCode;
 
-    @CsvBindByPosition(position = 9)
+    @CsvBindByPosition(position = 8)
     private String subunitType;
 
-    @CsvBindByPosition(position = 10)
+    @CsvBindByPosition(position = 9)
     private String subunitCode;
 
-    @CsvBindByPosition(position = 11)
-    private String adminAggregateName;
-
-    @CsvBindByPosition(position = 12)
-    private String adminAggregateSurname;
-
-    @CsvBindByPosition(position = 13)
-    private String adminAggregateTaxCode;
-
-    @CsvBindByPosition(position = 14)
-    private String adminAggregateEmail;
+    @CsvBindByPosition(position = 10)
+    private String originId;
     private Integer rowNumber;
+
     @Override
     public void setRowNumber(int lineNumber) {
         this.rowNumber = lineNumber;

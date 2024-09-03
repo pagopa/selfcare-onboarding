@@ -10,7 +10,7 @@ public class CsvAggregatePagoPa implements Csv {
     private String aggregateName;
 
     @CsvBindByPosition(position = 1)
-    private String emailPec;
+    private String pec;
 
     @CsvBindByPosition(position = 2)
     private String taxNumber;
@@ -22,18 +22,24 @@ public class CsvAggregatePagoPa implements Csv {
     private String address;
 
     @CsvBindByPosition(position = 5)
-    private String taxCodePT;
+    private String city;
 
     @CsvBindByPosition(position = 6)
-    private String vatNumberPT;
+    private String province;
 
     @CsvBindByPosition(position = 7)
-    private String iban;
+    private String aggragateNamePT;
 
     @CsvBindByPosition(position = 8)
-    private String service;
+    private String taxCodePT;
 
     @CsvBindByPosition(position = 9)
+    private String iban;
+
+    @CsvBindByPosition(position = 10)
+    private String service;
+
+    @CsvBindByPosition(position = 11)
     private String syncAsyncMode;
 
     private Integer rowNumber;
