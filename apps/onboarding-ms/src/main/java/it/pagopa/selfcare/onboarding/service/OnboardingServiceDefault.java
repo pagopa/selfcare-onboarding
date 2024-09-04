@@ -204,6 +204,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
                 .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
+                        /* if institution type is PRV or SCP, request should match data from registry proxy */
+                        .onItem().transformToUni(ignored -> onboardingUtils.validateFields(onboarding))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::addParentDescriptionForAooOrUo)
