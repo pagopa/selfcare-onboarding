@@ -222,16 +222,16 @@ public class OnboardingFunctions {
         return completionService.createInstitutionAndPersistInstitutionId(readOnboardingValue(objectMapper, onboardingString));
     }
 
-    @FunctionName(CREATE_ONBOARDING_ACTIVITY)
-    public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
-        completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
-    }
-
     @FunctionName(STORE_ONBOARDING_ACTIVATEDAT)
     public void storeOnboardingActivatedAt(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, STORE_ONBOARDING_ACTIVATEDAT, onboardingString));
         completionService.persistActivatedAt(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(CREATE_ONBOARDING_ACTIVITY)
+    public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
+        completionService.persistOnboarding(readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(SEND_MAIL_COMPLETION_ACTIVITY)
@@ -243,7 +243,7 @@ public class OnboardingFunctions {
     @FunctionName(SEND_MAIL_REJECTION_ACTIVITY)
     public void sendMailRejection(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString));
-        completionService.sendMailRejection(readOnboardingValue(objectMapper, onboardingString));
+        completionService.sendMailRejection(context, readOnboardingValue(objectMapper, onboardingString));
     }
 
     @FunctionName(CREATE_USERS_ACTIVITY)
@@ -274,11 +274,11 @@ public class OnboardingFunctions {
      * After that, It sends a message on topics through the event bus
      */
     @FunctionName("TestSendEmail")
-    public HttpResponseMessage sendTestEmail(
+    public void sendTestEmail(
             @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
             final ExecutionContext context) {
         context.getLogger().info("TestSendEmail trigger processed a request");
         completionService.sendTestEmail(context);
-        return request.createResponseBuilder(HttpStatus.OK).build();
+        request.createResponseBuilder(HttpStatus.OK).build();
     }
 }

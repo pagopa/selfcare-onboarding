@@ -48,7 +48,6 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 public class OnboardingService {
 
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
-
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name";
     public static final String USERS_WORKS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USER_REQUEST_DOES_NOT_FOUND = "User request does not found for onboarding %s";
@@ -61,22 +60,27 @@ public class OnboardingService {
     UserApi userRegistryApi;
     @Inject
     NotificationService notificationService;
-    @Inject
-    ContractService contractService;
-    @Inject
-    ProductService productService;
-
-    @Inject
-    OnboardingRepository repository;
-
-    @Inject
-    TokenRepository tokenRepository;
-
-    @Inject
-    MailTemplatePathConfig mailTemplatePathConfig;
-
-    @Inject
-    MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+    private final ContractService contractService;
+    private final ProductService productService;
+    private final OnboardingRepository repository;
+    private final TokenRepository tokenRepository;
+    private final MailTemplatePathConfig mailTemplatePathConfig;
+    private final MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+    public OnboardingService(ProductService productService,
+                             ContractService contractService,
+                             OnboardingRepository repository,
+                             MailTemplatePathConfig mailTemplatePathConfig,
+                             MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig,
+                             TokenRepository tokenRepository,
+                             NotificationService notificationService) {
+        this.contractService = contractService;
+        this.repository = repository;
+        this.tokenRepository = tokenRepository;
+        this.productService = productService;
+        this.notificationService = notificationService;
+        this.mailTemplatePathConfig = mailTemplatePathConfig;
+        this.mailTemplatePlaceholdersConfig = mailTemplatePlaceholdersConfig;
+    }
 
     public Optional<Onboarding> getOnboarding(String onboardingId) {
         return repository.findByIdOptional(onboardingId);
@@ -145,14 +149,11 @@ public class OnboardingService {
     }
 
     public void sendMailRegistration(Onboarding onboarding) {
-
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
         notificationService.sendMailRegistration(onboarding.getInstitution().getDescription(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle());
-
     }
 
     public void sendMailRegistrationForContract(OnboardingWorkflow onboardingWorkflow) {
@@ -171,9 +172,7 @@ public class OnboardingService {
     }
 
     public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
-
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
         notificationService.sendMailRegistrationForContractAggregator(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
@@ -181,33 +180,27 @@ public class OnboardingService {
     }
 
     public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
-
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         Product product = productService.getProduct(onboarding.getProductId());
-
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle(), "description",
                 onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
                 onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
+
     }
 
     public void sendMailRegistrationApprove(Onboarding onboarding) {
-
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
         notificationService.sendMailRegistrationApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
                 onboarding.getId());
-
     }
 
     public void sendMailOnboardingApprove(Onboarding onboarding) {
-
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
-
         notificationService.sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
                 sendMailInput.userRequestName, sendMailInput.userRequestSurname,
                 sendMailInput.product.getTitle(),
@@ -290,11 +283,11 @@ public class OnboardingService {
         Document query = new Document();
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
-         if (workflowTypeExist) {
-             query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
-         } else {
-             query.append(WORKFLOW_TYPE, new Document("$exists", false));
-         }
+        if (workflowTypeExist) {
+            query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+        } else {
+            query.append(WORKFLOW_TYPE, new Document("$exists", false));
+        }
         Document dateQuery = new Document();
         Optional.ofNullable(from).ifPresent(value -> query.append(dateField, dateQuery.append("$gte", LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE))));
         Optional.ofNullable(to).ifPresent(value -> query.append(dateField, dateQuery.append("$lte", LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1))));

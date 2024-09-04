@@ -10,5 +10,6 @@ public enum InstitutionType {
     PSP,
     AS,
     REC,
-    CON
+    CON,
+    PRV
 }

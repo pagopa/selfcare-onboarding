@@ -13,11 +13,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 @QuarkusTest
@@ -85,7 +88,7 @@ class NotificationEventResenderServiceDefaultTest {
         ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
 
         // Assert
-        verify(notificationEventService, times(2)).send(any(), any(), any());
+        verify(notificationEventService, times(2)).send(any(), any(), any(), any());
         verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
         assertNull(resendNotificationsFilters);
     }
@@ -144,6 +147,25 @@ class NotificationEventResenderServiceDefaultTest {
         verify(notificationEventService, times(2)).send(any(), any(), any());
         verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
         assertNull(resendNotificationsFilters);
+    }
+
+    @Test
+    void resendNotificationsEndsIncrementingPageIfIsWorkingOnIntermediatePage() {
+        // Arrange
+        ResendNotificationsFilters filters = ResendNotificationsFilters.builder().onboardingId("test").build();
+        ExecutionContext context = getMockedContext();
+
+        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(mockOnboardingList(100));
+        doNothing().when(notificationEventService).send(any(), any(), any());
+
+        // Act
+        ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
+
+        // Assert
+        verify(notificationEventService, times(100)).send(any(), any(), any(), any());
+        verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
+        assertNotNull(resendNotificationsFilters);
+        assertEquals(1, resendNotificationsFilters.getPage());
     }
 
     @Test

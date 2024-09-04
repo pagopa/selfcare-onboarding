@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -21,7 +19,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -36,12 +33,14 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
-import static it.pagopa.selfcare.onboarding.service.NotificationEventServiceDefault.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -70,8 +69,6 @@ public class CompletionServiceDefault implements CompletionService {
     @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
-    private static final  String EVENT_SEND_COMPLETION_FN_FAILURE = "EventsSendCompletionEmail_failures";
-
     private final InstitutionMapper institutionMapper;
     private final OnboardingRepository onboardingRepository;
     private final TokenRepository tokenRepository;
@@ -80,9 +77,7 @@ public class CompletionServiceDefault implements CompletionService {
     private final NotificationService notificationService;
     private final ProductService productService;
     private final OnboardingMapper onboardingMapper;
-    private final TelemetryClient telemetryClient;
     private final boolean hasToSendEmail;
-    private final boolean isEmailServiceAvailable;
     private final boolean forceInstitutionCreation;
 
     public CompletionServiceDefault(ProductService productService,
@@ -93,25 +88,18 @@ public class CompletionServiceDefault implements CompletionService {
                                     InstitutionMapper institutionMapper,
                                     OnboardingRepository onboardingRepository,
                                     TokenRepository tokenRepository,
-                                    @ConfigProperty(name = "onboarding-functions.email.service.available") boolean isEmailServiceAvailable,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
-                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation,
-                                    @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation) {
         this.institutionMapper = institutionMapper;
         this.onboardingRepository = onboardingRepository;
         this.tokenRepository = tokenRepository;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
         this.productService = productService;
         this.notificationService = notificationService;
         this.onboardingMapper = onboardingMapper;
         this.userMapper = userMapper;
         this.productMapper = productMapper;
-        this.isEmailServiceAvailable = isEmailServiceAvailable;
         this.hasToSendEmail = hasToSendEmail;
         this.forceInstitutionCreation = forceInstitutionCreation;
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
     }
 
     @Override
@@ -145,6 +133,143 @@ public class CompletionServiceDefault implements CompletionService {
                 Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
                         ? createInstitution(institution)
                         : institutionsResponse.getInstitutions().get(0);
+    }
+
+    @Override
+    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        List<String> destinationMails = getDestinationMails(onboarding);
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
+                destinationMails, product, onboarding.getInstitution().getInstitutionType(),
+                onboardingWorkflow);
+    }
+
+    @Override
+    public void persistUsers(Onboarding onboarding) {
+        for (User user: onboarding.getUsers()) {
+            AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+            userRoleDto.hasToSendEmail(hasToSendEmail);
+            userRoleDto.setUserMailUuid(user.getUserMailUuid());
+            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+            userRoleDto.getProduct().setTokenId(onboarding.getId());
+            try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
+                if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                }
+            }
+        }
+    }
+
+    @Override
+    public String createDelegation(Onboarding onboarding) {
+        if (Objects.nonNull(onboarding.getAggregator())) {
+            DelegationRequest delegationRequest = getDelegationRequest(onboarding);
+            return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
+        }
+        else {
+            throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
+        }
+    }
+
+    @Override
+    public void sendMailRejection(ExecutionContext context, Onboarding onboarding) {
+        List<String> destinationMails = Collections.singletonList(onboarding.getInstitution().getDigitalAddress());
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+        notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
+    }
+
+    @Override
+    public void persistOnboarding(Onboarding onboarding) {
+        //Prepare data for request
+        InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
+        onboardingRequest.pricingPlan(onboarding.getPricingPlan());
+        onboardingRequest.productId(onboarding.getProductId());
+        onboardingRequest.setTokenId(onboarding.getId());
+        Optional.ofNullable(onboarding.getActivatedAt())
+                .ifPresent(date -> onboardingRequest.setActivatedAt(date.atZone(ZoneId.systemDefault()).toOffsetDateTime()));
+
+        if (Objects.nonNull(onboarding.getBilling())) {
+            BillingRequest billingRequest = new BillingRequest();
+            billingRequest.recipientCode(onboarding.getBilling().getRecipientCode());
+            billingRequest.publicServices(onboarding.getBilling().isPublicServices());
+            billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
+            billingRequest.setTaxCodeInvoicing(onboarding.getBilling().getTaxCodeInvoicing());
+            onboardingRequest.billing(billingRequest);
+        }
+
+        onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
+        //If contract exists we send the path of the contract
+        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
+        optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
+
+        institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
+    }
+
+    @Override
+    public void persistActivatedAt(Onboarding onboarding) {
+        LocalDateTime now = LocalDateTime.now();
+        onboardingRepository
+                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
+                .where("_id", onboarding.getId());
+    }
+
+    @Override
+    public void sendCompletedEmailAggregate(Onboarding onboarding) {
+        List<String> destinationMails = getDestinationMails(onboarding);
+        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
+        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(), destinationMails);
+    }
+
+    @Override
+    public String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+        Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
+        onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
+        onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
+        onboardingRepository.persistOrUpdate(onboardingToUpdate);
+        return onboardingToUpdate.getId();
+    }
+
+    @Override
+    public void sendTestEmail(ExecutionContext context) {
+        notificationService.sendTestEmail(context);
+    }
+
+    private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
+        DelegationRequest delegationRequest = new DelegationRequest();
+        delegationRequest.setProductId(onboarding.getProductId());
+        delegationRequest.setType(DelegationRequest.TypeEnum.EA);
+        delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
+        delegationRequest.setFrom(onboarding.getInstitution().getId());
+        delegationRequest.setTo(onboarding.getAggregator().getId());
+        delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        return delegationRequest;
+    }
+
+    private void setGSPCategory(InstitutionRequest institutionRequest) {
+        AttributesRequest category = new AttributesRequest();
+        category.setCode("L37");
+        category.setDescription("Gestori di Pubblici Servizi");
+        institutionRequest.setAttributes(List.of(category));
+    }
+
+    private boolean isInstitutionPresentOnIpa(Institution institution) {
+        try {
+            if (InstitutionPaSubunitType.AOO.equals(institution.getSubunitType())) {
+                aooApi.findByUnicodeUsingGET(institution.getSubunitCode(), null);
+            } else if (InstitutionPaSubunitType.UO.equals(institution.getSubunitType())) {
+                uoApi.findByUnicodeUsingGET1(institution.getSubunitCode(), null);
+            } else {
+                institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
+            }
+            return true;
+        } catch (WebApplicationException e) {
+            if(e.getResponse().getStatus() == 404) {
+                return false;
+            }
+            throw new RuntimeException(e);
+        }
     }
 
     private InstitutionsResponse getInstitutions(Institution institution) {
@@ -199,32 +324,16 @@ public class CompletionServiceDefault implements CompletionService {
             return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
+        InstitutionRequest institutionRequest = institutionMapper.toInstitutionRequest(institution);
+        // Override category in case of GSP not present in IPA
+        if (InstitutionType.GSP.equals(institution.getInstitutionType()) && !Origin.IPA.equals(institution.getOrigin())) {
+            setGSPCategory(institutionRequest);
+        }
         return institutionApi.createInstitutionUsingPOST(institutionMapper.toInstitutionRequest(institution));
     }
 
-    private boolean isInstitutionPresentOnIpa(Institution institution) {
-        try {
-            if (InstitutionPaSubunitType.AOO.equals(institution.getSubunitType())) {
-                aooApi.findByUnicodeUsingGET(institution.getSubunitCode(), null);
-            } else if (InstitutionPaSubunitType.UO.equals(institution.getSubunitType())) {
-                uoApi.findByUnicodeUsingGET1(institution.getSubunitCode(), null);
-            } else {
-                institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
-            }
-            return true;
-        } catch (WebApplicationException e) {
-            if(e.getResponse().getStatus() == 404) {
-                return false;
-            }
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow) {
-        Onboarding onboarding = onboardingWorkflow.getOnboarding();
-
-        List<String> destinationMails = onboarding.getUsers().stream()
+    private List<String> getDestinationMails(Onboarding onboarding) {
+        return onboarding.getUsers().stream()
                 .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
                 .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
                         .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
@@ -236,137 +345,5 @@ public class CompletionServiceDefault implements CompletionService {
                 .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
                 .map(workContract -> workContract.getEmail().getValue())
                 .collect(Collectors.toList());
-
-        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
-
-        Product product = productService.getProductIsValid(onboarding.getProductId());
-
-        if (isEmailServiceAvailable) {
-            notificationService.sendCompletedEmail(onboarding.getInstitution().getDescription(),
-                    destinationMails, product, onboarding.getInstitution().getInstitutionType(),
-                    onboardingWorkflow);
-        } else {
-            telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventMap(onboarding), Map.of(EVENT_SEND_COMPLETION_FN_FAILURE, 1D));
-        }
-    }
-
-    @Override
-    public void persistUsers(Onboarding onboarding) {
-        for (User user: onboarding.getUsers()) {
-            AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
-            userRoleDto.hasToSendEmail(hasToSendEmail);
-            userRoleDto.setUserMailUuid(user.getUserMailUuid());
-            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
-            userRoleDto.getProduct().setTokenId(onboarding.getId());
-            try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
-                if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
-                }
-            }
-        }
-    }
-
-    @Override
-    public String createDelegation(Onboarding onboarding) {
-        if (Objects.nonNull(onboarding.getAggregator())) {
-            DelegationRequest delegationRequest = getDelegationRequest(onboarding);
-            return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
-        }
-        else {
-            throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
-        }
-    }
-
-    private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
-        DelegationRequest delegationRequest = new DelegationRequest();
-        delegationRequest.setProductId(onboarding.getProductId());
-        delegationRequest.setType(DelegationRequest.TypeEnum.EA);
-        delegationRequest.setInstitutionFromName(onboarding.getInstitution().getDescription());
-        delegationRequest.setFrom(onboarding.getInstitution().getId());
-        delegationRequest.setTo(onboarding.getAggregator().getId());
-        delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
-        return delegationRequest;
-    }
-
-    @Override
-    public void sendMailRejection(Onboarding onboarding) {
-
-        List<String> destinationMails = new ArrayList<>();
-        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
-
-        Product product = productService.getProductIsValid(onboarding.getProductId());
-        notificationService.sendMailRejection(destinationMails, product, onboarding.getReasonForReject());
-    }
-
-
-    @Override
-    public void persistOnboarding(Onboarding onboarding) {
-        //Prepare data for request
-        InstitutionOnboardingRequest onboardingRequest = new InstitutionOnboardingRequest();
-        onboardingRequest.pricingPlan(onboarding.getPricingPlan());
-        onboardingRequest.productId(onboarding.getProductId());
-        onboardingRequest.setTokenId(onboarding.getId());
-        Optional.ofNullable(onboarding.getActivatedAt())
-                .ifPresent(date -> onboardingRequest.setActivatedAt(date.atZone(ZoneId.systemDefault()).toOffsetDateTime()));
-
-        if(Objects.nonNull(onboarding.getBilling())) {
-            BillingRequest billingRequest = new BillingRequest();
-            billingRequest.recipientCode(onboarding.getBilling().getRecipientCode());
-            billingRequest.publicServices(onboarding.getBilling().isPublicServices());
-            billingRequest.vatNumber(onboarding.getBilling().getVatNumber());
-            billingRequest.setTaxCodeInvoicing(onboarding.getBilling().getTaxCodeInvoicing());
-            onboardingRequest.billing(billingRequest);
-        }
-
-        onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
-        //If contract exists we send the path of the contract
-        Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
-        optToken.ifPresent(token -> onboardingRequest.setContractPath(token.getContractSigned()));
-
-        institutionApi.onboardingInstitutionUsingPOST(onboarding.getInstitution().getId(), onboardingRequest);
-    }
-
-    @Override
-    public void persistActivatedAt(Onboarding onboarding) {
-        LocalDateTime now = LocalDateTime.now();
-        onboardingRepository
-                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
-                .where("_id", onboarding.getId());
-    }
-
-    @Override
-    public void sendCompletedEmailAggregate(Onboarding onboarding) {
-
-        List<String> destinationMails = onboarding.getUsers().stream()
-                .filter(userToOnboard -> MANAGER.equals(userToOnboard.getRole()))
-                .map(userToOnboard -> Optional.ofNullable(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, userToOnboard.getId()))
-                        .filter(userResource -> Objects.nonNull(userResource.getWorkContacts())
-                                && userResource.getWorkContacts().containsKey(userToOnboard.getUserMailUuid()))
-                        .map(user -> user.getWorkContacts().get(userToOnboard.getUserMailUuid()))
-                )
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
-                .map(workContract -> workContract.getEmail().getValue())
-                .collect(Collectors.toList());
-
-        destinationMails.add(onboarding.getInstitution().getDigitalAddress());
-
-        notificationService.sendCompletedEmailAggregate(onboarding.getAggregator().getDescription(),
-                destinationMails);
-    }
-
-    @Override
-    public String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
-        Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
-        onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
-        onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
-        onboardingRepository.persistOrUpdate(onboardingToUpdate);
-        return onboardingToUpdate.getId();
-    }
-
-    @Override
-    public void sendTestEmail(ExecutionContext context) {
-        notificationService.sendTestEmail(context);
     }
 }

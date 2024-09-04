@@ -205,8 +205,7 @@ class OnboardingServiceTest {
     void saveToken_shouldSkipIfTokenExists() {
         OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
         Onboarding onboarding = createOnboarding();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
         onboardingWorkflow.setOnboarding(onboarding);
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
@@ -218,7 +217,6 @@ class OnboardingServiceTest {
                 .findByOnboardingId(onboarding.getId());
         Mockito.verifyNoMoreInteractions(tokenRepository);
     }
-
 
     @Test
     void saveToken() {
@@ -238,7 +236,6 @@ class OnboardingServiceTest {
         Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
 
         onboardingService.saveTokenWithContract(onboardingWorkflow);
-
 
         ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
         Mockito.verify(tokenRepository, Mockito.times(1))
@@ -266,15 +263,13 @@ class OnboardingServiceTest {
                 .loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
 
-
     @Test
     void sendMailRegistrationWithContract() {
 
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
         UserResource userResource = createUserResource();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -314,8 +309,7 @@ class OnboardingServiceTest {
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
         UserResource userResource = createUserResource();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -339,14 +333,12 @@ class OnboardingServiceTest {
                         product.getTitle());
     }
 
-
     @Test
     void sendMailRegistrationWithContractWhenApprove() {
 
         Onboarding onboarding = createOnboarding();
         Product product = createDummyProduct();
-        Token token = new Token();
-        token.setId(UUID.randomUUID().toString());
+        Token token = createDummyToken();
 
         when(tokenRepository.findByOnboardingId(onboarding.getId()))
                 .thenReturn(Optional.of(token));
@@ -372,7 +364,6 @@ class OnboardingServiceTest {
                         "default", "default");
     }
 
-
     @Test
     void sendMailRegistrationWithContract_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
@@ -381,7 +372,6 @@ class OnboardingServiceTest {
                 .thenReturn(Optional.empty());
         assertThrows(GenericOnboardingException.class, () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
     }
-
 
     @Test
     void sendMailRegistration() {
@@ -433,7 +423,6 @@ class OnboardingServiceTest {
                         onboarding.getId());
     }
 
-
     @Test
     void sendMailRegistrationApprove_throwExceptionWhenTokenIsNotPresent() {
         Onboarding onboarding = createOnboarding();
@@ -458,7 +447,6 @@ class OnboardingServiceTest {
 
         onboardingService.sendMailOnboardingApprove(onboarding);
 
-
         Mockito.verify(notificationService, times(1))
                 .sendMailOnboardingApprove(onboarding.getInstitution().getDescription(),
                         userResource.getName().getValue(),
@@ -481,8 +469,7 @@ class OnboardingServiceTest {
         String from = "2021-01-01";
         String to = "2021-12-31";
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        ExecutionContext context = getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
 
@@ -502,8 +489,7 @@ class OnboardingServiceTest {
 
     @Test
     void countOnboardingShouldReturnEmptyListWhenNoProductsExist() {
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        ExecutionContext context = getExecutionContext();
 
         when(productService.getProducts(true, false)).thenReturn(List.of());
         List<NotificationCountResult> results = onboardingService.countNotifications(null, null, null, context);
@@ -516,8 +502,7 @@ class OnboardingServiceTest {
         filters.setFrom("2021-01-01");
         filters.setTo("2021-12-31");
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
         when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
@@ -534,8 +519,7 @@ class OnboardingServiceTest {
         filters.setFrom("2021-01-01");
         filters.setTo("2021-12-31");
 
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        getExecutionContext();
 
         PanacheQuery<Onboarding> onboardingQuery = mock(PanacheQuery.class);
         when(onboardingRepository.find(any())).thenReturn(onboardingQuery);
@@ -545,4 +529,17 @@ class OnboardingServiceTest {
         List<Onboarding> onboardings = onboardingService.getOnboardingsToResend(filters, 0, 100);
         assertTrue(onboardings.isEmpty());
     }
+
+    private ExecutionContext getExecutionContext() {
+        ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+        return context;
+    }
+
+    private Token createDummyToken() {
+        Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
+        return token;
+    }
+
 }

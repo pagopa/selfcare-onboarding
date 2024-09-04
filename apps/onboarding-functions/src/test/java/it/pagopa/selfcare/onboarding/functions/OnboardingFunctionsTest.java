@@ -18,9 +18,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
-import it.pagopa.selfcare.onboarding.service.NotificationEventService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
@@ -56,12 +54,6 @@ public class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
-
-    @InjectMock
-    NotificationEventService notificationEventService;
-
-    @Inject
-    OnboardingMapper onboardingMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -577,7 +569,6 @@ public class OnboardingFunctionsTest {
                 .sendMailRegistrationForContract(any());
     }
 
-
     @Test
     void sendMailRegistration() {
 
@@ -626,7 +617,6 @@ public class OnboardingFunctionsTest {
                 .sendMailRegistrationForContractWhenApprove(any());
     }
 
-
     @Test
     void onboardingCompletionOrchestrator() {
         Onboarding onboarding = new Onboarding();
@@ -653,9 +643,6 @@ public class OnboardingFunctionsTest {
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
-
-
-
 
     @Test
     void onboardingRejectedOrchestrator() {
@@ -692,6 +679,18 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
+    void createOnboarding() {
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).persistOnboarding(any());
+
+        function.createOnboarding(onboardinString, executionContext);
+
+        verify(completionService, times(1))
+                .persistOnboarding(any());
+    }
+
+    @Test
     void sendCompletedEmail() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
@@ -707,12 +706,12 @@ public class OnboardingFunctionsTest {
     void sendMailRejection() {
 
         when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendMailRejection(any());
+        doNothing().when(completionService).sendMailRejection(any(), any());
 
         function.sendMailRejection(onboardinString, executionContext);
 
         verify(completionService, times(1))
-                .sendMailRejection(any());
+                .sendMailRejection(any(), any());
     }
 
     @Test

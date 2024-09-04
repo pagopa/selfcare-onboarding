@@ -21,7 +21,6 @@ import java.util.function.BinaryOperator;
 public class Utils {
 
     private Utils() { }
-
     public static final BinaryOperator<String> CONTRACT_FILENAME_FUNC =
             (filename, productName) -> String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 

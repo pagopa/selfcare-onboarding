@@ -183,7 +183,7 @@ public class OnboardingController {
     @Operation(summary = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
             "It checks the contract's signature and upload the contract on an azure storage" +
             "At the end, function triggers async activities related to complete onboarding " +
-            "that consist of create the institution, activate the onboarding and sending data to notification queue.")
+            "that consist of create the institution, activate the onboarding and sending data to notification queue.", operationId = "completeOnboardingUsingPUT")
 
     @PUT
     @Path("/{onboardingId}/complete")
@@ -211,7 +211,7 @@ public class OnboardingController {
                         .build());
     }
 
-    @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract")
+    @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract", operationId = "completeOnboardingTokenConsume")
     @PUT
     @Path("/{onboardingId}/consume")
     @Tag(name = "support")
@@ -245,6 +245,7 @@ public class OnboardingController {
                                                               @QueryParam(value = "taxCode") String taxCode,
                                                               @QueryParam(value = "institutionId") String institutionId,
                                                               @QueryParam(value = "onboardingId") String onboardingId,
+                                                              @QueryParam(value = "subunitCode") String subunitCode,
                                                               @QueryParam(value = "from") String from,
                                                               @QueryParam(value = "to") String to,
                                                               @QueryParam(value = "status") String status,
@@ -255,6 +256,7 @@ public class OnboardingController {
                 .taxCode(taxCode)
                 .institutionId(institutionId)
                 .onboardingId(onboardingId)
+                .subunitCode(subunitCode)
                 .from(from)
                 .to(to)
                 .status(status)
@@ -300,7 +302,7 @@ public class OnboardingController {
         return onboardingService.onboardingPending(onboardingId);
     }
 
-    @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId")
+    @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId", operationId = "onboardingInstitutionUsingGET")
     @GET
     @Tag(name = "support")
     @Tag(name = "Onboarding")
@@ -320,8 +322,10 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Update onboarding request receiving onboarding id." +
-            "Function can change some values. ")
+            "Function can change some values. ", operationId = "updateOnboardiUsingPUT")
     @PUT
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/update")
     public Uni<Response> update(@PathParam(value = "onboardingId") String onboardingId,
