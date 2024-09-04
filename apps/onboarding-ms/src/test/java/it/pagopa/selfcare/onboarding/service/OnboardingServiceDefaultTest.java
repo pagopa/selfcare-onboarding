@@ -654,7 +654,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), InvalidRequestException.class);
 
     }
 
@@ -688,7 +688,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
 
     }
 
