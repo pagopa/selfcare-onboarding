@@ -25,23 +25,6 @@
     "name" : "support"
   } ],
   "paths" : {
-    "/v1/aggregates/prova" : {
-      "get" : {
-        "tags" : [ "Aggregates Controller" ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/aggregates/verification/appio" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],

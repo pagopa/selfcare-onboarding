@@ -7,7 +7,7 @@ import lombok.Data;
 public class CsvAggregateSend implements Csv {
 
     @CsvBindByPosition(position = 0)
-    private String aggregateName;
+    private String description;
 
     @CsvBindByPosition(position = 1)
     private String pec;

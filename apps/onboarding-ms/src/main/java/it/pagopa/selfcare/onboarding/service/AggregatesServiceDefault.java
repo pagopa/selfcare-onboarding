@@ -37,6 +37,7 @@ public class AggregatesServiceDefault implements AggregatesService{
 
     private static final Logger LOG = Logger.getLogger(AggregatesServiceDefault.class);
 
+
     @Inject
     OnboardingMapper onboardingMapper;
 
@@ -61,6 +62,22 @@ public class AggregatesServiceDefault implements AggregatesService{
 
     public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
     public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
+
+    public static final String ERROR_ADDRESS = "Indirizzo è obbligatorio";
+    public static final String ERROR_CITY = "La città è obbligatoria";
+    public static final String ERROR_PROVINCE = "La provincia è obbligatoria";
+    public static final String ERROR_PEC = "Indirizzo PEC è obbligatorio";
+    public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_AGGREGATE_NAME_PT = "Ragine Sociale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_IBAN = "IBAN è obbligatorio";
+    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
+    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
+    private static final String ERROR_IPA_CODE = "Codice IPA è obbligatorio in caso di ente centrale";
+
 
     @Override
     public Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv(File file){
@@ -92,7 +109,7 @@ public class AggregatesServiceDefault implements AggregatesService{
     public Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv(File file) {
         AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregatePagoPa.class);
         List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
-        Uni<VerifyAggregateResponse> varr =  Multi.createFrom().iterable(csvAggregates)
+        return Multi.createFrom().iterable(csvAggregates)
                 .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
                 .collect().asList()
                 .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
@@ -100,7 +117,6 @@ public class AggregatesServiceDefault implements AggregatesService{
                         aggregatesCsvResponse.getValidAggregates().size(),
                         aggregatesCsvResponse.getRowErrorList().size()));
 
-        return varr;
     }
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
@@ -201,43 +217,122 @@ public class AggregatesServiceDefault implements AggregatesService{
 
     private Uni<Void> checkRequiredFieldsAppIo(Csv csv) {
         CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
-        if (StringUtils.isEmpty(csvAggregateAppIo.getTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
-        } else if (StringUtils.isEmpty(csvAggregateAppIo.getDescription())) {
+
+        if (StringUtils.isEmpty(csvAggregateAppIo.getDescription())){
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
-        } else if (StringUtils.isEmpty(csvAggregateAppIo.getVatNumber())) {
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
                 || (StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))
+                && (StringUtils.isEmpty(csvAggregateAppIo.getIpaCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IPA_CODE));
         }
         return Uni.createFrom().voidItem();
     }
 
     private Uni<Void> checkRequiredFieldsSend(CsvAggregateSend csvAggregate) {
-        if (StringUtils.isEmpty("TODO")) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
-        } else if (StringUtils.isEmpty("TODO")) {
+
+        if (StringUtils.isEmpty(csvAggregate.getDescription())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
-        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
                 || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateName())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateSurname())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateEmail())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL));
+        }
+        else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))
+                && (StringUtils.isEmpty(csvAggregate.getIpaCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IPA_CODE));
         }
         return Uni.createFrom().voidItem();
     }
 
     private Uni<Void> checkRequiredFieldsPagoPa(CsvAggregatePagoPa csvAggregate) {
-        if (StringUtils.isEmpty("TODO")) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
-        } else if (StringUtils.isEmpty("TODO")) {
+
+        if (StringUtils.isEmpty(csvAggregate.getDescription())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
-        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if ((StringUtils.isEmpty("TODO") && StringUtils.isNotEmpty("TODO"))
-                || (StringUtils.isNotEmpty("TODO") && StringUtils.isEmpty("TODO"))) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAggragateNamePT())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AGGREGATE_NAME_PT));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getTaxCodePT())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_PT));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getIban())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getService())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SERVICE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getSyncAsyncMode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SYNC_ASYNC_MODE));
         }
         return Uni.createFrom().voidItem();
     }

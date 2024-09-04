@@ -15,7 +15,7 @@ import org.jboss.resteasy.reactive.RestForm;
 
 import java.io.File;
 
-//@Authenticated
+@Authenticated
 @Path("/v1/aggregates")
 @Tag(name = "Aggregates Controller")
 @AllArgsConstructor
@@ -32,11 +32,6 @@ public class AggregatesController {
     public Uni<VerifyAggregateResponse> verifyAppIoAggregatesCsv(@NotNull @RestForm("aggregates") File file){
 
         return aggregatesService.validateAppIoAggregatesCsv(file);
-    }
-    @Path("prova")
-    @GET
-    public String vv () {
-      return "ciao";
     }
 
     @Operation(summary = "Validate the data related to the aggregated entities present in a CSV file")

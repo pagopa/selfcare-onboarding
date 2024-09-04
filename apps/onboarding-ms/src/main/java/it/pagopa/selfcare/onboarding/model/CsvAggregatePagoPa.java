@@ -7,13 +7,13 @@ import lombok.Data;
 public class CsvAggregatePagoPa implements Csv {
 
     @CsvBindByPosition(position = 0)
-    private String aggregateName;
+    private String description;
 
     @CsvBindByPosition(position = 1)
     private String pec;
 
     @CsvBindByPosition(position = 2)
-    private String taxNumber;
+    private String taxCode;
 
     @CsvBindByPosition(position = 3)
     private String vatNumber;
