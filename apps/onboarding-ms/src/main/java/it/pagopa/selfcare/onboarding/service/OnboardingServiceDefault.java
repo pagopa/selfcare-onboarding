@@ -374,7 +374,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (InstitutionType.PA.equals(institutionType)
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
-                || InstitutionType.AS.equals(institutionType)) {
+                || InstitutionType.AS.equals(institutionType)
+                || InstitutionType.PRV.equals(institutionType)) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
