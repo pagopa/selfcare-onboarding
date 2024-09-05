@@ -40,12 +40,12 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
         for (Onboarding onboarding : onboardingsToResend) {
             try {
                 if(onboardingHasBeenDeletedInRange(onboarding, filters.getFrom(), filters.getTo())) {
-                    notificationEventService.send(context, onboarding, QueueEvent.UPDATE);
+                    notificationEventService.send(context, onboarding, QueueEvent.UPDATE, filters.getNotificationEventTraceId());
                 }
 
                 if(onboardingHasBeenActivatedInRange(onboarding, filters.getFrom(), filters.getTo())) {
                     onboarding.setStatus(OnboardingStatus.COMPLETED);
-                    notificationEventService.send(context, onboarding, QueueEvent.ADD);
+                    notificationEventService.send(context, onboarding, QueueEvent.ADD, filters.getNotificationEventTraceId());
                 }
             } catch (Exception e) {
                 context.getLogger().severe(() -> String.format("ERROR: Sending onboarding %s error: %s ", onboarding.getId(), ExceptionUtil.generateStackTrace(e)));
