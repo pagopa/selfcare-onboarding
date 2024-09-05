@@ -16,6 +16,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
@@ -105,8 +106,7 @@ public class OnboardingUtils {
                             )))
                             : Uni.createFrom().failure(ex))
                     .onItem().transformToUni(pdndBusinessResource -> {
-                        if (!onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) ||
-                                !onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName())) {
+                        if (originPDNDInfocamere(onboarding, pdndBusinessResource)) {
                             return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
                         }
                         return Uni.createFrom().item(onboarding);
@@ -199,5 +199,10 @@ public class OnboardingUtils {
                 && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
                 && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
+    }
+
+    private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
+        return !onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) ||
+                !onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());
     }
 }
