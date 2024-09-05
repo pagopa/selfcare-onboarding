@@ -106,7 +106,7 @@ public class OnboardingUtils {
                             )))
                             : Uni.createFrom().failure(ex))
                     .onItem().transformToUni(pdndBusinessResource -> {
-                        if (originPDNDInfocamere(onboarding, pdndBusinessResource)) {
+                        if (!originPDNDInfocamere(onboarding, pdndBusinessResource)) {
                             return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
                         }
                         return Uni.createFrom().item(onboarding);
@@ -202,7 +202,7 @@ public class OnboardingUtils {
     }
 
     private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
-        return !onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) ||
-                !onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());
+        return onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) &&
+                onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());
     }
 }
