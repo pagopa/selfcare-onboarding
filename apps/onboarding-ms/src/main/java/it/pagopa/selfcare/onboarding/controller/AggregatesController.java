@@ -26,7 +26,7 @@ public class AggregatesController {
 
     @Operation(summary = "Validate the data related to the aggregated entities present in a CSV file")
     @POST
-    @Path("/verification/appio")
+    @Path("/verification/prod-io")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<VerifyAggregateResponse> verifyAppIoAggregatesCsv(@NotNull @RestForm("aggregates") File file){
@@ -36,7 +36,7 @@ public class AggregatesController {
 
     @Operation(summary = "Validate the data related to the aggregated entities present in a CSV file")
     @POST
-    @Path("/verification/send")
+    @Path("/verification/prod-pn")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<VerifyAggregateResponse> verifySendAggregatesCsv(@NotNull @RestForm("aggregates") File file){
@@ -46,7 +46,7 @@ public class AggregatesController {
 
     @Operation(summary = "Validate the data related to the aggregated entities present in a CSV file")
     @POST
-    @Path("/verification/pagopa")
+    @Path("/verification/prod-pagopa")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Uni<VerifyAggregateResponse> verifyPagoPaAggregatesCsv(@NotNull @RestForm("aggregates") File file){
