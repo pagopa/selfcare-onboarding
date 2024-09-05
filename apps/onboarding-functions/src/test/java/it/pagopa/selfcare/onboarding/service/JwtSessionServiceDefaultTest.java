@@ -4,6 +4,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,20 @@ class JwtSessionServiceDefaultTest {
         when(userRegistryApi.findByIdUsingGET(any(), any())).thenReturn(userResource);
         String jwt = tokenService.createJwt(userId);
         assertTrue(Objects.nonNull(jwt));
+    }
+
+    @Test
+    void createNullJwt() {
+        final String userId = "userId";
+        UserResource userResource = new UserResource();
+        userResource.setFiscalCode("fiscalCode");
+        CertifiableFieldResourceOfstring certifiedField = new CertifiableFieldResourceOfstring();
+        certifiedField.setValue("name");
+        userResource.setName(certifiedField);
+        userResource.setFamilyName(certifiedField);
+        when(userRegistryApi.findByIdUsingGET(any(), any())).thenThrow(new ResourceNotFoundException("An error occurred", "Code"));
+        String jwt = tokenService.createJwt(userId);
+        assertTrue(Objects.isNull(jwt));
     }
 
 }
