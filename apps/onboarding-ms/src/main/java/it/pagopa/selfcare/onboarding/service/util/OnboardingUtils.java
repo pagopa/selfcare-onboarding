@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -12,10 +13,13 @@ import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import lombok.Builder;
+import lombok.Data;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
@@ -47,21 +51,21 @@ public class OnboardingUtils {
     private static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
     private static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
 
-    public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product) {
-        if (isUO(onboarding)) {
-            return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                    .flatMap(uoResource -> checkParentTaxCode(onboarding, uoResource))
-                    .onItem().transformToUni(o -> checkTaxCodeInvoicing(onboarding, product));
-        }
-        return checkRecipientCode(onboarding)
-                .replaceWith(additionalChecksForProduct(onboarding, product));
+    public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product, ProxyResource proxyResource) {
+            if (isUOWithSfe(onboarding)) {
+                return checkParentTaxCode(onboarding, ((UOResource) proxyResource.getResource()).getCodiceFiscaleEnte())
+                        .onItem().transformToUni(o -> checkTaxCodeInvoicing(onboarding, product));
+            } else {
+                return checkRecipientCode(onboarding, proxyResource)
+                        .replaceWith(additionalChecksForProduct(onboarding, product));
+            }
     }
 
-    private Uni<Void> checkRecipientCode(Onboarding onboarding) {
+    private Uni<Void> checkRecipientCode(Onboarding onboarding, ProxyResource proxyResource) {
         if (isInvoiceablePA(onboarding)) {
             final String recipientCode = onboarding.getBilling().getRecipientCode();
             return getUoFromRecipientCode(recipientCode)
-                    .onItem().transformToUni(uoResource -> validationRecipientCode(onboarding, uoResource))
+                    .onItem().transformToUni(uoResource -> validationRecipientCode(onboarding, proxyResource, uoResource))
                     .onItem().transformToUni(customError -> {
                         if (Objects.nonNull(customError)) {
                             return Uni.createFrom().failure(new InvalidRequestException(customError.getMessage()));
@@ -72,16 +76,14 @@ public class OnboardingUtils {
         return Uni.createFrom().nullItem();
     }
 
-    private Uni<CustomError> validationRecipientCode(Onboarding onboarding, UOResource uoResource) {
+    private Uni<CustomError> validationRecipientCode(Onboarding onboarding, ProxyResource proxyResource, UOResource uoResource) {
 
         switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC ) {
             case AOO -> {
-                return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
-                        .onItem().transformToUni(aooResource -> getValidationRecipientCodeError(aooResource.getCodiceIpa(), uoResource));
+                return  getValidationRecipientCodeError(((AOOResource) proxyResource.getResource()).getCodiceIpa(), uoResource);
             }
             case UO -> {
-                return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                        .onItem().transformToUni(innerUoResource -> getValidationRecipientCodeError(innerUoResource.getCodiceIpa(), uoResource));
+                return getValidationRecipientCodeError(((UOResource) proxyResource.getResource()).getCodiceIpa(), uoResource);
             }
             default -> {
                 return getValidationRecipientCodeError(onboarding.getInstitution().getOriginId(), uoResource);
@@ -136,9 +138,9 @@ public class OnboardingUtils {
         return Uni.createFrom().nullItem();
     }
 
-    private Uni<Void> checkParentTaxCode(Onboarding onboarding, UOResource uoResource) {
+    private Uni<Void> checkParentTaxCode(Onboarding onboarding, String  childTaxCode) {
         /* if parent tax code is different from child tax code, throw an exception */
-        if (!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())) {
+        if (!onboarding.getInstitution().getTaxCode().equals(childTaxCode)) {
             return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
         }
         return Uni.createFrom().voidItem();
@@ -186,7 +188,7 @@ public class OnboardingUtils {
         return Uni.createFrom().item(onboarding);
     }
 
-    private boolean isUO(Onboarding onboarding) {
+    private boolean isUOWithSfe(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getInstitution().getSubunitCode())
                 && UO.equals(onboarding.getInstitution().getSubunitType())
                 && Objects.nonNull(onboarding.getBilling())
@@ -201,6 +203,16 @@ public class OnboardingUtils {
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 
+    @Builder
+    public static class ProxyResource<T> {
+        private InstitutionPaSubunitType type;
+        private T resource;
+        public InstitutionPaSubunitType getType() { return type;}
+        public void setType(InstitutionPaSubunitType type) { this.type = type; }
+        public T getResource() { return resource; }
+        public void setResource(T resource) { this.resource = resource; }
+    }
+  
     private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
         return onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) &&
                 onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());

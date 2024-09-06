@@ -1419,6 +1419,9 @@
           "county" : {
             "type" : "string"
           },
+          "istatCode" : {
+            "type" : "string"
+          },
           "description" : {
             "type" : "string"
           },
