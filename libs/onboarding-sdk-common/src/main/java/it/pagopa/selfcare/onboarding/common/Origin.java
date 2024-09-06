@@ -12,7 +12,7 @@ public enum Origin {
     ADE("ADE"),
     INFOCAMERE("INFOCAMERE"),
     IVASS("IVASS"),
-    PDND_INFOCAMERE("PDND-INFOCAMERE");
+    PDND_INFOCAMERE("PDND_INFOCAMERE");
 
     private final String value;
 
