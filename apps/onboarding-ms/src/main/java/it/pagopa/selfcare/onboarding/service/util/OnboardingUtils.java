@@ -203,11 +203,14 @@ public class OnboardingUtils {
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 
-    @Data
     @Builder
     public static class ProxyResource<T> {
         private InstitutionPaSubunitType type;
         private T resource;
+        public InstitutionPaSubunitType getType() { return type;}
+        public void setType(InstitutionPaSubunitType type) { this.type = type; }
+        public T getResource() { return resource; }
+        public void setResource(T resource) { this.resource = resource; }
     }
   
     private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
