@@ -25,7 +25,7 @@
     "name" : "support"
   } ],
   "paths" : {
-    "/v1/aggregates/verification/appio" : {
+    "/v1/aggregates/verification/prod-io" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],
         "summary" : "Validate the data related to the aggregated entities present in a CSV file",
@@ -55,11 +55,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
       }
     },
-    "/v1/aggregates/verification/pagopa" : {
+    "/v1/aggregates/verification/prod-pagopa" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],
         "summary" : "Validate the data related to the aggregated entities present in a CSV file",
@@ -89,11 +98,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
       }
     },
-    "/v1/aggregates/verification/send" : {
+    "/v1/aggregates/verification/prod-pn" : {
       "post" : {
         "tags" : [ "Aggregates Controller" ],
         "summary" : "Validate the data related to the aggregated entities present in a CSV file",
@@ -119,12 +137,21 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                  "$ref" : "#/components/schemas/VerifyAggregateSendResponse"
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
       }
     },
     "/v1/notification/resend" : {
@@ -1350,6 +1377,67 @@
           }
         }
       },
+      "AggregateSend" : {
+        "type" : "object",
+        "properties" : {
+          "description" : {
+            "type" : "string"
+          },
+          "pec" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "vatNumber" : {
+            "type" : "string"
+          },
+          "codeSDI" : {
+            "type" : "string"
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "city" : {
+            "type" : "string"
+          },
+          "province" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "type" : "string"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateUser"
+            }
+          }
+        }
+      },
+      "AggregateUser" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "surname" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string"
+          }
+        }
+      },
       "BillingPaRequest" : {
         "type" : "object",
         "properties" : {
@@ -2393,6 +2481,23 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/Institution"
+            }
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RowError"
+            }
+          }
+        }
+      },
+      "VerifyAggregateSendResponse" : {
+        "type" : "object",
+        "properties" : {
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateSend"
             }
           },
           "errors" : {

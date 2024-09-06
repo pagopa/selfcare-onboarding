@@ -93,13 +93,13 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     @Override
-    public Uni<VerifyAggregateResponse> validateSendAggregatesCsv(File file) {
+    public Uni<VerifyAggregateSendResponse> validateSendAggregatesCsv(File file) {
         AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregateSend.class);
         List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
         return Multi.createFrom().iterable(csvAggregates)
                 .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateSendAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
                 .collect().asList()
-                .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
+                .onItem().transform(list -> onboardingMapper.toVerifyAggregateSendResponse(aggregatesCsvResponse))
                 .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
                         aggregatesCsvResponse.getValidAggregates().size(),
                         aggregatesCsvResponse.getRowErrorList().size()));
