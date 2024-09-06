@@ -210,6 +210,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
                                 .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
                                         .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
+                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
+                        /* if institution type is PRV or SCP, request should match data from registry proxy */
+                        .onItem().transformToUni(ignored -> onboardingUtils.validateFields(onboarding))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
@@ -402,7 +405,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (InstitutionType.PA.equals(institutionType)
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
-                || InstitutionType.AS.equals(institutionType)) {
+                || InstitutionType.AS.equals(institutionType)
+                || InstitutionType.PRV.equals(institutionType)) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 

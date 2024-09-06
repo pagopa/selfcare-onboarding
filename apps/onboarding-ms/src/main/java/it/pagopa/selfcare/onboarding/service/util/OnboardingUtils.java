@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -17,8 +16,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
@@ -37,6 +38,11 @@ public class OnboardingUtils {
     @RestClient
     @Inject
     AooApi aooApi;
+
+    @RestClient
+    @Inject
+    InfocamerePdndApi infocamerePdndApi;
+
     private static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
     private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
     private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
@@ -82,6 +88,32 @@ public class OnboardingUtils {
                 return getValidationRecipientCodeError(onboarding.getInstitution().getOriginId(), uoResource);
             }
         }
+    }
+
+    /**
+     * Validate fields of onboarding in case of PRV or SCP
+     * If digitalAddress or description does not match proxy data,
+     * an exception is thrown
+     */
+    public Uni<Onboarding> validateFields(Onboarding onboarding) {
+        if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
+                || InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()) {
+            return infocamerePdndApi.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
+                    .onFailure(WebApplicationException.class)
+                    .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                            ? Uni.createFrom().failure(new ResourceNotFoundException(
+                            String.format("Institution %s not found in the registry",
+                                    onboarding.getInstitution().getTaxCode()
+                            )))
+                            : Uni.createFrom().failure(ex))
+                    .onItem().transformToUni(pdndBusinessResource -> {
+                        if (!originPDNDInfocamere(onboarding, pdndBusinessResource)) {
+                            return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
+                        }
+                        return Uni.createFrom().item(onboarding);
+                    });
+        }
+        return Uni.createFrom().item(onboarding);
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
@@ -175,5 +207,10 @@ public class OnboardingUtils {
     public static class ProxyResource<T> {
         private InstitutionPaSubunitType type;
         private T resource;
+    }
+  
+    private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
+        return onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) &&
+                onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());
     }
 }
