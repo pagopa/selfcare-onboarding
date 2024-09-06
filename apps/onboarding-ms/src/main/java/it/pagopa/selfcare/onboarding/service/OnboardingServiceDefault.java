@@ -210,7 +210,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
                                 .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
                                         .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
-                .onItem().transformToUni(product -> onboardingUtils.customValidationOnboardingData(onboarding, product)
                         /* if institution type is PRV or SCP, request should match data from registry proxy */
                         .onItem().transformToUni(ignored -> onboardingUtils.validateFields(onboarding))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
@@ -292,7 +291,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             if (AOO == proxyResource.getType()) {
                 AOOResource resource = (AOOResource) proxyResource.getResource();
                 return addParentDescriptionForAOO(onboarding, resource);
-            } else if (UO == onboarding.getInstitution().getSubunitType()) {
+            } else if (UO == proxyResource.getType()) {
                 UOResource resource = (UOResource) proxyResource.getResource();
                 return addParentDescriptionForUO(onboarding, resource);
             }

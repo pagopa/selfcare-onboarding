@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
