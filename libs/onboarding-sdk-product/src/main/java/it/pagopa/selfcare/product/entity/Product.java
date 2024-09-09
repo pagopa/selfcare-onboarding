@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.product.entity;
 
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 
 import java.time.Instant;
@@ -27,7 +26,7 @@ public class Product {
     private Instant contractTemplateUpdatedAt;
     private String contractTemplatePath;
     private String contractTemplateVersion;
-    private Map<InstitutionType, ContractStorage> institutionContractMappings;
+    private Map<String, ContractStorage> institutionContractMappings;
     private boolean enabled = true;
     private boolean delegable;
     private boolean invoiceable;
@@ -177,11 +176,11 @@ public class Product {
         this.contractTemplateVersion = contractTemplateVersion;
     }
 
-    public Map<InstitutionType, ContractStorage> getInstitutionContractMappings() {
+    public Map<String, ContractStorage> getInstitutionContractMappings() {
         return institutionContractMappings;
     }
 
-    public void setInstitutionContractMappings(Map<InstitutionType, ContractStorage> institutionContractMappings) {
+    public void setInstitutionContractMappings(Map<String, ContractStorage> institutionContractMappings) {
         this.institutionContractMappings = institutionContractMappings;
     }
 
