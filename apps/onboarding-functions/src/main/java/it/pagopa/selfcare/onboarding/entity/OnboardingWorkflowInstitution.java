@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.ContractStorage;
 import it.pagopa.selfcare.product.entity.Product;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
@@ -62,10 +63,13 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
     @Override
     public String getContractTemplatePath(Product product) {
+        if(Objects.isNull(onboarding.getInstitution()) || Objects.isNull(onboarding.getInstitution().getInstitutionType())){
+            return null;
+        }
 
         return Optional.ofNullable(product.getInstitutionContractMappings())
-                .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType()))
-                .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType()))
+                .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType().name()))
+                .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType().name()))
                 .map(ContractStorage::getContractTemplatePath)
                 .orElse(product.getContractTemplatePath());
     }

@@ -118,10 +118,10 @@ class OnboardingServiceTest {
 
         Product product = createDummyProduct();
         /* add contract mapping */
-        Map<InstitutionType, ContractStorage> contractStorageMap = new HashMap<>();
+        Map<String, ContractStorage> contractStorageMap = new HashMap<>();
         ContractStorage contractStorage = new ContractStorage();
         contractStorage.setContractTemplatePath("setContractTemplatePath");
-        contractStorageMap.put(onboarding.getInstitution().getInstitutionType(), contractStorage);
+        contractStorageMap.put(onboarding.getInstitution().getInstitutionType().name(), contractStorage);
         product.setInstitutionContractMappings(contractStorageMap);
 
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
