@@ -136,15 +136,7 @@ public class AggregatesServiceDefault implements AggregatesService{
     }
 
     private Uni<Void> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
-        CsvAggregatePagoPa csvAggregated = null;
-        try {
-            csvAggregated = (CsvAggregatePagoPa) csv;
-        } catch (Exception ex){
-            ex.printStackTrace();
-            System.out.println("Error RR: " );
-        }
-
-        CsvAggregatePagoPa csvAggregate = csvAggregated;
+        CsvAggregatePagoPa csvAggregate = (CsvAggregatePagoPa) csv;
 
         return checkCsvAggregatePagoPa(csvAggregate)
                 .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregate))
