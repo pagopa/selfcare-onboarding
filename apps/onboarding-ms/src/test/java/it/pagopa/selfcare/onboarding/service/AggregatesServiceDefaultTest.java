@@ -64,4 +64,40 @@ public class AggregatesServiceDefaultTest {
                         .assertCompleted();
     }
 
+    @Test
+    @RunOnVertxContext
+    void validatePagoPaAggregates(){
+        File testFile = new File("src/test/resources/aggregates-pagopa.csv");
+
+        when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
+        when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        when(uoApi.findByUnicodeUsingGET1("4551120274", null)).thenReturn(Uni.createFrom().item(new UOResource()));
+
+        when(aooApi.findByUnicodeUsingGET("AQ66",null)).thenThrow(ResourceNotFoundException.class);
+        when(institutionApi.findInstitutionUsingGET("345645", null, null)).thenThrow(ResourceNotFoundException.class);
+        when(uoApi.findByUnicodeUsingGET1("AQ66",null)).thenThrow(ResourceNotFoundException.class);
+
+        aggregatesServiceDefault.validatePagoPaAggregatesCsv(testFile)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+    }
+
+    @Test
+    @RunOnVertxContext
+    void validateSendAggregates(){
+        File testFile = new File("src/test/resources/aggregates-send.csv");
+
+        when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
+        when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        when(uoApi.findByUnicodeUsingGET1("4551120274", null)).thenReturn(Uni.createFrom().item(new UOResource()));
+
+        when(aooApi.findByUnicodeUsingGET("AQ66",null)).thenThrow(ResourceNotFoundException.class);
+        when(institutionApi.findInstitutionUsingGET("345645", null, null)).thenThrow(ResourceNotFoundException.class);
+        when(uoApi.findByUnicodeUsingGET1("AQ66",null)).thenThrow(ResourceNotFoundException.class);
+
+        aggregatesServiceDefault.validateSendAggregatesCsv(testFile)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+    }
+
 }
