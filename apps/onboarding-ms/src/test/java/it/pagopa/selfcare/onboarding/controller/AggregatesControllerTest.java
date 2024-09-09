@@ -29,7 +29,7 @@ public class AggregatesControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void verifyAggregatesCsv_succeeds() {
-        File testFile = new File("src/test/resources/aggregates.csv");
+        File testFile = new File("src/test/resources/aggregates-appio.csv");
 
         when(aggregatesService.validateAppIoAggregatesCsv(any()))
                 .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
@@ -38,7 +38,7 @@ public class AggregatesControllerTest {
                 .when()
                 .contentType(ContentType.MULTIPART)
                 .multiPart("aggregates", testFile)
-                .post("/verification")
+                .post("/verification/prod-io")
                 .then()
                 .statusCode(200);
 
