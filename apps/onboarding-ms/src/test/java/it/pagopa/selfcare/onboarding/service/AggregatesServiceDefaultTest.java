@@ -123,7 +123,7 @@ public class AggregatesServiceDefaultTest {
         Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
 
         VerifyAggregateResponse verifyAggregateResponse = result.await().indefinitely();
-        assertNotNull(verifyAggregateResponse);
+        assertNotNull(verifyAggregateResponse.getAggregates());
         assertNotNull(aggregatesCsvResponse.getValidAggregates());
 
         assertTrue(!aggregatesCsvResponse.getCsvAggregateList().isEmpty());

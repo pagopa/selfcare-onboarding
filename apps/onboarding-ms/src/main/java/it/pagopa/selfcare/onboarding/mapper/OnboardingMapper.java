@@ -8,10 +8,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.model.AggregatesCsvResponse;
-import it.pagopa.selfcare.onboarding.model.CsvAggregateSend;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateSendResponse;
+import it.pagopa.selfcare.onboarding.model.*;
 import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
@@ -127,9 +124,9 @@ public interface OnboardingMapper {
     VerifyAggregateSendResponse toVerifyAggregateSendResponse(AggregatesCsvResponse aggregatesCsvResponse);
 
     @Mapping(target = "users", source = ".")
-    VerifyAggregateSendResponse.AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
+    AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
 
-    default List<VerifyAggregateSendResponse.AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
+    default List<AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
         if (csvAggregateSendList == null) {
             return null;
         }
@@ -138,11 +135,11 @@ public interface OnboardingMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<VerifyAggregateSendResponse.AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {
+    default List<AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {
         if (csvAggregateSend == null) {
             return Collections.emptyList();
         }
-        VerifyAggregateSendResponse.AggregateUser user = new VerifyAggregateSendResponse.AggregateUser();
+        AggregateUser user = new AggregateUser();
         user.setName(csvAggregateSend.getAdminAggregateName());
         user.setSurname(csvAggregateSend.getAdminAggregateSurname());
         user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());

@@ -11,10 +11,10 @@ class VerifyAggregateSendResponseTest {
     @Test
     void testVerifyAggregateSendResponseConstructorAndGetters() {
 
-        List<VerifyAggregateSendResponse.AggregateSend> aggregates = new ArrayList<>();
+        List<AggregateSend> aggregates = new ArrayList<>();
         List<RowError> errors = new ArrayList<>();
 
-        VerifyAggregateSendResponse.AggregateSend aggregateSend = new VerifyAggregateSendResponse.AggregateSend();
+        AggregateSend aggregateSend = new AggregateSend();
         aggregateSend.setDescription("Description");
         aggregateSend.setPec("example@pec.it");
         aggregateSend.setTaxCode("XYZ12345");
@@ -26,7 +26,7 @@ class VerifyAggregateSendResponseTest {
         aggregateSend.setSubunitType("Subunit Type");
         aggregateSend.setSubunitCode("Subunit Code");
 
-        VerifyAggregateSendResponse.AggregateUser user = new VerifyAggregateSendResponse.AggregateUser();
+        AggregateUser user = new AggregateUser();
         user.setName("John");
         user.setSurname("Doe");
         user.setTaxCode("JD12345");
