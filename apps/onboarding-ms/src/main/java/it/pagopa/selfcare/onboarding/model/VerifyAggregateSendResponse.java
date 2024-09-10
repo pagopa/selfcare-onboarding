@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.model;
 
-import it.pagopa.selfcare.onboarding.entity.Institution;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
