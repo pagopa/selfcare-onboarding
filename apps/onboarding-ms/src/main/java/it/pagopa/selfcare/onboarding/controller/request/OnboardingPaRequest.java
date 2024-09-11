@@ -15,4 +15,6 @@ public class OnboardingPaRequest extends OnboardingBaseRequest {
 
     private BillingPaRequest billing;
 
+    private AdditionalInformationsDto additionalInformations;
+
 }
