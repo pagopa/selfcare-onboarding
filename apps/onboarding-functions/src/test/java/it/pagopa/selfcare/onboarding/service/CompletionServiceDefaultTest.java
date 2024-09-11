@@ -49,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
     @Inject
@@ -96,7 +95,10 @@ public class CompletionServiceDefaultTest {
         userResource.setWorkContacts(map);
     }
 
-    public static class UserMSProfile implements QuarkusTestProfile {
+    @Nested
+    @TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UserMSProfile implements QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of("onboarding-functions.persist-users.active", "true");
@@ -729,25 +731,34 @@ public class CompletionServiceDefaultTest {
         public Map<String, String> getConfigOverrides() {
             return Map.of("onboarding-functions.force-institution-persist", "true");
         }
+    }
 
-        @Test
-        void forceInstitutionCreationFlagTrue(){
-            Onboarding onboarding = createOnboarding();
+    @Test
+    void forceInstitutionCreationFlagTrue(){
+        // given
+        Onboarding onboarding = createOnboarding();
 
-            Institution institutionSa = new Institution();
-            institutionSa.setTaxCode("taxCode");
-            institutionSa.setInstitutionType(InstitutionType.SA);
-            institutionSa.setOrigin(Origin.ANAC);
-            onboarding.setInstitution(institutionSa);
+        Institution institutionSa = new Institution();
+        institutionSa.setTaxCode("taxCode");
+        institutionSa.setInstitutionType(InstitutionType.SA);
+        institutionSa.setOrigin(Origin.ANAC);
+        onboarding.setInstitution(institutionSa);
 
-            InstitutionResponse institutionResponse = dummyInstitutionResponse();
-            when(institutionApi.createInstitutionFromAnacUsingPOST(any())).thenReturn(institutionResponse);
+        InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+        institutionsResponse.setInstitutions(List.of(dummyInstitutionResponse()));
 
-            completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(institutionsResponse);
 
-            verify(institutionApi, times(1)).createInstitutionFromAnacUsingPOST(any());
-        }
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(onboardingRepository.update("institution.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
 
+        // when
+        completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
     }
 
     private User createDummyUser(Onboarding onboarding) {
@@ -761,9 +772,8 @@ public class CompletionServiceDefaultTest {
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
-        return  response;
+        return response;
     }
-
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
