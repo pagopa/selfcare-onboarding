@@ -14,7 +14,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import lombok.Builder;
-import lombok.Data;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
@@ -27,6 +26,7 @@ import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
@@ -98,7 +98,8 @@ public class OnboardingUtils {
      */
     public Uni<Onboarding> validateFields(Onboarding onboarding) {
         if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
-                || InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()) {
+                || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
+                        && !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return infocamerePdndApi.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
                     .onFailure(WebApplicationException.class)
                     .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
@@ -174,7 +175,7 @@ public class OnboardingUtils {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
         }
         if (InstitutionType.GSP == onboarding.getInstitution().getInstitutionType() &&
-                ProductId.PROD_PAGOPA.getValue().equals(onboarding.getProductId())) {
+                PROD_PAGOPA.getValue().equals(onboarding.getProductId())) {
             if (Objects.isNull(onboarding.getAdditionalInformations())) {
                 return Uni.createFrom().failure(new InvalidRequestException(ADDITIONAL_INFORMATION_REQUIRED));
             } else if (!onboarding.getAdditionalInformations().isIpa() &&
