@@ -9,10 +9,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
-import it.pagopa.selfcare.onboarding.model.AggregatesCsvResponse;
-import it.pagopa.selfcare.onboarding.model.CsvAggregate;
-import it.pagopa.selfcare.onboarding.model.RowError;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
+import it.pagopa.selfcare.onboarding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -40,6 +37,7 @@ public class AggregatesServiceDefault implements AggregatesService{
 
     private static final Logger LOG = Logger.getLogger(AggregatesServiceDefault.class);
 
+
     @Inject
     OnboardingMapper onboardingMapper;
 
@@ -65,12 +63,28 @@ public class AggregatesServiceDefault implements AggregatesService{
     public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
     public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
 
+    public static final String ERROR_ADDRESS = "Indirizzo è obbligatorio";
+    public static final String ERROR_CITY = "La città è obbligatoria";
+    public static final String ERROR_PROVINCE = "La provincia è obbligatoria";
+    public static final String ERROR_PEC = "Indirizzo PEC è obbligatorio";
+    public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_AGGREGATE_NAME_PT = "Ragine Sociale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_IBAN = "IBAN è obbligatorio";
+    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
+    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
+    private static final String ERROR_IPA_CODE = "Codice IPA è obbligatorio in caso di ente centrale";
+
+
     @Override
-    public Uni<VerifyAggregateResponse> validateAggregatesCsv(File file){
-        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file);
-        List<CsvAggregate> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
+    public Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv(File file){
+        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregateAppIo.class);
+        List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
         return Multi.createFrom().iterable(csvAggregates)
-                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
+                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
                 .collect().asList()
                 .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
                 .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
@@ -78,24 +92,100 @@ public class AggregatesServiceDefault implements AggregatesService{
                         aggregatesCsvResponse.getRowErrorList().size()));
     }
 
-    private Uni<Void> checkCsvAggregateAndFillAggregateOrErrorList(CsvAggregate csvAggregate, AggregatesCsvResponse aggregatesCsvResponse) {
-        return checkCsvAggregate(csvAggregate)
+    @Override
+    public Uni<VerifyAggregateSendResponse> validateSendAggregatesCsv(File file) {
+        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregateSend.class);
+        List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
+        return Multi.createFrom().iterable(csvAggregates)
+                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregateSendAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
+                .collect().asList()
+                .onItem().transform(list -> onboardingMapper.toVerifyAggregateSendResponse(aggregatesCsvResponse))
+                .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
+                        aggregatesCsvResponse.getValidAggregates().size(),
+                        aggregatesCsvResponse.getRowErrorList().size()));
+    }
+
+    @Override
+    public Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv(File file) {
+        AggregatesCsvResponse aggregatesCsvResponse = readItemsFromCsv(file, CsvAggregatePagoPa.class);
+        List<Csv> csvAggregates = aggregatesCsvResponse.getCsvAggregateList();
+        return Multi.createFrom().iterable(csvAggregates)
+                .onItem().transformToUniAndMerge(csvAggregate -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregate, aggregatesCsvResponse))
+                .collect().asList()
+                .onItem().transform(list -> onboardingMapper.toVerifyAggregateResponse(aggregatesCsvResponse))
+                .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
+                        aggregatesCsvResponse.getValidAggregates().size(),
+                        aggregatesCsvResponse.getRowErrorList().size()));
+
+    }
+
+    private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+        return checkCsvAggregateAppIo(csvAggregateAppIo)
+                .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregateAppIo))
+                .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregateAppIo, throwable, aggregatesCsvResponse))
+                .onFailure(InvalidRequestException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregateAppIo, throwable, aggregatesCsvResponse));
+    }
+
+    private Uni<Void> checkCsvAggregateSendAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
+        CsvAggregateSend csvAggregate = (CsvAggregateSend) csv;
+        return checkCsvAggregateSend(csvAggregate)
                 .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregate))
                 .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse))
                 .onFailure(InvalidRequestException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse));
     }
 
-    private static Uni<Void> mapToErrorRow(CsvAggregate csvAggregate, Throwable throwable, AggregatesCsvResponse aggregatesCsvResponse) {
-        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregate.getRowNumber(), csvAggregate.getTaxCode(), throwable.getMessage()));
+    private Uni<Void> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(Csv csv, AggregatesCsvResponse aggregatesCsvResponse) {
+        CsvAggregatePagoPa csvAggregate = (CsvAggregatePagoPa) csv;
+
+        return checkCsvAggregatePagoPa(csvAggregate)
+                .onItem().invoke(() -> aggregatesCsvResponse.getValidAggregates().add(csvAggregate))
+                .onFailure(ResourceNotFoundException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse))
+                .onFailure(InvalidRequestException.class).recoverWithUni(throwable -> mapToErrorRow(csvAggregate, throwable, aggregatesCsvResponse));
+    }
+
+    private static Uni<Void> mapToErrorRow(Csv csv, Throwable throwable, AggregatesCsvResponse aggregatesCsvResponse) {
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+        aggregatesCsvResponse.getRowErrorList().add(new RowError(csvAggregateAppIo.getRowNumber(), csvAggregateAppIo.getTaxCode(), throwable.getMessage()));
         return Uni.createFrom().voidItem();
     }
 
-    private Uni<Void> checkCsvAggregate(CsvAggregate csvAggregate) {
-        return checkRequiredFields(csvAggregate)
-                .onItem().transformToUni(unused -> checkSubunitType(csvAggregate));
+    private Uni<Void> checkCsvAggregateAppIo(Csv csvAggregate) {
+        return checkRequiredFieldsAppIo(csvAggregate)
+                .onItem().transformToUni(unused -> checkSubunitTypeAppIo(csvAggregate));
     }
 
-    private Uni<Void> checkSubunitType(CsvAggregate csvAggregate) {
+    private Uni<Void> checkCsvAggregateSend(CsvAggregateSend csvAggregate) {
+        return checkRequiredFieldsSend(csvAggregate)
+                .onItem().transformToUni(unused -> checkSubunitTypeSend(csvAggregate));
+    }
+
+    private Uni<Void> checkCsvAggregatePagoPa(CsvAggregatePagoPa csvAggregate) {
+        return checkRequiredFieldsPagoPa(csvAggregate);
+    }
+
+    private Uni<Void> checkSubunitTypeAppIo(Csv csv) {
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+
+        if (StringUtils.isEmpty(csvAggregateAppIo.getSubunitType())) {
+            return institutionApi.findInstitutionUsingGET(csvAggregateAppIo.getTaxCode(), null, null)
+                    .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .replaceWith(Uni.createFrom().voidItem());
+        } else if (InstitutionPaSubunitType.AOO.name().equals(csvAggregateAppIo.getSubunitType())) {
+            return aooApi.findByUnicodeUsingGET(csvAggregateAppIo.getSubunitCode(), null)
+                    .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .replaceWith(Uni.createFrom().voidItem());
+        } else if (InstitutionPaSubunitType.UO.name().equals(csvAggregateAppIo.getSubunitType())) {
+            return uoApi.findByUnicodeUsingGET1(csvAggregateAppIo.getSubunitCode(), null)
+                    .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .replaceWith(Uni.createFrom().voidItem());
+        } else {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SUBUNIT_TYPE));
+        }
+    }
+
+    private Uni<Void> checkSubunitTypeSend(CsvAggregateSend csvAggregate) {
+
         if (StringUtils.isEmpty(csvAggregate.getSubunitType())) {
             return institutionApi.findInstitutionUsingGET(csvAggregate.getTaxCode(), null, null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
@@ -117,22 +207,130 @@ public class AggregatesServiceDefault implements AggregatesService{
         return throwable instanceof WebApplicationException webApplicationException && webApplicationException.getResponse().getStatus() == 404;
     }
 
-    private Uni<Void> checkRequiredFields(CsvAggregate csvAggregate) {
-        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
-        } else if (StringUtils.isEmpty(csvAggregate.getDescription())) {
+    private Uni<Void> checkRequiredFieldsAppIo(Csv csv) {
+        CsvAggregateAppIo csvAggregateAppIo = (CsvAggregateAppIo) csv;
+
+        if (StringUtils.isEmpty(csvAggregateAppIo.getDescription())){
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
-        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
-                || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregateAppIo.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
+                || (StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))
+                && (StringUtils.isEmpty(csvAggregateAppIo.getIpaCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IPA_CODE));
         }
         return Uni.createFrom().voidItem();
     }
 
-    public AggregatesCsvResponse readItemsFromCsv(File file) {
-        List<CsvAggregate> resultList = new ArrayList<>();
+    private Uni<Void> checkRequiredFieldsSend(CsvAggregateSend csvAggregate) {
+
+        if (StringUtils.isEmpty(csvAggregate.getDescription())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
+                || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateName())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateSurname())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateEmail())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL));
+        }
+        else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))
+                && (StringUtils.isEmpty(csvAggregate.getIpaCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IPA_CODE));
+        }
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> checkRequiredFieldsPagoPa(CsvAggregatePagoPa csvAggregate) {
+
+        if (StringUtils.isEmpty(csvAggregate.getDescription())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_DESCRIPTION));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getPec())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PEC));
+        }
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAddress())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADDRESS));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getCity())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CITY));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getProvince())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_PROVINCE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getAggragateNamePT())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AGGREGATE_NAME_PT));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getTaxCodePT())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_PT));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getIban())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getService())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SERVICE));
+        }
+        else if (StringUtils.isEmpty(csvAggregate.getSyncAsyncMode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SYNC_ASYNC_MODE));
+        }
+        return Uni.createFrom().voidItem();
+    }
+
+    public <T extends Csv> AggregatesCsvResponse readItemsFromCsv(File file, Class<T> csv) {
+        List<Csv> resultList = new ArrayList<>();
         List<RowError> errors = new ArrayList<>();
 
         try {
@@ -146,7 +344,7 @@ public class AggregatesServiceDefault implements AggregatesService{
 
             while ((nextLine = bufferedReader.readLine()) != null) {
                 if(!nextLine.startsWith("(*")){
-                    parseLine(nextLine, lineNumber, resultList, errors);
+                    parseLine(nextLine, lineNumber, resultList, errors, csv);
                     lineNumber++;
                 }
             }
@@ -159,13 +357,13 @@ public class AggregatesServiceDefault implements AggregatesService{
         }
     }
 
-    private void parseLine(String nextLine, int lineNumber, List<CsvAggregate> resultList, List<RowError> errors) {
+    private <T extends Csv> void parseLine(String nextLine, int lineNumber, List<Csv> resultList, List<RowError> errors, Class<T> csv) {
         try {
             StringReader lineReader = new StringReader(nextLine);
-            CsvToBean<CsvAggregate> csvToBean = getAggregateCsvToBean(new BufferedReader(lineReader));
-            List<CsvAggregate> csvAggregateList = csvToBean.parse();
+            CsvToBean<Csv> csvToBean = getAggregateCsvToBean(new BufferedReader(lineReader), csv);
+            List<Csv> csvAggregateList = csvToBean.parse();
             if (!csvAggregateList.isEmpty()) {
-                CsvAggregate csvAggregate = csvAggregateList.get(0);
+                Csv csvAggregate = csvAggregateList.get(0);
                 csvAggregate.setRowNumber(lineNumber);
                 resultList.add(csvAggregateList.get(0));
             }
@@ -176,9 +374,9 @@ public class AggregatesServiceDefault implements AggregatesService{
         }
     }
 
-    private CsvToBean<CsvAggregate> getAggregateCsvToBean(BufferedReader bufferedReader) {
-        CsvToBeanBuilder<CsvAggregate> csvToBeanBuilder = new CsvToBeanBuilder<>(bufferedReader);
-        csvToBeanBuilder.withType(CsvAggregate.class);
+    private <T extends Csv> CsvToBean<Csv> getAggregateCsvToBean(BufferedReader bufferedReader, Class<T> csv) {
+        CsvToBeanBuilder<Csv> csvToBeanBuilder = new CsvToBeanBuilder<>(bufferedReader);
+        csvToBeanBuilder.withType(csv);
         csvToBeanBuilder.withSeparator(';');
         csvToBeanBuilder.withQuoteChar(DEFAULT_QUOTE_CHARACTER);
         csvToBeanBuilder.withOrderedResults(true);
