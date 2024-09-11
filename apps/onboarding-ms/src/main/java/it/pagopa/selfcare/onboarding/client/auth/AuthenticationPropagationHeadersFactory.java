@@ -7,7 +7,7 @@ import java.util.List;
 
 public class AuthenticationPropagationHeadersFactory implements ClientHeadersFactory {
 
-    public static final String AUTHORIZATION = "Authorization";
+    private static final String AUTHORIZATION = "Authorization";
 
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
