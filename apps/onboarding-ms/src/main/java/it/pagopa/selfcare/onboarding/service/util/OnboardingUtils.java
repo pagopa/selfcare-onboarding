@@ -98,7 +98,8 @@ public class OnboardingUtils {
      */
     public Uni<Onboarding> validateFields(Onboarding onboarding) {
         if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
-                || InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()) {
+                || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
+                        && !ProductId.PROD_PAGOPA.equals(onboarding.getProductId()))) {
             return infocamerePdndApi.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
                     .onFailure(WebApplicationException.class)
                     .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
