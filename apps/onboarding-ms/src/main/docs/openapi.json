@@ -1999,6 +1999,9 @@
           },
           "billing" : {
             "$ref" : "#/components/schemas/BillingPaRequest"
+          },
+          "additionalInformations" : {
+            "$ref" : "#/components/schemas/AdditionalInformationsDto"
           }
         }
       },
