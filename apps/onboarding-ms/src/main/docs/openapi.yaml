@@ -998,6 +998,8 @@ components:
           type: string
         county:
           type: string
+        istatCode:
+          type: string
         description:
           type: string
         digitalAddress:
@@ -1548,6 +1550,7 @@ components:
       - ADE
       - INFOCAMERE
       - IVASS
+      - PDND_INFOCAMERE
       type: string
     PartyRole:
       enum:

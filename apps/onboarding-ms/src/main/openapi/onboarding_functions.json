@@ -523,7 +523,8 @@
           "UNKNOWN",
           "ADE",
           "INFOCAMERE",
-          "IVASS"
+          "IVASS",
+          "PDND_INFOCAMERE"
         ],
         "type": "string"
       },
