@@ -5,20 +5,19 @@ import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.model.AggregatesCsvResponse;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import it.pagopa.selfcare.onboarding.model.*;
+import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class })
 public interface OnboardingMapper {
@@ -119,4 +118,34 @@ public interface OnboardingMapper {
     @Mapping(target = "errors", source = "rowErrorList")
     @Mapping(target = "aggregates", source = "validAggregates")
     VerifyAggregateResponse toVerifyAggregateResponse(AggregatesCsvResponse aggregatesCsvResponse);
+
+    @Mapping(target = "errors", source = "rowErrorList")
+    @Mapping(target = "aggregates", source = "validAggregates")
+    VerifyAggregateSendResponse toVerifyAggregateSendResponse(AggregatesCsvResponse aggregatesCsvResponse);
+
+    @Mapping(target = "users", source = ".")
+    AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
+
+    default List<AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
+        if (csvAggregateSendList == null) {
+            return null;
+        }
+        return csvAggregateSendList.stream()
+                .map(this::csvToAggregateSend)
+                .collect(Collectors.toList());
+    }
+
+    default List<AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {
+        if (csvAggregateSend == null) {
+            return Collections.emptyList();
+        }
+        AggregateUser user = new AggregateUser();
+        user.setName(csvAggregateSend.getAdminAggregateName());
+        user.setSurname(csvAggregateSend.getAdminAggregateSurname());
+        user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());
+        user.setEmail(csvAggregateSend.getAdminAggregateEmail());
+        user.setRole("Delegate");
+
+        return Collections.singletonList(user);
+    }
 }

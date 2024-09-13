@@ -10,10 +10,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.product.entity.Product;
-import it.pagopa.selfcare.product.entity.ProductRole;
-import it.pagopa.selfcare.product.entity.ProductRoleInfo;
-import it.pagopa.selfcare.product.entity.ProductStatus;
+import it.pagopa.selfcare.product.entity.*;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 
@@ -148,9 +145,10 @@ public class ProductServiceDefault implements ProductService {
      */
     @Override
     public void fillContractTemplatePathAndVersion(Product product, InstitutionType institutionType) {
-        if (institutionType != null && product.getInstitutionContractMappings() != null && product.getInstitutionContractMappings().containsKey(institutionType)) {
-            product.setContractTemplatePath(product.getInstitutionContractMappings().get(institutionType).getContractTemplatePath());
-            product.setContractTemplateVersion(product.getInstitutionContractMappings().get(institutionType).getContractTemplateVersion());
+        if (Objects.nonNull(institutionType) && Objects.nonNull(product.getInstitutionContractMappings())
+                && product.getInstitutionContractMappings().containsKey(institutionType.name())) {
+            product.setContractTemplatePath(product.getInstitutionContractMappings().get(institutionType.name()).getContractTemplatePath());
+            product.setContractTemplateVersion(product.getInstitutionContractMappings().get(institutionType.name()).getContractTemplateVersion());
         }
     }
 
@@ -203,6 +201,5 @@ public class ProductServiceDefault implements ProductService {
     private static boolean statusIsNotValid(ProductStatus status) {
         return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
     }
-
 
 }
