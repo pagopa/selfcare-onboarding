@@ -33,8 +33,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static it.pagopa.selfcare.onboarding.util.GenericError.INVALID_DOCUMENT_SIGNATURE;
-import static it.pagopa.selfcare.onboarding.util.GenericError.TAX_CODE_NOT_FOUND_IN_SIGNATURE;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.INVALID_DOCUMENT_SIGNATURE;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.TAX_CODE_NOT_FOUND_IN_SIGNATURE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

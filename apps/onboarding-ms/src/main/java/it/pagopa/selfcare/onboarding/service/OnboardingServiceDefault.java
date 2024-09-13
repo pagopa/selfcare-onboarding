@@ -69,7 +69,7 @@ import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.GenericError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {

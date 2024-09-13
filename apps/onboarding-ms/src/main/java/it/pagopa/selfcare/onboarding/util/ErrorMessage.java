@@ -4,13 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public enum GenericError {
+@Getter
+public enum ErrorMessage {
 
     GET_USER_INSTITUTION_RELATIONSHIP_ERROR("0023", "Error while retrieving user relationships"),
     GET_INSTITUTION_BY_ID_ERROR("0040", "Error while retrieving institution having id %s"),
-    GET_INSTITUTION_BY_EXTERNAL_ID_ERROR("0041", Constants.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
-    INSTITUTION_MANAGER_ERROR("0042", Constants.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
-    INSTITUTION_BILLING_ERROR("0044", Constants.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
+    GET_INSTITUTION_BY_EXTERNAL_ID_ERROR("0041", MessageValue.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
+    INSTITUTION_MANAGER_ERROR("0042", MessageValue.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
+    INSTITUTION_BILLING_ERROR("0044", MessageValue.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
     CREATE_INSTITUTION_ERROR("0037", "Error while creating requested institution"),
     INSTITUTION_INFOCAMERE_NOTFOUND("0039", "Institution %s not found on INFOCAMERE"),
     ONBOARDING_OPERATION_ERROR("0017", "Error while performing onboarding operation"),
@@ -70,15 +71,10 @@ public enum GenericError {
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
     GENERIC_ERROR("0000", "Generic Error");
 
-    @Getter
     private final String code;
-    private final String detail;
+    private final String message;
 
-    public String getMessage() {
-        return detail;
-    }
-
-    private static class Constants {
+    private static class MessageValue {
         public static final String ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID = "Error while retrieving institution having externalId %s";
     }
 
