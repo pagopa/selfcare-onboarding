@@ -14,9 +14,8 @@ import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -33,8 +32,6 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     protected final GeographicTaxonomiesApi geographicTaxonomiesApi;
     protected final org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
     protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
-    protected static final Logger log = LoggerFactory.getLogger(BaseNotificationBuilder.class);
-
 
     public BaseNotificationBuilder(
             String alternativeEmail,
@@ -180,7 +177,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     @Override
     public void setTokenData(NotificationToSend notificationToSend, Token token) {
         if (Objects.nonNull(token) && Objects.nonNull(token.getContractSigned())) {
-            notificationToSend.setFileName(Paths.get(token.getContractSigned()).getFileName().toString());
+            notificationToSend.setFileName(Paths.get(new String(token.getContractSigned().getBytes(), StandardCharsets.UTF_8)).getFileName().toString());
             notificationToSend.setContentType(token.getContractSigned());
         }
     }
