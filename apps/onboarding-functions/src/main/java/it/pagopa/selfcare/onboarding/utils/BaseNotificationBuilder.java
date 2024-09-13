@@ -15,7 +15,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
@@ -54,9 +53,6 @@ public class BaseNotificationBuilder implements NotificationBuilder {
             notificationToSend.setId(onboarding.getId());
         } else {
             notificationToSend.setId(UUID.randomUUID().toString());
-        }
-        if (Objects.nonNull(token)) {
-            setTokenData(notificationToSend, token);
         }
         notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
         mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
@@ -181,11 +177,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     @Override
     public void setTokenData(NotificationToSend notificationToSend, Token token) {
         if (Objects.nonNull(token) && Objects.nonNull(token.getContractSigned())) {
-            try {
-                notificationToSend.setFileName(Paths.get(new String(token.getContractSigned().getBytes("UTF-8"), "ISO-8859-1")).getFileName().toString());
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
+            notificationToSend.setFileName(Paths.get(new String(token.getContractSigned().getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)).getFileName().toString());
             notificationToSend.setContentType(token.getContractSigned());
         }
     }
