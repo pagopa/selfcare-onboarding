@@ -182,7 +182,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     public void setTokenData(NotificationToSend notificationToSend, Token token) {
         if (Objects.nonNull(token) && Objects.nonNull(token.getContractSigned())) {
             try {
-                notificationToSend.setFileName(Paths.get(new String(token.getContractSigned().getBytes("UTF-8"))).getFileName().toString());
+                notificationToSend.setFileName(Paths.get(new String(token.getContractSigned().getBytes("UTF-8"), "ISO-8859-1")).getFileName().toString());
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
