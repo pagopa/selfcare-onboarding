@@ -74,8 +74,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -539,6 +538,49 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_PRV_PagoPA(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_PAGOPA.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        List<AggregateInstitution> aggregates = new ArrayList<>();
+        AggregateInstitution institution = new AggregateInstitution();
+        aggregates.add(institution);
+        request.setAggregates(aggregates);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
+        pdndBusinessResource.setBusinessName("name");
+        pdndBusinessResource.setDigitalAddress("pec");
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
     }
 
     @Test

@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.GenericError.*;
 
@@ -405,7 +406,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
-                || InstitutionType.PRV.equals(institutionType)) {
+                || (InstitutionType.PRV.equals(institutionType) &&
+                    !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
