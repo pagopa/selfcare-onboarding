@@ -11,6 +11,7 @@ import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -37,6 +38,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -143,12 +145,12 @@ public class OnboardingServiceDefault implements OnboardingService {
     String pathContracts;
 
     @Override
-    public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests) {
+    public Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates) {
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, null);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null);
     }
 
     /**
@@ -176,15 +178,15 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE);
+        return fillUsersAndOnboarding(onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
     @Override
-    public Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests) {
+    public Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates) {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, null);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null);
     }
 
     /**
@@ -194,14 +196,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(OnboardingStatus.PENDING);
-        return fillUsersAndOnboarding(onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE);
+        return fillUsersAndOnboardingForImport(onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -215,7 +217,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(ignored -> onboardingUtils.validateFields(onboarding))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                                 orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
@@ -233,7 +235,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> this.addReferencedOnboardingId(onboarding)
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, null))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                                 orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
@@ -244,7 +246,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported, String timeout) {
+    private Uni<OnboardingResponse> fillUsersAndOnboardingForImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported, String timeout) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -257,7 +259,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
-                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product))
+                        .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, null))
                         .onItem().call(onboardingPersisted -> Panache.withTransaction(() -> Token.persist(getToken(onboardingPersisted, product, contractImported))))
                         /* Update onboarding data with users and start orchestration */
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
@@ -273,10 +275,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         };
     }
 
-    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product) {
+    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
+                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates))
+                        .onItem().transformToUni(ignore -> retrieveUserAggregatesResources(onboardingPersisted, product, aggregates))
                         .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
     }
@@ -535,6 +539,41 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         return Uni.createFrom().item(users);
+    }
+
+    private Uni<Void> validateUserAggregatesRoles(List<AggregateInstitutionRequest> aggregates) {
+        LOG.debug("starting validateUserAggregatesRoles");
+        if (!CollectionUtils.isEmpty(aggregates)) {
+            return Multi.createFrom().iterable(aggregates)
+                    .filter(aggregate -> !CollectionUtils.isEmpty(aggregate.getUsers()))
+                    .onItem().invoke(aggregate -> LOG.debugf("Validating role for users of aggregate: %s", aggregate.getTaxCode()))
+                    .onItem().transformToUniAndMerge(aggregate -> validationRole(aggregate.getUsers())
+                            .onFailure().invoke(throwable -> LOG.error("Error during validation role for aggregate: %s", aggregate.getTaxCode(), throwable)))
+                    .collect().asList().replaceWithVoid();
+        }
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> retrieveUserAggregatesResources(Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
+        LOG.debug("Retrieving user resources for aggregates");
+        if (!CollectionUtils.isEmpty(aggregates)) {
+            return Multi.createFrom().iterable(aggregates)
+                    .filter(aggregate -> !CollectionUtils.isEmpty(aggregate.getUsers()))
+                    .onItem().invoke(aggregate -> LOG.debugf("Retrieving user resources for aggregate: %s", aggregate.getTaxCode()))
+                    .onItem().transformToUni(aggregate -> retrieveUserResources(aggregate.getUsers(), product)
+                            .onFailure().invoke(throwable -> LOG.errorf("Error during retrieving user resources for aggregate: %s", aggregate.getTaxCode(), throwable))
+                            .onItem().invoke(users -> setUsersInAggregateToPersist(onboarding, aggregate, users)))
+                    .concatenate().onItem().ignoreAsUni();
+        }
+
+        return Uni.createFrom().voidItem();
+    }
+
+    private static void setUsersInAggregateToPersist(Onboarding onboarding, AggregateInstitutionRequest aggregate, List<User> users) {
+        onboarding.getAggregates().stream()
+                .filter(aggregateInstitution -> aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
+                .findAny()
+                .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
     }
 
     private Uni<List<User>> retrieveUserResources(List<UserRequest> users, Product product) {

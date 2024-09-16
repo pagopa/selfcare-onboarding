@@ -22,4 +22,5 @@ public class AggregateInstitutionRequest {
     private String zipCode;
     private String originId;
     private Origin origin;
+    private List<UserRequest> users;
 }
