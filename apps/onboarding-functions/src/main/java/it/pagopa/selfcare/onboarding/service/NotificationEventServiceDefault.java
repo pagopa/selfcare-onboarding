@@ -31,15 +31,12 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
 import java.util.*;
 
+import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
+import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS;
 import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboarding;
 
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
-
-    public static final String EVENT_ONBOARDING_FN_NAME = "ONBOARDING-FN";
-    public static final String EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE = "EventsOnboardingInstitution_failures";
-    public static final String EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS = "EventsOnboardingInstitution_success";
-    public static final String OPERATION_NAME = "ONBOARDING-FN";
     private final TelemetryClient telemetryClient;
     @RestClient
     @Inject
@@ -70,7 +67,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
         telemetryConfiguration.setConnectionString(appInsightsConnectionString);
         this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
+        this.telemetryClient.getContext().getOperation().setName(EVENT_ONBOARDING_FN_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
