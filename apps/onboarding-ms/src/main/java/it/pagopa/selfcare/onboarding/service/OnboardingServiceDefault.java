@@ -265,11 +265,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transform(onboardingMapper::toResponse));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
+    private Uni<Wrapper> getRegistryResource(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
-            case AOO -> getAOO(onboarding);
-            case UO -> getUO(onboarding);
-            default -> getEC();
+            case AOO -> Uni.createFrom().item(new WrapperAOO(onboarding, aooApi));
+            case UO -> Uni.createFrom().item(new WrapperUO(onboarding, uoApi));
+            default -> Uni.createFrom().item(new WrapperIPA(onboarding, institutionApi, uoApi));
         };
     }
 
