@@ -31,6 +31,24 @@ public class NotificationToSend {
     private OffsetDateTime updatedAt;
     private QueueEvent notificationType;
     private NotificationType type;
+    private Boolean isAggregator;
+    private RootAggregator rootAggregator;
+
+    public Boolean getIsAggregator() {
+        return isAggregator;
+    }
+
+    public void setIsAggregator(Boolean aggregator) {
+        isAggregator = aggregator;
+    }
+
+    public RootAggregator getRootAggregator() {
+        return rootAggregator;
+    }
+
+    public void setRootAggregator(RootAggregator rootAggregator) {
+        this.rootAggregator = rootAggregator;
+    }
 
     public String getInstitutionId() {
         return institutionId;
