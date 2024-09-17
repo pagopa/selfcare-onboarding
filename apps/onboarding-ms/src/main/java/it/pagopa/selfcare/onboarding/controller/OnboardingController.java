@@ -20,19 +20,19 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.*;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -164,7 +164,6 @@ public class OnboardingController {
     }
 
     private Uni<String> readUserIdFromToken(SecurityContext ctx) {
-
         return currentIdentityAssociation.getDeferredIdentity()
                 .onItem().transformToUni(identity -> {
                     if (ctx.getUserPrincipal() == null || !ctx.getUserPrincipal().getName().equals(identity.getPrincipal().getName())) {
@@ -189,8 +188,8 @@ public class OnboardingController {
     @Path("/{onboardingId}/complete")
     @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.complete(onboardingId, file)
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.complete(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
@@ -204,8 +203,8 @@ public class OnboardingController {
     @PUT
     @Path("/{onboardingId}/completeOnboardingUsers")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.completeOnboardingUsers(onboardingId, file)
+    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.completeOnboardingUsers(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
@@ -218,8 +217,8 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Tag(name = "Onboarding")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.completeWithoutSignatureVerification(onboardingId, file)
+    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.completeWithoutSignatureVerification(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());

@@ -26,6 +26,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
+import it.pagopa.selfcare.onboarding.model.Contract;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
@@ -55,7 +56,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -690,7 +690,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Onboarding> complete(String onboardingId, File contract) {
+    public Uni<Onboarding> complete(String onboardingId, Contract contract) {
 
         if (Boolean.TRUE.equals(isVerifyEnabled)) {
             //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
@@ -700,14 +700,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .asTuple()
                     .onItem().transformToUni(inputSignatureVerification ->
                             Uni.createFrom().item(() -> {
-                                        signatureService.verifySignature(contract,
+                                        signatureService.verifySignature(contract.getFile(),
                                                 inputSignatureVerification.getItem2(),
                                                 inputSignatureVerification.getItem1());
                                         return onboarding;
                                     })
                                     .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                     );
-
             return complete(onboardingId, contract, verification);
         } else {
             return completeWithoutSignatureVerification(onboardingId, contract);
@@ -715,8 +714,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract) {
-
+    public Uni<Onboarding> completeOnboardingUsers(String onboardingId, Contract contract) {
         if (Boolean.TRUE.equals(isVerifyEnabled)) {
             //Retrieve as Tuple: managers fiscal-code from user registry and contract digest
             //At least, verify contract signature using both
@@ -725,7 +723,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .asTuple()
                     .onItem().transformToUni(inputSignatureVerification ->
                             Uni.createFrom().item(() -> {
-                                        signatureService.verifySignature(contract,
+                                        signatureService.verifySignature(contract.getFile(),
                                                 inputSignatureVerification.getItem2(),
                                                 inputSignatureVerification.getItem1());
                                         return onboarding;
@@ -739,18 +737,18 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
-    public Uni<Onboarding> completeOnboardingUsersWithoutSignatureVerification(String onboardingId, File contract) {
+    public Uni<Onboarding> completeOnboardingUsersWithoutSignatureVerification(String onboardingId, Contract contract) {
         Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
         return completeOnboardingUsers(onboardingId, contract, verification);
     }
 
     @Override
-    public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, File contract) {
+    public Uni<Onboarding> completeWithoutSignatureVerification(String onboardingId, Contract contract) {
         Function<Onboarding, Uni<Onboarding>> verification = ignored -> Uni.createFrom().item(ignored);
         return complete(onboardingId, contract, verification);
     }
 
-    private Uni<Onboarding> complete(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+    private Uni<Onboarding> complete(String onboardingId, Contract contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
 
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(verificationContractSignature::apply)
@@ -771,7 +769,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         : Uni.createFrom().item(onboarding));
     }
 
-    private Uni<Onboarding> completeOnboardingUsers(String onboardingId, File contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
+    private Uni<Onboarding> completeOnboardingUsers(String onboardingId, Contract contract, Function<Onboarding, Uni<Onboarding>> verificationContractSignature) {
 
         return retrieveOnboardingAndCheckIfExpired(onboardingId)
                 .onItem().transformToUni(verificationContractSignature::apply)
@@ -792,14 +790,17 @@ public class OnboardingServiceDefault implements OnboardingService {
                         : Uni.createFrom().item(onboarding));
     }
 
-    private Uni<String> uploadSignedContractAndUpdateToken(String onboardingId, File contract) {
+    private Uni<String> uploadSignedContractAndUpdateToken(String onboardingId, Contract contract) {
         return retrieveToken(onboardingId)
                 .onItem().transformToUni(token -> Uni.createFrom().item(Unchecked.supplier(() -> {
                                     final String path = String.format("%s%s", pathContracts, onboardingId);
-                                    final String filename = String.format("signed_%s", Optional.ofNullable(token.getContractFilename()).orElse(onboardingId));
+                                    final String signedContractExtension = getFileExtension(contract.getFileName());
+                                    final String persistedContractFileName = Optional.ofNullable(token.getContractFilename()).orElse(onboardingId);
+                                    final String signedContractFileName = replaceFileExtension(persistedContractFileName, signedContractExtension);
+                                    final String filename = String.format("signed_%s", signedContractFileName);
 
                                     try {
-                                        return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.toPath()));
+                                        return azureBlobClient.uploadFile(path, filename, Files.readAllBytes(contract.getFile().toPath()));
                                     } catch (IOException e) {
                                         throw new OnboardingNotAllowedException(GENERIC_ERROR.getCode(),
                                                 "Error on upload contract for onboarding with id " + onboardingId);
@@ -812,6 +813,30 @@ public class OnboardingServiceDefault implements OnboardingService {
                 );
     }
 
+    private String getFileExtension(String name) {
+        String[] parts = name.split("\\.");
+        String ext = "";
+
+        if (parts.length == 2) {
+            return parts[1];
+        }
+
+        if(parts.length > 2) {
+            // join all parts except the first one
+            ext = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
+        }
+
+        return ext;
+    }
+
+    private String replaceFileExtension(String originalFilename, String newExtension) {
+        int lastIndexOf = originalFilename.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return originalFilename + newExtension;
+        } else {
+            return originalFilename.substring(0, lastIndexOf) + "." + newExtension;
+        }
+    }
 
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
         //Retrieve Onboarding if exists
