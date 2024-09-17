@@ -280,7 +280,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
                         .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates))
-                        .onItem().transformToUni(ignore -> retrieveUserAggregatesResources(onboardingPersisted, product, aggregates))
+                        .onItem().transformToUni(ignore -> retrieveAndSetUserAggregatesResources(onboardingPersisted, product, aggregates))
                         .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
     }
@@ -554,7 +554,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().voidItem();
     }
 
-    private Uni<Void> retrieveUserAggregatesResources(Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
+    private Uni<Void> retrieveAndSetUserAggregatesResources(Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
         LOG.debug("Retrieving user resources for aggregates");
         if (!CollectionUtils.isEmpty(aggregates)) {
             return Multi.createFrom().iterable(aggregates)
