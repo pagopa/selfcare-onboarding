@@ -1291,7 +1291,7 @@ components:
         id:
           type: string
         institutionType:
-          $ref: "#/components/schemas/InstitutionType"
+          type: string
         taxCode:
           type: string
         taxCodeInvoicing:
