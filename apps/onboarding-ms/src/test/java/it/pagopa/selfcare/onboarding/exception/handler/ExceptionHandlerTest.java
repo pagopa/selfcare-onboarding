@@ -6,7 +6,7 @@ import it.pagopa.selfcare.onboarding.exception.model.Problem;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
-import static it.pagopa.selfcare.onboarding.util.GenericError.TAX_CODE_NOT_FOUND_IN_SIGNATURE;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.TAX_CODE_NOT_FOUND_IN_SIGNATURE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
