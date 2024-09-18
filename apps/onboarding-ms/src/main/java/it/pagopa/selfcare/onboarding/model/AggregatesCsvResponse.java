@@ -3,29 +3,29 @@ package it.pagopa.selfcare.onboarding.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AggregatesCsvResponse {
-    private List<CsvAggregate> csvAggregateList;
-    private List<CsvAggregate> validAggregates = new ArrayList<>();
+public class AggregatesCsvResponse <T extends Csv>{
+    private List<T> csvAggregateList;
+    private List<T> validAggregates = new ArrayList<>();
     private List<RowError> rowErrorList;
 
-    public AggregatesCsvResponse(List<CsvAggregate> csvAggregateList, List<RowError> rowErrorList) {
+    public AggregatesCsvResponse(List<T> csvAggregateList, List<RowError> rowErrorList) {
         this.csvAggregateList = csvAggregateList;
         this.rowErrorList = rowErrorList;
     }
 
-    public List<CsvAggregate> getCsvAggregateList() {
+    public List<T> getCsvAggregateList() {
         return csvAggregateList;
     }
 
-    public void setCsvAggregateList(List<CsvAggregate> csvAggregateList) {
+    public void setCsvAggregateList(List<T> Csv) {
         this.csvAggregateList = csvAggregateList;
     }
 
-    public List<CsvAggregate> getValidAggregates() {
+    public List<T> getValidAggregates() {
         return validAggregates;
     }
 
-    public void setValidAggregates(List<CsvAggregate> validAggregates) {
+    public void setValidAggregates(List<T> Csv) {
         this.validAggregates = validAggregates;
     }
 

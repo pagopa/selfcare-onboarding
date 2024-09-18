@@ -22,6 +22,7 @@ public class Institution {
     private String city;
     private String country;
     private String county;
+    private String istatCode;
     private String description;
     private String digitalAddress;
     private String address;

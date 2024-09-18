@@ -9,7 +9,6 @@ import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -36,7 +35,7 @@ public class TokenServiceDefault implements TokenService {
                 .firstResult()
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
-                            Uni.createFrom().item(azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
+                            Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
                                     .runSubscriptionOn(Executors.newSingleThreadExecutor())
                                     .onItem().transform(contract -> {
                                         RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);

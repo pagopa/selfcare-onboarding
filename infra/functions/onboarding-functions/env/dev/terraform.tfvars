@@ -53,7 +53,7 @@ app_settings = {
   "MAIL_SERVER_PASSWORD"                               = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/smtp-psw/)",
   "MAIL_SERVER_HOST"                                   = "smtps.pec.aruba.it",
   "MAIL_SERVER_PORT"                                   = "465",
-  "MAIL_SERVER_SSL"                                    = "false"
+  "MAIL_SERVER_SSL"                                    = "true"
   "MAIL_TEMPLATE_REGISTRATION_NOTIFICATION_ADMIN_PATH" = "contracts/template/mail/registration-notification-admin/1.0.0.json",
   "MAIL_TEMPLATE_NOTIFICATION_PATH"                    = "contracts/template/mail/onboarding-notification/1.0.0.json",
   "ADDRESS_EMAIL_NOTIFICATION_ADMIN"                   = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/portal-admin-operator-email/)",

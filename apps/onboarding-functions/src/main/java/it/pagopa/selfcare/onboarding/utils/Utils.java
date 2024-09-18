@@ -24,12 +24,9 @@ public class Utils {
     public static final BinaryOperator<String> CONTRACT_FILENAME_FUNC =
             (filename, productName) -> String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+","_")));
 
-    public static final List<WorkflowType> ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS = List.of(
-            WorkflowType.CONFIRMATION,
-            WorkflowType.FOR_APPROVE,
-            WorkflowType.IMPORT,
-            WorkflowType.CONTRACT_REGISTRATION,
-            WorkflowType.FOR_APPROVE_PT
+    public static final List<WorkflowType> NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS = List.of(
+            WorkflowType.USERS,
+            WorkflowType.USERS_IMPORT
     );
 
     public static Onboarding readOnboardingValue(ObjectMapper objectMapper, String onboardingString) {
@@ -87,7 +84,7 @@ public class Utils {
     }
 
     public static boolean isNotInstitutionOnboarding(Onboarding onboarding) {
-        return Objects.nonNull(onboarding.getWorkflowType()) && !ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
+        return Objects.nonNull(onboarding.getWorkflowType()) && NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.contains(onboarding.getWorkflowType());
     }
 
     public static String getOnboardingAggregateString(ObjectMapper objectMapper, OnboardingAggregateOrchestratorInput onboarding) {

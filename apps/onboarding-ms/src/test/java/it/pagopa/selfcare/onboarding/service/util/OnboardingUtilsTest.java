@@ -14,7 +14,10 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.ClientWebApplicationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -58,8 +61,12 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations(type));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -79,8 +86,12 @@ public class OnboardingUtilsTest {
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
         onboarding.setAdditionalInformations(createSimpleAdditionalInformations("other"));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -99,8 +110,12 @@ public class OnboardingUtilsTest {
         onboarding.setInstitution(institution);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -120,8 +135,12 @@ public class OnboardingUtilsTest {
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -140,8 +159,12 @@ public class OnboardingUtilsTest {
         onboarding.setBilling(billing);
         onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -166,11 +189,16 @@ public class OnboardingUtilsTest {
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.UO)
+                .resource(uoResource)
+                .build();
+
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -209,8 +237,14 @@ public class OnboardingUtilsTest {
         when(uoApi.findAllUsingGET1(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(uOsResource));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.UO)
+                .resource(uoResource)
+                .build();
+
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -250,12 +284,58 @@ public class OnboardingUtilsTest {
         AOOsResource uOsResource = new AOOsResource();
         uOsResource.setItems(List.of(resource));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.AOO)
+                .resource(resource)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void checkRecipientCodeFailure() {
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setOriginId("ipaCode");
+        institution.setSubunitCode("subunitCode");
+        institution.setSubunitType(InstitutionPaSubunitType.AOO);
+        institution.setInstitutionType(InstitutionType.PA);
+        institution.setTaxCode("taxCode");
+        AOOResource resource = new AOOResource();
+        resource.setCodiceFiscaleEnte("taxCode");
+        resource.setCodiceIpa("ipaCode");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(ProductId.PROD_IO_SIGN.getValue());
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("ipaCode");
+        uoResource.setCodiceFiscaleEnte("taxCode1");
+
+        ClientWebApplicationException exception = new ClientWebApplicationException(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().failure(exception));
+
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.AOO)
+                .resource(resource)
+                .build();
+
+        UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(Exception.class);
     }
 
     @Test
@@ -284,8 +364,13 @@ public class OnboardingUtilsTest {
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.UO)
+                .resource(uoResource)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -326,8 +411,13 @@ public class OnboardingUtilsTest {
         AOOsResource uOsResource = new AOOsResource();
         uOsResource.setItems(List.of(aooResource));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.AOO)
+                .resource(aooResource)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
@@ -360,8 +450,12 @@ public class OnboardingUtilsTest {
         UOsResource uOsResource = new UOsResource();
         uOsResource.setItems(List.of(uoResource));
 
+        OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
+                .type(InstitutionPaSubunitType.EC)
+                .build();
+
         UniAssertSubscriber<Onboarding> subscriber = onboardingUtils
-                .customValidationOnboardingData(onboarding, dummyProduct())
+                .customValidationOnboardingData(onboarding, dummyProduct(), proxyResource)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

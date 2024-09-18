@@ -39,10 +39,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static it.pagopa.selfcare.onboarding.utils.Utils.ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import java.util.stream.Stream;
+import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 
 @ApplicationScoped
 public class OnboardingService {
@@ -284,7 +284,7 @@ public class OnboardingService {
         query.append("productId", productId);
         query.append("status", new Document("$in", status.stream().map(OnboardingStatus::name).toList()));
         if (workflowTypeExist) {
-            query.append(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
+            query.append(WORKFLOW_TYPE, new Document("$nin", NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList()));
         } else {
             query.append(WORKFLOW_TYPE, new Document("$exists", false));
         }
@@ -345,7 +345,7 @@ public class OnboardingService {
 
     private List<Document> createWorkflowCriteria() {
         return List.of(
-            new Document(WORKFLOW_TYPE, new Document("$in", ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())),
+            new Document(WORKFLOW_TYPE, new Document("$nin", NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS.stream().map(Enum::name).toList())),
             new Document(WORKFLOW_TYPE, new Document("$exists", false))
         );
     }
