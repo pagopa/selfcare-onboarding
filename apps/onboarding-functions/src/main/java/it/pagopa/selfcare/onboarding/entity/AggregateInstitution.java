@@ -18,6 +18,7 @@ public class AggregateInstitution {
     private String zipCode;
     private String originId;
     private Origin origin;
+    private List<User> users;
 
     public String getTaxCode() {
         return taxCode;
@@ -26,6 +27,10 @@ public class AggregateInstitution {
     public void setTaxCode(String taxCode) {
         this.taxCode = taxCode;
     }
+
+    public List<User> getUsers() {return users;}
+
+    public void setUsers(List<User> users) {this.users = users;}
 
     public String getSubunitCode() {
         return subunitCode;
