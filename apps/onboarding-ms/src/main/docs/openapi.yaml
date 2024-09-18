@@ -974,6 +974,10 @@ components:
           type: string
         origin:
           $ref: "#/components/schemas/Origin"
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRequest"
     AggregateSend:
       type: object
       properties:
@@ -1291,7 +1295,7 @@ components:
         id:
           type: string
         institutionType:
-          $ref: "#/components/schemas/InstitutionType"
+          type: string
         taxCode:
           type: string
         taxCodeInvoicing:

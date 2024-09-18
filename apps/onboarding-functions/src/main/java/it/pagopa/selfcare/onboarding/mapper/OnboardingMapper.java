@@ -4,10 +4,14 @@ import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.util.List;
 import java.util.Objects;
 
 @Mapper(componentModel = "cdi")
@@ -20,6 +24,7 @@ public interface OnboardingMapper {
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
+    @Mapping(target = "users", expression = "java(mapAggregateUsers(onboarding, aggregateInstitution))")
     OnboardingAggregateOrchestratorInput mapToOnboardingAggregateOrchestratorInput(Onboarding onboarding, AggregateInstitution aggregateInstitution);
 
     /**
@@ -34,6 +39,14 @@ public interface OnboardingMapper {
             aggregate.setInstitutionType(institution.getInstitutionType());
         }
         return aggregate;
+    }
+
+    @Named("mapAggregateUsers")
+    default List<User> mapAggregateUsers(Onboarding onboarding, AggregateInstitution aggregateInstitution) {
+        if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
+            return aggregateInstitution.getUsers();
+        }
+        return onboarding.getUsers();
     }
 
     Institution mapFromAggregateInstitution(AggregateInstitution aggregateInstitution);

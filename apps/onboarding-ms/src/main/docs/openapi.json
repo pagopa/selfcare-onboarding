@@ -1374,6 +1374,12 @@
           },
           "origin" : {
             "$ref" : "#/components/schemas/Origin"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserRequest"
+            }
           }
         }
       },
@@ -1840,7 +1846,7 @@
             "type" : "string"
           },
           "institutionType" : {
-            "$ref" : "#/components/schemas/InstitutionType"
+            "type" : "string"
           },
           "taxCode" : {
             "type" : "string"
