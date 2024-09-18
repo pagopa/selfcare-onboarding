@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -18,5 +17,6 @@ public class AggregateInstitution {
     private String zipCode;
     private String originId;
     private Origin origin;
+    private List<User> users;
 
 }

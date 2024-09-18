@@ -16,6 +16,7 @@ import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -198,7 +199,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenThrow(IllegalArgumentException.class));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
 
 
@@ -213,7 +214,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
                 .thenThrow(ProductNotFoundException.class));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
 
     @Test
@@ -231,7 +232,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
         mockVerifyOnboardingNotEmpty(asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), ResourceConflictException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), ResourceConflictException.class);
     }
 
     @Test
@@ -251,7 +252,7 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
 
     @Test
@@ -275,7 +276,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
 
     @Test
@@ -300,7 +301,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().item(managerResource)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users), OnboardingNotAllowedException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
 
 
@@ -322,7 +323,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
 
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users),
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null),
                 InvalidRequestException.class);
     }
 
@@ -355,7 +356,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(aooResource)));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -391,7 +392,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), ResourceNotFoundException.class);
     }
 
     @Test
@@ -420,7 +421,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), WebApplicationException.class);
     }
 
     @Test
@@ -451,7 +452,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -489,7 +490,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(resourceNotFoundException)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), ResourceNotFoundException.class);
     }
 
     @Test
@@ -519,7 +520,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), WebApplicationException.class);
     }
 
     void mockSimpleSearchPOSTAndPersist(UniAsserter asserter) {
@@ -573,7 +574,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -616,7 +617,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -659,7 +660,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
 
     }
 
@@ -696,7 +697,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
 
     }
 
@@ -730,7 +731,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), ResourceNotFoundException.class);
 
     }
 
@@ -765,7 +766,57 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users,null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_Aggregator_WithUsers(UniAsserter asserter) {
+        UserRequest managerUser = UserRequest.builder()
+                .name("name")
+                .taxCode(managerResource.getFiscalCode())
+                .role(PartyRole.MANAGER)
+                .build();
+
+        Onboarding request = new Onboarding();
+        request.setIsAggregator(Boolean.TRUE);
+        request.setProductId(PROD_INTEROP.getValue());
+
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setTaxCode("taxCode");
+
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest.setTaxCode("taxCode");
+        aggregateInstitutionRequest.setUsers(List.of(managerUser));
+
+        List<AggregateInstitution> aggregates = new ArrayList<>();
+        aggregates.add(aggregateInstitution);
+        request.setAggregates(aggregates);
+
+        List<UserRequest> users = List.of(managerUser);
+
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, List.of(aggregateInstitutionRequest)), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -791,7 +842,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -851,7 +902,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -881,7 +932,7 @@ class OnboardingServiceDefaultTest {
         // mock parent has already onboarding
 
         mockVerifyOnboardingNotFound();
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -906,7 +957,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -943,7 +994,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), response -> {
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
             Assertions.assertEquals(request.getProductId(), response.getProductId());
             Assertions.assertNull(response.getUsers().get(0).getUserMailUuid());
         });
@@ -986,7 +1037,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -1030,7 +1081,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), response -> {
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
             Assertions.assertEquals(request.getProductId(), response.getProductId());
             Assertions.assertNotNull(response.getUsers().get(0).getUserMailUuid());
         });
@@ -1073,7 +1124,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -1101,7 +1152,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(userRegistryApi.searchUsingPOST(any(), any()))
                 .thenReturn(Uni.createFrom().failure(new WebApplicationException())));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users), WebApplicationException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null), WebApplicationException.class);
     }
 
     void mockVerifyOnboardingNotFound() {
@@ -1684,7 +1735,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingAggregationCompletion(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingAggregationCompletion(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
