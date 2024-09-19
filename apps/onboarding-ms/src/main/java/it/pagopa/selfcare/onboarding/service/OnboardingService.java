@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public interface OnboardingService {
 
-    Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest onboardingUserRequest, String userId);
 
@@ -24,7 +25,7 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
 
-    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingGet> approve(String onboardingId);
 

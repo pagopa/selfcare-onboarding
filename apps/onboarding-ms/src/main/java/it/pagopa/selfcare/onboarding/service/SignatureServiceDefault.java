@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static it.pagopa.selfcare.onboarding.util.GenericError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 
 
 @Slf4j
