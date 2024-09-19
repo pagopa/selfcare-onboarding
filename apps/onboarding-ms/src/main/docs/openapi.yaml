@@ -249,7 +249,7 @@ paths:
       tags:
       - Onboarding Controller
       summary: "In the addition administrator flow, it checks if the new manager is\
-        \ equal from old one, returning true "
+        \ equal to the old one, returning true or false"
       requestBody:
         content:
           application/json:
@@ -259,7 +259,7 @@ paths:
         "200":
           description: OK
           content:
-            text/plain:
+            application/json:
               schema:
                 type: boolean
         "401":
