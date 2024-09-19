@@ -7,7 +7,7 @@ import java.io.File;
 
 @Builder
 @Getter
-public class Contract {
+public class FormItem {
     private File file;
     private String fileName;
 }

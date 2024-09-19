@@ -31,7 +31,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
-import it.pagopa.selfcare.onboarding.model.Contract;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
@@ -151,7 +151,7 @@ class OnboardingServiceDefaultTest {
 
     static final File testFile = new File("src/test/resources/application.properties");
 
-    static final Contract testContract = Contract.builder()
+    static final FormItem TEST_FORM_ITEM = FormItem.builder()
             .fileName("testFile")
             .file(testFile)
             .build();
@@ -1209,7 +1209,7 @@ class OnboardingServiceDefaultTest {
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
-        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId(), testContract),
+        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId(), TEST_FORM_ITEM),
                 Assertions::assertNotNull);
 
     }
@@ -1244,7 +1244,7 @@ class OnboardingServiceDefaultTest {
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
-        asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), testContract),
+        asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), TEST_FORM_ITEM),
                 Assertions::assertNotNull);
     }
 
@@ -1279,7 +1279,7 @@ class OnboardingServiceDefaultTest {
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, filepath);
 
-        asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+        asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                 Assertions::assertNotNull);
     }
 
@@ -1296,7 +1296,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                 InvalidRequestException.class);
     }
 
@@ -1314,7 +1314,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(onboardingValidationStrategy.validate(onboarding.getProductId(), onboarding.getInstitution().getTaxCode()))
                 .thenReturn(false));
 
-        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                 OnboardingNotAllowedException.class);
     }
 
@@ -1330,7 +1330,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
         mockVerifyAllowedMap(onboarding.getInstitution().getTaxCode(), onboarding.getProductId(), asserter);
 
-        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+        asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                 InvalidRequestException.class);
     }
 
@@ -1958,7 +1958,7 @@ class OnboardingServiceDefaultTest {
                     .when(signatureService)
                     .verifySignature(any(), any(), any()));
 
-            asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), testContract),
+            asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), TEST_FORM_ITEM),
                     InvalidRequestException.class);
         }
         // can't be tested
@@ -1984,7 +1984,7 @@ class OnboardingServiceDefaultTest {
                     .when(signatureService)
                     .verifySignature(any(), any(), any()));
 
-            asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+            asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                     InvalidRequestException.class);
         }
 
@@ -2019,7 +2019,7 @@ class OnboardingServiceDefaultTest {
             when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
             mockUpdateToken(asserter, filepath);
 
-            asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), testContract),
+            asserter.assertThat(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
                     Assertions::assertNotNull);
         }
 
@@ -2053,7 +2053,7 @@ class OnboardingServiceDefaultTest {
             when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
             mockUpdateToken(asserter, filepath);
 
-            asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), testContract),
+            asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), TEST_FORM_ITEM),
                     Assertions::assertNotNull);
         }
     }

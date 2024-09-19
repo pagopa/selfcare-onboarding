@@ -11,7 +11,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.model.Contract;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import java.util.List;
 
@@ -29,11 +29,11 @@ public interface OnboardingService {
 
     Uni<OnboardingGet> approve(String onboardingId);
 
-    Uni<Onboarding> complete(String tokenId, Contract contract);
+    Uni<Onboarding> complete(String tokenId, FormItem formItem);
 
-    Uni<Onboarding> completeOnboardingUsers(String tokenId, Contract contract);
+    Uni<Onboarding> completeOnboardingUsers(String tokenId, FormItem formItem);
 
-    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, Contract contract);
+    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, FormItem formItem);
 
     Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters);
 
