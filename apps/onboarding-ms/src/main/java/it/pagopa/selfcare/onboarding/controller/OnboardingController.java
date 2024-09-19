@@ -336,9 +336,10 @@ public class OnboardingController {
     }
 
     @Operation(summary = "In the addition administrator flow, it checks " +
-            "if the new manager is equal from old one, returning true ")
+            "if the new manager is equal to the old one, returning true or false")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
     public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
         return onboardingService.checkManager(onboardingUserRequest);

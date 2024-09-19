@@ -355,7 +355,7 @@
     "/v1/onboarding/check-manager" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
-        "summary" : "In the addition administrator flow, it checks if the new manager is equal from old one, returning true ",
+        "summary" : "In the addition administrator flow, it checks if the new manager is equal to the old one, returning true or false",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -369,7 +369,7 @@
           "200" : {
             "description" : "OK",
             "content" : {
-              "text/plain" : {
+              "application/json" : {
                 "schema" : {
                   "type" : "boolean"
                 }
