@@ -1,26 +1,50 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.runtime.util.ExceptionUtil;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.Context;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
+import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE;
 
 @ApplicationScoped
 public class NotificationEventResenderServiceDefault implements NotificationEventResenderService {
     private final NotificationEventService notificationEventService;
     private final OnboardingService onboardingService;
-
+    private final TelemetryClient telemetryClient;
+    public static final String OPERATION_NAME = "ONBOARDING-FN";
     private static final String RESEND_ENDING_LOG = "Resend notifications for page %s completed";
     private static final String RESEND_ENDING_LOG_LAST_PAGE = "There aren't more notifications to resend, page %s completed";
 
 
-    public NotificationEventResenderServiceDefault(NotificationEventService notificationEventService, OnboardingService onboardingService) {
+    public NotificationEventResenderServiceDefault(
+            NotificationEventService notificationEventService,
+            OnboardingService onboardingService,
+            @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString
+    ) {
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;
+        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
     }
 
     public ResendNotificationsFilters resendNotifications(ResendNotificationsFilters filters, ExecutionContext context) {
@@ -33,9 +57,17 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
         context.getLogger().info(() -> String.format("Found: %s onboardings to send for page: %s ", onboardingsToResend.size(), page));
         for (Onboarding onboarding : onboardingsToResend) {
             try {
-                notificationEventService.send(context, onboarding, null, filters.getNotificationEventTraceId());
+                if(onboardingHasBeenDeletedInRange(onboarding, filters.getFrom(), filters.getTo())) {
+                    notificationEventService.send(context, onboarding, QueueEvent.UPDATE, filters.getNotificationEventTraceId());
+                }
+
+                if(onboardingHasBeenActivatedInRange(onboarding, filters.getFrom(), filters.getTo())) {
+                    onboarding.setStatus(OnboardingStatus.COMPLETED);
+                    notificationEventService.send(context, onboarding, QueueEvent.ADD, filters.getNotificationEventTraceId());
+                }
             } catch (Exception e) {
                 context.getLogger().severe(() -> String.format("ERROR: Sending onboarding %s error: %s ", onboarding.getId(), ExceptionUtil.generateStackTrace(e)));
+                trackErrorEvent(onboarding, e, filters.getNotificationEventTraceId());
             }
         }
 
@@ -48,5 +80,40 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
 
         filters.setPage(page + 1);
         return filters;
+    }
+
+    private boolean onboardingHasBeenDeletedInRange(Onboarding onboarding, String from, String to) {
+        if(onboarding.getStatus() != OnboardingStatus.DELETED) {
+            return false;
+        }
+
+        return doesDateFallInRange(onboarding.getDeletedAt(), from, to);
+    }
+
+    private boolean onboardingHasBeenActivatedInRange(Onboarding onboarding, String from, String to) {
+        return doesDateFallInRange(onboarding.getActivatedAt(), from, to);
+    }
+
+    private static boolean doesDateFallInRange(LocalDateTime date, String from, String to) {
+        if(date == null) {
+            return false;
+        }
+
+        LocalDate fromDate = StringUtils.isNotBlank(from) ? LocalDate.parse(from, DateTimeFormatter.ISO_LOCAL_DATE) : null;
+        LocalDate toDate = StringUtils.isNotBlank(to) ? LocalDate.parse(to, DateTimeFormatter.ISO_LOCAL_DATE) : null;
+        return (fromDate == null || date.isEqual(fromDate.atStartOfDay()) || date.isAfter(fromDate.atStartOfDay())) &&
+                (toDate == null || date.isEqual(toDate.atStartOfDay()) || date.isBefore(toDate.plusDays(1).atStartOfDay()));
+    }
+
+    private void trackErrorEvent(Onboarding onboarding, Exception e, String notificationEventTraceId) {
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
+    }
+
+    private static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e, String notificationEventTraceId) {
+        Map<String, String> propertiesMap = new HashMap<>();
+        Optional.ofNullable(onboarding.getId()).ifPresent(value -> propertiesMap.put("id", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
+        Optional.ofNullable(e).ifPresent(value -> propertiesMap.put("error", ExceptionUtil.generateStackTrace(e)));
+        return propertiesMap;
     }
 }
