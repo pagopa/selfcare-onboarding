@@ -22,6 +22,10 @@ paths:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-IO environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifyAppIoAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -52,6 +56,10 @@ paths:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-Pagopa environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifyPagoPaAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -82,6 +90,10 @@ paths:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-PN environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifySendAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -112,6 +124,11 @@ paths:
       - Notification Controller
       summary: Resend onboarding notifications for onboarding which are retrieved
         given a set of filters
+      description: "Resends notifications for all onboarding records that match the\
+        \ specified filter criteria. This allows administrators to trigger notification\
+        \ processes again for specific onboardings based on parameters such as product\
+        \ ID, tax code, institution ID, and more."
+      operationId: resendOnboardingNotifications
       requestBody:
         content:
           application/json:
@@ -134,8 +151,10 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: "The API retrieves paged onboarding using optional filter, order by\
-        \ descending creation date"
+      summary: Retrieve paged onboardings with optional filters and sorting.
+      description: "The API retrieves paged onboarding using optional filter, order\
+        \ by descending creation date"
+      operationId: getOnboardingWithFilter
       parameters:
       - name: from
         in: query
@@ -197,10 +216,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform default onboarding request, it is used for GSP/SA/AS institution\
+      summary: "Default onboarding for GSP/SA/AS institutions, saves user data, and\
+        \ triggers async onboarding activities."
+      description: "Perform default onboarding request, it is used for GSP/SA/AS institution\
         \ type.Users data will be saved on personal data vault if it doesn't already\
         \ exist.At the end, function triggers async activities related to onboarding\
         \ based on institution type."
+      operationId: onboarding
       requestBody:
         content:
           application/json:
@@ -223,9 +245,11 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding aggregation as /onboarding but completing the onboarding
-        request to COMPLETED phase. The operation will be performed async due to the
-        possible amount of time the process could take.
+      summary: Asynchronously complete aggregated onboarding to COMPLETED status.
+      description: Perform onboarding aggregation as /onboarding but completing the
+        onboarding request to COMPLETED phase. The operation will be performed async
+        due to the possible amount of time the process could take.
+      operationId: onboardingAggregationCompletion
       requestBody:
         content:
           application/json:
@@ -248,8 +272,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "In the addition administrator flow, it checks if the new manager is\
-        \ equal to the old one, returning true or false"
+      summary: Check if new manager matches the current manager.
+      description: "In the addition administrator flow, it checks if the new manager\
+        \ is equal from old one, returning true "
+      operationId: checkManager
       requestBody:
         content:
           application/json:
@@ -272,7 +298,9 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: check if recipientCode is valid or not
+      summary: Validate recipientCode.
+      description: check if recipientCode is valid or not
+      operationId: checkRecipientCode
       parameters:
       - name: originId
         in: query
@@ -299,8 +327,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding but completing the onboarding request
-        to COMPLETED phase.
+      summary: Complete onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding but completing the onboarding
+        request to COMPLETED phase.
+      operationId: onboardingCompletion
       requestBody:
         content:
           application/json:
@@ -324,7 +354,8 @@ paths:
       tags:
       - support
       - Onboarding
-      summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
+      summary: "Get onboardings by institution taxCode, subunitCode, origin, or originId."
+      description: Returns onboardings record by institution taxCode/subunitCode/origin/originId
       operationId: onboardingInstitutionUsingGET
       parameters:
       - name: origin
@@ -366,11 +397,14 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding request for PA institution type, it require billing.recipientCode\
-        \ in additition to default requestUsers data will be saved on personal data\
-        \ vault if it doesn't already exist.At the end, function triggers async activities\
-        \ related to onboarding that consist of create contract and sending mail to\
-        \ institution's digital address."
+      summary: "Onboarding for PA institutions with billing.recipientCode, saves user\
+        \ data, creates contracts, and sends emails."
+      description: "Perform onboarding request for PA institution type, it require\
+        \ billing.recipientCode in addition to default requestUsers data will be saved\
+        \ on personal data vault if it doesn't already exist.At the end, function\
+        \ triggers async activities related to onboarding that consist of create contract\
+        \ and sending mail to institution's digital address."
+      operationId: onboardingPa
       requestBody:
         content:
           application/json:
@@ -393,12 +427,15 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding aggregation request for PA institution type, it\
-        \ require billing.recipientCode in additition to default requestUsers data\
+      summary: "Aggregated onboarding for PA institutions, saves user data, creates\
+        \ contracts, and sends emails."
+      description: "Perform onboarding aggregation request for PA institution type,\
+        \ it require billing.recipientCode in addition to default requestUsers data\
         \ will be saved on personal data vault if it doesn't already exist.At the\
         \ end, function triggers async activities related to onboarding aggregation\
         \ that consist of create contract and sending mail to institution's digital\
         \ address."
+      operationId: onboardingPaAggregation
       requestBody:
         content:
           application/json:
@@ -421,8 +458,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/pa but completing the onboarding
+      summary: Complete PA onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
+      operationId: onboardingPaCompletion
       requestBody:
         content:
           application/json:
@@ -445,8 +484,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/pa but create token and completing
+      summary: Import PA onboarding with token creation and complete to COMPLETED.
+      description: Perform onboarding as /onboarding/pa but create token and completing
         the onboarding request to COMPLETED phase.
+      operationId: onboardingPaImport
       requestBody:
         content:
           application/json:
@@ -469,6 +510,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/psp but completing the onboarding
+        request to COMPLETED phase.
+      operationId: onboardingPgCompletion
       requestBody:
         content:
           application/json:
@@ -491,10 +536,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding request for PSP institution type.Users data will\
-        \ be saved on personal data vault if it doesn't already exist.At the end,\
-        \ function triggers async activities related to onboarding that consist of\
-        \ sending mail to Selfcare admin for approve request."
+      summary: "Onboarding for PSP institutions, saves user data, and requests admin\
+        \ approval via email."
+      description: "Perform onboarding request for PSP institution type.Users data\
+        \ will be saved on personal data vault if it doesn't already exist.At the\
+        \ end, function triggers async activities related to onboarding that consist\
+        \ of sending mail to Selfcare admin for approve request."
+      operationId: onboardingPsp
       requestBody:
         content:
           application/json:
@@ -517,8 +565,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/psp but completing the onboarding
+      summary: Complete PSP onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
+      operationId: onboardingPspCompletion
       requestBody:
         content:
           application/json:
@@ -541,10 +591,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding users request, it is used all institution types.Users\
+      summary: "Onboard users for all institution types, save user data, and trigger\
+        \ async onboarding activities."
+      description: "Perform onboarding users request, it is used all institution types.Users\
         \ data will be saved on personal data vault if it doesn't already exist.At\
         \ the end, function triggers async activities related to onboarding based\
         \ on institution type."
+      operationId: onboardingUsers
       requestBody:
         content:
           application/json:
@@ -567,7 +620,9 @@ paths:
     head:
       tags:
       - Onboarding Controller
-      summary: Verify if the onboarded product is already onboarded for the institution
+      summary: Check if product is already onboarded for the institution.
+      description: Verify if the onboarded product is already onboarded for the institution
+      operationId: verifyOnboardingInfoByFilters
       parameters:
       - name: origin
         in: query
@@ -604,7 +659,9 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Retrieve an onboarding record given its ID
+      summary: Get onboarding record by ID.
+      description: Retrieve an onboarding record given its ID
+      operationId: getById
       parameters:
       - name: onboardingId
         in: path
@@ -628,9 +685,11 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: 'Perform approve operation of an onboarding request receiving onboarding
+      summary: Approve onboarding request and trigger async activities.
+      description: Perform approve operation of an onboarding request receiving onboarding
         id.Function triggers async activities related to onboarding based on institution
-        type or completing onboarding. '
+        type or completing onboarding.
+      operationId: approve
       parameters:
       - name: onboardingId
         in: path
@@ -652,12 +711,15 @@ paths:
     put:
       tags:
       - internal-v1
-      summary: "Perform complete operation of an onboarding request receiving onboarding\
-        \ id and contract signed by the institution.It checks the contract's signature\
-        \ and upload the contract on an azure storageAt the end, function triggers\
-        \ async activities related to complete onboarding that consist of create the\
-        \ institution, activate the onboarding and sending data to notification queue."
-      operationId: completeOnboardingUsingPUT
+      summary: "Complete onboarding by verifying and uploading contract, then trigger\
+        \ async activities."
+      description: "Perform complete operation of an onboarding request receiving\
+        \ onboarding id and contract signed by the institution.It checks the contract's\
+        \ signature and upload the contract on an azure storageAt the end, function\
+        \ triggers async activities related to complete onboarding that consist of\
+        \ create the institution, activate the onboarding and sending data to notification\
+        \ queue."
+      operationId: complete
       parameters:
       - name: onboardingId
         in: path
@@ -690,12 +752,15 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: "Perform complete operation of an user onboarding request receiving\
+      summary: "Complete user onboarding by verifying and uploading contract, then\
+        \ trigger async activities."
+      description: "Perform complete operation of an user onboarding request receiving\
         \ onboarding id and contract signed by the institution.It checks the contract's\
         \ signature and upload the contract on an azure storageAt the end, function\
         \ triggers async activities related to complete onboarding that consist of\
         \ create the institution, activate the onboarding and sending data to notification\
         \ queue."
+      operationId: completeOnboardingUser
       parameters:
       - name: onboardingId
         in: path
@@ -730,9 +795,10 @@ paths:
       - support
       - internal-v1
       - Onboarding
-      summary: Perform complete operation of an onboarding request as /complete but
-        without signature verification of the contract
-      operationId: completeOnboardingTokenConsume
+      summary: Complete onboarding without verifying contract signature.
+      description: Perform complete operation of an onboarding request as /complete
+        but without signature verification of the contract
+      operationId: consume
       parameters:
       - name: onboardingId
         in: path
@@ -765,9 +831,11 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Returns an onboarding record by its ID only if its status is PENDING.
+      summary: Get pending onboarding by ID.
+      description: Returns an onboarding record by its ID only if its status is PENDING.
         This feature is crucial for ensuring that the onboarding process can be completed
         only when the onboarding status is appropriately set to PENDING.
+      operationId: getOnboardingPending
       parameters:
       - name: onboardingId
         in: path
@@ -791,9 +859,11 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: 'Perform reject operation of an onboarding request receiving onboarding
+      summary: Perform reject operation of an onboarding request
+      description: 'Perform reject operation of an onboarding request receiving onboarding
         id.Function change status to REJECT for an onboarding request that is not
         COMPLETED. '
+      operationId: delete
       parameters:
       - name: onboardingId
         in: path
@@ -821,9 +891,10 @@ paths:
       tags:
       - support
       - Onboarding
-      summary: 'Update onboarding request receiving onboarding id.Function can change
-        some values. '
-      operationId: updateOnboardiUsingPUT
+      summary: Update onboarding request with new values.
+      description: Update onboarding request receiving onboarding id.Function can
+        change some values.
+      operationId: update
       parameters:
       - name: onboardingId
         in: path
@@ -854,8 +925,10 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Retrieve an onboarding record given its ID adding to user sensitive
+      summary: Get onboarding record by ID with user sensitive info.
+      description: Retrieve an onboarding record given its ID adding to user sensitive
         information
+      operationId: getByIdWithUserInfo
       parameters:
       - name: onboardingId
         in: path
@@ -880,6 +953,9 @@ paths:
       tags:
       - Token Controller
       summary: Retrieves the token for a given onboarding
+      description: Fetches a list of tokens associated with the specified onboarding
+        ID.
+      operationId: getToken
       parameters:
       - name: onboardingId
         in: query
@@ -905,6 +981,9 @@ paths:
       tags:
       - Token Controller
       summary: Retrieve contract not signed for a given onboarding
+      description: Downloads the unsigned contract file associated with the specified
+        onboarding ID.
+      operationId: getContract
       parameters:
       - name: onboardingId
         in: path
