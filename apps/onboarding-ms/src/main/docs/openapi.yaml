@@ -746,7 +746,7 @@ paths:
         \ triggers async activities related to complete onboarding that consist of\
         \ create the institution, activate the onboarding and sending data to notification\
         \ queue."
-      operationId: complete
+      operationId: completeOnboardingUsingPUT
       parameters:
       - name: onboardingId
         in: path
@@ -825,7 +825,7 @@ paths:
       summary: Complete onboarding without verifying contract signature.
       description: Perform complete operation of an onboarding request as /complete
         but without signature verification of the contract
-      operationId: consume
+      operationId: completeOnboardingTokenConsume
       parameters:
       - name: onboardingId
         in: path
@@ -921,7 +921,7 @@ paths:
       summary: Update onboarding request with new values.
       description: Update onboarding request receiving onboarding id.Function can
         change some values.
-      operationId: update
+      operationId: updateOnboardiUsingPUT
       parameters:
       - name: onboardingId
         in: path
