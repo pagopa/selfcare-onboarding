@@ -55,4 +55,6 @@ public interface OnboardingService {
 
     Uni<CustomError> checkRecipientCode(String recipientCode, String originId);
 
+    Uni<OnboardingResponse> onboardingIncrement(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
+
 }
