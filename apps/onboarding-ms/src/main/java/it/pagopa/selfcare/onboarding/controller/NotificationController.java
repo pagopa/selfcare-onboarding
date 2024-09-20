@@ -18,7 +18,10 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @AllArgsConstructor
 public class NotificationController {
     private final NotificationService notificationService;
-    @Operation(summary = "Resend onboarding notifications for onboarding which are retrieved given a set of filters")
+    @Operation(
+            summary = "Resend onboarding notifications for onboarding which are retrieved given a set of filters",
+            description = "Resends notifications for all onboarding records that match the specified filter criteria. This allows administrators to trigger notification processes again for specific onboardings based on parameters such as product ID, tax code, institution ID, and more."
+    )
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/resend")
