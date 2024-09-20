@@ -20,10 +20,7 @@ import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequ
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
+import it.pagopa.selfcare.onboarding.controller.response.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
@@ -77,11 +74,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 
 @QuarkusTest
@@ -239,6 +239,101 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotEmpty(asserter);
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), ResourceConflictException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingIncrement_Ok(UniAsserter asserter) {
+        Onboarding onboardingRequest = new Onboarding();
+        onboardingRequest.setIsAggregator(true);
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setOriginId("originId");
+        onboardingRequest.setInstitution(institutionBaseRequest);
+        Billing billing = new Billing();
+        billing.setRecipientCode("recCode");
+        onboardingRequest.setBilling(billing);
+
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setDescription("test");
+        onboardingRequest.setAggregates(List.of(aggregateInstitution));
+
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest.setDescription("test");
+        aggregateInstitutionRequest.setTaxCode("taxCode");
+
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
+        mockVerifyOnboardingNotEmpty(asserter);
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleSfe("codSfe");
+        uoResource.setCodiceIpa("originId");
+        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+
+        managerResource.setId(UUID.fromString("9456d91f-ef53-4f89-8330-7f9a195d5d1e"));
+        when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any())).thenReturn(Uni.createFrom().item(managerResource));
+
+        OnboardingResponse onboardingResponse = getOnboardingResponse();
+
+        Uni<OnboardingResponse> response = onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest));
+
+        asserter.assertEquals(() -> response,onboardingResponse);
+    }
+
+    private static OnboardingResponse getOnboardingResponse() {
+        OnboardingResponse onboardingResponse = new OnboardingResponse();
+        onboardingResponse.setWorkflowType(INCREMENT_REGISTRATION_AGGREGATOR.toString());
+        onboardingResponse.setProductId("productId");
+        InstitutionResponse institution = new InstitutionResponse();
+        institution.setInstitutionType("PA");
+        institution.setOriginId("originId");
+        institution.setTaxCode("taxCode");
+        onboardingResponse.setInstitution(institution);
+
+        UserOnboardingResponse userOnboardingResponse = new UserOnboardingResponse();
+        userOnboardingResponse.setId("9456d91f-ef53-4f89-8330-7f9a195d5d1e");
+        userOnboardingResponse.setRole(PartyRole.MANAGER);
+        userOnboardingResponse.setProductRole("admin");
+        onboardingResponse.setUsers(List.of(userOnboardingResponse));
+
+        BillingResponse billingResponse = new BillingResponse();
+        billingResponse.setRecipientCode("recCode");
+        onboardingResponse.setBilling(billingResponse);
+
+        onboardingResponse.setStatus(PENDING.toString());
+        onboardingResponse.setIsAggregator(true);
+        return onboardingResponse;
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void onboardingIncrement_throwExceptionIfProductNotOnboarded(UniAsserter asserter) {
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        onboardingRequest.setInstitution(institutionBaseRequest);
+
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setDescription("test");
+        onboardingRequest.setAggregates(List.of(aggregateInstitution));
+
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest.setDescription("test");
+        aggregateInstitutionRequest.setTaxCode("taxCode");
+
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
+        mockVerifyOnboardingNotFound();
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest)), InvalidRequestException.class);
     }
 
     @Test

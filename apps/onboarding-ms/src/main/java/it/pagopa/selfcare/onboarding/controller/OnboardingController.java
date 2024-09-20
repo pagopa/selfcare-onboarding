@@ -108,6 +108,19 @@ public class OnboardingController {
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
     }
 
+    @Operation(summary = "Perform Increment for aggregates",
+            description = "Perform the increment of the aggregates for an aggregator entity that has already completed the initial onboarding."
+            + "The API initiates the onboarding process for the aggregated entities received as input.")
+    @POST
+    @Path("/aggregation/increment")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingAggregationIncrement(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingIncrement(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+    }
+
     @Operation(
             summary = "Onboarding for PSP institutions, saves user data, and requests admin approval via email.",
             description = "Perform onboarding request for PSP institution type." +

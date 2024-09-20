@@ -195,6 +195,35 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
+    void onboardingAggregationIncrement() {
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+        onboardingPaValid.setIsAggregator(Boolean.TRUE);
+        List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutions.add(aggregateInstitutionRequest);
+        onboardingPaValid.setAggregates(aggregateInstitutions);
+
+        Mockito.when(onboardingService.onboardingIncrement(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/aggregation/increment")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboardingIncrement(captor.capture(), any(), any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+        assertTrue(captor.getValue().getIsAggregator());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
     void onboardingUsers() {
         OnboardingUserRequest onboardingUserRequest = dummyOnboardingUser();
 
