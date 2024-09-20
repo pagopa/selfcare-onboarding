@@ -272,9 +272,11 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform the increment of the aggregates for an aggregator entity that
-        has already completed the initial onboarding.The API initiates the onboarding
+      summary: Perform Increment for aggregates
+      description: Perform the increment of the aggregates for an aggregator entity
+        that has already completed the initial onboarding.The API initiates the onboarding
         process for the aggregated entities received as input.
+      operationId: onboardingAggregationIncrement
       requestBody:
         content:
           application/json:
