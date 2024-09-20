@@ -217,7 +217,8 @@ public class OnboardingController {
             description = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
                     "It checks the contract's signature and upload the contract on an azure storage" +
                     "At the end, function triggers async activities related to complete onboarding " +
-                    "that consist of create the institution, activate the onboarding and sending data to notification queue."
+                    "that consist of create the institution, activate the onboarding and sending data to notification queue.",
+            operationId = "completeOnboardingUsingPUT"
     )
     @PUT
     @Path("/{onboardingId}/complete")
@@ -249,7 +250,8 @@ public class OnboardingController {
 
     @Operation(
             summary = "Complete onboarding without verifying contract signature.",
-            description = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract"
+            description = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract",
+            operationId = "completeOnboardingTokenConsume"
     )
     @PUT
     @Path("/{onboardingId}/consume")
@@ -382,7 +384,8 @@ public class OnboardingController {
     @Operation(
             summary = "Update onboarding request with new values.",
             description = "Update onboarding request receiving onboarding id." +
-                    "Function can change some values."
+                    "Function can change some values.",
+            operationId = "updateOnboardiUsingPUT"
     )
     @PUT
     @Tag(name = "support")
