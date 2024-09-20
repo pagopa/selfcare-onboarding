@@ -150,8 +150,19 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
+
+
+    @Override
+    public Uni<OnboardingResponse> onboardingIncrement(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates) {
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
+        onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, true);
+    }
+
 
     /**
      * As onboarding but it is specific for USERS workflow
@@ -178,7 +189,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE);
+        return fillUsersAndOnboarding(onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE,false);
     }
 
     @Override
@@ -186,7 +197,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null,false);
     }
 
     /**
@@ -203,11 +214,11 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout) {
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
-                .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
+                .onItem().transformToUni(product -> verifyAlreadyOnboarding(onboarding.getInstitution(), product.getId(), product.getParentId(), isAggregatesIncrement)
                         .replaceWith(product))
                 .onItem().transformToUni(product -> getRegistryResource(onboarding)
                         .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
@@ -222,6 +233,20 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                                 orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
                         .onItem().transform(onboardingMapper::toResponse));
+    }
+
+    /**
+     * This method checks whether the product and any parent have already been onboarded for the provided institution.
+     * In the case where we are in the aggregate increment flow, the product on the aggregator entity must already be onboarded,
+     * so in the case of a ResourceConflictException, the exception should not be propagated.
+     * In the case of standard onboarding, the exception should be propagated, and the flow should be blocked.
+     */
+    private Uni<Void> verifyAlreadyOnboarding(Institution institution, String productId, String parentId, boolean isAggregatesIncrement) {
+        if(isAggregatesIncrement) {
+            return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId)
+                    .onFailure(ResourceConflictException.class).recoverWithNull().replaceWithVoid();
+        }
+        return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId).replaceWithVoid();
     }
 
     /**
