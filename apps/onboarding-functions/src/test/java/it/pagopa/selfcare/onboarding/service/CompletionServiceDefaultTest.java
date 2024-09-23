@@ -23,7 +23,9 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.DelegationApi;
@@ -47,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
     @Inject
@@ -94,7 +95,10 @@ public class CompletionServiceDefaultTest {
         userResource.setWorkContacts(map);
     }
 
-    public static class UserMSProfile implements QuarkusTestProfile {
+    @Nested
+    @TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UserMSProfile implements QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of("onboarding-functions.persist-users.active", "true");
@@ -147,7 +151,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
 
         assertNotNull(serviceResponse);
-        assertEquals(serviceResponse.getId(), "actual-id");
+        assertEquals("actual-id", serviceResponse.getId());
     }
 
     @Test
@@ -717,7 +721,6 @@ public class CompletionServiceDefaultTest {
         Mockito.verify(notificationService, times(1))
                 .sendTestEmail(executionContext);
     }
-
     @Test
     void checkExistsDelegationTrue() {
         OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
@@ -763,6 +766,45 @@ public class CompletionServiceDefaultTest {
         assertFalse(Boolean.parseBoolean(result));
     }
 
+    @Nested
+    @TestProfile(CompletionServiceDefaultTest.ForceCreationProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class ForceCreationProfile implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("onboarding-functions.force-institution-persist", "true");
+        }
+    }
+
+    @Test
+    void forceInstitutionCreationFlagTrue(){
+        // given
+        Onboarding onboarding = createOnboarding();
+
+        Institution institutionSa = new Institution();
+        institutionSa.setTaxCode("taxCode");
+        institutionSa.setInstitutionType(InstitutionType.SA);
+        institutionSa.setOrigin(Origin.ANAC);
+        onboarding.setInstitution(institutionSa);
+
+        InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+        institutionsResponse.setInstitutions(List.of(dummyInstitutionResponse()));
+
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(institutionsResponse);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(onboardingRepository.update("institution.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        // when
+        completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+    }
+
     private User createDummyUser(Onboarding onboarding) {
         User user = new User();
         user.setRole(PartyRole.MANAGER);
@@ -774,9 +816,8 @@ public class CompletionServiceDefaultTest {
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
-        return  response;
+        return response;
     }
-
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();
