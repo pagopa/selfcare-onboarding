@@ -234,7 +234,7 @@ public class OnboardingFunctionsTest {
         AggregateInstitution aggregate1 = new AggregateInstitution();
         aggregate1.setTaxCode("code1");
         AggregateInstitution aggregate2 = new AggregateInstitution();
-        aggregate1.setTaxCode("code2");
+        aggregate2.setTaxCode("code2");
         onboarding.setAggregates(List.of(aggregate1, aggregate2));
         Institution institution = new Institution();
         institution.setId("id");
