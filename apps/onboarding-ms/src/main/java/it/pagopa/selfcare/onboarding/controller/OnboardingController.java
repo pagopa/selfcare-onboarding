@@ -20,19 +20,19 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.*;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -45,21 +45,27 @@ public class OnboardingController {
     @Inject
     CurrentIdentityAssociation currentIdentityAssociation;
 
-    @Operation(summary = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
-            "Users data will be saved on personal data vault if it doesn't already exist." +
-            "At the end, function triggers async activities related to onboarding based on institution type.")
+    @Operation(
+            summary = "Default onboarding for GSP/SA/AS institutions, saves user data, and triggers async onboarding activities.",
+            description = "Perform default onboarding request, it is used for GSP/SA/AS institution type." +
+                    "Users data will be saved on personal data vault if it doesn't already exist." +
+                    "At the end, function triggers async activities related to onboarding based on institution type."
+    )
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboarding(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
 
-    @Operation(summary = "Perform onboarding users request, it is used all institution types." +
-            "Users data will be saved on personal data vault if it doesn't already exist." +
-            "At the end, function triggers async activities related to onboarding based on institution type.")
+    @Operation(
+            summary = "Onboard users for all institution types, save user data, and trigger async onboarding activities.",
+            description = "Perform onboarding users request, it is used all institution types." +
+                    "Users data will be saved on personal data vault if it doesn't already exist." +
+                    "At the end, function triggers async activities related to onboarding based on institution type."
+    )
     @POST
     @Path("/users")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -70,9 +76,12 @@ public class OnboardingController {
                         .onboardingUsers(onboardingRequest, userId));
     }
 
-    @Operation(summary = "Perform onboarding request for PA institution type, it require billing.recipientCode in additition to default request" +
-            "Users data will be saved on personal data vault if it doesn't already exist." +
-            "At the end, function triggers async activities related to onboarding that consist of create contract and sending mail to institution's digital address.")
+    @Operation(
+            summary = "Onboarding for PA institutions with billing.recipientCode, saves user data, creates contracts, and sends emails.",
+            description = "Perform onboarding request for PA institution type, it require billing.recipientCode in addition to default request" +
+                    "Users data will be saved on personal data vault if it doesn't already exist." +
+                    "At the end, function triggers async activities related to onboarding that consist of create contract and sending mail to institution's digital address."
+    )
     @POST
     @Path("/pa")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -80,12 +89,15 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPa(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
 
-    @Operation(summary = "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in additition to default request" +
-            "Users data will be saved on personal data vault if it doesn't already exist." +
-            "At the end, function triggers async activities related to onboarding aggregation that consist of create contract and sending mail to institution's digital address.")
+    @Operation(
+            summary = "Aggregated onboarding for PA institutions, saves user data, creates contracts, and sends emails.",
+            description = "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in addition to default request" +
+                    "Users data will be saved on personal data vault if it doesn't already exist." +
+                    "At the end, function triggers async activities related to onboarding aggregation that consist of create contract and sending mail to institution's digital address."
+    )
     @POST
     @Path("/pa/aggregation")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -93,12 +105,28 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPaAggregation(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
     }
 
-    @Operation(summary = "Perform onboarding request for PSP institution type." +
-            "Users data will be saved on personal data vault if it doesn't already exist." +
-            "At the end, function triggers async activities related to onboarding that consist of sending mail to Selfcare admin for approve request.")
+    @Operation(summary = "Perform Increment for aggregates",
+            description = "Perform the increment of the aggregates for an aggregator entity that has already completed the initial onboarding."
+            + "The API initiates the onboarding process for the aggregated entities received as input.")
+    @POST
+    @Path("/aggregation/increment")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingAggregationIncrement(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingIncrement(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+    }
+
+    @Operation(
+            summary = "Onboarding for PSP institutions, saves user data, and requests admin approval via email.",
+            description = "Perform onboarding request for PSP institution type." +
+                    "Users data will be saved on personal data vault if it doesn't already exist." +
+                    "At the end, function triggers async activities related to onboarding that consist of sending mail to Selfcare admin for approve request."
+    )
     @POST
     @Path("/psp")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -106,10 +134,13 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
 
-    @Operation(summary = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.")
+    @Operation(
+            summary = "Complete onboarding request and set status to COMPLETED.",
+            description = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase."
+    )
     @Path("/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -120,7 +151,10 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
-    @Operation(summary = "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
+    @Operation(
+            summary = "Complete PA onboarding request and set status to COMPLETED.",
+            description = "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase."
+    )
     @POST
     @Path("/pa/completion")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -131,7 +165,10 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
-    @Operation(summary = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase.")
+    @Operation(
+            summary = "Import PA onboarding with token creation and complete to COMPLETED.",
+            description = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase."
+    )
     @POST
     @Path("/pa/import")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -142,7 +179,10 @@ public class OnboardingController {
                         .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
     }
 
-    @Operation(summary = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
+    @Operation(
+            summary = "Complete PSP onboarding request and set status to COMPLETED.",
+            description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase."
+    )
     @POST
     @Path("/psp/completion")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -153,6 +193,11 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
+
+    @Operation(
+            summary = "Complete PG onboarding request on PNPG domain and set status to COMPLETED.",
+            description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase."
+    )
     @POST
     @Path("/pg/completion")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -163,8 +208,8 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
-    private Uni<String> readUserIdFromToken(SecurityContext ctx) {
 
+    private Uni<String> readUserIdFromToken(SecurityContext ctx) {
         return currentIdentityAssociation.getDeferredIdentity()
                 .onItem().transformToUni(identity -> {
                     if (ctx.getUserPrincipal() == null || !ctx.getUserPrincipal().getName().equals(identity.getPrincipal().getName())) {
@@ -180,54 +225,65 @@ public class OnboardingController {
                 });
     }
 
-    @Operation(summary = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
-            "It checks the contract's signature and upload the contract on an azure storage" +
-            "At the end, function triggers async activities related to complete onboarding " +
-            "that consist of create the institution, activate the onboarding and sending data to notification queue.", operationId = "completeOnboardingUsingPUT")
-
+    @Operation(
+            summary = "Complete onboarding by verifying and uploading contract, then trigger async activities.",
+            description = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
+                    "It checks the contract's signature and upload the contract on an azure storage" +
+                    "At the end, function triggers async activities related to complete onboarding " +
+                    "that consist of create the institution, activate the onboarding and sending data to notification queue.",
+            operationId = "completeOnboardingUsingPUT"
+    )
     @PUT
     @Path("/{onboardingId}/complete")
     @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.complete(onboardingId, file)
+    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.complete(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
 
-    @Operation(summary = "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution." +
-            "It checks the contract's signature and upload the contract on an azure storage" +
-            "At the end, function triggers async activities related to complete onboarding " +
-            "that consist of create the institution, activate the onboarding and sending data to notification queue.")
-
+    @Operation(
+            summary = "Complete user onboarding by verifying and uploading contract, then trigger async activities.",
+            description = "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution." +
+                    "It checks the contract's signature and upload the contract on an azure storage" +
+                    "At the end, function triggers async activities related to complete onboarding " +
+                    "that consist of create the institution, activate the onboarding and sending data to notification queue."
+    )
     @PUT
     @Path("/{onboardingId}/completeOnboardingUsers")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.completeOnboardingUsers(onboardingId, file)
+    public Uni<Response> completeOnboardingUser(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.completeOnboardingUsers(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
 
-    @Operation(summary = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract", operationId = "completeOnboardingTokenConsume")
+    @Operation(
+            summary = "Complete onboarding without verifying contract signature.",
+            description = "Perform complete operation of an onboarding request as /complete but without signature verification of the contract",
+            operationId = "completeOnboardingTokenConsume"
+    )
     @PUT
     @Path("/{onboardingId}/consume")
     @Tag(name = "support")
     @Tag(name = "internal-v1")
     @Tag(name = "Onboarding")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file) {
-        return onboardingService.completeWithoutSignatureVerification(onboardingId, file)
+    public Uni<Response> consume(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.completeWithoutSignatureVerification(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
 
-    @Operation(summary = "Perform approve operation of an onboarding request receiving onboarding id." +
-            "Function triggers async activities related to onboarding based on institution type or completing onboarding. ")
-
+    @Operation(
+            summary = "Approve onboarding request and trigger async activities.",
+            description = "Perform approve operation of an onboarding request receiving onboarding id." +
+                    "Function triggers async activities related to onboarding based on institution type or completing onboarding."
+    )
     @PUT
     @Path("/{onboardingId}/approve")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -238,7 +294,10 @@ public class OnboardingController {
                         .build());
     }
 
-    @Operation(summary = "The API retrieves paged onboarding using optional filter, order by descending creation date")
+    @Operation(
+            summary = "Retrieve paged onboardings with optional filters and sorting.",
+            description = "The API retrieves paged onboarding using optional filter, order by descending creation date"
+    )
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingGetResponse> getOnboardingWithFilter(@QueryParam(value = "productId") String productId,
@@ -266,7 +325,8 @@ public class OnboardingController {
         return onboardingService.onboardingGet(filters);
     }
 
-    @Operation(summary = "Perform reject operation of an onboarding request receiving onboarding id." +
+    @Operation(summary = "Perform reject operation of an onboarding request",
+            description = "Perform reject operation of an onboarding request receiving onboarding id." +
             "Function change status to REJECT for an onboarding request that is not COMPLETED. ")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -279,30 +339,43 @@ public class OnboardingController {
                         .build());
     }
 
-    @Operation(summary = "Retrieve an onboarding record given its ID")
+    @Operation(
+            summary = "Get onboarding record by ID.",
+            description = "Retrieve an onboarding record given its ID"
+    )
     @GET
     @Path("/{onboardingId}")
     public Uni<OnboardingGet> getById(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGet(onboardingId);
     }
 
-    @Operation(summary = "Retrieve an onboarding record given its ID adding to user sensitive information")
+    @Operation(
+            summary = "Get onboarding record by ID with user sensitive info.",
+            description = "Retrieve an onboarding record given its ID adding to user sensitive information"
+    )
     @GET
     @Path("/{onboardingId}/withUserInfo")
     public Uni<OnboardingGet> getByIdWithUserInfo(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingGetWithUserInfo(onboardingId);
     }
 
-    @Operation(summary = "Returns an onboarding record by its ID only if its status is PENDING. " +
-            "This feature is crucial for ensuring that the onboarding process can be completed only when " +
-            "the onboarding status is appropriately set to PENDING.")
+    @Operation(
+            summary = "Get pending onboarding by ID.",
+            description = "Returns an onboarding record by its ID only if its status is PENDING. " +
+                    "This feature is crucial for ensuring that the onboarding process can be completed only when " +
+                    "the onboarding status is appropriately set to PENDING."
+    )
     @GET
     @Path("/{onboardingId}/pending")
     public Uni<OnboardingGet> getOnboardingPending(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.onboardingPending(onboardingId);
     }
 
-    @Operation(summary = "Returns onboardings record by institution taxCode/subunitCode/origin/originId", operationId = "onboardingInstitutionUsingGET")
+    @Operation(
+            summary = "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
+            description = "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
+            operationId = "onboardingInstitutionUsingGET"
+    )
     @GET
     @Tag(name = "support")
     @Tag(name = "Onboarding")
@@ -321,8 +394,12 @@ public class OnboardingController {
         return onboarding;
     }
 
-    @Operation(summary = "Update onboarding request receiving onboarding id." +
-            "Function can change some values. ", operationId = "updateOnboardiUsingPUT")
+    @Operation(
+            summary = "Update onboarding request with new values.",
+            description = "Update onboarding request receiving onboarding id." +
+                    "Function can change some values.",
+            operationId = "updateOnboardiUsingPUT"
+    )
     @PUT
     @Tag(name = "support")
     @Tag(name = "Onboarding")
@@ -335,16 +412,23 @@ public class OnboardingController {
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
 
-    @Operation(summary = "In the addition administrator flow, it checks " +
-            "if the new manager is equal from old one, returning true ")
+    @Operation(
+            summary = "Check if new manager matches the current manager.",
+            description = "In the addition administrator flow, it checks " +
+                    "if the new manager is equal from old one, returning true "
+    )
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
     public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
         return onboardingService.checkManager(onboardingUserRequest);
     }
 
-    @Operation(summary = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take.")
+    @Operation(
+            summary = "Asynchronously complete aggregated onboarding to COMPLETED status.",
+            description = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take."
+    )
     @Path("/aggregation/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -352,12 +436,15 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingAggregationCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
     }
 
+    @Operation(
+            summary = "Check if product is already onboarded for the institution.",
+            description = "Verify if the onboarded product is already onboarded for the institution"
+    )
     @HEAD
     @Path("/verify")
-    @Operation(summary = "Verify if the onboarded product is already onboarded for the institution")
     public Uni<Response> verifyOnboardingInfoByFilters(@QueryParam("productId") String productId,
                                                        @QueryParam("taxCode") String taxCode,
                                                        @QueryParam("origin") String origin,
@@ -374,9 +461,12 @@ public class OnboardingController {
                 });
     }
 
+    @Operation(
+            summary = "Validate recipientCode.",
+            description = "check if recipientCode is valid or not"
+    )
     @GET
     @Path("/checkRecipientCode")
-    @Operation(summary = "check if recipientCode is valid or not")
     public Uni<RecipientCodeStatus> checkRecipientCode(@QueryParam("recipientCode") String recipientCode,
                                                        @QueryParam("originId") String originId) {
         return onboardingService.checkRecipientCode(recipientCode, originId)
@@ -391,4 +481,3 @@ public class OnboardingController {
                 });
     }
 }
-

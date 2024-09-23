@@ -129,7 +129,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboarding() {
 
-        Mockito.when(onboardingService.onboarding(any(), any()))
+        Mockito.when(onboardingService.onboarding(any(), any(),any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -146,7 +146,7 @@ class OnboardingControllerTest {
     void onboardingPa() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
 
-        Mockito.when(onboardingService.onboarding(any(), any()))
+        Mockito.when(onboardingService.onboarding(any(), any(),any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -159,7 +159,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
-                .onboarding(captor.capture(), any());
+                .onboarding(captor.capture(), any(),any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
 
     }
@@ -174,7 +174,7 @@ class OnboardingControllerTest {
         aggregateInstitutions.add(aggregateInstitutionRequest);
         onboardingPaValid.setAggregates(aggregateInstitutions);
 
-        Mockito.when(onboardingService.onboarding(any(), any()))
+        Mockito.when(onboardingService.onboarding(any(), any(),any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -187,7 +187,36 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
-                .onboarding(captor.capture(), any());
+                .onboarding(captor.capture(), any(),any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+        assertTrue(captor.getValue().getIsAggregator());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationIncrement() {
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+        onboardingPaValid.setIsAggregator(Boolean.TRUE);
+        List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutions.add(aggregateInstitutionRequest);
+        onboardingPaValid.setAggregates(aggregateInstitutions);
+
+        Mockito.when(onboardingService.onboardingIncrement(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/aggregation/increment")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboardingIncrement(captor.capture(), any(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
         assertFalse(captor.getValue().getAggregates().isEmpty());
@@ -227,7 +256,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboardingPsp() {
 
-        Mockito.when(onboardingService.onboarding(any(), any()))
+        Mockito.when(onboardingService.onboarding(any(), any(),any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -914,7 +943,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboardingAggregationComplete() {
 
-        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any()))
+        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any(),any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -926,7 +955,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingAggregationCompletion(any(), any());
+                .onboardingAggregationCompletion(any(), any(),any());
     }
 
 

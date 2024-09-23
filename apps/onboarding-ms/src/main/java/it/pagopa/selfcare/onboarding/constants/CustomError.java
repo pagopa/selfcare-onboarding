@@ -15,6 +15,7 @@ public enum CustomError {
 
     DENIED_NO_BILLING("0040","Recipient code linked to an institution with invoicing service not active"),
     DENIED_NO_ASSOCIATION("0041","Recipient code not linked to any institution"),
+    TOO_MANY_CONTRACTS("0043","Too many contracts provided"),
     ;
 
 

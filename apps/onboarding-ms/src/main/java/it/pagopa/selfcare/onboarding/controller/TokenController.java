@@ -32,7 +32,10 @@ public class TokenController {
      * * Code: 404, Message: Token not found, DataType: Problem
      */
 
-    @Operation(summary = "Retrieves the token for a given onboarding")
+    @Operation(
+            summary = "Retrieves the token for a given onboarding",
+            description = "Fetches a list of tokens associated with the specified onboarding ID."
+    )
     @GET
     public Uni<List<TokenResponse>> getToken(@QueryParam(value = "onboardingId") String onboardingId){
         return tokenService.getToken(onboardingId)
@@ -41,7 +44,10 @@ public class TokenController {
                         .toList());
     }
 
-    @Operation(summary = "Retrieve contract not signed for a given onboarding")
+    @Operation(
+            summary = "Retrieve contract not signed for a given onboarding",
+            description = "Downloads the unsigned contract file associated with the specified onboarding ID."
+    )
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/contract")

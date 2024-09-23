@@ -6,6 +6,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.entity.Aggregator;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -66,6 +67,7 @@ class StandardNotificationBuilderTest {
         institutionParentResource.setOriginId("parentOriginId");
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
+        onboarding.setIsAggregator(true);
 
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
@@ -100,6 +102,13 @@ class StandardNotificationBuilderTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
+        onboarding.setIsAggregator(false);
+        Aggregator aggregator = new Aggregator();
+        aggregator.setId("Id");
+        aggregator.setDescription("Des");
+        aggregator.setTaxCode("TaxCode");
+        aggregator.setOriginId("OriginId");
+        onboarding.setAggregator(aggregator);
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
         assertNotNull(notification);
@@ -109,6 +118,11 @@ class StandardNotificationBuilderTest {
         assertEquals(onboarding.getCreatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getCreatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(QueueEvent.ADD, notification.getNotificationType());
+        assertNotNull(notification.getRootAggregator());
+        assertEquals("Id", notification.getRootAggregator().getInstitutionId());
+        assertEquals("OriginId", notification.getRootAggregator().getOriginId());
+        assertEquals("Des", notification.getRootAggregator().getDescription());
+        assertFalse(notification.getIsAggregator());
     }
 
     @Test

@@ -1,9 +1,7 @@
 package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
-import it.pagopa.selfcare.onboarding.dto.BillingToSend;
-import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
-import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -25,6 +23,7 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
     @Override
     public NotificationToSend buildNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.buildNotificationToSend(onboarding, token, institution, queueEvent);
+        this.retrieveAndSetAggregatorInfo(onboarding, notificationToSend);
         notificationToSend.setInternalIstitutionID(institution.getId());
         notificationToSend.setNotificationType(queueEvent);
         return notificationToSend;
@@ -49,4 +48,18 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
             notificationToSend.setFilePath(token.getContractSigned());
         }
     }
+
+    private void retrieveAndSetAggregatorInfo(Onboarding onboarding, NotificationToSend notificationToSend) {
+        boolean isAggregator = Boolean.TRUE.equals(onboarding.getIsAggregator());
+        notificationToSend.setIsAggregator(isAggregator);
+        if (Objects.nonNull(onboarding.getAggregator())) {
+            RootAggregator rootAggregator = new RootAggregator();
+            rootAggregator.setInstitutionId(onboarding.getAggregator().getId());
+            rootAggregator.setOriginId(onboarding.getAggregator().getOriginId());
+            rootAggregator.setDescription(onboarding.getAggregator().getDescription());
+            notificationToSend.setRootAggregator(rootAggregator);
+        }
+    }
+
+
 }
