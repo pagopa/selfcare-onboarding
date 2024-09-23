@@ -13,7 +13,7 @@
 
     <properties>
         <jackson.version>2.15.2</jackson.version>
-        <onboarding-sdk.version>0.2.1</onboarding-sdk.version>
+        <onboarding-sdk.version>0.2.2</onboarding-sdk.version>
     </properties>
 
     <dependencies>
