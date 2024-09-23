@@ -243,11 +243,15 @@ public class CompletionServiceDefault implements CompletionService {
         boolean existsDelegation = false;
 
         if (Objects.nonNull(input) && Objects.nonNull(input.getInstitution()) && Objects.nonNull(input.getAggregate())) {
+            try {
                 DelegationWithPaginationResponse delegationWithPaginationResponse = delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null,
                         input.getAggregate().getTaxCode(), null, null, null);
                 if (Objects.nonNull(delegationWithPaginationResponse) && !CollectionUtils.isEmpty(delegationWithPaginationResponse.getDelegations())) {
                     existsDelegation = delegationWithPaginationResponse.getDelegations().stream().anyMatch(delegation -> ACTIVE.equals(delegation.getStatus()));
                 }
+            }catch (WebApplicationException e) {
+                throw new GenericOnboardingException(String.format("Error during retrieve delegation %s", e.getMessage()));
+            }
         }
         return existsDelegation ? "true" : "false";
     }
