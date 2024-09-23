@@ -718,6 +718,51 @@ public class CompletionServiceDefaultTest {
                 .sendTestEmail(executionContext);
     }
 
+    @Test
+    void checkExistsDelegationTrue() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+
+        Institution aggregator = new Institution();
+        aggregator.setId("aggregatorId");
+        input.setInstitution(aggregator);
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        DelegationResponse delegation = new DelegationResponse();
+        delegation.setStatus(DelegationResponse.StatusEnum.ACTIVE);
+        delegationWithPaginationResponse.setDelegations(List.of(delegation));
+
+        when(delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null, aggregate.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertTrue(Boolean.parseBoolean(result));
+    }
+
+    @Test
+    void checkExistsDelegationFalse() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+
+        Institution aggregator = new Institution();
+        aggregator.setId("aggregatorId");
+        input.setInstitution(aggregator);
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        delegationWithPaginationResponse.setDelegations(Collections.emptyList());
+        when(delegationApi.getDelegationsUsingGET1(null, aggregator.getId(), null, null, aggregator.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertFalse(Boolean.parseBoolean(result));
+    }
+
     private User createDummyUser(Onboarding onboarding) {
         User user = new User();
         user.setRole(PartyRole.MANAGER);

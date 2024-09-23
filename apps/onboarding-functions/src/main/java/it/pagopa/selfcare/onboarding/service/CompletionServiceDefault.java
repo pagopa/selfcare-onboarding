@@ -20,6 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -43,6 +44,7 @@ import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
 @ApplicationScoped
 public class CompletionServiceDefault implements CompletionService {
@@ -234,6 +236,20 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void sendTestEmail(ExecutionContext context) {
         notificationService.sendTestEmail(context);
+    }
+
+    @Override
+    public String existsDelegation(OnboardingAggregateOrchestratorInput input) {
+        boolean existsDelegation = false;
+
+        if (Objects.nonNull(input) && Objects.nonNull(input.getInstitution()) && Objects.nonNull(input.getAggregate())) {
+                DelegationWithPaginationResponse delegationWithPaginationResponse = delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null,
+                        input.getAggregate().getTaxCode(), null, null, null);
+                if (Objects.nonNull(delegationWithPaginationResponse) && !CollectionUtils.isEmpty(delegationWithPaginationResponse.getDelegations())) {
+                    existsDelegation = delegationWithPaginationResponse.getDelegations().stream().anyMatch(delegation -> ACTIVE.equals(delegation.getStatus()));
+                }
+        }
+        return existsDelegation ? "true" : "false";
     }
 
     private static DelegationRequest getDelegationRequest(Onboarding onboarding) {

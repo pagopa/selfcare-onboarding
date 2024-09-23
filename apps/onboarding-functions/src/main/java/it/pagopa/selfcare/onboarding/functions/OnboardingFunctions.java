@@ -149,6 +149,7 @@ public class OnboardingFunctions {
                 case CONFIRMATION_AGGREGATE -> workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
+                case INCREMENT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorIncrementRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
@@ -267,6 +268,12 @@ public class OnboardingFunctions {
     public String createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));
         return completionService.createDelegation(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(EXISTS_DELEGATION_ACTIVITY)
+    public String existsDelegation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, EXISTS_DELEGATION_ACTIVITY, onboardingString));
+        return completionService.existsDelegation(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingString));
     }
 
     /**
