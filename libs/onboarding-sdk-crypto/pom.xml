@@ -10,6 +10,9 @@
     <artifactId>onboarding-sdk-crypto</artifactId>
     <name>onboarding-sdk-crypto</name>
     <url>http://maven.apache.org</url>
+    <properties>
+        <google-http-client.version>1.45.0</google-http-client.version>
+    </properties>
 
     <dependencies>
 
@@ -78,17 +81,17 @@
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client</artifactId>
-            <version>1.40.1</version> <!-- Check for the latest version -->
+            <version>${google-http-client.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.http-client</groupId>
-            <artifactId>google-http-client-apache-v2</artifactId> <!-- If you prefer to use Apache HTTP transport -->
-            <version>1.40.1</version>
+            <artifactId>google-http-client-apache-v2</artifactId>
+            <version>${google-http-client.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.http-client</groupId>
             <artifactId>google-http-client-jackson2</artifactId>
-            <version>1.41.5</version> <!-- You can use the latest version if needed -->
+            <version>${google-http-client.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

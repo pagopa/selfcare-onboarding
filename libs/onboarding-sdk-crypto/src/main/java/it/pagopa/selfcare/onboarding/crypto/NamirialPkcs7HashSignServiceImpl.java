@@ -16,4 +16,9 @@ public class NamirialPkcs7HashSignServiceImpl implements Pkcs7HashSignService {
         return namirialSignService.pkcs7Signhash(is);
     }
 
+
+    @Override
+    public boolean returnsFullPdf() {
+        return true;
+    }
 }
