@@ -1,15 +1,14 @@
 package it.pagopa.selfcare.onboarding.crypto;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-
 import java.io.InputStream;
 
-@ApplicationScoped
 public class NamirialPkcs7HashSignServiceImpl implements Pkcs7HashSignService {
 
-    @Inject
-    NamirialSignService namirialSignService;
+    private final NamirialSignService namirialSignService;
+
+    public NamirialPkcs7HashSignServiceImpl(NamirialSignService namirialSignService) {
+        this.namirialSignService = namirialSignService;
+    }
 
 
     @Override

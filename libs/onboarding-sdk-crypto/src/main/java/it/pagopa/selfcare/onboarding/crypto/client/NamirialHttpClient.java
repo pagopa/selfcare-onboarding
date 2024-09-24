@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignRequest;
-import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.pdfbox.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-@ApplicationScoped
 public class NamirialHttpClient {
 
     private static final String NAMIRIAL_BASE_URL = "https://sws.test.namirialtsp.com/SignEngineWeb";

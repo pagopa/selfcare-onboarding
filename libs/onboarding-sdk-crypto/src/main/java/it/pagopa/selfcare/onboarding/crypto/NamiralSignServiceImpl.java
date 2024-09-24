@@ -4,8 +4,6 @@ import it.pagopa.selfcare.onboarding.crypto.client.NamirialHttpClient;
 import it.pagopa.selfcare.onboarding.crypto.entity.Credentials;
 import it.pagopa.selfcare.onboarding.crypto.entity.Preferences;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignRequest;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-@ApplicationScoped
+
 public class NamiralSignServiceImpl implements NamirialSignService {
 
     private final NamirialHttpClient namirialHttpClient;
@@ -22,11 +20,10 @@ public class NamiralSignServiceImpl implements NamirialSignService {
     private final String password;
 
     // Constructor for manual dependency injection
-    public NamiralSignServiceImpl(NamirialHttpClient namirialHttpClient,
-                                  @ConfigProperty(name = "onboarding-sdk-crypto.namirial.user") String username,
-                                  @ConfigProperty(name = "onboarding-sdk-crypto.namirial.psw") String password
+    public NamiralSignServiceImpl(String username,
+                                  String password
     ) {
-        this.namirialHttpClient = namirialHttpClient;
+        this.namirialHttpClient = new NamirialHttpClient();
         this.username = username;
         this.password = password;
     }
