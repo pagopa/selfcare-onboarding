@@ -13,7 +13,6 @@
 
     <properties>
         <jackson.version>2.15.2</jackson.version>
-        <onboarding-sdk.version>0.2.1</onboarding-sdk.version>
     </properties>
 
     <dependencies>
@@ -26,13 +25,13 @@
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-azure-storage</artifactId>
-            <version>${onboarding-sdk.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-common</artifactId>
-            <version>${onboarding-sdk.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
