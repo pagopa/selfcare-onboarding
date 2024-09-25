@@ -209,7 +209,7 @@ public class CompletionServiceDefaultTest {
         onboarding.getInstitution().setOrigin(Origin.IPA);
 
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
-        when(panacheUpdateMock.where("productId = ?1 and institution.origin = ?2 and institution.originId = ?3 and status not in ['COMPLETED', 'FAILED', 'DELETED']",
+        when(panacheUpdateMock.where("productId = ?1 and institution.origin = ?2 and institution.originId = ?3 and status IN ('PENDING', 'TOBEVALIDATED')",
                 onboarding.getProductId(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId()))
                 .thenReturn(Long.valueOf(1));
         when(onboardingRepository.update("status = ?1 and updatedAt = ?2 ", any(), any()))
