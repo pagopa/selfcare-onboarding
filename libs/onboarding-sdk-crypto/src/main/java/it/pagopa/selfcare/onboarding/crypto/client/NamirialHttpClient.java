@@ -31,7 +31,7 @@ public class NamirialHttpClient {
 
         multipartContent.addPart(
                 new MultipartContent.Part(
-                        new HttpHeaders().set("Content-Disposition", "form-data; name=\"file\"; filename=\""+ request.getFile().getAbsolutePath() +"\""),
+                        new HttpHeaders().set("Content-Disposition", "form-data; name=\"file\"; filename=\""+ request.getFile().getName() +"\""),
                         new FileContent("application/pdf", request.getFile())
                 )
         );
