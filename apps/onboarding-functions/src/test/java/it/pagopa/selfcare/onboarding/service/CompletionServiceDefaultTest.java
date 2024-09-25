@@ -205,14 +205,12 @@ public class CompletionServiceDefaultTest {
     void rejectOutdatedOnboardings(){
 
         Onboarding onboarding = createOnboarding();
-        onboarding.setWorkflowType(WorkflowType.USERS);
         onboarding.getInstitution().setOriginId("originId");
         onboarding.getInstitution().setOrigin(Origin.IPA);
 
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
-        when(panacheUpdateMock.where("productId = ?1 and workflowType = ?2 and institution.origin = ?3 and institution.originId = ?4 and _id != ?5",
-                onboarding.getProductId(), onboarding.getWorkflowType(), onboarding.getWorkflowType(), onboarding.getInstitution().getOrigin(),
-                onboarding.getInstitution().getOriginId(), onboarding.getId()))
+        when(panacheUpdateMock.where("productId = ?1 and institution.origin = ?2 and institution.originId = ?3 and status = PENDING",
+                onboarding.getProductId(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId()))
                 .thenReturn(Long.valueOf(1));
         when(onboardingRepository.update("status = ?1 and updatedAt = ?2 ", any(), any()))
                 .thenReturn(panacheUpdateMock);

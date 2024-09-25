@@ -221,9 +221,8 @@ public class CompletionServiceDefault implements CompletionService {
         LocalDateTime now = LocalDateTime.now();
         onboardingRepository
                 .update("status = ?1 and updatedAt = ?2 ", REJECTED, now)
-                .where("productId = ?1 and workflowType = ?2 and institution.origin = ?3 and institution.originId = ?4 and _id != ?5",
-                        onboarding.getProductId(), onboarding.getWorkflowType(), onboarding.getInstitution().getOrigin(),
-                        onboarding.getInstitution().getOriginId(), onboarding.getId());
+                .where("productId = ?1 and institution.origin = ?2 and institution.originId = ?3 and status = PENDING",
+                        onboarding.getProductId(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId());
     }
 
     @Override

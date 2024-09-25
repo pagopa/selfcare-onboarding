@@ -20,6 +20,10 @@ module "mongodb_collection_onboardings" {
     {
       keys   = ["createdAt"]
       unique = false
+    },
+    {
+      keys   = ["productId", "institution.origin", "institution.originId"]
+      unique = false
     }
   ]
 
