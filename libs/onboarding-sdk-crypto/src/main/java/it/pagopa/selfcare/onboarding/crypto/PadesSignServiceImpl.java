@@ -23,6 +23,13 @@ public class PadesSignServiceImpl implements PadesSignService {
         CryptoUtils.createParentDirectoryIfNotExists(signedPdfFile);
 
         try (FileOutputStream fos = new FileOutputStream(signedPdfFile)){
+
+            /**
+             * The following condition ensures that the method handles both types of services correctly: those that return full PDFs
+             * and those that return just the signature:
+             * - If the service provides a complete, signed PDF, the method simply writes the returned PDF bytes to the output file.
+             * - If the service returns only the PKCS7 signature, the PDFBox library is used to attach the signature to the PDF before saving it to the output.
+             */
             if(this.pkcs7Signature.returnsFullPdf()){
                 try(InputStream pdfInput = new FileInputStream(pdfFile)){
                     byte[] signedPdfBytes = this.pkcs7Signature.sign(pdfInput);
