@@ -234,6 +234,17 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-azure-storage</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-product</artifactId>
+            <version>0.2.1</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
