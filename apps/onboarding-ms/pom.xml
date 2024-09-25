@@ -23,7 +23,6 @@
         <quarkus.platform.version>3.11.2</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.1.2</surefire-plugin.version>
-        <onboarding-sdk.version>0.2.1</onboarding-sdk.version>
         <quarkus-openapi-generator.version>2.4.1</quarkus-openapi-generator.version>
     </properties>
     <dependencyManagement>
@@ -138,22 +137,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-security-jwt</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-common</artifactId>
-            <version>${onboarding-sdk.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-azure-storage</artifactId>
-            <version>${onboarding-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-product</artifactId>
-            <version>${onboarding-sdk.version}</version>
         </dependency>
 
 
