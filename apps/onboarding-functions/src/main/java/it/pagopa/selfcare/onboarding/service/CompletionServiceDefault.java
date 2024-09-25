@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
@@ -213,6 +214,15 @@ public class CompletionServiceDefault implements CompletionService {
         onboardingRepository
                 .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
                 .where("_id", onboarding.getId());
+    }
+
+    @Override
+    public void rejectOutdatedOnboardings(Onboarding onboarding) {
+        LocalDateTime now = LocalDateTime.now();
+        onboardingRepository
+                .update("status = ?1 and updatedAt = ?2 ", REJECTED, now)
+                .where("productId = ?1 and workflowType = ?2 and institution.origin = ?3 and institution.originId = ?4",
+                        onboarding.getProductId(), onboarding.getWorkflowType(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId());
     }
 
     @Override

@@ -228,6 +228,12 @@ public class OnboardingFunctions {
         completionService.persistActivatedAt(readOnboardingValue(objectMapper, onboardingString));
     }
 
+    @FunctionName(REJECT_OUTDATED_ONBOARDINGS)
+    public void rejectOutdatedOnboardings(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, REJECT_OUTDATED_ONBOARDINGS, onboardingString));
+        completionService.rejectOutdatedOnboardings(readOnboardingValue(objectMapper, onboardingString));
+    }
+
     @FunctionName(CREATE_ONBOARDING_ACTIVITY)
     public void createOnboarding(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString));
@@ -263,6 +269,7 @@ public class OnboardingFunctions {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregateOrchestratorInputString));
         return completionService.createAggregateOnboardingRequest(readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregateOrchestratorInputString));
     }
+
     @FunctionName(CREATE_DELEGATION_ACTIVITY)
     public String createDelegationForAggregation(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString));

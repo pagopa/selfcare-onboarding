@@ -202,6 +202,26 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void rejectOutdatedOnboardings(){
+        Onboarding onboarding = createOnboarding();
+        onboarding.setWorkflowType(WorkflowType.USERS);
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setOrigin(Origin.IPA);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("productId = ?1 and workflowType = ?2 and institution.origin = ?3 and institution.originId = ?4",
+                onboarding.getProductId(), onboarding.getWorkflowType(), onboarding.getWorkflowType(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("status = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        completionServiceDefault.rejectOutdatedOnboardings(onboarding);
+
+        verify(onboardingRepository, times(1))
+                .update("status = ?1 and updatedAt = ?2 ", any(), any());
+    }
+
+    @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreateSaAnac() {
         Onboarding onboarding = createOnboarding();
 
