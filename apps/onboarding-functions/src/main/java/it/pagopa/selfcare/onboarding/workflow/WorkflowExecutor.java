@@ -47,6 +47,7 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, getOnboardingString(objectMapper(), onboarding), optionsRetry(), String.class).await();
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
 
@@ -74,7 +75,6 @@ public interface WorkflowExecutor {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         createInstitutionAndOnboarding(ctx, onboarding);
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
-        ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, getOnboardingString(objectMapper(), onboarding), optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
