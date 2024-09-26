@@ -32,6 +32,11 @@ variable "tags" {
 }
 
 
+variable "subscription" {
+  type    = string
+}
+
+
 variable "location" {
   type    = string
   default = "westeurope"
