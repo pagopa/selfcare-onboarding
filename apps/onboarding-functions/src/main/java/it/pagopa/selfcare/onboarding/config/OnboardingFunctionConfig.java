@@ -90,8 +90,8 @@ public class OnboardingFunctionConfig {
     }
     @ApplicationScoped
     public PadesSignService padesSignService(@ConfigProperty(name = "onboarding-functions.pagopa-signature.source") String source,
-                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial.user") String username,
-                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial.psw") String psw){
+                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial-user") String username,
+                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial-psw") String psw){
         return switch (source) {
             case SIGNATURE_SOURCE_ARUBA -> new PadesSignServiceImpl(arubaPkcs7HashSignService());
             case SIGNATURE_SOURCE_NAMIRIAL -> new PadesSignServiceImpl(namirialPkcs7HashSignService(username, psw));

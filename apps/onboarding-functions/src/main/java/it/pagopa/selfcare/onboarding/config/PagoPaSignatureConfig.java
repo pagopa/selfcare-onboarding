@@ -13,4 +13,8 @@ public interface PagoPaSignatureConfig {
     String location();
 
     String applyOnboardingTemplateReason();
+
+    String namirialUser();
+
+    String namirialPsw();
 }
