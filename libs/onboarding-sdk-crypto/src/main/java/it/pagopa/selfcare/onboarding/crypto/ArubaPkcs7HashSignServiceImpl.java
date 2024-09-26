@@ -15,4 +15,9 @@ public class ArubaPkcs7HashSignServiceImpl implements Pkcs7HashSignService {
     public byte[] sign(InputStream is) throws IOException {
         return arubaSignService.pkcs7Signhash(is);
     }
+
+    @Override
+    public boolean returnsFullPdf() {
+        return false;
+    }
 }

@@ -66,6 +66,11 @@ public class OnboardingFunctionConfig {
         log.info("Signature will be performed using Pkcs7HashSignService");
         return new Pkcs7HashSignService(){
             @Override
+            public boolean returnsFullPdf() {
+                return false;
+            }
+
+            @Override
             public byte[] sign(InputStream inputStream) {
                 log.info("Signature source is disabled, skipping signing input file");
                 return new byte[0];
