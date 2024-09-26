@@ -27,6 +27,7 @@ public class OnboardingFunctionConfig {
 
     private static final Logger log = LoggerFactory.getLogger(OnboardingFunctionConfig.class);
     public static final String SIGNATURE_SOURCE_ARUBA = "aruba";
+    public static final String SIGNATURE_SOURCE_NAMIRIAL = "namirial";
     public static final String SIGNATURE_SOURCE_DISABLED = "disabled";
 
     void onStart(@Observes StartupEvent ev, OnboardingRepository repository) {
@@ -62,6 +63,12 @@ public class OnboardingFunctionConfig {
         return new ArubaPkcs7HashSignServiceImpl(new ArubaSignServiceImpl());
     }
 
+    public Pkcs7HashSignService namirialPkcs7HashSignService(String username, String password){
+        log.info("Signature will be performed using NamirialPkcs7HashSignServiceImpl");
+        return new NamirialPkcs7HashSignServiceImpl(new NamiralSignServiceImpl(username,password));
+    }
+
+
     public Pkcs7HashSignService disabledPkcs7HashSignService(){
         log.info("Signature will be performed using Pkcs7HashSignService");
         return new Pkcs7HashSignService(){
@@ -82,9 +89,12 @@ public class OnboardingFunctionConfig {
         return new Pkcs7HashSignServiceImpl();
     }
     @ApplicationScoped
-    public PadesSignService padesSignService(@ConfigProperty(name = "onboarding-functions.pagopa-signature.source") String source){
+    public PadesSignService padesSignService(@ConfigProperty(name = "onboarding-functions.pagopa-signature.source") String source,
+                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial.user") String username,
+                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial.psw") String psw){
         return switch (source) {
             case SIGNATURE_SOURCE_ARUBA -> new PadesSignServiceImpl(arubaPkcs7HashSignService());
+            case SIGNATURE_SOURCE_NAMIRIAL -> new PadesSignServiceImpl(namirialPkcs7HashSignService(username, psw));
             case SIGNATURE_SOURCE_DISABLED -> new PadesSignServiceImpl(disabledPkcs7HashSignService());
             default -> new PadesSignServiceImpl(pkcs7HashSignService());
         };
