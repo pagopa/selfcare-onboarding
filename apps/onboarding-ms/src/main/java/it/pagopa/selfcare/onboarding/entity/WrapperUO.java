@@ -1,16 +1,22 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
+import java.util.Objects;
+
 import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
+import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.PARENT_TAX_CODE_IS_INVALID;
+import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.TAX_CODE_INVOICING_IS_INVALID;
 
-public class WrapperUO extends Wrapper<Uni<UOResource>> {
+public class WrapperUO extends BaseWrapper<Uni<UOResource>> {
 
-    private UoApi client;
+    private final UoApi client;
 
     public WrapperUO(Onboarding onboarding, UoApi uoApi) {
         super(onboarding);
@@ -24,17 +30,55 @@ public class WrapperUO extends Wrapper<Uni<UOResource>> {
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
-                .onItem().invoke(uoResource -> onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte()));
+                .onItem().invoke(uoResource -> {
+                    onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
+                    onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
+                });
     }
 
     @Override
-    boolean customValidation() {
-        return false;
+    public Uni<Onboarding> customValidation(Product product) {
+        if (hasSfe(onboarding)) {
+            return checkParentTaxCode()
+                    .onItem().transformToUni(ignored -> checkTaxCodeInvoicing(onboarding));
+        }
+        return Uni.createFrom().item(onboarding);
     }
 
     @Override
-    public boolean isValid() {
-        return true;
+    public Uni<Boolean> isValid() {
+        return Uni.createFrom().item(true);
+    }
+
+    private boolean hasSfe(Onboarding onboarding) {
+        return Objects.nonNull(onboarding.getBilling())
+                && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
+                && Objects.nonNull(onboarding.getInstitution().getTaxCode());
+    }
+
+    private Uni<Void> checkParentTaxCode() {
+        /* if parent tax code is different from child tax code, throw an exception */
+        return registryResource.onItem().transformToUni(uoResource -> {
+            if (!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())) {
+                return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
+            }
+            return Uni.createFrom().voidItem();
+        });
+    }
+
+    private Uni<Onboarding> checkTaxCodeInvoicing(Onboarding onboarding) {
+        /* if tax code invoicing is not into hierarchy, throw an exception */
+        return client.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
+                .flatMap(uosResource -> {
+                    /* if parent tax code is not into hierarchy, throw an exception */
+                    if (Objects.nonNull(uosResource) && Objects.nonNull(uosResource.getItems())
+                            && uosResource.getItems().stream().anyMatch(uoResource -> !uoResource.getCodiceFiscaleEnte().equals(onboarding.getInstitution().getTaxCode())))
+                    {
+                        return Uni.createFrom().failure(new InvalidRequestException(TAX_CODE_INVOICING_IS_INVALID));
+                    }
+                    //return additionalChecksForProduct(onboarding, product);
+                    return Uni.createFrom().item(onboarding);
+                });
     }
 
 }

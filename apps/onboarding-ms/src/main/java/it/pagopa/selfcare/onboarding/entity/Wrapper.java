@@ -1,18 +1,18 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-public abstract class Wrapper<T> {
+import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.product.entity.Product;
 
-    protected Onboarding onboarding;
-    protected Institution institution;
-    protected T registryResource;
+public interface Wrapper<T> {
 
-    public Wrapper(Onboarding onboarding) {
-        this.onboarding = onboarding;
-    }
+    T retrieveInstitution();
 
-    abstract T retrieveInstitution();
+    // Method used for additional checks
+    Uni<Onboarding> customValidation(Product product);
 
-    abstract boolean customValidation();
+    // Method used to check correspondence between registry and onboarding data
+    Uni<Boolean> isValid();
 
-    abstract boolean isValid();
+    Onboarding getOnboarding();
 }
+

@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.service.util;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -13,13 +12,11 @@ import it.pagopa.selfcare.product.entity.Product;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import lombok.Builder;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
@@ -44,12 +41,12 @@ public class OnboardingUtils {
     @Inject
     InfocamerePdndApi infocamerePdndApi;
 
-    private static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
-    private static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
-    private static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
-    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
-    private static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
-    private static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
+    public static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
+    public static final String OTHER_NOTE_REQUIRED = "Other Note is required when other boolean are false";
+    public static final String BILLING_OR_RECIPIENT_CODE_REQUIRED = "Billing and/or recipient code are required";
+    public static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
+    public static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
+    public static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
 
     public Uni<Onboarding> customValidationOnboardingData(Onboarding onboarding, Product product, ProxyResource proxyResource) {
             if (isUOWithSfe(onboarding)) {
@@ -89,33 +86,6 @@ public class OnboardingUtils {
                 return getValidationRecipientCodeError(onboarding.getInstitution().getOriginId(), uoResource);
             }
         }
-    }
-
-    /**
-     * Validate fields of onboarding in case of PRV or SCP
-     * If digitalAddress or description does not match proxy data,
-     * an exception is thrown
-     */
-    public Uni<Onboarding> validateFields(Onboarding onboarding) {
-        if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
-                || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
-                        && !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
-            return infocamerePdndApi.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
-                    .onFailure(WebApplicationException.class)
-                    .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                            ? Uni.createFrom().failure(new ResourceNotFoundException(
-                            String.format("Institution %s not found in the registry",
-                                    onboarding.getInstitution().getTaxCode()
-                            )))
-                            : Uni.createFrom().failure(ex))
-                    .onItem().transformToUni(pdndBusinessResource -> {
-                        if (!originPDNDInfocamere(onboarding, pdndBusinessResource)) {
-                            return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
-                        }
-                        return Uni.createFrom().item(onboarding);
-                    });
-        }
-        return Uni.createFrom().item(onboarding);
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
@@ -202,20 +172,5 @@ public class OnboardingUtils {
                 && InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
                 && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
-    }
-
-    @Builder
-    public static class ProxyResource<T> {
-        private InstitutionPaSubunitType type;
-        private T resource;
-        public InstitutionPaSubunitType getType() { return type;}
-        public void setType(InstitutionPaSubunitType type) { this.type = type; }
-        public T getResource() { return resource; }
-        public void setResource(T resource) { this.resource = resource; }
-    }
-  
-    private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {
-        return onboarding.getInstitution().getDigitalAddress().equals(pdndBusinessResource.getDigitalAddress()) &&
-                onboarding.getInstitution().getDescription().equals(pdndBusinessResource.getBusinessName());
     }
 }
