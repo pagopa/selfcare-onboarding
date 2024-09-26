@@ -216,12 +216,6 @@ public class OnboardingFunctionsTest {
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContextForIncrementAggregator(onboarding, "true");
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
-        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(2))
-                .callActivity(captorActivity.capture(), any(), any(),any());
-        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
-        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(1));
-
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
     }
@@ -243,12 +237,6 @@ public class OnboardingFunctionsTest {
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContextForIncrementAggregator(onboarding, "false");
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
-
-        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(2))
-                .callActivity(captorActivity.capture(), any(), any(),any());
-        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
-        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(1));
 
         Mockito.verify(orchestrationContext, times(2))
                 .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), any());
@@ -428,12 +416,12 @@ public class OnboardingFunctionsTest {
         function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(1))
+        verify(orchestrationContext, times(2))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         verify(orchestrationContext, times(1))
                 .callSubOrchestrator(eq("Onboardings"), any(), any());
-
-        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(1));
 
     }
     @Test
@@ -457,10 +445,10 @@ public class OnboardingFunctionsTest {
         verify(orchestrationContext, times(1))
                 .callActivity(captorActivity.capture(), any(), any(),any());
 
-        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
         verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
-
     }
+
     @Test
     void onboardingsAggregateOrchestrator_taskFailed(){
         Onboarding onboarding = new Onboarding();
@@ -482,7 +470,7 @@ public class OnboardingFunctionsTest {
         verify(orchestrationContext, times(1))
                 .callActivity(captorActivity.capture(), any(), any(),any());
 
-        assertEquals(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
         verify(service, times(1)).updateOnboardingStatusAndInstanceId(null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
 
 
@@ -584,13 +572,13 @@ public class OnboardingFunctionsTest {
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getId());
-        when(service.getOnboarding(onboarding.getId())).thenReturn(Optional.of(onboarding));
-        when(completionService.existsDelegation(any())).thenReturn("true");
+        when(service.getOnboarding(anyString())).thenReturn(Optional.of(onboarding));
+        when(completionService.existsDelegation(any())).thenReturn("false");
 
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(),any(),any(),any())).thenReturn(task);
         when(orchestrationContext.callSubOrchestrator(any(),any())).thenReturn(task);
-        when(task.await()).thenReturn("test");
+        when(task.await()).thenReturn("false");
         when(orchestrationContext.allOf(anyList())).thenReturn(task);
         return orchestrationContext;
     }

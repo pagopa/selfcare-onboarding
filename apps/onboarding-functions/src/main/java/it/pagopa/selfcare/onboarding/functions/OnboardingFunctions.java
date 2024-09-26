@@ -110,8 +110,11 @@ public class OnboardingFunctions {
         String onboardingId = null;
         try {
             String onboardingAggregate = ctx.getInput(String.class);
-            onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
-            ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
+            boolean existsDelegation = Boolean.parseBoolean(ctx.callActivity(EXISTS_DELEGATION_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await());
+            if(!existsDelegation) {
+                onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
+                ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
+            }
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
