@@ -5,8 +5,11 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +87,18 @@ public interface WorkflowExecutor {
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
+    }
+
+    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
+        List<Task<String>> parallelTasks = new ArrayList<>();
+
+        for (AggregateInstitution aggregate : onboarding.getAggregates()) {
+            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
+            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
+        }
+
+        ctx.allOf(parallelTasks).await();
     }
 
     default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
