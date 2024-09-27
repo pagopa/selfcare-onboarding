@@ -21,7 +21,6 @@
     <quarkus.platform.version>3.5.1</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <onboarding-sdk.version>0.2.1</onboarding-sdk.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
   </properties>
 
@@ -65,26 +64,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-mailer</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-azure-storage</artifactId>
-      <version>${onboarding-sdk.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-product</artifactId>
-      <version>${onboarding-sdk.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-common</artifactId>
-      <version>${onboarding-sdk.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>it.pagopa.selfcare</groupId>
-      <artifactId>onboarding-sdk-crypto</artifactId>
-      <version>${onboarding-sdk.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -210,6 +189,21 @@
         <groupId>com.microsoft.azure</groupId>
         <artifactId>applicationinsights-web</artifactId>
         <version>2.6.4</version>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-crypto</artifactId>
+      <version>0.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-azure-storage</artifactId>
+      <version>0.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>it.pagopa.selfcare</groupId>
+      <artifactId>onboarding-sdk-product</artifactId>
+      <version>0.2.2</version>
     </dependency>
   </dependencies>
   <build>

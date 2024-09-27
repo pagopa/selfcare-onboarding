@@ -41,15 +41,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
         String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboardingWorkflow.getOnboarding());
         Onboarding onboarding = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
 
-        List<Task<String>> parallelTasks = new ArrayList<>();
-
-        for (AggregateInstitution aggregate : onboarding.getAggregates()) {
-            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
-            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
-        }
-
-        ctx.allOf(parallelTasks).await();
+        createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper);
 
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
