@@ -5,6 +5,7 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
@@ -14,35 +15,32 @@ import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
 import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.PARENT_TAX_CODE_IS_INVALID;
 import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.TAX_CODE_INVOICING_IS_INVALID;
 
-public class WrapperUO extends BaseWrapper<Uni<UOResource>> {
+public class WrapperUO extends WrapperIPA {
 
-    private final UoApi client;
-
-    public WrapperUO(Onboarding onboarding, UoApi uoApi) {
-        super(onboarding);
-        client = uoApi;
+    public WrapperUO(Onboarding onboarding, InstitutionApi institutionApi, UoApi uoApi) {
+        super(onboarding, institutionApi, uoApi);
         registryResource = retrieveInstitution();
     }
 
     @Override
-    public Uni<UOResource> retrieveInstitution() {
-        return client.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+    public Uni<IPAEntity> retrieveInstitution() {
+        return super.uoClient.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
-                .onItem().invoke(uoResource -> {
-                    onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
-                    onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
-                });
+                .onItem().invoke(this::enrichOnboardingData)
+                .onItem().transformToUni(uoResource -> Uni.createFrom().item(IPAEntity.builder().uoResource(uoResource).build()));
     }
 
     @Override
     public Uni<Onboarding> customValidation(Product product) {
-        if (hasSfe(onboarding)) {
-            return checkParentTaxCode()
-                    .onItem().transformToUni(ignored -> checkTaxCodeInvoicing(onboarding));
-        }
-        return Uni.createFrom().item(onboarding);
+        return super.customValidation(product).onItem().transformToUni(unused -> {
+            if (hasSfe(onboarding)) {
+                return checkParentTaxCode()
+                        .onItem().transformToUni(ignored -> checkTaxCodeInvoicing(onboarding));
+            }
+            return Uni.createFrom().item(onboarding);
+        });
     }
 
     @Override
@@ -58,8 +56,9 @@ public class WrapperUO extends BaseWrapper<Uni<UOResource>> {
 
     private Uni<Void> checkParentTaxCode() {
         /* if parent tax code is different from child tax code, throw an exception */
-        return registryResource.onItem().transformToUni(uoResource -> {
-            if (!onboarding.getInstitution().getTaxCode().equals(uoResource.getCodiceFiscaleEnte())) {
+        return registryResource.onItem().transformToUni(ipaEntity -> {
+            final String taxCode = ipaEntity.getUoResource().getCodiceFiscaleEnte();
+            if (!onboarding.getInstitution().getTaxCode().equals(taxCode)) {
                 return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
             }
             return Uni.createFrom().voidItem();
@@ -68,7 +67,7 @@ public class WrapperUO extends BaseWrapper<Uni<UOResource>> {
 
     private Uni<Onboarding> checkTaxCodeInvoicing(Onboarding onboarding) {
         /* if tax code invoicing is not into hierarchy, throw an exception */
-        return client.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
+        return super.uoClient.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
                 .flatMap(uosResource -> {
                     /* if parent tax code is not into hierarchy, throw an exception */
                     if (Objects.nonNull(uosResource) && Objects.nonNull(uosResource.getItems())
@@ -79,6 +78,11 @@ public class WrapperUO extends BaseWrapper<Uni<UOResource>> {
                     //return additionalChecksForProduct(onboarding, product);
                     return Uni.createFrom().item(onboarding);
                 });
+    }
+
+    private void enrichOnboardingData(UOResource uoResource) {
+        onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
+        onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
     }
 
 }
