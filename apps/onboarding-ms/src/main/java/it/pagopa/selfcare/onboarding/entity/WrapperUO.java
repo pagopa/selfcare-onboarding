@@ -12,8 +12,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.PARENT_TAX_CODE_IS_INVALID;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.TAX_CODE_INVOICING_IS_INVALID;
 
 public class WrapperUO extends WrapperIPA {
 

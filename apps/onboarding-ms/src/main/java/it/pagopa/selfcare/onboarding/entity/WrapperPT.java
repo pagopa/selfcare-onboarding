@@ -7,7 +7,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE;
 
 public class WrapperPT extends WrapperIPA {
 

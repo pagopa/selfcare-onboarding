@@ -14,7 +14,6 @@ import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.BILLING_OR_RECIPIENT_CODE_REQUIRED;
 
 public class WrapperIPA extends BaseWrapper<Uni<IPAEntity>> {
 

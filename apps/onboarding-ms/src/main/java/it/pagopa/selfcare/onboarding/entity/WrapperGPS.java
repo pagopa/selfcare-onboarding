@@ -9,8 +9,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.ADDITIONAL_INFORMATION_REQUIRED;
-import static it.pagopa.selfcare.onboarding.service.util.OnboardingUtils.OTHER_NOTE_REQUIRED;
 
 public class WrapperGPS extends WrapperIPA {
 
