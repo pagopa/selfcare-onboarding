@@ -17,11 +17,12 @@ public class WrapperPT extends WrapperIPA {
 
     @Override
     public Uni<Onboarding> customValidation(Product product) {
-        if (!product.isDelegable()) {
-            throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
-                    onboarding.getInstitution().getTaxCode(),
-                    onboarding.getProductId()), DEFAULT_ERROR.getCode());
-        }
-        return Uni.createFrom().item(onboarding);
+        return super.customValidation(product).onItem().invoke(() -> {
+            if (!product.isDelegable()) {
+                throw new OnboardingNotAllowedException(String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE,
+                        onboarding.getInstitution().getTaxCode(),
+                        onboarding.getProductId()), DEFAULT_ERROR.getCode());
+            }
+        });
     }
 }
