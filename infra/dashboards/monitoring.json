@@ -4,86 +4,86 @@
       "order": 0,
       "parts": {
         "0": {
-          "position": {
-            "x": 0,
-            "y": 0,
-            "colSpan": 7,
-            "rowSpan": 4
-          },
-          "metadata": {
-            "inputs": [
-              {
-                "name": "options",
-                "isOptional": true
-              },
-              {
-                "name": "sharedTimeRange",
-                "isOptional": true
-              }
-            ],
-            "type": "Extension/HubsExtension/PartType/MonitorChartPart",
-            "settings": {
-              "content": {
-                "options": {
-                  "chart": {
-                    "metrics": [
-                      {
-                        "resourceMetadata": {
-                          "id": "/subscriptions/${subscription_id}/resourceGroups/${prefix}-monitor-rg/providers/Microsoft.Insights/components/${prefix}-appinsights"
+            "position": {
+              "x": 0,
+              "y": 0,
+              "colSpan": 7,
+              "rowSpan": 4
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${subscription_id}/resourceGroups/${prefix}-monitor-rg/providers/Microsoft.Insights/components/${prefix}-appinsights"
+                          },
+                          "name": "customEvents/custom/EventsOnboardingInstitution_success",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "EventsOnboardingInstitution_success"
+                          }
                         },
-                        "name": "customEvents/custom/EventsOnboardingInstitution_success",
-                        "aggregationType": 7,
-                        "namespace": "microsoft.insights/components/kusto",
-                        "metricVisualization": {
-                          "displayName": "EventsOnboardingInstitution_success"
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${subscription_id}/resourceGroups/${prefix}-monitor-rg/providers/Microsoft.Insights/components/${prefix}-appinsights"
+                          },
+                          "name": "customEvents/custom/EventsOnboardingInstitution_failures",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.insights/components/kusto",
+                          "metricVisualization": {
+                            "displayName": "EventsOnboardingInstitution_failures"
+                          }
                         }
-                      },
-                      {
-                        "resourceMetadata": {
-                          "id": "/subscriptions/${subscription_id}/resourceGroups/${prefix}-monitor-rg/providers/Microsoft.Insights/components/${prefix}-appinsights"
+                      ],
+                      "title": "Notifications events count",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
                         },
-                        "name": "customEvents/custom/EventsOnboardingInstitution_failures",
-                        "aggregationType": 7,
-                        "namespace": "microsoft.insights/components/kusto",
-                        "metricVisualization": {
-                          "displayName": "EventsOnboardingInstitution_failures"
-                        }
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
                       }
-                    ],
-                    "title": "Notifications events count",
-                    "titleKind": 2,
-                    "visualization": {
-                      "chartType": 2,
-                      "legendVisualization": {
-                        "isVisible": true,
-                        "position": 2,
-                        "hideHoverCard": false,
-                        "hideLabelNames": true
-                      },
-                      "axisVisualization": {
-                        "x": {
-                          "isVisible": true,
-                          "axisType": 2
-                        },
-                        "y": {
-                          "isVisible": true,
-                          "axisType": 1
-                        }
-                      },
-                      "disablePinning": true
                     }
                   }
                 }
               }
             }
-          }
-        },
+          },
         "1": {
           "position": {
             "x": 7,
             "y": 0,
-            "colSpan": 9,
-            "rowSpan": 2
+            "colSpan": 8,
+            "rowSpan": 4
           },
           "metadata": {
             "inputs": [
@@ -168,6 +168,10 @@
             "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
             "settings": {
               "content": {
+                "GridColumnsWidth": {
+                  "customDimensions": "596.993px"
+                },
+                "Query": "customEvents\n| where name contains \"ONBOARDING-FN\"\n| order by timestamp desc\n| where tostring(customMeasurements) contains \"EventsOnboardingInstitution_success\"\n| project timestamp, customDimensions\n\n",
                 "PartTitle": "Notifications sent"
               }
             }
@@ -175,10 +179,10 @@
         },
         "2": {
           "position": {
-            "x": 7,
-            "y": 2,
-            "colSpan": 9,
-            "rowSpan": 2
+            "x": 0,
+            "y": 4,
+            "colSpan": 5,
+            "rowSpan": 4
           },
           "metadata": {
             "inputs": [
@@ -201,7 +205,121 @@
               },
               {
                 "name": "PartId",
-                "value": "80be3866-9d1c-4b00-910c-108338113b57",
+                "value": "1435e225-1969-413b-be6e-0d41d5135fb3",
+                "isOptional": true
+              },
+              {
+                "name": "Version",
+                "value": "2.0",
+                "isOptional": true
+              },
+              {
+                "name": "TimeRange",
+                "isOptional": true
+              },
+              {
+                "name": "DashboardId",
+                "isOptional": true
+              },
+              {
+                "name": "DraftRequestParameters",
+                "isOptional": true
+              },
+              {
+                "name": "Query",
+                "value": "requests\n| where timestamp > ago(30d)\n| where cloud_RoleName =~ '${prefix}-onboarding-fn' and operation_Name =~ 'Notification'\n| where success == \"False\"\n| order by timestamp desc\n| project\n    timestamp,\n    duration,\n    operation_Id,\n    invocationId=customDimensions['InvocationId']\n| summarize Count = count() by bin(timestamp, 6h)\n",
+                "isOptional": true
+              },
+              {
+                "name": "ControlType",
+                "value": "FrameControlChart",
+                "isOptional": true
+              },
+              {
+                "name": "SpecificChart",
+                "value": "Line",
+                "isOptional": true
+              },
+              {
+                "name": "PartTitle",
+                "value": "Analytics",
+                "isOptional": true
+              },
+              {
+                "name": "PartSubTitle",
+                "value": "${prefix}-appinsights",
+                "isOptional": true
+              },
+              {
+                "name": "Dimensions",
+                "value": {
+                  "xAxis": {
+                    "name": "timestamp",
+                    "type": "datetime"
+                  },
+                  "yAxis": [
+                    {
+                      "name": "Count",
+                      "type": "long"
+                    }
+                  ],
+                  "splitBy": [],
+                  "aggregation": "Sum"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "LegendOptions",
+                "value": {
+                  "isEnabled": true,
+                  "position": "Bottom"
+                },
+                "isOptional": true
+              },
+              {
+                "name": "IsQueryContainTimeRange",
+                "value": true,
+                "isOptional": true
+              }
+            ],
+            "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+            "settings": {
+              "content": {
+                "Query": "requests\n| where cloud_RoleName =~ '${prefix}-onboarding-fn' and operation_Name =~ 'Notification'\n| where success == \"False\"\n| order by timestamp desc\n| project\n    timestamp,\n    duration,\n    operation_Id,\n    invocationId=customDimensions['InvocationId']\n| summarize Count = count() by bin(timestamp, 6h)\n\n",
+                "PartTitle": "Notifications fails count"
+              }
+            }
+          }
+        },
+        "3": {
+          "position": {
+            "x": 5,
+            "y": 4,
+            "colSpan": 10,
+            "rowSpan": 4
+          },
+          "metadata": {
+            "inputs": [
+              {
+                "name": "resourceTypeMode",
+                "isOptional": true
+              },
+              {
+                "name": "ComponentId",
+                "isOptional": true
+              },
+              {
+                "name": "Scope",
+                "value": {
+                  "resourceIds": [
+                    "/subscriptions/${subscription_id}/resourceGroups/${prefix}-monitor-rg/providers/microsoft.insights/components/${prefix}-appinsights"
+                  ]
+                },
+                "isOptional": true
+              },
+              {
+                "name": "PartId",
+                "value": "6b41d4d3-182c-4f42-82da-0390728a3645",
                 "isOptional": true
               },
               {
@@ -224,7 +342,7 @@
               },
               {
                 "name": "Query",
-                "value": "customEvents\n| where name contains \"ONBOARDING-FN\"\n| extend d=parse_json(customDimensions)\n| order by timestamp desc\n| where tostring(customMeasurements) contains \"EventsOnboardingInstitution_failure\"\n\n",
+                "value": "union traces\n| union exceptions\n| where operation_Name =~ 'Notification'\n| order by timestamp asc\n| project\n    timestamp,\n    logLevel = customDimensions.['LogLevel'],\n    message = iff(message != '', message, iff(innermostMessage != '', innermostMessage, customDimensions.['prop__{OriginalFormat}']))\n    \n",
                 "isOptional": true
               },
               {
@@ -263,7 +381,11 @@
             "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
             "settings": {
               "content": {
-                "PartTitle": "Unsent notifications"
+                "GridColumnsWidth": {
+                  "logLevel": "120px",
+                  "message": "572px"
+                },
+                "PartTitle": "Notifications fails log"
               }
             }
           }
@@ -300,7 +422,8 @@
             "filteredPartIds": [
               "StartboardPart-MonitorChartPart-5f1e177e-19ff-4652-87ff-6a71643f4355",
               "StartboardPart-LogsDashboardPart-4b6c45cd-8b84-486c-9165-c7c732d7b0fc",
-              "StartboardPart-LogsDashboardPart-4b6c45cd-8b84-486c-9165-c7c732d7b141"
+              "StartboardPart-LogsDashboardPart-b2fcdb46-b49d-4921-abd7-23e0295c31ab",
+              "StartboardPart-LogsDashboardPart-a91f0e68-adc5-4443-8ed6-b1b8445300a4"
             ]
           }
         }
