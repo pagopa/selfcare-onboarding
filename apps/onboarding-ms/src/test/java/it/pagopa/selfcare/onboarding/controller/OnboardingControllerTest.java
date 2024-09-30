@@ -46,13 +46,13 @@ import static org.mockito.Mockito.*;
 @QuarkusTestResource(MongoTestResource.class)
 class OnboardingControllerTest {
 
-    final static OnboardingPspRequest onboardingPspValid;
-    final static UserRequest userDTO;
-    final static OnboardingPgRequest onboardingPgValid;
-    final static OnboardingDefaultRequest onboardingBaseValid;
+    static final OnboardingPspRequest onboardingPspValid;
+    static final UserRequest userDTO;
+    static final OnboardingPgRequest onboardingPgValid;
+    static final OnboardingDefaultRequest onboardingBaseValid;
 
-    final static InstitutionBaseRequest institution;
-    final static InstitutionPspRequest institutionPsp;
+    static final InstitutionBaseRequest institution;
+    static final InstitutionPspRequest institutionPsp;
 
     @InjectMock
     OnboardingService onboardingService;
@@ -626,7 +626,7 @@ class OnboardingControllerTest {
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
                 .onboardingCompletion(captor.capture(), any());
-        assertEquals(captor.getValue().getInstitution().getInstitutionType(), InstitutionType.PG);
+        assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
     }
 
     @Test
