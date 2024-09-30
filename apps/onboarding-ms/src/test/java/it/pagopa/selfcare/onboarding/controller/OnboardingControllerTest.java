@@ -166,7 +166,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingPaAggregator() {
+    void onboardingPaAggregator_withoutVatNumber() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
         onboardingPaValid.setIsAggregator(Boolean.TRUE);
         List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
@@ -190,6 +190,38 @@ class OnboardingControllerTest {
                 .onboarding(captor.capture(), any(),any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
+        assertNull(captor.getValue().getAggregates().get(0).getVatNumber());
+        assertFalse(captor.getValue().getAggregates().isEmpty());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingPaAggregator_WithVatNumber() {
+        OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
+        onboardingPaValid.setIsAggregator(Boolean.TRUE);
+        List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest.setVatNumber("vatNumber");
+        aggregateInstitutions.add(aggregateInstitutionRequest);
+        onboardingPaValid.setAggregates(aggregateInstitutions);
+
+        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPaValid)
+                .contentType(ContentType.JSON)
+                .post("/pa/aggregation")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboarding(captor.capture(), any(),any());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
+        assertTrue(captor.getValue().getIsAggregator());
+        assertNotNull(captor.getValue().getAggregates().get(0).getVatNumber());
         assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
