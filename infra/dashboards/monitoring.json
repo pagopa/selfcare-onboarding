@@ -342,7 +342,7 @@
               },
               {
                 "name": "Query",
-                "value": "union traces\n| union exceptions\n| where operation_Name =~ 'Notification'\n| order by timestamp asc\n| project\n    timestamp,\n    logLevel = customDimensions.['LogLevel'],\n    message = iff(message != '', message, iff(innermostMessage != '', innermostMessage, customDimensions.['prop__{OriginalFormat}']))\n    \n",
+                "value": "let traces_exceptions = union traces\n| union exceptions\n| where operation_Name =~ 'Notification'\n| order by timestamp asc\n| project\n    timestamp,\n    logLevel = customDimensions.['LogLevel'],\n    message = iff(message != '', message, iff(innermostMessage != '', innermostMessage, customDimensions.['prop__{OriginalFormat}'])),\n    invocationId = tostring(customDimensions['InvocationId']);\n\nlet failed_requests = requests\n| where cloud_RoleName =~ '${prefix}-onboarding-fn' and operation_Name =~ 'Notification'\n| where success == \"False\"\n| order by timestamp desc\n| project\n    operation_Id,\n    invocationId=tostring(customDimensions['InvocationId']);\n\ntraces_exceptions\n| join kind=inner (failed_requests) on invocationId\n| project \n    timestamp, \n    logLevel, \n    message, \n    operation_Id\n| order by timestamp asc",
                 "isOptional": true
               },
               {
