@@ -53,7 +53,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                  "$ref" : "#/components/schemas/VerifyAggregateAppIoResponse"
                 }
               }
             }
@@ -1438,6 +1438,42 @@
           }
         }
       },
+      "AggregateAppIo" : {
+        "type" : "object",
+        "properties" : {
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "digitalAddress" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "vatNumber" : {
+            "type" : "string"
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "type" : "string"
+          },
+          "rowNumber" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }
+      },
       "AggregateInstitutionRequest" : {
         "required" : [ "taxCode", "description" ],
         "type" : "object",
@@ -2580,6 +2616,23 @@
           },
           "productRole" : {
             "type" : "string"
+          }
+        }
+      },
+      "VerifyAggregateAppIoResponse" : {
+        "type" : "object",
+        "properties" : {
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateAppIo"
+            }
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RowError"
+            }
           }
         }
       },

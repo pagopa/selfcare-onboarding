@@ -23,9 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 
 @QuarkusTest
@@ -51,16 +50,24 @@ public class AggregatesServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void validateAggregates(){
-        File testFile = new File("src/test/resources/aggregates.csv");
+    void validateAggregatesAppIo(){
+        File testFile = new File("src/test/resources/aggregates-appio.csv");
 
-        when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
-        when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
-        when(uoApi.findByUnicodeUsingGET1("4551120274", null)).thenReturn(Uni.createFrom().item(new UOResource()));
+        UOResource uoResource = new UOResource();
+        uoResource.setMail1("pec@Pec");
+        uoResource.setTipoMail1("Pec");
+        uoResource.setDenominazioneEnte("denominazione");
+        uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
 
-        when(aooApi.findByUnicodeUsingGET("AQ66",null)).thenThrow(ResourceNotFoundException.class);
-        when(institutionApi.findInstitutionUsingGET("345645", null, null)).thenThrow(ResourceNotFoundException.class);
-        when(uoApi.findByUnicodeUsingGET1("AQ66",null)).thenThrow(ResourceNotFoundException.class);
+        AOOResource aooResource = new AOOResource();
+        aooResource.setTipoMail1("Pec");
+        aooResource.setMail1("pec@Pec");
+        aooResource.setCodiceUniAoo("18SU3R");
+        aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
+
+        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().item(aooResource));
+        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         aggregatesServiceDefault.validateAppIoAggregatesCsv(testFile)
                         .subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -116,29 +123,37 @@ public class AggregatesServiceDefaultTest {
         List<CsvAggregateAppIo> csvAggregateList = new ArrayList<>();
         csvAggregateList.add(csvAggregate);
 
-        AggregatesCsvResponse aggregatesCsvResponse = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateAppIo.class);
-        when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
-        when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        UOResource uoResource = new UOResource();
+        uoResource.setMail1("pec@Pec");
+        uoResource.setTipoMail1("Pec");
+        uoResource.setDenominazioneEnte("denominazione");
+        uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
 
-        Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
+        AOOResource aooResource = new AOOResource();
+        aooResource.setTipoMail1("Pec");
+        aooResource.setMail1("pec@Pec");
+        aooResource.setCodiceUniAoo("18SU3R");
+        aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
 
-        VerifyAggregateResponse verifyAggregateResponse = result.await().indefinitely();
+        AggregatesCsv aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateAppIo.class);
+        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().item(aooResource));
+        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
+
+        Uni<VerifyAggregateAppIoResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
+
+        VerifyAggregateAppIoResponse verifyAggregateResponse = result.await().indefinitely();
         assertNotNull(verifyAggregateResponse.getAggregates());
-        assertNotNull(aggregatesCsvResponse.getValidAggregates());
+        assertNotNull(aggregatesCsv.getValidAggregates());
 
-        assertTrue(!aggregatesCsvResponse.getCsvAggregateList().isEmpty());
-        assertTrue(aggregatesCsvResponse.getRowErrorList().isEmpty());
+        assertTrue(!aggregatesCsv.getCsvAggregateList().isEmpty());
+        assertTrue(aggregatesCsv.getRowErrorList().isEmpty());
 
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getAddress());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getCity());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getPec());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getDescription());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getRowNumber());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getSubunitCode());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getTaxCode());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getProvince());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getSubunitType());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsvResponse.getCsvAggregateList().get(0)).getVatNumber());
+        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getRowNumber());
+        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitCode());
+        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getTaxCode());
+        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitType());
+        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getVatNumber());
 
         verify(aooApi,times(0)).findByUnicodeUsingGET("1437190414", null);
         verify(institutionApi,times(0)).findInstitutionUsingGET("00297110389", null, null);
@@ -157,30 +172,30 @@ public class AggregatesServiceDefaultTest {
         List<CsvAggregateSend> csvAggregateList = new ArrayList<>();
         csvAggregateList.add(csvAggregate);
 
-        AggregatesCsvResponse aggregatesCsvResponse = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateSend.class);
+        AggregatesCsv aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateSend.class);
         when(aooApi.findByUnicodeUsingGET("1437190414", null)).thenReturn(Uni.createFrom().item(new AOOResource()));
         when(institutionApi.findInstitutionUsingGET("00297110389", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
         when(uoApi.findByUnicodeUsingGET1("4551120274", null)).thenReturn(Uni.createFrom().item(new UOResource()));
 
-        Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
+        Uni<VerifyAggregateSendResponse> result = aggregatesServiceDefault.validateSendAggregatesCsv(file);
 
-        VerifyAggregateResponse verifyAggregateResponse = result.await().indefinitely();
+        VerifyAggregateSendResponse verifyAggregateResponse = result.await().indefinitely();
         assertNotNull(verifyAggregateResponse);
-        assertNotNull(aggregatesCsvResponse.getValidAggregates());
+        assertNotNull(aggregatesCsv.getValidAggregates());
 
-        assertTrue(!aggregatesCsvResponse.getCsvAggregateList().isEmpty());
-        assertTrue(aggregatesCsvResponse.getRowErrorList().isEmpty());
+        assertTrue(!aggregatesCsv.getCsvAggregateList().isEmpty());
+        assertTrue(aggregatesCsv.getRowErrorList().isEmpty());
 
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getAddress());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getCity());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getPec());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getDescription());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getRowNumber());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getSubunitCode());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getTaxCode());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getProvince());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getSubunitType());
-        assertNotNull(((CsvAggregateSend) aggregatesCsvResponse.getCsvAggregateList().get(0)).getVatNumber());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getAddress());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getCity());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getPec());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getDescription());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getRowNumber());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitCode());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getTaxCode());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getProvince());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitType());
+        assertNotNull(((CsvAggregateSend) aggregatesCsv.getCsvAggregateList().get(0)).getVatNumber());
 
         verify(aooApi,times(0)).findByUnicodeUsingGET("1437190414", null);
         verify(institutionApi,times(0)).findInstitutionUsingGET("00297110389", null, null);
@@ -198,24 +213,24 @@ public class AggregatesServiceDefaultTest {
         List<CsvAggregatePagoPa> csvAggregateList = new ArrayList<>();
         csvAggregateList.add(csvAggregate);
 
-        AggregatesCsvResponse aggregatesCsvResponse = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregatePagoPa.class);
-        Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
+        AggregatesCsv aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregatePagoPa.class);
+        Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validatePagoPaAggregatesCsv(file);
 
         VerifyAggregateResponse verifyAggregateResponse = result.await().indefinitely();
         assertNotNull(verifyAggregateResponse);
-        assertNotNull(aggregatesCsvResponse.getValidAggregates());
+        assertNotNull(aggregatesCsv.getValidAggregates());
 
-        assertTrue(!aggregatesCsvResponse.getCsvAggregateList().isEmpty());
-        assertTrue(aggregatesCsvResponse.getRowErrorList().isEmpty());
+        assertTrue(!aggregatesCsv.getCsvAggregateList().isEmpty());
+        assertTrue(aggregatesCsv.getRowErrorList().isEmpty());
 
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getAddress());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getCity());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getPec());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getDescription());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getRowNumber());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getTaxCode());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getProvince());
-        assertNotNull(((CsvAggregatePagoPa) aggregatesCsvResponse.getCsvAggregateList().get(0)).getVatNumber());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getAddress());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getCity());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getPec());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getDescription());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getRowNumber());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getTaxCode());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getProvince());
+        assertNotNull(((CsvAggregatePagoPa) aggregatesCsv.getCsvAggregateList().get(0)).getVatNumber());
 
     }
 
