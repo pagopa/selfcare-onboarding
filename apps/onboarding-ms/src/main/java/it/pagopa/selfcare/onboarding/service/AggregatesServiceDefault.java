@@ -94,10 +94,10 @@ public class AggregatesServiceDefault implements AggregatesService {
         return Multi.createFrom().iterable(csvAggregates)
                 .onItem().transformToUniAndMerge(csvAggregateAppIo -> checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregateAppIo, verifyAggregateAppIoResponse))
                 .collect().asList()
-                .onItem().transform(list -> onboardingMapper.toVerifyAggregateAppIoResponse(aggregatesCsv))
+                .replaceWith(verifyAggregateAppIoResponse)
                 .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
-                        aggregatesCsv.getValidAggregates().size(),
-                        aggregatesCsv.getRowErrorList().size()));
+                        verifyAggregateAppIoResponse.getAggregates().size(),
+                        verifyAggregateAppIoResponse.getErrors().size()));
     }
 
     @Override
