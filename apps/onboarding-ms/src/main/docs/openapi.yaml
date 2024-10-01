@@ -350,6 +350,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy: "true"
   /v1/onboarding/completion:
     post:
       tags:
@@ -420,6 +421,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy: "true"
   /v1/onboarding/pa:
     post:
       tags:
@@ -816,6 +818,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy: "true"
   /v1/onboarding/{onboardingId}/consume:
     put:
       tags:
@@ -975,6 +978,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy: "true"
   /v1/tokens:
     get:
       tags:
