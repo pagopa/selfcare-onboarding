@@ -17,14 +17,16 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-public class TokenServiceDefaultTest {
+class TokenServiceDefaultTest {
 
     @Inject
     TokenServiceDefault tokenService;
@@ -44,6 +46,7 @@ public class TokenServiceDefaultTest {
         UniAssertSubscriber<List<Token>> subscriber = tokenService.getToken(onboardingId)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted();
+        assertTrue((BooleanSupplier) subscriber);
     }
 
     @Test
