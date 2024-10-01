@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @QuarkusTest
-public class AggregatesServiceDefaultTest {
+class AggregatesServiceDefaultTest {
 
     @Inject
     AggregatesServiceDefault aggregatesServiceDefault;

@@ -139,7 +139,7 @@ class OnboardingServiceDefaultTest {
     @Spy
     OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
-    final static UserRequest manager = UserRequest.builder()
+    static final UserRequest manager = UserRequest.builder()
             .name("name")
             .surname("surname")
             .taxCode("taxCode")
@@ -1029,7 +1029,6 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        Product product = mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
         // mock parent has already onboarding
@@ -1986,7 +1985,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         // Mock the response from onboardingUtils.validationRecipientCode
-        when(onboardingUtils.getValidationRecipientCodeError(eq(originId), eq(uoResource)))
+        when(onboardingUtils.getValidationRecipientCodeError(originId, uoResource))
                 .thenReturn(Uni.createFrom().item(customError));
 
         // Call the method under test
