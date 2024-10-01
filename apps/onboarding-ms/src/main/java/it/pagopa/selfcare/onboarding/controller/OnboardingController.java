@@ -254,7 +254,7 @@ public class OnboardingController {
                     "It checks the contract's signature and upload the contract on an azure storage" +
                     "At the end, function triggers async activities related to complete onboarding " +
                     "that consist of create the institution, activate the onboarding and sending data to notification queue.",
-            extensions = @Extension(name = "x-legacy", value = "true")
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @PUT
     @Path("/{onboardingId}/completeOnboardingUsers")
@@ -357,7 +357,7 @@ public class OnboardingController {
     @Operation(
             summary = "Get onboarding record by ID with user sensitive info.",
             description = "Retrieve an onboarding record given its ID adding to user sensitive information",
-            extensions = @Extension(name = "x-legacy", value = "true")
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Path("/{onboardingId}/withUserInfo")
@@ -381,7 +381,7 @@ public class OnboardingController {
             summary = "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
             description = "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
             operationId = "onboardingInstitutionUsingGET",
-            extensions = @Extension(name = "x-legacy", value = "true")
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Tag(name = "support")
@@ -471,7 +471,7 @@ public class OnboardingController {
     @Operation(
             summary = "Validate recipientCode.",
             description = "check if recipientCode is valid or not",
-            extensions = @Extension(name = "x-legacy", value = "true")
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Path("/checkRecipientCode")
