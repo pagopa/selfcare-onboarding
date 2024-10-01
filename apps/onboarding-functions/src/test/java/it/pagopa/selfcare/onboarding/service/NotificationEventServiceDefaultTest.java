@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
@@ -15,8 +13,8 @@ import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
-import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
+import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
 import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
 import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
 import it.pagopa.selfcare.product.entity.Product;
@@ -24,7 +22,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 
@@ -33,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import static it.pagopa.selfcare.onboarding.TestUtils.getMockedContext;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -221,21 +217,21 @@ public class NotificationEventServiceDefaultTest {
 
         Map<String, String> properties = NotificationEventServiceDefault.notificationEventMap(notificationToSend, "topic", "traceId");
         assertNotNull(properties);
-        assertEquals(properties.get("notificationEventTraceId"), "traceId");
-        assertEquals(properties.get("id"), "id");
-        assertEquals(properties.get("internalIstitutionID"), "internal");
-        assertEquals(properties.get("product"), "prod");
-        assertEquals(properties.get("state"), "state");
-        assertEquals(properties.get("fileName"), "fileName");
+        assertEquals("traceId", properties.get("notificationEventTraceId"));
+        assertEquals("id", properties.get("id"));
+        assertEquals("internal", properties.get("internalIstitutionID"));
+        assertEquals("prod", properties.get("product"));
+        assertEquals("state", properties.get("state"));
+        assertEquals("fileName", properties.get("fileName"));
         assertEquals(properties.get("filePath"), "filePath");
         assertEquals(properties.get("contentType"), "application/octet-stream");
 
-        assertEquals(properties.get("description"), "description");
-        assertEquals(properties.get("digitalAddress"), "mail");
-        assertEquals(properties.get("institutionType"), "SA");
+        assertEquals("description", properties.get("description"));
+        assertEquals("mail", properties.get("digitalAddress"));
+        assertEquals("SA", properties.get("institutionType"));
 
-        assertEquals(properties.get("billing.recipientCode"), "12345");
-        assertEquals(properties.get("billing.isPublicService"), "false");
+        assertEquals("12345", properties.get("billing.recipientCode"));
+        assertEquals("false", properties.get("billing.isPublicService"));
     }
 
     @Test

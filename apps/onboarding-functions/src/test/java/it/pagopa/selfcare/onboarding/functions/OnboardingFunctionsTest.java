@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
  * Unit test for Function class.
  */
 @QuarkusTest
-public class OnboardingFunctionsTest {
+class OnboardingFunctionsTest {
 
     @Inject
     OnboardingFunctions function;
@@ -64,7 +64,7 @@ public class OnboardingFunctionsTest {
     }
 
     @Test
-    public void startAndWaitOrchestration_failedOrchestration() throws Exception {
+    void startAndWaitOrchestration_failedOrchestration() throws Exception {
         // Setup
         @SuppressWarnings("unchecked")
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
