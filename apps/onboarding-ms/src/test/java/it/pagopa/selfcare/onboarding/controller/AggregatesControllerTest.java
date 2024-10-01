@@ -8,6 +8,7 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.model.VerifyAggregateAppIoResponse;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateSendResponse;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
@@ -33,7 +34,7 @@ class AggregatesControllerTest {
         File testFile = new File("src/test/resources/aggregates-appio.csv");
 
         when(aggregatesService.validateAppIoAggregatesCsv(any()))
-                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateAppIoResponse()));
 
         given()
                 .when()
