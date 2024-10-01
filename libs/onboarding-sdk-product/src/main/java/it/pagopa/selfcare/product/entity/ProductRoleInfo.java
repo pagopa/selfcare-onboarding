@@ -5,6 +5,11 @@ import java.util.List;
 public class ProductRoleInfo {
 
     private boolean multiroleAllowed;
+
+    /**
+     * List of phases where addition of the role is allowed
+     */
+    private List<String> phasesAdditionAllowed;
     private List<ProductRole> roles;
 
     public boolean isMultiroleAllowed() {
@@ -13,6 +18,14 @@ public class ProductRoleInfo {
 
     public void setMultiroleAllowed(boolean multiroleAllowed) {
         this.multiroleAllowed = multiroleAllowed;
+    }
+
+    public List<String> getPhasesAdditionAllowed() {
+        return phasesAdditionAllowed;
+    }
+
+    public void setPhasesAdditionAllowed(List<String> phasesAdditionAllowed) {
+        this.phasesAdditionAllowed = phasesAdditionAllowed;
     }
 
     public List<ProductRole> getRoles() {
