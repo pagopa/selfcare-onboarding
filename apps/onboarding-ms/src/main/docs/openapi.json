@@ -482,7 +482,7 @@
         "security" : [ {
           "SecurityScheme" : [ ]
         } ],
-        "x-legacy" : "true"
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/completion" : {
@@ -584,7 +584,7 @@
         "security" : [ {
           "SecurityScheme" : [ ]
         } ],
-        "x-legacy" : "true"
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/pa" : {
@@ -1113,7 +1113,7 @@
         "security" : [ {
           "SecurityScheme" : [ ]
         } ],
-        "x-legacy" : "true"
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/{onboardingId}/consume" : {
@@ -1327,7 +1327,7 @@
         "security" : [ {
           "SecurityScheme" : [ ]
         } ],
-        "x-legacy" : "true"
+        "x-legacy-api" : "true"
       }
     },
     "/v1/tokens" : {
