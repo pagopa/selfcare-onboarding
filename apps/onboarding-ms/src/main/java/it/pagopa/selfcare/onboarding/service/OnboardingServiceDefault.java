@@ -73,6 +73,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -304,8 +305,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product))
-                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates, validRoles(product)))
+                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING))
+                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING)))
                         .onItem().transformToUni(ignore -> retrieveAndSetUserAggregatesResources(onboardingPersisted, product, aggregates))
                         .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
@@ -547,14 +548,6 @@ public class OnboardingServiceDefault implements OnboardingService {
         } catch (IllegalArgumentException e) {
             throw new OnboardingNotAllowedException(e.getMessage(), DEFAULT_ERROR.getCode());
         }
-    }
-
-    private List<PartyRole> validRoles(Product product) {
-        return product.getRoleMappings().entrySet().stream()
-                .filter(entry -> Objects.nonNull(entry.getValue().getPhasesAdditionAllowed()) &&
-                        entry.getValue().getPhasesAdditionAllowed().contains(PHASE_ADDITION_ALLOWED.ONBOARDING))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
     }
 
     private Uni<List<UserRequest>> validationRole(List<UserRequest> users, List<PartyRole> validRoles) {

@@ -9,7 +9,7 @@ public class ProductRoleInfo {
     /**
      * List of phases where addition of the role is allowed
      */
-    private List<PHASE_ADDITION_ALLOWED> phasesAdditionAllowed;
+    private List<String> phasesAdditionAllowed;
     private List<ProductRole> roles;
 
     public boolean isMultiroleAllowed() {
@@ -20,11 +20,11 @@ public class ProductRoleInfo {
         this.multiroleAllowed = multiroleAllowed;
     }
 
-    public List<PHASE_ADDITION_ALLOWED> getPhasesAdditionAllowed() {
+    public List<String> getPhasesAdditionAllowed() {
         return phasesAdditionAllowed;
     }
 
-    public void setPhasesAdditionAllowed(List<PHASE_ADDITION_ALLOWED> phasesAdditionAllowed) {
+    public void setPhasesAdditionAllowed(List<String> phasesAdditionAllowed) {
         this.phasesAdditionAllowed = phasesAdditionAllowed;
     }
 
