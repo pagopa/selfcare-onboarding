@@ -9,7 +9,9 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.*;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
@@ -135,8 +137,12 @@ public class AggregatesServiceDefaultTest {
         aooResource.setCodiceUniAoo("18SU3R");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
 
-        AggregatesCsv aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateAppIo.class);
-        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().item(aooResource));
+        WebClientApplicationException webClientApplicationException = mock(WebClientApplicationException.class);
+        Response response = mock(Response.class);
+        when(webClientApplicationException.getResponse()).thenReturn(response);
+        when(response.getStatus()).thenReturn(404);
+        AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateAppIo.class);
+        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
         when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
         when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
 
@@ -149,11 +155,11 @@ public class AggregatesServiceDefaultTest {
         assertTrue(!aggregatesCsv.getCsvAggregateList().isEmpty());
         assertTrue(aggregatesCsv.getRowErrorList().isEmpty());
 
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getRowNumber());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitCode());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getTaxCode());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getSubunitType());
-        assertNotNull(((CsvAggregateAppIo) aggregatesCsv.getCsvAggregateList().get(0)).getVatNumber());
+        assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getRowNumber());
+        assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getSubunitCode());
+        assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getTaxCode());
+        assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getSubunitType());
+        assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getVatNumber());
 
         verify(aooApi,times(0)).findByUnicodeUsingGET("1437190414", null);
         verify(institutionApi,times(0)).findInstitutionUsingGET("00297110389", null, null);
