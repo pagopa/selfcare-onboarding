@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-public class TokenServiceDefaultTest {
+class TokenServiceDefaultTest {
 
     @Inject
     TokenServiceDefault tokenService;
@@ -44,7 +44,6 @@ public class TokenServiceDefaultTest {
         UniAssertSubscriber<List<Token>> subscriber = tokenService.getToken(onboardingId)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted();
-        assertTrue((BooleanSupplier) subscriber);
     }
 
     @Test
