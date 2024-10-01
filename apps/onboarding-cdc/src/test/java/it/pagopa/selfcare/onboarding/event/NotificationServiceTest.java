@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-public class NotificationServiceTest {
+class NotificationServiceTest {
     @Mock
     private OnboardingMapper onboardingMapper;
     @InjectMock
