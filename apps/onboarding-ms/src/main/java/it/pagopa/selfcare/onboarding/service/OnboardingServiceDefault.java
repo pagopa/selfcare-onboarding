@@ -33,6 +33,7 @@ import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrate
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
+import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -72,6 +73,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -303,8 +305,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests)
-                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates))
+                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING))
+                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING)))
                         .onItem().transformToUni(ignore -> retrieveAndSetUserAggregatesResources(onboardingPersisted, product, aggregates))
                         .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
@@ -548,9 +550,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
-    private Uni<List<UserRequest>> validationRole(List<UserRequest> users) {
-
-        List<PartyRole> validRoles = List.of(PartyRole.MANAGER, PartyRole.DELEGATE);
+    private Uni<List<UserRequest>> validationRole(List<UserRequest> users, List<PartyRole> validRoles) {
 
         List<UserRequest> usersNotValidRole = users.stream()
                 .filter(user -> !validRoles.contains(user.getRole()))
@@ -566,13 +566,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().item(users);
     }
 
-    private Uni<Void> validateUserAggregatesRoles(List<AggregateInstitutionRequest> aggregates) {
+    private Uni<Void> validateUserAggregatesRoles(List<AggregateInstitutionRequest> aggregates, List<PartyRole> validRoles) {
         LOG.debug("starting validateUserAggregatesRoles");
         if (!CollectionUtils.isEmpty(aggregates)) {
             return Multi.createFrom().iterable(aggregates)
                     .filter(aggregate -> !CollectionUtils.isEmpty(aggregate.getUsers()))
                     .onItem().invoke(aggregate -> LOG.debugf("Validating role for users of aggregate: %s", aggregate.getTaxCode()))
-                    .onItem().transformToUniAndMerge(aggregate -> validationRole(aggregate.getUsers())
+                    .onItem().transformToUniAndMerge(aggregate -> validationRole(aggregate.getUsers(), validRoles)
                             .onFailure().invoke(throwable -> LOG.error("Error during validation role for aggregate: %s", aggregate.getTaxCode(), throwable)))
                     .collect().asList().replaceWithVoid();
         }

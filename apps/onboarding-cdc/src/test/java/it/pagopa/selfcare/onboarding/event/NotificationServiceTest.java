@@ -1,8 +1,10 @@
 package it.pagopa.selfcare.onboarding.event;
 
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.mongodb.MongoTestResource;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -25,6 +27,7 @@ import java.time.LocalDateTime;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
+@QuarkusTestResource(MongoTestResource.class)
 public class NotificationServiceTest {
     @Mock
     private OnboardingMapper onboardingMapper;
