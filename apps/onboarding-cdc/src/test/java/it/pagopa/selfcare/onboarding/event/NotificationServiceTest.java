@@ -39,7 +39,7 @@ class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event ADD")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventAdd() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventAdd() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now());
@@ -59,7 +59,7 @@ class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event UPDATE")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdate() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdate() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now().plusMinutes(10)); // 5 minutes should be the threshold
@@ -79,7 +79,7 @@ class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event UPDATE with status DELETED")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdateWithStatusDeleted() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdateWithStatusDeleted() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.DELETED);
         onboarding.setUpdatedAt(LocalDateTime.now()); // 5 minutes should be the threshold
@@ -103,7 +103,7 @@ class NotificationServiceTest {
     class NotificationServiceTestWithDisabledWatcherTest {
         @Test
         @DisplayName("Should not invoke Notification API when watcher is disabled")
-        public void shouldNotInvokeNotificationApiWhenWatcheIsDisabled() {
+        void shouldNotInvokeNotificationApiWhenWatcheIsDisabled() {
             Onboarding onboarding = new Onboarding();
             onboarding.setStatus(OnboardingStatus.DELETED);
             onboarding.setUpdatedAt(LocalDateTime.now()); // 5 minutes should be the threshold
