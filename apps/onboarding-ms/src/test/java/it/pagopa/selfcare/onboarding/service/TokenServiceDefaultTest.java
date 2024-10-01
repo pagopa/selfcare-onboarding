@@ -17,16 +17,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-class TokenServiceDefaultTest {
+public class TokenServiceDefaultTest {
 
     @Inject
     TokenServiceDefault tokenService;
