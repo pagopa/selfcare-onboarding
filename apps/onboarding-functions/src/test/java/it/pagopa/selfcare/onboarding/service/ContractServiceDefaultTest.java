@@ -40,9 +40,8 @@ class ContractServiceDefaultTest {
     @Inject
     PagoPaSignatureConfig pagoPaSignatureConfig;
 
-
-    final static String productNameExample = "product-name";
-    final static String pdfFormatFilename =  "%s_accordo_adesione.pdf";
+    static final String PRODUCT_NAME_EXAMPLE = "product-name";
+    static final String PDF_FORMAT_FILENAME =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){
@@ -101,7 +100,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent, pdfFormatFilename);
+        File contract = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameAccent, PDF_FORMAT_FILENAME);
 
         assertNotNull(contract);
 
@@ -125,7 +124,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
     }
 
     @Test
@@ -143,7 +142,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
     }
 
     @Test
@@ -155,7 +154,7 @@ class ContractServiceDefaultTest {
         User userManager = onboarding.getUsers().get(0);
         UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
 
-        PagoPaSignatureConfig pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
+        pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");
         contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo-path", true);
 
@@ -165,7 +164,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), productNameExample, pdfFormatFilename));
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
     }
 
 
@@ -183,7 +182,7 @@ class ContractServiceDefaultTest {
 
         Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
 
-        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId(), productNameExample));
+        assertNotNull(contractService.loadContractPDF(contractFilepath, onboarding.getId(), PRODUCT_NAME_EXAMPLE));
     }
 
     @Test
@@ -196,13 +195,13 @@ class ContractServiceDefaultTest {
         File pdf = mock(File.class);
         Mockito.when(azureBlobClient.getFileAsPdf(any())).thenReturn(pdf);
 
-        contractService.retrieveContractNotSigned(onboardingWorkflow, productNameExample);
+        contractService.retrieveContractNotSigned(onboardingWorkflow, PRODUCT_NAME_EXAMPLE);
 
         ArgumentCaptor<String> filepathActual = ArgumentCaptor.forClass(String.class);
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsPdf(filepathActual.capture());
         assertTrue(filepathActual.getValue().contains(onboarding.getId()));
-        assertTrue(filepathActual.getValue().contains(productNameExample));
+        assertTrue(filepathActual.getValue().contains(PRODUCT_NAME_EXAMPLE));
     }
 
 
