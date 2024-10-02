@@ -5,6 +5,7 @@ import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
@@ -115,6 +116,15 @@ public class PdfMapper {
                 .findFirst()
                 .map(userMailUuid -> getMailManager(validManager, userMailUuid))
                 .ifPresent(mail -> map.put("managerPEC", mail));
+
+
+        // TESTING
+        addInstitutionRegisterLabelValue(institution, map);
+
+        if (onboarding.getBilling() != null) {
+            map.put("institutionRecipientCode", Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
+        }
+
     }
 
     public static void setECData(Map<String, Object> map, Onboarding onboarding) {
