@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.product.service;
 
 import com.azure.storage.blob.models.BlobProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
@@ -23,16 +22,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ProductServiceCacheableTest {
-    final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
-    final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
-
-    final private String PRODUCT_JSON_STRING_EMPTY = "[]";
+    private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
 
     @Test
     void constructProduct() {
