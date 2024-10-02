@@ -188,13 +188,17 @@ public class PdfMapper {
     }
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {
-        if (institution.getPaymentServiceProvider() != null
-                && Objects.nonNull(institution.getPaymentServiceProvider().getBusinessRegisterNumber())) {
-            map.put("number", institution.getPaymentServiceProvider().getBusinessRegisterNumber());
-            map.put(INSTITUTION_REGISTER_LABEL_VALUE, "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n");
-        } else {
-            map.put(INSTITUTION_REGISTER_LABEL_VALUE, "");
+        String businessRegisterNumber = StringUtils.EMPTY;
+        String businessRegisterNumberLabel = StringUtils.EMPTY;
+
+        if (institution.getPaymentServiceProvider() != null) {
+            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(StringUtils.EMPTY);
+            businessRegisterNumberLabel = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n";
         }
+
+        map.put("number", businessRegisterNumber);
+        map.put(INSTITUTION_REGISTER_LABEL_VALUE, businessRegisterNumberLabel);
+
     }
 
     private static void decodePricingPlan(String pricingPlan, String productId, Map<String, Object> map) {
