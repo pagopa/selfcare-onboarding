@@ -35,23 +35,22 @@ class CheckOrganizationServiceDefaultTest {
     @RestClient
     ExternalTokenRestClient externalTokenRestClient;
 
-    private static final String fiscalCode = "fiscalCode";
-    private static final String vatNumber = "vatNumber";
-
-    private static final String accessToken = "accessToken";
+    private static final String FISCAL_CODE = "fiscalCode";
+    private static final String VAT_NUMBER = "vatNumber";
+    private static final String ACCESS_TOKEN = "accessToken";
 
     @Test
     void checkOrganizationSucceedsWhenFDApiInvocationSucceeds() {
         when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
-        when(externalRestClient.checkOrganization(fiscalCode, vatNumber, "Bearer " + accessToken)).thenReturn(getDummyOrganizationLightBeanResponse());
-        assertTrue(checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
+        when(externalRestClient.checkOrganization(FISCAL_CODE, VAT_NUMBER, "Bearer " + ACCESS_TOKEN)).thenReturn(getDummyOrganizationLightBeanResponse());
+        assertTrue(checkOrganizationService.checkOrganization(getMockedContext(), FISCAL_CODE, VAT_NUMBER));
     }
 
     @Test
     void checkOrganizationFailsWhenFDApiInvocationFails() {
         when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
-        when(externalRestClient.checkOrganization(fiscalCode, vatNumber, "Bearer " + accessToken)).thenThrow(new RuntimeException());
-        assertThrows(RuntimeException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), fiscalCode, vatNumber));
+        when(externalRestClient.checkOrganization(FISCAL_CODE, VAT_NUMBER, "Bearer " + ACCESS_TOKEN)).thenThrow(new RuntimeException());
+        assertThrows(RuntimeException.class, () -> checkOrganizationService.checkOrganization(getMockedContext(), FISCAL_CODE, VAT_NUMBER));
     }
 
     @Nested
@@ -67,7 +66,7 @@ class CheckOrganizationServiceDefaultTest {
     @Test
     void testTokenSucceedsWhenFDApiInvocationSucceeds() {
         when(externalTokenRestClient.getToken(any())).thenReturn(getDummyOauthToken());
-        assertEquals(accessToken, checkOrganizationService.testToken(getMockedContext()));
+        assertEquals(ACCESS_TOKEN, checkOrganizationService.testToken(getMockedContext()));
     }
 
     private OrganizationLightBeanResponse getDummyOrganizationLightBeanResponse() {
@@ -96,7 +95,7 @@ class CheckOrganizationServiceDefaultTest {
 
     private OauthToken getDummyOauthToken() {
         OauthToken oauthToken = new OauthToken();
-        oauthToken.setAccessToken(accessToken);
+        oauthToken.setAccessToken(ACCESS_TOKEN);
         oauthToken.setExpiresIn("3600");
         return oauthToken;
     }
