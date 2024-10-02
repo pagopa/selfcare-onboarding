@@ -12,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NotificationBuilderFactoryTest {
+class NotificationBuilderFactoryTest {
     @InjectMocks
     private NotificationBuilderFactory notificationBuilderFactory;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
     }
 
@@ -27,25 +27,25 @@ public class NotificationBuilderFactoryTest {
         return consumer;
     }
     @Test
-    public void createReturnsFdBuilderForFdTopic() {
+    void createReturnsFdBuilderForFdTopic() {
         NotificationBuilder result = notificationBuilderFactory.create(createConsumer(SC_CONTRACTS_FD.getValue()));
         assertTrue(result instanceof FdNotificationBuilder);
     }
 
     @Test
-    public void createReturnsSapBuilderForSapTopic() {
+    void createReturnsSapBuilderForSapTopic() {
         NotificationBuilder result = notificationBuilderFactory.create(createConsumer(SC_CONTRACTS_SAP.getValue()));
         assertTrue(result instanceof SapNotificationBuilder);
     }
 
     @Test
-    public void createReturnsCommonBuilderForCommonTopic() {
+    void createReturnsCommonBuilderForCommonTopic() {
         NotificationBuilder result = notificationBuilderFactory.create(createConsumer(SC_CONTRACTS.getValue()));
         assertTrue(result instanceof BaseNotificationBuilder);
     }
 
     @Test
-    public void createThrowsExceptionForUnsupportedTopic() {
+    void createThrowsExceptionForUnsupportedTopic() {
         assertThrows(IllegalArgumentException.class, () -> notificationBuilderFactory.create(createConsumer("unsupported_topic")));
     }
 

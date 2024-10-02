@@ -20,20 +20,19 @@ import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
-public class ExternalFunctionsTest {
+ class ExternalFunctionsTest {
     @Inject
     ExternalFunctions function;
     @InjectMock
     CheckOrganizationService checkOrganizationService;
 
-    final String ACK_PAYLOAD_OK = "{\"message\":\"message\"}";
-    final String ACK_PAYLOAD_BLANK = "{\"message\": \"\"}";
+    static final String ACK_PAYLOAD_OK = "{\"message\":\"message\"}";
+    static final String ACK_PAYLOAD_BLANK = "{\"message\": \"\"}";
 
     @Test
-    public void checkOrganizationTest() {
+    void checkOrganizationTest() {
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final Map<String, String> queryParams = new HashMap<>();
         queryParams.put("fiscalCode", "someFiscalCode");
@@ -53,7 +52,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void checkOrganizationFiscalCodeNullTest() {
+    void checkOrganizationFiscalCodeNullTest() {
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final Map<String, String> queryParams = new HashMap<>();
         queryParams.put("vatNumber", "vatNumber");
@@ -72,7 +71,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void checkOrganizationVatNumberNullTest() {
+    void checkOrganizationVatNumberNullTest() {
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final Map<String, String> queryParams = new HashMap<>();
         queryParams.put("fiscalCode", "fiscalCode");
@@ -91,7 +90,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void checkOrganizationAlreadyRegisteredNullTest() {
+    void checkOrganizationAlreadyRegisteredNullTest() {
         @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final Map<String, String> queryParams = new HashMap<>();
         queryParams.put("fiscalCode", "fiscalCode");
@@ -109,7 +108,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void messageAcknowledgmentRequestBodyEmpty() {
+    void messageAcknowledgmentRequestBodyEmpty() {
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -124,7 +123,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void messageAcknowledgmentRequestBodyHasBlankMessageInPayload() {
+    void messageAcknowledgmentRequestBodyHasBlankMessageInPayload() {
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -139,7 +138,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void messageAcknowledgmentOkStatusIsAck() {
+    void messageAcknowledgmentOkStatusIsAck() {
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -153,7 +152,7 @@ public class ExternalFunctionsTest {
     }
 
     @Test
-    public void messageAcknowledgmentOkStatusIsNack() {
+    void messageAcknowledgmentOkStatusIsNack() {
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();

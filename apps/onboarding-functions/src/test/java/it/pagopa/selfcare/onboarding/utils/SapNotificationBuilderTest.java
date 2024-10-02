@@ -58,7 +58,7 @@ class SapNotificationBuilderTest {
     static SapNotificationBuilder sapNotificationBuilder;
     
     @BeforeEach
-    public void setup() {
+    void setup() {
         consumer = mock(NotificationConfig.Consumer.class);
         when(consumer.topic()).thenReturn(SC_CONTRACTS_SAP.getValue());
         sapNotificationBuilder = new SapNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi, proxyRegistryUoApi, proxyRegistryAooApi);
@@ -268,7 +268,7 @@ class SapNotificationBuilderTest {
 
     @Test
     @DisplayName("Should allow notification for allowed institution type and origin")
-    public void shouldAllowNotificationForAllowedInstitutionTypeAndOrigin() {
+    void shouldAllowNotificationForAllowedInstitutionTypeAndOrigin() {
 
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
@@ -285,7 +285,7 @@ class SapNotificationBuilderTest {
 
     @Test
     @DisplayName("Should not allow notification for disallowed institution type")
-    public void shouldNotAllowNotificationForDisallowedInstitutionType() {
+    void shouldNotAllowNotificationForDisallowedInstitutionType() {
 
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
@@ -300,7 +300,7 @@ class SapNotificationBuilderTest {
 
     @Test
     @DisplayName("Should not allow notification for disallowed origin")
-    public void shouldNotAllowNotificationForDisallowedOrigin() {
+    void shouldNotAllowNotificationForDisallowedOrigin() {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
@@ -314,7 +314,7 @@ class SapNotificationBuilderTest {
 
     @Test
     @DisplayName("Should not allow notification for disallowed product (prodIo not Io Fast)")
-    public void shouldNotAllowNotificationForDisallowedProduct() {
+    void shouldNotAllowNotificationForDisallowedProduct() {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.getValue());
         onboarding.setPricingPlan(PricingPlan.BASE.name());
