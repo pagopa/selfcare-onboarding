@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.crypto;
 
 
-import it.pagopa.selfcare.onboarding.crypto.config.LocalCryptoConfig;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.io.IOUtils;
@@ -9,14 +8,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.cms.CMSProcessableByteArray;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.SignerInformation;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.util.Store;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,10 +17,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-public class PadesSignServiceTest {
+class PadesSignServiceTest {
 
     private PadesSignService service;
 
@@ -49,13 +36,13 @@ public class PadesSignServiceTest {
     private Pkcs7HashSignService pkcs7HashSignService;
 
     @BeforeEach
-    void setup() throws IOException {
+    void setup() {
         pkcs7HashSignService = mock(Pkcs7HashSignService.class);
         service = new PadesSignServiceImpl(pkcs7HashSignService);
     }
 
     @Test
-    protected void testPadesSign() throws IOException, GeneralSecurityException, OperatorCreationException, CMSException {
+    void testPadesSign() throws IOException {
         File inputFile = inputFilePath.toFile();
         File outputFile = getOutputPadesFile();
         if (outputFile.exists()) {
@@ -76,7 +63,7 @@ public class PadesSignServiceTest {
 
     @SuppressWarnings("unchecked")
     private void checkPadesSignature(File origFile, File signedFile)
-            throws IOException, CMSException, OperatorCreationException, GeneralSecurityException
+            throws IOException
     {
         PDDocument document = PDDocument.load(origFile);
         // get string representation of pages COSObject
