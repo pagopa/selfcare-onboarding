@@ -14,9 +14,11 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
@@ -37,6 +39,10 @@ public class AggregatesServiceDefaultTest {
 
     @Inject
     OnboardingMapper onboardingMapper;
+
+    @RestClient
+    @InjectMock
+    GeographicTaxonomiesApi geographicTaxonomiesApi;
 
     @RestClient
     @InjectMock
@@ -130,22 +136,28 @@ public class AggregatesServiceDefaultTest {
         uoResource.setTipoMail1("Pec");
         uoResource.setDenominazioneEnte("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
+        uoResource.setCodiceComuneISTAT("123");
 
         AOOResource aooResource = new AOOResource();
         aooResource.setTipoMail1("Pec");
         aooResource.setMail1("pec@Pec");
-        aooResource.setCodiceUniAoo("18SU3R");
+        aooResource.setCodiceUniAoo("18SU3S");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
+        aooResource.setCodiceComuneISTAT("123");
+
+        InstitutionResource institutionResource = mock(InstitutionResource.class);
+        when(institutionResource.getIstatCode()).thenReturn("123");
 
         WebClientApplicationException webClientApplicationException = mock(WebClientApplicationException.class);
         Response response = mock(Response.class);
         when(webClientApplicationException.getResponse()).thenReturn(response);
         when(response.getStatus()).thenReturn(404);
         AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregateAppIo.class);
+        when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
         when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
-        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(new InstitutionResource()));
+        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
         when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
-
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("123")).thenReturn(Uni.createFrom().item(new GeographicTaxonomyResource()));
         Uni<VerifyAggregateAppIoResponse> result = aggregatesServiceDefault.validateAppIoAggregatesCsv(file);
 
         VerifyAggregateAppIoResponse verifyAggregateResponse = result.await().indefinitely();
@@ -161,7 +173,8 @@ public class AggregatesServiceDefaultTest {
         assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getSubunitType());
         assertNotNull(aggregatesCsv.getCsvAggregateList().get(0).getVatNumber());
 
-        verify(aooApi,times(0)).findByUnicodeUsingGET("1437190414", null);
+        verify(geographicTaxonomiesApi,times(3)).retrieveGeoTaxonomiesByCodeUsingGET("123");
+        verify(aooApi,times(1)).findByUnicodeUsingGET("1437190414", null);
         verify(institutionApi,times(0)).findInstitutionUsingGET("00297110389", null, null);
 
     }
@@ -222,8 +235,8 @@ public class AggregatesServiceDefaultTest {
         AggregatesCsv aggregatesCsv = aggregatesServiceDefault.readItemsFromCsv(file, CsvAggregatePagoPa.class);
         Uni<VerifyAggregateResponse> result = aggregatesServiceDefault.validatePagoPaAggregatesCsv(file);
 
-        VerifyAggregateResponse verifyAggregateResponse = result.await().indefinitely();
-        assertNotNull(verifyAggregateResponse);
+        VerifyAggregateResponse verifyAggregatePagoPaResponse = result.await().indefinitely();
+        assertNotNull(verifyAggregatePagoPaResponse);
         assertNotNull(aggregatesCsv.getValidAggregates());
 
         assertTrue(!aggregatesCsv.getCsvAggregateList().isEmpty());

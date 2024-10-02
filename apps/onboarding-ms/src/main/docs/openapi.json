@@ -1466,6 +1466,15 @@
           "address" : {
             "type" : "string"
           },
+          "city" : {
+            "type" : "string"
+          },
+          "county" : {
+            "type" : "string"
+          },
+          "zipCode" : {
+            "type" : "string"
+          },
           "originId" : {
             "type" : "string"
           },
@@ -1492,6 +1501,9 @@
             "type" : "string"
           },
           "subunitType" : {
+            "type" : "string"
+          },
+          "vatNumber" : {
             "type" : "string"
           },
           "geographicTaxonomies" : {

@@ -12,6 +12,9 @@ public class AggregateAppIo {
     private String taxCode;
     private String vatNumber;
     private String address;
+    private String city;
+    private String county;
+    private String zipCode;
     private String originId;
     private String origin;
 

@@ -1075,6 +1075,12 @@ components:
           type: string
         address:
           type: string
+        city:
+          type: string
+        county:
+          type: string
+        zipCode:
+          type: string
         originId:
           type: string
         origin:
@@ -1095,6 +1101,8 @@ components:
         subunitCode:
           type: string
         subunitType:
+          type: string
+        vatNumber:
           type: string
         geographicTaxonomies:
           type: array
