@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerifyAggregateAppIoResponse"
+                $ref: "#/components/schemas/VerifiyAggregateResponseInterfaceAggregateAppIo"
         "401":
           description: Not Authorized
         "403":
@@ -1929,7 +1929,7 @@ components:
           $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
-    VerifyAggregateAppIoResponse:
+    VerifiyAggregateResponseInterfaceAggregateAppIo:
       type: object
       properties:
         aggregates:

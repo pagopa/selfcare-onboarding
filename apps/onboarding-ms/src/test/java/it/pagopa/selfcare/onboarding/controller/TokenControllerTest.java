@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @QuarkusTest
 @TestHTTPEndpoint(TokenController.class)
 @QuarkusTestResource(MongoTestResource.class)
-public class TokenControllerTest {
+class TokenControllerTest {
 
     @InjectMock
     private TokenService tokenService;

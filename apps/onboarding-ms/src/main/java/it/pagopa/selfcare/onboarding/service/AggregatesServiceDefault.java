@@ -100,10 +100,10 @@ public class AggregatesServiceDefault implements AggregatesService {
 
 
     @Override
-    public Uni<VerifyAggregateAppIoResponse> validateAppIoAggregatesCsv(File file) {
+    public Uni<VerifiyAggregateResponseInterface<AggregateAppIo>> validateAppIoAggregatesCsv(File file) {
         AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = readItemsFromCsv(file, CsvAggregateAppIo.class);
         List<CsvAggregateAppIo> csvAggregates = aggregatesCsv.getCsvAggregateList();
-        VerifyAggregateAppIoResponse verifyAggregateAppIoResponse = new VerifyAggregateAppIoResponse();
+        VerifiyAggregateResponseInterface<AggregateAppIo> verifyAggregateAppIoResponse = new VerifyAggregateAppIoResponse();
 
         return Multi.createFrom().iterable(csvAggregates)
                 .onItem().transformToUniAndMerge(csvAggregateAppIo ->
@@ -142,7 +142,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     }
 
-    private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateAppIoResponse verifyAggregateAppIoResponse) {
+    private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifiyAggregateResponseInterface<AggregateAppIo> verifyAggregateAppIoResponse) {
 
         return checkCsvAggregateAppIo(csvAggregateAppIo)
                 .onItem().invoke(aggregateAppIo -> verifyAggregateAppIoResponse.getAggregates().add(aggregateAppIo))
@@ -226,7 +226,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<AggregateAppIo> retrieveCityCountyAndMapIpaFieldForUO(UOResource uoResource, AggregateAppIo aggregateAppIo) {
         return retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(uoResource.getDenominazioneEnte(), uoResource.getIndirizzo(), uoResource.getCap(), uoResource.getCodiceIpa(), aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(uoResource.getDenominazioneEnte(), uoResource.getIndirizzo(), uoResource.getCap(),null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), uoResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }
@@ -234,7 +234,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<AggregateAppIo> retrieveCityCountyAndMapIpaFieldForAOO(AOOResource aooResource, AggregateAppIo aggregateAppIo) {
         return retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(aooResource.getDenominazioneEnte(), aooResource.getIndirizzo(), aooResource.getCap(), aooResource.getCodiceIpa(), aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(aooResource.getDenominazioneEnte(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), aooResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }

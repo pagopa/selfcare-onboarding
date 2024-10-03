@@ -53,7 +53,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/VerifyAggregateAppIoResponse"
+                  "$ref" : "#/components/schemas/VerifiyAggregateResponseInterfaceAggregateAppIo"
                 }
               }
             }
@@ -2635,7 +2635,7 @@
           }
         }
       },
-      "VerifyAggregateAppIoResponse" : {
+      "VerifiyAggregateResponseInterfaceAggregateAppIo" : {
         "type" : "object",
         "properties" : {
           "aggregates" : {
