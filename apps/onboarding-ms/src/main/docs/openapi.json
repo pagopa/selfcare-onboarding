@@ -1494,6 +1494,9 @@
           "subunitType" : {
             "type" : "string"
           },
+          "vatNumber" : {
+            "type" : "string"
+          },
           "geographicTaxonomies" : {
             "type" : "array",
             "items" : {
@@ -1517,6 +1520,30 @@
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
             }
+          },
+          "codeSDI" : {
+            "type" : "string"
+          },
+          "digitalAddress" : {
+            "type" : "string"
+          },
+          "city" : {
+            "type" : "string"
+          },
+          "county" : {
+            "type" : "string"
+          },
+          "taxCodePT" : {
+            "type" : "string"
+          },
+          "iban" : {
+            "type" : "string"
+          },
+          "service" : {
+            "type" : "string"
+          },
+          "syncAsyncMode" : {
+            "type" : "string"
           }
         }
       },
