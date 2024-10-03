@@ -117,14 +117,6 @@ public class PdfMapper {
                 .map(userMailUuid -> getMailManager(validManager, userMailUuid))
                 .ifPresent(mail -> map.put("managerPEC", mail));
 
-
-        // TESTING
-        addInstitutionRegisterLabelValue(institution, map);
-
-        if (onboarding.getBilling() != null) {
-            map.put("institutionRecipientCode", Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
-        }
-
     }
 
     public static void setECData(Map<String, Object> map, Onboarding onboarding) {
@@ -132,6 +124,14 @@ public class PdfMapper {
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
         map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
         map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
+    }
+
+    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding) {
+        addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
+
+        if (onboarding.getBilling() != null) {
+            map.put("institutionRecipientCode", Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
+        }
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
@@ -279,4 +279,5 @@ public class PdfMapper {
     private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {
         return Optional.ofNullable(resourceOfString).map(CertifiableFieldResourceOfstring::getValue).orElse("");
     }
+
 }
