@@ -7,49 +7,32 @@ import lombok.Data;
 public class CsvAggregateSend implements Csv {
 
     @CsvBindByPosition(position = 0)
-    private String description;
-
-    @CsvBindByPosition(position = 1)
-    private String pec;
-
-    @CsvBindByPosition(position = 2)
     private String taxCode;
 
-    @CsvBindByPosition(position = 3)
+    @CsvBindByPosition(position = 1)
     private String vatNumber;
 
-    @CsvBindByPosition(position = 4)
+    @CsvBindByPosition(position = 2)
     private String codeSDI;
 
-    @CsvBindByPosition(position = 5)
-    private String address;
-
-    @CsvBindByPosition(position = 6)
-    private String city;
-
-    @CsvBindByPosition(position = 7)
-    private String province;
-
-    @CsvBindByPosition(position = 8)
-    private String ipaCode;
-
-    @CsvBindByPosition(position = 9)
+    @CsvBindByPosition(position = 3)
     private String subunitType;
 
-    @CsvBindByPosition(position = 10)
+    @CsvBindByPosition(position = 4)
     private String subunitCode;
 
-    @CsvBindByPosition(position = 11)
+    @CsvBindByPosition(position = 5)
     private String adminAggregateName;
 
-    @CsvBindByPosition(position = 12)
+    @CsvBindByPosition(position = 6)
     private String adminAggregateSurname;
 
-    @CsvBindByPosition(position = 13)
+    @CsvBindByPosition(position = 7)
     private String adminAggregateTaxCode;
 
-    @CsvBindByPosition(position = 14)
+    @CsvBindByPosition(position = 8)
     private String adminAggregateEmail;
+
     private Integer rowNumber;
     @Override
     public void setRowNumber(int lineNumber) {

@@ -117,24 +117,14 @@ public interface OnboardingMapper {
         return localDateTime.atOffset(java.time.ZoneOffset.UTC);
     }
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateResponse toVerifyAggregateResponse(AggregatesCsv aggregatesCsv);
-
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateAppIoResponse toVerifyAggregateAppIoResponse(AggregatesCsv aggregatesCsv);
-
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateSendResponse toVerifyAggregateSendResponse(AggregatesCsv aggregatesCsv);
+    Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
     @Mapping(target = "users", source = ".")
-    AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
+    Aggregate csvToAggregateSend(CsvAggregateSend csvAggregateSend);
 
-    AggregateAppIo csvToAggregateAppIo(CsvAggregateAppIo csvAggregateIo);
+    Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
 
-    default List<AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
+    default List<Aggregate> mapCsvSendAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
         if (csvAggregateSendList == null) {
             return null;
         }
@@ -143,7 +133,7 @@ public interface OnboardingMapper {
                 .collect(Collectors.toList());
     }
 
-    default List<AggregateAppIo> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
+    default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
         if (csvAggregateAppIoList == null) {
             return Collections.emptyList();
         }
@@ -161,8 +151,6 @@ public interface OnboardingMapper {
         user.setSurname(csvAggregateSend.getAdminAggregateSurname());
         user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());
         user.setEmail(csvAggregateSend.getAdminAggregateEmail());
-        user.setRole(PartyRole.DELEGATE.value());
-
         return Collections.singletonList(user);
     }
 }
