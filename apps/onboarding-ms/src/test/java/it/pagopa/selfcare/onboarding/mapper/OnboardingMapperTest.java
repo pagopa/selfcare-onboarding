@@ -104,32 +104,32 @@ class OnboardingMapperTest {
     }
 
     @Test
-    void mapCsvAggregatesToAggregates_withValidList_returnsMappedList() {
+    void mapCsvSendAggregateToAggregates_withValidList_returnsMappedList() {
         List<CsvAggregateSend> input = List.of(new CsvAggregateSend());
-        List<AggregateSend> result = mapper.mapCsvAggregatesToAggregates(input);
+        List<Aggregate> result = mapper.mapCsvSendAggregatesToAggregates(input);
         assertNotNull(result);
         assertEquals(1, result.size());
     }
 
     @Test
-    void mapCsvAggregatesToAggregates_withNullList_returnsNull() {
+    void mapCsvSendAggregateToAggregates_withNullList_returnsNull() {
         List<CsvAggregateSend> input = null;
-        List<AggregateSend> result = mapper.mapCsvAggregatesToAggregates(input);
+        List<Aggregate> result = mapper.mapCsvSendAggregatesToAggregates(input);
         assertNull(result);
     }
 
     @Test
-    void mapCsvAppIoAggregatesToAggregates_withValidList_returnsMappedList() {
+    void mapCsvAppIoAggregateToAggregates_withValidList_returnsMappedList() {
         List<CsvAggregateAppIo> input = List.of(new CsvAggregateAppIo());
-        List<AggregateAppIo> result = mapper.mapCsvAppIoAggregatesToAggregates(input);
+        List<Aggregate> result = mapper.mapCsvAppIoAggregatesToAggregates(input);
         assertNotNull(result);
         assertEquals(1, result.size());
     }
 
     @Test
-    void mapCsvAppIoAggregatesToAggregates_withNullList_returnsEmptyList() {
+    void mapCsvAppIoAggregateToAggregates_withNullList_returnsEmptyList() {
         List<CsvAggregateAppIo> input = null;
-        List<AggregateAppIo> result = mapper.mapCsvAppIoAggregatesToAggregates(input);
+        List<Aggregate> result = mapper.mapCsvAppIoAggregatesToAggregates(input);
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }

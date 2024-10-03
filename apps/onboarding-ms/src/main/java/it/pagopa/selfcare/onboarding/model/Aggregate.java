@@ -3,11 +3,15 @@ package it.pagopa.selfcare.onboarding.model;
 import lombok.Data;
 import wiremock.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 @Data
-public class AggregateAppIo {
+public class Aggregate {
     private String subunitCode;
     private String subunitType;
     private String description;
+    private String codeSDI;
+    private List<AggregateUser> users;
     private String digitalAddress;
     private String taxCode;
     private String vatNumber;
