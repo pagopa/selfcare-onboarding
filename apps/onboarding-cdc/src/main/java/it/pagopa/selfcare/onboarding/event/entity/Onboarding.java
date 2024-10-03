@@ -42,4 +42,5 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private AdditionalInformations additionalInformations;
     private String reasonForReject;
     private Boolean isAggregator;
+    private Aggregator aggregator;
 }
