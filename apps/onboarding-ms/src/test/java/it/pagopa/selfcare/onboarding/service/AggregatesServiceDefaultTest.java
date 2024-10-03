@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 
 @QuarkusTest
-public class AggregatesServiceDefaultTest {
+class AggregatesServiceDefaultTest {
 
     @Inject
     AggregatesServiceDefault aggregatesServiceDefault;

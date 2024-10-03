@@ -1,6 +1,9 @@
 package it.pagopa.selfcare.onboarding.crypto;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 import java.io.FileInputStream;
@@ -8,11 +11,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Base64;
 
-import static uk.org.webcompere.systemstubs.SystemStubs.withEnvironmentVariables;
-
 class Pkcs7HashSignServiceTest {
 
-    private static final String testCert = "-----BEGIN CERTIFICATE-----\n" +
+    private static final String TEST_CERT = "-----BEGIN CERTIFICATE-----\n" +
             "MIIDnzCCAoegAwIBAgIUJ8/0z+sR6Llr9FcIGoc5nvZQydgwDQYJKoZIhvcNAQEL\n" +
             "BQAwXzELMAkGA1UEBhMCSVQxDTALBgNVBAgMBFJPTUUxDTALBgNVBAcMBFJPTUUx\n" +
             "DjAMBgNVBAoMBUlEUEFZMQ4wDAYDVQQLDAVJRFBBWTESMBAGA1UEAwwJbG9jYWxo\n" +
@@ -35,7 +36,7 @@ class Pkcs7HashSignServiceTest {
             "JDiI4WMkIMmYSzhMc/lfuDMGow==\n" +
             "-----END CERTIFICATE-----";
 
-    private static final String testPrivateKey = "-----BEGIN PRIVATE KEY-----\n" +
+    private static final String TEST_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" +
             "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCsM4kqzDAJop1g\n" +
             "ltodnPduAQiXvPUCtmk0jnhkZpdxGK2LCOv9b196dbr2YbsgCUhO4+1oi7iKCBdN\n" +
             "xJG5q6Wt6zYS+4/sqMvS1+jH8+y2poxnMsXzA5h8kTiInx99xAvrssnf9bCfYWFh\n" +
@@ -70,8 +71,8 @@ class Pkcs7HashSignServiceTest {
 
     @BeforeAll
     static void setup() throws Exception {
-        environmentVariables.set("CRYPTO_CERT", testCert);
-        environmentVariables.set("CRYPTO_PRIVATE_KEY", testPrivateKey);
+        environmentVariables.set("CRYPTO_CERT", TEST_CERT);
+        environmentVariables.set("CRYPTO_PRIVATE_KEY", TEST_PRIVATE_KEY);
         environmentVariables.setup();
     }
 

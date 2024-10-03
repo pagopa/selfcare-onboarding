@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @TestHTTPEndpoint(AggregatesController.class)
 @QuarkusTestResource(MongoTestResource.class)
 @TestSecurity(user = "userJwt")
-public class AggregatesControllerTest {
+class AggregatesControllerTest {
 
     @InjectMock
     AggregatesService aggregatesService;
