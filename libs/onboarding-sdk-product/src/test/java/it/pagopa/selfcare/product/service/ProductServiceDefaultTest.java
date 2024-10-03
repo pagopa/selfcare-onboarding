@@ -15,10 +15,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProductServiceDefaultTest {
+class ProductServiceDefaultTest {
 
-    final private String PRODUCT_JSON_STRING_EMPTY = "[]";
-    final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
+    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 

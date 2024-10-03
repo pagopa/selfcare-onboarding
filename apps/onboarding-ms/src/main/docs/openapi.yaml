@@ -999,12 +999,6 @@ components:
           type: string
         description:
           type: string
-        codeSDI:
-          type: string
-        users:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateUser"
         digitalAddress:
           type: string
         taxCode:
@@ -1058,19 +1052,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
-    AggregateUser:
-      type: object
-      properties:
-        name:
-          type: string
-        surname:
-          type: string
-        taxCode:
-          type: string
-        email:
-          type: string
-        role:
-          type: string
     BillingPaRequest:
       type: object
       properties:

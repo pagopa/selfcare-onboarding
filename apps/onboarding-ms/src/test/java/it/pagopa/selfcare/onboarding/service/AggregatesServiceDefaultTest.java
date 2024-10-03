@@ -2,11 +2,15 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
-import it.pagopa.selfcare.onboarding.model.*;
+import it.pagopa.selfcare.onboarding.model.Aggregate;
+import it.pagopa.selfcare.onboarding.model.RowError;
+import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
+import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -25,12 +29,11 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import java.io.File;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 
 @QuarkusTest
+@TestProfile(OnboardingTestProfile.class)
 class AggregatesServiceDefaultTest {
 
     @Inject
@@ -61,7 +64,6 @@ class AggregatesServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void testValidateAppIoAggregatesCsv() {
-
         File file = new File("src/test/resources/aggregates-appio.csv");
 
         UOResource uoResource = new UOResource();

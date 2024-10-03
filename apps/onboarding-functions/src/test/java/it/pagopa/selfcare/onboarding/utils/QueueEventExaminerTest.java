@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.utils;
 
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -26,14 +25,14 @@ class QueueEventExaminerTest {
     private NotificationConfig notificationConfig;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         notificationConfig = mock(NotificationConfig.class);
         when(notificationConfig.minutesThresholdForUpdateNotification()).thenReturn(5);
     }
 
     @Test
     @DisplayName("Should return ADD event for COMPLETED status and update within threshold")
-    public void shouldReturnAddEventForCompletedStatusAndUpdateWithinThreshold() {
+    void shouldReturnAddEventForCompletedStatusAndUpdateWithinThreshold() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now());
@@ -46,7 +45,7 @@ class QueueEventExaminerTest {
 
     @Test
     @DisplayName("Should return UPDATE event for COMPLETED status and update over threshold")
-    public void shouldReturnUpdateEventForCompletedStatusAndUpdateOverThreshold() {
+    void shouldReturnUpdateEventForCompletedStatusAndUpdateOverThreshold() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now());
@@ -59,7 +58,7 @@ class QueueEventExaminerTest {
 
     @Test
     @DisplayName("Should return UPDATE event for DELETED status")
-    public void shouldReturnUpdateEventForDeletedStatus() {
+    void shouldReturnUpdateEventForDeletedStatus() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.DELETED);
 
@@ -70,7 +69,7 @@ class QueueEventExaminerTest {
 
     @Test
     @DisplayName("Should throw IllegalArgumentException for unsupported status")
-    public void shouldThrowIllegalArgumentExceptionForUnsupportedStatus() {
+    void shouldThrowIllegalArgumentExceptionForUnsupportedStatus() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.PENDING);
 
