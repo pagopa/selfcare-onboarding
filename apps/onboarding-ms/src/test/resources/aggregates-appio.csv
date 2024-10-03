@@ -1,9 +1,10 @@
-Codice Fiscale*;P.IVA*;AOO/UO**;Codice Univoco**;PEC;Sede legale - Indirizzo;
-1307110484;1307110484;UO;18SU3R;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;;;;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;1307110484;AOO;18SU3R;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;1307110484;AOO;18SU3S;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;1307110484;;;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-;;;;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;1307110484;UO;;pec@Pec;Palazzo Vecchio Piazza Della Signoria
-1307110484;1307110484;UOAOO;;pec@Pec;Palazzo Vecchio Piazza Della Signoria
+Codice Fiscale*;P.IVA*;AOO/UO**;Codice Univoco**;
+1307110484;1307110484;UO;18SU3R
+1307110484;1307110484;UOO;18SU3R
+1307110484;;;
+1307110484;1307110484;AOO;18SU3R
+1307110484;1307110484;AOO;18SU3S
+1307110484;1307110484;;
+;;;
+1307110484;1307110484;UO;
+1307110484;1307110484;UOAOO;

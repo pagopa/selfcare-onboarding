@@ -3,7 +3,7 @@ package it.pagopa.selfcare.onboarding.model;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class CsvAggregateAppIoTest {
+class CsvAggregateTest {
 
     @Test
     void testCsvAggregateAppIoConstructorAndGetters() {
