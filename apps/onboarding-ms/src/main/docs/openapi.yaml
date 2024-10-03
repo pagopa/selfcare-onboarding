@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerifyAggregateAppIoResponse"
+                $ref: "#/components/schemas/VerifiyAggregateResponseInterfaceAggregateAppIo"
         "401":
           description: Not Authorized
         "403":
@@ -1075,6 +1075,12 @@ components:
           type: string
         address:
           type: string
+        city:
+          type: string
+        county:
+          type: string
+        zipCode:
+          type: string
         originId:
           type: string
         origin:
@@ -1095,6 +1101,8 @@ components:
         subunitCode:
           type: string
         subunitType:
+          type: string
+        vatNumber:
           type: string
         geographicTaxonomies:
           type: array
@@ -1921,7 +1929,7 @@ components:
           $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
-    VerifyAggregateAppIoResponse:
+    VerifiyAggregateResponseInterfaceAggregateAppIo:
       type: object
       properties:
         aggregates:

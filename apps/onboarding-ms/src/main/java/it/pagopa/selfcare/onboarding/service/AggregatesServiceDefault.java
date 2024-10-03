@@ -14,13 +14,16 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import lombok.extern.slf4j.Slf4j;
+import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
@@ -32,8 +35,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.opencsv.ICSVParser.DEFAULT_QUOTE_CHARACTER;
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 
 @ApplicationScoped
 @Slf4j
@@ -41,6 +47,11 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     private static final Logger LOG = Logger.getLogger(AggregatesServiceDefault.class);
 
+    protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
+
+    protected ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap = ExpiringMap.builder()
+            .expiration(7, TimeUnit.DAYS)
+            .build();
 
     @Inject
     OnboardingMapper onboardingMapper;
@@ -56,6 +67,10 @@ public class AggregatesServiceDefault implements AggregatesService {
     @RestClient
     @Inject
     UoApi uoApi;
+
+    @RestClient
+    @Inject
+    GeographicTaxonomiesApi geographicTaxonomiesApi;
 
     public static final String ERROR_READING_CSV = "Error reading CSV: ";
     public static final String MALFORMED_ROW = "Riga malformata";
@@ -81,18 +96,18 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SERVICE = "Servizio è obbligatorio";
     public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     private static final String ERROR_IPA_CODE = "Codice IPA è obbligatorio in caso di ente centrale";
+    private static final String PEC = "Pec";
 
 
     @Override
-    public Uni<VerifyAggregateAppIoResponse> validateAppIoAggregatesCsv(File file) {
+    public Uni<VerifiyAggregateResponseInterface<AggregateAppIo>> validateAppIoAggregatesCsv(File file) {
         AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = readItemsFromCsv(file, CsvAggregateAppIo.class);
         List<CsvAggregateAppIo> csvAggregates = aggregatesCsv.getCsvAggregateList();
-        VerifyAggregateAppIoResponse verifyAggregateAppIoResponse = new VerifyAggregateAppIoResponse();
-        verifyAggregateAppIoResponse.setAggregates(new ArrayList<>());
-        verifyAggregateAppIoResponse.setErrors(new ArrayList<>());
+        VerifiyAggregateResponseInterface<AggregateAppIo> verifyAggregateAppIoResponse = new VerifyAggregateAppIoResponse();
 
         return Multi.createFrom().iterable(csvAggregates)
-                .onItem().transformToUniAndMerge(csvAggregateAppIo -> checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregateAppIo, verifyAggregateAppIoResponse))
+                .onItem().transformToUniAndMerge(csvAggregateAppIo ->
+                        checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregateAppIo, verifyAggregateAppIoResponse))
                 .collect().asList()
                 .replaceWith(verifyAggregateAppIoResponse)
                 .onItem().invoke(() -> LOG.infof("CSV file validated end: %s valid row and %s invalid row",
@@ -127,7 +142,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     }
 
-    private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateAppIoResponse verifyAggregateAppIoResponse) {
+    private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifiyAggregateResponseInterface<AggregateAppIo> verifyAggregateAppIoResponse) {
 
         return checkCsvAggregateAppIo(csvAggregateAppIo)
                 .onItem().invoke(aggregateAppIo -> verifyAggregateAppIoResponse.getAggregates().add(aggregateAppIo))
@@ -192,48 +207,78 @@ public class AggregatesServiceDefault implements AggregatesService {
         if (StringUtils.isEmpty(aggregateAppIo.getSubunitType())) {
             return institutionApi.findInstitutionUsingGET(csvAggregateAppIo.getTaxCode(), null, null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
-                    .onItem().transform(institutionResource -> mapIpaFieldForPA(institutionResource, aggregateAppIo));
+                    .onItem().transformToUni(institutionResource -> retrieveCityCountyAndMapIpaFieldForPA(institutionResource, aggregateAppIo));
         } else if (InstitutionPaSubunitType.AOO.name().equals(aggregateAppIo.getSubunitType())) {
             return aooApi.findByUnicodeUsingGET(aggregateAppIo.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
                     .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
-                    .onItem().transform(aooResource -> mapIpaFieldForAOO(aooResource, aggregateAppIo));
-        } else if (InstitutionPaSubunitType.UO.name().equals(aggregateAppIo.getSubunitType())) {
+                    .onItem().transformToUni(aooResource -> retrieveCityCountyAndMapIpaFieldForAOO(aooResource, aggregateAppIo));
+        } else if (UO.name().equals(aggregateAppIo.getSubunitType())) {
             return uoApi.findByUnicodeUsingGET1(aggregateAppIo.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
                     .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
-                    .onItem().transform(uoResource -> mapIpaFieldForUO(uoResource, aggregateAppIo));
+                    .onItem().transformToUni(uoResource -> retrieveCityCountyAndMapIpaFieldForUO(uoResource, aggregateAppIo));
         } else {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_SUBUNIT_TYPE));
         }
     }
 
-    private AggregateAppIo mapIpaFieldForUO(UOResource uoResource, AggregateAppIo aggregateAppIo) {
-        if (Objects.equals(uoResource.getTipoMail1(), "Pec")) {
-            aggregateAppIo.setDigitalAddress(uoResource.getMail1());
-        }
-        aggregateAppIo.setDescription(uoResource.getDenominazioneEnte());
-        aggregateAppIo.setAddress(uoResource.getIndirizzo());
-        aggregateAppIo.setOriginId(uoResource.getCodiceIpa());
-        return aggregateAppIo;
+    private Uni<AggregateAppIo> retrieveCityCountyAndMapIpaFieldForUO(UOResource uoResource, AggregateAppIo aggregateAppIo) {
+        return retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
+                .onItem().transformToUni(geographicTaxonomyResource -> {
+                    mapIpaField(uoResource.getDenominazioneEnte(), uoResource.getIndirizzo(), uoResource.getCap(),null, aggregateAppIo, geographicTaxonomyResource);
+                    return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), uoResource.getCodiceFiscaleEnte(), aggregateAppIo);
+                });
     }
 
-    private AggregateAppIo mapIpaFieldForAOO(AOOResource aooResource, AggregateAppIo aggregateAppIo) {
-        if (Objects.equals(aooResource.getTipoMail1(), "Pec")) {
-            aggregateAppIo.setDigitalAddress(aooResource.getMail1());
-        }
-        aggregateAppIo.setDescription(aooResource.getDenominazioneEnte());
-        aggregateAppIo.setAddress(aooResource.getIndirizzo());
-        aggregateAppIo.setOriginId(aooResource.getCodiceIpa());
-        return aggregateAppIo;
+    private Uni<AggregateAppIo> retrieveCityCountyAndMapIpaFieldForAOO(AOOResource aooResource, AggregateAppIo aggregateAppIo) {
+        return retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
+                .onItem().transformToUni(geographicTaxonomyResource -> {
+                    mapIpaField(aooResource.getDenominazioneEnte(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
+                    return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), aooResource.getCodiceFiscaleEnte(), aggregateAppIo);
+                });
     }
 
-    private AggregateAppIo mapIpaFieldForPA(InstitutionResource institutionResource, AggregateAppIo aggregateAppIo) {
-        aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress());
-        aggregateAppIo.setDescription(institutionResource.getDescription());
-        aggregateAppIo.setAddress(institutionResource.getAddress());
-        aggregateAppIo.setOriginId(institutionResource.getOriginId());
-        return aggregateAppIo;
+    private Uni<AggregateAppIo> retrieveCityCountyAndMapIpaFieldForPA(InstitutionResource institutionResource, AggregateAppIo aggregateAppIo) {
+        return retrieveGeographicTaxonomies(institutionResource.getIstatCode())
+                .onItem().transform(geographicTaxonomyResource -> {
+                    mapIpaField(institutionResource.getDescription(), institutionResource.getAddress(), institutionResource.getZipCode(), institutionResource.getOriginId(), aggregateAppIo, geographicTaxonomyResource);aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress());
+                    return aggregateAppIo;
+                });
+    }
+
+    private Uni<AggregateAppIo> retrieveDigitalAddress(String mailType, String mail, String taxCode, AggregateAppIo aggregateAppIo) {
+        if (Objects.equals(mailType, PEC)) {
+            aggregateAppIo.setDigitalAddress(mail);
+            return Uni.createFrom().item(aggregateAppIo);
+        } else {
+            return institutionApi.findInstitutionUsingGET(taxCode, null, null)
+                    .onItem().invoke(institutionResource -> aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress()))
+                    .replaceWith(aggregateAppIo);
+        }
+    }
+
+    private static void mapIpaField(String description, String address, String zipCode, String originId, AggregateAppIo aggregateAppIo, GeographicTaxonomyFromIstatCode geographicTaxonomyFromIstatCode) {
+        aggregateAppIo.setCounty(geographicTaxonomyFromIstatCode.getCounty());
+        aggregateAppIo.setCity(geographicTaxonomyFromIstatCode.getCity());
+        aggregateAppIo.setDescription(description);
+        aggregateAppIo.setAddress(address);
+        aggregateAppIo.setZipCode(zipCode);
+        aggregateAppIo.setOriginId(originId);
+    }
+
+    private Uni<GeographicTaxonomyFromIstatCode> retrieveGeographicTaxonomies(String codiceIstat) {
+        GeographicTaxonomyFromIstatCode geographicTaxonomyFromIstatCode = expiringMap.get(codiceIstat);
+
+        if (Objects.isNull(geographicTaxonomyFromIstatCode)) {
+            return geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(codiceIstat)
+                    .map(geographicTaxonomyResource -> GeographicTaxonomyFromIstatCode.builder()
+                            .city(Optional.ofNullable(geographicTaxonomyResource.getDesc()).orElse("").replace(DESCRIPTION_TO_REPLACE_REGEX, ""))
+                            .county(geographicTaxonomyResource.getProvinceAbbreviation())
+                            .build())
+                    .onItem().invoke(entity -> expiringMap.put(codiceIstat, entity));
+        }
+        return Uni.createFrom().item(geographicTaxonomyFromIstatCode);
     }
 
     private Uni<Void> checkSubunitTypeSend(CsvAggregateSend csvAggregate) {
