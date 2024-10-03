@@ -40,7 +40,7 @@ class NotificationServiceDefaultTest {
     @Test
     @RunOnVertxContext
     @DisplayName("Should return void item and take in charge the notification resend")
-    public void shouldReturnVoidItemAndTakeInChargeNotificationResend() {
+    void shouldReturnVoidItemAndTakeInChargeNotificationResend() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
 
         UniAssertSubscriber<Void> subscriber = notificationServiceDefault.resendOnboardingNotifications(filters)
@@ -52,7 +52,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     @DisplayName("Should try to send all notifications when notifications api calls succeed")
-    public void shouldTryToSendAllNotifications() {
+    void shouldTryToSendAllNotifications() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
         mockOnboardingFind();
         when(notificationApi.apiNotificationPost(any(), any()))
@@ -69,7 +69,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     @DisplayName("Should try to send all notifications when notifications api calls throw ignorable error")
-    public void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError() {
+    void shouldTryToSendAllNotificationsWhenApiThrowIgnorableError() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
         mockOnboardingFind();
 
@@ -90,7 +90,7 @@ class NotificationServiceDefaultTest {
     @Test
     @RunOnVertxContext
     @DisplayName("Should not send all notifications when notifications api calls throw non ignorable error")
-    public void shouldNotSendAllNotificationsWhenApiThrowNonIgnorableError() {
+    void shouldNotSendAllNotificationsWhenApiThrowNonIgnorableError() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("COMPLETED").build();
         mockOnboardingFind();
 
@@ -126,7 +126,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     @DisplayName("Should resend notifications for deleted status")
-    public void shouldResendNotificationsForDeletedStatus() {
+    void shouldResendNotificationsForDeletedStatus() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("DELETED").build();
 
         notificationServiceDefault.resendOnboardingNotifications(filters);
@@ -134,7 +134,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     @DisplayName("Should throw InvalidRequestException when status is null")
-    public void shouldThrowInvalidRequestExceptionWhenStatusIsNull() {
+    void shouldThrowInvalidRequestExceptionWhenStatusIsNull() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().build();
 
         assertThrows(InvalidRequestException.class, () -> notificationServiceDefault.resendOnboardingNotifications(filters));
@@ -142,7 +142,7 @@ class NotificationServiceDefaultTest {
 
     @Test
     @DisplayName("Should throw InvalidRequestException when status is not COMPLETED or DELETED")
-    public void shouldThrowInvalidRequestExceptionWhenStatusIsNotCompletedOrDeleted() {
+    void shouldThrowInvalidRequestExceptionWhenStatusIsNotCompletedOrDeleted() {
         OnboardingGetFilters filters = OnboardingGetFilters.builder().status("INVALID_STATUS").build();
 
         assertThrows(InvalidRequestException.class, () -> notificationServiceDefault.resendOnboardingNotifications(filters));

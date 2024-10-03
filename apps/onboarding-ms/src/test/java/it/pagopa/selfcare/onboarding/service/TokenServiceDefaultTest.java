@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
-public class TokenServiceDefaultTest {
+class TokenServiceDefaultTest {
 
     @Inject
     TokenServiceDefault tokenService;
