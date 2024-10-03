@@ -1494,6 +1494,9 @@
           "subunitType" : {
             "type" : "string"
           },
+          "vatNumber" : {
+            "type" : "string"
+          },
           "geographicTaxonomies" : {
             "type" : "array",
             "items" : {
