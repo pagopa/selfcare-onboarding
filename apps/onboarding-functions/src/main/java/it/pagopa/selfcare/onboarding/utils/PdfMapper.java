@@ -132,6 +132,8 @@ public class PdfMapper {
         if (onboarding.getBilling() != null) {
             map.put("institutionRecipientCode", Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
         }
+
+        setECData(map, onboarding);
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
