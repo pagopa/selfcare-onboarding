@@ -207,6 +207,9 @@
               "$ref": "#/components/schemas/AggregateInstitution"
             }
           },
+          "aggregator": {
+            "$ref": "#/components/schemas/Aggregator"
+          },
           "billing": {
             "$ref": "#/components/schemas/Billing"
           },
@@ -352,6 +355,24 @@
             "type": "string"
           },
           "zipCode": {
+            "type": "string"
+          }
+        }
+      },
+      "Aggregator": {
+        "title": "Aggregator",
+        "type": "object",
+        "properties": {
+          "taxCode": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "originId": {
             "type": "string"
           }
         }

@@ -7,15 +7,9 @@ class CsvAggregateSendTest {
 
     @Test
     void testCsvAggregateSendConstructorAndGetters() {
-        String description = "Test Description";
-        String pec = "test@example.com";
         String taxCode = "TAX12345";
         String vatNumber = "VAT12345678";
         String codeSDI = "SDI123456";
-        String address = "Test Address";
-        String city = "Test City";
-        String province = "Test Province";
-        String ipaCode = "IPA12345";
         String subunitType = "Department";
         String subunitCode = "DEP001";
         String adminAggregateName = "Admin Name";

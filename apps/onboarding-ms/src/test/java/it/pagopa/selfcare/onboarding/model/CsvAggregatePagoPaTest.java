@@ -35,6 +35,7 @@ class CsvAggregatePagoPaTest {
         csvAggregatePagoPa.setService(service);
         csvAggregatePagoPa.setSyncAsyncMode(syncAsyncMode);
         csvAggregatePagoPa.setRowNumber(rowNumber);
+        csvAggregatePagoPa.setTaxCodePT(taxCodePT);
 
         assertEquals(description, csvAggregatePagoPa.getDescription());
         assertEquals(pec, csvAggregatePagoPa.getPec());

@@ -146,6 +146,8 @@ public interface OnboardingMapper {
         user.setSurname(csvAggregateSend.getAdminAggregateSurname());
         user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());
         user.setEmail(csvAggregateSend.getAdminAggregateEmail());
+        user.setRole(PartyRole.DELEGATE.value());
+
         return Collections.singletonList(user);
     }
 }

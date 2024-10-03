@@ -8,4 +8,5 @@ public class AggregateUser {
     private String surname;
     private String taxCode;
     private String email;
+    private String role;
 }
