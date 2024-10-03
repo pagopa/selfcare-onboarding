@@ -54,4 +54,17 @@ public class TokenController {
     public Uni<RestResponse<File>> getContract(@PathParam(value = "onboardingId") String onboardingId){
         return tokenService.retrieveContractNotSigned(onboardingId);
     }
+
+
+    @Operation(
+            summary = "Retrieve aggregates csv for a given onboarding and product",
+            description = "Downloads the aggregates csv associated with the specified onboarding ID and product."
+    )
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("/{onboardingId}/aggregates-csv/{productId}")
+    public Uni<RestResponse<File>> getAggregatesCsv(@PathParam(value = "onboardingId") String onboardingId,
+                                                    @PathParam(value = "productId") String productId){
+        return tokenService.retrieveAggregatesCsv(onboardingId, productId);
+    }
 }

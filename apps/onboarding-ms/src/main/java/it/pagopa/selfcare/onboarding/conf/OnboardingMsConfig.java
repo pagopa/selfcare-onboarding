@@ -29,6 +29,9 @@ public class OnboardingMsConfig {
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
     String contractPath;
 
+    @ConfigProperty(name = "onboarding-ms.blob-storage.path-aggregates")
+    String aggregatesPath;
+
     void onStart(@Observes StartupEvent ev) {
         log.info(String.format("Database %s is starting...", Onboarding.mongoDatabase().getName()));
     }

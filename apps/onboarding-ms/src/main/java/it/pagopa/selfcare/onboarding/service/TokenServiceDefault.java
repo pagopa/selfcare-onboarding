@@ -43,4 +43,15 @@ public class TokenServiceDefault implements TokenService {
                                         return response.build();
                                     }));
     }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
+        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, "aggregates.csv")))
+                                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                                .onItem().transform(csv -> {
+                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
+                                    response.header("Content-Disposition", "attachment;filename= aggregates.csv");
+                                    return response.build();
+                                });
+    }
 }
