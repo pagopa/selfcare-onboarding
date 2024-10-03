@@ -117,6 +117,7 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
         Onboarding onboarding = createOnboarding();
@@ -172,7 +173,7 @@ public class CompletionServiceDefaultTest {
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
     }
 
-    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
+    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
@@ -186,7 +187,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void persistUpadatedAt(){
+    void persistUpadatedAt() {
         Onboarding onboarding = createOnboarding();
 
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
@@ -282,6 +283,7 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePgAde() {
         Onboarding onboarding = createOnboarding();
@@ -302,6 +304,7 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePaAOO() {
         Onboarding onboarding = createOnboarding();
@@ -416,7 +419,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setInstitution(institution);
 
         WebApplicationException e = new WebApplicationException(404);
-        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null))
                 .thenThrow(e);
 
         InstitutionsResponse response = new InstitutionsResponse();
@@ -436,8 +439,7 @@ public class CompletionServiceDefaultTest {
     }
 
 
-
-    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
+    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
@@ -547,7 +549,7 @@ public class CompletionServiceDefaultTest {
     void sendCompletedEmailAggregate() {
 
         Onboarding onboarding = createOnboarding();
-        Aggregator aggregator= new Aggregator();
+        Aggregator aggregator = new Aggregator();
         aggregator.setDescription("description");
         onboarding.setAggregator(aggregator);
 
@@ -595,7 +597,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createDelegation(){
+    void createDelegation() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
         onboarding.getInstitution().setDescription("institution-description");
@@ -625,7 +627,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createDelegationWithNullAggregator(){
+    void createDelegationWithNullAggregator() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
         onboarding.getInstitution().setDescription("institution-description");

@@ -43,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerifyAggregateResponse"
+                $ref: "#/components/schemas/VerifyAggregateAppIoResponse"
         "401":
           description: Not Authorized
         "403":
@@ -350,6 +350,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/completion:
     post:
       tags:
@@ -420,6 +421,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/pa:
     post:
       tags:
@@ -816,6 +818,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/{onboardingId}/consume:
     put:
       tags:
@@ -975,6 +978,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/tokens:
     get:
       tags:
@@ -1054,6 +1058,30 @@ components:
           type: string
         otherNote:
           type: string
+    AggregateAppIo:
+      type: object
+      properties:
+        subunitCode:
+          type: string
+        subunitType:
+          type: string
+        description:
+          type: string
+        digitalAddress:
+          type: string
+        taxCode:
+          type: string
+        vatNumber:
+          type: string
+        address:
+          type: string
+        originId:
+          type: string
+        origin:
+          type: string
+        rowNumber:
+          format: int32
+          type: integer
     AggregateInstitutionRequest:
       required:
       - taxCode
@@ -1893,6 +1921,17 @@ components:
           $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
+    VerifyAggregateAppIoResponse:
+      type: object
+      properties:
+        aggregates:
+          type: array
+          items:
+            $ref: "#/components/schemas/AggregateAppIo"
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/RowError"
     VerifyAggregateResponse:
       type: object
       properties:

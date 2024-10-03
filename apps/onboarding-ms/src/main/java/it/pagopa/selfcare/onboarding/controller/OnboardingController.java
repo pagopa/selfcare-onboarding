@@ -20,10 +20,14 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
@@ -249,7 +253,8 @@ public class OnboardingController {
             description = "Perform complete operation of an user onboarding request receiving onboarding id and contract signed by the institution." +
                     "It checks the contract's signature and upload the contract on an azure storage" +
                     "At the end, function triggers async activities related to complete onboarding " +
-                    "that consist of create the institution, activate the onboarding and sending data to notification queue."
+                    "that consist of create the institution, activate the onboarding and sending data to notification queue.",
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @PUT
     @Path("/{onboardingId}/completeOnboardingUsers")
@@ -351,7 +356,8 @@ public class OnboardingController {
 
     @Operation(
             summary = "Get onboarding record by ID with user sensitive info.",
-            description = "Retrieve an onboarding record given its ID adding to user sensitive information"
+            description = "Retrieve an onboarding record given its ID adding to user sensitive information",
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Path("/{onboardingId}/withUserInfo")
@@ -374,7 +380,8 @@ public class OnboardingController {
     @Operation(
             summary = "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
             description = "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
-            operationId = "onboardingInstitutionUsingGET"
+            operationId = "onboardingInstitutionUsingGET",
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Tag(name = "support")
@@ -463,7 +470,8 @@ public class OnboardingController {
 
     @Operation(
             summary = "Validate recipientCode.",
-            description = "check if recipientCode is valid or not"
+            description = "check if recipientCode is valid or not",
+            extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
     @Path("/checkRecipientCode")
