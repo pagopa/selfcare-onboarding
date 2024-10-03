@@ -29,4 +29,6 @@ public interface CompletionService {
 
     void sendTestEmail(ExecutionContext context);
 
+    String existsDelegation(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+
 }

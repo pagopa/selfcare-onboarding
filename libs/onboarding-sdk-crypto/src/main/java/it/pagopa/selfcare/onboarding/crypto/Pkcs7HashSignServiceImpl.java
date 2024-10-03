@@ -6,7 +6,9 @@ import it.pagopa.selfcare.onboarding.crypto.config.LocalCryptoInitializer;
 import it.pagopa.selfcare.onboarding.crypto.utils.CMSTypedDataInputStream;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
-import org.bouncycastle.cms.*;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
@@ -15,7 +17,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Store;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 
@@ -54,4 +57,8 @@ public class Pkcs7HashSignServiceImpl implements Pkcs7HashSignService {
         }
     }
 
+    @Override
+    public boolean returnsFullPdf() {
+        return false;
+    }
 }

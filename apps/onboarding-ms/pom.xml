@@ -23,7 +23,6 @@
         <quarkus.platform.version>3.11.2</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.1.2</surefire-plugin.version>
-        <onboarding-sdk.version>0.2.1</onboarding-sdk.version>
         <quarkus-openapi-generator.version>2.4.1</quarkus-openapi-generator.version>
     </properties>
     <dependencyManagement>
@@ -139,22 +138,6 @@
             <artifactId>quarkus-test-security-jwt</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-common</artifactId>
-            <version>${onboarding-sdk.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-azure-storage</artifactId>
-            <version>${onboarding-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>it.pagopa.selfcare</groupId>
-            <artifactId>onboarding-sdk-product</artifactId>
-            <version>${onboarding-sdk.version}</version>
-        </dependency>
 
 
         <!-- https://mvnrepository.com/artifact/eu.europa.ec.joinup.sd-dss/dss-test -->
@@ -249,6 +232,17 @@
             <artifactId>wiremock-jre8-standalone</artifactId>
             <version>2.35.1</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-azure-storage</artifactId>
+            <version>0.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-product</artifactId>
+            <version>0.2.2</version>
         </dependency>
 
     </dependencies>
