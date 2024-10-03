@@ -175,6 +175,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transform(response -> institutionMapper.toEntity(response))
                 .onItem().transform(institution -> {
                     Onboarding onboarding = onboardingMapper.toEntity(request, userId);
+                    institution.setInstitutionType(request.getInstitutionType());
                     onboarding.setInstitution(institution);
                     onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
                     return onboarding;
@@ -303,12 +304,19 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
+
+        Log.infof("persist onboarding for: product %s, product parent %s", product.getId(), product.getParentId());
+
+        Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
+                ? product.getParent().getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
+
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
-                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING))
-                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING)))
+                .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING, onboarding.getInstitution().getInstitutionType()))
+                        .onItem().transformToUni(ignore -> validateUserAggregatesRoles(aggregates, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING, onboarding.getInstitution().getInstitutionType())))
                         .onItem().transformToUni(ignore -> retrieveAndSetUserAggregatesResources(onboardingPersisted, product, aggregates))
-                        .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, product))
+                        .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, roleMappings))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
     }
 
@@ -580,12 +588,18 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Void> retrieveAndSetUserAggregatesResources(Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
-        LOG.debug("Retrieving user resources for aggregates");
+
+        Log.infof("Retrieving user resources for aggregates: product %s, product parent %s", product.getId(), product.getParentId());
+
+        Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
+                ? product.getParent().getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
+
         if (!CollectionUtils.isEmpty(aggregates)) {
             return Multi.createFrom().iterable(aggregates)
                     .filter(aggregate -> !CollectionUtils.isEmpty(aggregate.getUsers()))
                     .onItem().invoke(aggregate -> LOG.debugf("Retrieving user resources for aggregate: %s", aggregate.getTaxCode()))
-                    .onItem().transformToUni(aggregate -> retrieveUserResources(aggregate.getUsers(), product)
+                    .onItem().transformToUni(aggregate -> retrieveUserResources(aggregate.getUsers(), roleMappings)
                             .onFailure().invoke(throwable -> LOG.errorf("Error during retrieving user resources for aggregate: %s", aggregate.getTaxCode(), throwable))
                             .onItem().invoke(users -> setUsersInAggregateToPersist(onboarding, aggregate, users)))
                     .concatenate().onItem().ignoreAsUni();
@@ -601,13 +615,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
     }
 
-    private Uni<List<User>> retrieveUserResources(List<UserRequest> users, Product product) {
-
-        Log.infof("Retrieving user resources for: product %s, product parent %s", product.getId(), product.getParentId());
-
-        Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
-                ? product.getParent().getRoleMappings()
-                : product.getRoleMappings();
+    private Uni<List<User>> retrieveUserResources(List<UserRequest> users,  Map<PartyRole, ProductRoleInfo> roleMappings) {
 
         return Multi.createFrom().iterable(users)
                 .onItem().transformToUni(user -> userRegistryApi
