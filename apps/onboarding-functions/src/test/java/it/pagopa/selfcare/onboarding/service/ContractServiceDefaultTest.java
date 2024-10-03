@@ -214,4 +214,31 @@ class ContractServiceDefaultTest {
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsText(any());
     }
+
+
+    @Test
+    void createContractPRV() {
+        // given
+        String contractFilepath = "contract";
+        String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
+        onboarding.setProductId("prod-pagopa");
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        // when
+        File result = contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME);
+
+        // then
+        assertNotNull(result);
+        Mockito.verify(azureBlobClient, Mockito.times(1)).
+                getFileAsText(contractFilepath);
+        Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
+        Mockito.verifyNoMoreInteractions(azureBlobClient);
+    }
 }
