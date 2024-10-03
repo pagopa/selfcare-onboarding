@@ -30,6 +30,7 @@ public class PdfMapper {
     public static final String PRICING_PLAN = "pricingPlan";
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
+    public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
     private PdfMapper() {
     }
@@ -130,7 +131,7 @@ public class PdfMapper {
         addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
 
         if (onboarding.getBilling() != null) {
-            map.put("institutionRecipientCode", Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
+            map.put(INSTITUTION_RECIPIENT_CODE, Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
         }
 
         setECData(map, onboarding);
@@ -147,7 +148,7 @@ public class PdfMapper {
 
         addInstitutionRegisterLabelValue(institution, map);
         if (onboarding.getBilling() != null) {
-            map.put("institutionRecipientCode",onboarding.getBilling().getRecipientCode());
+            map.put(INSTITUTION_RECIPIENT_CODE,onboarding.getBilling().getRecipientCode());
         }
 
         map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : UNDERSCORE);
@@ -176,7 +177,7 @@ public class PdfMapper {
 
         addInstitutionRegisterLabelValue(institution, map);
         if (billing != null) {
-            map.put("institutionRecipientCode", billing.getRecipientCode());
+            map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
         }
     }
 
