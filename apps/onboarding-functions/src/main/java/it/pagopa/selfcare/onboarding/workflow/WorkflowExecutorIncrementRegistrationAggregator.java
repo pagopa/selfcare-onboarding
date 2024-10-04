@@ -12,12 +12,15 @@ import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 
 public record WorkflowExecutorIncrementRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry,
                                                               OnboardingMapper onboardingMapper) implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, getOnboardingWorkflowString(objectMapper, onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.empty();
     }
 
