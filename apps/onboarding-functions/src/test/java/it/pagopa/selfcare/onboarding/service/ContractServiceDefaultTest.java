@@ -18,6 +18,7 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,6 +71,46 @@ class ContractServiceDefaultTest {
         user.setUserMailUuid("setUserMailUuid");
         onboarding.setUsers(List.of(user));
         return onboarding;
+    }
+
+    AggregateInstitution createAggregateInstitution(int number) {
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setTaxCode(String.format("taxCode%s", number));
+        aggregateInstitution.setOriginId(String.format("originId%s", number));
+        aggregateInstitution.setDescription(String.format("description%s", number));
+        aggregateInstitution.setVatNumber(String.format("vatNumber%s", number));
+        aggregateInstitution.setAddress(String.format("address%s", number));
+        aggregateInstitution.setCity(String.format("city%s", number));
+        aggregateInstitution.setCounty(String.format("county%s", number));
+        aggregateInstitution.setDigitalAddress(String.format("pec%s", number));
+        return aggregateInstitution;
+    }
+
+    AggregateInstitution createAggregateInstitutionAOO(int number) {
+        AggregateInstitution aggregateInstitution = createAggregateInstitution(number);
+        aggregateInstitution.setSubunitType("AOO");
+        aggregateInstitution.setSubunitCode(String.format("code%s", number));
+        return aggregateInstitution;
+    }
+
+    OnboardingWorkflow createOnboardingWorkflow() {
+        Onboarding onboarding = createOnboarding();
+        List<AggregateInstitution> aggregateInstitutionList = new ArrayList<>();
+
+        for (int i = 1; i <= 5; i++) {
+            AggregateInstitution aggregateInstitution = createAggregateInstitution(i);
+            aggregateInstitutionList.add(aggregateInstitution);
+        }
+
+        for(int i = 6; i<= 10; i++) {
+            AggregateInstitution aggregateInstitution = createAggregateInstitutionAOO(i);
+            aggregateInstitutionList.add(aggregateInstitution);
+        }
+
+        onboarding.setAggregates(aggregateInstitutionList);
+
+        return new OnboardingWorkflowAggregator(onboarding, "string");
+
     }
 
     UserResource createDummyUserResource(String id, String userMailUuid) {
@@ -213,5 +254,20 @@ class ContractServiceDefaultTest {
 
         Mockito.verify(azureBlobClient, times(1))
                 .getFileAsText(any());
+    }
+
+
+    @Test
+    void uploadCsvAggregates() throws IOException {
+        final String contractHtml = "contract";
+
+        OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflow();
+
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        contractService.uploadAggregatesCsv(onboardingWorkflow);
+
+        Mockito.verify(azureBlobClient, times(1))
+                .uploadFile(any(), any(), any());
     }
 }
