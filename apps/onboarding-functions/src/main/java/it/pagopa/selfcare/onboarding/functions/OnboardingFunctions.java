@@ -16,6 +16,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
+import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
 
@@ -36,6 +37,7 @@ public class OnboardingFunctions {
     public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Onboarding orchestration with instance ID = ";
     private final OnboardingService service;
     private final CompletionService completionService;
+    private final ContractService contractService;
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
     private final OnboardingMapper onboardingMapper;
@@ -44,10 +46,12 @@ public class OnboardingFunctions {
                                ObjectMapper objectMapper,
                                RetryPolicyConfig retryPolicyConfig,
                                CompletionService completionService,
+                               ContractService contractService,
                                OnboardingMapper onboardingMapper) {
         this.service = service;
         this.objectMapper = objectMapper;
         this.completionService = completionService;
+        this.contractService = contractService;
         this.onboardingMapper = onboardingMapper;
         final int maxAttempts = retryPolicyConfig.maxAttempts();
         final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
@@ -290,5 +294,11 @@ public class OnboardingFunctions {
         context.getLogger().info("TestSendEmail trigger processed a request");
         completionService.sendTestEmail(context);
         request.createResponseBuilder(HttpStatus.OK).build();
+    }
+
+    @FunctionName(CREATE_AGGREGATES_CSV_ACTIVITY)
+    public void createAggregatesCsv(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
+        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATES_CSV_ACTIVITY, onboardingWorkflowString));
+        contractService.uploadAggregatesCsv(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 }
