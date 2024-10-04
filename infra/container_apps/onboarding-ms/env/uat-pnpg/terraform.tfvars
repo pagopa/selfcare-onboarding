@@ -39,7 +39,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-pn-pg': ['*']}"
+    value = "{'prod-pn-pg': ['*'],'prod-pn-pg-dev': ['*'],'prod-pn-pg-hotfix': ['*'],'prod-pn-pg-test': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
