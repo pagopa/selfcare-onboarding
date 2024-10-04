@@ -43,75 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerifyAggregateAppIoResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v1/aggregates/verification/prod-pagopa:
-    post:
-      tags:
-      - Aggregates Controller
-      summary: Validate the data related to the aggregated entities present in a CSV
-        file
-      description: Validates aggregated entity data specific to the PROD-Pagopa environment
-        by processing the provided CSV file. This ensures that all entries meet the
-        required criteria before further processing.
-      operationId: verifyPagoPaAggregatesCsv
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              required:
-              - aggregates
-              type: object
-              properties:
-                aggregates:
-                  format: binary
-                  type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
                 $ref: "#/components/schemas/VerifyAggregateResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v1/aggregates/verification/prod-pn:
-    post:
-      tags:
-      - Aggregates Controller
-      summary: Validate the data related to the aggregated entities present in a CSV
-        file
-      description: Validates aggregated entity data specific to the PROD-PN environment
-        by processing the provided CSV file. This ensures that all entries meet the
-        required criteria before further processing.
-      operationId: verifySendAggregatesCsv
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              required:
-              - aggregates
-              type: object
-              properties:
-                aggregates:
-                  format: binary
-                  type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VerifyAggregateSendResponse"
         "401":
           description: Not Authorized
         "403":
@@ -1058,7 +990,7 @@ components:
           type: string
         otherNote:
           type: string
-    AggregateAppIo:
+    Aggregate:
       type: object
       properties:
         subunitCode:
@@ -1074,6 +1006,12 @@ components:
         vatNumber:
           type: string
         address:
+          type: string
+        city:
+          type: string
+        county:
+          type: string
+        zipCode:
           type: string
         originId:
           type: string
@@ -1096,6 +1034,8 @@ components:
           type: string
         subunitType:
           type: string
+        vatNumber:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -1112,45 +1052,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
-    AggregateSend:
-      type: object
-      properties:
-        description:
-          type: string
-        pec:
-          type: string
-        taxCode:
-          type: string
-        vatNumber:
-          type: string
         codeSDI:
           type: string
-        address:
+        digitalAddress:
           type: string
         city:
           type: string
-        province:
+        county:
           type: string
-        subunitType:
+        taxCodePT:
           type: string
-        subunitCode:
+        iban:
           type: string
-        users:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateUser"
-    AggregateUser:
-      type: object
-      properties:
-        name:
+        service:
           type: string
-        surname:
-          type: string
-        taxCode:
-          type: string
-        email:
-          type: string
-        role:
+        syncAsyncMode:
           type: string
     BillingPaRequest:
       type: object
@@ -1181,15 +1097,6 @@ components:
           type: string
         publicServices:
           type: boolean
-    DataProtectionOfficer:
-      type: object
-      properties:
-        address:
-          type: string
-        email:
-          type: string
-        pec:
-          type: string
     DataProtectionOfficerRequest:
       type: object
       properties:
@@ -1212,61 +1119,6 @@ components:
         code:
           type: string
         desc:
-          type: string
-    Institution:
-      type: object
-      properties:
-        id:
-          type: string
-        institutionType:
-          $ref: "#/components/schemas/InstitutionType"
-        taxCode:
-          type: string
-        subunitCode:
-          type: string
-        subunitType:
-          $ref: "#/components/schemas/InstitutionPaSubunitType"
-        origin:
-          $ref: "#/components/schemas/Origin"
-        originId:
-          type: string
-        city:
-          type: string
-        country:
-          type: string
-        county:
-          type: string
-        istatCode:
-          type: string
-        description:
-          type: string
-        digitalAddress:
-          type: string
-        address:
-          type: string
-        zipCode:
-          type: string
-        geographicTaxonomies:
-          type: array
-          items:
-            $ref: "#/components/schemas/GeographicTaxonomy"
-        rea:
-          type: string
-        shareCapital:
-          type: string
-        businessRegisterPlace:
-          type: string
-        supportEmail:
-          type: string
-        supportPhone:
-          type: string
-        imported:
-          type: boolean
-        paymentServiceProvider:
-          $ref: "#/components/schemas/PaymentServiceProvider"
-        dataProtectionOfficer:
-          $ref: "#/components/schemas/DataProtectionOfficer"
-        parentDescription:
           type: string
     InstitutionBaseRequest:
       required:
@@ -1800,19 +1652,6 @@ components:
       - OPERATOR
       - ADMIN_EA
       type: string
-    PaymentServiceProvider:
-      type: object
-      properties:
-        abiCode:
-          type: string
-        businessRegisterNumber:
-          type: string
-        legalRegisterNumber:
-          type: string
-        legalRegisterName:
-          type: string
-        vatNumberGroup:
-          type: boolean
     PaymentServiceProviderRequest:
       type: object
       properties:
@@ -1921,35 +1760,13 @@ components:
           $ref: "#/components/schemas/PartyRole"
         productRole:
           type: string
-    VerifyAggregateAppIoResponse:
-      type: object
-      properties:
-        aggregates:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateAppIo"
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/RowError"
     VerifyAggregateResponse:
       type: object
       properties:
         aggregates:
           type: array
           items:
-            $ref: "#/components/schemas/Institution"
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/RowError"
-    VerifyAggregateSendResponse:
-      type: object
-      properties:
-        aggregates:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateSend"
+            $ref: "#/components/schemas/Aggregate"
         errors:
           type: array
           items:

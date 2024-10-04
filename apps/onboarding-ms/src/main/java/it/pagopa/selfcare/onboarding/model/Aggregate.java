@@ -4,7 +4,7 @@ import lombok.Data;
 import wiremock.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
-public class AggregateAppIo {
+public class Aggregate {
     private String subunitCode;
     private String subunitType;
     private String description;
@@ -12,6 +12,9 @@ public class AggregateAppIo {
     private String taxCode;
     private String vatNumber;
     private String address;
+    private String city;
+    private String county;
+    private String zipCode;
     private String originId;
     private String origin;
 

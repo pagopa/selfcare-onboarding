@@ -27,6 +27,7 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private List<String> testEnvProductIds;
     private WorkflowType workflowType;
     private Institution institution;
+    private List<AggregateInstitution> aggregates;
     private List<User> users;
     private String pricingPlan;
     private Billing billing;
@@ -40,4 +41,6 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private String userRequestUid;
     private AdditionalInformations additionalInformations;
     private String reasonForReject;
+    private Boolean isAggregator;
+    private Aggregator aggregator;
 }
