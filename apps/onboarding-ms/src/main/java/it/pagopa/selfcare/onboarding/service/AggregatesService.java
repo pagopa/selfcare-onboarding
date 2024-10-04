@@ -7,6 +7,10 @@ import java.io.File;
 
 public interface AggregatesService {
 
+    Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv (File file);
+
+    Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv (File file);
+
     Uni<VerifyAggregateResponse> validateSendAggregatesCsv (File file);
 
 }

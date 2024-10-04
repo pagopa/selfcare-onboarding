@@ -24,18 +24,31 @@ public class AggregatesController {
     @Inject
     AggregatesService aggregatesService;
 
+    @Operation(
+            summary = "Validate the data related to the aggregated entities present in a CSV file",
+            description = "Validates aggregated entity data specific to the PROD-IO environment by processing the provided CSV file. This ensures that all entries meet the required criteria before further processing."
+    )
+    @POST
+    @Path("/verification/prod-io")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<VerifyAggregateResponse> verifyAppIoAggregatesCsv(@NotNull @RestForm("aggregates") File file){
+
+        return aggregatesService.validateAppIoAggregatesCsv(file);
+    }
 
     @Operation(
             summary = "Validate the data related to the aggregated entities present in a CSV file",
-            description = "Validates aggregated entity data specific to the PROD-PN environment by processing the provided CSV file. This ensures that all entries meet the required criteria before further processing."
+            description = "Validates aggregated entity data specific to the PROD-Pagopa environment by processing the provided CSV file. This ensures that all entries meet the required criteria before further processing."
     )
     @POST
-    @Path("/verification/prod-pn")
+    @Path("/verification/prod-pagopa")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<VerifyAggregateResponse> verifySendAggregatesCsv(@NotNull @RestForm("aggregates") File file){
+    public Uni<VerifyAggregateResponse> verifyPagoPaAggregatesCsv(@NotNull @RestForm("aggregates") File file){
 
-        return aggregatesService.validateSendAggregatesCsv(file);
+        return aggregatesService.validatePagoPaAggregatesCsv(file);
     }
+
 
 }

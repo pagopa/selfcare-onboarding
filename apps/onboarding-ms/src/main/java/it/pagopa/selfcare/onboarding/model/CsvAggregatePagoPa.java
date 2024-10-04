@@ -7,39 +7,21 @@ import lombok.Data;
 public class CsvAggregatePagoPa implements Csv {
 
     @CsvBindByPosition(position = 0)
-    private String description;
-
-    @CsvBindByPosition(position = 1)
-    private String pec;
-
-    @CsvBindByPosition(position = 2)
     private String taxCode;
 
-    @CsvBindByPosition(position = 3)
+    @CsvBindByPosition(position = 1)
     private String vatNumber;
 
-    @CsvBindByPosition(position = 4)
-    private String address;
-
-    @CsvBindByPosition(position = 5)
-    private String city;
-
-    @CsvBindByPosition(position = 6)
-    private String province;
-
-    @CsvBindByPosition(position = 7)
-    private String aggragateNamePT;
-
-    @CsvBindByPosition(position = 8)
+    @CsvBindByPosition(position = 2)
     private String taxCodePT;
 
-    @CsvBindByPosition(position = 9)
+    @CsvBindByPosition(position = 3)
     private String iban;
 
-    @CsvBindByPosition(position = 10)
+    @CsvBindByPosition(position = 4)
     private String service;
 
-    @CsvBindByPosition(position = 11)
+    @CsvBindByPosition(position = 5)
     private String syncAsyncMode;
 
     private Integer rowNumber;

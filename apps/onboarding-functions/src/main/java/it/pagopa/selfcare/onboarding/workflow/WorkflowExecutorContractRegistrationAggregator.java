@@ -1,31 +1,28 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowAggregator;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.AGGREGATOR;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper, onboardingWorkflow);
-        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, getOnboardingWorkflowString(objectMapper, onboardingWorkflow), optionsRetry, String.class).await();
+        ctx.callActivity(CREATE_AGGREGATES_CSV_ACTIVITY, onboardingWorkflowString, optionsRetry, String.class).await();
+        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.PENDING);

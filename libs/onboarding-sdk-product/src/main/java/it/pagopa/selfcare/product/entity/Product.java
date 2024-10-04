@@ -3,9 +3,7 @@ package it.pagopa.selfcare.product.entity;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Product {
 
@@ -22,6 +20,7 @@ public class Product {
     private Instant modifiedAt;
     private String modifiedBy;
     private Map<PartyRole, ProductRoleInfo> roleMappings;
+    private Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType;
     private String roleManagementURL;
     private Instant contractTemplateUpdatedAt;
     private String contractTemplatePath;
@@ -136,12 +135,38 @@ public class Product {
         this.modifiedBy = modifiedBy;
     }
 
-    public Map<PartyRole, ProductRoleInfo> getRoleMappings() {
+    /**
+     * This method returns roleMappings associate with a specific InstitutionType on roleMappingsByInstitutionType map.
+     * In case none InstitutionType exists on roleMappingsByInstitutionType, it returns roleMappings.
+     * @param institutionType InstitutionType
+     * @return Map<PartyRole, ProductRoleInfo>
+     */
+    public Map<PartyRole, ProductRoleInfo> getRoleMappings(String institutionType) {
+        if(Objects.nonNull(institutionType) && Objects.nonNull(roleMappingsByInstitutionType)
+                && roleMappingsByInstitutionType.containsKey(institutionType)){
+            return roleMappingsByInstitutionType.get(institutionType);
+        }
         return roleMappings;
+    }
+
+    public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
+        Map<PartyRole, List<ProductRoleInfo>> roleInfoMap = new HashMap<>();
+        Optional.ofNullable(roleMappings)
+                .ifPresent(roleMappings -> roleMappings.forEach((key, value) -> roleInfoMap.put(key, List.of(value))));
+        Optional.ofNullable(roleMappingsByInstitutionType)
+                .map(Map::values)
+                .ifPresent(items -> items.stream()
+                        .map(Map::entrySet)
+                        .forEach(item -> item.forEach(entry -> roleInfoMap.put(entry.getKey(), List.of(entry.getValue())))));
+        return roleInfoMap;
     }
 
     public void setRoleMappings(Map<PartyRole, ProductRoleInfo> roleMappings) {
         this.roleMappings = roleMappings;
+    }
+
+    public void setRoleMappingsByInstitutionType(Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType) {
+        this.roleMappingsByInstitutionType = roleMappingsByInstitutionType;
     }
 
     public String getRoleManagementURL() {

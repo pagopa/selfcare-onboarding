@@ -11,5 +11,6 @@ public interface AzureStorageConfig {
     String containerProduct();
     String contractPath();
     String productFilepath();
+    String aggregatesPath();
 
 }

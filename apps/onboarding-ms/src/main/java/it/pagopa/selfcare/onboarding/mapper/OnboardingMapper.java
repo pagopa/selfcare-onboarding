@@ -116,6 +116,8 @@ public interface OnboardingMapper {
 
     Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
+    Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
+
     @Mapping(target = "users", source = ".")
     Aggregate csvToAggregateSend(CsvAggregateSend csvAggregateSend);
 

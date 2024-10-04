@@ -27,6 +27,25 @@ class AggregatesControllerTest {
     @InjectMock
     AggregatesService aggregatesService;
 
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-appio.csv");
+
+        when(aggregatesService.validateAppIoAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-io")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validateAppIoAggregatesCsv(any());
+    }
 
     @TestSecurity(user = "userJwt")
     @Test
@@ -46,5 +65,26 @@ class AggregatesControllerTest {
 
         verify(aggregatesService, times(1))
                 .validateSendAggregatesCsv(any());
+    }
+
+
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesSendCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-pagopa.csv");
+
+        when(aggregatesService.validatePagoPaAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-pagopa")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validatePagoPaAggregatesCsv(any());
     }
 }
