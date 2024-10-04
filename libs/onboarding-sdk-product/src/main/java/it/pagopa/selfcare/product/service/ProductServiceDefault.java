@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static it.pagopa.selfcare.product.utils.ProductUtils.getProductRole;
+
 public class ProductServiceDefault implements ProductService {
 
     protected static final String REQUIRED_PRODUCT_ID_MESSAGE = "A product id is required";
@@ -75,7 +77,7 @@ public class ProductServiceDefault implements ProductService {
      * Utility method for validating role mappings that contains associations between Selfcare role and Product role.
      * Each Selfcare role must be only one Product role except OPERATOR.
      *
-     * @param roleMappings
+     * @param roleMappings Map<PartyRole, ? extends ProductRoleInfo>
      * @throws IllegalArgumentException    roleMappings is null or empty
      * @throws InvalidRoleMappingException Selfcare role have more than one Product role
      */
@@ -101,7 +103,7 @@ public class ProductServiceDefault implements ProductService {
      * Return a product by productId without any filter
      * retrieving data from institutionContractMappings map
      *
-     * @param productId
+     * @param productId String
      * @return Product
      * @throws IllegalArgumentException if @param id is null
      * @throws ProductNotFoundException if product is not found
@@ -156,7 +158,7 @@ public class ProductServiceDefault implements ProductService {
     /**
      * Returns the information for a single product if it has not PHASE_OUT,INACTIVE status and its parent has not PHASE_OUT,INACTIVE status
      *
-     * @param productId
+     * @param productId String
      * @return Product if it is valid or null if it has PHASE_OUT,INACTIVE status
      * @throws IllegalArgumentException product id is null
      * @throws ProductNotFoundException product id or its parent does not exist or have PHASE_OUT,INACTIVE status
@@ -177,25 +179,8 @@ public class ProductServiceDefault implements ProductService {
         }
 
         Product product = getProduct(productId);
-        return Optional.ofNullable(product.getRoleMappings())
-                .map(partyRoleProductRoleInfoMap -> getProductRole(productRole, role, product))
+        return Optional.ofNullable(getProductRole(productRole, role, product))
                 .orElseThrow(() -> new IllegalArgumentException(String.format("RoleMappings map for product %s not found", productId)));
-    }
-
-    /**
-     * The getProductRole function takes a productRole, role, and product as parameters.
-     * It returns the ProductRole object that matches the given role and product.
-     */
-    private static ProductRole getProductRole(String productRole, PartyRole role, Product product) {
-        ProductRoleInfo productRoleInfo = product.getRoleMappings().get(role);
-        if (productRoleInfo == null) {
-            throw new IllegalArgumentException(String.format("Role %s not found", role));
-        }
-        return Optional.ofNullable(productRoleInfo.getRoles())
-                .map(productRoles -> productRoles.stream().filter(prodRole -> prodRole.getCode().equals(productRole))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException(String.format("ProductRole %s not found for role %s", productRole, role))))
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Roles of ProductRoleInfo related to role %s not found", role)));
     }
 
     private static boolean statusIsNotValid(ProductStatus status) {
