@@ -17,6 +17,7 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -70,7 +71,9 @@ public class AggregatesServiceDefault implements AggregatesService {
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
 
     @Inject
-    public AggregatesServiceDefault(@ConfigProperty(name = "onboarding-ms.istat-cache-duration-minutes") int cacheDuration) {
+    public AggregatesServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig, @ConfigProperty(name = "onboarding-ms.istat-cache-duration-minutes") int cacheDuration) {
+        this.azureBlobClient = azureBlobClient;
+        this.onboardingMsConfig = onboardingMsConfig;
         this.expiringMap = ExpiringMap.builder()
                 .expiration(cacheDuration, TimeUnit.MINUTES)
                 .build();
