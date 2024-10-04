@@ -12,6 +12,7 @@ import it.pagopa.selfcare.onboarding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
@@ -88,6 +89,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SERVICE = "Servizio è obbligatorio";
     public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     private static final String PEC = "Pec";
+    private static final String FILE_NAME_AGGREGATES_CSV = "aggregates.csv";
 
 
     @Override
@@ -123,11 +125,11 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @Override
     public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
-        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, "aggregates.csv")))
+        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, FILE_NAME_AGGREGATES_CSV)))
                 .runSubscriptionOn(Executors.newSingleThreadExecutor())
                 .onItem().transform(csv -> {
                     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
-                    response.header("Content-Disposition", "attachment;filename=aggregates.csv");
+                    response.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + FILE_NAME_AGGREGATES_CSV);
                     return response.build();
                 });
     }

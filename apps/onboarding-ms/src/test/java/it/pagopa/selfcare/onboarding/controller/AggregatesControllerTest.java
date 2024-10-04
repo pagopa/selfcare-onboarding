@@ -61,7 +61,7 @@ class AggregatesControllerTest {
         given()
                 .when()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .get("csv/{onboardingId}/{productId}", onboardingId, productId)
+                .get("csv/{onboardingId}/products/{productId}", onboardingId, productId)
                 .then()
                 .statusCode(200);
 

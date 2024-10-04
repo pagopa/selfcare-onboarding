@@ -25,7 +25,7 @@
     "name" : "support"
   } ],
   "paths" : {
-    "/v1/aggregates/csv/{onboardingId}/{productId}" : {
+    "/v1/aggregates/csv/{onboardingId}/products/{productId}" : {
       "get" : {
         "tags" : [ "Aggregates Controller" ],
         "summary" : "Retrieve aggregates csv for a given onboarding and product",
