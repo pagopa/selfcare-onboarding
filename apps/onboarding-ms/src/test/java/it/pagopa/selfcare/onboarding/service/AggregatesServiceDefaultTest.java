@@ -122,7 +122,7 @@ class AggregatesServiceDefaultTest {
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(1), resp.getItem().getAggregates().get(1));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(2), resp.getItem().getAggregates().get(2));
-        Assertions.assertEquals(6, resp.getItem().getErrors().size());
+        Assertions.assertEquals(5, resp.getItem().getErrors().size());
         Assertions.assertEquals(verifyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
         Assertions.assertEquals(verifyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
         Assertions.assertEquals(verifyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
@@ -291,10 +291,9 @@ class AggregatesServiceDefaultTest {
 
         RowError error0 = new RowError(2, "1307110484", "SubunitType non valido");
         RowError error1 = new RowError(3, "1307110484", "La partita IVA è obbligatoria");
-        RowError error2 = new RowError(7, null, "Il codice fiscale è obbligatorio");
+        RowError error2 = new RowError(7, "1307110484", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
         RowError error4 = new RowError(4, "1307110484", "Codice fiscale non presente su IPA");
-        RowError error3 = new RowError(8, "1307110484", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
-        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2, error3));
+        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2));
         return verifyAggregateResponse;
     }
 
