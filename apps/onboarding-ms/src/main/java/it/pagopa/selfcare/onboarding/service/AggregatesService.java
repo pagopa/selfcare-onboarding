@@ -12,6 +12,7 @@ public interface AggregatesService {
 
     Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv (File file);
 
+    Uni<VerifyAggregateResponse> validateSendAggregatesCsv (File file);
 
     Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId);
 

@@ -51,7 +51,7 @@ class AggregatesControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getContract() {
+    void getAggregatesCsv() {
         final String onboardingId = "onboardingId";
         final String productId = "productId";
         RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
@@ -71,6 +71,27 @@ class AggregatesControllerTest {
     @TestSecurity(user = "userJwt")
     @Test
     void verifyAggregatesSendCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-send.csv");
+
+        when(aggregatesService.validateSendAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-pn")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validateSendAggregatesCsv(any());
+    }
+
+
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesPagoPaCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-pagopa.csv");
 
         when(aggregatesService.validatePagoPaAggregatesCsv(any()))

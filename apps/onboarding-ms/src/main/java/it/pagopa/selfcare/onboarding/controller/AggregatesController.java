@@ -52,6 +52,19 @@ public class AggregatesController {
     }
 
     @Operation(
+            summary = "Validate the data related to the aggregated entities present in a CSV file",
+            description = "Validates aggregated entity data specific to the PROD-PN environment by processing the provided CSV file. This ensures that all entries meet the required criteria before further processing."
+    )
+    @POST
+    @Path("/verification/prod-pn")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<VerifyAggregateResponse> verifySendAggregatesCsv(@NotNull @RestForm("aggregates") File file){
+
+        return aggregatesService.validateSendAggregatesCsv(file);
+    }
+
+    @Operation(
             summary = "Retrieve aggregates csv for a given onboarding and product",
             description = "Downloads the aggregates csv associated with the specified onboarding ID and product."
     )

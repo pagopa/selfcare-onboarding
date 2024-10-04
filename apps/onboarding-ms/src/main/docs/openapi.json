@@ -160,6 +160,51 @@
         } ]
       }
     },
+    "/v1/aggregates/verification/prod-pn" : {
+      "post" : {
+        "tags" : [ "Aggregates Controller" ],
+        "summary" : "Validate the data related to the aggregated entities present in a CSV file",
+        "description" : "Validates aggregated entity data specific to the PROD-PN environment by processing the provided CSV file. This ensures that all entries meet the required criteria before further processing.",
+        "operationId" : "verifySendAggregatesCsv",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "aggregates" ],
+                "type" : "object",
+                "properties" : {
+                  "aggregates" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/notification/resend" : {
       "post" : {
         "tags" : [ "Notification Controller" ],
@@ -1454,6 +1499,15 @@
           "description" : {
             "type" : "string"
           },
+          "recipientCode" : {
+            "type" : "string"
+          },
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateUser"
+            }
+          },
           "digitalAddress" : {
             "type" : "string"
           },
@@ -1542,7 +1596,7 @@
               "$ref" : "#/components/schemas/UserRequest"
             }
           },
-          "codeSDI" : {
+          "recipientCode" : {
             "type" : "string"
           },
           "digitalAddress" : {
@@ -1564,6 +1618,26 @@
             "type" : "string"
           },
           "syncAsyncMode" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AggregateUser" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "surname" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "role" : {
             "type" : "string"
           }
         }
