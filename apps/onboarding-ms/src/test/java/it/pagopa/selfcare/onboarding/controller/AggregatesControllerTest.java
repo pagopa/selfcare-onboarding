@@ -10,6 +10,8 @@ import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
+import jakarta.ws.rs.core.MediaType;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -45,6 +47,25 @@ class AggregatesControllerTest {
 
         verify(aggregatesService, times(1))
                 .validateAppIoAggregatesCsv(any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getAggregatesCsv() {
+        final String onboardingId = "onboardingId";
+        final String productId = "productId";
+        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
+        when(aggregatesService.retrieveAggregatesCsv(onboardingId,productId))
+                .thenReturn(Uni.createFrom().item(response.build()));
+
+        given()
+                .when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .get("csv/{onboardingId}/products/{productId}", onboardingId, productId)
+                .then()
+                .statusCode(200);
+
+
     }
 
     @TestSecurity(user = "userJwt")
