@@ -16,7 +16,6 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -112,6 +111,16 @@ public class AggregatesServiceDefault implements AggregatesService {
         AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregatePagoPa.class);
         List<CsvAggregatePagoPa> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregatePagoPaResponse = new VerifyAggregateResponse();
+
+        return Multi.createFrom().iterable(csvAggregates)
+                .onItem().transformToUniAndMerge(csvAggregatePagoPa -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregatePagoPa, verifyAggregatePagoPaResponse))
+                .collect().asList()
+                .replaceWith(verifyAggregatePagoPaResponse)
+                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
+                        verifyAggregatePagoPaResponse.getAggregates().size(),
+                        verifyAggregatePagoPaResponse.getErrors().size()));
+    }
+
     @Override
     public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
         return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, "aggregates.csv")))
@@ -121,15 +130,6 @@ public class AggregatesServiceDefault implements AggregatesService {
                     response.header("Content-Disposition", "attachment;filename=aggregates.csv");
                     return response.build();
                 });
-    }
-
-        return Multi.createFrom().iterable(csvAggregates)
-                .onItem().transformToUniAndMerge(csvAggregatePagoPa -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregatePagoPa, verifyAggregatePagoPaResponse))
-                .collect().asList()
-                .replaceWith(verifyAggregatePagoPaResponse)
-                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
-                        verifyAggregatePagoPaResponse.getAggregates().size(),
-                        verifyAggregatePagoPaResponse.getErrors().size()));
     }
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateResponse verifyAggregateAppIoResponse) {
