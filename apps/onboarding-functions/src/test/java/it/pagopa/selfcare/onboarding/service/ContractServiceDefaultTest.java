@@ -272,7 +272,7 @@ class ContractServiceDefaultTest {
 
     }
 
-                
+    @Test
     void createContractPRV() {
         // given
         String contractFilepath = "contract";
@@ -297,5 +297,5 @@ class ContractServiceDefaultTest {
         Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
         Mockito.verifyNoMoreInteractions(azureBlobClient);
     }
-    
+
 }
