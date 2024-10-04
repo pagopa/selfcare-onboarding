@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
 
-
 import java.util.List;
 
 
@@ -13,9 +12,13 @@ public class AggregateInstitution {
     private String description;
     private String subunitCode;
     private String subunitType;
+    private String vatNumber;
     private List<GeographicTaxonomy> geographicTaxonomies;
     private String address;
     private String zipCode;
+    private String county;
+    private String city;
+    private String digitalAddress;
     private String originId;
     private Origin origin;
     private List<User> users;
@@ -26,6 +29,14 @@ public class AggregateInstitution {
 
     public void setTaxCode(String taxCode) {
         this.taxCode = taxCode;
+    }
+
+    public String getVatNumber() {
+        return vatNumber;
+    }
+
+    public void setVatNumber(String vatNumber) {
+        this.vatNumber = vatNumber;
     }
 
     public List<User> getUsers() {return users;}
@@ -71,6 +82,18 @@ public class AggregateInstitution {
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
     }
+
+    public String getCounty() { return county; }
+
+    public void setCounty(String county) { this.county = county; }
+
+    public String getCity() { return city; }
+
+    public void setCity(String city) { this.city = city; }
+
+    public String getDigitalAddress() { return digitalAddress; }
+
+    public void setDigitalAddress(String digitalAddress) { this.digitalAddress = digitalAddress; }
 
     public List<GeographicTaxonomy> getGeographicTaxonomies() {
         return geographicTaxonomies;

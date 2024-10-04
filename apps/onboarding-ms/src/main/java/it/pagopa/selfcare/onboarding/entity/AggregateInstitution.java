@@ -1,9 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -22,5 +20,14 @@ public class AggregateInstitution {
     private Origin origin;
     private String vatNumber;
     private List<User> users;
+
+    private String codeSDI;
+    private String digitalAddress;
+    private String city;
+    private String county;
+    private String taxCodePT;
+    private String iban;
+    private String service;
+    private String syncAsyncMode;
 
 }
