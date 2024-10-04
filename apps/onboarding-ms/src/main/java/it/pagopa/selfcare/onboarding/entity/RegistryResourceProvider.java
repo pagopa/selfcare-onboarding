@@ -37,8 +37,9 @@ public class RegistryResourceProvider {
     StationsApi stationsApi;
 
     public Uni<Wrapper<?>> getResource(Onboarding onboarding) {
+        //todo add other origins
         return switch (onboarding.getInstitution().getOrigin()) {
-            case PDND_INFOCAMERE -> Uni.createFrom().item(new WrapperInfocamere(onboarding, infocamerePdndApi));
+            case PDND_INFOCAMERE -> Uni.createFrom().item(new WrapperPDNDInfocamere(onboarding, infocamerePdndApi));
             case ANAC -> Uni.createFrom().item(new WrapperANAC(onboarding, stationsApi));
             case IVASS -> Uni.createFrom().item(new WrapperIVASS(onboarding, insuranceCompaniesApi));
             default -> getResourceFromIPA(onboarding);

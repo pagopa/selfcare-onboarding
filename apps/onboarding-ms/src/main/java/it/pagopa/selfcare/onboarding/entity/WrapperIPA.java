@@ -22,9 +22,9 @@ public class WrapperIPA extends BaseWrapper<Uni<IPAEntity>> {
 
     public WrapperIPA(Onboarding onboarding, InstitutionApi institutionApi, UoApi uoApi) {
         super(onboarding);
-        registryResource = retrieveInstitution();
         client = institutionApi;
         uoClient = uoApi;
+        registryResource = retrieveInstitution();
     }
 
     @Override

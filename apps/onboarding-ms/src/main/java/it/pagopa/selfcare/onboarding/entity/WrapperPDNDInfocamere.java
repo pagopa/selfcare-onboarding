@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
@@ -9,7 +8,7 @@ import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 
-public class WrapperInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>> {
+public class WrapperPDNDInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>> {
 
      /* if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
                 || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
@@ -17,7 +16,7 @@ public class WrapperInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>> {
 
     private final InfocamerePdndApi client;
 
-    public WrapperInfocamere(Onboarding onboarding,  InfocamerePdndApi infocamerePdndApi) {
+    public WrapperPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
         super(onboarding);
         client = infocamerePdndApi;
         registryResource = retrieveInstitution();
