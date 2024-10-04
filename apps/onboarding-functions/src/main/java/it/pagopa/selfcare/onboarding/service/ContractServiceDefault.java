@@ -300,7 +300,7 @@ public class ContractServiceDefault implements ContractService {
                         institution.getAddress(),
                         institution.getCity(),
                         institution.getCounty(),
-                        Optional.ofNullable(institution.getSubunitType()).map(ignored -> institution.getOriginId()).orElse(""),
+                        Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
                         institution.getSubunitType(),
                         institution.getSubunitCode()
                 );
