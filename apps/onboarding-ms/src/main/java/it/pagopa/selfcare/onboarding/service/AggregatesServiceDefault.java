@@ -163,7 +163,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Aggregate> retrieveDataFromIpa(Aggregate aggregate) {
         aggregate.setOrigin(InstitutionResource.OriginEnum.IPA.value());
 
-        if (Objects.isNull(aggregate.getSubunitType())){
+        if (StringUtils.isEmpty(aggregate.getSubunitType())) {
             return institutionApi.findInstitutionUsingGET(aggregate.getTaxCode(), null, null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .onItem().transformToUni(institutionResource -> retrieveCityCountyAndMapIpaFieldForPA(institutionResource, aggregate));

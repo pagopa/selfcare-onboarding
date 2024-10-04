@@ -51,9 +51,9 @@ class AggregatesControllerTest {
     @TestSecurity(user = "userJwt")
     @Test
     void verifyAggregatesSendCsv_succeeds() {
-        File testFile = new File("src/test/resources/aggregates-send.csv");
+        File testFile = new File("src/test/resources/aggregates-pagopa.csv");
 
-        when(aggregatesService.validateSendAggregatesCsv(any()))
+        when(aggregatesService.validatePagoPaAggregatesCsv(any()))
                 .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
 
         given()
@@ -65,6 +65,6 @@ class AggregatesControllerTest {
                 .statusCode(200);
 
         verify(aggregatesService, times(1))
-                .validateSendAggregatesCsv(any());
+                .validatePagoPaAggregatesCsv(any());
     }
 }
