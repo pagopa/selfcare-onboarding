@@ -8,6 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
+@SuppressWarnings("java:S1068")
 public class AggregateInstitutionRequest {
     @NotNull(message = "taxCode is required")
     private String taxCode;
@@ -24,4 +25,14 @@ public class AggregateInstitutionRequest {
     private String originId;
     private Origin origin;
     private List<UserRequest> users;
+
+    private String codeSDI;
+    private String digitalAddress;
+    private String city;
+    private String county;
+    private String taxCodePT;
+    private String iban;
+    private String service;
+    private String syncAsyncMode;
+
 }
