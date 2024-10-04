@@ -54,5 +54,4 @@ public class TokenController {
     public Uni<RestResponse<File>> getContract(@PathParam(value = "onboardingId") String onboardingId){
         return tokenService.retrieveContractNotSigned(onboardingId);
     }
-
 }

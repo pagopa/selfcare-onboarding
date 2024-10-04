@@ -43,5 +43,4 @@ public class TokenServiceDefault implements TokenService {
                                         return response.build();
                                     }));
     }
-
 }

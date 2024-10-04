@@ -6,6 +6,8 @@ import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.Aggregate;
 import it.pagopa.selfcare.onboarding.model.RowError;
@@ -14,6 +16,7 @@ import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -60,6 +63,9 @@ class AggregatesServiceDefaultTest {
     @RestClient
     @InjectMock
     UoApi uoApi;
+
+    @InjectMock
+    AzureBlobClient azureBlobClient;
 
     @Test
     @RunOnVertxContext
@@ -183,5 +189,22 @@ class AggregatesServiceDefaultTest {
         RowError error3 = new RowError(8,"1307110484","In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
         verifyAggregateResponse.setErrors(List.of(error0, error1,error4,error2, error3));
         return verifyAggregateResponse;
+    }
+
+    @Test
+    void retrieveContractNotSigned() {
+        Token token = new Token();
+        token.setContractFilename("fileName");
+        final String onboardingId = "onboardingId";
+        final String productId = "productId";
+
+        when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+
+        UniAssertSubscriber<RestResponse<File>> subscriber = aggregatesServiceDefault.retrieveAggregatesCsv(onboardingId, productId)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        RestResponse<File> actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
     }
 }

@@ -30,8 +30,8 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
@@ -64,9 +64,13 @@ public class AggregatesServiceDefault implements AggregatesService {
     @Inject
     CsvService csvService;
 
+    private final AzureBlobClient azureBlobClient;
+    private final OnboardingMsConfig onboardingMsConfig;
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
 
-    public AggregatesServiceDefault (){
+    public AggregatesServiceDefault (AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig){
+        this.azureBlobClient = azureBlobClient;
+        this.onboardingMsConfig = onboardingMsConfig;
         this.expiringMap = ExpiringMap.builder()
                 .expiration(30, TimeUnit.MINUTES)
                 .build();
@@ -98,6 +102,16 @@ public class AggregatesServiceDefault implements AggregatesService {
                         verifyAggregateAppIoResponse.getErrors().size()));
     }
 
+    @Override
+    public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
+        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, "aggregates.csv")))
+                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                .onItem().transform(csv -> {
+                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
+                    response.header("Content-Disposition", "attachment;filename=aggregates.csv");
+                    return response.build();
+                });
+    }
 
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateResponse verifyAggregateAppIoResponse) {
