@@ -269,9 +269,9 @@ class ContractServiceDefaultTest {
 
         Mockito.verify(azureBlobClient, times(1))
                 .uploadFile(any(), any(), any());
-                
-                }
-                }
+
+    }
+
                 
     void createContractPRV() {
         // given
@@ -297,4 +297,5 @@ class ContractServiceDefaultTest {
         Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
         Mockito.verifyNoMoreInteractions(azureBlobClient);
     }
+    
 }
