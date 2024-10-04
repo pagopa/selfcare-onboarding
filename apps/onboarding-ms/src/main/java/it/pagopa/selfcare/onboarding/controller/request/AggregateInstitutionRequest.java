@@ -8,6 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
+@SuppressWarnings("java:S1068")
 public class AggregateInstitutionRequest {
     @NotNull(message = "taxCode is required")
     private String taxCode;
