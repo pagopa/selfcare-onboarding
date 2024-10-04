@@ -9,4 +9,6 @@ public interface AggregatesService {
 
     Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv (File file);
 
+    Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv (File file);
+
 }

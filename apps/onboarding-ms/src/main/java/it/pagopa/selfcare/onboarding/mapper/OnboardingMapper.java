@@ -116,6 +116,7 @@ public interface OnboardingMapper {
 
     Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
+    Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
         if (csvAggregateAppIoList == null) {

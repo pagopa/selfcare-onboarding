@@ -128,6 +128,47 @@ class AggregatesServiceDefaultTest {
 
     }
 
+    @Test
+    void testValidatePagoPaAggregatesCsv() {
+
+        File file = new File("src/test/resources/aggregates-pagopa.csv");
+
+        WebClientApplicationException webClientApplicationException = mock(WebClientApplicationException.class);
+        Response response = mock(Response.class);
+        when(webClientApplicationException.getResponse()).thenReturn(response);
+        when(response.getStatus()).thenReturn(404);
+
+        InstitutionResource institutionResource = mock(InstitutionResource.class);
+        when(institutionResource.getIstatCode()).thenReturn("789");
+        when(institutionResource.getOriginId()).thenReturn("test");
+        when(institutionResource.getDigitalAddress()).thenReturn("pec@Pec");
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCode("789");
+        geographicTaxonomyResource.setDesc("città");
+        geographicTaxonomyResource.setProvinceAbbreviation("Provincia");
+
+        VerifyAggregateResponse verifiyAggregateResponse = mockPagoPaResponse();
+        when(institutionApi.findInstitutionUsingGET("12345678901", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
+        when(institutionApi.findInstitutionUsingGET("12345901", null, null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("789")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
+
+        UniAssertSubscriber<VerifyAggregateResponse> resp = aggregatesServiceDefault.validatePagoPaAggregatesCsv(file)
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+
+        Assertions.assertEquals(1, resp.getItem().getAggregates().size());
+        Assertions.assertEquals(verifiyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
+        Assertions.assertEquals(7, resp.getItem().getErrors().size());
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(3), resp.getItem().getErrors().get(3));
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(4), resp.getItem().getErrors().get(4));
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(5), resp.getItem().getErrors().get(5));
+
+    }
+
     private static VerifyAggregateResponse mockResponseForIO() {
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
         Aggregate aggregateUO = new Aggregate();
@@ -182,6 +223,41 @@ class AggregatesServiceDefaultTest {
         RowError error4 = new RowError(4,"1307110484","Codice fiscale non presente su IPA");
         RowError error3 = new RowError(8,"1307110484","In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
         verifyAggregateResponse.setErrors(List.of(error0, error1,error4,error2, error3));
+        return verifyAggregateResponse;
+    }
+
+    private VerifyAggregateResponse mockPagoPaResponse() {
+        VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
+        Aggregate aggregate = new Aggregate();
+        aggregate.setSubunitCode(null);
+        aggregate.setSubunitType(null);
+        aggregate.setDescription(null);
+        aggregate.setDigitalAddress("pec@Pec");
+        aggregate.setTaxCode("12345678901");
+        aggregate.setVatNumber("12345678901");
+        aggregate.setAddress(null);
+        aggregate.setCity("città");
+        aggregate.setCounty("Provincia");
+        aggregate.setZipCode(null);
+        aggregate.setOriginId(null);
+        aggregate.setOrigin("IPA");
+        aggregate.setOriginId("test");
+        aggregate.setService("XXXXXXX");
+        aggregate.setIban("IT60 X054 2811 1010 0000 0123 456");
+        aggregate.setSyncAsyncMode("Sincrona");
+        aggregate.setTaxCodePT("98765432101");
+        aggregate.setRowNumber(1);
+
+        verifyAggregateResponse.setAggregates(List.of(aggregate));
+
+        RowError error0 = new RowError(2,null, "Il codice fiscale è obbligatorio");
+        RowError error1 = new RowError(3,"12345678901","La partita IVA è obbligatoria");
+        RowError error2 = new RowError(4,"12345678901","Codice Fiscale Partner Tecnologico è obbligatorio");
+        RowError error3 = new RowError(5,"12345678901","IBAN è obbligatorio");
+        RowError error4 = new RowError(6,"12345678901","Servizio è obbligatorio");
+        RowError error5 = new RowError(7,"12345678901","Modalità Sincrona/Asincrona è obbligatorio");
+
+        verifyAggregateResponse.setErrors(List.of(error0, error1,error2,error3, error4, error5));
         return verifyAggregateResponse;
     }
 }
