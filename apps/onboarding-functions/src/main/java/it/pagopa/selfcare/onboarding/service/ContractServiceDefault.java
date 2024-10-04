@@ -58,6 +58,12 @@ public class ContractServiceDefault implements ContractService {
 
     private final String logoPath;
 
+    private static final String[] CSV_HEADERS = {
+            "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
+            "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
+            "Codice IPA", "AOO/UO", "Codice Univoco"
+    };
+
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
@@ -267,17 +273,12 @@ public class ContractServiceDefault implements ContractService {
     }
 
     private File generateCsv(List<AggregateInstitution> institutions, Path filePath) {
-        String[] headers = {
-                "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
-                "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
-                "Codice IPA", "AOO/UO", "Codice Univoco"
-        };
 
         File csvFile = filePath.toFile();
 
         // Using the builder pattern to create the CSV format with headers
         CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
-                .setHeader(headers)
+                .setHeader(CSV_HEADERS)
                 .setDelimiter(';')
                 .build();
 
@@ -286,9 +287,6 @@ public class ContractServiceDefault implements ContractService {
 
             // Iterate over each AggregateInstitution object and write a row for each one
             for (AggregateInstitution institution : institutions) {
-
-                // Determine the value of Codice IPA
-                String codiceIpa = institution.getSubunitType() == null ? institution.getOriginId() : "";
 
                 // Write the row with the institution data
                 csvPrinter.printRecord(
@@ -299,7 +297,7 @@ public class ContractServiceDefault implements ContractService {
                         institution.getAddress(),
                         institution.getCity(),
                         institution.getCounty(),
-                        codiceIpa,
+                        Optional.ofNullable(institution.getSubunitType()).map(ignored -> institution.getOriginId()).orElse(""),
                         institution.getSubunitType(),
                         institution.getSubunitCode()
                 );
