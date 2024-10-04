@@ -27,6 +27,9 @@ public class CsvService {
     public static final String ERROR_READING_CSV = "Error reading CSV: ";
     public static final String MALFORMED_ROW = "Riga malformata";
 
+    public static final String NOTE_PREFIX = "Note:";
+    public static final String REQUIREMENT_PREFIX = "(*";
+
     public <T extends Csv> AggregatesCsv<T> readItemsFromCsv(File file, Class<T> csv) {
         List<Csv> resultList = new ArrayList<>();
         List<RowError> errors = new ArrayList<>();
@@ -41,8 +44,7 @@ public class CsvService {
             String nextLine;
 
             while ((nextLine = bufferedReader.readLine()) != null) {
-                if (!nextLine.startsWith("(*") && !nextLine.startsWith("Note:")
-                        && !isBlankRow(nextLine, ';')) {
+                if (!nextLine.startsWith(REQUIREMENT_PREFIX) && !nextLine.startsWith(NOTE_PREFIX) && !isBlankRow(nextLine)) {
                     parseLine(nextLine, lineNumber, resultList, errors, csv);
                     lineNumber++;
                 }
@@ -56,8 +58,8 @@ public class CsvService {
         }
     }
 
-    public static boolean isBlankRow(String line, char separator) {
-        String[] values = line.split(String.valueOf(separator));
+    public static boolean isBlankRow(String line) {
+        String[] values = line.split(";");
         for (String value : values) {
             if (!value.trim().isEmpty()) {
                 return false;
