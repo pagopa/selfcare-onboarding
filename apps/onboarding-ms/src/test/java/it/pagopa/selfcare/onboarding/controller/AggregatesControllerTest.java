@@ -47,10 +47,30 @@ class AggregatesControllerTest {
                 .validateAppIoAggregatesCsv(any());
     }
 
-
     @TestSecurity(user = "userJwt")
     @Test
     void verifyAggregatesSendCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-send.csv");
+
+        when(aggregatesService.validateSendAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-pn")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validateSendAggregatesCsv(any());
+    }
+
+
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesPagoPaCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-pagopa.csv");
 
         when(aggregatesService.validatePagoPaAggregatesCsv(any()))

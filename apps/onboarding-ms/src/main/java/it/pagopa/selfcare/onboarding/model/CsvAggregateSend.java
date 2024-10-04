@@ -13,7 +13,7 @@ public class CsvAggregateSend implements Csv {
     private String vatNumber;
 
     @CsvBindByPosition(position = 2)
-    private String codeSDI;
+    private String recipientCode;
 
     @CsvBindByPosition(position = 3)
     private String subunitType;
