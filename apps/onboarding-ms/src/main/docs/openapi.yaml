@@ -16,6 +16,39 @@ tags:
 - name: internal-v1
 - name: support
 paths:
+  /v1/aggregates/csv/{onboardingId}/{productId}:
+    get:
+      tags:
+      - Aggregates Controller
+      summary: Retrieve aggregates csv for a given onboarding and product
+      description: Downloads the aggregates csv associated with the specified onboarding
+        ID and product.
+      operationId: getAggregatesCsv
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/aggregates/verification/prod-io:
     post:
       tags:
@@ -1001,39 +1034,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/TokenResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v1/tokens/{onboardingId}/aggregates-csv/{productId}:
-    get:
-      tags:
-      - Token Controller
-      summary: Retrieve aggregates csv for a given onboarding and product
-      description: Downloads the aggregates csv associated with the specified onboarding
-        ID and product.
-      operationId: getAggregatesCsv
-      parameters:
-      - name: onboardingId
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: productId
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/octet-stream:
-              schema:
-                format: binary
-                type: string
         "401":
           description: Not Authorized
         "403":

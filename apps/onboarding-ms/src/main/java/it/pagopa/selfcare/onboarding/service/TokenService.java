@@ -12,6 +12,5 @@ public interface TokenService {
 
     Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId);
 
-    Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId);
 
 }

@@ -5,7 +5,9 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -13,10 +15,12 @@ import it.pagopa.selfcare.onboarding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
@@ -32,6 +36,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 
 import static com.opencsv.ICSVParser.DEFAULT_QUOTE_CHARACTER;
 
@@ -81,6 +86,13 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SERVICE = "Servizio è obbligatorio";
     public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     private static final String ERROR_IPA_CODE = "Codice IPA è obbligatorio in caso di ente centrale";
+    private final AzureBlobClient azureBlobClient;
+    private final OnboardingMsConfig onboardingMsConfig;
+
+    public AggregatesServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
+        this.azureBlobClient = azureBlobClient;
+        this.onboardingMsConfig = onboardingMsConfig;
+    }
 
 
     @Override
@@ -125,6 +137,17 @@ public class AggregatesServiceDefault implements AggregatesService {
                         aggregatesCsv.getValidAggregates().size(),
                         aggregatesCsv.getRowErrorList().size()));
 
+    }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
+        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, "aggregates.csv")))
+                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                .onItem().transform(csv -> {
+                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
+                    response.header("Content-Disposition", "attachment;filename=aggregates.csv");
+                    return response.build();
+                });
     }
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateAppIoResponse verifyAggregateAppIoResponse) {
