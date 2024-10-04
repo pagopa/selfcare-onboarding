@@ -50,7 +50,7 @@ public class TokenServiceDefault implements TokenService {
                                 .runSubscriptionOn(Executors.newSingleThreadExecutor())
                                 .onItem().transform(csv -> {
                                     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
-                                    response.header("Content-Disposition", "attachment;filename= aggregates.csv");
+                                    response.header("Content-Disposition", "attachment;filename=aggregates.csv");
                                     return response.build();
                                 });
     }
