@@ -227,7 +227,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForUO(UOResource uoResource, Aggregate aggregateAppIo) {
         return retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(uoResource.getDenominazioneEnte(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(uoResource.getDescrizioneUo(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), uoResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }
@@ -235,7 +235,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForAOO(AOOResource aooResource, Aggregate aggregateAppIo) {
         return retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(aooResource.getDenominazioneEnte(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(aooResource.getDenominazioneAoo(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), aooResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }

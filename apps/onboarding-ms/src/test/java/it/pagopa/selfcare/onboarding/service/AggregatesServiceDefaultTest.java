@@ -72,7 +72,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setTipoMail1("Pec");
         uoResource.setCodiceUniAoo("18SU3S");
         uoResource.setCap("00100");
-        uoResource.setDenominazioneEnte("denominazione");
+        uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("123");
 
@@ -80,7 +80,7 @@ class AggregatesServiceDefaultTest {
         aooResource.setTipoMail1("Altro");
         aooResource.setMail1("pec@Pec");
         aooResource.setCodiceUniAoo("18SU3S");
-        aooResource.setDenominazioneEnte("denominazione");
+        aooResource.setDenominazioneAoo("denominazione");
         aooResource.setCap("00100");
         aooResource.setCodiceFiscaleEnte("1307110484");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
@@ -181,7 +181,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setTipoMail1("Pec");
         uoResource.setCodiceUniAoo("18SU3S");
         uoResource.setCap("00100");
-        uoResource.setDenominazioneEnte("denominazione");
+        uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("456");
 
@@ -189,7 +189,7 @@ class AggregatesServiceDefaultTest {
         aooResource.setTipoMail1("Pec");
         aooResource.setMail1("pec@Pec");
         aooResource.setCodiceUniAoo("18SU3S");
-        aooResource.setDenominazioneEnte("denominazione");
+        aooResource.setDenominazioneAoo("denominazione");
         aooResource.setCap("00100");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         aooResource.setCodiceComuneISTAT("456");
