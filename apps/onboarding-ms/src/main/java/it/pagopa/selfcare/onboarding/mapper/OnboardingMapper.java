@@ -8,10 +8,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.*;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 import java.time.OffsetDateTime;
@@ -117,33 +114,10 @@ public interface OnboardingMapper {
         return localDateTime.atOffset(java.time.ZoneOffset.UTC);
     }
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateResponse toVerifyAggregateResponse(AggregatesCsv aggregatesCsv);
+    Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateAppIoResponse toVerifyAggregateAppIoResponse(AggregatesCsv aggregatesCsv);
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateSendResponse toVerifyAggregateSendResponse(AggregatesCsv aggregatesCsv);
-
-    @Mapping(target = "users", source = ".")
-    AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
-
-    AggregateAppIo csvToAggregateAppIo(CsvAggregateAppIo csvAggregateIo);
-
-    default List<AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
-        if (csvAggregateSendList == null) {
-            return null;
-        }
-        return csvAggregateSendList.stream()
-                .map(this::csvToAggregateSend)
-                .collect(Collectors.toList());
-    }
-
-    default List<AggregateAppIo> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
+    default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
         if (csvAggregateAppIoList == null) {
             return Collections.emptyList();
         }

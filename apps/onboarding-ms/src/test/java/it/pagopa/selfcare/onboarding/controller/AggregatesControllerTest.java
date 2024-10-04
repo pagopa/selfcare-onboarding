@@ -8,9 +8,7 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateAppIoResponse;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateSendResponse;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
 import org.junit.jupiter.api.Test;
 
@@ -29,12 +27,13 @@ class AggregatesControllerTest {
     @InjectMock
     AggregatesService aggregatesService;
 
+    @TestSecurity(user = "userJwt")
     @Test
     void verifyAggregatesCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-appio.csv");
 
         when(aggregatesService.validateAppIoAggregatesCsv(any()))
-                .thenReturn(Uni.createFrom().item(new VerifyAggregateAppIoResponse()));
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
 
         given()
                 .when()
@@ -48,42 +47,4 @@ class AggregatesControllerTest {
                 .validateAppIoAggregatesCsv(any());
     }
 
-    @Test
-    void verifyAggregatesPagoPaCsv_succeeds() {
-        File testFile = new File("src/test/resources/aggregates-pagopa.csv");
-
-        when(aggregatesService.validatePagoPaAggregatesCsv(any()))
-                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
-
-        given()
-                .when()
-                .contentType(ContentType.MULTIPART)
-                .multiPart("aggregates", testFile)
-                .post("/verification/prod-pagopa")
-                .then()
-                .statusCode(200);
-
-        verify(aggregatesService, times(1))
-                .validatePagoPaAggregatesCsv(any());
-    }
-
-    @TestSecurity(user = "userJwt")
-    @Test
-    void verifyAggregatesSendCsv_succeeds() {
-        File testFile = new File("src/test/resources/aggregates-send.csv");
-
-        when(aggregatesService.validateSendAggregatesCsv(any()))
-                .thenReturn(Uni.createFrom().item(new VerifyAggregateSendResponse()));
-
-        given()
-                .when()
-                .contentType(ContentType.MULTIPART)
-                .multiPart("aggregates", testFile)
-                .post("/verification/prod-pn")
-                .then()
-                .statusCode(200);
-
-        verify(aggregatesService, times(1))
-                .validateSendAggregatesCsv(any());
-    }
 }
