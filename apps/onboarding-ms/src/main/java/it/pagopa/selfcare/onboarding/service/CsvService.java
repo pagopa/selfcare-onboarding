@@ -29,6 +29,7 @@ public class CsvService {
 
     public static final String NOTE_PREFIX = "Note:";
     public static final String REQUIREMENT_PREFIX = "(*";
+    public static final char SEPARATOR = ';';
 
     public <T extends Csv> AggregatesCsv<T> readItemsFromCsv(File file, Class<T> csv) {
         List<Csv> resultList = new ArrayList<>();
@@ -59,7 +60,7 @@ public class CsvService {
     }
 
     public static boolean isBlankRow(String line) {
-        String[] values = line.split(";");
+        String[] values = line.split(String.valueOf(SEPARATOR));
         for (String value : values) {
             if (!value.trim().isEmpty()) {
                 return false;
@@ -88,7 +89,7 @@ public class CsvService {
     private <T extends Csv> CsvToBean<Csv> getAggregateCsvToBean(BufferedReader bufferedReader, Class<T> csv) {
         CsvToBeanBuilder<Csv> csvToBeanBuilder = new CsvToBeanBuilder<>(bufferedReader);
         csvToBeanBuilder.withType(csv);
-        csvToBeanBuilder.withSeparator(';');
+        csvToBeanBuilder.withSeparator(SEPARATOR);
         csvToBeanBuilder.withQuoteChar(DEFAULT_QUOTE_CHARACTER);
         csvToBeanBuilder.withOrderedResults(true);
         csvToBeanBuilder.withFieldAsNull(CSVReaderNullFieldIndicator.EMPTY_SEPARATORS);
