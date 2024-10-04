@@ -15,4 +15,6 @@ public interface ContractService {
     File retrieveContractNotSigned(OnboardingWorkflow onboardingWorkflow, String productName);
 
     Optional<File> getLogoFile();
+
+    void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow);
 }

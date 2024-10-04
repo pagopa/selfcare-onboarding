@@ -150,6 +150,9 @@ class OnboardingServiceDefaultTest {
     static final UserResource managerResourceWk;
     static final UserResource managerResourceWkSpid;
 
+    static final String productRoleAdminCode = "admin";
+    static final String productRoleAdminPspCode = "admin-psp";
+
     static final File testFile = new File("src/test/resources/application.properties");
 
     static final FormItem TEST_FORM_ITEM = FormItem.builder()
@@ -411,7 +414,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfRoleNotValid(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
-        onboardingDefaultRequest.setInstitution(new Institution());
+        onboardingDefaultRequest.setInstitution(dummyInstitution());
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
 
         List<UserRequest> users = List.of(UserRequest.builder()
@@ -962,25 +965,29 @@ class OnboardingServiceDefaultTest {
         return productResource;
     }
 
-    Product createDummyProduct(String productId, boolean hasParent) {
-        Product productResource = new Product();
-        productResource.setId(productId);
-        Map<PartyRole, ProductRoleInfo> roleMapping = new HashMap<>();
+    ProductRoleInfo dummyProductRoleInfo(String productRolCode) {
         ProductRole productRole = new ProductRole();
-        productRole.setCode("admin");
+        productRole.setCode(productRolCode);
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
         productRoleInfo.setRoles(List.of(productRole));
         productRoleInfo.setPhasesAdditionAllowed(List.of(PHASE_ADDITION_ALLOWED.ONBOARDING.value));
-        roleMapping.put(manager.getRole(), productRoleInfo);
-        productResource.setRoleMappings(roleMapping);
+        return productRoleInfo;
+    }
+
+    Product createDummyProduct(String productId, boolean hasParent) {
+
+        Map<PartyRole, ProductRoleInfo> roleMappingByInstitutionType = new HashMap<>();
+        roleMappingByInstitutionType.put(manager.getRole(), dummyProductRoleInfo(productRoleAdminPspCode));
+
+        Product productResource = new Product();
+        productResource.setId(productId);
+        productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(productRoleAdminCode)));
+        productResource.setRoleMappingsByInstitutionType(Map.of(InstitutionType.PSP.name(), roleMappingByInstitutionType));
 
         if (hasParent) {
             Product parent = new Product();
             parent.setId("productParentId");
-            Map<PartyRole, ProductRoleInfo> roleParentMapping = new HashMap<>();
-            roleParentMapping.put(manager.getRole(), productRoleInfo);
-            parent.setRoleMappings(roleParentMapping);
-
+            parent.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(productRoleAdminCode)));
             productResource.setParentId(parent.getId());
             productResource.setParent(parent);
         }
@@ -1045,6 +1052,11 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+    Institution dummyInstitution() {
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.SA);
+        return institution;
+    }
 
     @Test
     @RunOnVertxContext
@@ -1052,7 +1064,7 @@ class OnboardingServiceDefaultTest {
         Onboarding onboardingDefaultRequest = new Onboarding();
         List<UserRequest> users = List.of(manager);
         onboardingDefaultRequest.setProductId("productId");
-        onboardingDefaultRequest.setInstitution(new Institution());
+        onboardingDefaultRequest.setInstitution(dummyInstitution());
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -1203,7 +1215,7 @@ class OnboardingServiceDefaultTest {
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId("productId");
-        request.setInstitution(new Institution());
+        request.setInstitution(dummyInstitution());
         final UUID createUserId = UUID.randomUUID();
 
         mockPersistOnboarding(asserter);
@@ -1242,7 +1254,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
-        onboardingDefaultRequest.setInstitution(new Institution());
+        onboardingDefaultRequest.setInstitution(dummyInstitution());
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
         List<UserRequest> users = List.of(manager);
 
@@ -1820,6 +1832,7 @@ class OnboardingServiceDefaultTest {
         request.setProductId(PROD_IO.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setInstitutionType(InstitutionType.SA);
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
@@ -1855,6 +1868,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
+        request.setInstitutionType(InstitutionType.PA);
         mockPersistOnboarding(asserter);
         mockPersistToken(asserter);
 

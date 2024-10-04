@@ -8,10 +8,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.*;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 import java.time.OffsetDateTime;
@@ -119,19 +116,7 @@ public interface OnboardingMapper {
 
     Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
-    @Mapping(target = "users", source = ".")
-    Aggregate csvToAggregateSend(CsvAggregateSend csvAggregateSend);
-
     Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
-
-    default List<Aggregate> mapCsvSendAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
-        if (csvAggregateSendList == null) {
-            return null;
-        }
-        return csvAggregateSendList.stream()
-                .map(this::csvToAggregateSend)
-                .collect(Collectors.toList());
-    }
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
         if (csvAggregateAppIoList == null) {
@@ -151,6 +136,8 @@ public interface OnboardingMapper {
         user.setSurname(csvAggregateSend.getAdminAggregateSurname());
         user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());
         user.setEmail(csvAggregateSend.getAdminAggregateEmail());
+        user.setRole(PartyRole.DELEGATE.value());
+
         return Collections.singletonList(user);
     }
 }

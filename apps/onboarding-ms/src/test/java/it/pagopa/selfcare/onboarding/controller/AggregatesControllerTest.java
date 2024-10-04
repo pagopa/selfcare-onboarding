@@ -60,7 +60,7 @@ class AggregatesControllerTest {
                 .when()
                 .contentType(ContentType.MULTIPART)
                 .multiPart("aggregates", testFile)
-                .post("/verification/prod-pn")
+                .post("/verification/prod-pagopa")
                 .then()
                 .statusCode(200);
 

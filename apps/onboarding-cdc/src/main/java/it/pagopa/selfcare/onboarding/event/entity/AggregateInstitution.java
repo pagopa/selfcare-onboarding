@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.event.entity;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
 import lombok.Data;
@@ -6,7 +6,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@SuppressWarnings("java:S1068")
 public class AggregateInstitution {
 
     private String taxCode;
@@ -20,14 +19,5 @@ public class AggregateInstitution {
     private Origin origin;
     private String vatNumber;
     private List<User> users;
-
-    private String codeSDI;
-    private String digitalAddress;
-    private String city;
-    private String county;
-    private String taxCodePT;
-    private String iban;
-    private String service;
-    private String syncAsyncMode;
 
 }

@@ -21,6 +21,7 @@ public class ActivityName {
     public static final String CREATE_DELEGATION_ACTIVITY = "CreateDelegation";
     public static final String ONBOARDINGS_AGGREGATE_ORCHESTRATOR =  "OnboardingsAggregate";
     public static final String RESEND_NOTIFICATIONS_ACTIVITY = "ResendNotificationsActivity";
+    public static final String CREATE_AGGREGATES_CSV_ACTIVITY = "CreateAggregatesCsv";
     public static final String EXISTS_DELEGATION_ACTIVITY = "ExistsDelegationActivity";
 
     private ActivityName() {

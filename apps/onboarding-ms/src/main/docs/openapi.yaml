@@ -50,74 +50,6 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
-  /v1/aggregates/verification/prod-pagopa:
-    post:
-      tags:
-      - Aggregates Controller
-      summary: Validate the data related to the aggregated entities present in a CSV
-        file
-      description: Validates aggregated entity data specific to the PROD-Pagopa environment
-        by processing the provided CSV file. This ensures that all entries meet the
-        required criteria before further processing.
-      operationId: verifyPagoPaAggregatesCsv
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              required:
-              - aggregates
-              type: object
-              properties:
-                aggregates:
-                  format: binary
-                  type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VerifyAggregateResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v1/aggregates/verification/prod-pn:
-    post:
-      tags:
-      - Aggregates Controller
-      summary: Validate the data related to the aggregated entities present in a CSV
-        file
-      description: Validates aggregated entity data specific to the PROD-PN environment
-        by processing the provided CSV file. This ensures that all entries meet the
-        required criteria before further processing.
-      operationId: verifySendAggregatesCsv
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              required:
-              - aggregates
-              type: object
-              properties:
-                aggregates:
-                  format: binary
-                  type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VerifyAggregateResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
   /v1/notification/resend:
     post:
       tags:
@@ -1067,8 +999,6 @@ components:
           type: string
         description:
           type: string
-        codeSDI:
-          type: string
         digitalAddress:
           type: string
         taxCode:
@@ -1087,18 +1017,6 @@ components:
           type: string
         origin:
           type: string
-        taxCodePT:
-          type: string
-        iban:
-          type: string
-        service:
-          type: string
-        syncAsyncMode:
-          type: string
-        users:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateUser"
         rowNumber:
           format: int32
           type: integer
@@ -1134,18 +1052,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
-    AggregateUser:
-      type: object
-      properties:
-        name:
+        codeSDI:
           type: string
-        surname:
+        digitalAddress:
           type: string
-        taxCode:
+        city:
           type: string
-        email:
+        county:
           type: string
-        role:
+        taxCodePT:
+          type: string
+        iban:
+          type: string
+        service:
+          type: string
+        syncAsyncMode:
           type: string
     BillingPaRequest:
       type: object

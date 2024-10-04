@@ -8,7 +8,6 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.Aggregate;
-import it.pagopa.selfcare.onboarding.model.AggregateUser;
 import it.pagopa.selfcare.onboarding.model.RowError;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
@@ -129,73 +128,6 @@ class AggregatesServiceDefaultTest {
 
     }
 
-
-
-    @Test
-    @RunOnVertxContext
-    void validateSendAggregates(){
-
-        File file = new File("src/test/resources/aggregates-send.csv");
-
-        UOResource uoResource = new UOResource();
-        uoResource.setMail1("pec@Pec");
-        uoResource.setTipoMail1("Pec");
-        uoResource.setCodiceUniAoo("18SU3S");
-        uoResource.setCap("00100");
-        uoResource.setDenominazioneEnte("denominazione");
-        uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
-        uoResource.setCodiceComuneISTAT("456");
-
-        AOOResource aooResource = new AOOResource();
-        aooResource.setTipoMail1("Pec");
-        aooResource.setMail1("pec@Pec");
-        aooResource.setCodiceUniAoo("18SU3S");
-        aooResource.setDenominazioneEnte("denominazione");
-        aooResource.setCap("00100");
-        aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
-        aooResource.setCodiceComuneISTAT("456");
-
-        InstitutionResource institutionResource = mock(InstitutionResource.class);
-        when(institutionResource.getIstatCode()).thenReturn("456");
-        when(institutionResource.getOriginId()).thenReturn("test");
-
-        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
-        geographicTaxonomyResource.setCode("456");
-        geographicTaxonomyResource.setDesc("città");
-        geographicTaxonomyResource.setProvinceAbbreviation("Provincia");
-
-        WebClientApplicationException webClientApplicationException = mock(WebClientApplicationException.class);
-        Response response = mock(Response.class);
-        when(webClientApplicationException.getResponse()).thenReturn(response);
-        when(response.getStatus()).thenReturn(404);
-        when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
-        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
-        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
-        when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
-        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("456")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
-
-        VerifyAggregateResponse verifyAggregateResponse = mockResponseForSEND();
-
-        UniAssertSubscriber<VerifyAggregateResponse> resp = aggregatesServiceDefault.validateSendAggregatesCsv(file)
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertCompleted();
-
-        Assertions.assertEquals(3, resp.getItem().getAggregates().size());
-        Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
-        Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(1), resp.getItem().getAggregates().get(1));
-        Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(2), resp.getItem().getAggregates().get(2));
-        Assertions.assertEquals(10, resp.getItem().getErrors().size());
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(3), resp.getItem().getErrors().get(3));
-
-        verify(geographicTaxonomiesApi,times(1)).retrieveGeoTaxonomiesByCodeUsingGET("456");
-        verify(aooApi,times(1)).findByUnicodeUsingGET("18SU3R", null);
-        verify(aooApi,times(1)).findByUnicodeUsingGET("18SU3S", null);
-        verify(institutionApi,times(0)).findInstitutionUsingGET("00297110389", null, null);
-    }
-
     @Test
     void testValidatePagoPaAggregatesCsv() {
 
@@ -236,42 +168,6 @@ class AggregatesServiceDefaultTest {
         Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(5), resp.getItem().getErrors().get(5));
 
     }
-
-    private VerifyAggregateResponse mockPagoPaResponse() {
-        VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
-        Aggregate aggregate = new Aggregate();
-        aggregate.setSubunitCode(null);
-        aggregate.setSubunitType(null);
-        aggregate.setDescription(null);
-        aggregate.setDigitalAddress("pec@Pec");
-        aggregate.setTaxCode("12345678901");
-        aggregate.setVatNumber("12345678901");
-        aggregate.setAddress(null);
-        aggregate.setCity("città");
-        aggregate.setCounty("Provincia");
-        aggregate.setZipCode(null);
-        aggregate.setOriginId(null);
-        aggregate.setOrigin("IPA");
-        aggregate.setOriginId("test");
-        aggregate.setService("XXXXXXX");
-        aggregate.setIban("IT60 X054 2811 1010 0000 0123 456");
-        aggregate.setSyncAsyncMode("Sincrona");
-        aggregate.setTaxCodePT("98765432101");
-        aggregate.setRowNumber(1);
-
-        verifyAggregateResponse.setAggregates(List.of(aggregate));
-
-        RowError error0 = new RowError(2,null, "Il codice fiscale è obbligatorio");
-        RowError error1 = new RowError(3,"12345678901","La partita IVA è obbligatoria");
-        RowError error2 = new RowError(4,"12345678901","Codice Fiscale Partner Tecnologico è obbligatorio");
-        RowError error3 = new RowError(5,"12345678901","IBAN è obbligatorio");
-        RowError error4 = new RowError(6,"12345678901","Servizio è obbligatorio");
-        RowError error5 = new RowError(7,"12345678901","Modalità Sincrona/Asincrona è obbligatorio");
-
-        verifyAggregateResponse.setErrors(List.of(error0, error1,error2,error3, error4, error5));
-        return verifyAggregateResponse;
-    }
-
 
     private static VerifyAggregateResponse mockResponseForIO() {
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
@@ -330,73 +226,38 @@ class AggregatesServiceDefaultTest {
         return verifyAggregateResponse;
     }
 
-    private static VerifyAggregateResponse mockResponseForSEND() {
-        AggregateUser aggregateUser = new AggregateUser();
-        aggregateUser.setName("Mario");
-        aggregateUser.setSurname("Rossi");
-        aggregateUser.setTaxCode("RSSMRA66A01H501W");
-        aggregateUser.setEmail("mario.rossi@acme.it");
-
+    private VerifyAggregateResponse mockPagoPaResponse() {
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
-        Aggregate aggregateUO = new Aggregate();
-        aggregateUO.setSubunitCode("18SU3R");
-        aggregateUO.setSubunitType("UO");
-        aggregateUO.setDescription("denominazione");
-        aggregateUO.setDigitalAddress("pec@Pec");
-        aggregateUO.setTaxCode("1307110484");
-        aggregateUO.setVatNumber("1864440019");
-        aggregateUO.setAddress("Palazzo Vecchio Piazza Della Signoria");
-        aggregateUO.setCity("città");
-        aggregateUO.setCounty("Provincia");
-        aggregateUO.setZipCode("00100");
-        aggregateUO.setOrigin("IPA");
-        aggregateUO.setCodeSDI("NYJTPK");
-        aggregateUO.setRowNumber(1);
-        aggregateUO.setUsers(List.of(aggregateUser));
-
-        Aggregate aggregateAOO = new Aggregate();
-        aggregateAOO.setSubunitCode("18SU3S");
-        aggregateAOO.setSubunitType("AOO");
-        aggregateAOO.setDescription("denominazione");
-        aggregateAOO.setDigitalAddress("pec@Pec");
-        aggregateAOO.setTaxCode("1307110484");
-        aggregateAOO.setVatNumber("1864440019");
-        aggregateAOO.setAddress("Palazzo Vecchio Piazza Della Signoria");
-        aggregateAOO.setCity("città");
-        aggregateAOO.setCounty("Provincia");
-        aggregateAOO.setZipCode("00100");
-        aggregateAOO.setCodeSDI("NYJTPK");
-        aggregateAOO.setOrigin("IPA");
-        aggregateAOO.setRowNumber(9);
-        aggregateAOO.setUsers(List.of(aggregateUser));
-
         Aggregate aggregate = new Aggregate();
         aggregate.setSubunitCode(null);
         aggregate.setSubunitType(null);
         aggregate.setDescription(null);
-        aggregate.setDigitalAddress(null);
-        aggregate.setTaxCode("1307110484");
-        aggregate.setVatNumber("1864440019");
+        aggregate.setDigitalAddress("pec@Pec");
+        aggregate.setTaxCode("12345678901");
+        aggregate.setVatNumber("12345678901");
         aggregate.setAddress(null);
         aggregate.setCity("città");
         aggregate.setCounty("Provincia");
         aggregate.setZipCode(null);
         aggregate.setOriginId(null);
-        aggregate.setCodeSDI("NYJTPK");
         aggregate.setOrigin("IPA");
         aggregate.setOriginId("test");
-        aggregate.setRowNumber(11);
-        aggregate.setUsers(List.of(aggregateUser));
+        aggregate.setService("XXXXXXX");
+        aggregate.setIban("IT60 X054 2811 1010 0000 0123 456");
+        aggregate.setSyncAsyncMode("Sincrona");
+        aggregate.setTaxCodePT("98765432101");
+        aggregate.setRowNumber(1);
 
+        verifyAggregateResponse.setAggregates(List.of(aggregate));
 
-        verifyAggregateResponse.setAggregates(List.of(aggregateUO, aggregateAOO, aggregate));
+        RowError error0 = new RowError(2,null, "Il codice fiscale è obbligatorio");
+        RowError error1 = new RowError(3,"12345678901","La partita IVA è obbligatoria");
+        RowError error2 = new RowError(4,"12345678901","Codice Fiscale Partner Tecnologico è obbligatorio");
+        RowError error3 = new RowError(5,"12345678901","IBAN è obbligatorio");
+        RowError error4 = new RowError(6,"12345678901","Servizio è obbligatorio");
+        RowError error5 = new RowError(7,"12345678901","Modalità Sincrona/Asincrona è obbligatorio");
 
-        RowError error0 = new RowError(2,"1307110484","SubunitType non valido");
-        RowError error1 = new RowError(3,"1307110484","Email Amministratore Ente Aggregato è obbligatorio");
-        RowError error2 = new RowError(5,"1307110484","Cognome Amministratore Ente Aggregato è obbligatorio");
-        RowError error4 = new RowError(4,"1307110484","Codice Fiscale Amministratore Ente Aggregato è obbligatorio");
-        RowError error3 = new RowError(7,"1307110484","In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
-        verifyAggregateResponse.setErrors(List.of(error0, error1,error4,error2, error3));
+        verifyAggregateResponse.setErrors(List.of(error0, error1,error2,error3, error4, error5));
         return verifyAggregateResponse;
     }
 }
