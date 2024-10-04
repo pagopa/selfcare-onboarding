@@ -10,6 +10,8 @@ public interface AggregatesService {
 
     Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv (File file);
 
+    Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv (File file);
+
 
     Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId);
 

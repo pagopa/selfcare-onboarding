@@ -5,6 +5,7 @@ import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
@@ -29,6 +30,7 @@ public class PdfMapper {
     public static final String PRICING_PLAN = "pricingPlan";
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
+    public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
     private PdfMapper() {
     }
@@ -115,6 +117,7 @@ public class PdfMapper {
                 .findFirst()
                 .map(userMailUuid -> getMailManager(validManager, userMailUuid))
                 .ifPresent(mail -> map.put("managerPEC", mail));
+
     }
 
     public static void setECData(Map<String, Object> map, Onboarding onboarding) {
@@ -122,6 +125,16 @@ public class PdfMapper {
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
         map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
         map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
+    }
+
+    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding) {
+        addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
+
+        if (onboarding.getBilling() != null) {
+            map.put(INSTITUTION_RECIPIENT_CODE, Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
+        }
+
+        setECData(map, onboarding);
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
@@ -135,7 +148,7 @@ public class PdfMapper {
 
         addInstitutionRegisterLabelValue(institution, map);
         if (onboarding.getBilling() != null) {
-            map.put("institutionRecipientCode",onboarding.getBilling().getRecipientCode());
+            map.put(INSTITUTION_RECIPIENT_CODE,onboarding.getBilling().getRecipientCode());
         }
 
         map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : UNDERSCORE);
@@ -164,7 +177,7 @@ public class PdfMapper {
 
         addInstitutionRegisterLabelValue(institution, map);
         if (billing != null) {
-            map.put("institutionRecipientCode", billing.getRecipientCode());
+            map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
         }
     }
 
@@ -188,13 +201,17 @@ public class PdfMapper {
     }
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {
-        if (institution.getPaymentServiceProvider() != null
-                && Objects.nonNull(institution.getPaymentServiceProvider().getBusinessRegisterNumber())) {
-            map.put("number", institution.getPaymentServiceProvider().getBusinessRegisterNumber());
-            map.put(INSTITUTION_REGISTER_LABEL_VALUE, "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n");
-        } else {
-            map.put(INSTITUTION_REGISTER_LABEL_VALUE, "");
+        String businessRegisterNumber = StringUtils.EMPTY;
+        String businessRegisterNumberLabel = StringUtils.EMPTY;
+
+        if (institution.getPaymentServiceProvider() != null) {
+            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(StringUtils.EMPTY);
+            businessRegisterNumberLabel = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n";
         }
+
+        map.put("number", businessRegisterNumber);
+        map.put(INSTITUTION_REGISTER_LABEL_VALUE, businessRegisterNumberLabel);
+
     }
 
     private static void decodePricingPlan(String pricingPlan, String productId, Map<String, Object> map) {
@@ -265,4 +282,5 @@ public class PdfMapper {
     private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {
         return Optional.ofNullable(resourceOfString).map(CertifiableFieldResourceOfstring::getValue).orElse("");
     }
+
 }

@@ -139,7 +139,10 @@ public class ContractServiceDefault implements ContractService {
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
-        } else if(PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
+        } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
+                InstitutionType.PRV == institution.getInstitutionType()) {
+            setupPRVData(data, onboarding);
+        } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
@@ -297,7 +300,7 @@ public class ContractServiceDefault implements ContractService {
                         institution.getAddress(),
                         institution.getCity(),
                         institution.getCounty(),
-                        Optional.ofNullable(institution.getSubunitType()).map(ignored -> institution.getOriginId()).orElse(""),
+                        Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
                         institution.getSubunitType(),
                         institution.getSubunitCode()
                 );

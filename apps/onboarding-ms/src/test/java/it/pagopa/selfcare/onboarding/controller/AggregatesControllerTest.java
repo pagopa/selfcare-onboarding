@@ -67,4 +67,24 @@ class AggregatesControllerTest {
 
 
     }
+
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesSendCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-pagopa.csv");
+
+        when(aggregatesService.validatePagoPaAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-pagopa")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validatePagoPaAggregatesCsv(any());
+    }
 }
