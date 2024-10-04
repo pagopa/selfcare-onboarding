@@ -9,7 +9,7 @@ class CsvAggregateSendTest {
     void testCsvAggregateSendConstructorAndGetters() {
         String taxCode = "TAX12345";
         String vatNumber = "VAT12345678";
-        String codeSDI = "SDI123456";
+        String recipientCode = "SDI123456";
         String subunitType = "Department";
         String subunitCode = "DEP001";
         String adminAggregateName = "Admin Name";
@@ -21,7 +21,7 @@ class CsvAggregateSendTest {
         CsvAggregateSend csvAggregateSend = new CsvAggregateSend();
         csvAggregateSend.setTaxCode(taxCode);
         csvAggregateSend.setVatNumber(vatNumber);
-        csvAggregateSend.setCodeSDI(codeSDI);
+        csvAggregateSend.setRecipientCode(recipientCode);
         csvAggregateSend.setSubunitType(subunitType);
         csvAggregateSend.setSubunitCode(subunitCode);
         csvAggregateSend.setAdminAggregateName(adminAggregateName);
@@ -33,7 +33,7 @@ class CsvAggregateSendTest {
 
         assertEquals(taxCode, csvAggregateSend.getTaxCode());
         assertEquals(vatNumber, csvAggregateSend.getVatNumber());
-        assertEquals(codeSDI, csvAggregateSend.getCodeSDI());
+        assertEquals(recipientCode, csvAggregateSend.getRecipientCode());
         assertEquals(subunitType, csvAggregateSend.getSubunitType());
         assertEquals(subunitCode, csvAggregateSend.getSubunitCode());
         assertEquals(adminAggregateName, csvAggregateSend.getAdminAggregateName());

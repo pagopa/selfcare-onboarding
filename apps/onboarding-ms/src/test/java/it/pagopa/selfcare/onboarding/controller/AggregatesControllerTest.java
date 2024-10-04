@@ -70,7 +70,7 @@ class AggregatesControllerTest {
 
     @TestSecurity(user = "userJwt")
     @Test
-    void verifyAggregatesSendCsv_succeeds() {
+    void verifyAggregatesPagoPaCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-pagopa.csv");
 
         when(aggregatesService.validatePagoPaAggregatesCsv(any()))

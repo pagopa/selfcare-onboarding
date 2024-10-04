@@ -10,7 +10,7 @@ public class Aggregate {
     private String subunitCode;
     private String subunitType;
     private String description;
-    private String codeSDI;
+    private String recipientCode;
     private List<AggregateUser> users;
     private String digitalAddress;
     private String taxCode;

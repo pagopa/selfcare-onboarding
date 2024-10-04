@@ -26,7 +26,7 @@ public class AggregateInstitutionRequest {
     private Origin origin;
     private List<UserRequest> users;
 
-    private String codeSDI;
+    private String recipientCode;
     private String digitalAddress;
     private String city;
     private String county;

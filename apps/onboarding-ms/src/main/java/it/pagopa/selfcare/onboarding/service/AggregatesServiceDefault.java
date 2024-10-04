@@ -62,9 +62,10 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
 
-    public AggregatesServiceDefault (){
+    @Inject
+    public AggregatesServiceDefault(@ConfigProperty(name = "onboarding-ms.istat-cache-duration-minutes") int cacheDuration) {
         this.expiringMap = ExpiringMap.builder()
-                .expiration(30, TimeUnit.MINUTES)
+                .expiration(cacheDuration, TimeUnit.MINUTES)
                 .build();
     }
 
@@ -75,14 +76,15 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
     public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
     public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
-    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
-    public static final String ERROR_IBAN = "IBAN è obbligatorio";
-    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
-    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_IBAN = "IBAN è obbligatorio";
+    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
+    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
+    public static final String ERROR_CODICE_SDI = "Codice SDI è obbligatorio";
     private static final String PEC = "Pec";
 
 
@@ -335,6 +337,9 @@ public class AggregatesServiceDefault implements AggregatesService {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE));
         } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateEmail())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL));
+        } else if(StringUtils.isEmpty(csvAggregate.getRecipientCode())){
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CODICE_SDI));
+
         }
         return Uni.createFrom().voidItem();
     }

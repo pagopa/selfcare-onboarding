@@ -21,7 +21,7 @@ public class AggregateInstitution {
     private String vatNumber;
     private List<User> users;
 
-    private String codeSDI;
+    private String recipientCode;
     private String digitalAddress;
     private String city;
     private String county;
