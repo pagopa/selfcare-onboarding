@@ -10,7 +10,7 @@ import static it.pagopa.selfcare.onboarding.util.ErrorMessage.TAX_CODE_NOT_FOUND
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-public class ExceptionHandlerTest {
+class ExceptionHandlerTest {
 
     ExceptionHandler exceptionHandler = new ExceptionHandler();
 

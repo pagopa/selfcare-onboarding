@@ -53,7 +53,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/VerifyAggregateResponse"
+                  "$ref" : "#/components/schemas/VerifyAggregateAppIoResponse"
                 }
               }
             }
@@ -481,7 +481,8 @@
         },
         "security" : [ {
           "SecurityScheme" : [ ]
-        } ]
+        } ],
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/completion" : {
@@ -582,7 +583,8 @@
         },
         "security" : [ {
           "SecurityScheme" : [ ]
-        } ]
+        } ],
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/pa" : {
@@ -1110,7 +1112,8 @@
         },
         "security" : [ {
           "SecurityScheme" : [ ]
-        } ]
+        } ],
+        "x-legacy-api" : "true"
       }
     },
     "/v1/onboarding/{onboardingId}/consume" : {
@@ -1323,7 +1326,8 @@
         },
         "security" : [ {
           "SecurityScheme" : [ ]
-        } ]
+        } ],
+        "x-legacy-api" : "true"
       }
     },
     "/v1/tokens" : {
@@ -1435,6 +1439,42 @@
           },
           "otherNote" : {
             "type" : "string"
+          }
+        }
+      },
+      "AggregateAppIo" : {
+        "type" : "object",
+        "properties" : {
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "subunitType" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "digitalAddress" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "vatNumber" : {
+            "type" : "string"
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "type" : "string"
+          },
+          "rowNumber" : {
+            "format" : "int32",
+            "type" : "integer"
           }
         }
       },
@@ -2580,6 +2620,23 @@
           },
           "productRole" : {
             "type" : "string"
+          }
+        }
+      },
+      "VerifyAggregateAppIoResponse" : {
+        "type" : "object",
+        "properties" : {
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateAppIo"
+            }
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RowError"
+            }
           }
         }
       },

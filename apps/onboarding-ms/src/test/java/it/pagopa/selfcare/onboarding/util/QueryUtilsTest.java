@@ -4,7 +4,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.wildfly.common.Assert;
 
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @QuarkusTest
-public class QueryUtilsTest {
+class QueryUtilsTest {
 
     @Test
     void testOnboardingUpdateMap_recipientCode() {

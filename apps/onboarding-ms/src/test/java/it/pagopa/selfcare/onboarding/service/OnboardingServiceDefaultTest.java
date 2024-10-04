@@ -33,6 +33,7 @@ import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
+import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
@@ -138,7 +139,7 @@ class OnboardingServiceDefaultTest {
     @Spy
     OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
 
-    final static UserRequest manager = UserRequest.builder()
+    static final UserRequest manager = UserRequest.builder()
             .name("name")
             .surname("surname")
             .taxCode("taxCode")
@@ -969,6 +970,7 @@ class OnboardingServiceDefaultTest {
         productRole.setCode("admin");
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
         productRoleInfo.setRoles(List.of(productRole));
+        productRoleInfo.setPhasesAdditionAllowed(List.of(PHASE_ADDITION_ALLOWED.ONBOARDING.value));
         roleMapping.put(manager.getRole(), productRoleInfo);
         productResource.setRoleMappings(roleMapping);
 
@@ -1984,7 +1986,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         // Mock the response from onboardingUtils.validationRecipientCode
-        when(onboardingUtils.getValidationRecipientCodeError(eq(originId), eq(uoResource)))
+        when(onboardingUtils.getValidationRecipientCodeError(originId, uoResource))
                 .thenReturn(Uni.createFrom().item(customError));
 
         // Call the method under test

@@ -17,6 +17,7 @@ public class AggregateInstitutionRequest {
 
     private String subunitCode;
     private String subunitType;
+    private String vatNumber;
     private List<GeographicTaxonomy> geographicTaxonomies;
     private String address;
     private String zipCode;
