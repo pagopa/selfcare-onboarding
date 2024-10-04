@@ -41,7 +41,8 @@ public class CsvService {
             String nextLine;
 
             while ((nextLine = bufferedReader.readLine()) != null) {
-                if (!nextLine.startsWith("(*")) {
+                if (!nextLine.startsWith("(*") && !nextLine.startsWith("Note:")
+                        && !isBlankRow(nextLine, ';')) {
                     parseLine(nextLine, lineNumber, resultList, errors, csv);
                     lineNumber++;
                 }
@@ -53,6 +54,16 @@ public class CsvService {
             log.error(ERROR_READING_CSV + e.getMessage(), e);
             throw new InvalidRequestException(ERROR_READING_CSV + e.getMessage());
         }
+    }
+
+    public static boolean isBlankRow(String line, char separator) {
+        String[] values = line.split(String.valueOf(separator));
+        for (String value : values) {
+            if (!value.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private <T extends Csv> void parseLine(String nextLine, int lineNumber, List<Csv> resultList, List<RowError> errors, Class<T> csv) {
