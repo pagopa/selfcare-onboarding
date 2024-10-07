@@ -217,7 +217,7 @@ public class PdfMapper {
             csvLink = "<ul class=\"c34 lst-kix_list_1-0 start\"><li class=\"c19 c39 li-bullet-0\"><a class=\"c15\" href=\""+ url + "\">Dati di Enti Aggregati</a></li></ul>";
         }
 
-        map.put(INSTITUTION_REGISTER_LABEL_VALUE, csvLink);
+        map.put(CSV_AGGREGATES_LABEL_VALUE, csvLink);
 
     }
 
