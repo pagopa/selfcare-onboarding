@@ -138,7 +138,7 @@ public class PdfMapper {
         setECData(map, onboarding);
     }
 
-    public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager, String baseUrl) {
+    public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
         final Institution institution = onboarding.getInstitution();
         final InstitutionType institutionType = institution.getInstitutionType();
 
@@ -162,33 +162,11 @@ public class PdfMapper {
         map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
 
         addPricingPlan(onboarding.getPricingPlan(), map);
-        addAggregatesCsvLink(onboarding,map, baseUrl);
     }
 
-    public static void setupProdIODataSign(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {
-        final Institution institution = onboarding.getInstitution();
-        final InstitutionType institutionType = institution.getInstitutionType();
-
-        map.put("institutionTypeCode", institution.getInstitutionType());
-        decodePricingPlan(onboarding.getPricingPlan(), onboarding.getProductId(), map);
-
-        map.put("originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ? ORIGIN_ID_LABEL : "");
-
-        addInstitutionRegisterLabelValue(institution, map);
-        if (onboarding.getBilling() != null) {
-            map.put(INSTITUTION_RECIPIENT_CODE,onboarding.getBilling().getRecipientCode());
-        }
-
-        map.put("GPSinstitutionName", InstitutionType.GSP == institutionType ? institution.getDescription() : UNDERSCORE);
-        map.put("GPSmanagerName", InstitutionType.GSP == institutionType ? getStringValue(validManager.getName()) : UNDERSCORE);
-        map.put("GPSmanagerSurname", InstitutionType.GSP == institutionType ? getStringValue(validManager.getFamilyName()) : UNDERSCORE);
-        map.put("GPSmanagerTaxCode", InstitutionType.GSP == institutionType ? validManager.getFiscalCode() : UNDERSCORE);
-
-        map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
-        map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
-        map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
-
-        addPricingPlan(onboarding.getPricingPlan(), map);
+    public static void setupProdIODataAggregates(Onboarding onboarding, Map<String, Object> map, UserResource validManager, String baseUrl) {
+        setupProdIOData(onboarding, map,validManager);
+        addAggregatesCsvLink(onboarding,map, baseUrl);
     }
 
     public static void setupSAProdInteropData(Map<String, Object> map, Institution institution) {
@@ -236,7 +214,7 @@ public class PdfMapper {
 
         if (Boolean.TRUE.equals(onboarding.getIsAggregator())) {
             String url = baseUrl + onboardingUrl + onboarding.getId() + products + onboarding.getProductId() + aggregates;
-            csvLink = "<ul class=\"c34 lst-kix_list_1-0 start\"><li class=\"c19 c39 li-bullet-0\"><a class=\"c15\" href=\""+ csvLink + "\">Dati di Enti Aggregati</a></li></ul>";
+            csvLink = "<ul class=\"c34 lst-kix_list_1-0 start\"><li class=\"c19 c39 li-bullet-0\"><a class=\"c15\" href=\""+ url + "\">Dati di Enti Aggregati</a></li></ul>";
         }
 
         map.put(INSTITUTION_REGISTER_LABEL_VALUE, csvLink);

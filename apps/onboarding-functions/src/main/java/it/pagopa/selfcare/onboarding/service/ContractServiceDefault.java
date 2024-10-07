@@ -153,10 +153,10 @@ public class ContractServiceDefault implements ContractService {
             setECData(data, onboarding);
         } else if (PROD_IO.getValue().equalsIgnoreCase(productId) &&
                 Boolean.TRUE.equals(onboarding.getIsAggregator())){
-            setupProdIOData(onboarding, data, manager, baseUrl.toString());
+            setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
         } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
-            setupProdIODataSign(onboarding, data, manager);
+            setupProdIOData(onboarding, data, manager);
         } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
             setupProdPNData(data, institution, onboarding.getBilling());
         } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)){
