@@ -31,6 +31,7 @@ public class PdfMapper {
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
     public static final String CSV_AGGREGATES_LABEL_VALUE = "aggregatesCsvLink";
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
+    public static final String CSV_AGGREGATES_LABEL = "<ul class=\"c34 lst-kix_list_26-2 start\"><li class=\"c8 li-bullet-2\"><span class=\"c3\" style=\"color:blue\"><a class=\"c15\" href=\"%s\"><u>Dati di Enti Aggregati</u></a></span></li></ul>";
     public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
     private PdfMapper() {
@@ -213,7 +214,7 @@ public class PdfMapper {
 
         if (Boolean.TRUE.equals(onboarding.getIsAggregator())) {
             String url = baseUrl + onboarding.getId() + products + onboarding.getProductId() + aggregates;
-            csvLink = "<ul class=\"c34 lst-kix_list_1-0 start\"><li class=\"c19 c39 li-bullet-0\"><a class=\"c15\" href=\""+ url + "\">Dati di Enti Aggregati</a></li></ul>";
+            csvLink = String.format(CSV_AGGREGATES_LABEL, url);
         }
 
         map.put(CSV_AGGREGATES_LABEL_VALUE, csvLink);

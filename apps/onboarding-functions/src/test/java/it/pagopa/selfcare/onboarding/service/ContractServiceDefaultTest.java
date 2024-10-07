@@ -48,12 +48,13 @@ class ContractServiceDefaultTest {
     MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
 
     static final String PRODUCT_NAME_EXAMPLE = "product-name";
+    static final String LOGO_PATH = "logo-path";
     static final String PDF_FORMAT_FILENAME =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){
         padesSignService = mock(PadesSignService.class);
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, mailTemplatePlaceholdersConfig, "logo- path", true);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, mailTemplatePlaceholdersConfig, LOGO_PATH, true);
     }
 
 
