@@ -12,6 +12,8 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -182,6 +184,25 @@ class ContractServiceDefaultTest {
         UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
         onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
         onboarding.setProductId("prod-pagopa");
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"prod-io", "prod-io-sign"})
+    void createContractPDFForProdIo(String productId) {
+        final String contractFilepath = "contract";
+        final String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        onboarding.setProductId(productId);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
