@@ -114,6 +114,12 @@ class ProductServiceDefaultTest {
     }
 
     @Test
+    void getProductRaw_shouldGetProduct() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
+        assertNotNull(productService.getProductRaw("prod-test"));
+    }
+
+    @Test
     void getProductValid_shouldThrowProductNotFoundExceptionIfProductInactive() throws JsonProcessingException {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
         assertThrows(ProductNotFoundException.class, () -> productService.getProductIsValid("prod-inactive"));
