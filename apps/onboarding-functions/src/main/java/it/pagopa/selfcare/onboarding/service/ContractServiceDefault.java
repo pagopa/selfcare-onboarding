@@ -151,8 +151,7 @@ public class ContractServiceDefault implements ContractService {
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
-        } else if (PROD_IO.getValue().equalsIgnoreCase(productId) &&
-                Boolean.TRUE.equals(onboarding.getIsAggregator())){
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)){
             setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
         } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
