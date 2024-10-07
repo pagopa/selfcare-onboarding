@@ -29,7 +29,9 @@ public class PdfMapper {
     public static final String PRICING_PLAN_BASE_CHECKBOX = "pricingPlanBaseCheckbox";
     public static final String PRICING_PLAN = "pricingPlan";
     public static final String INSTITUTION_REGISTER_LABEL_VALUE = "institutionRegisterLabelValue";
+    public static final String CSV_AGGREGATES_LABEL_VALUE = "aggregatesCsvLink";
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
+    public static final String CSV_AGGREGATES_LABEL = "<ul class=\"c34 lst-kix_list_26-2 start\"><li class=\"c8 li-bullet-2\"><span class=\"c3\" style=\"color:blue\"><a class=\"c15\" href=\"%s\"><u>Dati di Enti Aggregati</u></a></span></li></ul>";
     public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
     private PdfMapper() {
@@ -163,6 +165,11 @@ public class PdfMapper {
         addPricingPlan(onboarding.getPricingPlan(), map);
     }
 
+    public static void setupProdIODataAggregates(Onboarding onboarding, Map<String, Object> map, UserResource validManager, String baseUrl) {
+        setupProdIOData(onboarding, map,validManager);
+        addAggregatesCsvLink(onboarding,map, baseUrl);
+    }
+
     public static void setupSAProdInteropData(Map<String, Object> map, Institution institution) {
 
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
@@ -198,6 +205,20 @@ public class PdfMapper {
         } else {
             map.put(PRICING_PLAN_PREMIUM_CHECKBOX, "");
         }
+    }
+
+    private static void addAggregatesCsvLink(Onboarding onboarding, Map<String, Object> map, String baseUrl) {
+        String csvLink = StringUtils.EMPTY;
+        String products = "/products/";
+        String aggregates = "/aggregates";
+
+        if (Boolean.TRUE.equals(onboarding.getIsAggregator())) {
+            String url = baseUrl + onboarding.getId() + products + onboarding.getProductId() + aggregates;
+            csvLink = String.format(CSV_AGGREGATES_LABEL, url);
+        }
+
+        map.put(CSV_AGGREGATES_LABEL_VALUE, csvLink);
+
     }
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {

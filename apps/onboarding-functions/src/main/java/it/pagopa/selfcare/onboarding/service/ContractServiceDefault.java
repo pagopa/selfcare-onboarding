@@ -5,6 +5,7 @@ import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
@@ -53,6 +54,7 @@ public class ContractServiceDefault implements ContractService {
     private final AzureBlobClient azureBlobClient;
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
+    private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
 
     Boolean isLogoEnable;
 
@@ -67,13 +69,14 @@ public class ContractServiceDefault implements ContractService {
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
-                                  PagoPaSignatureConfig pagoPaSignatureConfig,
+                                  PagoPaSignatureConfig pagoPaSignatureConfig, MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
                                   @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
                                   @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
         this.logoPath = logoPath;
         this.isLogoEnable = isLogoEnable;
     }
@@ -135,6 +138,8 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding);
 
+        StringBuilder baseUrl = new StringBuilder(templatePlaceholdersConfig.rejectOnboardingUrlValue());
+
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
@@ -146,8 +151,9 @@ public class ContractServiceDefault implements ContractService {
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
-        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
-                || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)){
+            setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
+        } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
             setupProdIOData(onboarding, data, manager);
         } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){

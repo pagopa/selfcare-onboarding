@@ -5,12 +5,15 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -41,13 +44,17 @@ class ContractServiceDefaultTest {
     @Inject
     PagoPaSignatureConfig pagoPaSignatureConfig;
 
+    @Inject
+    MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+
     static final String PRODUCT_NAME_EXAMPLE = "product-name";
+    static final String LOGO_PATH = "logo-path";
     static final String PDF_FORMAT_FILENAME =  "%s_accordo_adesione.pdf";
 
     @BeforeEach
     void setup(){
         padesSignService = mock(PadesSignService.class);
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo- path", true);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, mailTemplatePlaceholdersConfig, LOGO_PATH, true);
     }
 
 
@@ -186,6 +193,25 @@ class ContractServiceDefaultTest {
         assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"prod-io", "prod-io-sign"})
+    void createContractPDFForProdIo(String productId) {
+        final String contractFilepath = "contract";
+        final String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        onboarding.setProductId(productId);
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+
+        Mockito.when(azureBlobClient.uploadFile(any(),any(),any())).thenReturn(contractHtml);
+
+        assertNotNull(contractService.createContractPDF(contractFilepath, onboarding, manager, List.of(), PRODUCT_NAME_EXAMPLE, PDF_FORMAT_FILENAME));
+    }
+
     @Test
     void createContractPDFAndSigned() {
         final String contractFilepath = "contract";
@@ -197,7 +223,7 @@ class ContractServiceDefaultTest {
 
         pagoPaSignatureConfig = Mockito.spy(this.pagoPaSignatureConfig);
         when(pagoPaSignatureConfig.source()).thenReturn("local");
-        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, "logo-path", true);
+        contractService = new ContractServiceDefault(azureStorageConfig, azureBlobClient, padesSignService, pagoPaSignatureConfig, mailTemplatePlaceholdersConfig ,"logo-path", true);
 
         Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
 
