@@ -208,12 +208,11 @@ public class PdfMapper {
 
     private static void addAggregatesCsvLink(Onboarding onboarding, Map<String, Object> map, String baseUrl) {
         String csvLink = StringUtils.EMPTY;
-        String onboardingUrl = "/onboarding/";
         String products = "/products/";
         String aggregates = "/aggregates";
 
         if (Boolean.TRUE.equals(onboarding.getIsAggregator())) {
-            String url = baseUrl + onboardingUrl + onboarding.getId() + products + onboarding.getProductId() + aggregates;
+            String url = baseUrl + onboarding.getId() + products + onboarding.getProductId() + aggregates;
             csvLink = "<ul class=\"c34 lst-kix_list_1-0 start\"><li class=\"c19 c39 li-bullet-0\"><a class=\"c15\" href=\""+ url + "\">Dati di Enti Aggregati</a></li></ul>";
         }
 

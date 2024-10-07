@@ -138,7 +138,7 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding);
 
-        StringBuilder baseUrl = new StringBuilder(templatePlaceholdersConfig.completeSelfcarePlaceholder());
+        StringBuilder baseUrl = new StringBuilder(templatePlaceholdersConfig.rejectOnboardingUrlValue());
 
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
