@@ -113,6 +113,20 @@ public class ProductServiceDefault implements ProductService {
         return getProduct(productId, false);
     }
 
+    /**
+     * Return a product present on the map by productId without any filter
+     * retrieving data from institutionContractMappings map
+     *
+     * @param productId String
+     * @return Product
+     * @throws IllegalArgumentException if @param id is null
+     * @throws ProductNotFoundException if product is not found
+     */
+    @Override
+    public Product getProductRaw(String productId) {
+        return getProduct(productId, false);
+    }
+
     private Product getProduct(String productId, boolean filterValid) {
 
         if (Objects.isNull(productId)) {

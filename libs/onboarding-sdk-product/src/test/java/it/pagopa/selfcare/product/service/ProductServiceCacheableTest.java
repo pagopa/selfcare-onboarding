@@ -18,8 +18,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProductServiceCacheableTest {
     private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
@@ -166,6 +165,23 @@ class ProductServiceCacheableTest {
         Product product = productServiceCacheable.getProduct("prod-test");
         //then
         assertNotNull(product);
+    }
+
+    @Test
+    void getProductRaw() {
+        final String filePath = "filePath";
+        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
+        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
+
+        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
+        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
+        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
+        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        //when
+        Product product = productServiceCacheable.getProductRaw("prod-test");
+        //then
+        assertNotNull(product);
+        verify(blobPropertiesMock, times(1)).getLastModified();
     }
 
     @Test

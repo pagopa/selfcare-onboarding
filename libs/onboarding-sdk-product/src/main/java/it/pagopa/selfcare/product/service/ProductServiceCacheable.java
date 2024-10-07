@@ -8,6 +8,7 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
+import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,6 +61,21 @@ public class ProductServiceCacheable implements ProductService{
     @Override
     public Product getProduct(String productId) {
         refreshProduct();
+        return productService.getProduct(productId);
+    }
+
+
+    /**
+     * Return a product present on the map by productId without any filter
+     * retrieving data from institutionContractMappings map
+     *
+     * @param productId String
+     * @return Product
+     * @throws IllegalArgumentException if @param id is null
+     * @throws ProductNotFoundException if product is not found
+     */
+    @Override
+    public Product getProductRaw(String productId) {
         return productService.getProduct(productId);
     }
 
