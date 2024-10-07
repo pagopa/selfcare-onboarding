@@ -547,16 +547,12 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_PAGOPA.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
         institutionBaseRequest.setDescription("name");
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        List<AggregateInstitution> aggregates = new ArrayList<>();
-        AggregateInstitution institution = new AggregateInstitution();
-        aggregates.add(institution);
-        request.setAggregates(aggregates);
-
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -590,16 +586,12 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
         institutionBaseRequest.setDescription("name");
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        List<AggregateInstitution> aggregates = new ArrayList<>();
-        AggregateInstitution institution = new AggregateInstitution();
-        aggregates.add(institution);
-        request.setAggregates(aggregates);
-
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -633,16 +625,12 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
         institutionBaseRequest.setDescription("nome");
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        List<AggregateInstitution> aggregates = new ArrayList<>();
-        AggregateInstitution institution = new AggregateInstitution();
-        aggregates.add(institution);
-        request.setAggregates(aggregates);
-
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))

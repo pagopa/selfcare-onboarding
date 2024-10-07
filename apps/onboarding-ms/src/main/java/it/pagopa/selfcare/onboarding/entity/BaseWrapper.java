@@ -1,8 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 
-import jakarta.ws.rs.core.HttpHeaders;
-
 public abstract class BaseWrapper<T> implements Wrapper<T> {
 
     protected static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
@@ -21,7 +19,6 @@ public abstract class BaseWrapper<T> implements Wrapper<T> {
     }
 
     public void setOnboarding(Onboarding onboarding) {
-        String contentDisposition = HttpHeaders.CONTENT_DISPOSITION;
         this.onboarding = onboarding;
     }
 

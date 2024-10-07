@@ -9,9 +9,11 @@ import it.pagopa.selfcare.onboarding.common.Origin;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +32,18 @@ class RegistryResourceProviderTest {
     @InjectMock
     @RestClient
     UoApi uoApi;
+
+    @InjectMock
+    @RestClient
+    InsuranceCompaniesApi insuranceCompaniesApi;
+
+    @InjectMock
+    @RestClient
+    InfocamerePdndApi infocamerePdndApi;
+
+    @InjectMock
+    @RestClient
+    StationsApi stationsApi;
 
     private Onboarding createOnboarding(Origin origin) {
         Onboarding onboarding = new Onboarding();
@@ -50,7 +64,6 @@ class RegistryResourceProviderTest {
 
         subscriber.assertCompleted();
         assertTrue(subscriber.getItem() instanceof WrapperIPA);
-
     }
 
     @Test
@@ -68,7 +81,45 @@ class RegistryResourceProviderTest {
 
         subscriber.assertCompleted();
         assertTrue(subscriber.getItem() instanceof WrapperUO);
+    }
 
+    @Test
+    void getWrapperIVASS() {
+
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new InsuranceCompanyResource()));
+
+        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IVASS))
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        assertTrue(subscriber.getItem() instanceof WrapperIVASS);
+    }
+
+    @Test
+    void getWrapperANAC() {
+
+        when(stationsApi.searchByTaxCodeUsingGET1(any())).thenReturn(Uni.createFrom().item(new StationResource()));
+
+        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.ANAC))
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        assertTrue(subscriber.getItem() instanceof WrapperANAC);
+    }
+
+    @Test
+    void getWrapperPDNDInfocamere() {
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new PDNDBusinessResource()));
+
+        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.PDND_INFOCAMERE))
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        assertTrue(subscriber.getItem() instanceof WrapperPDNDInfocamere);
     }
 
 }
