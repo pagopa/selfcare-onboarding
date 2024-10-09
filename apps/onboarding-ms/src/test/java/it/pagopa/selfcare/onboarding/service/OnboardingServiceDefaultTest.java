@@ -54,6 +54,7 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
+import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
@@ -468,6 +469,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
@@ -483,6 +485,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
         uoResource.setCodiceFiscaleEnte("taxCode");
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(new InstitutionResource()));
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
@@ -501,6 +504,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
@@ -659,14 +663,11 @@ class OnboardingServiceDefaultTest {
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
         institutionBaseRequest.setDigitalAddress("wrong-pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        List<AggregateInstitution> aggregates = new ArrayList<>();
-        AggregateInstitution institution = new AggregateInstitution();
-        aggregates.add(institution);
-        request.setAggregates(aggregates);
 
         mockPersistOnboarding(asserter);
 

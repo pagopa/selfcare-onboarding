@@ -29,7 +29,7 @@ public class WrapperIPA extends BaseWrapper<Uni<IPAEntity>> {
 
     @Override
     public Uni<IPAEntity> retrieveInstitution() {
-        return client.findInstitutionUsingGET(onboarding.getInstitution().getId(), "", null)
+        return client.findInstitutionUsingGET(onboarding.getInstitution().getId(), null, null)
                 .onItem().transformToUni(institutionResource -> Uni.createFrom().item(IPAEntity.builder().institutionResource(institutionResource).build()));
     }
 
