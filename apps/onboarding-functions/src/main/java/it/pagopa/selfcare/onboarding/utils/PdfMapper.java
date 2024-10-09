@@ -97,7 +97,7 @@ public class PdfMapper {
                 .orElse(null);
     }
 
-    public static void setupPSPData(Map<String, Object> map, UserResource validManager, Onboarding onboarding) {
+    public static void setupPSPData(Map<String, Object> map, UserResource validManager, Onboarding onboarding, String baseUrl) {
         Institution institution = onboarding.getInstitution();
         if (institution.getPaymentServiceProvider() != null) {
             map.put("legalRegisterNumber", institution.getPaymentServiceProvider().getLegalRegisterNumber());
@@ -120,23 +120,28 @@ public class PdfMapper {
                 .map(userMailUuid -> getMailManager(validManager, userMailUuid))
                 .ifPresent(mail -> map.put("managerPEC", mail));
 
+        addAggregatesCsvLink(onboarding, map, baseUrl);
+
     }
 
-    public static void setECData(Map<String, Object> map, Onboarding onboarding) {
+    public static void setECData(Map<String, Object> map, Onboarding onboarding, String baseUrl) {
         Institution institution = onboarding.getInstitution();
         map.put(INSTITUTION_REA, Optional.ofNullable(institution.getRea()).orElse(UNDERSCORE));
         map.put(INSTITUTION_SHARE_CAPITAL, Optional.ofNullable(institution.getShareCapital()).orElse(UNDERSCORE));
         map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
+
+        addAggregatesCsvLink(onboarding, map, baseUrl);
+
     }
 
-    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding) {
+    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding, String baseUrl) {
         addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
 
         if (onboarding.getBilling() != null) {
             map.put(INSTITUTION_RECIPIENT_CODE, Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
         }
 
-        setECData(map, onboarding);
+        setECData(map, onboarding, baseUrl);
     }
 
     public static void setupProdIOData(Onboarding onboarding, Map<String, Object> map, UserResource validManager) {

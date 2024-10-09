@@ -143,14 +143,14 @@ public class ContractServiceDefault implements ContractService {
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
-            setupPSPData(data, manager, onboarding);
+            setupPSPData(data, manager, onboarding, baseUrl.toString());
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PRV == institution.getInstitutionType()) {
-            setupPRVData(data, onboarding);
+            setupPRVData(data, onboarding, baseUrl.toString());
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
-            setECData(data, onboarding);
+            setECData(data, onboarding, baseUrl.toString());
         } else if (PROD_IO.getValue().equalsIgnoreCase(productId)){
             setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
         } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
