@@ -80,7 +80,7 @@ class ContractServiceDefaultTest {
         return onboarding;
     }
 
-    AggregateInstitution createAggregateInstitution(int number) {
+    AggregateInstitution createAggregateInstitutionIO(int number) {
         AggregateInstitution aggregateInstitution = new AggregateInstitution();
         aggregateInstitution.setTaxCode(String.format("taxCode%s", number));
         aggregateInstitution.setOriginId(String.format("originId%s", number));
@@ -93,24 +93,58 @@ class ContractServiceDefaultTest {
         return aggregateInstitution;
     }
 
-    AggregateInstitution createAggregateInstitutionAOO(int number) {
-        AggregateInstitution aggregateInstitution = createAggregateInstitution(number);
+    AggregateInstitution createAggregateInstitutionAOO_IO(int number) {
+        AggregateInstitution aggregateInstitution = createAggregateInstitutionIO(number);
         aggregateInstitution.setSubunitType("AOO");
         aggregateInstitution.setSubunitCode(String.format("code%s", number));
         return aggregateInstitution;
     }
 
-    OnboardingWorkflow createOnboardingWorkflow() {
+    AggregateInstitution createAggregateInstitutionPagoPa(int number) {
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setTaxCode(String.format("taxCode%s", number));
+        aggregateInstitution.setDescription(String.format("description%s", number));
+        aggregateInstitution.setVatNumber(String.format("vatNumber%s", number));
+        aggregateInstitution.setAddress(String.format("address%s", number));
+        aggregateInstitution.setCity(String.format("city%s", number));
+        aggregateInstitution.setCounty(String.format("county%s", number));
+        aggregateInstitution.setDigitalAddress(String.format("pec%s", number));
+        aggregateInstitution.setTaxCodePT(String.format("taxCodePT%s", number));
+        aggregateInstitution.setDescriptionPT(String.format("descriptionPT%s", number));
+        aggregateInstitution.setIban(String.format("iban%s", number));
+        aggregateInstitution.setService(String.format("service%s", number));
+        aggregateInstitution.setSyncAsyncMode(String.format("mode%s", number));
+        return aggregateInstitution;
+    }
+
+    OnboardingWorkflow createOnboardingWorkflowIO() {
         Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-io");
         List<AggregateInstitution> aggregateInstitutionList = new ArrayList<>();
 
         for (int i = 1; i <= 5; i++) {
-            AggregateInstitution aggregateInstitution = createAggregateInstitution(i);
+            AggregateInstitution aggregateInstitution = createAggregateInstitutionIO(i);
             aggregateInstitutionList.add(aggregateInstitution);
         }
 
         for(int i = 6; i<= 10; i++) {
-            AggregateInstitution aggregateInstitution = createAggregateInstitutionAOO(i);
+            AggregateInstitution aggregateInstitution = createAggregateInstitutionAOO_IO(i);
+            aggregateInstitutionList.add(aggregateInstitution);
+        }
+
+        onboarding.setAggregates(aggregateInstitutionList);
+
+        return new OnboardingWorkflowAggregator(onboarding, "string");
+
+    }
+
+    OnboardingWorkflow createOnboardingWorkflowPagoPa() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-pagopa");
+        List<AggregateInstitution> aggregateInstitutionList = new ArrayList<>();
+
+        for (int i = 1; i <= 7; i++) {
+            AggregateInstitution aggregateInstitution = createAggregateInstitutionPagoPa(i);
             aggregateInstitutionList.add(aggregateInstitution);
         }
 
@@ -284,10 +318,25 @@ class ContractServiceDefaultTest {
 
 
     @Test
-    void uploadCsvAggregates() throws IOException {
+    void uploadCsvAggregatesIO() throws IOException {
         final String contractHtml = "contract";
 
-        OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflow();
+        OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflowIO();
+
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        contractService.uploadAggregatesCsv(onboardingWorkflow);
+
+        Mockito.verify(azureBlobClient, times(1))
+                .uploadFile(any(), any(), any());
+
+    }
+
+    @Test
+    void uploadCsvAggregatesPagoPa() throws IOException {
+        final String contractHtml = "contract";
+
+        OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflowPagoPa();
 
         Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
 
