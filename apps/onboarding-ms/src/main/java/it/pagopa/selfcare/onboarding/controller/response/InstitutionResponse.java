@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.controller.response;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
 import it.pagopa.selfcare.onboarding.controller.request.GeographicTaxonomyDto;
@@ -14,7 +13,7 @@ import java.util.List;
 public class InstitutionResponse {
 
     private String id;
-    private InstitutionType institutionType;
+    private String institutionType;
     private String taxCode;
     private String taxCodeInvoicing;
     private String subunitCode;

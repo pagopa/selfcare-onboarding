@@ -5,14 +5,18 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 public interface WorkflowExecutor {
@@ -74,7 +78,7 @@ public interface WorkflowExecutor {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         createInstitutionAndOnboarding(ctx, onboarding);
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
-        return Optional.of(OnboardingStatus.COMPLETED);
+        return Optional.of(COMPLETED);
     }
 
     default Optional<OnboardingStatus> onboardingCompletionUsersActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -83,12 +87,24 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
-        return Optional.of(OnboardingStatus.COMPLETED);
+        return Optional.of(COMPLETED);
+    }
+
+    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
+        List<Task<String>> parallelTasks = new ArrayList<>();
+
+        for (AggregateInstitution aggregate : onboarding.getAggregates()) {
+            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
+            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
+        }
+
+        ctx.allOf(parallelTasks).await();
     }
 
     default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
         createInstitutionAndOnboarding(ctx, onboarding);
-        return Optional.of(OnboardingStatus.COMPLETED);
+        return Optional.of(COMPLETED);
     }
 
     private String onboardingStringWithTestEnvProductId(String testEnvProductId, String onboardingWithInstitutionIdString) {
@@ -105,6 +121,13 @@ public interface WorkflowExecutor {
             ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         }
         return Optional.empty();
+    }
+
+    default void postProcessor(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingStatus onboardingStatus) {
+        if (COMPLETED.equals(onboardingStatus)) {
+            final String onboardingString = getOnboardingString(objectMapper(), onboarding);
+            ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+        }
     }
 
 }

@@ -9,8 +9,9 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
-import it.pagopa.selfcare.onboarding.model.VerifyAggregateSendResponse;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
+import jakarta.ws.rs.core.MediaType;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -23,11 +24,12 @@ import static org.mockito.Mockito.*;
 @TestHTTPEndpoint(AggregatesController.class)
 @QuarkusTestResource(MongoTestResource.class)
 @TestSecurity(user = "userJwt")
-public class AggregatesControllerTest {
+class AggregatesControllerTest {
 
     @InjectMock
     AggregatesService aggregatesService;
 
+    @TestSecurity(user = "userJwt")
     @Test
     void verifyAggregatesCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-appio.csv");
@@ -48,6 +50,47 @@ public class AggregatesControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
+    void getAggregatesCsv() {
+        final String onboardingId = "onboardingId";
+        final String productId = "productId";
+        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
+        when(aggregatesService.retrieveAggregatesCsv(onboardingId,productId))
+                .thenReturn(Uni.createFrom().item(response.build()));
+
+        given()
+                .when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .get("csv/{onboardingId}/products/{productId}", onboardingId, productId)
+                .then()
+                .statusCode(200);
+
+
+    }
+
+    @TestSecurity(user = "userJwt")
+    @Test
+    void verifyAggregatesSendCsv_succeeds() {
+        File testFile = new File("src/test/resources/aggregates-send.csv");
+
+        when(aggregatesService.validateSendAggregatesCsv(any()))
+                .thenReturn(Uni.createFrom().item(new VerifyAggregateResponse()));
+
+        given()
+                .when()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("aggregates", testFile)
+                .post("/verification/prod-pn")
+                .then()
+                .statusCode(200);
+
+        verify(aggregatesService, times(1))
+                .validateSendAggregatesCsv(any());
+    }
+
+
+    @TestSecurity(user = "userJwt")
+    @Test
     void verifyAggregatesPagoPaCsv_succeeds() {
         File testFile = new File("src/test/resources/aggregates-pagopa.csv");
 
@@ -64,25 +107,5 @@ public class AggregatesControllerTest {
 
         verify(aggregatesService, times(1))
                 .validatePagoPaAggregatesCsv(any());
-    }
-
-    @TestSecurity(user = "userJwt")
-    @Test
-    void verifyAggregatesSendCsv_succeeds() {
-        File testFile = new File("src/test/resources/aggregates-send.csv");
-
-        when(aggregatesService.validateSendAggregatesCsv(any()))
-                .thenReturn(Uni.createFrom().item(new VerifyAggregateSendResponse()));
-
-        given()
-                .when()
-                .contentType(ContentType.MULTIPART)
-                .multiPart("aggregates", testFile)
-                .post("/verification/prod-pn")
-                .then()
-                .statusCode(200);
-
-        verify(aggregatesService, times(1))
-                .validateSendAggregatesCsv(any());
     }
 }

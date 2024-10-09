@@ -1,4 +1,15 @@
-Ragione Sociale*;PEC*;Codice Fiscale*;P.IVA*;Codice SDI*;Sede legale - Indirizzo*;Sede legale - Città*;Sede legale - Provincia (sigla)*;Codice IPA***;AOO/UO**;Codice Univoco**;Nome Amministratore Ente Aggregato*;Cognome Amministratore Ente Aggregato*;Codice Fiscale Amministratore Ente Aggregato*;email Amministratore Ente Aggregato*
-Ufficio centrale di fatturazione;protocollo.rivalta@cert.legalmail.it;1864440019;1864440019;NYJTPK;Via Balma , 5;Rivalta di Torino;TO;;UO;NYJTPK;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
-(**) campo obbligatorio in caso di AOO/UO;;;;;;;;;;;;;;
-(***) campo obbligatorio in caso di Ente Centrale;;;;;;;;;;;;;;
+Codice Fiscale*;P.IVA*;Codice SDI*;AOO/UO**;Codice Univoco**;Nome Amministratore Ente Aggregato*;Cognome Amministratore Ente Aggregato*;Codice Fiscale Amministratore Ente Aggregato*;email Amministratore Ente Aggregato*
+1307110484;1864440019;NYJTPK;UO;18SU3R;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;UOO;18SU3R;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;UO;18SU3R;Mario;Rossi;RSSMRA66A01H501W;
+1307110484;1864440019;NYJTPK;UO;18SU3R;Mario;Rossi;;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;UO;18SU3R;Mario;;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;;NYJTPK;UO;18SU3R;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;;NYJTPK;UO;18SU3R;;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;UO;;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;AOO;18SU3S;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;AOO;18SU3R;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;;;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+;;;;;Mario;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+1307110484;1864440019;NYJTPK;;;;Rossi;RSSMRA66A01H501W;mario.rossi@acme.it
+

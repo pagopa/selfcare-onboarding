@@ -1,12 +1,12 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@SuppressWarnings("java:S1068")
 public class AggregateInstitution {
 
     private String taxCode;
@@ -18,5 +18,16 @@ public class AggregateInstitution {
     private String zipCode;
     private String originId;
     private Origin origin;
+    private String vatNumber;
+    private List<User> users;
+
+    private String recipientCode;
+    private String digitalAddress;
+    private String city;
+    private String county;
+    private String taxCodePT;
+    private String iban;
+    private String service;
+    private String syncAsyncMode;
 
 }

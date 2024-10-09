@@ -22,8 +22,13 @@ module "onboarding_fn_snet" {
   }
 }
 
+data "azurerm_key_vault" "key_vault" {
+  resource_group_name = var.key_vault.resource_group_name
+  name                = var.key_vault.name
+}
+
 module "selc_onboarding_fn" {
-  source = "github.com/pagopa/terraform-azurerm-v3.git//function_app?ref=v7.47.2"
+  source = "github.com/pagopa/terraform-azurerm-v3.git//function_app?ref=v7.77.0"
 
   name                = local.app_name
   location            = azurerm_resource_group.onboarding_fn_rg.location
@@ -45,11 +50,6 @@ module "selc_onboarding_fn" {
   app_settings = var.app_settings
 
   tags = var.tags
-}
-
-data "azurerm_key_vault" "key_vault" {
-  resource_group_name = var.key_vault.resource_group_name
-  name                = var.key_vault.name
 }
 
 resource "azurerm_key_vault_access_policy" "keyvault_functions_access_policy" {

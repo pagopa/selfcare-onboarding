@@ -1,8 +1,10 @@
 package it.pagopa.selfcare.onboarding.event;
 
 import io.quarkus.test.InjectMock;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.mongodb.MongoTestResource;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -25,7 +27,8 @@ import java.time.LocalDateTime;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-public class NotificationServiceTest {
+@QuarkusTestResource(MongoTestResource.class)
+class NotificationServiceTest {
     @Mock
     private OnboardingMapper onboardingMapper;
     @InjectMock
@@ -36,7 +39,7 @@ public class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event ADD")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventAdd() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventAdd() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now());
@@ -56,7 +59,7 @@ public class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event UPDATE")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdate() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdate() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
         onboarding.setUpdatedAt(LocalDateTime.now().plusMinutes(10)); // 5 minutes should be the threshold
@@ -76,7 +79,7 @@ public class NotificationServiceTest {
 
     @Test
     @DisplayName("Should handle Invoke Notification API Success passing event UPDATE with status DELETED")
-    public void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdateWithStatusDeleted() {
+    void shouldHandleInvokeNotificationApiSuccessForQueueEventUpdateWithStatusDeleted() {
         Onboarding onboarding = new Onboarding();
         onboarding.setStatus(OnboardingStatus.DELETED);
         onboarding.setUpdatedAt(LocalDateTime.now()); // 5 minutes should be the threshold
@@ -100,7 +103,7 @@ public class NotificationServiceTest {
     class NotificationServiceTestWithDisabledWatcherTest {
         @Test
         @DisplayName("Should not invoke Notification API when watcher is disabled")
-        public void shouldNotInvokeNotificationApiWhenWatcheIsDisabled() {
+        void shouldNotInvokeNotificationApiWhenWatcheIsDisabled() {
             Onboarding onboarding = new Onboarding();
             onboarding.setStatus(OnboardingStatus.DELETED);
             onboarding.setUpdatedAt(LocalDateTime.now()); // 5 minutes should be the threshold

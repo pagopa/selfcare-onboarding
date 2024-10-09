@@ -7,7 +7,6 @@ import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
-import it.pagopa.selfcare.product.service.ProductServiceDefault;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -16,15 +15,15 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ProductServiceDefaultTest {
+class ProductServiceDefaultTest {
 
-    final private String PRODUCT_JSON_STRING_EMPTY = "[]";
-    final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
+    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
     final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
-            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
+            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
     @Test
@@ -112,6 +111,12 @@ public class ProductServiceDefaultTest {
     void getProduct_shouldGetProduct() throws JsonProcessingException {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
         assertNotNull(productService.getProduct("prod-test"));
+    }
+
+    @Test
+    void getProductRaw_shouldGetProduct() throws JsonProcessingException {
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
+        assertNotNull(productService.getProductRaw("prod-test"));
     }
 
     @Test

@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.service.strategy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.service.strategy.ConfigMapAllowedListOnboardingValidationStrategy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 

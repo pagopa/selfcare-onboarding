@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
@@ -10,15 +11,13 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
-import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
-
-import java.io.File;
 import java.util.List;
 
 public interface OnboardingService {
 
-    Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest onboardingUserRequest, String userId);
 
@@ -26,15 +25,15 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
 
-    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingGet> approve(String onboardingId);
 
-    Uni<Onboarding> complete(String tokenId, File contract);
+    Uni<Onboarding> complete(String tokenId, FormItem formItem);
 
-    Uni<Onboarding> completeOnboardingUsers(String tokenId, File contract);
+    Uni<Onboarding> completeOnboardingUsers(String tokenId, FormItem formItem);
 
-    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, File contract);
+    Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, FormItem formItem);
 
     Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters);
 
@@ -55,5 +54,7 @@ public interface OnboardingService {
     Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
 
     Uni<CustomError> checkRecipientCode(String recipientCode, String originId);
+
+    Uni<OnboardingResponse> onboardingIncrement(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
 }

@@ -5,7 +5,6 @@ import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.*;
@@ -115,23 +114,28 @@ public interface OnboardingMapper {
         return localDateTime.atOffset(java.time.ZoneOffset.UTC);
     }
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateResponse toVerifyAggregateResponse(AggregatesCsvResponse aggregatesCsvResponse);
+    Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
-    @Mapping(target = "errors", source = "rowErrorList")
-    @Mapping(target = "aggregates", source = "validAggregates")
-    VerifyAggregateSendResponse toVerifyAggregateSendResponse(AggregatesCsvResponse aggregatesCsvResponse);
+    Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
 
     @Mapping(target = "users", source = ".")
-    AggregateSend csvToAggregateSend(CsvAggregateSend csvAggregateSend);
+    Aggregate csvToAggregateSend(CsvAggregateSend csvAggregateSend);
 
-    default List<AggregateSend> mapCsvAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
+    default List<Aggregate> mapCsvSendAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
         if (csvAggregateSendList == null) {
             return null;
         }
         return csvAggregateSendList.stream()
                 .map(this::csvToAggregateSend)
+                .collect(Collectors.toList());
+    }
+
+    default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
+        if (csvAggregateAppIoList == null) {
+            return Collections.emptyList();
+        }
+        return csvAggregateAppIoList.stream()
+                .map(this::csvToAggregateAppIo)
                 .collect(Collectors.toList());
     }
 
@@ -144,7 +148,7 @@ public interface OnboardingMapper {
         user.setSurname(csvAggregateSend.getAdminAggregateSurname());
         user.setTaxCode(csvAggregateSend.getAdminAggregateTaxCode());
         user.setEmail(csvAggregateSend.getAdminAggregateEmail());
-        user.setRole("Delegate");
+        user.setRole(PartyRole.DELEGATE.value());
 
         return Collections.singletonList(user);
     }

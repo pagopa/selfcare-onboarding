@@ -21,12 +21,12 @@ cidr_subnet_selc_onboarding_fn = ["10.1.144.0/24"]
 function_always_on = false
 
 app_service_plan_info = {
-  kind                         = "Linux"
-  sku_size                     = "P1v3"
-  sku_tier                     = "PremiumV3"
-  maximum_elastic_worker_count = 1
-  worker_count                 = 1
-  zone_balancing_enabled       = false
+  kind                          = "Linux"
+  sku_size                      = "P1v3"
+  sku_tier                      = "PremiumV3"
+  maximum_elastic_worker_count  = 1
+  worker_count                  = 1
+  zone_balancing_enabled        = false
 }
 
 storage_account_info = {
@@ -35,6 +35,8 @@ storage_account_info = {
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
   advanced_threat_protection_enable = false
+  use_legacy_defender_version       = true
+  public_network_access_enabled     = false
 }
 
 app_settings = {
@@ -102,4 +104,9 @@ app_settings = {
   "JWT_TOKEN_ISSUER"                                   = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-private-key/)"
   "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
+
+  ##NAMIRIAL SIGNATURE
+  "PAGOPA_SIGNATURE_SOURCE"                 = "disabled",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }

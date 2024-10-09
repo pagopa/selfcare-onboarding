@@ -1,4 +1,10 @@
-Ragione Sociale*;PEC*;Codice Fiscale*;P.IVA*;Sede legale - Indirizzo*;Sede legale - Città*;Sede legale - Provincia (sigla)*;Codice IPA***;AOO/UO**;Codice Univoco**
-Ufficio del Sindaco;uff.sindaco@pec.comune.fi.it;1307110484;1307110484;Palazzo Vecchio Piazza Della Signoria;Firenze;FI;;UO;18SU3R
-(**) campo obbligatorio in caso di AOO/UO;;;;;;;;;
-(***) campo obbligatorio in caso di Ente Centrale;;;;;;;;;
+Codice Fiscale*;P.IVA*;AOO/UO**;Codice Univoco**;
+1307110484;1307110484;UO;18SU3R
+1307110484;1307110484;UOO;18SU3R
+1307110484;;;
+1307110484;1307110484;AOO;18SU3R
+1307110484;1307110484;AOO;18SU3S
+1307110484;1307110484;;
+;;;
+1307110484;1307110484;UO;
+1307110484;1307110484;UOAOO;

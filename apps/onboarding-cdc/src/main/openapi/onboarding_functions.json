@@ -207,6 +207,9 @@
               "$ref": "#/components/schemas/AggregateInstitution"
             }
           },
+          "aggregator": {
+            "$ref": "#/components/schemas/Aggregator"
+          },
           "billing": {
             "$ref": "#/components/schemas/Billing"
           },
@@ -356,6 +359,24 @@
           }
         }
       },
+      "Aggregator": {
+        "title": "Aggregator",
+        "type": "object",
+        "properties": {
+          "taxCode": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "originId": {
+            "type": "string"
+          }
+        }
+      },
       "DataProtectionOfficer": {
         "type": "object",
         "properties": {
@@ -487,7 +508,8 @@
           "USERS",
           "USERS_IMPORT",
           "CONTRACT_REGISTRATION_AGGREGATOR",
-          "CONFIRMATION_AGGREGATE"
+          "CONFIRMATION_AGGREGATE",
+          "INCREMENT_REGISTRATION_AGGREGATOR"
         ],
         "type": "string"
       },

@@ -9,6 +9,15 @@ public class Aggregator {
     private String id;
     private String taxCode;
     private String description;
+    private String originId;
+
+    public String getOriginId() {
+        return originId;
+    }
+
+    public void setOriginId(String originId) {
+        this.originId = originId;
+    }
 
     public String getId() {
         return id;

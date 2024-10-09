@@ -5,15 +5,19 @@ import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jsoup.Jsoup;
@@ -24,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,21 +54,29 @@ public class ContractServiceDefault implements ContractService {
     private final AzureBlobClient azureBlobClient;
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
+    private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
 
     Boolean isLogoEnable;
 
     private final String logoPath;
 
+    private static final String[] CSV_HEADERS = {
+            "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
+            "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
+            "Codice IPA", "AOO/UO", "Codice Univoco"
+    };
+
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
-                                  PagoPaSignatureConfig pagoPaSignatureConfig,
+                                  PagoPaSignatureConfig pagoPaSignatureConfig, MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
                                   @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
                                   @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
         this.logoPath = logoPath;
         this.isLogoEnable = isLogoEnable;
     }
@@ -125,16 +138,22 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding);
 
+        StringBuilder baseUrl = new StringBuilder(templatePlaceholdersConfig.rejectOnboardingUrlValue());
+
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
-        } else if(PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
+        } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
+                InstitutionType.PRV == institution.getInstitutionType()) {
+            setupPRVData(data, onboarding);
+        } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
-        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
-                || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)){
+            setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
+        } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
             setupProdIOData(onboarding, data, manager);
         } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
@@ -243,5 +262,59 @@ public class ContractServiceDefault implements ContractService {
         }
 
         return Optional.empty();
+    }
+
+
+    @Override
+    public void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow) {
+
+        try {
+            Onboarding onboarding = onboardingWorkflow.getOnboarding();
+            Path filePath = Files.createTempFile("tempfile", ".csv");
+            File csv = generateCsv(onboarding.getAggregates(), filePath);
+            final String path = String.format("%s%s/%s", azureStorageConfig.aggregatesPath(), onboarding.getId(),
+                    onboarding.getProductId());
+            final String filename = "aggregates.csv";
+            azureBlobClient.uploadFile(path, filename, Files.readAllBytes(csv.toPath()));
+        } catch (IOException e) {
+            throw new GenericOnboardingException(String.format("Can not load aggregates CSV, message: %s", e.getMessage()));
+        }
+    }
+
+    private File generateCsv(List<AggregateInstitution> institutions, Path filePath) {
+
+        File csvFile = filePath.toFile();
+
+        // Using the builder pattern to create the CSV format with headers
+        CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
+                .setHeader(CSV_HEADERS)
+                .setDelimiter(';')
+                .build();
+
+        try (FileWriter writer = new FileWriter(csvFile);
+             CSVPrinter csvPrinter = new CSVPrinter(writer, csvFormat)) {
+
+            // Iterate over each AggregateInstitution object and write a row for each one
+            for (AggregateInstitution institution : institutions) {
+
+                // Write the row with the institution data
+                csvPrinter.printRecord(
+                        institution.getDescription(),
+                        institution.getDigitalAddress(),
+                        institution.getTaxCode(),
+                        institution.getVatNumber(),
+                        institution.getAddress(),
+                        institution.getCity(),
+                        institution.getCounty(),
+                        Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
+                        institution.getSubunitType(),
+                        institution.getSubunitCode()
+                );
+            }
+
+        } catch (IOException e) {
+            throw new GenericOnboardingException(String.format("Can not create aggregates CSV, message: %s", e.getMessage()));
+        }
+        return csvFile;
     }
 }

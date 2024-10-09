@@ -15,6 +15,8 @@ public interface CompletionService {
 
     void persistActivatedAt(Onboarding onboarding);
 
+    void rejectOutdatedOnboardings(Onboarding onboarding);
+
     void sendCompletedEmail(OnboardingWorkflow onboardingWorkflow);
 
     void sendCompletedEmailAggregate(Onboarding onboarding);
@@ -26,4 +28,7 @@ public interface CompletionService {
     String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 
     void sendTestEmail(ExecutionContext context);
+
+    String existsDelegation(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+
 }

@@ -15,7 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
-public class EventhubSasTokenAuthorizationTest {
+class EventhubSasTokenAuthorizationTest {
 
     @Inject
     EventhubSasTokenAuthorization eventhubSasTokenAuthorization;

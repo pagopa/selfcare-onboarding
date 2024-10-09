@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.product.service;
 
 import com.azure.storage.blob.models.BlobProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
@@ -19,20 +18,18 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProductServiceCacheableTest {
-    final private String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
-    final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
-
-    final private String PRODUCT_JSON_STRING_EMPTY = "[]";
+    private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
 
     @Test
     void constructProduct() {
@@ -168,6 +165,23 @@ class ProductServiceCacheableTest {
         Product product = productServiceCacheable.getProduct("prod-test");
         //then
         assertNotNull(product);
+    }
+
+    @Test
+    void getProductRaw() {
+        final String filePath = "filePath";
+        AzureBlobClient azureBlobClient = mock(AzureBlobClient.class);
+        BlobProperties blobPropertiesMock = mock(BlobProperties.class);
+
+        when(azureBlobClient.getProperties(any())).thenReturn(blobPropertiesMock);
+        when(blobPropertiesMock.getLastModified()).thenReturn(OffsetDateTime.now());
+        when(azureBlobClient.getFileAsText(any())).thenReturn(PRODUCT_JSON_STRING);
+        ProductServiceCacheable productServiceCacheable = new ProductServiceCacheable(azureBlobClient, filePath);
+        //when
+        Product product = productServiceCacheable.getProductRaw("prod-test");
+        //then
+        assertNotNull(product);
+        verify(blobPropertiesMock, times(1)).getLastModified();
     }
 
     @Test

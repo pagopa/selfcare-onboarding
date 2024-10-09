@@ -12,6 +12,14 @@
     <artifactId>onboarding-apps</artifactId>
     <packaging>pom</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>it.pagopa.selfcare</groupId>
+            <artifactId>onboarding-sdk-common</artifactId>
+            <version>0.3.2</version>
+        </dependency>
+    </dependencies>
+
     <profiles>
         <profile>
             <id>onboarding-ms</id>

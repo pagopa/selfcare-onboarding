@@ -23,7 +23,9 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.DelegationApi;
@@ -47,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
-@TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
 public class CompletionServiceDefaultTest {
 
     @Inject
@@ -94,7 +95,10 @@ public class CompletionServiceDefaultTest {
         userResource.setWorkContacts(map);
     }
 
-    public static class UserMSProfile implements QuarkusTestProfile {
+    @Nested
+    @TestProfile(CompletionServiceDefaultTest.UserMSProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class UserMSProfile implements QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of("onboarding-functions.persist-users.active", "true");
@@ -113,6 +117,7 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
         Onboarding onboarding = createOnboarding();
@@ -147,7 +152,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
 
         assertNotNull(serviceResponse);
-        assertEquals(serviceResponse.getId(), "actual-id");
+        assertEquals("actual-id", serviceResponse.getId());
     }
 
     @Test
@@ -168,7 +173,7 @@ public class CompletionServiceDefaultTest {
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
     }
 
-    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding){
+    void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
@@ -182,7 +187,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void persistUpadatedAt(){
+    void persistUpadatedAt() {
         Onboarding onboarding = createOnboarding();
 
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
@@ -195,6 +200,26 @@ public class CompletionServiceDefaultTest {
 
         verify(onboardingRepository, times(1))
                 .update("activatedAt = ?1 and updatedAt = ?2 ", any(), any());
+    }
+
+    @Test
+    void rejectOutdatedOnboardings(){
+
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setOrigin(Origin.IPA);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(panacheUpdateMock.where("productId = ?1 and institution.origin = ?2 and institution.originId = ?3 and status = PENDING or status = TOBEVALIDATED",
+                onboarding.getProductId(), onboarding.getInstitution().getOrigin(), onboarding.getInstitution().getOriginId()))
+                .thenReturn(Long.valueOf(1));
+        when(onboardingRepository.update("status = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        completionServiceDefault.rejectOutdatedOnboardings(onboarding);
+
+        verify(onboardingRepository, times(1))
+                .update("status = ?1 and updatedAt = ?2 ", any(), any());
     }
 
     @Test
@@ -258,6 +283,7 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePgAde() {
         Onboarding onboarding = createOnboarding();
@@ -278,6 +304,7 @@ public class CompletionServiceDefaultTest {
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
     }
+
     @Test
     void createInstitutionAndPersistInstitutionId_notFoundInstitutionAndCreatePaAOO() {
         Onboarding onboarding = createOnboarding();
@@ -392,7 +419,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setInstitution(institution);
 
         WebApplicationException e = new WebApplicationException(404);
-        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null ,null))
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(institution.getTaxCode(), null, null))
                 .thenThrow(e);
 
         InstitutionsResponse response = new InstitutionsResponse();
@@ -412,8 +439,7 @@ public class CompletionServiceDefaultTest {
     }
 
 
-
-    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding){
+    void mockOnboardingUpdateWhenPersistOnboarding(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
         when(panacheUpdateMock.where("_id", onboarding.getId()))
                 .thenReturn(Long.valueOf(1));
@@ -523,7 +549,7 @@ public class CompletionServiceDefaultTest {
     void sendCompletedEmailAggregate() {
 
         Onboarding onboarding = createOnboarding();
-        Aggregator aggregator= new Aggregator();
+        Aggregator aggregator = new Aggregator();
         aggregator.setDescription("description");
         onboarding.setAggregator(aggregator);
 
@@ -571,7 +597,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createDelegation(){
+    void createDelegation() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
         onboarding.getInstitution().setDescription("institution-description");
@@ -601,7 +627,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createDelegationWithNullAggregator(){
+    void createDelegationWithNullAggregator() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
         onboarding.getInstitution().setDescription("institution-description");
@@ -717,6 +743,89 @@ public class CompletionServiceDefaultTest {
         Mockito.verify(notificationService, times(1))
                 .sendTestEmail(executionContext);
     }
+    @Test
+    void checkExistsDelegationTrue() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+
+        Institution aggregator = new Institution();
+        aggregator.setId("aggregatorId");
+        input.setInstitution(aggregator);
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        DelegationResponse delegation = new DelegationResponse();
+        delegation.setStatus(DelegationResponse.StatusEnum.ACTIVE);
+        delegationWithPaginationResponse.setDelegations(List.of(delegation));
+
+        when(delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null, aggregate.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertTrue(Boolean.parseBoolean(result));
+    }
+
+    @Test
+    void checkExistsDelegationFalse() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+
+        Institution aggregator = new Institution();
+        aggregator.setId("aggregatorId");
+        input.setInstitution(aggregator);
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        delegationWithPaginationResponse.setDelegations(Collections.emptyList());
+        when(delegationApi.getDelegationsUsingGET1(null, aggregator.getId(), null, null, aggregator.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertFalse(Boolean.parseBoolean(result));
+    }
+
+    @Nested
+    @TestProfile(CompletionServiceDefaultTest.ForceCreationProfile.class)
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class ForceCreationProfile implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of("onboarding-functions.force-institution-persist", "true");
+        }
+    }
+
+    @Test
+    void forceInstitutionCreationFlagTrue(){
+        // given
+        Onboarding onboarding = createOnboarding();
+
+        Institution institutionSa = new Institution();
+        institutionSa.setTaxCode("taxCode");
+        institutionSa.setInstitutionType(InstitutionType.SA);
+        institutionSa.setOrigin(Origin.ANAC);
+        onboarding.setInstitution(institutionSa);
+
+        InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+        institutionsResponse.setInstitutions(List.of(dummyInstitutionResponse()));
+
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(institutionsResponse);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(onboardingRepository.update("institution.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        // when
+        completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+    }
 
     private User createDummyUser(Onboarding onboarding) {
         User user = new User();
@@ -729,9 +838,8 @@ public class CompletionServiceDefaultTest {
     private InstitutionResponse dummyInstitutionResponse() {
         InstitutionResponse response = new InstitutionResponse();
         response.setId("response-id");
-        return  response;
+        return response;
     }
-
 
     private Onboarding createOnboarding() {
         Onboarding onboarding = new Onboarding();

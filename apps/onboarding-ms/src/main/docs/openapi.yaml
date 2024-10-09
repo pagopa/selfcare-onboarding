@@ -16,12 +16,49 @@ tags:
 - name: internal-v1
 - name: support
 paths:
+  /v1/aggregates/csv/{onboardingId}/products/{productId}:
+    get:
+      tags:
+      - Aggregates Controller
+      summary: Retrieve aggregates csv for a given onboarding and product
+      description: Downloads the aggregates csv associated with the specified onboarding
+        ID and product.
+      operationId: getAggregatesCsv
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/aggregates/verification/prod-io:
     post:
       tags:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-IO environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifyAppIoAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -52,6 +89,10 @@ paths:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-Pagopa environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifyPagoPaAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -82,6 +123,10 @@ paths:
       - Aggregates Controller
       summary: Validate the data related to the aggregated entities present in a CSV
         file
+      description: Validates aggregated entity data specific to the PROD-PN environment
+        by processing the provided CSV file. This ensures that all entries meet the
+        required criteria before further processing.
+      operationId: verifySendAggregatesCsv
       requestBody:
         content:
           multipart/form-data:
@@ -99,7 +144,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VerifyAggregateSendResponse"
+                $ref: "#/components/schemas/VerifyAggregateResponse"
         "401":
           description: Not Authorized
         "403":
@@ -112,6 +157,11 @@ paths:
       - Notification Controller
       summary: Resend onboarding notifications for onboarding which are retrieved
         given a set of filters
+      description: "Resends notifications for all onboarding records that match the\
+        \ specified filter criteria. This allows administrators to trigger notification\
+        \ processes again for specific onboardings based on parameters such as product\
+        \ ID, tax code, institution ID, and more."
+      operationId: resendOnboardingNotifications
       requestBody:
         content:
           application/json:
@@ -134,8 +184,10 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: "The API retrieves paged onboarding using optional filter, order by\
-        \ descending creation date"
+      summary: Retrieve paged onboardings with optional filters and sorting.
+      description: "The API retrieves paged onboarding using optional filter, order\
+        \ by descending creation date"
+      operationId: getOnboardingWithFilter
       parameters:
       - name: from
         in: query
@@ -197,10 +249,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform default onboarding request, it is used for GSP/SA/AS institution\
+      summary: "Default onboarding for GSP/SA/AS institutions, saves user data, and\
+        \ triggers async onboarding activities."
+      description: "Perform default onboarding request, it is used for GSP/SA/AS institution\
         \ type.Users data will be saved on personal data vault if it doesn't already\
         \ exist.At the end, function triggers async activities related to onboarding\
         \ based on institution type."
+      operationId: onboarding
       requestBody:
         content:
           application/json:
@@ -223,9 +278,11 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding aggregation as /onboarding but completing the onboarding
-        request to COMPLETED phase. The operation will be performed async due to the
-        possible amount of time the process could take.
+      summary: Asynchronously complete aggregated onboarding to COMPLETED status.
+      description: Perform onboarding aggregation as /onboarding but completing the
+        onboarding request to COMPLETED phase. The operation will be performed async
+        due to the possible amount of time the process could take.
+      operationId: onboardingAggregationCompletion
       requestBody:
         content:
           application/json:
@@ -244,12 +301,41 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/aggregation/increment:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: Perform Increment for aggregates
+      description: Perform the increment of the aggregates for an aggregator entity
+        that has already completed the initial onboarding.The API initiates the onboarding
+        process for the aggregated entities received as input.
+      operationId: onboardingAggregationIncrement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingPaRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/check-manager:
     post:
       tags:
       - Onboarding Controller
-      summary: "In the addition administrator flow, it checks if the new manager is\
-        \ equal from old one, returning true "
+      summary: Check if new manager matches the current manager.
+      description: "In the addition administrator flow, it checks if the new manager\
+        \ is equal from old one, returning true "
+      operationId: checkManager
       requestBody:
         content:
           application/json:
@@ -259,7 +345,7 @@ paths:
         "200":
           description: OK
           content:
-            text/plain:
+            application/json:
               schema:
                 type: boolean
         "401":
@@ -272,7 +358,9 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: check if recipientCode is valid or not
+      summary: Validate recipientCode.
+      description: check if recipientCode is valid or not
+      operationId: checkRecipientCode
       parameters:
       - name: originId
         in: query
@@ -295,12 +383,15 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/completion:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding but completing the onboarding request
-        to COMPLETED phase.
+      summary: Complete onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding but completing the onboarding
+        request to COMPLETED phase.
+      operationId: onboardingCompletion
       requestBody:
         content:
           application/json:
@@ -324,7 +415,8 @@ paths:
       tags:
       - support
       - Onboarding
-      summary: Returns onboardings record by institution taxCode/subunitCode/origin/originId
+      summary: "Get onboardings by institution taxCode, subunitCode, origin, or originId."
+      description: Returns onboardings record by institution taxCode/subunitCode/origin/originId
       operationId: onboardingInstitutionUsingGET
       parameters:
       - name: origin
@@ -362,15 +454,19 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/pa:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding request for PA institution type, it require billing.recipientCode\
-        \ in additition to default requestUsers data will be saved on personal data\
-        \ vault if it doesn't already exist.At the end, function triggers async activities\
-        \ related to onboarding that consist of create contract and sending mail to\
-        \ institution's digital address."
+      summary: "Onboarding for PA institutions with billing.recipientCode, saves user\
+        \ data, creates contracts, and sends emails."
+      description: "Perform onboarding request for PA institution type, it require\
+        \ billing.recipientCode in addition to default requestUsers data will be saved\
+        \ on personal data vault if it doesn't already exist.At the end, function\
+        \ triggers async activities related to onboarding that consist of create contract\
+        \ and sending mail to institution's digital address."
+      operationId: onboardingPa
       requestBody:
         content:
           application/json:
@@ -393,12 +489,15 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding aggregation request for PA institution type, it\
-        \ require billing.recipientCode in additition to default requestUsers data\
+      summary: "Aggregated onboarding for PA institutions, saves user data, creates\
+        \ contracts, and sends emails."
+      description: "Perform onboarding aggregation request for PA institution type,\
+        \ it require billing.recipientCode in addition to default requestUsers data\
         \ will be saved on personal data vault if it doesn't already exist.At the\
         \ end, function triggers async activities related to onboarding aggregation\
         \ that consist of create contract and sending mail to institution's digital\
         \ address."
+      operationId: onboardingPaAggregation
       requestBody:
         content:
           application/json:
@@ -421,8 +520,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/pa but completing the onboarding
+      summary: Complete PA onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
+      operationId: onboardingPaCompletion
       requestBody:
         content:
           application/json:
@@ -445,8 +546,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/pa but create token and completing
+      summary: Import PA onboarding with token creation and complete to COMPLETED.
+      description: Perform onboarding as /onboarding/pa but create token and completing
         the onboarding request to COMPLETED phase.
+      operationId: onboardingPaImport
       requestBody:
         content:
           application/json:
@@ -469,6 +572,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/psp but completing the onboarding
+        request to COMPLETED phase.
+      operationId: onboardingPgCompletion
       requestBody:
         content:
           application/json:
@@ -491,10 +598,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding request for PSP institution type.Users data will\
-        \ be saved on personal data vault if it doesn't already exist.At the end,\
-        \ function triggers async activities related to onboarding that consist of\
-        \ sending mail to Selfcare admin for approve request."
+      summary: "Onboarding for PSP institutions, saves user data, and requests admin\
+        \ approval via email."
+      description: "Perform onboarding request for PSP institution type.Users data\
+        \ will be saved on personal data vault if it doesn't already exist.At the\
+        \ end, function triggers async activities related to onboarding that consist\
+        \ of sending mail to Selfcare admin for approve request."
+      operationId: onboardingPsp
       requestBody:
         content:
           application/json:
@@ -517,8 +627,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Perform onboarding as /onboarding/psp but completing the onboarding
+      summary: Complete PSP onboarding request and set status to COMPLETED.
+      description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
+      operationId: onboardingPspCompletion
       requestBody:
         content:
           application/json:
@@ -541,10 +653,13 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: "Perform onboarding users request, it is used all institution types.Users\
+      summary: "Onboard users for all institution types, save user data, and trigger\
+        \ async onboarding activities."
+      description: "Perform onboarding users request, it is used all institution types.Users\
         \ data will be saved on personal data vault if it doesn't already exist.At\
         \ the end, function triggers async activities related to onboarding based\
         \ on institution type."
+      operationId: onboardingUsers
       requestBody:
         content:
           application/json:
@@ -567,7 +682,9 @@ paths:
     head:
       tags:
       - Onboarding Controller
-      summary: Verify if the onboarded product is already onboarded for the institution
+      summary: Check if product is already onboarded for the institution.
+      description: Verify if the onboarded product is already onboarded for the institution
+      operationId: verifyOnboardingInfoByFilters
       parameters:
       - name: origin
         in: query
@@ -604,7 +721,9 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Retrieve an onboarding record given its ID
+      summary: Get onboarding record by ID.
+      description: Retrieve an onboarding record given its ID
+      operationId: getById
       parameters:
       - name: onboardingId
         in: path
@@ -628,9 +747,11 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: 'Perform approve operation of an onboarding request receiving onboarding
+      summary: Approve onboarding request and trigger async activities.
+      description: Perform approve operation of an onboarding request receiving onboarding
         id.Function triggers async activities related to onboarding based on institution
-        type or completing onboarding. '
+        type or completing onboarding.
+      operationId: approve
       parameters:
       - name: onboardingId
         in: path
@@ -652,11 +773,14 @@ paths:
     put:
       tags:
       - internal-v1
-      summary: "Perform complete operation of an onboarding request receiving onboarding\
-        \ id and contract signed by the institution.It checks the contract's signature\
-        \ and upload the contract on an azure storageAt the end, function triggers\
-        \ async activities related to complete onboarding that consist of create the\
-        \ institution, activate the onboarding and sending data to notification queue."
+      summary: "Complete onboarding by verifying and uploading contract, then trigger\
+        \ async activities."
+      description: "Perform complete operation of an onboarding request receiving\
+        \ onboarding id and contract signed by the institution.It checks the contract's\
+        \ signature and upload the contract on an azure storageAt the end, function\
+        \ triggers async activities related to complete onboarding that consist of\
+        \ create the institution, activate the onboarding and sending data to notification\
+        \ queue."
       operationId: completeOnboardingUsingPUT
       parameters:
       - name: onboardingId
@@ -690,12 +814,15 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: "Perform complete operation of an user onboarding request receiving\
+      summary: "Complete user onboarding by verifying and uploading contract, then\
+        \ trigger async activities."
+      description: "Perform complete operation of an user onboarding request receiving\
         \ onboarding id and contract signed by the institution.It checks the contract's\
         \ signature and upload the contract on an azure storageAt the end, function\
         \ triggers async activities related to complete onboarding that consist of\
         \ create the institution, activate the onboarding and sending data to notification\
         \ queue."
+      operationId: completeOnboardingUser
       parameters:
       - name: onboardingId
         in: path
@@ -724,14 +851,16 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/onboarding/{onboardingId}/consume:
     put:
       tags:
       - support
       - internal-v1
       - Onboarding
-      summary: Perform complete operation of an onboarding request as /complete but
-        without signature verification of the contract
+      summary: Complete onboarding without verifying contract signature.
+      description: Perform complete operation of an onboarding request as /complete
+        but without signature verification of the contract
       operationId: completeOnboardingTokenConsume
       parameters:
       - name: onboardingId
@@ -765,9 +894,11 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Returns an onboarding record by its ID only if its status is PENDING.
+      summary: Get pending onboarding by ID.
+      description: Returns an onboarding record by its ID only if its status is PENDING.
         This feature is crucial for ensuring that the onboarding process can be completed
         only when the onboarding status is appropriately set to PENDING.
+      operationId: getOnboardingPending
       parameters:
       - name: onboardingId
         in: path
@@ -791,9 +922,11 @@ paths:
     put:
       tags:
       - Onboarding Controller
-      summary: 'Perform reject operation of an onboarding request receiving onboarding
+      summary: Perform reject operation of an onboarding request
+      description: 'Perform reject operation of an onboarding request receiving onboarding
         id.Function change status to REJECT for an onboarding request that is not
         COMPLETED. '
+      operationId: delete
       parameters:
       - name: onboardingId
         in: path
@@ -821,8 +954,9 @@ paths:
       tags:
       - support
       - Onboarding
-      summary: 'Update onboarding request receiving onboarding id.Function can change
-        some values. '
+      summary: Update onboarding request with new values.
+      description: Update onboarding request receiving onboarding id.Function can
+        change some values.
       operationId: updateOnboardiUsingPUT
       parameters:
       - name: onboardingId
@@ -854,8 +988,10 @@ paths:
     get:
       tags:
       - Onboarding Controller
-      summary: Retrieve an onboarding record given its ID adding to user sensitive
+      summary: Get onboarding record by ID with user sensitive info.
+      description: Retrieve an onboarding record given its ID adding to user sensitive
         information
+      operationId: getByIdWithUserInfo
       parameters:
       - name: onboardingId
         in: path
@@ -875,11 +1011,15 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+      x-legacy-api: "true"
   /v1/tokens:
     get:
       tags:
       - Token Controller
       summary: Retrieves the token for a given onboarding
+      description: Fetches a list of tokens associated with the specified onboarding
+        ID.
+      operationId: getToken
       parameters:
       - name: onboardingId
         in: query
@@ -905,6 +1045,9 @@ paths:
       tags:
       - Token Controller
       summary: Retrieve contract not signed for a given onboarding
+      description: Downloads the unsigned contract file associated with the specified
+        onboarding ID.
+      operationId: getContract
       parameters:
       - name: onboardingId
         in: path
@@ -948,6 +1091,50 @@ components:
           type: string
         otherNote:
           type: string
+    Aggregate:
+      type: object
+      properties:
+        subunitCode:
+          type: string
+        subunitType:
+          type: string
+        description:
+          type: string
+        recipientCode:
+          type: string
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AggregateUser"
+        digitalAddress:
+          type: string
+        taxCode:
+          type: string
+        vatNumber:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        county:
+          type: string
+        zipCode:
+          type: string
+        originId:
+          type: string
+        origin:
+          type: string
+        taxCodePT:
+          type: string
+        iban:
+          type: string
+        service:
+          type: string
+        syncAsyncMode:
+          type: string
+        rowNumber:
+          format: int32
+          type: integer
     AggregateInstitutionRequest:
       required:
       - taxCode
@@ -962,6 +1149,8 @@ components:
           type: string
         subunitType:
           type: string
+        vatNumber:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -974,33 +1163,26 @@ components:
           type: string
         origin:
           $ref: "#/components/schemas/Origin"
-    AggregateSend:
-      type: object
-      properties:
-        description:
-          type: string
-        pec:
-          type: string
-        taxCode:
-          type: string
-        vatNumber:
-          type: string
-        codeSDI:
-          type: string
-        address:
-          type: string
-        city:
-          type: string
-        province:
-          type: string
-        subunitType:
-          type: string
-        subunitCode:
-          type: string
         users:
           type: array
           items:
-            $ref: "#/components/schemas/AggregateUser"
+            $ref: "#/components/schemas/UserRequest"
+        recipientCode:
+          type: string
+        digitalAddress:
+          type: string
+        city:
+          type: string
+        county:
+          type: string
+        taxCodePT:
+          type: string
+        iban:
+          type: string
+        service:
+          type: string
+        syncAsyncMode:
+          type: string
     AggregateUser:
       type: object
       properties:
@@ -1043,15 +1225,6 @@ components:
           type: string
         publicServices:
           type: boolean
-    DataProtectionOfficer:
-      type: object
-      properties:
-        address:
-          type: string
-        email:
-          type: string
-        pec:
-          type: string
     DataProtectionOfficerRequest:
       type: object
       properties:
@@ -1074,61 +1247,6 @@ components:
         code:
           type: string
         desc:
-          type: string
-    Institution:
-      type: object
-      properties:
-        id:
-          type: string
-        institutionType:
-          $ref: "#/components/schemas/InstitutionType"
-        taxCode:
-          type: string
-        subunitCode:
-          type: string
-        subunitType:
-          $ref: "#/components/schemas/InstitutionPaSubunitType"
-        origin:
-          $ref: "#/components/schemas/Origin"
-        originId:
-          type: string
-        city:
-          type: string
-        country:
-          type: string
-        county:
-          type: string
-        istatCode:
-          type: string
-        description:
-          type: string
-        digitalAddress:
-          type: string
-        address:
-          type: string
-        zipCode:
-          type: string
-        geographicTaxonomies:
-          type: array
-          items:
-            $ref: "#/components/schemas/GeographicTaxonomy"
-        rea:
-          type: string
-        shareCapital:
-          type: string
-        businessRegisterPlace:
-          type: string
-        supportEmail:
-          type: string
-        supportPhone:
-          type: string
-        imported:
-          type: boolean
-        paymentServiceProvider:
-          $ref: "#/components/schemas/PaymentServiceProvider"
-        dataProtectionOfficer:
-          $ref: "#/components/schemas/DataProtectionOfficer"
-        parentDescription:
           type: string
     InstitutionBaseRequest:
       required:
@@ -1291,7 +1409,7 @@ components:
         id:
           type: string
         institutionType:
-          $ref: "#/components/schemas/InstitutionType"
+          type: string
         taxCode:
           type: string
         taxCodeInvoicing:
@@ -1662,19 +1780,6 @@ components:
       - OPERATOR
       - ADMIN_EA
       type: string
-    PaymentServiceProvider:
-      type: object
-      properties:
-        abiCode:
-          type: string
-        businessRegisterNumber:
-          type: string
-        legalRegisterNumber:
-          type: string
-        legalRegisterName:
-          type: string
-        vatNumberGroup:
-          type: boolean
     PaymentServiceProviderRequest:
       type: object
       properties:
@@ -1789,18 +1894,7 @@ components:
         aggregates:
           type: array
           items:
-            $ref: "#/components/schemas/Institution"
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/RowError"
-    VerifyAggregateSendResponse:
-      type: object
-      properties:
-        aggregates:
-          type: array
-          items:
-            $ref: "#/components/schemas/AggregateSend"
+            $ref: "#/components/schemas/Aggregate"
         errors:
           type: array
           items:

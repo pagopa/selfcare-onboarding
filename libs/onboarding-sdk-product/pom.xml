@@ -4,16 +4,16 @@
     <parent>
         <groupId>it.pagopa.selfcare</groupId>
         <artifactId>onboarding-sdk-pom</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.2</version>
         <relativePath>../onboarding-sdk-pom</relativePath>
     </parent>
     <artifactId>onboarding-sdk-product</artifactId>
     <name>onboarding-sdk-product</name>
-    <version>0.2.0</version>
+    <version>0.3.2</version>
 
     <properties>
         <jackson.version>2.15.2</jackson.version>
-        <onboarding-sdk.version>0.2.0</onboarding-sdk.version>
+        <onboarding-sdk.version>0.2.2</onboarding-sdk.version>
     </properties>
 
     <dependencies>
@@ -26,13 +26,13 @@
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-azure-storage</artifactId>
-            <version>${onboarding-sdk.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-common</artifactId>
-            <version>${onboarding-sdk.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

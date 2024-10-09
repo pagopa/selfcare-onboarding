@@ -35,6 +35,8 @@ storage_account_info = {
   account_replication_type          = "LRS"
   access_tier                       = "Hot"
   advanced_threat_protection_enable = false
+  use_legacy_defender_version       = true
+  public_network_access_enabled     = false
 }
 
 app_settings = {
@@ -114,4 +116,8 @@ app_settings = {
   "JWT_TOKEN_ISSUER"                                   = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-private-key/)"
   "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
+
+  ##NAMIRIAL SIGNATURE
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }
