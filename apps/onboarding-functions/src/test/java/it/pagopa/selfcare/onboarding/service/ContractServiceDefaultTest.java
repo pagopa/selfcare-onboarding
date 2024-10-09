@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,7 +22,6 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -318,7 +318,7 @@ class ContractServiceDefaultTest {
 
 
     @Test
-    void uploadCsvAggregatesIO() throws IOException {
+    void uploadCsvAggregatesIO() {
         final String contractHtml = "contract";
 
         OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflowIO();
@@ -333,7 +333,7 @@ class ContractServiceDefaultTest {
     }
 
     @Test
-    void uploadCsvAggregatesPagoPa() throws IOException {
+    void uploadCsvAggregatesPagoPa() {
         final String contractHtml = "contract";
 
         OnboardingWorkflow onboardingWorkflow = createOnboardingWorkflowPagoPa();
@@ -344,6 +344,33 @@ class ContractServiceDefaultTest {
 
         Mockito.verify(azureBlobClient, times(1))
                 .uploadFile(any(), any(), any());
+
+    }
+
+    @Test
+    void uploadCsvAggregatesProdPn() {
+        final String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-pn");
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowAggregator(onboarding, "string");
+
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        contractService.uploadAggregatesCsv(onboardingWorkflow);
+
+        Mockito.verify(azureBlobClient, times(1))
+                .uploadFile(any(), any(), any());
+
+    }
+
+    @Test
+    void uploadCsvAggregatesProductNotValid() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-interop");
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowAggregator(onboarding, "string");;
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> contractService.uploadAggregatesCsv(onboardingWorkflow));
 
     }
 
