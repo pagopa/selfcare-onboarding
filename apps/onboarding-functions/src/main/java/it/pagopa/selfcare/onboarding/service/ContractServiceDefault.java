@@ -338,7 +338,6 @@ public class ContractServiceDefault implements ContractService {
 
     }
 
-    // Reusable CSV generation method
     private File createAggregatesCsv(List<AggregateInstitution> institutions, Path filePath, String[] headers, Function<AggregateInstitution, List<Object>> mapper) {
         File csvFile = filePath.toFile();
 
