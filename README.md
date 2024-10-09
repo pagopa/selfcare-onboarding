@@ -57,3 +57,19 @@ and usage of a couple of lesser known command line switches.
 | Change version  of `onboarding-sdk`                                                             | `.` | `mvn versions:set -DnewVersion=0.2.2 --projects :onboarding-sdk-pom  `                |
 | Persist version  of `onboarding-sdk`                                                             | `.` | `mvn versions:commit   `                                                              |
 
+-----
+
+## Java formatter installation (Intellij)
+
+1. Open plugins window (CTRL+Shift+A or CMD+Shift+A) and type "plugins"
+2. Click on browse repositories.
+3. Search for google-java-format and install it
+4. Restart the IDE.
+
+To enable the plugin executing the action (CTRL+Shift+A or CMD+Shift+A) ant type: Reformat with google-java-format
+
+Enable auto-format on save:
+
+1. File -> Settings -> Tools or CTRL+Alt+S/CMD+Alt+S -> Tools
+2. Click on "Action on Save"
+3. Enable: "Reformat Code"
