@@ -22,6 +22,12 @@ public class AggregateInstitution {
     private String originId;
     private Origin origin;
     private List<User> users;
+    private String taxCodePT;
+    private String descriptionPT;
+    private String iban;
+    private String service;
+    private String syncAsyncMode;
+    private String recipientCode;
 
     public String getTaxCode() {
         return taxCode;
@@ -119,5 +125,48 @@ public class AggregateInstitution {
         this.originId = originId;
     }
 
+    public String getTaxCodePT() {
+        return taxCodePT;
+    }
+
+    public void setTaxCodePT(String taxCodePT) {
+        this.taxCodePT = taxCodePT;
+    }
+
+    public String getDescriptionPT() {
+        return descriptionPT;
+    }
+
+    public void setDescriptionPT(String descriptionPT) { this.descriptionPT = descriptionPT; }
+
+    public String getIban() {
+        return iban;
+    }
+
+    public void setIban(String iban) {
+        this.iban = iban;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) { this.service = service; }
+
+    public String getSyncAsyncMode() {
+        return syncAsyncMode;
+    }
+
+    public void setSyncAsyncMode(String syncAsyncMode) {
+        this.syncAsyncMode = syncAsyncMode;
+    }
+
+    public String getRecipientCode() {
+        return recipientCode;
+    }
+
+    public void setRecipientCode(String recipientCode) {
+        this.recipientCode = recipientCode;
+    }
 
 }
