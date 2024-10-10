@@ -4,16 +4,17 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntityBase;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.time.LocalDateTime;
+import java.util.List;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.bson.codecs.pojo.annotations.BsonId;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants(asEnum = true)
 @MongoEntity(collection="onboardings")
 public class Onboarding extends ReactivePanacheMongoEntityBase {
