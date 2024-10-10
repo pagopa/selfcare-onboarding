@@ -2344,6 +2344,9 @@
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionResponse"
           },
+          "activatedAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
