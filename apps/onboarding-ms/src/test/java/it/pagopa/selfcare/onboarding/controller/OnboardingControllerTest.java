@@ -1002,7 +1002,11 @@ class OnboardingControllerTest {
     // given
     String fakeOnboardingId = "ASDF22234545";
     String fakeRecipientCode = "TEST_CODE2234";
-    Onboarding onboarding = Onboarding.builder().billing(Billing.builder().recipientCode(fakeRecipientCode).build()).build();
+
+    Onboarding onboarding = new Onboarding();
+      Billing billing = new Billing();
+      billing.setRecipientCode(fakeRecipientCode);
+      onboarding.setBilling(billing);
 
     when(onboardingService.updateOnboarding(fakeOnboardingId, onboarding))
         .thenReturn(Uni.createFrom().item(1L));
