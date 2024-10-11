@@ -421,8 +421,7 @@ public class OnboardingController {
 
     @Operation(
             summary = "Update recipient code",
-            description = "Update recipient code receiving onboarding id." +
-                    "Function can change some values.",
+            description = "Update recipient code receiving onboarding id.",
             operationId = "updateOnboardingRecipientIdUsingPUT"
     )
     @PUT
