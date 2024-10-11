@@ -432,7 +432,11 @@ public class OnboardingController {
     @Path("/{onboardingId}/recipient-code")
     public Uni<Response> updateRecipientCodeByOnboardingId(@PathParam(value = "onboardingId") String onboardingId,
                                 @QueryParam(value = "recipientCode") String recipientCode) {
-    return onboardingService.updateOnboarding(onboardingId, Onboarding.builder().billing(Billing.builder().recipientCode(recipientCode).build()).build())
+        Onboarding onboarding = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode(recipientCode);
+        onboarding.setBilling(billing);
+    return onboardingService.updateOnboarding(onboardingId, onboarding)
         .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
 

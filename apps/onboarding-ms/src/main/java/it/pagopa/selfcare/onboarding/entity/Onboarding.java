@@ -12,9 +12,6 @@ import org.bson.codecs.pojo.annotations.BsonId;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder(toBuilder = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @FieldNameConstants(asEnum = true)
 @MongoEntity(collection="onboardings")
 public class Onboarding extends ReactivePanacheMongoEntityBase {
