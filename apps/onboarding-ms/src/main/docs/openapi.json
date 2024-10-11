@@ -1247,6 +1247,45 @@
         } ]
       }
     },
+    "/v1/onboarding/{onboardingId}/recipient-code" : {
+      "put" : {
+        "tags" : [ "support", "Onboarding" ],
+        "summary" : "Update recipient code",
+        "description" : "Update recipient code receiving onboarding id.Function can change some values.",
+        "operationId" : "updateOnboardingRecipientIdUsingPUT",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "recipientCode",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/{onboardingId}/reject" : {
       "put" : {
         "tags" : [ "Onboarding Controller" ],

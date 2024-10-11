@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
+
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
@@ -10,6 +12,7 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -24,6 +27,9 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -31,12 +37,6 @@ import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
-
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -417,6 +417,23 @@ public class OnboardingController {
                                 OnboardingDefaultRequest onboardingRequest) {
         return onboardingService.updateOnboarding(onboardingId, onboardingMapper.toEntity(onboardingRequest, status))
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
+    }
+
+    @Operation(
+            summary = "Update recipient code",
+            description = "Update recipient code receiving onboarding id." +
+                    "Function can change some values.",
+            operationId = "updateOnboardingRecipientIdUsingPUT"
+    )
+    @PUT
+    @Tag(name = "support")
+    @Tag(name = "Onboarding")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{onboardingId}/recipient-code")
+    public Uni<Response> updateRecipientCodeByOnboardingId(@PathParam(value = "onboardingId") String onboardingId,
+                                @QueryParam(value = "recipientCode") String recipientCode) {
+    return onboardingService.updateOnboarding(onboardingId, Onboarding.builder().billing(Billing.builder().recipientCode(recipientCode).build()).build())
+        .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
 
     @Operation(
