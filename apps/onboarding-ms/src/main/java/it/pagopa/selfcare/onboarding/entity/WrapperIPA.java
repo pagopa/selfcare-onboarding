@@ -79,6 +79,7 @@ public class WrapperIPA extends BaseWrapper<Uni<IPAEntity>> {
 
     protected Uni<CustomError> validationRecipientCode(UOResource uoResource) {
         return registryResource.onItem().transformToUni(registryResource -> {
+            //todo registryResource
             final String originIdEC = uoResource.getCodiceIpa();
             if (!originIdEC.equals(uoResource.getCodiceIpa())) {
                 return Uni.createFrom().item(DENIED_NO_ASSOCIATION);

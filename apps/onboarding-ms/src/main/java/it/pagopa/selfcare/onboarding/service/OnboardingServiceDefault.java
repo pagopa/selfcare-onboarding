@@ -223,7 +223,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .replaceWith(product))
                 .onItem().transformToUni(product -> registryResourceProvider.getResource(onboarding)
                         .onItem().transformToUni(proxyResource ->  proxyResource.customValidation(product)
-                        .onItem().invoke(proxyResource::isValid))
+                                .onItem().invoke(proxyResource::isValid))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
@@ -289,7 +289,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transform(onboardingMapper::toResponse));
     }
 
-    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product) {
+    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
+
+        Log.infof("persist onboarding for: product %s, product parent %s", product.getId(), product.getParentId());
+
+        Map<PartyRole, ProductRoleInfo> roleMappings = Objects.nonNull(product.getParent())
+                ? product.getParent().getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
+
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(() -> Onboarding.persist(onboarding).replaceWith(onboarding)
                 .onItem().transformToUni(onboardingPersisted -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING, onboarding.getInstitution().getInstitutionType()))
@@ -374,7 +381,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || (InstitutionType.PRV.equals(institutionType) &&
-                    !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
+                !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
@@ -1112,7 +1119,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
         return userRegistryApi.searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(taxCodeManager))
                 .onItem().transform(UserResource::getId)
-                .onItem().transformToUni(uuid ->   getOnboardingByFilters(
+                .onItem().transformToUni(uuid -> getOnboardingByFilters(
                         onboardingUserRequest.getTaxCode(),
                         onboardingUserRequest.getSubunitCode(),
                         onboardingUserRequest.getOrigin(),
@@ -1177,33 +1184,5 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
                 .map(User::getId)
                 .findAny().orElse(null)).toList();
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
-        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(uoResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(uoResource)
-                        .type(UO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getAOO(Onboarding onboarding) {
-        return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(aooResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(aooResource)
-                        .type(AOO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getEC() {
-        return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                .type(EC)
-                .build());
     }
 }

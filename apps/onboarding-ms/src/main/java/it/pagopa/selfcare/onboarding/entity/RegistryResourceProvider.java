@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -38,11 +39,12 @@ public class RegistryResourceProvider {
 
     public Uni<Wrapper<?>> getResource(Onboarding onboarding) {
         //todo add other origins
-        return switch (onboarding.getInstitution().getOrigin()) {
+        return switch (onboarding.getInstitution().getOrigin() != null ? onboarding.getInstitution().getOrigin() : Origin.SELC) {
             case PDND_INFOCAMERE -> Uni.createFrom().item(new WrapperPDNDInfocamere(onboarding, infocamerePdndApi));
             case ANAC -> Uni.createFrom().item(new WrapperANAC(onboarding, stationsApi));
             case IVASS -> Uni.createFrom().item(new WrapperIVASS(onboarding, insuranceCompaniesApi));
-            default -> getResourceFromIPA(onboarding);
+            case IPA -> getResourceFromIPA(onboarding);
+            default -> Uni.createFrom().item(new WrapperSELC(onboarding, null));
         };
     }
 

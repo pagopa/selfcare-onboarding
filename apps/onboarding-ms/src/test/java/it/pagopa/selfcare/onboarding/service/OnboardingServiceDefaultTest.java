@@ -54,17 +54,14 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
-import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
@@ -96,6 +93,10 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     UserApi userRegistryApi;
+
+    @InjectMock
+    @RestClient
+    InsuranceCompaniesApi insuranceCompaniesApi;
 
     @InjectMock
     ProductService productService;
@@ -293,7 +294,7 @@ class OnboardingServiceDefaultTest {
         OnboardingResponse onboardingResponse = new OnboardingResponse();
         onboardingResponse.setWorkflowType(INCREMENT_REGISTRATION_AGGREGATOR.toString());
         onboardingResponse.setProductId("productId");
-        InstitutionResponse institution = new InstitutionResponse();
+        it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse institution = new it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse();
         institution.setInstitutionType("PA");
         institution.setOriginId("originId");
         institution.setTaxCode("taxCode");
@@ -415,7 +416,9 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfRoleNotValid(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
-        onboardingDefaultRequest.setInstitution(dummyInstitution());
+        Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        onboardingDefaultRequest.setInstitution(institution);
         onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
 
         List<UserRequest> users = List.of(UserRequest.builder()
@@ -842,6 +845,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(managerUser);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
@@ -884,9 +888,13 @@ class OnboardingServiceDefaultTest {
         request.setProductId(PROD_INTEROP.getValue());
 
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        request.setBilling(billing);
         AggregateInstitution aggregateInstitution = new AggregateInstitution();
         aggregateInstitution.setTaxCode("taxCode");
 
@@ -910,6 +918,12 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("codiceIPA");
+        uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
         asserter.assertThat(() -> onboardingService.onboarding(request, users, List.of(aggregateInstitutionRequest)), Assertions::assertNotNull);
 
         asserter.execute(() -> {
@@ -927,6 +941,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IVASS);
         institutionBaseRequest.setInstitutionType(InstitutionType.SA);
         onboardingRequest.setInstitution(institutionBaseRequest);
 
@@ -1019,6 +1034,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productParentId");
         Institution institutionPspRequest = new Institution();
+        institutionPspRequest.setOrigin(Origin.IPA);
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
         institutionPspRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionPspRequest);
@@ -1053,13 +1069,16 @@ class OnboardingServiceDefaultTest {
         Onboarding onboardingDefaultRequest = new Onboarding();
         List<UserRequest> users = List.of(manager);
         onboardingDefaultRequest.setProductId("productId");
-        onboardingDefaultRequest.setInstitution(dummyInstitution());
+        Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        onboardingDefaultRequest.setInstitution(institution);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(onboardingDefaultRequest.getInstitution().getTaxCode(), onboardingDefaultRequest.getProductId(), asserter);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new InsuranceCompanyResource()));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null), Assertions::assertNotNull);
 
@@ -1078,6 +1097,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
+        institutionPspRequest.setOrigin(Origin.IPA);
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
 
@@ -1776,9 +1796,13 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_Onboarding_importPA(UniAsserter asserter) {
         Onboarding request = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        request.setBilling(billing);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
         OnboardingImportContract contractImported = new OnboardingImportContract();
@@ -1797,6 +1821,11 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        UOResource uoResource = Mockito.mock(UOResource.class);
+        uoResource.setCodiceIpa("codiceIPA");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setCategory("L37");
