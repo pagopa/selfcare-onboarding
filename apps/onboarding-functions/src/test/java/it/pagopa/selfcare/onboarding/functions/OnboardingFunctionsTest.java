@@ -882,4 +882,17 @@ class OnboardingFunctionsTest {
         verify(completionService, times(1))
                 .sendTestEmail(executionContext);
     }
+
+    @Test
+    void deleteOldPgManagers() {
+        final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        doNothing().when(completionService).deleteOldPgManagers(any());
+
+        function.deleteOldPgManagers(onboardingString, executionContext);
+
+        verify(completionService, times(1))
+                .deleteOldPgManagers(any());
+    }
 }
