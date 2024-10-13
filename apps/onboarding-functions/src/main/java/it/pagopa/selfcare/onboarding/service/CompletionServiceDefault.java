@@ -421,7 +421,7 @@ public class CompletionServiceDefault implements CompletionService {
 
         return activeManagers.stream()
                 .map(UserInstitutionResponse::getUserId)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private String retrieveTaxCode(String uid) {
@@ -470,7 +470,7 @@ public class CompletionServiceDefault implements CompletionService {
     private void deleteManagerFromProduct(String uid, String institutionId, String productId) {
         try (Response response = userApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(institutionId, productId, uid)) {
             if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                throw new RuntimeException("Impossible to delete user: " + uid);
+                throw new GenericOnboardingException("Impossible to delete user: " + uid);
             }
         }
     }
