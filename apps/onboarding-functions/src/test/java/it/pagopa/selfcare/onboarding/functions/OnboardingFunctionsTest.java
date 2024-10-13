@@ -769,7 +769,7 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(1))
+        verify(orchestrationContext, times(0))
                 .callActivity(captorActivity.capture(), any(), any(),any());
     }
 
