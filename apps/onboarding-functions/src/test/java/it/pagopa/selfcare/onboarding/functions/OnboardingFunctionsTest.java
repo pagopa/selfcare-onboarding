@@ -756,6 +756,24 @@ class OnboardingFunctionsTest {
     }
 
     @Test
+    void usersPgOrchestrator2() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+        onboarding.setWorkflowType(WorkflowType.USERS_PG);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+    }
+
+    @Test
     void createInstitutionAndPersistInstitutionId() {
 
         final String institutionId = "institutionId";
