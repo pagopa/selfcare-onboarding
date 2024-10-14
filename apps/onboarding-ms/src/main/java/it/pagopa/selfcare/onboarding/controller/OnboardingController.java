@@ -433,13 +433,12 @@ public class OnboardingController {
   public Uni<Response> updateRecipientCodeByOnboardingId(
       @PathParam(value = "onboardingId") String onboardingId,
       @QueryParam(value = "recipientCode") String recipientCode) {
-    String fixedRecipientCode = recipientCode.trim().replace("\n", "").replace("\r", "");
     Onboarding onboarding = new Onboarding();
     Billing billing = new Billing();
-    billing.setRecipientCode(fixedRecipientCode);
+    billing.setRecipientCode(recipientCode.trim());
     onboarding.setBilling(billing);
     log.trace("update RecipientCode start");
-    log.debug("Onboarding id {} and recipientCode {}", onboardingId, fixedRecipientCode);
+    log.debug("Onboarding id {} and recipientCode {}", onboardingId, recipientCode.replace("\n", "").replace("\r", ""));
     return onboardingService
         .updateOnboarding(onboardingId, onboarding)
         .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
