@@ -37,10 +37,10 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.UNABLE_TO_DOWNLOAD_FILE;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
@@ -60,11 +60,44 @@ public class ContractServiceDefault implements ContractService {
 
     private final String logoPath;
 
-    private static final String[] CSV_HEADERS = {
+    private static final String[] CSV_HEADERS_IO = {
             "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
             "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
             "Codice IPA", "AOO/UO", "Codice Univoco"
     };
+
+    private static final String[] CSV_HEADERS_PAGOPA = {
+            "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
+            "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
+            "Ragione Sociale Partener Tecnologico", "Codice Fiscale Partner Tecnologico",
+            "IBAN", "Servizio", "Modalità Sincrona/Asincrona"
+    };
+
+    private static final Function<AggregateInstitution, List<Object>> IO_MAPPER = institution -> Arrays.asList(
+            institution.getDescription(),
+            institution.getDigitalAddress(),
+            institution.getTaxCode(),
+            institution.getVatNumber(),
+            institution.getAddress(),
+            institution.getCity(),
+            institution.getCounty(),
+            Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
+            institution.getSubunitType(),
+            institution.getSubunitCode());
+
+    private static final Function<AggregateInstitution, List<Object>> PAGOPA_MAPPER = institution -> Arrays.asList(
+            institution.getDescription(),
+            institution.getDigitalAddress(),
+            institution.getTaxCode(),
+            institution.getVatNumber(),
+            institution.getAddress(),
+            institution.getCity(),
+            institution.getCounty(),
+            institution.getDescriptionPT(),
+            institution.getTaxCodePT(),
+            institution.getIban(),
+            institution.getService(),
+            institution.getSyncAsyncMode());
 
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
@@ -146,7 +179,7 @@ public class ContractServiceDefault implements ContractService {
             setupPSPData(data, manager, onboarding);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PRV == institution.getInstitutionType()) {
-            setupPRVData(data, onboarding);
+            setupPRVData(data, onboarding, baseUrl.toString());
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
@@ -271,23 +304,46 @@ public class ContractServiceDefault implements ContractService {
         try {
             Onboarding onboarding = onboardingWorkflow.getOnboarding();
             Path filePath = Files.createTempFile("tempfile", ".csv");
-            File csv = generateCsv(onboarding.getAggregates(), filePath);
+            File csv = generateAggregatesCsv(onboarding.getProductId(), onboarding.getAggregates(), filePath);
             final String path = String.format("%s%s/%s", azureStorageConfig.aggregatesPath(), onboarding.getId(),
                     onboarding.getProductId());
             final String filename = "aggregates.csv";
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(csv.toPath()));
         } catch (IOException e) {
-            throw new GenericOnboardingException(String.format("Can not load aggregates CSV, message: %s", e.getMessage()));
+            throw new GenericOnboardingException(String.format(LOAD_AGGREGATES_CSV_ERROR.getMessage(), e.getMessage()));
         }
     }
 
-    private File generateCsv(List<AggregateInstitution> institutions, Path filePath) {
+    private File generateAggregatesCsv(String productId, List<AggregateInstitution> institutions, Path filePath) {
+        String[] headers;
+        Function<AggregateInstitution, List<Object>> mapper;
 
+        // Determine headers and mapping logic based on productId
+        switch (productId) {
+            case "prod-io":
+                headers = CSV_HEADERS_IO;
+                mapper = IO_MAPPER;
+                break;
+            case "prod-pagopa":
+                headers = CSV_HEADERS_PAGOPA;
+                mapper = PAGOPA_MAPPER;
+                break;
+            case "prod-pn":
+                return new File(String.valueOf(filePath)); //prod-pn is available for aggregator's workflow but csv structure is still not defined.
+            default:
+                throw new IllegalArgumentException(String.format("Product %s is not available for aggregators", productId));
+        }
+
+        return createAggregatesCsv(institutions, filePath, headers, mapper);
+
+    }
+
+    private File createAggregatesCsv(List<AggregateInstitution> institutions, Path filePath, String[] headers, Function<AggregateInstitution, List<Object>> mapper) {
         File csvFile = filePath.toFile();
 
         // Using the builder pattern to create the CSV format with headers
         CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
-                .setHeader(CSV_HEADERS)
+                .setHeader(headers)
                 .setDelimiter(';')
                 .build();
 
@@ -296,24 +352,11 @@ public class ContractServiceDefault implements ContractService {
 
             // Iterate over each AggregateInstitution object and write a row for each one
             for (AggregateInstitution institution : institutions) {
-
-                // Write the row with the institution data
-                csvPrinter.printRecord(
-                        institution.getDescription(),
-                        institution.getDigitalAddress(),
-                        institution.getTaxCode(),
-                        institution.getVatNumber(),
-                        institution.getAddress(),
-                        institution.getCity(),
-                        institution.getCounty(),
-                        Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
-                        institution.getSubunitType(),
-                        institution.getSubunitCode()
-                );
+                csvPrinter.printRecord(mapper.apply(institution));
             }
 
         } catch (IOException e) {
-            throw new GenericOnboardingException(String.format("Can not create aggregates CSV, message: %s", e.getMessage()));
+            throw new GenericOnboardingException(String.format(CREATE_AGGREGATES_CSV_ERROR.getMessage(), e.getMessage()));
         }
         return csvFile;
     }
