@@ -419,18 +419,18 @@ public class OnboardingController {
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
 
-    @Operation(
-            summary = "Update recipient code",
-            description = "Update recipient code receiving onboarding id.",
-            operationId = "updateOnboardingRecipientIdUsingPUT"
-    )
-    @PUT
-    @Tag(name = "support")
-    @Tag(name = "Onboarding")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{onboardingId}/recipient-code")
-    public Uni<Response> updateRecipientCodeByOnboardingId(@PathParam(value = "onboardingId") String onboardingId,
-                                @QueryParam(value = "recipientCode") String recipientCode) {
+  @Operation(
+      summary = "Update recipient code",
+      description = "Update recipient code receiving onboarding id.",
+      operationId = "updateOnboardingRecipientIdUsingPUT")
+  @PUT
+  @Tag(name = "billing-portal")
+  @Tag(name = "Onboarding")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/{onboardingId}/recipient-code")
+  public Uni<Response> updateRecipientCodeByOnboardingId(
+      @PathParam(value = "onboardingId") String onboardingId,
+      @QueryParam(value = "recipientCode") String recipientCode) {
         Onboarding onboarding = new Onboarding();
         Billing billing = new Billing();
         billing.setRecipientCode(recipientCode);

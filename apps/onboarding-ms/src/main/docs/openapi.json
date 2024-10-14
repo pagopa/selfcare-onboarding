@@ -20,6 +20,8 @@
   }, {
     "name" : "Onboarding Controller"
   }, {
+    "name" : "billing-portal"
+  }, {
     "name" : "internal-v1"
   }, {
     "name" : "support"
@@ -1249,9 +1251,9 @@
     },
     "/v1/onboarding/{onboardingId}/recipient-code" : {
       "put" : {
-        "tags" : [ "support", "Onboarding" ],
+        "tags" : [ "billing-portal", "Onboarding" ],
         "summary" : "Update recipient code",
-        "description" : "Update recipient code receiving onboarding id.Function can change some values.",
+        "description" : "Update recipient code receiving onboarding id.",
         "operationId" : "updateOnboardingRecipientIdUsingPUT",
         "parameters" : [ {
           "name" : "onboardingId",
