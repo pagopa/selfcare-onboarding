@@ -509,7 +509,8 @@
           "USERS_IMPORT",
           "CONTRACT_REGISTRATION_AGGREGATOR",
           "CONFIRMATION_AGGREGATE",
-          "INCREMENT_REGISTRATION_AGGREGATOR"
+          "INCREMENT_REGISTRATION_AGGREGATOR",
+          "USERS_PG"
         ],
         "type": "string"
       },
