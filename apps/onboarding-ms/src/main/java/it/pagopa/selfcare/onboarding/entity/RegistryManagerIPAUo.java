@@ -6,34 +6,23 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
-public class WrapperUO extends BaseWrapper<IPAEntity> {
+public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
-    protected UoApi uoClient;
-
-    public WrapperUO(Onboarding onboarding, UoApi uoApi) {
-        super(onboarding);
-        uoClient = uoApi;
+    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+        super(onboarding, uoApi, aooApi);
     }
 
-    @Override
-    public IPAEntity retrieveInstitution() {
-        UOResource uoResource =  uoClient.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().invoke(this::enrichOnboardingData)
-                .await().atMost(Duration.of(5, ChronoUnit.SECONDS));
-        return IPAEntity.builder().uoResource(uoResource).build();
+    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi) {
+        super(onboarding, uoApi);
     }
 
     @Override
@@ -53,7 +42,7 @@ public class WrapperUO extends BaseWrapper<IPAEntity> {
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
-        return uoClient.findByUnicodeUsingGET1(recipientCode, null)
+        return super.uoClient.findByUnicodeUsingGET1(recipientCode, null)
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(
@@ -94,11 +83,6 @@ public class WrapperUO extends BaseWrapper<IPAEntity> {
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 
-    private void enrichOnboardingData(UOResource uoResource) {
-        onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
-        onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
-    }
-
     private boolean hasSfe(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
@@ -116,7 +100,7 @@ public class WrapperUO extends BaseWrapper<IPAEntity> {
 
     private Uni<Onboarding> checkTaxCodeInvoicing(Onboarding onboarding) {
         /* if tax code invoicing is not into hierarchy, throw an exception */
-        return uoClient.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
+        return super.uoClient.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
                 .flatMap(uosResource -> {
                     /* if parent tax code is not into hierarchy, throw an exception */
                     if (Objects.nonNull(uosResource) && Objects.nonNull(uosResource.getItems())

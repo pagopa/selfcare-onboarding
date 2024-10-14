@@ -2,17 +2,13 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.product.entity.Product;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 
-public class WrapperIPA extends WrapperUO {
+public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
 
-    public WrapperIPA(Onboarding onboarding, UoApi uoApi) {
-        super(onboarding, uoApi);
-    }
-
-    @Override
-    public IPAEntity retrieveInstitution() {
-        return null;
+    public RegistryManagerIPAAoo(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+        super(onboarding, uoApi, aooApi);
     }
 
     @Override

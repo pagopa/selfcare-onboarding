@@ -3,7 +3,7 @@ package it.pagopa.selfcare.onboarding.entity;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.product.entity.Product;
 
-public interface Wrapper<T> {
+public interface RegistryManager<T> {
 
     T retrieveInstitution();
 
@@ -15,6 +15,6 @@ public interface Wrapper<T> {
 
     Onboarding getOnboarding();
 
-    Wrapper setRegistryResource(T registryResource);
+    RegistryManager setResource(T registryResource);
 }
 

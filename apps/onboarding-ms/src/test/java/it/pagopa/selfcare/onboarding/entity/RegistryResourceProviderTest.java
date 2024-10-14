@@ -58,12 +58,12 @@ class RegistryResourceProviderTest {
 
         when(institutionApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(new InstitutionResource()));
 
-        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IPA))
+        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IPA))
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperUO);
+        assertTrue(subscriber.getItem() instanceof RegistryManagerIPAUo);
     }
 
     @Test
@@ -75,12 +75,12 @@ class RegistryResourceProviderTest {
 
         Onboarding onboarding = createOnboarding(Origin.IPA);
         onboarding.getInstitution().setSubunitType(InstitutionPaSubunitType.UO);
-        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(onboarding)
+        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(onboarding)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperIPA);
+        assertTrue(subscriber.getItem() instanceof RegistryManagerIPA);
     }
 
     @Test
@@ -88,12 +88,12 @@ class RegistryResourceProviderTest {
 
         when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new InsuranceCompanyResource()));
 
-        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IVASS))
+        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IVASS))
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperIVASS);
+        assertTrue(subscriber.getItem() instanceof RegistryManagerIVASS);
     }
 
     @Test
@@ -101,12 +101,12 @@ class RegistryResourceProviderTest {
 
         when(stationsApi.searchByTaxCodeUsingGET1(any())).thenReturn(Uni.createFrom().item(new StationResource()));
 
-        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.ANAC))
+        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.ANAC))
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperANAC);
+        assertTrue(subscriber.getItem() instanceof RegistryManagerANAC);
     }
 
     @Test
@@ -114,12 +114,12 @@ class RegistryResourceProviderTest {
 
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new PDNDBusinessResource()));
 
-        UniAssertSubscriber<Wrapper<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.PDND_INFOCAMERE))
+        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.PDND_INFOCAMERE))
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperPDNDInfocamere);
+        assertTrue(subscriber.getItem() instanceof RegistryManagerPDNDInfocamere);
     }
 
 }

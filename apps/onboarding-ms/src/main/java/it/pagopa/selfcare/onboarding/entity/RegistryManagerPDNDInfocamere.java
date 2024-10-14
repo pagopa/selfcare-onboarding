@@ -2,38 +2,18 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
-import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-
-public class WrapperPDNDInfocamere extends BaseWrapper<PDNDBusinessResource> {
+public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere {
 
      /* if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
                 || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
                         && !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) { */
 
-    private final InfocamerePdndApi client;
-
-    public WrapperPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
-        super(onboarding);
-        client = infocamerePdndApi;
-    }
-
-    public PDNDBusinessResource retrieveInstitution() {
-        return client.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
-                .onFailure(WebApplicationException.class)
-                .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(
-                        String.format("Institution %s not found in the registry",
-                                onboarding.getInstitution().getTaxCode()
-                        )))
-                        : Uni.createFrom().failure(ex))
-                .await().atMost(Duration.of(5, ChronoUnit.SECONDS));
+    public RegistryManagerPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
+        super(onboarding, infocamerePdndApi);
     }
 
     @Override

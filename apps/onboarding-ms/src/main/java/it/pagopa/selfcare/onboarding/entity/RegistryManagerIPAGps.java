@@ -3,16 +3,15 @@ package it.pagopa.selfcare.onboarding.entity;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 
-public class WrapperGPS extends WrapperUO {
+public class RegistryManagerIPAGps extends RegistryManagerIPAUo {
 
-    public WrapperGPS(Onboarding onboarding, UoApi uoApi) {
+    public RegistryManagerIPAGps(Onboarding onboarding, UoApi uoApi) {
         super(onboarding, uoApi);
     }
 

@@ -1,0 +1,46 @@
+package it.pagopa.selfcare.onboarding.entity;
+
+import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import jakarta.ws.rs.WebApplicationException;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
+import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
+
+public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
+
+    protected final UoApi uoClient;
+    protected AooApi aooClient;
+
+    public ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+        super(onboarding);
+        this.uoClient = uoApi;
+        this.aooClient = aooApi;
+    }
+
+    public ClientRegistryIPA(Onboarding onboarding, UoApi uoApi) {
+        super(onboarding);
+        this.uoClient = uoApi;
+    }
+
+    public IPAEntity retrieveInstitution() {
+        UOResource uoResource =  uoClient.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                        : Uni.createFrom().failure(ex))
+                .onItem().invoke(this::enrichOnboardingData)
+                .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        return IPAEntity.builder().uoResource(uoResource).build();
+    }
+
+    private void enrichOnboardingData(UOResource uoResource) {
+        onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
+        onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
+    }
+
+}

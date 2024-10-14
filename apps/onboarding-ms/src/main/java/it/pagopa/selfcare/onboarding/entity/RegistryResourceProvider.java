@@ -36,30 +36,30 @@ public class RegistryResourceProvider {
     @Inject
     StationsApi stationsApi;
 
-    public Wrapper<?> create(Onboarding onboarding) {
+    public RegistryManager<?> create(Onboarding onboarding) {
         //todo add other origins
         return switch (onboarding.getInstitution().getOrigin() != null ? onboarding.getInstitution().getOrigin() : Origin.SELC) {
-            case PDND_INFOCAMERE -> new WrapperPDNDInfocamere(onboarding, infocamerePdndApi);
-            case ANAC -> new WrapperANAC(onboarding, stationsApi);
-            case IVASS -> new WrapperIVASS(onboarding, insuranceCompaniesApi);
+            case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
+            case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
+            case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
             case IPA -> getResourceFromIPA(onboarding);
-            default -> new WrapperSELC(onboarding);
+            default -> new RegistryManagerSELC(onboarding);
         };
     }
 
-    private Wrapper<?> getResourceFromIPA(Onboarding onboarding) {
+    private RegistryManager<?> getResourceFromIPA(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
-            case AOO -> new WrapperAOO(onboarding, aooApi, uoApi);
-            case UO -> new WrapperUO(onboarding, uoApi);
+            case AOO -> new RegistryManagerIPAAoo(onboarding, uoApi, aooApi);
+            case UO -> new RegistryManagerIPAUo(onboarding, uoApi);
             default -> getResourceFromInstitutionType(onboarding);
         };
     }
 
-    private Wrapper<?> getResourceFromInstitutionType(Onboarding onboarding) {
+    private RegistryManager<?> getResourceFromInstitutionType(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getInstitutionType() != null) ? onboarding.getInstitution().getInstitutionType() : PA) {
-            case GSP -> new WrapperGPS(onboarding, uoApi);
-            case PT -> new WrapperPT(onboarding, uoApi);
-            default -> new WrapperUO(onboarding, uoApi);
+            case GSP -> new RegistryManagerIPAGps(onboarding, uoApi);
+            case PT -> new RegistryManagerPT(onboarding, uoApi);
+            default -> new RegistryManagerIPAUo(onboarding, uoApi);
         };
     }
 }

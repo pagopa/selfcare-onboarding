@@ -222,7 +222,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> verifyAlreadyOnboarding(onboarding.getInstitution(), product.getId(), product.getParentId(), isAggregatesIncrement)
                         .replaceWith(product))
                 .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
-                        .onItem().invoke(wrapper -> wrapper.setRegistryResource(wrapper.retrieveInstitution())).onItem().invoke(Wrapper::isValid)
+                        .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution())).onItem().invoke(RegistryManager::isValid)
                         .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
@@ -276,7 +276,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
                 .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
-                        .onItem().invoke(wrapper -> wrapper.setRegistryResource(wrapper.retrieveInstitution()))
+                        .onItem().invoke(wrapper -> wrapper.setResource(wrapper.retrieveInstitution()))
                         .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))

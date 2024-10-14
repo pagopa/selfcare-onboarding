@@ -2,15 +2,12 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.product.entity.Product;
+import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
 
-public class WrapperSELC extends BaseWrapper<Uni<Object>> {
+public class RegistryManagerANAC extends ClientRegistryANAC {
 
-    public WrapperSELC(Onboarding onboarding) {
-        super(onboarding);
-    }
-
-    public Uni<Object> retrieveInstitution() {
-      return Uni.createFrom().item(new Object());
+    public RegistryManagerANAC(Onboarding onboarding, StationsApi stationsApi) {
+        super(onboarding, stationsApi);
     }
 
     @Override
