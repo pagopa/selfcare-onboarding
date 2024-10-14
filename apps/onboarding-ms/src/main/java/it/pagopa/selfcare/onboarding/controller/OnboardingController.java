@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
@@ -42,6 +43,7 @@ import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 @Path("/v1/onboarding")
 @Tag(name = "Onboarding Controller")
 @AllArgsConstructor
+@Slf4j
 public class OnboardingController {
 
     private final OnboardingService onboardingService;
@@ -431,13 +433,20 @@ public class OnboardingController {
   public Uni<Response> updateRecipientCodeByOnboardingId(
       @PathParam(value = "onboardingId") String onboardingId,
       @QueryParam(value = "recipientCode") String recipientCode) {
-        Onboarding onboarding = new Onboarding();
-        Billing billing = new Billing();
-        billing.setRecipientCode(recipientCode);
-        onboarding.setBilling(billing);
-    return onboardingService.updateOnboarding(onboardingId, onboarding)
-        .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
-    }
+    Onboarding onboarding = new Onboarding();
+    Billing billing = new Billing();
+    billing.setRecipientCode(recipientCode);
+    onboarding.setBilling(billing);
+    log.trace("update RecipientCode start");
+    log.debug(
+        "Onboarding id {} and recipientCode {}",
+        onboarding.getId(),
+        onboarding.getBilling().getRecipientCode());
+    return onboardingService
+        .updateOnboarding(onboardingId, onboarding)
+        .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
+        .log("update RecipientCode end");
+  }
 
     @Operation(
             summary = "Check if new manager matches the current manager.",
