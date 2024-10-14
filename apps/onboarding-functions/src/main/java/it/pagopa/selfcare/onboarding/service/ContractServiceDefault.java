@@ -73,6 +73,13 @@ public class ContractServiceDefault implements ContractService {
             "IBAN", "Servizio", "Modalità Sincrona/Asincrona"
     };
 
+    private static final String LEGAL_SENTENCE_IO = "*** Il presente file non può essere modificato se non unitamente al " +
+            "documento \"Allegato 3\" in cui è incoporato. Ogni modifica, alterazione e variazione dei dati e delle " +
+            "informazioni del presente file non accompagnata dall'invio e dalla firma digitale dell'intero documento " +
+            "\"Allegato 3\" è da considerarsi priva di ogni efficacia ai sensi di legge e ai fini del presente Accordo. " +
+            "In caso di discrepanza tra i dati contenuti nel presente file e i dati contenuti nell'Allegato 3, " +
+            "sarà data prevalenza a questi ultimi.";
+
     private static final Function<AggregateInstitution, List<Object>> IO_MAPPER = institution -> Arrays.asList(
             institution.getDescription(),
             institution.getDigitalAddress(),
@@ -334,11 +341,11 @@ public class ContractServiceDefault implements ContractService {
                 throw new IllegalArgumentException(String.format("Product %s is not available for aggregators", productId));
         }
 
-        return createAggregatesCsv(institutions, filePath, headers, mapper);
+        return createAggregatesCsv(institutions, filePath, headers, mapper, productId);
 
     }
 
-    private File createAggregatesCsv(List<AggregateInstitution> institutions, Path filePath, String[] headers, Function<AggregateInstitution, List<Object>> mapper) {
+    private File createAggregatesCsv(List<AggregateInstitution> institutions, Path filePath, String[] headers, Function<AggregateInstitution, List<Object>> mapper, String productId) {
         File csvFile = filePath.toFile();
 
         // Using the builder pattern to create the CSV format with headers
@@ -353,6 +360,11 @@ public class ContractServiceDefault implements ContractService {
             // Iterate over each AggregateInstitution object and write a row for each one
             for (AggregateInstitution institution : institutions) {
                 csvPrinter.printRecord(mapper.apply(institution));
+            }
+
+            // If productType is PROD_IO, add the final legal sentence at the last row
+            if (PROD_IO.getValue().equals(productId)) {
+                csvPrinter.printRecord(LEGAL_SENTENCE_IO);
             }
 
         } catch (IOException e) {
