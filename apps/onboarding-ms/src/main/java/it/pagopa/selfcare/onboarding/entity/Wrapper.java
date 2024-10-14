@@ -14,5 +14,7 @@ public interface Wrapper<T> {
     Uni<Boolean> isValid();
 
     Onboarding getOnboarding();
+
+    Wrapper setRegistryResource(T registryResource);
 }
 

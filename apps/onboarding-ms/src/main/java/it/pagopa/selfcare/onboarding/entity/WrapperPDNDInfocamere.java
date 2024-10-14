@@ -8,7 +8,10 @@ import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 
-public class WrapperPDNDInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>> {
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
+public class WrapperPDNDInfocamere extends BaseWrapper<PDNDBusinessResource> {
 
      /* if (InstitutionType.SCP == onboarding.getInstitution().getInstitutionType()
                 || (InstitutionType.PRV == onboarding.getInstitution().getInstitutionType()
@@ -19,10 +22,9 @@ public class WrapperPDNDInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>
     public WrapperPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
         super(onboarding);
         client = infocamerePdndApi;
-        registryResource = retrieveInstitution();
     }
 
-    public Uni<PDNDBusinessResource> retrieveInstitution() {
+    public PDNDBusinessResource retrieveInstitution() {
         return client.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
@@ -30,7 +32,8 @@ public class WrapperPDNDInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>
                         String.format("Institution %s not found in the registry",
                                 onboarding.getInstitution().getTaxCode()
                         )))
-                        : Uni.createFrom().failure(ex));
+                        : Uni.createFrom().failure(ex))
+                .await().atMost(Duration.of(5, ChronoUnit.SECONDS));
     }
 
     @Override
@@ -40,12 +43,10 @@ public class WrapperPDNDInfocamere extends BaseWrapper<Uni<PDNDBusinessResource>
 
     @Override
     public Uni<Boolean> isValid() {
-         return registryResource.onItem().transformToUni(pdndBusinessResource -> {
-            if (!originPDNDInfocamere(onboarding, pdndBusinessResource)) {
+            if (!originPDNDInfocamere(onboarding, registryResource)) {
                 return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
             }
              return Uni.createFrom().item(true);
-        });
     }
 
     private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {

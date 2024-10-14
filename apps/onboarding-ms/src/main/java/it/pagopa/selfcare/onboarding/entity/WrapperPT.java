@@ -8,10 +8,10 @@ import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
 
-public class WrapperPT extends WrapperIPA {
+public class WrapperPT extends WrapperUO {
 
-    public WrapperPT(Onboarding onboarding, InstitutionApi institutionApi, UoApi uoApi) {
-        super(onboarding, institutionApi, uoApi);
+    public WrapperPT(Onboarding onboarding, UoApi uoApi) {
+        super(onboarding, uoApi);
     }
 
     @Override

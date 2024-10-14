@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.entity;
 
-import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,30 +36,30 @@ public class RegistryResourceProvider {
     @Inject
     StationsApi stationsApi;
 
-    public Uni<Wrapper<?>> getResource(Onboarding onboarding) {
+    public Wrapper<?> create(Onboarding onboarding) {
         //todo add other origins
         return switch (onboarding.getInstitution().getOrigin() != null ? onboarding.getInstitution().getOrigin() : Origin.SELC) {
-            case PDND_INFOCAMERE -> Uni.createFrom().item(new WrapperPDNDInfocamere(onboarding, infocamerePdndApi));
-            case ANAC -> Uni.createFrom().item(new WrapperANAC(onboarding, stationsApi));
-            case IVASS -> Uni.createFrom().item(new WrapperIVASS(onboarding, insuranceCompaniesApi));
+            case PDND_INFOCAMERE -> new WrapperPDNDInfocamere(onboarding, infocamerePdndApi);
+            case ANAC -> new WrapperANAC(onboarding, stationsApi);
+            case IVASS -> new WrapperIVASS(onboarding, insuranceCompaniesApi);
             case IPA -> getResourceFromIPA(onboarding);
-            default -> Uni.createFrom().item(new WrapperSELC(onboarding, null));
+            default -> new WrapperSELC(onboarding);
         };
     }
 
-    private Uni<Wrapper<?>> getResourceFromIPA(Onboarding onboarding) {
+    private Wrapper<?> getResourceFromIPA(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
-            case AOO -> Uni.createFrom().item(new WrapperAOO(onboarding, aooApi, institutionRegistryProxyApi, uoApi));
-            case UO -> Uni.createFrom().item(new WrapperUO(onboarding, institutionRegistryProxyApi, uoApi));
+            case AOO -> new WrapperAOO(onboarding, aooApi, uoApi);
+            case UO -> new WrapperUO(onboarding, uoApi);
             default -> getResourceFromInstitutionType(onboarding);
         };
     }
 
-    private Uni<Wrapper<?>> getResourceFromInstitutionType(Onboarding onboarding) {
+    private Wrapper<?> getResourceFromInstitutionType(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getInstitutionType() != null) ? onboarding.getInstitution().getInstitutionType() : PA) {
-            case GSP -> Uni.createFrom().item(new WrapperGPS(onboarding, institutionRegistryProxyApi, uoApi));
-            case PT -> Uni.createFrom().item(new WrapperPT(onboarding, institutionRegistryProxyApi, uoApi));
-            default -> Uni.createFrom().item(new WrapperIPA(onboarding, institutionRegistryProxyApi, uoApi));
+            case GSP -> new WrapperGPS(onboarding, uoApi);
+            case PT -> new WrapperPT(onboarding, uoApi);
+            default -> new WrapperUO(onboarding, uoApi);
         };
     }
 }

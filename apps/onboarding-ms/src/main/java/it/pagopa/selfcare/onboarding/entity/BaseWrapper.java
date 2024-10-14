@@ -26,4 +26,8 @@ public abstract class BaseWrapper<T> implements Wrapper<T> {
         return onboarding;
     }
 
+    public Wrapper<?> setRegistryResource(T registryResource) {
+        this.registryResource = registryResource;
+        return this;
+    }
 }

@@ -215,15 +215,15 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboarding(onboarding.getInstitution(), product.getId(), product.getParentId(), isAggregatesIncrement)
                         .replaceWith(product))
-                .onItem().transformToUni(product -> registryResourceProvider.getResource(onboarding)
-                        .onItem().transformToUni(proxyResource ->  proxyResource.customValidation(product)
-                                .onItem().invoke(proxyResource::isValid))
+                .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
+                        .onItem().invoke(wrapper -> wrapper.setRegistryResource(wrapper.retrieveInstitution())).onItem().invoke(Wrapper::isValid)
+                        .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
@@ -252,7 +252,6 @@ public class OnboardingServiceDefault implements OnboardingService {
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsers(Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
-
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -276,7 +275,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
-                .onItem().transformToUni(product -> registryResourceProvider.getResource(onboarding)
+                .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
+                        .onItem().invoke(wrapper -> wrapper.setRegistryResource(wrapper.retrieveInstitution()))
                         .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))

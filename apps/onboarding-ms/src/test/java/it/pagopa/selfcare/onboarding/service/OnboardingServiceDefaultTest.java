@@ -753,7 +753,8 @@ class OnboardingServiceDefaultTest {
         pdndBusinessResource.setBusinessName("name");
         pdndBusinessResource.setDigitalAddress("pec");
 
-        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+        asserter.execute(() -> when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(pdndBusinessResource)));
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
@@ -1094,6 +1095,9 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_whenUserFoundedAndWillUpdate(UniAsserter asserter) {
         Onboarding request = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        request.setBilling(billing);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionPspRequest = new Institution();
@@ -1114,6 +1118,11 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockPersistOnboarding(asserter);
+
+        UOResource uoResource = Mockito.mock(UOResource.class);
+        uoResource.setCodiceIpa("codiceIPA");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
 
         asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));

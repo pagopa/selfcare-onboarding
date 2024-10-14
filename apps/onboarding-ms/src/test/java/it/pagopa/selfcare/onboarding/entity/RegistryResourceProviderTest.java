@@ -63,7 +63,7 @@ class RegistryResourceProviderTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperIPA);
+        assertTrue(subscriber.getItem() instanceof WrapperUO);
     }
 
     @Test
@@ -80,7 +80,7 @@ class RegistryResourceProviderTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof WrapperUO);
+        assertTrue(subscriber.getItem() instanceof WrapperIPA);
     }
 
     @Test

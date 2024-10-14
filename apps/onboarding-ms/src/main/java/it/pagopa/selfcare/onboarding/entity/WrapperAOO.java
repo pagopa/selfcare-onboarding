@@ -5,29 +5,32 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 import static it.pagopa.selfcare.onboarding.constants.CustomError.AOO_NOT_FOUND;
 
-public class WrapperAOO extends WrapperIPA {
+public class WrapperAOO extends WrapperUO {
 
     private final AooApi client;
 
-    public WrapperAOO(Onboarding onboarding, AooApi aooApi, InstitutionApi institutionApi, UoApi uoApi) {
-        super(onboarding, institutionApi, uoApi);
+    public WrapperAOO(Onboarding onboarding, AooApi aooApi, UoApi uoApi) {
+        super(onboarding, uoApi);
         client = aooApi;
-        registryResource = retrieveInstitution();
     }
 
-    public Uni<IPAEntity> retrieveInstitution() {
-        return client.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+    public IPAEntity retrieveInstitution() {
+        AOOResource aooResource = client.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
                 .onItem().invoke(this::enrichOnboardingData)
-                .onItem().transformToUni(aooResource -> Uni.createFrom().item(IPAEntity.builder().aooResource(aooResource).build()));
+                      .await().atMost(Duration.of(5, ChronoUnit.SECONDS));
+        return IPAEntity.builder().aooResource(aooResource).build();
+
     }
 
     @Override

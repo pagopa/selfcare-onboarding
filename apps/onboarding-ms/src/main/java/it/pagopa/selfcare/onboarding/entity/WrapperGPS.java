@@ -10,10 +10,10 @@ import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 
-public class WrapperGPS extends WrapperIPA {
+public class WrapperGPS extends WrapperUO {
 
-    public WrapperGPS(Onboarding onboarding, InstitutionApi institutionApi, UoApi uoApi) {
-        super(onboarding, institutionApi, uoApi);
+    public WrapperGPS(Onboarding onboarding, UoApi uoApi) {
+        super(onboarding, uoApi);
     }
 
     @Override

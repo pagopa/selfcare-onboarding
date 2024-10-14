@@ -5,11 +5,8 @@ import it.pagopa.selfcare.product.entity.Product;
 
 public class WrapperSELC extends BaseWrapper<Uni<Object>> {
 
-    private final Object client;
-
-    public WrapperSELC(Onboarding onboarding, Object client) {
+    public WrapperSELC(Onboarding onboarding) {
         super(onboarding);
-        this.client = client;
     }
 
     public Uni<Object> retrieveInstitution() {
