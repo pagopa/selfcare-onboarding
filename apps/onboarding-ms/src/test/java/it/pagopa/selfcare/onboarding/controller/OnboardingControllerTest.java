@@ -1,5 +1,10 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -24,22 +29,16 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -996,5 +995,36 @@ class OnboardingControllerTest {
         queryParameterMap.put("status", "COMPLETED");
         return  queryParameterMap;
     }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void updateRecipientCodeByOnboardingIdTest() {
+    // given
+    String fakeOnboardingId = "ASDF22234545";
+    String fakeRecipientCode = "TEST_CODE2234";
+
+    Onboarding onboarding = new Onboarding();
+      Billing billing = new Billing();
+      billing.setRecipientCode(fakeRecipientCode);
+      onboarding.setBilling(billing);
+
+    when(onboardingService.updateOnboarding(fakeOnboardingId, onboarding))
+        .thenReturn(Uni.createFrom().item(1L));
+
+    // when
+    given()
+        .when()
+        .queryParam("recipientCode", fakeRecipientCode)
+        .pathParam("onboardingId", fakeOnboardingId)
+        .contentType(ContentType.JSON)
+        .put("/{onboardingId}/recipient-code")
+        .then()
+        .statusCode(204);
+
+    // then
+    ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+    Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
+    assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
+  }
 
 }

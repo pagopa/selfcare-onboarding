@@ -13,6 +13,7 @@ tags:
 - name: Notification Controller
 - name: Onboarding
 - name: Onboarding Controller
+- name: billing-portal
 - name: internal-v1
 - name: support
 paths:
@@ -912,6 +913,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OnboardingGet"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/{onboardingId}/recipient-code:
+    put:
+      tags:
+      - billing-portal
+      - Onboarding
+      summary: Update recipient code
+      description: Update recipient code receiving onboarding id.
+      operationId: updateOnboardingRecipientIdUsingPUT
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: recipientCode
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
         "401":
           description: Not Authorized
         "403":
