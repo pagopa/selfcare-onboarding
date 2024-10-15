@@ -175,7 +175,7 @@ public class NotificationUserToSend {
     public String toString() {
         return "NotificationToSend{" +
                 "id='" + id + '\'' +
-                ", istitutionID='" + institutionId + '\'' +
+                ", institutionId='" + institutionId + '\'' +
                 ", product='" + product + '\'' +
                 ", state='" + state + '\'' +
                 ", filePath='" + filePath + '\'' +

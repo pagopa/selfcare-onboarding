@@ -143,6 +143,9 @@ class FdNotificationBuilderTest {
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
         assertEquals(productResponse.getProductRole(), notification.getUser().getProductRole());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
+
+        assertTrue(notification.toString().contains("institutionId='" + notification.getInstitutionId() + "'"));
+
     }
 
     private static UserDataResponse getUserDataResponse(InstitutionResponse institution, OnboardedProductResponse productResponse, UserResponse userResponse) {
