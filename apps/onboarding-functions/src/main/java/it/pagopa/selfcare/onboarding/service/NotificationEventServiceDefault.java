@@ -79,7 +79,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     @Override
     public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent, String notificationEventTraceId) {
         context.getLogger().info(() -> String.format("Starting send method for onboarding with ID %s", onboarding.getId()));
-        if(isNotInstitutionOnboarding(onboarding)) {
+        if (isNotInstitutionOnboarding(onboarding)) {
             context.getLogger().info(() -> String.format("Onboarding with ID %s doesn't refer to an institution onboarding, skipping send notification", onboarding.getId()));
             return;
         }
@@ -91,7 +91,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             return;
         }
 
-        if(Objects.isNull(queueEvent)) {
+        if (Objects.isNull(queueEvent)) {
             queueEvent = queueEventExaminer.determineEventType(onboarding);
         }
 
@@ -103,10 +103,22 @@ public class NotificationEventServiceDefault implements NotificationEventService
         for (String consumer : product.getConsumers()) {
             NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
             prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
+            prepareAndSendUserNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
         }
     }
 
     private void prepareAndSendNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
+        NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);
+        if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
+            NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
+            sendNotification(context, consumer.topic(), notificationToSend, notificationEventTraceId);
+            sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend, notificationEventTraceId);
+        } else {
+            context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
+        }
+    }
+
+    private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
         NotificationBuilder notificationBuilder = notificationBuilderFactory.create(consumer);
         if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
@@ -129,7 +141,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         eventHubRestClient.sendMessage(topic, message);
-        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
