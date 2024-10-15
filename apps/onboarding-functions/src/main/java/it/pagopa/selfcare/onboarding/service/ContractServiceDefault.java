@@ -73,12 +73,12 @@ public class ContractServiceDefault implements ContractService {
             "IBAN", "Servizio", "Modalità Sincrona/Asincrona"
     };
 
-    private static final String LEGAL_SENTENCE_IO = "*** Il presente file non può essere modificato se non unitamente al " +
-            "documento \"Allegato 3\" in cui è incoporato. Ogni modifica, alterazione e variazione dei dati e delle " +
+    private static final String LEGAL_SENTENCE_IO = "*** Il presente file non puo' essere modificato se non unitamente al " +
+            "documento \"Allegato 3\" in cui e' incoporato. Ogni modifica, alterazione e variazione dei dati e delle " +
             "informazioni del presente file non accompagnata dall'invio e dalla firma digitale dell'intero documento " +
-            "\"Allegato 3\" è da considerarsi priva di ogni efficacia ai sensi di legge e ai fini del presente Accordo. " +
+            "\"Allegato 3\" e' da considerarsi priva di ogni efficacia ai sensi di legge e ai fini del presente Accordo. " +
             "In caso di discrepanza tra i dati contenuti nel presente file e i dati contenuti nell'Allegato 3, " +
-            "sarà data prevalenza a questi ultimi.";
+            "sara' data prevalenza a questi ultimi.";
 
     private static final Function<AggregateInstitution, List<Object>> IO_MAPPER = institution -> Arrays.asList(
             institution.getDescription(),
@@ -364,6 +364,7 @@ public class ContractServiceDefault implements ContractService {
 
             // If productType is PROD_IO, add the final legal sentence at the last row
             if (PROD_IO.getValue().equals(productId)) {
+                csvPrinter.println();
                 csvPrinter.printRecord(LEGAL_SENTENCE_IO);
             }
 
