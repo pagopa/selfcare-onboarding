@@ -5,6 +5,7 @@ import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
+import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
@@ -36,10 +37,10 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.UNABLE_TO_DOWNLOAD_FILE;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
@@ -53,27 +54,69 @@ public class ContractServiceDefault implements ContractService {
     private final AzureBlobClient azureBlobClient;
     private final PadesSignService padesSignService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
+    private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
 
     Boolean isLogoEnable;
 
     private final String logoPath;
 
-    private static final String[] CSV_HEADERS = {
+    private static final String[] CSV_HEADERS_IO = {
             "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
             "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
             "Codice IPA", "AOO/UO", "Codice Univoco"
     };
 
+    private static final String[] CSV_HEADERS_PAGOPA = {
+            "Ragione Sociale", "PEC", "Codice Fiscale", "P.IVA",
+            "Sede legale - Indirizzo", "Sede legale - Citta'", "Sede legale - Provincia (Sigla)",
+            "Ragione Sociale Partener Tecnologico", "Codice Fiscale Partner Tecnologico",
+            "IBAN", "Servizio", "Modalità Sincrona/Asincrona"
+    };
+
+    private static final String LEGAL_SENTENCE_IO = "*** Il presente file non può essere modificato se non unitamente al " +
+            "documento \"Allegato 3\" in cui è incoporato. Ogni modifica, alterazione e variazione dei dati e delle " +
+            "informazioni del presente file non accompagnata dall'invio e dalla firma digitale dell'intero documento " +
+            "\"Allegato 3\" è da considerarsi priva di ogni efficacia ai sensi di legge e ai fini del presente Accordo. " +
+            "In caso di discrepanza tra i dati contenuti nel presente file e i dati contenuti nell'Allegato 3, " +
+            "sarà data prevalenza a questi ultimi.";
+
+    private static final Function<AggregateInstitution, List<Object>> IO_MAPPER = institution -> Arrays.asList(
+            institution.getDescription(),
+            institution.getDigitalAddress(),
+            institution.getTaxCode(),
+            institution.getVatNumber(),
+            institution.getAddress(),
+            institution.getCity(),
+            institution.getCounty(),
+            Optional.ofNullable(institution.getSubunitType()).map(originId -> "").orElse(institution.getOriginId()),
+            institution.getSubunitType(),
+            institution.getSubunitCode());
+
+    private static final Function<AggregateInstitution, List<Object>> PAGOPA_MAPPER = institution -> Arrays.asList(
+            institution.getDescription(),
+            institution.getDigitalAddress(),
+            institution.getTaxCode(),
+            institution.getVatNumber(),
+            institution.getAddress(),
+            institution.getCity(),
+            institution.getCounty(),
+            institution.getDescriptionPT(),
+            institution.getTaxCodePT(),
+            institution.getIban(),
+            institution.getService(),
+            institution.getSyncAsyncMode());
+
 
     public ContractServiceDefault(AzureStorageConfig azureStorageConfig,
                                   AzureBlobClient azureBlobClient, PadesSignService padesSignService,
-                                  PagoPaSignatureConfig pagoPaSignatureConfig,
+                                  PagoPaSignatureConfig pagoPaSignatureConfig, MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
                                   @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
                                   @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable) {
         this.azureStorageConfig = azureStorageConfig;
         this.azureBlobClient = azureBlobClient;
         this.padesSignService = padesSignService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
         this.logoPath = logoPath;
         this.isLogoEnable = isLogoEnable;
     }
@@ -135,19 +178,22 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding);
 
+        StringBuilder baseUrl = new StringBuilder(templatePlaceholdersConfig.rejectOnboardingUrlValue());
+
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PRV == institution.getInstitutionType()) {
-            setupPRVData(data, onboarding);
+            setupPRVData(data, onboarding, baseUrl.toString());
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) &&
                 InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
-        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
-                || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)){
+            setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
+        } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
             setupProdIOData(onboarding, data, manager);
         } else if (PROD_PN.getValue().equalsIgnoreCase(productId)){
@@ -265,23 +311,46 @@ public class ContractServiceDefault implements ContractService {
         try {
             Onboarding onboarding = onboardingWorkflow.getOnboarding();
             Path filePath = Files.createTempFile("tempfile", ".csv");
-            File csv = generateCsv(onboarding.getAggregates(), filePath);
+            File csv = generateAggregatesCsv(onboarding.getProductId(), onboarding.getAggregates(), filePath);
             final String path = String.format("%s%s/%s", azureStorageConfig.aggregatesPath(), onboarding.getId(),
                     onboarding.getProductId());
             final String filename = "aggregates.csv";
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(csv.toPath()));
         } catch (IOException e) {
-            throw new GenericOnboardingException(String.format("Can not load aggregates CSV, message: %s", e.getMessage()));
+            throw new GenericOnboardingException(String.format(LOAD_AGGREGATES_CSV_ERROR.getMessage(), e.getMessage()));
         }
     }
 
-    private File generateCsv(List<AggregateInstitution> institutions, Path filePath) {
+    private File generateAggregatesCsv(String productId, List<AggregateInstitution> institutions, Path filePath) {
+        String[] headers;
+        Function<AggregateInstitution, List<Object>> mapper;
 
+        // Determine headers and mapping logic based on productId
+        switch (productId) {
+            case "prod-io":
+                headers = CSV_HEADERS_IO;
+                mapper = IO_MAPPER;
+                break;
+            case "prod-pagopa":
+                headers = CSV_HEADERS_PAGOPA;
+                mapper = PAGOPA_MAPPER;
+                break;
+            case "prod-pn":
+                return new File(String.valueOf(filePath)); //prod-pn is available for aggregator's workflow but csv structure is still not defined.
+            default:
+                throw new IllegalArgumentException(String.format("Product %s is not available for aggregators", productId));
+        }
+
+        return createAggregatesCsv(institutions, filePath, headers, mapper, productId);
+
+    }
+
+    private File createAggregatesCsv(List<AggregateInstitution> institutions, Path filePath, String[] headers, Function<AggregateInstitution, List<Object>> mapper, String productId) {
         File csvFile = filePath.toFile();
 
         // Using the builder pattern to create the CSV format with headers
         CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
-                .setHeader(CSV_HEADERS)
+                .setHeader(headers)
                 .setDelimiter(';')
                 .build();
 
@@ -290,24 +359,16 @@ public class ContractServiceDefault implements ContractService {
 
             // Iterate over each AggregateInstitution object and write a row for each one
             for (AggregateInstitution institution : institutions) {
+                csvPrinter.printRecord(mapper.apply(institution));
+            }
 
-                // Write the row with the institution data
-                csvPrinter.printRecord(
-                        institution.getDescription(),
-                        institution.getDigitalAddress(),
-                        institution.getTaxCode(),
-                        institution.getVatNumber(),
-                        institution.getAddress(),
-                        institution.getCity(),
-                        institution.getCounty(),
-                        Optional.ofNullable(institution.getSubunitType()).map(ignored -> institution.getOriginId()).orElse(""),
-                        institution.getSubunitType(),
-                        institution.getSubunitCode()
-                );
+            // If productType is PROD_IO, add the final legal sentence at the last row
+            if (PROD_IO.getValue().equals(productId)) {
+                csvPrinter.printRecord(LEGAL_SENTENCE_IO);
             }
 
         } catch (IOException e) {
-            throw new GenericOnboardingException(String.format("Can not create aggregates CSV, message: %s", e.getMessage()));
+            throw new GenericOnboardingException(String.format(CREATE_AGGREGATES_CSV_ERROR.getMessage(), e.getMessage()));
         }
         return csvFile;
     }

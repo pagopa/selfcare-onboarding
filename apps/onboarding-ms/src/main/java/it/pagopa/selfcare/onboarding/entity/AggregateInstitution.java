@@ -20,8 +20,7 @@ public class AggregateInstitution {
     private Origin origin;
     private String vatNumber;
     private List<User> users;
-
-    private String codeSDI;
+    private String recipientCode;
     private String digitalAddress;
     private String city;
     private String county;

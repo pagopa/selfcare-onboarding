@@ -50,7 +50,12 @@ public class ProductUtils {
         if (Objects.isNull(product)) {
             throw new IllegalArgumentException("Product must not be null!");
         }
-        return Optional.ofNullable(product.getRoleMappings(institutionType.name()))
+
+        String institutionTypeName = Optional.ofNullable(institutionType)
+                .map(InstitutionType::name)
+                .orElse(null);
+
+        return Optional.ofNullable(product.getRoleMappings(institutionTypeName))
                 .orElse(Map.of())
                 .entrySet().stream()
                 .filter(entry -> Objects.nonNull(entry.getValue().getPhasesAdditionAllowed()) &&

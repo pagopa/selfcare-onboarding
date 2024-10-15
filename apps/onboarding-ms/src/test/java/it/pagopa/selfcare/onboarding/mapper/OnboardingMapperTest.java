@@ -120,6 +120,21 @@ class OnboardingMapperTest {
     }
 
     @Test
+    void mapCsvSendAggregateToAggregates_withValidList_returnsMappedList() {
+        List<CsvAggregateSend> input = List.of(new CsvAggregateSend());
+        List<Aggregate> result = mapper.mapCsvSendAggregatesToAggregates(input);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void mapCsvSendAggregateToAggregates_withNullList_returnsNull() {
+        List<CsvAggregateSend> input = null;
+        List<Aggregate> result = mapper.mapCsvSendAggregatesToAggregates(input);
+        assertNull(result);
+    }
+
+    @Test
     void mapUsers_withValidCsvAggregateSend_returnsMappedUserList() {
         CsvAggregateSend input = new CsvAggregateSend();
         input.setAdminAggregateName("John");

@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.product.entity;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ProductRoleInfo {
 
@@ -34,5 +35,17 @@ public class ProductRoleInfo {
 
     public void setRoles(List<ProductRole> roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductRoleInfo that)) return false;
+        return isMultiroleAllowed() == that.isMultiroleAllowed() && Objects.equals(getPhasesAdditionAllowed(), that.getPhasesAdditionAllowed()) && Objects.equals(getRoles(), that.getRoles());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(isMultiroleAllowed(), getPhasesAdditionAllowed(), getRoles());
     }
 }

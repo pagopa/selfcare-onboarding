@@ -116,6 +116,19 @@ public interface OnboardingMapper {
 
     Aggregate csvToAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo);
 
+    Aggregate csvToAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa);
+
+    @Mapping(target = "users", source = ".")
+    Aggregate csvToAggregateSend(CsvAggregateSend csvAggregateSend);
+
+    default List<Aggregate> mapCsvSendAggregatesToAggregates(List<CsvAggregateSend> csvAggregateSendList) {
+        if (csvAggregateSendList == null) {
+            return null;
+        }
+        return csvAggregateSendList.stream()
+                .map(this::csvToAggregateSend)
+                .collect(Collectors.toList());
+    }
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
         if (csvAggregateAppIoList == null) {

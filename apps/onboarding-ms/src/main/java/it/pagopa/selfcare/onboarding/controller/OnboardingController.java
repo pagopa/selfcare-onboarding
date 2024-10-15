@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
+
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
@@ -10,6 +12,7 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -24,7 +27,11 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
@@ -32,16 +39,11 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
-
 @Authenticated
 @Path("/v1/onboarding")
 @Tag(name = "Onboarding Controller")
 @AllArgsConstructor
+@Slf4j
 public class OnboardingController {
 
     private final OnboardingService onboardingService;
@@ -418,6 +420,30 @@ public class OnboardingController {
         return onboardingService.updateOnboarding(onboardingId, onboardingMapper.toEntity(onboardingRequest, status))
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
+
+  @Operation(
+      summary = "Update recipient code",
+      description = "Update recipient code receiving onboarding id.",
+      operationId = "updateOnboardingRecipientIdUsingPUT")
+  @PUT
+  @Tag(name = "billing-portal")
+  @Tag(name = "Onboarding")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path("/{onboardingId}/recipient-code")
+  public Uni<Response> updateRecipientCodeByOnboardingId(
+      @PathParam(value = "onboardingId") String onboardingId,
+      @QueryParam(value = "recipientCode") String recipientCode) {
+    Onboarding onboarding = new Onboarding();
+    Billing billing = new Billing();
+    billing.setRecipientCode(recipientCode.trim());
+    onboarding.setBilling(billing);
+    log.trace("update RecipientCode start");
+    log.debug("Onboarding id {} and recipientCode {}", onboardingId, recipientCode.replace("\n", "").replace("\r", ""));
+    return onboardingService
+        .updateOnboarding(onboardingId, onboarding)
+        .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
+        .log("update RecipientCode end");
+  }
 
     @Operation(
             summary = "Check if new manager matches the current manager.",

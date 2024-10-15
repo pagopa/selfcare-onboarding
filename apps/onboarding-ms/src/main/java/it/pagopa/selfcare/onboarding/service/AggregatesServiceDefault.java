@@ -2,7 +2,9 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -10,11 +12,15 @@ import it.pagopa.selfcare.onboarding.model.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.RestResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
@@ -27,6 +33,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
@@ -59,11 +66,16 @@ public class AggregatesServiceDefault implements AggregatesService {
     @Inject
     CsvService csvService;
 
+    private final AzureBlobClient azureBlobClient;
+    private final OnboardingMsConfig onboardingMsConfig;
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
 
-    public AggregatesServiceDefault (){
+    @Inject
+    public AggregatesServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig, @ConfigProperty(name = "onboarding-ms.istat-cache-duration-minutes") int cacheDuration) {
+        this.azureBlobClient = azureBlobClient;
+        this.onboardingMsConfig = onboardingMsConfig;
         this.expiringMap = ExpiringMap.builder()
-                .expiration(30, TimeUnit.MINUTES)
+                .expiration(cacheDuration, TimeUnit.MINUTES)
                 .build();
     }
 
@@ -74,7 +86,17 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
     public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
     public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
+    public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
+    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
+    public static final String ERROR_IBAN = "IBAN è obbligatorio";
+    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
+    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
+    public static final String ERROR_CODICE_SDI = "Codice SDI è obbligatorio";
     private static final String PEC = "Pec";
+    private static final String FILE_NAME_AGGREGATES_CSV = "aggregates.csv";
 
 
     @Override
@@ -93,7 +115,46 @@ public class AggregatesServiceDefault implements AggregatesService {
                         verifyAggregateAppIoResponse.getErrors().size()));
     }
 
+    @Override
+    public Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv(File file) {
+        AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregatePagoPa.class);
+        List<CsvAggregatePagoPa> csvAggregates = aggregatesCsv.getCsvAggregateList();
+        VerifyAggregateResponse verifyAggregatePagoPaResponse = new VerifyAggregateResponse();
 
+        return Multi.createFrom().iterable(csvAggregates)
+                .onItem().transformToUniAndMerge(csvAggregatePagoPa -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregatePagoPa, verifyAggregatePagoPaResponse))
+                .collect().asList()
+                .replaceWith(verifyAggregatePagoPaResponse)
+                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
+                        verifyAggregatePagoPaResponse.getAggregates().size(),
+                        verifyAggregatePagoPaResponse.getErrors().size()));
+    }
+
+    @Override
+    public Uni<VerifyAggregateResponse> validateSendAggregatesCsv(File file) {
+        AggregatesCsv<CsvAggregateSend> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregateSend.class);
+        List<CsvAggregateSend> csvAggregates = aggregatesCsv.getCsvAggregateList();
+        VerifyAggregateResponse verifyAggregateSendResponse = new VerifyAggregateResponse();
+
+        return Multi.createFrom().iterable(csvAggregates)
+                .onItem().transformToUniAndMerge(csvAggregateSend -> checkCsvAggregateSendAndFillAggregateOrErrorList(csvAggregateSend, verifyAggregateSendResponse))
+                .collect().asList()
+                .replaceWith(verifyAggregateSendResponse)
+                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
+                        verifyAggregateSendResponse.getAggregates().size(),
+                        verifyAggregateSendResponse.getErrors().size()));
+    }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAggregatesCsv(String onboardingId, String productId) {
+        return Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s/%s", onboardingMsConfig.getAggregatesPath(), onboardingId, productId, FILE_NAME_AGGREGATES_CSV)))
+                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                .onItem().transform(csv -> {
+                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(csv, MediaType.APPLICATION_OCTET_STREAM);
+                    response.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + FILE_NAME_AGGREGATES_CSV);
+                    return response.build();
+                });
+    }
 
     private Uni<Void> checkCsvAggregateAppIoAndFillAggregateOrErrorList(CsvAggregateAppIo csvAggregateAppIo, VerifyAggregateResponse verifyAggregateAppIoResponse) {
 
@@ -112,6 +173,38 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .replaceWithVoid();
     }
 
+    private Uni<Void> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(CsvAggregatePagoPa csvAggregatePagoPa, VerifyAggregateResponse verifyAggregatePagoPaResponse) {
+        return checkCsvAggregatePagoPa(csvAggregatePagoPa)
+                .onItem().invoke(aggregateSend -> verifyAggregatePagoPaResponse.getAggregates().add(aggregateSend))
+                .onFailure(ResourceNotFoundException.class)
+                .recoverWithUni(throwable -> {
+                    verifyAggregatePagoPaResponse.getErrors().add(mapToErrorRow(csvAggregatePagoPa.getRowNumber(), csvAggregatePagoPa.getTaxCode(), throwable));
+                    return Uni.createFrom().nullItem();
+                })
+                .onFailure(InvalidRequestException.class)
+                .recoverWithUni(throwable -> {
+                    verifyAggregatePagoPaResponse.getErrors().add(mapToErrorRow(csvAggregatePagoPa.getRowNumber(), csvAggregatePagoPa.getTaxCode(), throwable));
+                    return Uni.createFrom().nullItem();
+                })
+                .replaceWithVoid();
+    }
+
+    private Uni<Void> checkCsvAggregateSendAndFillAggregateOrErrorList(CsvAggregateSend csvAggregateSend, VerifyAggregateResponse verifyAggregateSendResponse) {
+        return checkCsvAggregateSend(csvAggregateSend)
+                .onItem().invoke(aggregateSend -> verifyAggregateSendResponse.getAggregates().add(aggregateSend))
+                .onFailure(ResourceNotFoundException.class)
+                .recoverWithUni(throwable -> {
+                    verifyAggregateSendResponse.getErrors().add(mapToErrorRow(csvAggregateSend.getRowNumber(), csvAggregateSend.getTaxCode(), throwable));
+                    return Uni.createFrom().nullItem();
+                })
+                .onFailure(InvalidRequestException.class)
+                .recoverWithUni(throwable -> {
+                    verifyAggregateSendResponse.getErrors().add(mapToErrorRow(csvAggregateSend.getRowNumber(), csvAggregateSend.getTaxCode(), throwable));
+                    return Uni.createFrom().nullItem();
+                })
+                .replaceWithVoid();
+    }
+
     private static RowError mapToErrorRow(Integer rowNumber, String taxCode, Throwable throwable) {
         return new RowError(rowNumber, taxCode, throwable.getMessage());
     }
@@ -121,10 +214,20 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregateAppIo(csvAggregateAppIo)));
     }
 
+    private Uni<Aggregate> checkCsvAggregateSend(CsvAggregateSend csvAggregateSend) {
+        return checkRequiredFieldsSend(csvAggregateSend)
+                .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregateSend(csvAggregateSend)));
+    }
+
+    private Uni<Aggregate> checkCsvAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa) {
+        return checkRequiredFieldsPagoPa(csvAggregatePagoPa)
+                .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregatePagoPa(csvAggregatePagoPa)));
+    }
+
     private Uni<Aggregate> retrieveDataFromIpa(Aggregate aggregate) {
         aggregate.setOrigin(InstitutionResource.OriginEnum.IPA.value());
 
-        if (Objects.isNull(aggregate.getSubunitType())){
+        if (StringUtils.isEmpty(aggregate.getSubunitType())) {
             return institutionApi.findInstitutionUsingGET(aggregate.getTaxCode(), null, null)
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .onItem().transformToUni(institutionResource -> retrieveCityCountyAndMapIpaFieldForPA(institutionResource, aggregate));
@@ -146,7 +249,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForUO(UOResource uoResource, Aggregate aggregateAppIo) {
         return retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(uoResource.getDenominazioneEnte(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(uoResource.getDescrizioneUo(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), uoResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }
@@ -154,7 +257,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForAOO(AOOResource aooResource, Aggregate aggregateAppIo) {
         return retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
                 .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(aooResource.getDenominazioneEnte(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(aooResource.getDenominazioneAoo(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
                     return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), aooResource.getCodiceFiscaleEnte(), aggregateAppIo);
                 });
     }
@@ -217,6 +320,48 @@ public class AggregatesServiceDefault implements AggregatesService {
         } else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
                 || (StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        }
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> checkRequiredFieldsPagoPa(CsvAggregatePagoPa csvAggregate) {
+
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+        } else if (StringUtils.isEmpty(csvAggregate.getTaxCodePT())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_PT));
+        } else if (StringUtils.isEmpty(csvAggregate.getIban())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN));
+        } else if (StringUtils.isEmpty(csvAggregate.getService())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SERVICE));
+        } else if (StringUtils.isEmpty(csvAggregate.getSyncAsyncMode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SYNC_ASYNC_MODE));
+        }
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> checkRequiredFieldsSend(CsvAggregateSend csvAggregate) {
+
+        if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+        } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+        } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
+                || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+        } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateName())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME));
+        } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateSurname())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME));
+        } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateTaxCode())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE));
+        } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateEmail())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL));
+        } else if(StringUtils.isEmpty(csvAggregate.getRecipientCode())){
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CODICE_SDI));
+
         }
         return Uni.createFrom().voidItem();
     }

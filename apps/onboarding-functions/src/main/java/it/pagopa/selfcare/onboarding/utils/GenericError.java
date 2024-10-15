@@ -57,7 +57,10 @@ public enum GenericError {
     GET_INSTITUTION_BY_PRODUCTID_ERROR("0053", "Error while searching institutions related to given productId"),
     VERIFY_USER_ERROR("0000", "Error while searching institutions related to given productId"),
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
-    GENERIC_ERROR("0000", "Generic Error");
+    GENERIC_ERROR("0000", "Generic Error"),
+    LOAD_AGGREGATES_CSV_ERROR("0000", "Can not load aggregates CSV, message: %s"),
+    CREATE_AGGREGATES_CSV_ERROR("0000", "Can not create aggregates CSV, message: %s");
+
     private final String code;
     private final String detail;
 

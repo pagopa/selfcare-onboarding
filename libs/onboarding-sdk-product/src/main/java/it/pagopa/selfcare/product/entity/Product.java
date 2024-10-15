@@ -152,12 +152,20 @@ public class Product {
     public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
         Map<PartyRole, List<ProductRoleInfo>> roleInfoMap = new HashMap<>();
         Optional.ofNullable(roleMappings)
-                .ifPresent(roleMappings -> roleMappings.forEach((key, value) -> roleInfoMap.put(key, List.of(value))));
+                .ifPresent(roleMappings -> roleMappings.forEach((key, value) -> {
+                    List<ProductRoleInfo> productRoles = new ArrayList<>();
+                    productRoles.add(value);
+                    roleInfoMap.put(key, productRoles);
+                }));
         Optional.ofNullable(roleMappingsByInstitutionType)
                 .map(Map::values)
                 .ifPresent(items -> items.stream()
                         .map(Map::entrySet)
-                        .forEach(item -> item.forEach(entry -> roleInfoMap.put(entry.getKey(), List.of(entry.getValue())))));
+                        .forEach(item -> item.forEach(entry -> {
+                            List<ProductRoleInfo> productRoles = roleInfoMap.getOrDefault(entry.getKey(), new ArrayList<>());
+                            productRoles.add(entry.getValue());
+                            roleInfoMap.put(entry.getKey(), productRoles);
+                        } )));
         return roleInfoMap;
     }
 
