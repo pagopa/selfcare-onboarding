@@ -222,8 +222,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> verifyAlreadyOnboarding(onboarding.getInstitution(), product.getId(), product.getParentId(), isAggregatesIncrement)
                         .replaceWith(product))
                 .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
-                        .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution())).onItem().invoke(RegistryManager::isValid)
-                        .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
+                        .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
+                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                        .onItem().transformToUni(registryManager -> registryManager.isValid().onItem().transformToUni(ignored -> registryManager.customValidation(product)))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))

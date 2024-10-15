@@ -2,8 +2,6 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import jakarta.inject.Inject;
@@ -13,11 +11,8 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class RegistryResourceProviderTest {
@@ -55,71 +50,42 @@ class RegistryResourceProviderTest {
 
     @Test
     void getWrapperIPA() {
-
-        when(institutionApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(new InstitutionResource()));
-
-        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IPA))
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof RegistryManagerIPAUo);
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IPA));
+        assertTrue(registryManager instanceof RegistryManagerIPA);
     }
 
     @Test
-    void getWrapperUO() {
-
-        InstitutionResource institutionResource = new InstitutionResource();
-        when(institutionApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
-        when(uoApi.findByUnicodeUsingGET1(any(), any())).thenReturn(Uni.createFrom().item(new UOResource()));
-
+    void getRegistryUO() {
         Onboarding onboarding = createOnboarding(Origin.IPA);
         onboarding.getInstitution().setSubunitType(InstitutionPaSubunitType.UO);
-        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(onboarding)
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
+        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding);
+        assertTrue(registryManager instanceof RegistryManagerIPAUo);
+    }
 
-        subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof RegistryManagerIPA);
+    @Test
+    void getRegistryAOO() {
+        Onboarding onboarding = createOnboarding(Origin.IPA);
+        onboarding.getInstitution().setSubunitType(InstitutionPaSubunitType.AOO);
+        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding);
+        assertTrue(registryManager instanceof RegistryManagerIPAAoo);
     }
 
     @Test
     void getWrapperIVASS() {
-
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new InsuranceCompanyResource()));
-
-        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.IVASS))
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof RegistryManagerIVASS);
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IVASS));
+        assertTrue(registryManager instanceof RegistryManagerIVASS);
     }
 
     @Test
-    void getWrapperANAC() {
-
-        when(stationsApi.searchByTaxCodeUsingGET1(any())).thenReturn(Uni.createFrom().item(new StationResource()));
-
-        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.ANAC))
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof RegistryManagerANAC);
+    void getRegistryANAC() {
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ANAC));
+        assertTrue(registryManager instanceof RegistryManagerANAC);
     }
 
     @Test
-    void getWrapperPDNDInfocamere() {
-
-        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(new PDNDBusinessResource()));
-
-        UniAssertSubscriber<RegistryManager<?>> subscriber = registryResourceProvider.getResource(createOnboarding(Origin.PDND_INFOCAMERE))
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertCompleted();
-        assertTrue(subscriber.getItem() instanceof RegistryManagerPDNDInfocamere);
+    void getRegistryPDNDInfocamere() {
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.PDND_INFOCAMERE));
+        assertTrue(registryManager instanceof RegistryManagerPDNDInfocamere);
     }
 
 }

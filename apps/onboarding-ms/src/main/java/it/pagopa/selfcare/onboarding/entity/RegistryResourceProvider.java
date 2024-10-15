@@ -59,7 +59,7 @@ public class RegistryResourceProvider {
         return switch ((onboarding.getInstitution().getInstitutionType() != null) ? onboarding.getInstitution().getInstitutionType() : PA) {
             case GSP -> new RegistryManagerIPAGps(onboarding, uoApi);
             case PT -> new RegistryManagerPT(onboarding, uoApi);
-            default -> new RegistryManagerIPAUo(onboarding, uoApi);
+            default -> new RegistryManagerIPA(onboarding, uoApi);
         };
     }
 }
