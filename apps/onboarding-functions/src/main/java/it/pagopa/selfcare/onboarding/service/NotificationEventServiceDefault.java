@@ -27,6 +27,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.user_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.user_json.model.UserDataResponse;
 
 import java.util.*;
@@ -132,16 +133,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             users.forEach(userDataResponse -> {
                 userDataResponse.getProducts().stream().filter(onboardedProductResponse -> {
                     if (onboardedProductResponse.getProductId().equals(product.getId())) {
-                        NotificationUserToSend notificationUserToSend = notificationUserBuilder.buildUserNotificationToSend(
-                                notificationsResources.getOnboarding(),
-                                notificationsResources.getToken(),
-                                notificationsResources.getInstitution(),
-                                onboardedProductResponse.getCreatedAt(),
-                                onboardedProductResponse.getUpdatedAt(),
-                                onboardedProductResponse.getStatus().toString(),
-                                userDataResponse.getUserId(),
-                                onboardedProductResponse.getRole(),
-                                onboardedProductResponse.getProductRole());
+                        NotificationUserToSend notificationUserToSend = getNotificationUserToSend(notificationsResources, userDataResponse, onboardedProductResponse, notificationUserBuilder);
                         sendUserNotification(context, consumer.topic(), notificationUserToSend, notificationEventTraceId);
                     }
                     return false;
@@ -154,6 +146,22 @@ public class NotificationEventServiceDefault implements NotificationEventService
         } else {
             context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
         }
+    }
+
+    public static NotificationUserToSend getNotificationUserToSend(NotificationsResources notificationsResources,
+                                                                   UserDataResponse userDataResponse,
+                                                                   OnboardedProductResponse onboardedProductResponse,
+                                                                   NotificationUserBuilder notificationUserBuilder) {
+        return notificationUserBuilder.buildUserNotificationToSend(
+                notificationsResources.getOnboarding(),
+                notificationsResources.getToken(),
+                notificationsResources.getInstitution(),
+                onboardedProductResponse.getCreatedAt(),
+                onboardedProductResponse.getUpdatedAt(),
+                onboardedProductResponse.getStatus().toString(),
+                userDataResponse.getUserId(),
+                onboardedProductResponse.getRole(),
+                onboardedProductResponse.getProductRole());
     }
 
     private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
@@ -280,8 +288,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
             Optional.ofNullable(notificationUserToSend.getUser().getUserId()).ifPresent(value -> propertiesMap.put("userId", value));
             Optional.ofNullable(notificationUserToSend.getUser().getRole()).ifPresent(value -> propertiesMap.put("role", value));
-            Optional.ofNullable(notificationUserToSend.getUser().getRelationshipStatus()).ifPresent(value -> propertiesMap.put("relationshipStatus()", value));
-            Optional.ofNullable(notificationUserToSend.getUser().getProductRole()).ifPresent(value -> propertiesMap.put("productRole()", value));
+            Optional.ofNullable(notificationUserToSend.getUser().getRelationshipStatus()).ifPresent(value -> propertiesMap.put("relationshipStatus", value));
+            Optional.ofNullable(notificationUserToSend.getUser().getProductRole()).ifPresent(value -> propertiesMap.put("productRole", value));
         }
         return propertiesMap;
     }

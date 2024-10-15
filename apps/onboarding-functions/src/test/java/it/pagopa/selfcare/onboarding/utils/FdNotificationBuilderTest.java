@@ -56,13 +56,7 @@ class FdNotificationBuilderTest {
     void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventAdd() {
 
         // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
-                null // deletedAt
-        );
+        Onboarding onboarding = getOnboardingTest();
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
@@ -98,13 +92,7 @@ class FdNotificationBuilderTest {
     void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventUserActive() {
 
         // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
-                null // deletedAt
-        );
+        Onboarding onboarding = getOnboardingTest();
 
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
@@ -120,31 +108,15 @@ class FdNotificationBuilderTest {
         when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
                 .thenReturn(institutionParentResource);
 
-        OnboardedProductResponse productResponse = new OnboardedProductResponse();
-        productResponse.setProductId(productId);
-        productResponse.setStatus(OnboardedProductState.ACTIVE);
-        productResponse.setProductRole("security");
-        productResponse.setRole("OPERATOR");
-        productResponse.setEnv(Env.PROD);
-        productResponse.setCreatedAt(OffsetDateTime.now());
-        productResponse.setUpdatedAt(OffsetDateTime.now());
+        OnboardedProductResponse productResponse = getOnboardedProductResponse();
 
         UserResponse userResponse = new UserResponse();
         userResponse.id("userId1");
 
 
-        List<UserDataResponse> users = new ArrayList<>();
-        UserDataResponse userDataResponse = new UserDataResponse();
-        userDataResponse.setId("userDataId1");
-        userDataResponse.setUserId("userId1");
-        userDataResponse.setInstitutionId(institution.getId());
-        userDataResponse.setInstitutionDescription(institution.getDescription());
-        userDataResponse.setUserMailUuid("usermail1");
-        userDataResponse.setRole("OPERATOR");
-        userDataResponse.setStatus("ACTIVE");
-        userDataResponse.setProducts(List.of(productResponse));
-        userDataResponse.setUserResponse(userResponse);
+        UserDataResponse userDataResponse = getUserDataResponse(institution, productResponse, userResponse);
 
+        List<UserDataResponse> users = new ArrayList<>();
         users.add(userDataResponse);
 
 
@@ -171,5 +143,42 @@ class FdNotificationBuilderTest {
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
         assertEquals(productResponse.getProductRole(), notification.getUser().getProductRole());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
+    }
+
+    private static UserDataResponse getUserDataResponse(InstitutionResponse institution, OnboardedProductResponse productResponse, UserResponse userResponse) {
+        UserDataResponse userDataResponse = new UserDataResponse();
+        userDataResponse.setId("userDataId1");
+        userDataResponse.setUserId("userId1");
+        userDataResponse.setInstitutionId(institution.getId());
+        userDataResponse.setInstitutionDescription(institution.getDescription());
+        userDataResponse.setUserMailUuid("usermail1");
+        userDataResponse.setRole("OPERATOR");
+        userDataResponse.setStatus("ACTIVE");
+        userDataResponse.setProducts(List.of(productResponse));
+        userDataResponse.setUserResponse(userResponse);
+        return userDataResponse;
+    }
+
+    private static OnboardedProductResponse getOnboardedProductResponse() {
+        OnboardedProductResponse productResponse = new OnboardedProductResponse();
+        productResponse.setProductId(productId);
+        productResponse.setStatus(OnboardedProductState.ACTIVE);
+        productResponse.setProductRole("security");
+        productResponse.setRole("OPERATOR");
+        productResponse.setEnv(Env.PROD);
+        productResponse.setCreatedAt(OffsetDateTime.now());
+        productResponse.setUpdatedAt(OffsetDateTime.now());
+        return productResponse;
+    }
+
+    private static Onboarding getOnboardingTest() {
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        return onboarding;
     }
 }

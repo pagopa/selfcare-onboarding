@@ -204,19 +204,9 @@ public class NotificationEventServiceDefaultTest {
 
     @Test
     void notificationEventMapTest() {
-        NotificationToSend notificationToSend = new NotificationToSend();
-        notificationToSend.setId("id");
-        notificationToSend.setInternalIstitutionID("internal");
-        notificationToSend.setProduct("prod");
-        notificationToSend.setState("state");
-        notificationToSend.setFileName("fileName");
-        notificationToSend.setFilePath("filePath");
-        notificationToSend.setContentType("contentType");
+        NotificationToSend notificationToSend = getNotificationBaseToSend();
 
-        InstitutionToNotify institution = new InstitutionToNotify();
-        institution.setDescription("description");
-        institution.setInstitutionType(InstitutionType.SA);
-        institution.setDigitalAddress("mail");
+        InstitutionToNotify institution = getInstitutionToNotify();
         notificationToSend.setInstitution(institution);
 
         BillingToSend billing = new BillingToSend();
@@ -245,19 +235,9 @@ public class NotificationEventServiceDefaultTest {
 
     @Test
     void notificationEventMapRootParentTest() {
-        NotificationToSend notificationToSend = new NotificationToSend();
-        notificationToSend.setId("id");
-        notificationToSend.setInternalIstitutionID("internal");
-        notificationToSend.setProduct("prod");
-        notificationToSend.setState("state");
-        notificationToSend.setFileName("fileName");
-        notificationToSend.setFilePath("filePath");
-        notificationToSend.setContentType("contentType");
+        NotificationToSend notificationToSend = getNotificationBaseToSend();
 
-        InstitutionToNotify institution = new InstitutionToNotify();
-        institution.setDescription("description");
-        institution.setInstitutionType(InstitutionType.SA);
-        institution.setDigitalAddress("mail");
+        InstitutionToNotify institution = getInstitutionToNotify();
         RootParent rootParent = new RootParent();
         rootParent.setDescription("RootDescription");
         rootParent.setId("RootId");
@@ -348,4 +328,66 @@ public class NotificationEventServiceDefaultTest {
         return product;
     }
 
+
+    @Test
+    void notificationEventUserMapTest() {
+        NotificationUserToSend notificationUserToSend = getNotificationUserBaseToSend();
+        UserToNotify user = new UserToNotify();
+        user.setUserId("userId");
+        user.setRole("OPERATOR");
+        user.setProductRole("api");
+        user.setRelationshipStatus("ACTIVE");
+        notificationUserToSend.setUser(user);
+
+
+        Map<String, String> properties = NotificationEventServiceDefault.notificationUserEventMap(notificationUserToSend, "topic", "traceId");
+        assertNotNull(properties);
+        assertEquals("traceId", properties.get("notificationEventTraceId"));
+        assertEquals("id", properties.get("id"));
+        assertEquals("internal", properties.get("institutionId"));
+        assertEquals("prod", properties.get("product"));
+        assertEquals("state", properties.get("state"));
+        assertEquals("fileName", properties.get("fileName"));
+        assertEquals(properties.get("filePath"), "filePath");
+        assertEquals(properties.get("contentType"), "application/octet-stream");
+
+
+        assertEquals("userId", properties.get("userId"));
+        assertEquals("OPERATOR", properties.get("role"));
+        assertEquals("ACTIVE", properties.get("relationshipStatus"));
+        assertEquals("api", properties.get("productRole"));
+
+    }
+
+    private static InstitutionToNotify getInstitutionToNotify() {
+        InstitutionToNotify institution = new InstitutionToNotify();
+        institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.SA);
+        institution.setDigitalAddress("mail");
+        return institution;
+    }
+
+    private static NotificationToSend getNotificationBaseToSend() {
+        NotificationToSend notificationToSend = new NotificationToSend();
+        notificationToSend.setId("id");
+        notificationToSend.setInternalIstitutionID("internal");
+        notificationToSend.setProduct("prod");
+        notificationToSend.setState("state");
+        notificationToSend.setFileName("fileName");
+        notificationToSend.setFilePath("filePath");
+        notificationToSend.setContentType("contentType");
+        return notificationToSend;
+    }
+
+    private static NotificationUserToSend getNotificationUserBaseToSend() {
+        NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
+        notificationUserToSend.setId("id");
+        notificationUserToSend.setInstitutionId("internal");
+        notificationUserToSend.setProduct("prod");
+        notificationUserToSend.setState("state");
+        notificationUserToSend.setFileName("fileName");
+        notificationUserToSend.setFilePath("filePath");
+        notificationUserToSend.setContentType("contentType");
+        return notificationUserToSend;
+    }
 }
