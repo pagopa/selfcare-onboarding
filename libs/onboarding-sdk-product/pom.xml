@@ -7,7 +7,6 @@
         <version>0.3.3</version>
         <relativePath>../onboarding-sdk-pom</relativePath>
     </parent>
-
     <artifactId>onboarding-sdk-product</artifactId>
     <name>onboarding-sdk-product</name>
     <version>0.3.3</version>
@@ -29,7 +28,6 @@
             <artifactId>onboarding-sdk-azure-storage</artifactId>
             <version>${project.version}</version>
         </dependency>
-        w
 
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>

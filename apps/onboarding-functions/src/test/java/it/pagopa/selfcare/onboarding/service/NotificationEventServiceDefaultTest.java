@@ -24,7 +24,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.user_json.model.UserDataResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +56,10 @@ public class NotificationEventServiceDefaultTest {
 
     @RestClient
     @InjectMock
+    org.openapi.quarkus.user_json.api.UserApi userApi;
+
+    @RestClient
+    @InjectMock
     InstitutionApi institutionApi;
 
     @InjectMock
@@ -68,6 +74,9 @@ public class NotificationEventServiceDefaultTest {
         mockNotificationMapper(true);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+        List<UserDataResponse> users = new ArrayList<>();
+        when(userApi.usersUserIdInstitutionInstitutionIdGet(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(users);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -195,7 +204,7 @@ public class NotificationEventServiceDefaultTest {
 
     @Test
     void notificationEventMapTest() {
-        NotificationToSend notificationToSend =  new NotificationToSend();
+        NotificationToSend notificationToSend = new NotificationToSend();
         notificationToSend.setId("id");
         notificationToSend.setInternalIstitutionID("internal");
         notificationToSend.setProduct("prod");
@@ -236,7 +245,7 @@ public class NotificationEventServiceDefaultTest {
 
     @Test
     void notificationEventMapRootParentTest() {
-        NotificationToSend notificationToSend =  new NotificationToSend();
+        NotificationToSend notificationToSend = new NotificationToSend();
         notificationToSend.setId("id");
         notificationToSend.setInternalIstitutionID("internal");
         notificationToSend.setProduct("prod");
