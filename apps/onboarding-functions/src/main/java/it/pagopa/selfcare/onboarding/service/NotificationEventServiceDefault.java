@@ -129,11 +129,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
         NotificationUserBuilder notificationUserBuilder = notificationUserBuilderFactory.create(consumer);
         if (notificationUserBuilder.shouldSendUserNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
+            context.getLogger().info(() -> String.format("prepareAndSendUserNotification %s [%s]", notificationsResources.getInstitution().getDescription(), consumer.topic()));
             List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), null, null, null, null, null, null);
             users.forEach(userDataResponse -> {
+                context.getLogger().info(() -> String.format("userDataResponse %s [%s]", userDataResponse.getUserId(), consumer.topic()));
                 userDataResponse.getProducts().stream().filter(onboardedProductResponse -> {
                     if (onboardedProductResponse.getProductId().equals(product.getId())) {
                         NotificationUserToSend notificationUserToSend = getNotificationUserToSend(notificationsResources, userDataResponse, onboardedProductResponse, notificationUserBuilder);
+                        context.getLogger().info(() -> String.format("Sending user notification %s", notificationUserToSend.toString()));
                         sendUserNotification(context, consumer.topic(), notificationUserToSend, notificationEventTraceId);
                     }
                     return false;
