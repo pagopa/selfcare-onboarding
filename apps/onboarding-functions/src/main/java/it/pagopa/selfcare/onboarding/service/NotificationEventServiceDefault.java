@@ -136,7 +136,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), null, null, null, null, null);
                 users.forEach(userDataResponse -> {
                     context.getLogger().info(() -> String.format("[APZ] userDataResponse %s [%s]", userDataResponse.toString(), consumer.topic()));
-                    userDataResponse.getProducts().stream().filter(onboardedProductResponse -> {
+                    userDataResponse.getProducts().forEach(onboardedProductResponse -> {
                         context.getLogger().info(() -> String.format("[APZ] onboardedProductResponse %s [%s]", onboardedProductResponse.toString(), consumer.topic()));
                         if (onboardedProductResponse.getProductId().equals(product.getId())) {
                             context.getLogger().info(() -> String.format("[APZ] getNotificationUserToSend %s [%s]", userDataResponse.getUserId(), consumer.topic()));
@@ -144,7 +144,6 @@ public class NotificationEventServiceDefault implements NotificationEventService
                             context.getLogger().info(() -> String.format("Sending user notification %s", notificationUserToSend.toString()));
                             sendUserNotification(context, consumer.topic(), notificationUserToSend, notificationEventTraceId);
                         }
-                        return false;
                     });
                 });
             });
