@@ -138,8 +138,8 @@ class FdNotificationBuilderTest {
         assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals("ACTIVE", notification.getState());
         assertEquals(tokenId, notification.getOnboardingTokenId());
-        assertEquals(productResponse.getCreatedAt().toLocalDateTime(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(productResponse.getUpdatedAt().toLocalDateTime(), notification.getUpdatedAt().toLocalDateTime());
+        assertEquals(productResponse.getCreatedAt(), notification.getCreatedAt());
+        assertEquals(productResponse.getUpdatedAt(), notification.getUpdatedAt());
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
         assertEquals(productResponse.getProductRole(), notification.getUser().getProductRole());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
@@ -169,8 +169,8 @@ class FdNotificationBuilderTest {
         productResponse.setProductRole("security");
         productResponse.setRole("OPERATOR");
         productResponse.setEnv(Env.PROD);
-        productResponse.setCreatedAt(OffsetDateTime.now());
-        productResponse.setUpdatedAt(OffsetDateTime.now());
+        productResponse.setCreatedAt("2024-10-10T10:35:42.144Z");
+        productResponse.setUpdatedAt("2024-10-10T10:35:42.144Z");
         return productResponse;
     }
 

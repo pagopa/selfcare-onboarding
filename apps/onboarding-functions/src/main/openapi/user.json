@@ -1388,7 +1388,6 @@
         "type": "string"
       },
       "LocalDateTime": {
-        "format": "date-time",
         "type": "string",
         "example": "2022-03-10T12:15:50"
       },

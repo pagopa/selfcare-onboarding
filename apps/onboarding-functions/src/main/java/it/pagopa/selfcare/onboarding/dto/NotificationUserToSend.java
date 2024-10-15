@@ -21,12 +21,12 @@ public class NotificationUserToSend {
     private String onboardingTokenId;
     private String pricingPlan;
     private BillingToSend billing;
-    @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
-    private OffsetDateTime createdAt;
+
+    private String createdAt;
     @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
     private OffsetDateTime closedAt;
-    @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
-    private OffsetDateTime updatedAt;
+
+    private String updatedAt;
     private QueueUserEvent notificationType;
     private NotificationUserType type;
     private UserToNotify user;
@@ -147,19 +147,19 @@ public class NotificationUserToSend {
         this.billing = billing;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
-    public OffsetDateTime getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(OffsetDateTime updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
 

@@ -65,7 +65,7 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder impleme
     }
 
     @Override
-    public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, OffsetDateTime createdAt, OffsetDateTime updatedAt, String status, String userId, String partyRole, String productRole) {
+    public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, String createdAt, String updatedAt, String status, String userId, String partyRole, String productRole) {
         return null;
     }
 }

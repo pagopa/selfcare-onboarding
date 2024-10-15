@@ -57,7 +57,7 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
 
     @Override
     public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution,
-                                                              OffsetDateTime createdAt, OffsetDateTime updatedAt, String status,
+                                                              String createdAt, String updatedAt, String status,
                                                               String userId, String partyRole, String productRole) {
         NotificationToSend notification = buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
         NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
@@ -71,7 +71,7 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
         notificationUserToSend.setOnboardingTokenId(notification.getOnboardingTokenId());
         notificationUserToSend.setPricingPlan(notification.getPricingPlan());
         notificationUserToSend.setBilling(notification.getBilling());
-        notificationUserToSend.setCreatedAt(createdAt);
+        notificationUserToSend.setCreatedAt(createdAt.toString());
         notificationUserToSend.setUpdatedAt(updatedAt);
         QueueUserEvent queueUserEvent = switch (status) {
             case "DELETE" -> QueueUserEvent.DELETE_USER;

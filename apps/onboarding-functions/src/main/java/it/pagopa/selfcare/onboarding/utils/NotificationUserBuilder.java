@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 
 public interface NotificationUserBuilder {
     NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution,
-                                                       OffsetDateTime createdAt, OffsetDateTime updatedAt, String status,
+                                                       String createdAt, String updatedAt, String status,
                                                        String userId, String partyRole, String productRole);
 
     default boolean shouldSendUserNotification(Onboarding onboarding, InstitutionResponse institution) {
