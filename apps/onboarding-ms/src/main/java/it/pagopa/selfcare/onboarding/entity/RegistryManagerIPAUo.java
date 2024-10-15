@@ -69,7 +69,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     protected Uni<CustomError> validationRecipientCode(UOResource uoResource) {
             final String originIdEC = registryResource.getUoResource().getCodiceIpa();
-            if (!originIdEC.equals(uoResource.getCodiceIpa())) {
+            if (Objects.nonNull(originIdEC) && !originIdEC.equals(uoResource.getCodiceIpa())) {
                 return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
             }
             if (Objects.isNull(uoResource.getCodiceFiscaleSfe())) {
