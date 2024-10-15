@@ -37,7 +37,6 @@ public class RegistryResourceProvider {
     StationsApi stationsApi;
 
     public RegistryManager<?> create(Onboarding onboarding) {
-        //todo add other origins
         return switch (onboarding.getInstitution().getOrigin() != null ? onboarding.getInstitution().getOrigin() : Origin.SELC) {
             case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
             case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);

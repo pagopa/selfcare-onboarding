@@ -11,11 +11,6 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
     }
 
     @Override
-    public IPAEntity retrieveInstitution() {
-        return null;
-    }
-
-    @Override
     public Uni<Onboarding> customValidation(Product product) {
         return super.customValidation(product);
     }
