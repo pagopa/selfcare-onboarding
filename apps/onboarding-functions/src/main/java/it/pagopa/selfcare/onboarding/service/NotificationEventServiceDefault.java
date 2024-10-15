@@ -142,7 +142,9 @@ public class NotificationEventServiceDefault implements NotificationEventService
                                 notificationsResources.getInstitution(),
                                 onboardedProductResponse.getCreatedAt(),
                                 onboardedProductResponse.getUpdatedAt(),
-                                onboardedProductResponse.getStatus().toString(), userDataResponse.getUserId(), onboardedProductResponse.getRole(),
+                                onboardedProductResponse.getStatus().toString(),
+                                userDataResponse.getUserId(),
+                                onboardedProductResponse.getRole(),
                                 onboardedProductResponse.getProductRole());
                         sendUserNotification(context, consumer.topic(), notificationUserToSend, notificationEventTraceId);
                     }
