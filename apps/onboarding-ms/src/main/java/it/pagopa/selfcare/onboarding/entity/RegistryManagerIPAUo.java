@@ -92,7 +92,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     private Uni<Void> checkParentTaxCode() {
         /* if parent tax code is different from child tax code, throw an exception */
-        final String taxCode = registryResource.getUoResource().getCodiceFiscaleEnte();
+        final String taxCode = Objects.nonNull(registryResource.getUoResource())
+                ? registryResource.getUoResource().getCodiceFiscaleEnte() : registryResource.getAooResource().getCodiceFiscaleEnte();
         if (!onboarding.getInstitution().getTaxCode().equals(taxCode)) {
             return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
         }
