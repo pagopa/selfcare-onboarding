@@ -751,7 +751,7 @@ class OnboardingFunctionsTest {
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
-        assertEquals(DELETE_OLD_PG_MANAGERS_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(DELETE_MANAGERS_BY_IC_AND_ADE, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(1));
     }
 
