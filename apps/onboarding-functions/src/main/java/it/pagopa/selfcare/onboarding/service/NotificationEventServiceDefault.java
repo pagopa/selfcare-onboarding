@@ -288,6 +288,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         if (Optional.ofNullable(notificationUserToSend.getUser()).isPresent()) {
             Optional.ofNullable(notificationUserToSend.getUser().getUserId()).ifPresent(value -> propertiesMap.put("userId", value));
             Optional.ofNullable(notificationUserToSend.getUser().getRole()).ifPresent(value -> propertiesMap.put("role", value));
+            //Optional.ofNullable(notificationUserToSend.getUser().getRoles()).ifPresent(value -> propertiesMap.put("roles", value.toString()));
         }
         return propertiesMap;
     }

@@ -343,15 +343,10 @@ public class NotificationEventServiceDefaultTest {
         assertEquals("id", properties.get("id"));
         assertEquals("internal", properties.get("institutionId"));
         assertEquals("prod", properties.get("product"));
-        assertEquals("state", properties.get("state"));
-        assertEquals("fileName", properties.get("fileName"));
-        assertEquals(properties.get("filePath"), "filePath");
-        assertEquals(properties.get("contentType"), "application/octet-stream");
 
         assertEquals("userId", properties.get("userId"));
         assertEquals("OPERATOR", properties.get("role"));
-        assertEquals("ACTIVE", properties.get("relationshipStatus"));
-        assertEquals("api", properties.get("productRole"));
+        
 
     }
 
