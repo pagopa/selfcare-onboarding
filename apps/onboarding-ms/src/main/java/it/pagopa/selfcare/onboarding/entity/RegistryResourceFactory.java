@@ -10,7 +10,7 @@ import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
 import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
 
 @ApplicationScoped
-public class RegistryResourceProvider {
+public class RegistryResourceFactory {
 
     @RestClient
     @Inject

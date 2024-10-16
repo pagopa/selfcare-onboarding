@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RegistryResourceProviderTest {
 
     @Inject
-    RegistryResourceProvider registryResourceProvider;
+    RegistryResourceFactory registryResourceProvider;
 
     @InjectMock
     @RestClient

@@ -134,7 +134,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject
     OnboardingUtils onboardingUtils;
     @Inject
-    RegistryResourceProvider registryResourceProvider;
+    RegistryResourceFactory registryResourceProvider;
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
     @ConfigProperty(name = "onboarding.orchestration.enabled")
