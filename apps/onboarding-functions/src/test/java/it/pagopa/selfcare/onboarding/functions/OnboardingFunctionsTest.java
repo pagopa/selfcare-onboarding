@@ -736,7 +736,7 @@ class OnboardingFunctionsTest {
     }
 
     @Test
-    void usersPgOrchestrator() {
+    void usersPgOrchestrator_whenStatusPending() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
@@ -756,7 +756,7 @@ class OnboardingFunctionsTest {
     }
 
     @Test
-    void usersPgOrchestrator2() {
+    void usersPgOrchestrator_whenStatusRequest() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
