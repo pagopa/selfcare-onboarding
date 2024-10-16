@@ -335,10 +335,7 @@ public class NotificationEventServiceDefaultTest {
         UserToNotify user = new UserToNotify();
         user.setUserId("userId");
         user.setRole("OPERATOR");
-        user.setProductRole("api");
-        user.setRelationshipStatus("ACTIVE");
         notificationUserToSend.setUser(user);
-
 
         Map<String, String> properties = NotificationEventServiceDefault.notificationUserEventMap(notificationUserToSend, "topic", "traceId");
         assertNotNull(properties);
@@ -350,7 +347,6 @@ public class NotificationEventServiceDefaultTest {
         assertEquals("fileName", properties.get("fileName"));
         assertEquals(properties.get("filePath"), "filePath");
         assertEquals(properties.get("contentType"), "application/octet-stream");
-
 
         assertEquals("userId", properties.get("userId"));
         assertEquals("OPERATOR", properties.get("role"));
@@ -384,10 +380,6 @@ public class NotificationEventServiceDefaultTest {
         notificationUserToSend.setId("id");
         notificationUserToSend.setInstitutionId("internal");
         notificationUserToSend.setProduct("prod");
-        notificationUserToSend.setState("state");
-        notificationUserToSend.setFileName("fileName");
-        notificationUserToSend.setFilePath("filePath");
-        notificationUserToSend.setContentType("contentType");
         return notificationUserToSend;
     }
 }

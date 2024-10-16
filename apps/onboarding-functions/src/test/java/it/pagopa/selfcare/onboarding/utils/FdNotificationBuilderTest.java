@@ -136,12 +136,10 @@ class FdNotificationBuilderTest {
 
         assertNotNull(notification);
         assertNotEquals(onboarding.getId(), notification.getId());
-        assertEquals("ACTIVE", notification.getState());
         assertEquals(tokenId, notification.getOnboardingTokenId());
         assertEquals(productResponse.getCreatedAt(), notification.getCreatedAt());
         assertEquals(productResponse.getUpdatedAt(), notification.getUpdatedAt());
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
-        assertEquals(productResponse.getProductRole(), notification.getUser().getProductRole());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
 
         assertTrue(notification.toString().contains("institutionId='" + notification.getInstitutionId() + "'"));

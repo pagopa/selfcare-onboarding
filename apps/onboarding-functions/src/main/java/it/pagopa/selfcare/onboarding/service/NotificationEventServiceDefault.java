@@ -283,19 +283,11 @@ public class NotificationEventServiceDefault implements NotificationEventService
         Optional.ofNullable(notificationUserToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
         Optional.ofNullable(notificationUserToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));
         Optional.ofNullable(notificationUserToSend.getProduct()).ifPresent(value -> propertiesMap.put("product", value));
-        Optional.ofNullable(notificationUserToSend.getState()).ifPresent(value -> propertiesMap.put("state", value));
-        Optional.ofNullable(notificationUserToSend.getFilePath()).ifPresent(value -> propertiesMap.put("filePath", value));
-        Optional.ofNullable(notificationUserToSend.getFileName()).ifPresent(value -> propertiesMap.put("fileName", value));
-        Optional.ofNullable(notificationUserToSend.getContentType()).ifPresent(value -> propertiesMap.put("contentType", value));
         Optional.ofNullable(notificationUserToSend.getOnboardingTokenId()).ifPresent(value -> propertiesMap.put("onboardingTokenId", value));
-        Optional.ofNullable(notificationUserToSend.getPricingPlan()).ifPresent(value -> propertiesMap.put("pricingPlan", value));
 
         if (Optional.ofNullable(notificationUserToSend.getUser()).isPresent()) {
-
             Optional.ofNullable(notificationUserToSend.getUser().getUserId()).ifPresent(value -> propertiesMap.put("userId", value));
             Optional.ofNullable(notificationUserToSend.getUser().getRole()).ifPresent(value -> propertiesMap.put("role", value));
-            Optional.ofNullable(notificationUserToSend.getUser().getRelationshipStatus()).ifPresent(value -> propertiesMap.put("relationshipStatus", value));
-            Optional.ofNullable(notificationUserToSend.getUser().getProductRole()).ifPresent(value -> propertiesMap.put("productRole", value));
         }
         return propertiesMap;
     }
