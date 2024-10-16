@@ -470,7 +470,7 @@ public class CompletionServiceDefault implements CompletionService {
     private void deleteManagerFromProduct(String uid, String institutionId, String productId) {
         try (Response response = userApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(institutionId, productId, uid)) {
             if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                throw new GenericOnboardingException("Impossible to delete user: " + uid);
+                throw new GenericOnboardingException(String.format("Failed to delete user %s from product %s in institution %s", uid, productId, institutionId));
             }
         }
     }
