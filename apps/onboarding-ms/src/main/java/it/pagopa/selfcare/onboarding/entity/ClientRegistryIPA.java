@@ -16,6 +16,8 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
 
     protected final UoApi uoClient;
     protected AooApi aooClient;
+    protected String originIdEC;
+    protected String resourceTaxCode;
 
     public ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
         super(onboarding);
@@ -35,6 +37,8 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
                         : Uni.createFrom().failure(ex))
                 .onItem().invoke(this::enrichOnboardingData)
                 .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        originIdEC = uoResource.getCodiceIpa();
+        resourceTaxCode = uoResource.getCodiceFiscaleEnte();
         return IPAEntity.builder().uoResource(uoResource).build();
     }
 

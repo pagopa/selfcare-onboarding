@@ -27,6 +27,8 @@ public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
                         : Uni.createFrom().failure(ex))
                 .onItem().invoke(this::enrichOnboardingData)
                 .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        super.originIdEC = aooResource.getCodiceIpa();
+        super.resourceTaxCode = aooResource.getCodiceFiscaleEnte();
         return IPAEntity.builder().aooResource(aooResource).build();
     }
 

@@ -68,8 +68,6 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     }
 
     protected Uni<CustomError> validationRecipientCode(UOResource uoResource) {
-            final String originIdEC = Objects.nonNull(registryResource.getUoResource())
-                    ? registryResource.getUoResource().getCodiceIpa() : registryResource.getAooResource().getCodiceIpa();
             if (Objects.nonNull(originIdEC) && !originIdEC.equals(uoResource.getCodiceIpa())) {
                 return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
             }
@@ -92,9 +90,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     private Uni<Void> checkParentTaxCode() {
         /* if parent tax code is different from child tax code, throw an exception */
-        final String taxCode = Objects.nonNull(registryResource.getUoResource())
-                ? registryResource.getUoResource().getCodiceFiscaleEnte() : registryResource.getAooResource().getCodiceFiscaleEnte();
-        if (!onboarding.getInstitution().getTaxCode().equals(taxCode)) {
+        if (!onboarding.getInstitution().getTaxCode().equals(resourceTaxCode)) {
             return Uni.createFrom().failure(new InvalidRequestException(PARENT_TAX_CODE_IS_INVALID));
         }
         return Uni.createFrom().voidItem();
