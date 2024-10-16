@@ -67,8 +67,8 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
         notificationUserToSend.setInstitutionId(notification.getInstitutionId());
         notificationUserToSend.setProduct(notification.getProduct());
         notificationUserToSend.setOnboardingTokenId(notification.getOnboardingTokenId());
-        notificationUserToSend.setCreatedAt(createdAt + "Z");
-        notificationUserToSend.setUpdatedAt(updatedAt + "Z");
+        notificationUserToSend.setCreatedAt(createdAt.endsWith("Z") ? createdAt : createdAt + "Z");
+        notificationUserToSend.setUpdatedAt(updatedAt.endsWith("Z") ? createdAt : createdAt + "Z");
         QueueUserEvent queueUserEvent = switch (status) {
             case "DELETE" -> QueueUserEvent.DELETE_USER;
             case "SUSPEND" -> QueueUserEvent.SUSPEND_USER;
