@@ -10,6 +10,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -61,31 +62,35 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
                                                               String userId, String partyRole, String productRole) {
         NotificationToSend notification = buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
         NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
+
         notificationUserToSend.setId(notification.getId());
         notificationUserToSend.setInstitutionId(notification.getInstitutionId());
         notificationUserToSend.setProduct(notification.getProduct());
-        notificationUserToSend.setState(notification.getState());
-        notificationUserToSend.setFilePath(notification.getFilePath());
-        notificationUserToSend.setFileName(notification.getFileName());
-        notificationUserToSend.setContentType(notification.getContentType());
         notificationUserToSend.setOnboardingTokenId(notification.getOnboardingTokenId());
-        notificationUserToSend.setPricingPlan(notification.getPricingPlan());
-        notificationUserToSend.setBilling(notification.getBilling());
-        notificationUserToSend.setCreatedAt(createdAt.toString());
+        notificationUserToSend.setCreatedAt(createdAt);
         notificationUserToSend.setUpdatedAt(updatedAt);
         QueueUserEvent queueUserEvent = switch (status) {
             case "DELETE" -> QueueUserEvent.DELETE_USER;
             case "SUSPEND" -> QueueUserEvent.SUSPEND_USER;
             default -> QueueUserEvent.ACTIVE_USER;
         };
-        notificationUserToSend.setNotificationType(queueUserEvent);
         notificationUserToSend.setType(NotificationUserType.getNotificationTypeFromQueueEvent(queueUserEvent));
         UserToNotify user = new UserToNotify();
         user.setUserId(userId);
         user.setRole(partyRole);
-        user.setProductRole(productRole);
-        user.setRelationshipStatus(status);
+        user.setRoles(List.of(productRole));
         notificationUserToSend.setUser(user);
+
+
+//        notificationUserToSend.setState(notification.getState());
+//        notificationUserToSend.setFilePath(notification.getFilePath());
+//        notificationUserToSend.setFileName(notification.getFileName());
+//        notificationUserToSend.setContentType(notification.getContentType());
+//
+//        notificationUserToSend.setPricingPlan(notification.getPricingPlan());
+//        notificationUserToSend.setBilling(notification.getBilling());
+//        notificationUserToSend.setNotificationType(queueUserEvent);
+
 
         return notificationUserToSend;
     }

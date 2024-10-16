@@ -3,13 +3,14 @@ package it.pagopa.selfcare.onboarding.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 
+import java.util.List;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserToNotify {
 
     private String userId;
     private String role;
-    private String productRole;
-    private String relationshipStatus;
+    private List<String> roles;
 
     public String getUserId() {
         return userId;
@@ -27,19 +28,11 @@ public class UserToNotify {
         this.role = role;
     }
 
-    public String getProductRole() {
-        return productRole;
+    public List<String> getRoles() {
+        return roles;
     }
 
-    public void setProductRole(String productRole) {
-        this.productRole = productRole;
-    }
-
-    public String getRelationshipStatus() {
-        return relationshipStatus;
-    }
-
-    public void setRelationshipStatus(String relationshipStatus) {
-        this.relationshipStatus = relationshipStatus;
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }
