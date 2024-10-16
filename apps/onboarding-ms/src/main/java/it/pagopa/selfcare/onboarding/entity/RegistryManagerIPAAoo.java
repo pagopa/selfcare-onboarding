@@ -21,15 +21,13 @@ public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
 
     @Override
     public IPAEntity retrieveInstitution() {
-        var ipaEntity = super.retrieveInstitution();
         AOOResource aooResource = super.aooClient.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
                 .onItem().invoke(this::enrichOnboardingData)
                 .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
-        ipaEntity.setAooResource(aooResource);
-        return ipaEntity;
+        return IPAEntity.builder().aooResource(aooResource).build();
     }
 
     private void enrichOnboardingData(AOOResource aooResource) {

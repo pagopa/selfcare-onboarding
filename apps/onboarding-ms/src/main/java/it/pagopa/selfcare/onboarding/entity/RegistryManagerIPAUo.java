@@ -68,7 +68,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     }
 
     protected Uni<CustomError> validationRecipientCode(UOResource uoResource) {
-            final String originIdEC = registryResource.getUoResource().getCodiceIpa();
+            final String originIdEC = Objects.nonNull(registryResource.getUoResource())
+                    ? registryResource.getUoResource().getCodiceIpa() : registryResource.getAooResource().getCodiceIpa();
             if (Objects.nonNull(originIdEC) && !originIdEC.equals(uoResource.getCodiceIpa())) {
                 return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
             }
@@ -108,7 +109,6 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
                     {
                         return Uni.createFrom().failure(new InvalidRequestException(TAX_CODE_INVOICING_IS_INVALID));
                     }
-                    //return additionalChecksForProduct(onboarding, product);
                     return Uni.createFrom().item(onboarding);
                 });
     }
