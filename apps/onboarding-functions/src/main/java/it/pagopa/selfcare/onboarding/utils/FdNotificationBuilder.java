@@ -62,7 +62,6 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
                                                               String userId, String partyRole, String productRole) {
         NotificationToSend notification = buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
         NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
-
         notificationUserToSend.setId(notification.getId());
         notificationUserToSend.setInstitutionId(notification.getInstitutionId());
         notificationUserToSend.setProduct(notification.getProduct());
@@ -80,18 +79,6 @@ public class FdNotificationBuilder extends BaseNotificationBuilder implements No
         user.setRole(partyRole);
         user.setRoles(List.of(productRole));
         notificationUserToSend.setUser(user);
-
-
-//        notificationUserToSend.setState(notification.getState());
-//        notificationUserToSend.setFilePath(notification.getFilePath());
-//        notificationUserToSend.setFileName(notification.getFileName());
-//        notificationUserToSend.setContentType(notification.getContentType());
-//
-//        notificationUserToSend.setPricingPlan(notification.getPricingPlan());
-//        notificationUserToSend.setBilling(notification.getBilling());
-//        notificationUserToSend.setNotificationType(queueUserEvent);
-
-
         return notificationUserToSend;
     }
 
