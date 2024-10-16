@@ -21,7 +21,7 @@ public abstract class ClientRegistryIVASS extends BaseRegistryManager<InsuranceC
     }
 
     public InsuranceCompanyResource retrieveInstitution() {
-        return client.searchByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
+        return client.searchByTaxCodeUsingGET(onboarding.getInstitution().getOriginId())
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(INSURANCE_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
