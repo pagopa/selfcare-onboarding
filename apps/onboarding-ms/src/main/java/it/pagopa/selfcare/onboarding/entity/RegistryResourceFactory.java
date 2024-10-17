@@ -7,7 +7,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.*;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.GSP;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PT;
 
 @ApplicationScoped
 public class RegistryResourceFactory {
@@ -42,7 +43,7 @@ public class RegistryResourceFactory {
             case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
             case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
             case IPA -> getResourceFromIPA(onboarding);
-            default -> new RegistryManagerSELC(onboarding);
+            default -> getRegistryManagerSELC(onboarding);
         };
     }
 
@@ -54,11 +55,17 @@ public class RegistryResourceFactory {
         };
     }
 
+    private RegistryManager<?> getRegistryManagerSELC(Onboarding onboarding) {
+        if (PT.equals(onboarding.getInstitution().getInstitutionType())) {
+            return new RegistryManagerPT(onboarding);
+        }
+        return new RegistryManagerSELC(onboarding);
+    }
+
     private RegistryManager<?> getResourceFromInstitutionType(Onboarding onboarding) {
-        return switch ((onboarding.getInstitution().getInstitutionType() != null) ? onboarding.getInstitution().getInstitutionType() : PA) {
-            case GSP -> new RegistryManagerIPAGps(onboarding, uoApi);
-            case PT -> new RegistryManagerPT(onboarding, uoApi);
-            default -> new RegistryManagerIPA(onboarding, uoApi);
-        };
+        if (GSP.equals(onboarding.getInstitution().getInstitutionType())) {
+            new RegistryManagerIPAGps(onboarding, uoApi);
+        }
+        return new RegistryManagerIPA(onboarding, uoApi);
     }
 }
