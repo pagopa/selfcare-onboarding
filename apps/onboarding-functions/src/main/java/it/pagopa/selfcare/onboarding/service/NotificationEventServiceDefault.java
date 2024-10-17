@@ -133,7 +133,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
             notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
                 context.getLogger().info(() -> String.format("[APZ] onboardingUser %s [%s]", onboardingUser.getId(), consumer.topic()));
-                List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), null, null, null, null, null);
+                List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), onboardingUser.getId(), null, List.of(product.getId()), null, null);
                 users.forEach(userDataResponse -> {
                     context.getLogger().info(() -> String.format("[APZ] userDataResponse %s [%s]", userDataResponse.toString(), consumer.topic()));
                     userDataResponse.getProducts().forEach(onboardedProductResponse -> {
