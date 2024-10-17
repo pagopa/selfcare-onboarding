@@ -1315,9 +1315,6 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     public Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests) {
         checkOnboardingPgUserList(userRequests);
-        onboarding.setWorkflowType(WorkflowType.USERS_PG);
-        onboarding.setStatus(OnboardingStatus.PENDING);
-        onboarding.setCreatedAt(LocalDateTime.now());
 
         return retrievePreviousCompletedOnboarding(onboarding)
                 .map(previousOnboarding -> copyDataFromPreviousToCurrentOnboarding(previousOnboarding, onboarding))
