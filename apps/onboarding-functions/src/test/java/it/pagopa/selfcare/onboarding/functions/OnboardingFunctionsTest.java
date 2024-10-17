@@ -736,6 +736,45 @@ class OnboardingFunctionsTest {
     }
 
     @Test
+    void usersPgOrchestrator_whenStatusPending() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.USERS_PG);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(4))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+        assertEquals(DELETE_MANAGERS_BY_IC_AND_ADE, captorActivity.getAllValues().get(0));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    }
+
+    @Test
+    void usersPgOrchestrator_whenStatusRequest() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+        onboarding.setWorkflowType(WorkflowType.USERS_PG);
+        onboarding.setInstitution(new Institution());
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(0))
+                .callActivity(captorActivity.capture(), any(), any(),any());
+    }
+
+    @Test
     void createInstitutionAndPersistInstitutionId() {
 
         final String institutionId = "institutionId";
