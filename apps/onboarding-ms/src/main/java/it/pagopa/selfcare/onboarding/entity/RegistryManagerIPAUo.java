@@ -12,6 +12,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
@@ -84,6 +85,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     private boolean hasSfe(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getBilling())
+                && Objects.nonNull(onboarding.getInstitution().getSubunitCode())
+                && UO.equals(onboarding.getInstitution().getSubunitType())
                 && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
                 && Objects.nonNull(onboarding.getInstitution().getTaxCode());
     }
