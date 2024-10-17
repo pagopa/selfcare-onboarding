@@ -90,6 +90,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "65";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
+    public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY = "User is not manager of the institution on the registry";
 
     @RestClient
     @Inject
@@ -1424,7 +1425,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 Objects.isNull(businessesResource.getBusinesses()) ||
                 businessesResource.getBusinesses().stream().noneMatch(business -> business.getBusinessTaxId().equals(taxCode))
         ) {
-            throw new InvalidRequestException("User is not manager of the institution on the registry");
+            throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
         }
 
         return Uni.createFrom().voidItem();
@@ -1434,7 +1435,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return nationalRegistriesApi.verifyLegalUsingGET(userTaxCode, businessTaxCode)
                 .onItem().transformToUni(legalVerificationResult -> {
                     if(!legalVerificationResult.getVerificationResult()) {
-                        throw new InvalidRequestException("User is not manager of the institution on the registry");
+                        throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
                     }
                     return Uni.createFrom().voidItem();
                 })
