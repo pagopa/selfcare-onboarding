@@ -1296,6 +1296,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         checkOnboardingPgUserList(userRequests);
         onboarding.setWorkflowType(WorkflowType.USERS_PG);
         onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setCreatedAt(LocalDateTime.now());
 
         return retrievePreviousCompletedOnboarding(onboarding)
                 .map(previousOnboarding -> copyDataFromPreviousToCurrentOnboarding(previousOnboarding, onboarding))
@@ -1343,7 +1344,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Onboarding copyDataFromPreviousToCurrentOnboarding(Onboarding previousOnboarding, Onboarding currentOnboarding) {
         currentOnboarding.setReferenceOnboardingId(previousOnboarding.getId());
         currentOnboarding.setInstitution(previousOnboarding.getInstitution());
-        currentOnboarding.setCreatedAt(LocalDateTime.now());
         return currentOnboarding;
     }
 
