@@ -1293,6 +1293,26 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .build());
     }
 
+    /**
+     * Initiates the onboarding process for a user in the PG (Persona Giuridica) context.
+     * This method performs the following steps:
+     * <ul>
+     *   <li>Validates the provided user requests to ensure only one manager is onboarded.</li>
+     *   <li>Sets the workflow type and status of the onboarding to USERS_PG and PENDING, respectively.</li>
+     *   <li>Retrieves any previous completed onboarding data for the institution and product.</li>
+     *   <li>Copies relevant data from the previous onboarding to the current onboarding instance.</li>
+     *   <li>Retrieves and sets the manager UID for the new onboarding.</li>
+     *   <li>Checks if the user is already a manager within the institution.</li>
+     *   <li>Verifies the manager's association with the institution in external registries (Infocamere or ADE).</li>
+     *   <li>Persists the onboarding data and initiates orchestration.</li>
+     * </ul>
+     *
+     * @param onboarding   the onboarding data to process
+     * @param userRequests the list of user requests associated with the onboarding
+     * @return a Uni that emits the onboarding response upon successful completion
+     * @throws InvalidRequestException    if the user list is invalid or the user is already a manager
+     * @throws ResourceNotFoundException if no previous onboarding data is found for the institution
+     */
     public Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests) {
         checkOnboardingPgUserList(userRequests);
         onboarding.setWorkflowType(WorkflowType.USERS_PG);
@@ -1309,6 +1329,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transform(onboardingMapper::toResponse);
     }
 
+    /**
+     * Validates the list of user requests to ensure only one manager is present.
+     *
+     * @param userRequests the list of user requests to validate
+     * @throws InvalidRequestException if the user list is empty, contains more than one user, or the user role is not MANAGER
+     */
     private void checkOnboardingPgUserList(List<UserRequest> userRequests) {
         if(CollectionUtils.isEmpty(userRequests) || userRequests.size() > 1 || !PartyRole.MANAGER.equals(userRequests.get(0).getRole())) {
             throw new InvalidRequestException("This API allows the onboarding of only one user with role MANAGER");
@@ -1364,6 +1390,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                 : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
     }
 
+    /**
+     * Checks if the user is already a manager within the institution invoking selfcare-user API.
+     *
+     * @param currentOnboarding the current onboarding data
+     * @return a Uni that completes if the user is not already a manager, otherwise fails
+     * @throws InvalidRequestException if the user is already a manager of the institution
+     */
     private Uni<Void> checkIfUserIsAlreadyManager(Onboarding currentOnboarding) {
         String newManagerId = currentOnboarding.getUsers().stream()
                 .filter(user -> PartyRole.MANAGER.equals(user.getRole()))
@@ -1389,6 +1422,14 @@ public class OnboardingServiceDefault implements OnboardingService {
         }).replaceWithVoid();
     }
 
+    /**
+     * Checks if the user is a manager in the external registries based on the institution's origin.
+     *
+     * @param onboarding   the current onboarding data
+     * @param userRequests the list of user requests associated with the onboarding
+     * @return a Uni that completes if the user is a valid manager in the registry, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in the external registry
+     */
     private Uni<Void> checkIfUserIsManagerOnRegistries(Onboarding onboarding, List<UserRequest> userRequests) {
         LOG.infof("Checking if user is manager on registries for onboarding with origin %s", onboarding.getInstitution().getOrigin());
         String userTaxCode = userRequests.stream()
@@ -1406,6 +1447,14 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
     }
 
+    /**
+     * Checks if the user is a manager in the Infocamere registry.
+     *
+     * @param userTaxCode     the tax code of the user
+     * @param businessTaxCode the tax code of the business (institution)
+     * @return a Uni that completes if the user is a manager, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in Infocamere
+     */
     private Uni<Void> checkIfUserIsManagerOnInfocamere(String userTaxCode, String businessTaxCode) {
         return infocamereApi.institutionsByLegalTaxIdUsingPOST(toGetInstitutionsByLegalDto(userTaxCode))
                 .flatMap(businessesResource -> checkIfBusinessIsContained(businessesResource, businessTaxCode));
@@ -1419,6 +1468,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .build();
     }
 
+    /**
+     * Validates if the business tax code is contained within the retrieved businesses.
+     *
+     * @param businessesResource the resource containing businesses data
+     * @param taxCode            the tax code to validate against
+     * @return a Uni that completes if the tax code is found, otherwise fails
+     * @throws InvalidRequestException if the tax code is not found in the businesses resource
+     */
     private Uni<Void> checkIfBusinessIsContained(BusinessesResource businessesResource, String taxCode) {
         if(
                 Objects.isNull(businessesResource) ||
@@ -1431,6 +1488,14 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().voidItem();
     }
 
+    /**
+     * Checks if the user is a manager in the ADE (Agenzia delle Entrate) registry.
+     *
+     * @param userTaxCode     the tax code of the user
+     * @param businessTaxCode the tax code of the business (institution)
+     * @return a Uni that completes if the user is a manager, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in ADE
+     */
     private Uni<Void> checkIfUserIsManagerOnADE(String userTaxCode, String businessTaxCode) {
         return nationalRegistriesApi.verifyLegalUsingGET(userTaxCode, businessTaxCode)
                 .onItem().transformToUni(legalVerificationResult -> {
