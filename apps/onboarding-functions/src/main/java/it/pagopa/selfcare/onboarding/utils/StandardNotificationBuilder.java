@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -8,9 +9,10 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
-public class StandardNotificationBuilder extends BaseNotificationBuilder {
+public class StandardNotificationBuilder extends BaseNotificationBuilder implements NotificationUserBuilder {
     public StandardNotificationBuilder(
             String alternativeEmail,
             NotificationConfig.Consumer consumer,
@@ -20,6 +22,7 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
     ) {
         super(alternativeEmail, consumer, proxyRegistryInstitutionApi, geographicTaxonomiesApi, coreInstitutionApi);
     }
+
     @Override
     public NotificationToSend buildNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.buildNotificationToSend(onboarding, token, institution, queueEvent);
@@ -31,7 +34,7 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
 
     @Override
     public BillingToSend retrieveBilling(Onboarding onboarding) {
-        if(Objects.isNull(onboarding.getBilling())) {
+        if (Objects.isNull(onboarding.getBilling())) {
             return null;
         }
 
@@ -61,5 +64,8 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder {
         }
     }
 
-
+    @Override
+    public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, OffsetDateTime createdAt, OffsetDateTime updatedAt, String status, String userId, String partyRole, String productRole) {
+        return null;
+    }
 }
