@@ -33,7 +33,7 @@ public class PdfMapper {
     public static final String ORIGIN_ID_LABEL = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
     public static final String CSV_AGGREGATES_LABEL = "&emsp;- <span class=\"c3\" style=\"color:blue\"><a class=\"c15\" href=\"%s\"><u>%s</u></a></span>";
     public static final String CSV_AGGREGATES_TEXT_PAGOPA = "Dati di Enti Aggregati";
-    public static final String CSV_AGGREGATES_TEXT_IO = "Template_Dati di Enti Aggregati_AppIO";
+    public static final String CSV_AGGREGATES_TEXT_IO = "Dati degli Enti Aggregati_IO";
     public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
     private PdfMapper() {
