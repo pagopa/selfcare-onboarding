@@ -17,17 +17,15 @@ public class RegistryManagerIPAGps extends RegistryManagerIPAUo {
 
     @Override
     public Uni<Onboarding> customValidation(Product product) {
-        return super.customValidation(product).onItem().transformToUni(unused-> {
-            if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) && Objects.isNull(onboarding.getAdditionalInformations())) {
-                return Uni.createFrom().failure(new InvalidRequestException(ADDITIONAL_INFORMATION_REQUIRED));
-            } else if (!onboarding.getAdditionalInformations().isIpa() &&
-                    !onboarding.getAdditionalInformations().isBelongRegulatedMarket() &&
-                    !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision() &&
-                    !onboarding.getAdditionalInformations().isAgentOfPublicService() &&
-                    Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())) {
-                return Uni.createFrom().failure(new InvalidRequestException(OTHER_NOTE_REQUIRED));
-            }
-            return Uni.createFrom().item(onboarding);
-        });
+        if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) && Objects.isNull(onboarding.getAdditionalInformations())) {
+            return Uni.createFrom().failure(new InvalidRequestException(ADDITIONAL_INFORMATION_REQUIRED));
+        } else if (!onboarding.getAdditionalInformations().isIpa() &&
+                !onboarding.getAdditionalInformations().isBelongRegulatedMarket() &&
+                !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision() &&
+                !onboarding.getAdditionalInformations().isAgentOfPublicService() &&
+                Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())) {
+            return Uni.createFrom().failure(new InvalidRequestException(OTHER_NOTE_REQUIRED));
+        }
+        return Uni.createFrom().item(onboarding);
     }
 }

@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -79,13 +80,15 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     }
 
     protected boolean isInvoiceablePA(Onboarding onboarding) {
-        return Objects.nonNull(onboarding.getBilling())
+        return InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType())
+                && Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getBilling().getRecipientCode());
     }
 
     private boolean hasSfe(Onboarding onboarding) {
         return Objects.nonNull(onboarding.getBilling())
                 && Objects.nonNull(onboarding.getInstitution().getSubunitCode())
+                //Remove this UO condition moving  billing checks into isValid method
                 && UO.equals(onboarding.getInstitution().getSubunitType())
                 && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())
                 && Objects.nonNull(onboarding.getInstitution().getTaxCode());

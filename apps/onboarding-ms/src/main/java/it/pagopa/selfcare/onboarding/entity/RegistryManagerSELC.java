@@ -3,13 +3,13 @@ package it.pagopa.selfcare.onboarding.entity;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.product.entity.Product;
 
-public class RegistryManagerSELC extends BaseRegistryManager<Uni<Object>> {
+public class RegistryManagerSELC extends BaseRegistryManager<Object> {
 
     public RegistryManagerSELC(Onboarding onboarding) {
         super(onboarding);
     }
 
-    public Uni<Object> retrieveInstitution() {
+    public Object retrieveInstitution() {
       return Uni.createFrom().item(new Object());
     }
 
