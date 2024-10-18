@@ -32,10 +32,11 @@ import org.openapi.quarkus.core_json.api.DelegationApi;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
@@ -84,6 +85,15 @@ public class CompletionServiceDefaultTest {
     @RestClient
     @InjectMock
     DelegationApi delegationApi;
+    @RestClient
+    @InjectMock
+    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
+    @RestClient
+    @InjectMock
+    InfocamereApi infocamereApi;
+    @RestClient
+    @InjectMock
+    NationalRegistriesApi nationalRegistriesApi;
 
     final String productId = "productId";
     private static final UserResource userResource;
@@ -825,6 +835,126 @@ public class CompletionServiceDefaultTest {
 
         // then
         verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnInfocamere() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        UserInstitutionResponse user2 = new UserInstitutionResponse();
+        user2.setUserId("user2");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1, user2));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+        UserResource userResource2 = new UserResource();
+        userResource2.setFiscalCode("taxCode2");
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
+
+        when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(new BusinessesResource());
+
+        Response responseOk = new ServerResponse(null, 204, null);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+                .thenReturn(responseOk);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+                .thenReturn(responseOk);
+
+        completionServiceDefault.deleteOldPgManagers(onboarding);
+
+        verify(userControllerApi, times(2)).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnAde() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.ADE);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        UserInstitutionResponse user2 = new UserInstitutionResponse();
+        user2.setUserId("user2");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1, user2));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+        UserResource userResource2 = new UserResource();
+        userResource2.setFiscalCode("taxCode2");
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
+
+        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
+        legalVerificationResult.setVerificationResult(false);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(400));
+
+        Response responseOk = new ServerResponse(null, 204, null);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+                .thenReturn(responseOk);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+                .thenReturn(responseOk);
+
+        completionServiceDefault.deleteOldPgManagers(onboarding);
+
+        verify(userControllerApi, times(2)).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldNotDeleteActiveManagers() {
+        // Shouldn't perform deletion, because user1 will be found on the registry.
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+
+        BusinessesResource businessesResource = new BusinessesResource();
+        BusinessResource businessResource = new BusinessResource();
+        businessResource.setBusinessTaxId("institution-tax-code");
+        businessesResource.setBusinesses(List.of(businessResource));
+        when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(businessesResource);
+
+        completionServiceDefault.deleteOldPgManagers(onboarding);
+
+        verify(userControllerApi, never()).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldHandleEmptyManagersList() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
+
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(Collections.emptyList());
+
+        completionServiceDefault.deleteOldPgManagers(onboarding);
+
+        verify(userControllerApi, never()).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(any(), eq("institution-id"), eq("productId"));
     }
 
     private User createDummyUser(Onboarding onboarding) {

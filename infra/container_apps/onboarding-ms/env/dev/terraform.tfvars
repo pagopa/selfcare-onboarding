@@ -68,6 +68,10 @@ app_settings = [
   {
     name  = "SIGNATURE_VALIDATION_ENABLED"
     value = "false"
+  },
+  {
+    name  = "MS_USER_URL"
+    value = "http://selc-d-user-ms-ca"
   }
 ]
 
