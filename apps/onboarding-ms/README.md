@@ -39,7 +39,7 @@ Before running you must set these properties as environment variables.
 | quarkus.rest-client."**.UoApi".url<br/>                | MS_PARTY_REGISTRY_URL                    |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".url<br/>     | ONBOARDING_FUNCTIONS_URL                 |             |     yes      |
 | quarkus.rest-client."**.OrchestrationApi".api-key<br/> | ONBOARDING-FUNCTIONS-API-KEY             |             |     yes      |
-| quarkus.rest-client."**.InstitutionApi".url<br/>       | USER_URL                                 |             |     yes      |
+| quarkus.rest-client."**.InstitutionApi".url<br/>       | MS_USER_URL                              |             |     yes      |
 | onboarding.institutions-allowed-list<br/>              | ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS |             |      no      |
 
 > **_NOTE:_**  properties that contains secret must have the same name of its secret as uppercase.
