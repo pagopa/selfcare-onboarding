@@ -170,7 +170,7 @@ public class OnboardingUtils {
                     onboarding.getProductId()), DEFAULT_ERROR.getCode());
         }
         if (InstitutionType.PA.equals(onboarding.getInstitution().getInstitutionType()) &&
-                !ProductId.PROD_INTEROP.getValue().equals(onboarding.getProductId())) {
+                (!ProductId.PROD_INTEROP.getValue().equals(onboarding.getProductId()) && !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             if (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
         }
