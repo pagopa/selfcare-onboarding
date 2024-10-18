@@ -747,7 +747,7 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(4))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(DELETE_MANAGERS_BY_IC_AND_ADE, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(1));
