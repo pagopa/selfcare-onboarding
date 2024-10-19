@@ -52,8 +52,8 @@ class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithAdditionalInfo(String type) {
 
         Billing billing = new Billing();
-        Onboarding onboarding =  new Onboarding();
-        Institution institution =  new Institution();
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
         onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
@@ -77,8 +77,8 @@ class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithAdditionalInfoRequiredException() {
 
         Billing billing = new Billing();
-        Onboarding onboarding =  new Onboarding();
-        Institution institution =  new Institution();
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
         onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
@@ -102,8 +102,8 @@ class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithOtherNoteRequiredException() {
 
         Billing billing = new Billing();
-        Onboarding onboarding =  new Onboarding();
-        Institution institution =  new Institution();
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
         onboarding.setBilling(billing);
         onboarding.setInstitution(institution);
@@ -125,11 +125,11 @@ class OnboardingUtilsTest {
     @Test
     void shouldOnboardingInstitutionWithBillingRequiredException() {
 
-        Onboarding onboarding =  new Onboarding();
-        Institution institution =  new Institution();
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.PA);
         onboarding.setInstitution(institution);
-        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+        onboarding.setProductId(ProductId.PROD_PN.getValue());
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
@@ -151,12 +151,12 @@ class OnboardingUtilsTest {
     void shouldOnboardingInstitutionWithRecipientCodeRequiredException() {
 
         Billing billing = new Billing();
-        Onboarding onboarding =  new Onboarding();
-        Institution institution =  new Institution();
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.PA);
         onboarding.setInstitution(institution);
         onboarding.setBilling(billing);
-        onboarding.setProductId(ProductId.PROD_PAGOPA.getValue());
+        onboarding.setProductId(ProductId.PROD_PN.getValue());
 
         OnboardingUtils.ProxyResource proxyResource = OnboardingUtils.ProxyResource.builder()
                 .type(InstitutionPaSubunitType.EC)
