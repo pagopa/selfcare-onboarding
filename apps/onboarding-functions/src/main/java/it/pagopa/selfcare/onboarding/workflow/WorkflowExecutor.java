@@ -16,13 +16,19 @@ import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+
 public interface WorkflowExecutor {
 
     Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding);
+
     ObjectMapper objectMapper();
+
     TaskOptions optionsRetry();
 
     default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding) {
@@ -58,7 +64,7 @@ public interface WorkflowExecutor {
 
     default void createTestEnvironmentsOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding, String onboardingWithInstitutionIdString) {
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
-        if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
+        if (Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = new ArrayList<>();
             onboarding.getTestEnvProductIds().stream()
