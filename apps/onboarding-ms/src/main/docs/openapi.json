@@ -472,7 +472,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "boolean"
+                  "$ref" : "#/components/schemas/CheckManagerResponse"
                 }
               }
             }
@@ -1762,6 +1762,14 @@
             "type" : "string"
           },
           "publicServices" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CheckManagerResponse" : {
+        "type" : "object",
+        "properties" : {
+          "response" : {
             "type" : "boolean"
           }
         }
