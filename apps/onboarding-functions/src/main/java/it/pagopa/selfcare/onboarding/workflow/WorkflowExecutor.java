@@ -5,6 +5,7 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -53,6 +54,7 @@ public interface WorkflowExecutor {
         if (!onboarding.getWorkflowType().equals(WorkflowType.IMPORT)) {
             ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         }
+        ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
 

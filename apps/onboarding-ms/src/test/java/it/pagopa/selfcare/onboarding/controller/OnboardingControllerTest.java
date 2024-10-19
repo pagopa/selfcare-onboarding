@@ -53,6 +53,8 @@ class OnboardingControllerTest {
     static final InstitutionBaseRequest institution;
     static final InstitutionPspRequest institutionPsp;
 
+    static final OnboardingUserPgRequest onboardingUserPgValid;
+
     @InjectMock
     OnboardingService onboardingService;
 
@@ -94,6 +96,12 @@ class OnboardingControllerTest {
         onboardingPgValid.setProductId("productId");
         onboardingPgValid.setDigitalAddress("email@pagopa.it");
         onboardingPgValid.setUsers(List.of(userDTO));
+
+        onboardingUserPgValid = new OnboardingUserPgRequest();
+        onboardingUserPgValid.setTaxCode("code");
+        onboardingUserPgValid.setProductId("productId");
+        onboardingUserPgValid.setUsers(List.of(userDTO));
+        onboardingUserPgValid.setOrigin(Origin.ADE);
 
     }
 
@@ -626,6 +634,39 @@ class OnboardingControllerTest {
         Mockito.verify(onboardingService, times(1))
                 .onboardingCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingPgUser() {
+        Mockito.when(onboardingService.onboardingUserPg(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingUserPgValid)
+                .contentType(ContentType.JSON)
+                .post("/users/pg-from-ic-and-ade")
+                .then()
+                .statusCode(200);
+
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1))
+                .onboardingUserPg(captor.capture(), any());
+        assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingPgUserFailsWithWrongBody() {
+
+        given()
+                .when()
+                .body(new OnboardingUserPgRequest())
+                .contentType(ContentType.JSON)
+                .post("/users/pg-from-ic-and-ade")
+                .then()
+                .statusCode(400);
     }
 
     @Test

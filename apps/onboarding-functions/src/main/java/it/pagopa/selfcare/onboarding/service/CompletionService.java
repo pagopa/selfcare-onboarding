@@ -31,4 +31,6 @@ public interface CompletionService {
 
     String existsDelegation(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 
+    void deleteOldPgManagers(Onboarding onboarding);
+
 }
