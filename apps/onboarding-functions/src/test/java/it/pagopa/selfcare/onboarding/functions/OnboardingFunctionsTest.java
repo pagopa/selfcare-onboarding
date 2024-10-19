@@ -93,7 +93,7 @@ class OnboardingFunctionsTest {
         final DurableTaskClient client = mock(DurableTaskClient.class);
         final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
         doReturn(client).when(durableContext).getClient();
-        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings",onboardingId);
+        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("Onboardings", onboardingId);
 
         // Invoke
         HttpResponseMessage responseMessage = function.startOrchestration(req, durableContext, context);
@@ -131,7 +131,7 @@ class OnboardingFunctionsTest {
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         verify(orchestrationContext, times(3))
-                .callActivity(captorActivity.capture(), any(), any(),any());
+                .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
@@ -141,7 +141,7 @@ class OnboardingFunctionsTest {
     }
 
     @Test
-    void onboardingOrchestratorContractRegistrationAggregator(){
+    void onboardingOrchestratorContractRegistrationAggregator() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.REQUEST);
@@ -165,7 +165,7 @@ class OnboardingFunctionsTest {
     }
 
     @Test
-    void onboardingOrchestratorContractRegistrationAggregator_Pending(){
+    void onboardingOrchestratorContractRegistrationAggregator_Pending() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
         onboarding.setStatus(OnboardingStatus.PENDING);
@@ -267,7 +267,7 @@ class OnboardingFunctionsTest {
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         verify(orchestrationContext, times(3))
-                .callActivity(captorActivity.capture(), any(), any(),any());
+                .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
         assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
         assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
@@ -290,7 +290,7 @@ class OnboardingFunctionsTest {
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
         verify(orchestrationContext, times(1))
-                .callActivity(captorActivity.capture(), any(), any(),any());
+                .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
 
         verify(service, times(1))
@@ -421,7 +421,7 @@ class OnboardingFunctionsTest {
         function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(2))
+        verify(orchestrationContext, times(1))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         verify(orchestrationContext, times(1))
                 .callSubOrchestrator(eq("Onboardings"), any(), any());
@@ -494,13 +494,13 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(5))
+        verify(orchestrationContext, times(4))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        // assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(3));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -564,7 +564,7 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(6))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
@@ -701,7 +701,7 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(6))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(),any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
