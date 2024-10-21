@@ -127,11 +127,11 @@ public class NotificationEventServiceDefault implements NotificationEventService
     }
 
     private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
-        NotificationUserBuilder notificationUserBuilder = notificationUserBuilderFactory.create(consumer);
+        /*NotificationUserBuilder notificationUserBuilder = notificationUserBuilderFactory.create(consumer);
         if (notificationUserBuilder.shouldSendUserNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             context.getLogger().info(() -> String.format("[APZ] prepareAndSendUserNotification %s [%s]", notificationsResources.getInstitution().getDescription(), consumer.topic()));
 
-            /*notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
+            notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
                 context.getLogger().info(() -> String.format("[APZ] onboardingUser %s [%s]", onboardingUser.getId(), consumer.topic()));
                 List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), onboardingUser.getId(), null, List.of(product.getId()), null, null);
                 users.forEach(userDataResponse -> {
@@ -146,12 +146,12 @@ public class NotificationEventServiceDefault implements NotificationEventService
                         }
                     });
                 });
-            });*/
+            });
 
 
         } else {
             context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
-        }
+        }*/
     }
 
     public static NotificationUserToSend getNotificationUserToSend(NotificationsResources notificationsResources,
@@ -185,7 +185,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
-    private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
+    /*private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
         String message = null;
         try {
             message = mapper.writeValueAsString(notificationUserToSend);
@@ -198,7 +198,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
         eventHubRestClient.sendMessage(topic, message);
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationUserEventMap(notificationUserToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
-    }
+    }*/
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
         context.getLogger().info(() -> String.format("Starting sendTestEnvProductsNotification with testEnv %s", product.getTestEnvProductIds()));
