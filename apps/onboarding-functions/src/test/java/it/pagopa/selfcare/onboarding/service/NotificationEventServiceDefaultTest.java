@@ -203,6 +203,22 @@ public class NotificationEventServiceDefaultTest {
     }
 
     @Test
+    void onboardingEventMapTest() {
+        final Onboarding onboarding = createOnboarding();
+        onboarding.setId("ID");
+        Map<String, String> properties = NotificationEventServiceDefault.onboardingEventMap(onboarding);
+        assertNotNull(properties);
+        assertEquals("ID", properties.get("id"));
+    }
+
+    @Test
+    void onboardingEventFailureMapTest() {
+        final Onboarding onboarding = createOnboarding();
+        Map<String, String> properties = NotificationEventServiceDefault.onboardingEventFailureMap(onboarding, new Exception());
+        assertNotNull(properties);
+    }
+
+    @Test
     void notificationEventMapTest() {
         NotificationToSend notificationToSend = getNotificationBaseToSend();
 
@@ -346,7 +362,7 @@ public class NotificationEventServiceDefaultTest {
 
         assertEquals("userId", properties.get("userId"));
         assertEquals("OPERATOR", properties.get("role"));
-        
+
 
     }
 
