@@ -1203,34 +1203,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .findAny().orElse(null)).toList();
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
-        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(uoResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(uoResource)
-                        .type(UO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getAOO(Onboarding onboarding) {
-        return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(aooResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(aooResource)
-                        .type(AOO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getEC() {
-        return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                .type(EC)
-                .build());
-    }
-
     /**
      * Initiates the onboarding process for a user in the PG (Persona Giuridica) context.
      * This method performs the following steps:
