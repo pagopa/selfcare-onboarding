@@ -5,6 +5,7 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -19,13 +20,19 @@ import java.util.Optional;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+
 public interface WorkflowExecutor {
 
     Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow);
+
     OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding);
+
     ObjectMapper objectMapper();
+
     TaskOptions optionsRetry();
 
     default Optional<OnboardingStatus> execute(TaskOrchestrationContext ctx, Onboarding onboarding) {
@@ -50,7 +57,9 @@ public interface WorkflowExecutor {
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        if (!onboarding.getWorkflowType().equals(WorkflowType.IMPORT)) {
+            ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        }
         ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
@@ -60,7 +69,7 @@ public interface WorkflowExecutor {
 
     default void createTestEnvironmentsOnboarding(TaskOrchestrationContext ctx, Onboarding onboarding, String onboardingWithInstitutionIdString) {
         // Create onboarding for test environments if exists (ex. prod-interop-coll)
-        if(Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
+        if (Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = new ArrayList<>();
             onboarding.getTestEnvProductIds().stream()
@@ -122,6 +131,13 @@ public interface WorkflowExecutor {
             ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         }
         return Optional.empty();
+    }
+
+    default void postProcessor(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingStatus onboardingStatus) {
+        if (COMPLETED.equals(onboardingStatus)) {
+            final String onboardingString = getOnboardingString(objectMapper(), onboarding);
+            ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+        }
     }
 
 }
