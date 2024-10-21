@@ -157,14 +157,12 @@ public class OnboardingFunctions {
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
                 case INCREMENT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorIncrementRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
+                case USERS_PG -> workflowExecutor = new WorkflowExecutorForUsersPg(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
             Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
-            optNextStatus.ifPresent(onboardingStatus -> {
-                service.updateOnboardingStatus(onboardingId, onboardingStatus);
-                workflowExecutor.postProcessor(ctx, onboarding, onboardingStatus);
-            });
+            optNextStatus.ifPresent(onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
         } catch (TaskFailedException ex) {
             functionContext.getLogger().warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
             service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
@@ -310,5 +308,11 @@ public class OnboardingFunctions {
     public void createAggregatesCsv(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
         context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATES_CSV_ACTIVITY, onboardingWorkflowString));
         contractService.uploadAggregatesCsv(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+    }
+
+    @FunctionName(DELETE_MANAGERS_BY_IC_AND_ADE)
+    public void deleteOldPgManagers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, DELETE_MANAGERS_BY_IC_AND_ADE, onboardingString));
+        completionService.deleteOldPgManagers(readOnboardingValue(objectMapper, onboardingString));
     }
 }

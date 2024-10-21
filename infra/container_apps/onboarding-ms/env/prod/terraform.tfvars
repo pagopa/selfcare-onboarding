@@ -68,6 +68,10 @@ app_settings = [
   {
     name  = "STORAGE_CONTAINER_CONTRACT"
     value = "selc-p-contracts-blob"
+  },
+  {
+    name  = "MS_USER_URL"
+    value = "http://selc-p-user-ms-ca"
   }
 ]
 

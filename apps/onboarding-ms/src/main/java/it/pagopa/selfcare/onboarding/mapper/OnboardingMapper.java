@@ -49,6 +49,15 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     Onboarding toEntity(OnboardingPgRequest request);
 
+    @Mapping(source = "taxCode", target = "institution.taxCode")
+    @Mapping(source = "origin", target = "institution.origin")
+    @Mapping(source = "institutionType", target = "institution.institutionType")
+    @Mapping(target = "workflowType", expression = "java(WorkflowType.USERS_PG)")
+    @Mapping(target = "status", expression = "java(OnboardingStatus.PENDING)")
+    @Mapping(target = "createdAt", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
+    Onboarding toEntity(OnboardingUserPgRequest request);
+
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "userRequestUid", source = "userId")
     @Mapping(target = "productId", source = "request.productId")

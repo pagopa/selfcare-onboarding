@@ -62,6 +62,9 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.api.*;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
@@ -120,6 +123,18 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     InfocamerePdndApi infocamerePdndApi;
+
+    @RestClient
+    @InjectMock
+    InfocamereApi infocamereApi;
+
+    @RestClient
+    @InjectMock
+    NationalRegistriesApi nationalRegistriesApi;
+
+    @RestClient
+    @InjectMock
+    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
 
     @InjectMock
     AzureBlobClient azureBlobClient;
@@ -2402,5 +2417,158 @@ class OnboardingServiceDefaultTest {
                 .withSubscriber(UniAssertSubscriber.create());
 
         subscriber.assertFailedWith(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPgFailsWhenUserListIsWrong(UniAsserter asserter) {
+        assertThrows(InvalidRequestException.class, () -> onboardingService.onboardingUserPg(new Onboarding(), new ArrayList<>()));
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPgFailsWhenInstitutionWasNotPreviouslyOnboarded(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        List<UserRequest> userRequests = List.of(manager);
+
+        asserter.execute(() -> {
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().empty());
+            when(Onboarding.find((Document) any(), any())).thenReturn(query);
+        });
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingUserPg(onboarding, userRequests), ResourceNotFoundException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPgFailsWhenUserWasAlreadyManager(UniAsserter asserter) {
+        Onboarding previousOnboarding = createDummyOnboarding();
+        previousOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+
+        Onboarding newOnboarding = createDummyOnboarding();
+        newOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+
+        List<UserRequest> userRequests = List.of(manager);
+
+        mockFindOnboarding(asserter, previousOnboarding);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), managerResource.getId().toString(), asserter);
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests), InvalidRequestException.class);
+
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPgFailsWhenUserIsNotManagerOnInfocamereRegistry(UniAsserter asserter) {
+        Onboarding previousOnboarding = createDummyOnboarding();
+        previousOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        previousOnboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
+
+        Onboarding newOnboarding = createDummyOnboarding();
+        newOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        newOnboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
+
+        List<UserRequest> userRequests = List.of(manager);
+
+        mockFindOnboarding(asserter, previousOnboarding);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), "old-manager-id", asserter);
+
+        asserter.execute(() -> when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any()))
+                .thenReturn(Uni.createFrom().item(new BusinessesResource())));
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests), InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPgFailsWhenUserIsNotManagerOnAdeRegistry(UniAsserter asserter) {
+        Onboarding previousOnboarding = createDummyOnboarding();
+        previousOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        previousOnboarding.getInstitution().setOrigin(Origin.ADE);
+
+        Onboarding newOnboarding = createDummyOnboarding();
+        newOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        newOnboarding.getInstitution().setOrigin(Origin.ADE);
+
+        List<UserRequest> userRequests = List.of(manager);
+
+        mockFindOnboarding(asserter, previousOnboarding);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), "old-manager-id", asserter);
+
+        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
+        legalVerificationResult.setVerificationResult(false);
+
+        asserter.execute(() -> when(nationalRegistriesApi.verifyLegalUsingGET(any(), any()))
+                .thenReturn(Uni.createFrom().item(legalVerificationResult)));
+
+        asserter.assertFailedWith(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests), InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void testOnboardingUserPg(UniAsserter asserter) {
+        Onboarding previousOnboarding = createDummyOnboarding();
+        previousOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        previousOnboarding.getInstitution().setOrigin(Origin.ADE);
+
+        Onboarding newOnboarding = createDummyOnboarding();
+        newOnboarding.getInstitution().setInstitutionType(InstitutionType.PG);
+        newOnboarding.getInstitution().setOrigin(Origin.ADE);
+
+        List<UserRequest> userRequests = List.of(manager);
+
+        mockFindOnboarding(asserter, previousOnboarding);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), "old-manager-id", asserter);
+
+        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
+        legalVerificationResult.setVerificationResult(true);
+
+        asserter.execute(() -> when(nationalRegistriesApi.verifyLegalUsingGET(any(), any()))
+                .thenReturn(Uni.createFrom().item(legalVerificationResult)));
+
+        asserter.execute(() -> when(Onboarding.persistOrUpdate(any(List.class)))
+                .thenAnswer(arg -> {
+                    List<Onboarding> onboardings = (List<Onboarding>) arg.getArguments()[0];
+                    onboardings.get(0).setId(UUID.randomUUID().toString());
+                    return Uni.createFrom().nullItem();
+                }));
+
+        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+                .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
+
+        asserter.assertNotNull(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests));
+    }
+
+    private void mockRetrieveUserInstitutions(String institutionId, String userId, UniAsserter asserter) {
+        UserInstitutionResponse userInstitutionResponse = new UserInstitutionResponse();
+        userInstitutionResponse.setId("test");
+        userInstitutionResponse.setInstitutionId(institutionId);
+        userInstitutionResponse.setUserId(userId);
+
+        asserter.execute(() -> when(userInstitutionApi.retrieveUserInstitutions(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(List.of(userInstitutionResponse))));
+    }
+
+    private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {
+        asserter.execute(() -> {
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+            when(Onboarding.find((Document) any(), any())).thenReturn(query);
+        });
     }
 }
