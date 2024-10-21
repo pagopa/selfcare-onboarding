@@ -8,15 +8,15 @@ import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.*;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.UserToNotify;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
-import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
+import it.pagopa.selfcare.onboarding.utils.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -24,12 +24,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
-import org.openapi.quarkus.user_json.model.UserDataResponse;
+import org.openapi.quarkus.user_json.model.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,6 +47,9 @@ public class NotificationEventServiceDefaultTest {
 
     @InjectMock
     NotificationBuilderFactory notificationBuilderFactory;
+
+    @InjectMock
+    NotificationUserBuilderFactory notificationUserBuilderFactory;
 
     @InjectMock
     TokenRepository tokenRepository;
@@ -362,9 +362,62 @@ public class NotificationEventServiceDefaultTest {
 
         assertEquals("userId", properties.get("userId"));
         assertEquals("OPERATOR", properties.get("role"));
-
-
     }
+
+    @Test
+    void getNotificationUserToSendTest() {
+        Onboarding onboarding = createOnboarding();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        Token token = new Token();
+        NotificationsResources notificationsResources = new NotificationsResources(onboarding,
+                institutionResponse, token, QueueEvent.ADD);
+
+        OnboardedProductResponse onboardedProductResponse = new OnboardedProductResponse();
+        onboardedProductResponse.productId("prod-fd-garantito");
+        onboardedProductResponse.setEnv(Env.ROOT);
+        onboardedProductResponse.setStatus(OnboardedProductState.ACTIVE);
+
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId("userId");
+        userResponse.setTaxCode("taxcode");
+        userResponse.setName("Name");
+        userResponse.setSurname("Surname");
+        userResponse.setEmail("prv@email");
+        HashMap<String, String> workContacts = new HashMap<String, String>();
+        workContacts.put("email", "work@email");
+        userResponse.setWorkContacts(workContacts);
+
+        UserDataResponse userDataResponse = new UserDataResponse();
+        userDataResponse.setId("userId");
+        userDataResponse.institutionId("institutionId");
+        userDataResponse.setInstitutionDescription("Institution Name");
+        userDataResponse.setUserMailUuid("userMailId");
+        userDataResponse.role("MANAGER");
+        userDataResponse.setStatus("ADD");
+        userDataResponse.setProducts(List.of(onboardedProductResponse));
+        userDataResponse.setUserResponse(userResponse);
+
+        NotificationUserToSend notificationUserToSendMock = new NotificationUserToSend();
+        notificationUserToSendMock.setId("eventId");
+        notificationUserToSendMock.setInstitutionId("institutionId");
+        notificationUserToSendMock.setProduct("prod-fd-garantito");
+        notificationUserToSendMock.setOnboardingTokenId("onboardingId");
+
+        FdNotificationBuilder fdNotificationBuilder = mock(FdNotificationBuilder.class);
+        when(notificationUserBuilderFactory.create(any())).thenReturn(fdNotificationBuilder);
+        when(fdNotificationBuilder.buildUserNotificationToSend(any(), any(), any(), any(), any(), any(), any(),
+                any(), any())).thenReturn(notificationUserToSendMock);
+        when(fdNotificationBuilder.shouldSendUserNotification(any(), any())).thenReturn(true);
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+
+
+        NotificationUserToSend notificationUserToSend = NotificationEventServiceDefault.getNotificationUserToSend(notificationsResources, userDataResponse,
+                onboardedProductResponse, fdNotificationBuilder);
+
+        assertNotNull(notificationUserToSend);
+    }
+
 
     private static InstitutionToNotify getInstitutionToNotify() {
         InstitutionToNotify institution = new InstitutionToNotify();
@@ -393,4 +446,5 @@ public class NotificationEventServiceDefaultTest {
         notificationUserToSend.setProduct("prod");
         return notificationUserToSend;
     }
+
 }
