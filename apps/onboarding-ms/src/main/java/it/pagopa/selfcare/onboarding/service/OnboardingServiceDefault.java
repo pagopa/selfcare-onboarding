@@ -69,7 +69,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
@@ -150,7 +149,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     UserMapper userMapper;
     @Inject
     OnboardingUtils onboardingUtils;
-
+    @Inject
+    RegistryResourceFactory registryResourceProvider;
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
     @ConfigProperty(name = "onboarding.orchestration.enabled")
@@ -231,18 +231,16 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboarding(onboarding.getInstitution(), product.getId(), product.getParentId(), isAggregatesIncrement)
                         .replaceWith(product))
-                .onItem().transformToUni(product -> getRegistryResource(onboarding)
-                        .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
-                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
-                                        .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
-                        /* if institution type is PRV or SCP, request should match data from registry proxy */
-                        .onItem().transformToUni(ignored -> onboardingUtils.validateFields(onboarding))
+                .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
+                        .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
+                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                        .onItem().transformToUni(registryManager -> registryManager.isValid().onItem().transformToUni(ignored -> registryManager.customValidation(product)))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds())).onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
@@ -294,10 +292,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         return getProductByOnboarding(onboarding)
                 .onItem().transformToUni(product -> verifyAlreadyOnboardingForProductAndProductParent(onboarding.getInstitution(), product.getId(), product.getParentId())
                         .replaceWith(product))
-                .onItem().transformToUni(product -> getRegistryResource(onboarding)
-                        .onItem().transformToUni(proxyResource -> onboardingUtils.customValidationOnboardingData(onboarding, product, proxyResource)
-                                .onItem().transformToUni(ignored -> setIstatCode(onboarding, proxyResource)
-                                        .onItem().transformToUni(innerOnboarding -> addParentDescriptionForAooOrUo(onboarding, proxyResource))))
+                .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceProvider.create(onboarding))
+                        .onItem().invoke(wrapper -> wrapper.setResource(wrapper.retrieveInstitution()))
+                        .onItem().transformToUni(proxyResource -> proxyResource.customValidation(product))
                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                         .onItem().invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                         .onItem().transformToUni(this::setInstitutionTypeAndBillingData)
@@ -307,14 +304,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                                 orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
                         .onItem().transform(onboardingMapper::toResponse));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
-        return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
-            case AOO -> getAOO(onboarding);
-            case UO -> getUO(onboarding);
-            default -> getEC();
-        };
     }
 
     private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
@@ -332,57 +321,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transformToUni(ignore -> retrieveAndSetUserAggregatesResources(onboardingPersisted, product, aggregates))
                         .onItem().transformToUni(ignore -> retrieveUserResources(userRequests, roleMappings))
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
-    }
-
-    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
-
-        Log.infof("Adding parent description AOO/UOO for: taxCode %s, subunitCode %s, type %s",
-                onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(),
-                onboarding.getInstitution().getInstitutionType());
-
-        if (InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
-            if (AOO == proxyResource.getType()) {
-                AOOResource resource = (AOOResource) proxyResource.getResource();
-                return addParentDescriptionForAOO(onboarding, resource);
-            } else if (UO == proxyResource.getType()) {
-                UOResource resource = (UOResource) proxyResource.getResource();
-                return addParentDescriptionForUO(onboarding, resource);
-            }
-        }
-        return Uni.createFrom().item(onboarding);
-    }
-
-    private Uni<Onboarding> setIstatCode(Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
-        return switch (proxyResource.getType()) {
-            case AOO -> Uni.createFrom().item(() -> {
-                AOOResource resource = (AOOResource) proxyResource.getResource();
-                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
-                return onboarding;
-            });
-            case UO -> Uni.createFrom().item(() -> {
-                UOResource resource = (UOResource) proxyResource.getResource();
-                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
-                return onboarding;
-            });
-            default -> Uni.createFrom().item(onboarding);
-        };
-    }
-
-    private Uni<Onboarding> addParentDescriptionForUO(Onboarding onboarding, UOResource uoResource) {
-        LOG.infof("Founded parent %s for UO institution with subunitCode %s", uoResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode());
-        return Uni.createFrom().item(() -> {
-            onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
-            return onboarding;
-        });
-    }
-
-    private Uni<Onboarding> addParentDescriptionForAOO(Onboarding onboarding, AOOResource aooResource) {
-        LOG.infof("Founded parent %s for AOO institution with subunitCode %s", aooResource.getDenominazioneEnte(), onboarding.getInstitution().getSubunitCode());
-        return Uni.createFrom().item(() -> {
-            onboarding.getInstitution().setParentDescription(aooResource.getDenominazioneEnte());
-            return onboarding;
-        });
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
@@ -460,7 +398,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || (InstitutionType.PRV.equals(institutionType) &&
-                    !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
+                !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
@@ -1263,34 +1201,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
                 .map(User::getId)
                 .findAny().orElse(null)).toList();
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
-        return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(uoResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(uoResource)
-                        .type(UO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getAOO(Onboarding onboarding) {
-        return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
-                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
-                        : Uni.createFrom().failure(ex))
-                .onItem().transformToUni(aooResource -> Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                        .resource(aooResource)
-                        .type(AOO)
-                        .build()));
-    }
-
-    private Uni<OnboardingUtils.ProxyResource> getEC() {
-        return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
-                .type(EC)
-                .build());
     }
 
     /**
