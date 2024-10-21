@@ -131,7 +131,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         if (notificationUserBuilder.shouldSendUserNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             context.getLogger().info(() -> String.format("[APZ] prepareAndSendUserNotification %s [%s]", notificationsResources.getInstitution().getDescription(), consumer.topic()));
 
-            notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
+            /*notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
                 context.getLogger().info(() -> String.format("[APZ] onboardingUser %s [%s]", onboardingUser.getId(), consumer.topic()));
                 List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), onboardingUser.getId(), null, List.of(product.getId()), null, null);
                 users.forEach(userDataResponse -> {
@@ -146,7 +146,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
                         }
                     });
                 });
-            });
+            });*/
 
 
         } else {
