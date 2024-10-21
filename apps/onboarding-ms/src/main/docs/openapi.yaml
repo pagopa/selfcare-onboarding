@@ -348,7 +348,7 @@ paths:
           content:
             application/json:
               schema:
-                type: boolean
+                $ref: "#/components/schemas/CheckManagerResponse"
         "401":
           description: Not Authorized
         "403":
@@ -1280,6 +1280,11 @@ components:
         recipientCode:
           type: string
         publicServices:
+          type: boolean
+    CheckManagerResponse:
+      type: object
+      properties:
+        response:
           type: boolean
     DataProtectionOfficerRequest:
       type: object
