@@ -11,9 +11,9 @@ import java.io.InputStream;
 
 public class NamirialHttpClient {
 
-    private static final String NAMIRIAL_BASE_URL = "https://sws.test.namirialtsp.com/SignEngineWeb";
+    private static final String NAMIRIAL_BASE_URL = System.getenv("NAMIRIAL_BASE_URL");
 
-    private static final String NAMIRIAL_SIGN_PADES_URL = NAMIRIAL_BASE_URL + "/rest/service/signPAdES";
+    private static final String NAMIRIAL_SIGN_PADES_URL = NAMIRIAL_BASE_URL + "/SignEngineWeb/rest/service/signPAdES";
 
     public byte[] signDocument(SignRequest request) throws IOException {
         // Initialize HTTP Transport and Request Factory

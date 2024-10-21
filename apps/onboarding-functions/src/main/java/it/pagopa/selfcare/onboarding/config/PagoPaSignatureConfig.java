@@ -14,7 +14,4 @@ public interface PagoPaSignatureConfig {
 
     String applyOnboardingTemplateReason();
 
-    String namirialUser();
-
-    String namirialPsw();
 }

@@ -16,16 +16,12 @@ import java.nio.file.StandardCopyOption;
 public class NamiralSignServiceImpl implements NamirialSignService {
 
     private final NamirialHttpClient namirialHttpClient;
-    private final String username;
-    private final String password;
+    private static final String USERNAME = System.getenv("NAMIRIAL_SIGN_SERVICE_IDENTITY_USER");
+    private static final String PASSWORD = System.getenv("NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD");
 
     // Constructor for manual dependency injection
-    public NamiralSignServiceImpl(String username,
-                                  String password
-    ) {
+    public NamiralSignServiceImpl() {
         this.namirialHttpClient = new NamirialHttpClient();
-        this.username = username;
-        this.password = password;
     }
 
     @Override
@@ -38,7 +34,7 @@ public class NamiralSignServiceImpl implements NamirialSignService {
             // Copy InputStream data to the temporary file
             Files.copy(is, tempFilePath, StandardCopyOption.REPLACE_EXISTING);
 
-            Credentials credentials = new Credentials(username, password);
+            Credentials credentials = new Credentials(USERNAME, PASSWORD);
             Preferences preferences = new Preferences("SHA256");
             SignRequest request = new SignRequest(tempFile, credentials, preferences);
 
