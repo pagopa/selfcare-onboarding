@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -16,11 +17,12 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyRes
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
+import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-public class SapNotificationBuilder extends BaseNotificationBuilder {
+public class SapNotificationBuilder extends BaseNotificationBuilder implements NotificationUserBuilder {
     private final UoApi proxyRegistryUoApi;
     private final AooApi proxyRegistryAooApi;
 
@@ -37,6 +39,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
         this.proxyRegistryUoApi = proxyRegistryUoApi;
         this.proxyRegistryAooApi = proxyRegistryAooApi;
     }
+
     @Override
     public NotificationToSend buildNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
         NotificationToSend notificationToSend = super.buildNotificationToSend(onboarding, token, institution, queueEvent);
@@ -60,9 +63,10 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
                             + " - " + notificationToSend.getInstitution().getDescription());
         }
     }
+
     @Override
     public BillingToSend retrieveBilling(Onboarding onboarding) {
-        if(Objects.isNull(onboarding.getBilling())) {
+        if (Objects.isNull(onboarding.getBilling())) {
             return null;
         }
 
@@ -70,6 +74,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
         billing.setPublicService(onboarding.getBilling().isPublicServices());
         return billing;
     }
+
     @Override
     public InstitutionToNotify retrieveInstitution(InstitutionResponse institution) {
         InstitutionToNotify institutionToNotify = super.retrieveInstitution(institution);
@@ -78,6 +83,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
         institutionToNotify.setCategory(null);
         return institutionToNotify;
     }
+
     @Override
     public void retrieveAndSetGeographicData(InstitutionToNotify institutionToNotify) {
         GeographicTaxonomyResource geographicTaxonomies;
@@ -111,6 +117,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
             institutionToNotify.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
         }
     }
+
     @Override
     public boolean shouldSendNotification(Onboarding onboarding, InstitutionResponse institution) {
         return isProductAllowed(onboarding) && isAllowedInstitutionType(institution) && isAllowedOrigin(institution.getOrigin());
@@ -132,5 +139,10 @@ public class SapNotificationBuilder extends BaseNotificationBuilder {
 
     private boolean isNullOrEmpty(Set<String> set) {
         return Objects.isNull(set) || set.isEmpty();
+    }
+
+    @Override
+    public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution, String createdAt, String updatedAt, String status, String userId, String partyRole, String productRole) {
+        return null;
     }
 }

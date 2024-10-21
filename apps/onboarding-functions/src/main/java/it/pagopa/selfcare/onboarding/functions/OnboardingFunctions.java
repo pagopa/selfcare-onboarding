@@ -83,7 +83,7 @@ public class OnboardingFunctions {
         try {
 
             /* if timeout is null, caller wants response asynchronously */
-            if(Objects.isNull(timeoutString)) {
+            if (Objects.isNull(timeoutString)) {
                 return durableContext.createCheckStatusResponse(request, instanceId);
             }
 
@@ -94,11 +94,11 @@ public class OnboardingFunctions {
                     true);
 
             boolean isFailed = Optional.ofNullable(metadata)
-                    .map(orchestration -> OrchestrationRuntimeStatus.FAILED.equals(orchestration.getRuntimeStatus()) )
+                    .map(orchestration -> OrchestrationRuntimeStatus.FAILED.equals(orchestration.getRuntimeStatus()))
                     .orElse(true);
 
             return isFailed
-                    ?  request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                    ? request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build()
                     : request.createResponseBuilder(HttpStatus.OK)
                     .build();
@@ -107,6 +107,7 @@ public class OnboardingFunctions {
             return durableContext.createCheckStatusResponse(request, instanceId);
         }
     }
+
     @FunctionName(ONBOARDINGS_AGGREGATE_ORCHESTRATOR)
     public void onboardingsAggregateOrchestrator(
             @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
@@ -115,7 +116,7 @@ public class OnboardingFunctions {
         try {
             String onboardingAggregate = ctx.getInput(String.class);
             boolean existsDelegation = Boolean.parseBoolean(ctx.callActivity(EXISTS_DELEGATION_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await());
-            if(!existsDelegation) {
+            if (!existsDelegation) {
                 onboardingId = ctx.callActivity(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY, onboardingAggregate, optionsRetry, String.class).await();
                 ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
             }
@@ -148,15 +149,19 @@ public class OnboardingFunctions {
                     .orElseThrow(() -> new ResourceNotFoundException(String.format("Onboarding with id %s not found!", onboardingId)));
 
             switch (onboarding.getWorkflowType()) {
-                case CONTRACT_REGISTRATION -> workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
-                case CONTRACT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
-                case FOR_APPROVE ->  workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
+                case CONTRACT_REGISTRATION ->
+                        workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
+                case CONTRACT_REGISTRATION_AGGREGATOR ->
+                        workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
+                case FOR_APPROVE -> workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
-                case CONFIRMATION_AGGREGATE -> workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
+                case CONFIRMATION_AGGREGATE ->
+                        workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
                 case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
                 case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
-                case INCREMENT_REGISTRATION_AGGREGATOR -> workflowExecutor = new WorkflowExecutorIncrementRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
+                case INCREMENT_REGISTRATION_AGGREGATOR ->
+                        workflowExecutor = new WorkflowExecutorIncrementRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
                 case USERS_PG -> workflowExecutor = new WorkflowExecutorForUsersPg(objectMapper, optionsRetry);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
