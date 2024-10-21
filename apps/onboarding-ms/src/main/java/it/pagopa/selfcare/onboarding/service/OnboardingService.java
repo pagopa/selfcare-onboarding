@@ -27,6 +27,8 @@ public interface OnboardingService {
 
     Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
 
+    Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests);
+
     Uni<OnboardingGet> approve(String onboardingId);
 
     Uni<Onboarding> complete(String tokenId, FormItem formItem);

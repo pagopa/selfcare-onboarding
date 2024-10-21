@@ -53,9 +53,10 @@ import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
@@ -89,6 +90,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "65";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
+    public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY = "User is not manager of the institution on the registry";
 
     @RestClient
     @Inject
@@ -117,6 +119,18 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     OrchestrationApi orchestrationApi;
+
+    @RestClient
+    @Inject
+    InfocamereApi infocamereApi;
+
+    @RestClient
+    @Inject
+    NationalRegistriesApi nationalRegistriesApi;
+
+    @RestClient
+    @Inject
+    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
 
     @Inject
     OnboardingMapper onboardingMapper;
@@ -1277,5 +1291,223 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
                 .type(EC)
                 .build());
+    }
+
+    /**
+     * Initiates the onboarding process for a user in the PG (Persona Giuridica) context.
+     * This method performs the following steps:
+     * <ul>
+     *   <li>Validates the provided user requests to ensure only one manager is onboarded.</li>
+     *   <li>Sets the workflow type and status of the onboarding to USERS_PG and PENDING, respectively.</li>
+     *   <li>Retrieves any previous completed onboarding data for the institution and product.</li>
+     *   <li>Copies relevant data from the previous onboarding to the current onboarding instance.</li>
+     *   <li>Retrieves and sets the manager UID for the new onboarding.</li>
+     *   <li>Checks if the user is already a manager within the institution.</li>
+     *   <li>Verifies the manager's association with the institution in external registries (Infocamere or ADE).</li>
+     *   <li>Persists the onboarding data and initiates orchestration.</li>
+     * </ul>
+     *
+     * @param onboarding   the onboarding data to process
+     * @param userRequests the list of user requests associated with the onboarding
+     * @return a Uni that emits the onboarding response upon successful completion
+     * @throws InvalidRequestException    if the user list is invalid or the user is already a manager
+     * @throws ResourceNotFoundException if no previous onboarding data is found for the institution
+     */
+    public Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests) {
+        checkOnboardingPgUserList(userRequests);
+
+        return retrievePreviousCompletedOnboarding(onboarding)
+                .map(previousOnboarding -> copyDataFromPreviousToCurrentOnboarding(previousOnboarding, onboarding))
+                .flatMap(unused -> retrieveAndSetManagerUidOnNewOnboarding(onboarding, userRequests))
+                .flatMap(unused -> checkIfUserIsAlreadyManager(onboarding))
+                .flatMap(unused -> checkIfUserIsManagerOnRegistries(onboarding, userRequests))
+                .onItem().transformToUni(unused -> persistAndStartOrchestrationOnboarding(onboarding,
+                        orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
+                .onItem().transform(onboardingMapper::toResponse);
+    }
+
+    /**
+     * Validates the list of user requests to ensure only one manager is present.
+     *
+     * @param userRequests the list of user requests to validate
+     * @throws InvalidRequestException if the user list is empty, contains more than one user, or the user role is not MANAGER
+     */
+    private void checkOnboardingPgUserList(List<UserRequest> userRequests) {
+        if(CollectionUtils.isEmpty(userRequests) || userRequests.size() > 1 || !PartyRole.MANAGER.equals(userRequests.get(0).getRole())) {
+            throw new InvalidRequestException("This API allows the onboarding of only one user with role MANAGER");
+        }
+    }
+
+    private Uni<Onboarding> retrievePreviousCompletedOnboarding(Onboarding onboarding) {
+        LOG.infof("Retrieving previous completed onboarding for taxCode %s, origin %s, productId %s",
+                onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getOrigin(), onboarding.getProductId());
+
+        return getOnboardingByFilters(
+                onboarding.getInstitution().getTaxCode(),
+                null,
+                String.valueOf(onboarding.getInstitution().getOrigin()),
+                null,
+                onboarding.getProductId()
+        )
+        .collect()
+        .asList()
+        .onItem().transformToUni(this::getOnboardingList)
+        .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboarding))
+        .map(onboardings -> onboardings.stream()
+                .filter(o -> Objects.isNull(o.getReferenceOnboardingId()))
+                .findFirst()
+                .orElse(null)
+        );
+    }
+
+    private Supplier<ResourceNotFoundException> resourceNotFoundExceptionSupplier(Onboarding onboarding) {
+        return () -> new ResourceNotFoundException(String.format("Onboarding not found for taxCode %s, origin %s, productId %s",
+                onboarding.getInstitution().getTaxCode(), onboarding.getInstitution().getOrigin(), onboarding.getProductId()));
+    }
+
+    private Onboarding copyDataFromPreviousToCurrentOnboarding(Onboarding previousOnboarding, Onboarding currentOnboarding) {
+        currentOnboarding.setReferenceOnboardingId(previousOnboarding.getId());
+        currentOnboarding.setInstitution(previousOnboarding.getInstitution());
+        return currentOnboarding;
+    }
+
+    private Uni<Onboarding> retrieveAndSetManagerUidOnNewOnboarding(Onboarding onboarding, List<UserRequest> userRequests) {
+        return getProductByOnboarding(onboarding)
+                .flatMap(product -> validationRole(userRequests, validRoles(product, PHASE_ADDITION_ALLOWED.ONBOARDING, onboarding.getInstitution().getInstitutionType()))
+                        .map(unused -> retrieveRoleMappingsFromProduct(product, onboarding))
+                )
+                .flatMap(roleMappings -> retrieveUserResources(userRequests, roleMappings))
+                .onItem().invoke(onboarding::setUsers)
+                .replaceWith(onboarding);
+    }
+
+    private Map<PartyRole, ProductRoleInfo> retrieveRoleMappingsFromProduct(Product product, Onboarding onboarding) {
+        return Objects.nonNull(product.getParent())
+                ? product.getParent().getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
+    }
+
+    /**
+     * Checks if the user is already a manager within the institution invoking selfcare-user API.
+     *
+     * @param currentOnboarding the current onboarding data
+     * @return a Uni that completes if the user is not already a manager, otherwise fails
+     * @throws InvalidRequestException if the user is already a manager of the institution
+     */
+    private Uni<Void> checkIfUserIsAlreadyManager(Onboarding currentOnboarding) {
+        String newManagerId = currentOnboarding.getUsers().stream()
+                .filter(user -> PartyRole.MANAGER.equals(user.getRole()))
+                .map(User::getId)
+                .findAny()
+                .orElse(null);
+        String institutionId = currentOnboarding.getInstitution().getId();
+
+        LOG.infof("Checking if user with id: %s is already manager of the institution with id: %s", newManagerId, institutionId);
+
+        return userInstitutionApi.retrieveUserInstitutions(
+                institutionId,
+                null,
+                List.of(currentOnboarding.getProductId()),
+                List.of(PartyRole.MANAGER.name()),
+                List.of("ACTIVE"),
+                null
+        ).invoke(users -> {
+            LOG.debugf("Managers found: %s for institution with id: %s", users, institutionId);
+            if (users.stream().anyMatch(userInstitution -> userInstitution.getUserId().equals(newManagerId))) {
+                throw new InvalidRequestException("User is already manager of the institution");
+            }
+        }).replaceWithVoid();
+    }
+
+    /**
+     * Checks if the user is a manager in the external registries based on the institution's origin.
+     *
+     * @param onboarding   the current onboarding data
+     * @param userRequests the list of user requests associated with the onboarding
+     * @return a Uni that completes if the user is a valid manager in the registry, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in the external registry
+     */
+    private Uni<Void> checkIfUserIsManagerOnRegistries(Onboarding onboarding, List<UserRequest> userRequests) {
+        LOG.infof("Checking if user is manager on registries for onboarding with origin %s", onboarding.getInstitution().getOrigin());
+        String userTaxCode = userRequests.stream()
+                .filter(userRequest -> PartyRole.MANAGER.equals(userRequest.getRole()))
+                .map(UserRequest::getTaxCode)
+                .findAny()
+                .orElse(null);
+
+        String businessTaxCode = onboarding.getInstitution().getTaxCode();
+
+        if(onboarding.getInstitution().getOrigin() == Origin.INFOCAMERE) {
+            return checkIfUserIsManagerOnInfocamere(userTaxCode, businessTaxCode);
+        } else {
+            return checkIfUserIsManagerOnADE(userTaxCode, businessTaxCode);
+        }
+    }
+
+    /**
+     * Checks if the user is a manager in the Infocamere registry.
+     *
+     * @param userTaxCode     the tax code of the user
+     * @param businessTaxCode the tax code of the business (institution)
+     * @return a Uni that completes if the user is a manager, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in Infocamere
+     */
+    private Uni<Void> checkIfUserIsManagerOnInfocamere(String userTaxCode, String businessTaxCode) {
+        return infocamereApi.institutionsByLegalTaxIdUsingPOST(toGetInstitutionsByLegalDto(userTaxCode))
+                .flatMap(businessesResource -> checkIfBusinessIsContained(businessesResource, businessTaxCode));
+    }
+
+    private GetInstitutionsByLegalDto toGetInstitutionsByLegalDto(String userTaxCode) {
+        return GetInstitutionsByLegalDto.builder()
+                .filter(GetInstitutionsByLegalFilterDto.builder()
+                        .legalTaxId(userTaxCode)
+                        .build())
+                .build();
+    }
+
+    /**
+     * Validates if the business tax code is contained within the retrieved businesses.
+     *
+     * @param businessesResource the resource containing businesses data
+     * @param taxCode            the tax code to validate against
+     * @return a Uni that completes if the tax code is found, otherwise fails
+     * @throws InvalidRequestException if the tax code is not found in the businesses resource
+     */
+    private Uni<Void> checkIfBusinessIsContained(BusinessesResource businessesResource, String taxCode) {
+        if(
+                Objects.isNull(businessesResource) ||
+                Objects.isNull(businessesResource.getBusinesses()) ||
+                businessesResource.getBusinesses().stream().noneMatch(business -> business.getBusinessTaxId().equals(taxCode))
+        ) {
+            throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
+        }
+
+        return Uni.createFrom().voidItem();
+    }
+
+    /**
+     * Checks if the user is a manager in the ADE (Agenzia delle Entrate) registry.
+     *
+     * @param userTaxCode     the tax code of the user
+     * @param businessTaxCode the tax code of the business (institution)
+     * @return a Uni that completes if the user is a manager, otherwise fails
+     * @throws InvalidRequestException if the user is not a manager in ADE
+     */
+    private Uni<Void> checkIfUserIsManagerOnADE(String userTaxCode, String businessTaxCode) {
+        return nationalRegistriesApi.verifyLegalUsingGET(userTaxCode, businessTaxCode)
+                .onItem().transformToUni(legalVerificationResult -> {
+                    if(!legalVerificationResult.getVerificationResult()) {
+                        throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
+                    }
+                    return Uni.createFrom().voidItem();
+                })
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> {
+                    // If the user is not manager of the institution, the response status code could be 400
+                    if (((WebApplicationException) ex).getResponse().getStatus() == 400) {
+                        return Uni.createFrom().failure(new InvalidRequestException("User is not manager of the institution on the registry"));
+                    }
+
+                    return Uni.createFrom().failure(ex);
+                });
     }
 }
