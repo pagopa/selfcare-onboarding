@@ -186,7 +186,7 @@ class NotificationEventResenderServiceDefaultTest {
 
     private List<Onboarding> getMockedList(int i) {
         List<Onboarding> onboardings = new ArrayList<>();
-        for(int j = 0; j < i; j++) {
+        for (int j = 0; j < i; j++) {
             Onboarding onboarding = new Onboarding();
             onboarding.setId("id" + j);
             onboarding.setStatus(OnboardingStatus.COMPLETED);
@@ -195,5 +195,31 @@ class NotificationEventResenderServiceDefaultTest {
         }
 
         return onboardings;
+    }
+
+    @Test
+    void resendNotifications_withUserNotification() {
+        /* Test that the resendNotifications method works correctly when there are two onboardings 1 COMPLETED (which should produce one notification) and 1 DELETED (which should produce two notifications) and no range is specified */
+        // Arrange
+        ResendNotificationsFilters filters = ResendNotificationsFilters.builder().onboardingId("test").build();
+        ExecutionContext context = getMockedContext();
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("id1");
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.setProductId("prod-fd");
+        onboarding.setActivatedAt(LocalDateTime.of(2023, 2, 1, 0, 0));
+
+
+        when(onboardingService.getOnboardingsToResend(filters, 0, 100)).thenReturn(List.of(onboarding));
+        doNothing().when(notificationEventService).send(any(), any(), any(), any());
+
+        // Act
+        ResendNotificationsFilters resendNotificationsFilters = notificationEventResenderServiceDefault.resendNotifications(filters, context);
+
+        // Assert
+        verify(notificationEventService, times(1)).send(any(), any(), any(), any());
+        verify(onboardingService).getOnboardingsToResend(filters, 0, 100);
+        assertNull(resendNotificationsFilters);
     }
 }
