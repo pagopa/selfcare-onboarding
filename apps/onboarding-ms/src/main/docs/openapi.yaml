@@ -679,7 +679,7 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
-  /v1/onboarding/users/pg-from-ic-and-ade:
+  /v1/onboarding/users/pg:
     post:
       tags:
       - Onboarding Controller

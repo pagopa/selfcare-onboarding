@@ -938,7 +938,7 @@
         } ]
       }
     },
-    "/v1/onboarding/users/pg-from-ic-and-ade" : {
+    "/v1/onboarding/users/pg" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
         "summary" : "Add Manager of PG institution",

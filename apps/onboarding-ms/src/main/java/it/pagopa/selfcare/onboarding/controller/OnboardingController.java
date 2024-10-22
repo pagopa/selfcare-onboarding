@@ -219,8 +219,8 @@ public class OnboardingController {
             description = "Create new onboarding request to add new Manager and replace the old inactive Managers of the institution."
     )
     @POST
-    @Path("/users/pg-from-ic-and-ade")
-    public Uni<OnboardingResponse> onboardingUsersPgFromIcAndAde(@Valid OnboardingUserPgRequest onboardingRequest, @Context SecurityContext ctx) {
+    @Path("/users/pg")
+    public Uni<OnboardingResponse> onboardingUsersPg(@Valid OnboardingUserPgRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingUserPg(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
