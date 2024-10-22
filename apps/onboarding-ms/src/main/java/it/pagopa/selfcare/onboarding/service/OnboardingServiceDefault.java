@@ -1202,6 +1202,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transform(UserResource::getId)
                 .flatMap(uuid -> findOnboardingsByFilters(onboardingUserRequest)
                         .flatMap(onboardings -> {
+                            if(CollectionUtils.isEmpty(onboardings)) {
+                                LOG.debugf("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
+                                        onboardingUserRequest.getTaxCode(), onboardingUserRequest.getOrigin(),
+                                        onboardingUserRequest.getOriginId(), onboardingUserRequest.getProductId(),
+                                        onboardingUserRequest.getSubunitCode());
+
+                                response.setResponse(false);
+                                return Uni.createFrom().item(response);
+                            }
+
                             String institutionId = onboardings.get(0).getInstitution().getId();
                             return isUserActiveManager(institutionId, onboardingUserRequest.getProductId(), String.valueOf(uuid))
                                     .map(isActiveManager -> {
@@ -1238,9 +1248,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboardingUserRequest.getProductId()
         )
         .collect()
-        .asList()
-        .onItem().transformToUni(this::getOnboardingList)
-        .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboardingUserRequest));
+        .asList();
     }
 
     /**
@@ -1287,14 +1295,6 @@ public class OnboardingServiceDefault implements OnboardingService {
             return Uni.createFrom().nullItem();
         }
         return Uni.createFrom().item(onboardings);
-    }
-
-    private Supplier<Throwable> resourceNotFoundExceptionSupplier(OnboardingUserRequest onboardingUserRequest) {
-        return () -> new ResourceNotFoundException(String.format(
-                "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
-                onboardingUserRequest.getTaxCode(), onboardingUserRequest.getOrigin(),
-                onboardingUserRequest.getOriginId(), onboardingUserRequest.getProductId(),
-                onboardingUserRequest.getSubunitCode()));
     }
 
     private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
