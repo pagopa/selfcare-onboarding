@@ -33,8 +33,6 @@ public class Product {
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
     private List<String> consumers;
-    private String userContractTemplatePath;
-    private String userContractTemplateVersion;
     private Map<String, ContractTemplate> institutionContractMappings;
     private Map<String, UserContractTemplate> userContractMappings;
 
@@ -184,14 +182,6 @@ public class Product {
         this.roleManagementURL = roleManagementURL;
     }
 
-    public Map<String, ContractTemplate> getInstitutionContractMappings() {
-        return institutionContractMappings;
-    }
-
-    public void setInstitutionContractMappings(Map<String, ContractTemplate> institutionContractMappings) {
-        this.institutionContractMappings = institutionContractMappings;
-    }
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -272,31 +262,23 @@ public class Product {
         this.consumers = consumers;
     }
 
-    public String getUserContractTemplatePath() {
-        return userContractTemplatePath;
-    }
-
-    public void setUserContractTemplatePath(String userContractTemplatePath) {
-        this.userContractTemplatePath = userContractTemplatePath;
-    }
-
-    public String getUserContractTemplateVersion() {
-        return userContractTemplateVersion;
-    }
-
-    public void setUserContractTemplateVersion(String userContractTemplateVersion) {
-        this.userContractTemplateVersion = userContractTemplateVersion;
-    }
-
     public boolean canAddAdmin() {
-        return Objects.nonNull(userContractTemplateVersion);
+        return Objects.nonNull(getUserContractTemplate(CONTRACT_TYPE_DEFAULT));
+    }
+
+    public Map<String, ContractTemplate> getInstitutionContractMappings() {
+        return institutionContractMappings;
+    }
+
+    public void setInstitutionContractMappings(Map<String, ContractTemplate> institutionContractMappings) {
+        this.institutionContractMappings = institutionContractMappings;
     }
 
     public Map<String, UserContractTemplate> getUserContractMappings() {
         return userContractMappings;
     }
 
-    public void setUserContractMappings(Map<String, UserContractTemplate> UserContractMappings) {
+    public void setUserContractMappings(Map<String, UserContractTemplate> userContractMappings) {
         this.userContractMappings = userContractMappings;
     }
 
