@@ -1,17 +1,20 @@
 package it.pagopa.selfcare.product.entity;
 
-import it.pagopa.selfcare.onboarding.common.PartyRole;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
+import java.time.Instant;
+import java.util.*;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ProductTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductTest.class);
 
     ProductRoleInfo dummmyProductRoleInfo(PartyRole partyRole) {
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
@@ -122,6 +125,62 @@ public class ProductTest {
         assertEquals(2, guestList.size(), "List for OPERATOR should contain 2 elements");
         assertTrue(guestList.contains(dummmyProductRoleInfo(PartyRole.OPERATOR)));
         assertTrue(guestList.contains(dummmyProductRoleInfo(PartyRole.OPERATOR)));
+    }
+
+    @Test
+    @DisplayName("Test when only institutionType is into the map")
+    public void getContractMappingsByKeyTest() {
+
+        // given
+        InstitutionType institutionType = InstitutionType.PSP;
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("test");
+        contractTemplate.setContractTemplateVersion("test-version");
+        contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+
+        Map<String, ContractTemplate> mapTest = new HashMap<>();
+        mapTest.put(institutionType.toString(), contractTemplate);
+
+        Product product = new Product();
+        product.setUserContractMappings(mapTest);
+
+        // when
+        ContractTemplate result = product.getContractMappingsByKey(institutionType.toString());
+
+        // then
+        assertNotNull(result);
+        assertTrue(Objects.nonNull(result));
+        assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
+        assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
+    }
+
+
+    @Test
+    @DisplayName("Test when only institutionType is not into the map")
+    public void getContractMappingsByKeyTest_KO() {
+
+        // given
+        InstitutionType institutionType = InstitutionType.PSP;
+        
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("test");
+        contractTemplate.setContractTemplateVersion("test-version");
+        contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+
+        Map<String, ContractTemplate> mapTest = new HashMap<>();
+        mapTest.put(institutionType.toString(), contractTemplate);
+
+        Product product = new Product();
+        product.setUserContractMappings(mapTest);
+
+        // when
+        ContractTemplate result = product.getContractMappingsByKey(InstitutionType.PRV.toString());
+
+        // then
+        assertNotNull(result);
+        assertTrue(StringUtils.isEmpty(result.getContractTemplatePath()));
+        assertTrue(StringUtils.isEmpty(result.getContractTemplateVersion()));
     }
 
 }
