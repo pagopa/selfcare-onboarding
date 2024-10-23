@@ -1,17 +1,16 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
+
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
-import it.pagopa.selfcare.product.entity.ContractStorage;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
-
 import java.util.Objects;
 import java.util.Optional;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
 
 public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
@@ -70,7 +69,7 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
         return Optional.ofNullable(product.getInstitutionContractMappings())
                 .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType().name()))
                 .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType().name()))
-                .map(ContractStorage::getContractTemplatePath)
+                .map(ContractTemplate::getContractTemplatePath)
                 .orElse(product.getContractTemplatePath());
     }
 

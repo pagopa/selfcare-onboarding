@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-
 import java.time.Instant;
 import java.util.*;
 
@@ -25,7 +24,7 @@ public class Product {
     private Instant contractTemplateUpdatedAt;
     private String contractTemplatePath;
     private String contractTemplateVersion;
-    private Map<String, ContractStorage> institutionContractMappings;
+    private Map<String, ContractTemplate> institutionContractMappings;
     private boolean enabled = true;
     private boolean delegable;
     private boolean invoiceable;
@@ -38,6 +37,7 @@ public class Product {
     private List<String> consumers;
     private String userContractTemplatePath;
     private String userContractTemplateVersion;
+    private Map<String, ContractTemplate> userContractMappings;
 
     public String getId() {
         return id;
@@ -209,11 +209,11 @@ public class Product {
         this.contractTemplateVersion = contractTemplateVersion;
     }
 
-    public Map<String, ContractStorage> getInstitutionContractMappings() {
+    public Map<String, ContractTemplate> getInstitutionContractMappings() {
         return institutionContractMappings;
     }
 
-    public void setInstitutionContractMappings(Map<String, ContractStorage> institutionContractMappings) {
+    public void setInstitutionContractMappings(Map<String, ContractTemplate> institutionContractMappings) {
         this.institutionContractMappings = institutionContractMappings;
     }
 
@@ -315,5 +315,30 @@ public class Product {
 
     public boolean canAddAdmin() {
         return Objects.nonNull(userContractTemplateVersion);
+    }
+
+    public Map<String, ContractTemplate> getUserContractMappings() {
+        return userContractMappings;
+    }
+
+    public void setUserContractMappings(Map<String, ContractTemplate> userContractMappings) {
+        this.userContractMappings = userContractMappings;
+    }
+
+    /**
+     * This method returns contractStorage associate with a specific InstitutionType.
+     * In case none InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+     * @param institutionType InstitutionType
+     * @return ContractTemplate
+     */
+    public ContractTemplate getContractMappingsByKey(String institutionType) {
+        ContractTemplate contractTemplate = new ContractTemplate();
+
+        if(Objects.nonNull(institutionType) && Objects.nonNull(getUserContractMappings())
+                && getUserContractMappings().containsKey(institutionType)){
+            contractTemplate = getUserContractMappings().get(institutionType);
+        }
+
+        return contractTemplate;
     }
 }
