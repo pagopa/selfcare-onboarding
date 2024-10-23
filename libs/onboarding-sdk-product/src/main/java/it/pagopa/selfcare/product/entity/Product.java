@@ -290,40 +290,43 @@ public class Product {
         this.alias = alias;
     }
 
-    /**
-     * This method returns contractStorage associate with a specific InstitutionType.
-     * In case none InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
-     * @param institutionType InstitutionType
-     * @return UserContractTemplate
-     */
-    public UserContractTemplate getUserContractTemplate(String institutionType) {
-        UserContractTemplate userContractTemplate = new UserContractTemplate();
-        if (Objects.nonNull(getUserContractMappings())){
-            if(Objects.nonNull(institutionType) && getUserContractMappings().containsKey(institutionType)){
-                userContractTemplate = getUserContractMappings().get(institutionType);
-                } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
-                userContractTemplate = getUserContractMappings().get(institutionType);
-            }
-        }
-        return userContractTemplate;
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return UserContractTemplate
+   */
+  public UserContractTemplate getUserContractTemplate(String institutionType) {
+    UserContractTemplate userContractTemplate = new UserContractTemplate();
+    if (Objects.nonNull(getUserContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getUserContractMappings().containsKey(institutionType)) {
+        userContractTemplate = getUserContractMappings().get(institutionType);
+      } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        userContractTemplate = getUserContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
     }
-    
-    /**
-     * This method returns contractStorage associate with a specific InstitutionType.
-     * In case none InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
-     * @param institutionType InstitutionType
-     * @return ContractTemplate
-     */
-    public ContractTemplate getInstitutionContractTemplate(String institutionType) {
-        ContractTemplate contractTemplate = new ContractTemplate();
-        if (Objects.nonNull(getInstitutionContractMappings())){
-            if(Objects.nonNull(institutionType) && getInstitutionContractMappings().containsKey(institutionType)){
-                contractTemplate = getInstitutionContractMappings().get(institutionType);
-            } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
-                contractTemplate = getInstitutionContractMappings().get(institutionType);
-            }
-        }
-        return contractTemplate;
-    }
+    return userContractTemplate;
+  }
 
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return ContractTemplate
+   */
+  public ContractTemplate getInstitutionContractTemplate(String institutionType) {
+    ContractTemplate contractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getInstitutionContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getInstitutionContractMappings().containsKey(institutionType)) {
+        contractTemplate = getInstitutionContractMappings().get(institutionType);
+      } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        contractTemplate = getInstitutionContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
+    }
+    return contractTemplate;
+  }
 }
