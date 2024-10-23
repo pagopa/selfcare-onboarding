@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
@@ -53,7 +54,7 @@ public interface OnboardingService {
 
     Uni<Long> updateOnboarding(String onboardingId, Onboarding onboarding);
 
-    Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest);
+    Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest);
 
     Uni<CustomError> checkRecipientCode(String recipientCode, String originId);
 

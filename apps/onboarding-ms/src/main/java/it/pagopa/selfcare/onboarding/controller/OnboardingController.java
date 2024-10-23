@@ -12,6 +12,7 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
@@ -225,7 +226,6 @@ public class OnboardingController {
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingUserPg(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
-
 
     private Uni<String> readUserIdFromToken(SecurityContext ctx) {
         return currentIdentityAssociation.getDeferredIdentity()
@@ -466,7 +466,7 @@ public class OnboardingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
-    public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
+    public Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest) {
         return onboardingService.checkManager(onboardingUserRequest);
     }
 

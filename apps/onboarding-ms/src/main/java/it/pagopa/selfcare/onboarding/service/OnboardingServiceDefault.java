@@ -50,6 +50,7 @@ import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -206,7 +207,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE,false);
+        return fillUsersAndOnboarding(onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
     }
 
     @Override
@@ -214,7 +215,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null,false);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
 
     /**
@@ -231,7 +232,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously.
      *                If is null the timeout is default 1 sec and the response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests,List<AggregateInstitutionRequest> aggregates,String timeout, boolean isAggregatesIncrement) {
+    private Uni<OnboardingResponse> fillUsersAndOnboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates, String timeout, boolean isAggregatesIncrement) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -259,7 +260,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * In the case of standard onboarding, the exception should be propagated, and the flow should be blocked.
      */
     private Uni<Void> verifyAlreadyOnboarding(Institution institution, String productId, String parentId, boolean isAggregatesIncrement) {
-        if(isAggregatesIncrement) {
+        if (isAggregatesIncrement) {
             return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId)
                     .onFailure(ResourceConflictException.class).recoverWithNull().replaceWithVoid();
         }
@@ -317,7 +318,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         };
     }
 
-    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest>aggregates) {
+    private Uni<Onboarding> persistOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product, List<AggregateInstitutionRequest> aggregates) {
 
         Log.infof("persist onboarding for: product %s, product parent %s", product.getId(), product.getParentId());
 
@@ -460,7 +461,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || (InstitutionType.PRV.equals(institutionType) &&
-                    !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
+                !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }
 
@@ -629,7 +630,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
     }
 
-    private Uni<List<User>> retrieveUserResources(List<UserRequest> users,  Map<PartyRole, ProductRoleInfo> roleMappings) {
+    private Uni<List<User>> retrieveUserResources(List<UserRequest> users, Map<PartyRole, ProductRoleInfo> roleMappings) {
 
         return Multi.createFrom().iterable(users)
                 .onItem().transformToUni(user -> userRegistryApi
@@ -907,7 +908,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             return parts[1];
         }
 
-        if(parts.length > 2) {
+        if (parts.length > 2) {
             // join all parts except the first one
             ext = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
         }
@@ -1047,7 +1048,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Override
     public Uni<List<OnboardingResponse>> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
-        Map<String, String> queryParameter = QueryUtils.createMapForVerifyOnboardingQueryParameter(taxCode, subunitCode, origin, originId, status, productId);
+        Map<String, String> queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(taxCode, subunitCode, origin, originId, status, productId);
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)
@@ -1137,7 +1138,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
             responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), request.getSubunitCode(), null, null);
-        } else  if (Objects.nonNull(request.getTaxCode())) {
+        } else if (Objects.nonNull(request.getTaxCode())) {
             responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), null, null, null);
         } else {
             responseUni = institutionApi.getInstitutionsUsingGET(null, null, request.getOrigin(), request.getOriginId());
@@ -1188,39 +1189,86 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<Boolean> checkManager(OnboardingUserRequest onboardingUserRequest) {
-        final String taxCodeManager = onboardingUserRequest.getUsers().stream()
-                .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
+    public Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest) {
+        CheckManagerResponse response = new CheckManagerResponse();
+
+        String taxCodeManager = onboardingUserRequest.getUsers().stream()
+                .filter(user -> PartyRole.MANAGER == user.getRole())
                 .map(UserRequest::getTaxCode)
-                .findAny().orElse(null);
-        if (Objects.isNull(taxCodeManager)) {
-            throw new InvalidRequestException("At least one user should have role MANAGER");
-        }
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestException("At least one user should have role MANAGER"));
+
         return userRegistryApi.searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(taxCodeManager))
                 .onItem().transform(UserResource::getId)
-                .onItem().transformToUni(uuid ->   getOnboardingByFilters(
-                        onboardingUserRequest.getTaxCode(),
-                        onboardingUserRequest.getSubunitCode(),
-                        onboardingUserRequest.getOrigin(),
-                        onboardingUserRequest.getOriginId(),
-                        onboardingUserRequest.getProductId())
-                        .collect().asList()
-                        .onItem().transformToUni(this::getOnboardingList)
-                        .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboardingUserRequest))
-                        .onItem().transform(this::getManagerIds)
-                        .onItem().transformToUni(uuids -> {
-                            if (uuids.contains(uuid.toString())) {
-                                return Uni.createFrom().item(true);
+                .flatMap(uuid -> findOnboardingsByFilters(onboardingUserRequest)
+                        .flatMap(onboardings -> {
+                            if(CollectionUtils.isEmpty(onboardings)) {
+                                LOG.debugf("Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
+                                        onboardingUserRequest.getTaxCode(), onboardingUserRequest.getOrigin(),
+                                        onboardingUserRequest.getOriginId(), onboardingUserRequest.getProductId(),
+                                        onboardingUserRequest.getSubunitCode());
+
+                                response.setResponse(false);
+                                return Uni.createFrom().item(response);
                             }
-                            return Uni.createFrom().item(false);
+
+                            String institutionId = onboardings.get(0).getInstitution().getId();
+                            return isUserActiveManager(institutionId, onboardingUserRequest.getProductId(), String.valueOf(uuid))
+                                    .map(isActiveManager -> {
+                                        LOG.debugf("User with uuid %s is active manager: %s", uuid, isActiveManager);
+                                        response.setResponse(isActiveManager);
+                                        return response;
+                                    });
                         }))
                 .onFailure().recoverWithUni(ex -> {
-                    if (ex instanceof ResourceNotFoundException
-                            || ((WebApplicationException) ex).getResponse().getStatus() != 404) {
-                        return Uni.createFrom().failure(ex);
+                    if (ex instanceof WebApplicationException && ((WebApplicationException) ex).getResponse().getStatus() == 404) {
+                        LOG.debugf("User not found on user-registry", taxCodeManager);
+                        response.setResponse(false);
+                        return Uni.createFrom().item(response);
                     }
-                    return Uni.createFrom().item(false);
+
+                    //If the exception raised is for a different status code, let it propagate
+                    return Uni.createFrom().failure(ex);
                 });
+    }
+
+    /**
+     * Retrieves the onboarding record by the given filters.
+     *
+     * @param onboardingUserRequest OnboardingUserRequest
+     * @return a Uni with the list of onboardings
+     * @throws ResourceNotFoundException if the onboarding record is not found
+     */
+    private Uni<List<Onboarding>> findOnboardingsByFilters(OnboardingUserRequest onboardingUserRequest) {
+        return getOnboardingByFilters(
+                onboardingUserRequest.getTaxCode(),
+                onboardingUserRequest.getSubunitCode(),
+                onboardingUserRequest.getOrigin(),
+                onboardingUserRequest.getOriginId(),
+                onboardingUserRequest.getProductId()
+        )
+        .collect()
+        .asList();
+    }
+
+    /**
+     * Checks if the user is an active manager within the institution for the given product invoking selfcare-user API.
+     *
+     * @param institutionId institution id
+     * @param productId product id
+     * @param uuid user uuid
+     * @return a Uni with the result of the check
+     */
+    private Uni<Boolean> isUserActiveManager(String institutionId, String productId, String uuid) {
+        return userInstitutionApi.retrieveUserInstitutions(
+                institutionId,
+                null,
+                Objects.nonNull(productId) ? List.of(productId) : null,
+                List.of(String.valueOf(PartyRole.MANAGER)),
+                List.of(String.valueOf(OnboardedProductResponse.StatusEnum.ACTIVE)),
+                uuid
+        ).onFailure().invoke(e -> LOG.error("Error while checking if user is active manager", e))
+        .onItem().transform(CollectionUtils::isNotEmpty);
     }
 
     public Uni<CustomError> checkRecipientCode(String recipientCode, String originId) {
@@ -1231,7 +1279,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private static Uni<Long> updateOnboardingValues(String onboardingId, Onboarding onboarding) {
         Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingUpdate(onboarding);
-        Document query =  QueryUtils.buildUpdateDocument(queryParameter);
+        Document query = QueryUtils.buildUpdateDocument(queryParameter);
         return Onboarding.update(query)
                 .where("_id", onboardingId)
                 .onItem().transformToUni(updateItemCount -> {
@@ -1242,27 +1290,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                 });
     }
 
-    private Supplier<Throwable> resourceNotFoundExceptionSupplier(OnboardingUserRequest onboardingUserRequest) {
-        return () -> new ResourceNotFoundException(String.format(
-                "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
-                onboardingUserRequest.getTaxCode(), onboardingUserRequest.getOrigin(),
-                onboardingUserRequest.getOriginId(), onboardingUserRequest.getProductId(),
-                onboardingUserRequest.getSubunitCode()));
-    }
-
     private Uni<List<Onboarding>> getOnboardingList(List<Onboarding> onboardings) {
-        if(onboardings.isEmpty()) {
+        if (onboardings.isEmpty()) {
             return Uni.createFrom().nullItem();
         }
         return Uni.createFrom().item(onboardings);
-    }
-
-    // Retrieve manager uuids from previous onboardings in case of workflowType USERS
-    private List<String> getManagerIds(List<Onboarding> onboardings) {
-        return onboardings.stream().map(onboarding -> onboarding.getUsers().stream()
-                .filter(userToOnboard -> PartyRole.MANAGER == userToOnboard.getRole())
-                .map(User::getId)
-                .findAny().orElse(null)).toList();
     }
 
     private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
@@ -1310,7 +1342,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @param onboarding   the onboarding data to process
      * @param userRequests the list of user requests associated with the onboarding
      * @return a Uni that emits the onboarding response upon successful completion
-     * @throws InvalidRequestException    if the user list is invalid or the user is already a manager
+     * @throws InvalidRequestException   if the user list is invalid or the user is already a manager
      * @throws ResourceNotFoundException if no previous onboarding data is found for the institution
      */
     public Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests) {
@@ -1333,7 +1365,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @throws InvalidRequestException if the user list is empty, contains more than one user, or the user role is not MANAGER
      */
     private void checkOnboardingPgUserList(List<UserRequest> userRequests) {
-        if(CollectionUtils.isEmpty(userRequests) || userRequests.size() > 1 || !PartyRole.MANAGER.equals(userRequests.get(0).getRole())) {
+        if (CollectionUtils.isEmpty(userRequests) || userRequests.size() > 1 || !PartyRole.MANAGER.equals(userRequests.get(0).getRole())) {
             throw new InvalidRequestException("This API allows the onboarding of only one user with role MANAGER");
         }
     }
@@ -1349,15 +1381,15 @@ public class OnboardingServiceDefault implements OnboardingService {
                 null,
                 onboarding.getProductId()
         )
-        .collect()
-        .asList()
-        .onItem().transformToUni(this::getOnboardingList)
-        .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboarding))
-        .map(onboardings -> onboardings.stream()
-                .filter(o -> Objects.isNull(o.getReferenceOnboardingId()))
-                .findFirst()
-                .orElse(null)
-        );
+                .collect()
+                .asList()
+                .onItem().transformToUni(this::getOnboardingList)
+                .onItem().ifNull().failWith(resourceNotFoundExceptionSupplier(onboarding))
+                .map(onboardings -> onboardings.stream()
+                        .filter(o -> Objects.isNull(o.getReferenceOnboardingId()))
+                        .findFirst()
+                        .orElse(null)
+                );
     }
 
     private Supplier<ResourceNotFoundException> resourceNotFoundExceptionSupplier(Onboarding onboarding) {
@@ -1404,19 +1436,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         LOG.infof("Checking if user with id: %s is already manager of the institution with id: %s", newManagerId, institutionId);
 
-        return userInstitutionApi.retrieveUserInstitutions(
-                institutionId,
-                null,
-                List.of(currentOnboarding.getProductId()),
-                List.of(PartyRole.MANAGER.name()),
-                List.of("ACTIVE"),
-                null
-        ).invoke(users -> {
-            LOG.debugf("Managers found: %s for institution with id: %s", users, institutionId);
-            if (users.stream().anyMatch(userInstitution -> userInstitution.getUserId().equals(newManagerId))) {
-                throw new InvalidRequestException("User is already manager of the institution");
-            }
-        }).replaceWithVoid();
+        return isUserActiveManager(institutionId, currentOnboarding.getProductId(), newManagerId)
+                .flatMap(isActiveManager -> {
+                    if (isActiveManager) {
+                        throw new InvalidRequestException("User is already manager of the institution");
+                    }
+                    return Uni.createFrom().voidItem();
+                });
     }
 
     /**
@@ -1437,7 +1463,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         String businessTaxCode = onboarding.getInstitution().getTaxCode();
 
-        if(onboarding.getInstitution().getOrigin() == Origin.INFOCAMERE) {
+        if (onboarding.getInstitution().getOrigin() == Origin.INFOCAMERE) {
             return checkIfUserIsManagerOnInfocamere(userTaxCode, businessTaxCode);
         } else {
             return checkIfUserIsManagerOnADE(userTaxCode, businessTaxCode);
@@ -1474,10 +1500,10 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @throws InvalidRequestException if the tax code is not found in the businesses resource
      */
     private Uni<Void> checkIfBusinessIsContained(BusinessesResource businessesResource, String taxCode) {
-        if(
+        if (
                 Objects.isNull(businessesResource) ||
-                Objects.isNull(businessesResource.getBusinesses()) ||
-                businessesResource.getBusinesses().stream().noneMatch(business -> business.getBusinessTaxId().equals(taxCode))
+                        Objects.isNull(businessesResource.getBusinesses()) ||
+                        businessesResource.getBusinesses().stream().noneMatch(business -> business.getBusinessTaxId().equals(taxCode))
         ) {
             throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
         }
@@ -1496,7 +1522,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Void> checkIfUserIsManagerOnADE(String userTaxCode, String businessTaxCode) {
         return nationalRegistriesApi.verifyLegalUsingGET(userTaxCode, businessTaxCode)
                 .onItem().transformToUni(legalVerificationResult -> {
-                    if(!legalVerificationResult.getVerificationResult()) {
+                    if (!legalVerificationResult.getVerificationResult()) {
                         throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
                     }
                     return Uni.createFrom().voidItem();

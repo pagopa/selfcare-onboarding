@@ -24,6 +24,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
@@ -136,7 +137,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboarding() {
 
-        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -153,7 +154,7 @@ class OnboardingControllerTest {
     void onboardingPa() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
 
-        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -166,7 +167,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
-                .onboarding(captor.capture(), any(),any());
+                .onboarding(captor.capture(), any(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
 
     }
@@ -181,7 +182,7 @@ class OnboardingControllerTest {
         aggregateInstitutions.add(aggregateInstitutionRequest);
         onboardingPaValid.setAggregates(aggregateInstitutions);
 
-        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -194,7 +195,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
-                .onboarding(captor.capture(), any(),any());
+                .onboarding(captor.capture(), any(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
         assertNull(captor.getValue().getAggregates().get(0).getVatNumber());
@@ -212,7 +213,7 @@ class OnboardingControllerTest {
         aggregateInstitutions.add(aggregateInstitutionRequest);
         onboardingPaValid.setAggregates(aggregateInstitutions);
 
-        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -225,7 +226,7 @@ class OnboardingControllerTest {
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1))
-                .onboarding(captor.capture(), any(),any());
+                .onboarding(captor.capture(), any(), any());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
         assertNotNull(captor.getValue().getAggregates().get(0).getVatNumber());
@@ -295,7 +296,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboardingPsp() {
 
-        Mockito.when(onboardingService.onboarding(any(), any(),any()))
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -935,7 +936,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void updateOnboardingOK(){
+    void updateOnboardingOK() {
         String onboardingId = "actual-onboarding-id";
         Onboarding onboardingUpdate = new Onboarding();
         onboardingUpdate.setId(onboardingId);
@@ -966,7 +967,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void updateOnboardingNotFound(){
+    void updateOnboardingNotFound() {
         String onboardingId = "actual-onboarding-id";
         Onboarding onboardingUpdate = new Onboarding();
 
@@ -996,8 +997,10 @@ class OnboardingControllerTest {
     void checkManager() {
         OnboardingUserRequest request = new OnboardingUserRequest();
 
+        CheckManagerResponse response = new CheckManagerResponse();
+        response.setResponse(true);
         when(onboardingService.checkManager(any()))
-                .thenReturn(Uni.createFrom().item(true));
+                .thenReturn(Uni.createFrom().item(response));
 
         given()
                 .when()
@@ -1015,7 +1018,7 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void onboardingAggregationComplete() {
 
-        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any(),any()))
+        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -1027,14 +1030,14 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingAggregationCompletion(any(), any(),any());
+                .onboardingAggregationCompletion(any(), any(), any());
     }
 
 
     private Map<String, String> getStringStringMapOnboardingStatusUpdate() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("status", "COMPLETED");
-        return  queryParameterMap;
+        return queryParameterMap;
     }
 
   @Test
