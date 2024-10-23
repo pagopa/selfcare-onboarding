@@ -7,6 +7,7 @@ import java.util.*;
 public class Product {
 
     private String id;
+    private String alias;
     private String logo;
     private String depictImageUrl;
     private String title;
@@ -341,4 +342,13 @@ public class Product {
 
         return contractTemplate;
     }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
 }
