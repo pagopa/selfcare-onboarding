@@ -323,10 +323,11 @@ public class Product {
       if (Objects.nonNull(institutionType)
           && getInstitutionContractMappings().containsKey(institutionType)) {
         contractTemplate = getInstitutionContractMappings().get(institutionType);
-      } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+      } else if (getInstitutionContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
         contractTemplate = getInstitutionContractMappings().get(CONTRACT_TYPE_DEFAULT);
       }
     }
     return contractTemplate;
   }
+
 }
