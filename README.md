@@ -54,7 +54,7 @@ and usage of a couple of lesser known command line switches.
 | Build `onboarding-ms` and its dependencies                                                         | `./apps/onboarding-ms` | `mvn --file ../.. --projects :onboarding-ms --also-make clean package -DskipTests`    |
 | Build `onboarding-sdk` and its dependents (aka. reverse dependencies or *rdeps* in Bazel parlance) |          `.`           | `mvn --projects :onboarding-sdk-pom --also-make-dependents clean package -DskipTests` |
 | Print dependencies of `onboarding-sdk`                                                             | `./apps/onboarding-ms` | `mvn dependency:list`                                                                 |
-| Change version  of `onboarding-sdk`                                                             | `.` | `mvn versions:set -DnewVersion=0.2.2 --projects :onboarding-sdk-pom  `                |
+| Change version  of `onboarding-sdk`                                                             | `.` | `mvn versions:set -DnewVersion=0.3.4 --projects :onboarding-sdk-pom  `                |
 | Persist version  of `onboarding-sdk`                                                             | `.` | `mvn versions:commit   `                                                              |
 
 -----
