@@ -23,7 +23,7 @@ class ProductServiceDefaultTest {
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
     final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
-            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
+            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\",\"productLabel\":\"Operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
     @Test
