@@ -20,7 +20,6 @@
   "institutionContractMappings": {
     "default": {
       "contractTemplatePath": "path_template",
-      "contractTemplateUpdatedAt": "2021-12-15T15:54:55.190Z",
       "contractTemplateVersion": "1.0.0"
     }
   },
@@ -50,8 +49,8 @@
   "urlPublic": "prova",
   "userContractMappings": {
     "default": {
-      "userContractTemplatePath": "path_test",
-      "userContractTemplateVersion": "1.0.0"
+      "contractTemplatePath": "path_test",
+      "contractTemplateVersion": "1.0.0"
     }
   }
 }
