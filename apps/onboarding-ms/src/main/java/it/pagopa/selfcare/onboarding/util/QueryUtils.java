@@ -33,6 +33,7 @@ public class QueryUtils {
     static class FieldNames {
         private FieldNames() {
         }
+
         public static final String STATUS = "status";
         public static final String FROM = "from";
         public static final String TO = "to";
@@ -41,7 +42,7 @@ public class QueryUtils {
         public static final String INSTITUTION_ID = "institution.id";
         public static final String INSTITUTION_ORIGIN = "institution.origin";
         public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
-        public static final String INSTITUTION_SUBUNIT_CODE =  "institution.subunitCode";
+        public static final String INSTITUTION_SUBUNIT_CODE = "institution.subunitCode";
     }
 
     public static Document buildQuery(Map<String, String> parameters) {
@@ -127,23 +128,44 @@ public class QueryUtils {
 
     public static Map<String, Object> createMapForOnboardingUpdate(Onboarding onboarding) {
         Map<String, Object> queryParameterMap = new HashMap<>();
+        // Dates
         Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
         Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
+        Optional.ofNullable(onboarding.getDeletedAt()).ifPresent(value -> queryParameterMap.put("deletedAt", value));
+        // Root elements
         Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
+        // Billing
         Optional.ofNullable(onboarding.getBilling())
                 .ifPresent(billing -> {
                     Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));
                     Optional.ofNullable(billing.getVatNumber()).ifPresent(value -> queryParameterMap.put("billing.vatNumber", value));
                     Optional.ofNullable(billing.getTaxCodeInvoicing()).ifPresent(value -> queryParameterMap.put("billing.taxCodeInvoicing()", value));
                 });
+        // Institution
+        Optional.ofNullable(onboarding.getInstitution())
+                .ifPresent(institution -> {
+                    Optional.ofNullable(institution.getAddress()).ifPresent(value -> queryParameterMap.put("institution.address", value));
+                    Optional.ofNullable(institution.getDescription()).ifPresent(value -> queryParameterMap.put("institution.description", value));
+                    Optional.ofNullable(institution.getDigitalAddress()).ifPresent(value -> queryParameterMap.put("institution.digitalAddress", value));
+                    Optional.ofNullable(institution.getCity()).ifPresent(value -> queryParameterMap.put("institution.city", value));
+                    Optional.ofNullable(institution.getCountry()).ifPresent(value -> queryParameterMap.put("institution.country", value));
+                    Optional.ofNullable(institution.getCounty()).ifPresent(value -> queryParameterMap.put("institution.county", value));
+                    Optional.ofNullable(institution.getZipCode()).ifPresent(value -> queryParameterMap.put("institution.zipCode", value));
+                    Optional.ofNullable(institution.getIstatCode()).ifPresent(value -> queryParameterMap.put("institution.istatCode", value));
+                    Optional.ofNullable(institution.getRea()).ifPresent(value -> queryParameterMap.put("institution.rea", value));
+                    Optional.ofNullable(institution.getShareCapital()).ifPresent(value -> queryParameterMap.put("institution.shareCapital", value));
+                    Optional.ofNullable(institution.getBusinessRegisterPlace()).ifPresent(value -> queryParameterMap.put("institution.businessRegisterPlace", value));
+                    Optional.ofNullable(institution.getSupportEmail()).ifPresent(value -> queryParameterMap.put("institution.supportEmail", value));
+                    Optional.ofNullable(institution.getParentDescription()).ifPresent(value -> queryParameterMap.put("institution.parentDescription", value));
+                });
         queryParameterMap.put("updatedAt", LocalDateTime.now());
         return queryParameterMap;
     }
 
     public static Document buildSortDocument(String field, SortEnum order) {
-        if(SortEnum.ASC == order) {
+        if (SortEnum.ASC == order) {
             return bsonToDocument(Sorts.ascending(field));
-        }else{
+        } else {
             return bsonToDocument(Sorts.descending(field));
         }
     }
