@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+
 @QuarkusTest
 class OnboardingMapperTest {
 
@@ -66,6 +68,28 @@ class OnboardingMapperTest {
         Assertions.assertEquals(1, response.getUsers().size());
         Assertions.assertEquals("aggregatorUser", response.getUsers().get(0).getId());
         Assertions.assertEquals(PartyRole.MANAGER, response.getUsers().get(0).getRole());
+        Assertions.assertEquals("aggregatorProductRole", response.getUsers().get(0).getProductRole());
+    }
+
+    @Test
+    void mapToOnboardingAggregateOrchestratorInputTestWithoutAggregatesUserProdPagoPA(){
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("example");
+        onboarding.setProductId(PROD_PAGOPA.getValue());
+        User user = new User();
+        user.setId("aggregatorUser");
+        user.setRole(PartyRole.MANAGER);
+        user.setProductRole("aggregatorProductRole");
+        onboarding.setUsers(List.of(user));
+
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setUsers(null);
+        onboarding.setAggregates(List.of(aggregateInstitution));
+
+        OnboardingAggregateOrchestratorInput response = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregateInstitution);
+        Assertions.assertEquals(1, response.getUsers().size());
+        Assertions.assertEquals("aggregatorUser", response.getUsers().get(0).getId());
+        Assertions.assertEquals(PartyRole.ADMIN_EA, response.getUsers().get(0).getRole());
         Assertions.assertEquals("aggregatorProductRole", response.getUsers().get(0).getProductRole());
     }
 
