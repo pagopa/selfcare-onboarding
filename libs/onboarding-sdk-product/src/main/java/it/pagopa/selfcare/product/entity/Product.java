@@ -3,6 +3,7 @@ package it.pagopa.selfcare.product.entity;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import java.time.Instant;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class Product {
 
@@ -263,7 +264,8 @@ public class Product {
     }
 
     public boolean canAddAdmin() {
-        return Objects.nonNull(getUserContractTemplate(CONTRACT_TYPE_DEFAULT));
+        UserContractTemplate userContractTemplate = getUserContractTemplate(CONTRACT_TYPE_DEFAULT);
+        return StringUtils.isNotEmpty(userContractTemplate.getUserContractTemplatePath()) && StringUtils.isNotEmpty(userContractTemplate.getUserContractTemplateVersion());
     }
 
     public Map<String, ContractTemplate> getInstitutionContractMappings() {
