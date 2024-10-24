@@ -1902,7 +1902,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response)));
 
-        asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId"), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -1935,7 +1935,7 @@ class OnboardingServiceDefaultTest {
         when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId"), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), ResourceNotFoundException.class);
 
     }
 
@@ -1957,7 +1957,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(response));
 
         onboardingService
-                .onboardingUsers(request, "userId")
+                .onboardingUsers(request, "userId", WorkflowType.USERS)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create())
                 .assertFailedWith(ResourceNotFoundException.class);

@@ -185,11 +185,11 @@ public class OnboardingServiceDefault implements OnboardingService {
      * As onboarding but it is specific for USERS workflow
      */
     @Override
-    public Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest request, String userId) {
+    public Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest request, String userId, WorkflowType workflowType) {
         return getInstitutionFromUserRequest(request)
                 .onItem().transform(response -> institutionMapper.toEntity(response))
                 .onItem().transform(institution -> {
-                    Onboarding onboarding = onboardingMapper.toEntity(request, userId);
+                    Onboarding onboarding = onboardingMapper.toEntity(request, userId, workflowType);
                     institution.setInstitutionType(request.getInstitutionType());
                     onboarding.setInstitution(institution);
                     onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
