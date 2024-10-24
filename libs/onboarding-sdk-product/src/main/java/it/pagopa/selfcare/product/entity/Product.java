@@ -1,13 +1,14 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-
 import java.time.Instant;
 import java.util.*;
 
 public class Product {
 
+    public static final String CONTRACT_TYPE_DEFAULT = "default";
     private String id;
+    private String alias;
     private String logo;
     private String depictImageUrl;
     private String title;
@@ -22,10 +23,6 @@ public class Product {
     private Map<PartyRole, ProductRoleInfo> roleMappings;
     private Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType;
     private String roleManagementURL;
-    private Instant contractTemplateUpdatedAt;
-    private String contractTemplatePath;
-    private String contractTemplateVersion;
-    private Map<String, ContractStorage> institutionContractMappings;
     private boolean enabled = true;
     private boolean delegable;
     private boolean invoiceable;
@@ -36,8 +33,8 @@ public class Product {
     private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
     private Product parent;
     private List<String> consumers;
-    private String userContractTemplatePath;
-    private String userContractTemplateVersion;
+    private Map<String, ContractTemplate> institutionContractMappings;
+    private Map<String, UserContractTemplate> userContractMappings;
 
     public String getId() {
         return id;
@@ -185,38 +182,6 @@ public class Product {
         this.roleManagementURL = roleManagementURL;
     }
 
-    public Instant getContractTemplateUpdatedAt() {
-        return contractTemplateUpdatedAt;
-    }
-
-    public void setContractTemplateUpdatedAt(Instant contractTemplateUpdatedAt) {
-        this.contractTemplateUpdatedAt = contractTemplateUpdatedAt;
-    }
-
-    public String getContractTemplatePath() {
-        return contractTemplatePath;
-    }
-
-    public void setContractTemplatePath(String contractTemplatePath) {
-        this.contractTemplatePath = contractTemplatePath;
-    }
-
-    public String getContractTemplateVersion() {
-        return contractTemplateVersion;
-    }
-
-    public void setContractTemplateVersion(String contractTemplateVersion) {
-        this.contractTemplateVersion = contractTemplateVersion;
-    }
-
-    public Map<String, ContractStorage> getInstitutionContractMappings() {
-        return institutionContractMappings;
-    }
-
-    public void setInstitutionContractMappings(Map<String, ContractStorage> institutionContractMappings) {
-        this.institutionContractMappings = institutionContractMappings;
-    }
-
     public boolean isEnabled() {
         return enabled;
     }
@@ -297,23 +262,72 @@ public class Product {
         this.consumers = consumers;
     }
 
-    public String getUserContractTemplatePath() {
-        return userContractTemplatePath;
-    }
-
-    public void setUserContractTemplatePath(String userContractTemplatePath) {
-        this.userContractTemplatePath = userContractTemplatePath;
-    }
-
-    public String getUserContractTemplateVersion() {
-        return userContractTemplateVersion;
-    }
-
-    public void setUserContractTemplateVersion(String userContractTemplateVersion) {
-        this.userContractTemplateVersion = userContractTemplateVersion;
-    }
-
     public boolean canAddAdmin() {
-        return Objects.nonNull(userContractTemplateVersion);
+        return Objects.nonNull(getUserContractTemplate(CONTRACT_TYPE_DEFAULT));
     }
+
+    public Map<String, ContractTemplate> getInstitutionContractMappings() {
+        return institutionContractMappings;
+    }
+
+    public void setInstitutionContractMappings(Map<String, ContractTemplate> institutionContractMappings) {
+        this.institutionContractMappings = institutionContractMappings;
+    }
+
+    public Map<String, UserContractTemplate> getUserContractMappings() {
+        return userContractMappings;
+    }
+
+    public void setUserContractMappings(Map<String, UserContractTemplate> userContractMappings) {
+        this.userContractMappings = userContractMappings;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return UserContractTemplate
+   */
+  public UserContractTemplate getUserContractTemplate(String institutionType) {
+    UserContractTemplate userContractTemplate = new UserContractTemplate();
+    if (Objects.nonNull(getUserContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getUserContractMappings().containsKey(institutionType)) {
+        userContractTemplate = getUserContractMappings().get(institutionType);
+      } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        userContractTemplate = getUserContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
+    }
+    return userContractTemplate;
+  }
+
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return ContractTemplate
+   */
+  public ContractTemplate getInstitutionContractTemplate(String institutionType) {
+    ContractTemplate contractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getInstitutionContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getInstitutionContractMappings().containsKey(institutionType)) {
+        contractTemplate = getInstitutionContractMappings().get(institutionType);
+      } else if (getInstitutionContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        contractTemplate = getInstitutionContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
+    }
+    return contractTemplate;
+  }
+
 }

@@ -1,5 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -15,10 +21,13 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.product.entity.ContractStorage;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.util.*;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,16 +35,6 @@ import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-
-import java.io.File;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -118,10 +117,10 @@ class OnboardingServiceTest {
 
         Product product = createDummyProduct();
         /* add contract mapping */
-        Map<String, ContractStorage> contractStorageMap = new HashMap<>();
-        ContractStorage contractStorage = new ContractStorage();
-        contractStorage.setContractTemplatePath("setContractTemplatePath");
-        contractStorageMap.put(onboarding.getInstitution().getInstitutionType().name(), contractStorage);
+        Map<String, ContractTemplate> contractStorageMap = new HashMap<>();
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("setContractTemplatePath");
+        contractStorageMap.put(onboarding.getInstitution().getInstitutionType().name(), contractTemplate);
         product.setInstitutionContractMappings(contractStorageMap);
 
         when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST,manager.getId()))
@@ -142,7 +141,7 @@ class OnboardingServiceTest {
         ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
         Mockito.verify(contractService, Mockito.times(1))
                 .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
-        assertEquals(captorTemplatePath.getValue(), contractStorage.getContractTemplatePath());
+        assertEquals(captorTemplatePath.getValue(), contractTemplate.getContractTemplatePath());
     }
 
     private static OnboardingWorkflow getOnboardingWorkflowInstitution(Onboarding onboarding) {

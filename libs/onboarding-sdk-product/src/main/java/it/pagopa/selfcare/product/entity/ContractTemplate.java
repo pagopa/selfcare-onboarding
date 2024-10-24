@@ -2,7 +2,7 @@ package it.pagopa.selfcare.product.entity;
 
 import java.time.Instant;
 
-public class ContractStorage {
+public class ContractTemplate {
 
     private Instant contractTemplateUpdatedAt;
     private String contractTemplatePath;
