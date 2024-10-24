@@ -247,42 +247,46 @@ public class AggregatesServiceDefault implements AggregatesService {
     }
 
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForUO(UOResource uoResource, Aggregate aggregateAppIo) {
-        return retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
-                .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(uoResource.getDescrizioneUo(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
-                    return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), uoResource.getCodiceFiscaleEnte(), aggregateAppIo);
-                });
+        return institutionApi.findInstitutionUsingGET(uoResource.getCodiceFiscaleEnte(), null, null)
+                .onItem().transformToUni(institutionResource ->
+                        retrieveGeographicTaxonomies(uoResource.getCodiceComuneISTAT())
+                                .onItem().transformToUni(geographicTaxonomyResource -> {
+                                    mapIpaField(uoResource.getDescrizioneUo(), uoResource.getIndirizzo(), uoResource.getCap(), null, aggregateAppIo, institutionResource.getDescription(), geographicTaxonomyResource);
+                                    return retrieveDigitalAddress(uoResource.getTipoMail1(), uoResource.getMail1(), institutionResource, aggregateAppIo);
+                                })
+                );
     }
 
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForAOO(AOOResource aooResource, Aggregate aggregateAppIo) {
-        return retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
-                .onItem().transformToUni(geographicTaxonomyResource -> {
-                    mapIpaField(aooResource.getDenominazioneAoo(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo, geographicTaxonomyResource);
-                    return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), aooResource.getCodiceFiscaleEnte(), aggregateAppIo);
-                });
+        return institutionApi.findInstitutionUsingGET(aooResource.getCodiceFiscaleEnte(), null, null)
+                .onItem().transformToUni(institutionResource ->
+                        retrieveGeographicTaxonomies(aooResource.getCodiceComuneISTAT())
+                                .onItem().transformToUni(geographicTaxonomyResource -> {
+                                    mapIpaField(aooResource.getDenominazioneAoo(), aooResource.getIndirizzo(), aooResource.getCap(), null, aggregateAppIo,  institutionResource.getDescription(),geographicTaxonomyResource);
+                                    return retrieveDigitalAddress(aooResource.getTipoMail1(), aooResource.getMail1(), institutionResource, aggregateAppIo);
+                                })
+                );
     }
 
     private Uni<Aggregate> retrieveCityCountyAndMapIpaFieldForPA(InstitutionResource institutionResource, Aggregate aggregateAppIo) {
         return retrieveGeographicTaxonomies(institutionResource.getIstatCode())
                 .onItem().transform(geographicTaxonomyResource -> {
-                    mapIpaField(institutionResource.getDescription(), institutionResource.getAddress(), institutionResource.getZipCode(), institutionResource.getOriginId(), aggregateAppIo, geographicTaxonomyResource);
+                    mapIpaField(institutionResource.getDescription(), institutionResource.getAddress(), institutionResource.getZipCode(), institutionResource.getOriginId(), aggregateAppIo, null, geographicTaxonomyResource);
                     aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress());
                     return aggregateAppIo;
                 });
     }
 
-    private Uni<Aggregate> retrieveDigitalAddress(String mailType, String mail, String taxCode, Aggregate aggregateAppIo) {
+    private Uni<Aggregate> retrieveDigitalAddress(String mailType, String mail, InstitutionResource institutionResource, Aggregate aggregateAppIo) {
         if (Objects.equals(mailType, PEC)) {
             aggregateAppIo.setDigitalAddress(mail);
-            return Uni.createFrom().item(aggregateAppIo);
         } else {
-            return institutionApi.findInstitutionUsingGET(taxCode, null, null)
-                    .onItem().invoke(institutionResource -> aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress()))
-                    .replaceWith(aggregateAppIo);
+            aggregateAppIo.setDigitalAddress(institutionResource.getDigitalAddress());
         }
+        return Uni.createFrom().item(aggregateAppIo);
     }
 
-    private static void mapIpaField(String description, String address, String zipCode, String originId, Aggregate aggregateAppIo, GeographicTaxonomyFromIstatCode geographicTaxonomyFromIstatCode) {
+    private static void mapIpaField(String description, String address, String zipCode, String originId, Aggregate aggregateAppIo, String parentDescription ,GeographicTaxonomyFromIstatCode geographicTaxonomyFromIstatCode) {
         if(Objects.nonNull(geographicTaxonomyFromIstatCode)) {
             aggregateAppIo.setCounty(geographicTaxonomyFromIstatCode.getCounty());
             aggregateAppIo.setCity(geographicTaxonomyFromIstatCode.getCity());
@@ -291,6 +295,7 @@ public class AggregatesServiceDefault implements AggregatesService {
         aggregateAppIo.setAddress(address);
         aggregateAppIo.setZipCode(zipCode);
         aggregateAppIo.setOriginId(originId);
+        aggregateAppIo.setParentDescription(parentDescription);
     }
 
     private Uni<GeographicTaxonomyFromIstatCode> retrieveGeographicTaxonomies(String codiceIstat) {
