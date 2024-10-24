@@ -129,8 +129,8 @@ public class ProductTest {
   }
 
   @Test
-  @DisplayName("Test when only institutionType is into the map")
-  public void getContractMappingsByKeyTest() {
+  @DisplayName("Test for Institution when only institutionType is into the map")
+  public void getUserContractMappingsByKeyTest() {
 
     // given
     InstitutionType institutionType = InstitutionType.PSP;
@@ -157,8 +157,8 @@ public class ProductTest {
   }
 
   @Test
-  @DisplayName("Test when only institutionType is not into the map")
-  public void getContractMappingsByKeyTest_KO() {
+  @DisplayName("Test for User when only institutionType is not into the map")
+  public void getUserContractMappingsByKeyTest_KO() {
 
     // given
     InstitutionType institutionType = InstitutionType.PSP;
@@ -182,5 +182,64 @@ public class ProductTest {
     assertNotNull(result);
     assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplatePath()));
     assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplateVersion()));
+  }
+
+  @Test
+  @DisplayName("Test for Institution when only institutionType is into the map")
+  public void getInstitutionContractMappingsByKeyTest() {
+
+    // given
+    InstitutionType institutionType = InstitutionType.PSP;
+
+    ContractTemplate contractTemplate = new ContractTemplate();
+    contractTemplate.setContractTemplatePath("test");
+    contractTemplate.setContractTemplateVersion("test-version");
+    contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+
+    Map<String, ContractTemplate> mapTest = new HashMap<>();
+    mapTest.put(institutionType.toString(), contractTemplate);
+
+    Product product = new Product();
+    product.setInstitutionContractMappings(mapTest);
+
+    // when
+    ContractTemplate result = product.getInstitutionContractTemplate(institutionType.toString());
+
+    // then
+    assertNotNull(result);
+    assertTrue(Objects.nonNull(result));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateUpdatedAt().toString()));
+  }
+
+  @Test
+  @DisplayName("Test for Institution when only institutionType is not into the map")
+  public void getInstitutionContractMappingsByKeyTest_KO() {
+
+    // given
+    InstitutionType institutionType = InstitutionType.PSP;
+
+    ContractTemplate contractTemplate = new ContractTemplate();
+    contractTemplate.setContractTemplatePath("test");
+    contractTemplate.setContractTemplateVersion("test-version");
+    contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+
+    Map<String, ContractTemplate> mapTest = new HashMap<>();
+    mapTest.put(institutionType.toString(), contractTemplate);
+    mapTest.put("default", contractTemplate);
+
+    Product product = new Product();
+    product.setInstitutionContractMappings(mapTest);
+
+    // when
+    ContractTemplate result =
+        product.getInstitutionContractTemplate(InstitutionType.PRV.toString());
+
+    // then
+    assertNotNull(result);
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateUpdatedAt().toString()));
   }
 }
