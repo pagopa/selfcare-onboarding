@@ -1578,6 +1578,9 @@
           "description" : {
             "type" : "string"
           },
+          "parentDescription" : {
+            "type" : "string"
+          },
           "recipientCode" : {
             "type" : "string"
           },
@@ -1649,6 +1652,9 @@
             "type" : "string"
           },
           "vatNumber" : {
+            "type" : "string"
+          },
+          "parentDescription" : {
             "type" : "string"
           },
           "geographicTaxonomies" : {

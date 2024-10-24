@@ -81,6 +81,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("123");
+        uoResource.setCodiceFiscaleEnte("1307110484");
 
         AOOResource aooResource = new AOOResource();
         aooResource.setTipoMail1("Altro");
@@ -91,11 +92,13 @@ class AggregatesServiceDefaultTest {
         aooResource.setCodiceFiscaleEnte("1307110484");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         aooResource.setCodiceComuneISTAT("123");
+        aooResource.setCodiceFiscaleEnte("1307110484");
 
         InstitutionResource institutionResource = mock(InstitutionResource.class);
         when(institutionResource.getIstatCode()).thenReturn("123");
         when(institutionResource.getOriginId()).thenReturn("test");
         when(institutionResource.getDigitalAddress()).thenReturn("pec@Pec");
+        when(institutionResource.getDescription()).thenReturn("descrizione ente");
 
         GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
         geographicTaxonomyResource.setCode("123");
@@ -131,7 +134,7 @@ class AggregatesServiceDefaultTest {
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("123");
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
-        verify(institutionApi, times(2)).findInstitutionUsingGET("1307110484", null, null);
+        verify(institutionApi, times(3)).findInstitutionUsingGET("1307110484", null, null);
 
     }
 
@@ -190,6 +193,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("456");
+        uoResource.setCodiceFiscaleEnte("1307110484");
 
         AOOResource aooResource = new AOOResource();
         aooResource.setTipoMail1("Pec");
@@ -199,10 +203,12 @@ class AggregatesServiceDefaultTest {
         aooResource.setCap("00100");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         aooResource.setCodiceComuneISTAT("456");
+        aooResource.setCodiceFiscaleEnte("1307110484");
 
         InstitutionResource institutionResource = mock(InstitutionResource.class);
         when(institutionResource.getIstatCode()).thenReturn("456");
         when(institutionResource.getOriginId()).thenReturn("test");
+        when(institutionResource.getDescription()).thenReturn("testDenominazioneEnte");
 
         GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
         geographicTaxonomyResource.setCode("456");
@@ -238,7 +244,7 @@ class AggregatesServiceDefaultTest {
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("456");
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
-        verify(institutionApi, times(0)).findInstitutionUsingGET("00297110389", null, null);
+        verify(institutionApi, times(3)).findInstitutionUsingGET("1307110484", null, null);
     }
 
     private static VerifyAggregateResponse mockResponseForIO() {
@@ -256,6 +262,7 @@ class AggregatesServiceDefaultTest {
         aggregateUO.setZipCode("00100");
         aggregateUO.setOrigin("IPA");
         aggregateUO.setRowNumber(1);
+        aggregateUO.setParentDescription("descrizione ente");
 
         Aggregate aggregateAOO = new Aggregate();
         aggregateAOO.setSubunitCode("18SU3S");
@@ -270,11 +277,12 @@ class AggregatesServiceDefaultTest {
         aggregateAOO.setZipCode("00100");
         aggregateAOO.setOrigin("IPA");
         aggregateAOO.setRowNumber(5);
+        aggregateAOO.setParentDescription("descrizione ente");
 
         Aggregate aggregate = new Aggregate();
         aggregate.setSubunitCode(null);
         aggregate.setSubunitType(null);
-        aggregate.setDescription(null);
+        aggregate.setDescription("descrizione ente");
         aggregate.setDigitalAddress("pec@Pec");
         aggregate.setTaxCode("1307110484");
         aggregate.setVatNumber("1307110484");
@@ -356,6 +364,7 @@ class AggregatesServiceDefaultTest {
         aggregateUO.setRecipientCode("NYJTPK");
         aggregateUO.setRowNumber(1);
         aggregateUO.setUsers(List.of(aggregateUser));
+        aggregateUO.setParentDescription("testDenominazioneEnte");
 
         Aggregate aggregateAOO = new Aggregate();
         aggregateAOO.setSubunitCode("18SU3S");
@@ -372,11 +381,12 @@ class AggregatesServiceDefaultTest {
         aggregateAOO.setOrigin("IPA");
         aggregateAOO.setRowNumber(9);
         aggregateAOO.setUsers(List.of(aggregateUser));
+        aggregateAOO.setParentDescription("testDenominazioneEnte");
 
         Aggregate aggregate = new Aggregate();
         aggregate.setSubunitCode(null);
         aggregate.setSubunitType(null);
-        aggregate.setDescription(null);
+        aggregate.setDescription("testDenominazioneEnte");
         aggregate.setDigitalAddress(null);
         aggregate.setTaxCode("1307110484");
         aggregate.setVatNumber("1864440019");

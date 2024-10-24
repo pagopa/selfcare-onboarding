@@ -13,6 +13,7 @@ public class AggregateInstitution {
     private String description;
     private String subunitCode;
     private String subunitType;
+    private String parentDescription;
     private List<GeographicTaxonomy> geographicTaxonomies;
     private String address;
     private String zipCode;
