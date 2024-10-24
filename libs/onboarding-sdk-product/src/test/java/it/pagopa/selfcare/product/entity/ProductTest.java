@@ -10,7 +10,6 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -142,25 +141,24 @@ public class ProductTest {
     // given
     InstitutionType institutionType = InstitutionType.PSP;
 
-    UserContractTemplate userContractTemplate = new UserContractTemplate();
-    userContractTemplate.setUserContractTemplatePath("test");
-    userContractTemplate.setUserContractTemplateVersion("test-version");
-    userContractTemplate.setUserContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+    ContractTemplate ContractTemplate = new ContractTemplate();
+    ContractTemplate.setContractTemplatePath("test");
+    ContractTemplate.setContractTemplateVersion("test-version");
 
-    Map<String, UserContractTemplate> mapTest = new HashMap<>();
-    mapTest.put(institutionType.toString(), userContractTemplate);
+    Map<String, ContractTemplate> mapTest = new HashMap<>();
+    mapTest.put(institutionType.toString(), ContractTemplate);
 
     Product product = new Product();
     product.setUserContractMappings(mapTest);
 
     // when
-    UserContractTemplate result = product.getUserContractTemplate(institutionType.toString());
+    ContractTemplate result = product.getUserContractTemplate(institutionType.toString());
 
     // then
     assertNotNull(result);
     assertTrue(Objects.nonNull(result));
-    assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplatePath()));
-    assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplateVersion()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
   }
 
   @Test
@@ -170,25 +168,24 @@ public class ProductTest {
     // given
     InstitutionType institutionType = InstitutionType.PSP;
 
-    UserContractTemplate userContractTemplate = new UserContractTemplate();
-    userContractTemplate.setUserContractTemplatePath("test");
-    userContractTemplate.setUserContractTemplateVersion("test-version");
-    userContractTemplate.setUserContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
+    ContractTemplate ContractTemplate = new ContractTemplate();
+    ContractTemplate.setContractTemplatePath("test");
+    ContractTemplate.setContractTemplateVersion("test-version");
 
-    Map<String, UserContractTemplate> mapTest = new HashMap<>();
-    mapTest.put(institutionType.toString(), userContractTemplate);
-    mapTest.put("default", userContractTemplate);
+    Map<String, ContractTemplate> mapTest = new HashMap<>();
+    mapTest.put(institutionType.toString(), ContractTemplate);
+    mapTest.put("default", ContractTemplate);
 
     Product product = new Product();
     product.setUserContractMappings(mapTest);
 
     // when
-    UserContractTemplate result = product.getUserContractTemplate(InstitutionType.PRV.toString());
+    ContractTemplate result = product.getUserContractTemplate(InstitutionType.PRV.toString());
 
     // then
     assertNotNull(result);
-    assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplatePath()));
-    assertTrue(StringUtils.isNotEmpty(result.getUserContractTemplateVersion()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
+    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
   }
 
   @Test
@@ -201,7 +198,6 @@ public class ProductTest {
     ContractTemplate contractTemplate = new ContractTemplate();
     contractTemplate.setContractTemplatePath("test");
     contractTemplate.setContractTemplateVersion("test-version");
-    contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
 
     Map<String, ContractTemplate> mapTest = new HashMap<>();
     mapTest.put(institutionType.toString(), contractTemplate);
@@ -217,7 +213,6 @@ public class ProductTest {
     assertTrue(Objects.nonNull(result));
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
-    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateUpdatedAt().toString()));
   }
 
   @Test
@@ -230,7 +225,6 @@ public class ProductTest {
     ContractTemplate contractTemplate = new ContractTemplate();
     contractTemplate.setContractTemplatePath("test");
     contractTemplate.setContractTemplateVersion("test-version");
-    contractTemplate.setContractTemplateUpdatedAt(Instant.parse("2024-10-23T11:19:42.12Z"));
 
     Map<String, ContractTemplate> mapTest = new HashMap<>();
     mapTest.put(institutionType.toString(), contractTemplate);
@@ -247,7 +241,6 @@ public class ProductTest {
     assertNotNull(result);
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplatePath()));
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
-    assertTrue(StringUtils.isNotEmpty(result.getContractTemplateUpdatedAt().toString()));
   }
 
   @Test
@@ -284,5 +277,4 @@ public class ProductTest {
             .asText());
     assertEquals(product.getStatus().toString(), jsonNode.get("status").asText());
   }
-  
 }
