@@ -35,7 +35,7 @@ public class Product {
     private Product parent;
     private List<String> consumers;
     private Map<String, ContractTemplate> institutionContractMappings;
-    private Map<String, UserContractTemplate> userContractMappings;
+    private Map<String, ContractTemplate> userContractMappings;
 
     public String getId() {
         return id;
@@ -264,8 +264,8 @@ public class Product {
     }
 
     public boolean canAddAdmin() {
-        UserContractTemplate userContractTemplate = getUserContractTemplate(CONTRACT_TYPE_DEFAULT);
-        return StringUtils.isNotEmpty(userContractTemplate.getUserContractTemplatePath()) && StringUtils.isNotEmpty(userContractTemplate.getUserContractTemplateVersion());
+        ContractTemplate userContractTemplate = getUserContractTemplate(CONTRACT_TYPE_DEFAULT);
+        return StringUtils.isNotEmpty(userContractTemplate.getContractTemplatePath()) && StringUtils.isNotEmpty(userContractTemplate.getContractTemplateVersion());
     }
 
     public Map<String, ContractTemplate> getInstitutionContractMappings() {
@@ -276,11 +276,11 @@ public class Product {
         this.institutionContractMappings = institutionContractMappings;
     }
 
-    public Map<String, UserContractTemplate> getUserContractMappings() {
+    public Map<String, ContractTemplate> getUserContractMappings() {
         return userContractMappings;
     }
 
-    public void setUserContractMappings(Map<String, UserContractTemplate> userContractMappings) {
+    public void setUserContractMappings(Map<String, ContractTemplate> userContractMappings) {
         this.userContractMappings = userContractMappings;
     }
 
@@ -297,10 +297,10 @@ public class Product {
    * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
    *
    * @param institutionType InstitutionType
-   * @return UserContractTemplate
+   * @return ContractTemplate
    */
-  public UserContractTemplate getUserContractTemplate(String institutionType) {
-    UserContractTemplate userContractTemplate = new UserContractTemplate();
+  public ContractTemplate getUserContractTemplate(String institutionType) {
+    ContractTemplate userContractTemplate = new ContractTemplate();
     if (Objects.nonNull(getUserContractMappings())) {
       if (Objects.nonNull(institutionType)
           && getUserContractMappings().containsKey(institutionType)) {
