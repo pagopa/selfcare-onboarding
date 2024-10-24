@@ -193,17 +193,17 @@
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-crypto</artifactId>
-      <version>0.3.3</version>
+      <version>0.3.4</version>
     </dependency>
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-azure-storage</artifactId>
-      <version>0.3.3</version>
+      <version>0.3.4</version>
     </dependency>
     <dependency>
       <groupId>it.pagopa.selfcare</groupId>
       <artifactId>onboarding-sdk-product</artifactId>
-      <version>0.3.3</version>
+      <version>0.3.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
