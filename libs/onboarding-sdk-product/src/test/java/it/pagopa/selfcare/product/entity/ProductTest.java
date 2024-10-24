@@ -2,10 +2,17 @@ package it.pagopa.selfcare.product.entity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -242,4 +249,40 @@ public class ProductTest {
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplateVersion()));
     assertTrue(StringUtils.isNotEmpty(result.getContractTemplateUpdatedAt().toString()));
   }
+
+  @Test
+  void productTest() {
+    // given
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+    Product product = new Product();
+    JsonNode jsonNode = null;
+
+    // when
+    try {
+      product = objectMapper.readValue(new File("src/test/resources/product.json"), Product.class);
+
+      FileInputStream fis = new FileInputStream("src/test/resources/product.json");
+      String data = IOUtils.toString(fis, "UTF-8");
+
+      jsonNode = objectMapper.readTree(data);
+
+    } catch (IOException e) {
+      log.error("", e);
+    }
+
+    // then
+    assertNotNull(jsonNode);
+    assertEquals(product.getAlias(), jsonNode.get("alias").asText());
+    assertEquals(product.getId(), jsonNode.get("id").asText());
+    assertEquals(
+        product.getInstitutionContractMappings().get("default").getContractTemplatePath(),
+        jsonNode
+            .get("institutionContractMappings")
+            .get("default")
+            .get("contractTemplatePath")
+            .asText());
+    assertEquals(product.getStatus().toString(), jsonNode.get("status").asText());
+  }
+  
 }
