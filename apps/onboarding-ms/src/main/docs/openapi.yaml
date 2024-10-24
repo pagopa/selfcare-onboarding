@@ -679,14 +679,14 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
-  /v1/onboarding/users/pg-from-ic-and-ade:
+  /v1/onboarding/users/pg:
     post:
       tags:
       - Onboarding Controller
       summary: Add Manager of PG institution
       description: Create new onboarding request to add new Manager and replace the
         old inactive Managers of the institution.
-      operationId: onboardingUsersPgFromIcAndAde
+      operationId: onboardingUsersPg
       requestBody:
         content:
           application/json:

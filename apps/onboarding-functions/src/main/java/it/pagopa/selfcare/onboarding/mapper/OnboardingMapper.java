@@ -5,7 +5,6 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,6 +12,9 @@ import org.mapstruct.Named;
 
 import java.util.List;
 import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.common.PartyRole.ADMIN_EA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 
 @Mapper(componentModel = "cdi")
 public interface OnboardingMapper {
@@ -45,6 +47,9 @@ public interface OnboardingMapper {
     default List<User> mapAggregateUsers(Onboarding onboarding, AggregateInstitution aggregateInstitution) {
         if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
             return aggregateInstitution.getUsers();
+        }
+        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId())){
+            onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();
     }

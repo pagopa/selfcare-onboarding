@@ -647,7 +647,7 @@ class OnboardingControllerTest {
                 .when()
                 .body(onboardingUserPgValid)
                 .contentType(ContentType.JSON)
-                .post("/users/pg-from-ic-and-ade")
+                .post("/users/pg")
                 .then()
                 .statusCode(200);
 
@@ -665,7 +665,7 @@ class OnboardingControllerTest {
                 .when()
                 .body(new OnboardingUserPgRequest())
                 .contentType(ContentType.JSON)
-                .post("/users/pg-from-ic-and-ade")
+                .post("/users/pg")
                 .then()
                 .statusCode(400);
     }

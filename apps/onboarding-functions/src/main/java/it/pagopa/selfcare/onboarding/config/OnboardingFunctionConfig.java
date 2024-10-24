@@ -63,9 +63,9 @@ public class OnboardingFunctionConfig {
         return new ArubaPkcs7HashSignServiceImpl(new ArubaSignServiceImpl());
     }
 
-    public Pkcs7HashSignService namirialPkcs7HashSignService(String username, String password){
+    public Pkcs7HashSignService namirialPkcs7HashSignService(){
         log.info("Signature will be performed using NamirialPkcs7HashSignServiceImpl");
-        return new NamirialPkcs7HashSignServiceImpl(new NamiralSignServiceImpl(username,password));
+        return new NamirialPkcs7HashSignServiceImpl(new NamiralSignServiceImpl());
     }
 
 
@@ -89,12 +89,10 @@ public class OnboardingFunctionConfig {
         return new Pkcs7HashSignServiceImpl();
     }
     @ApplicationScoped
-    public PadesSignService padesSignService(@ConfigProperty(name = "onboarding-functions.pagopa-signature.source") String source,
-                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial-user") String username,
-                                             @ConfigProperty(name = "onboarding-functions.pagopa-signature.namirial-psw") String psw){
+    public PadesSignService padesSignService(@ConfigProperty(name = "onboarding-functions.pagopa-signature.source") String source){
         return switch (source) {
             case SIGNATURE_SOURCE_ARUBA -> new PadesSignServiceImpl(arubaPkcs7HashSignService());
-            case SIGNATURE_SOURCE_NAMIRIAL -> new PadesSignServiceImpl(namirialPkcs7HashSignService(username, psw));
+            case SIGNATURE_SOURCE_NAMIRIAL -> new PadesSignServiceImpl(namirialPkcs7HashSignService());
             case SIGNATURE_SOURCE_DISABLED -> new PadesSignServiceImpl(disabledPkcs7HashSignService());
             default -> new PadesSignServiceImpl(pkcs7HashSignService());
         };

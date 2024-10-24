@@ -6,6 +6,7 @@ public class ProductRole {
 
     private String code;
     private String label;
+    private String productLabel;
     private String description;
 
     public String getCode() {
@@ -22,6 +23,14 @@ public class ProductRole {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getProductLabel() {
+        return productLabel;
+    }
+
+    public void setProductLabel(String productLabel) {
+        this.productLabel = productLabel;
     }
 
     public String getDescription() {
