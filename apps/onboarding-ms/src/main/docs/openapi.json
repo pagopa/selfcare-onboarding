@@ -2544,6 +2544,18 @@
           },
           "vatNumberGroup" : {
             "type" : "boolean"
+          },
+          "providerNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "contractType" : {
+            "type" : "string"
+          },
+          "contractId" : {
+            "type" : "string"
           }
         }
       },
