@@ -6,7 +6,6 @@ import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.product.entity.Product;
-import java.util.Objects;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
@@ -49,15 +48,5 @@ public abstract class OnboardingWorkflow {
   public void setOnboarding(Onboarding onboarding) {
     this.onboarding = onboarding;
   }
-
-  public String getIstitutionType() {
-    String istitutionType = Product.CONTRACT_TYPE_DEFAULT;
-
-    if (Objects.isNull(onboarding.getInstitution())
-        || Objects.isNull(onboarding.getInstitution().getInstitutionType())) {
-      istitutionType = onboarding.getInstitution().getInstitutionType().name();
-    }
-
-    return istitutionType;
-  }
+  
 }

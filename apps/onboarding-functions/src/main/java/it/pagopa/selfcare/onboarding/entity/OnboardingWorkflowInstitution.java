@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
+import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 
 public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
@@ -59,12 +60,12 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
   @Override
   public String getContractTemplatePath(Product product) {
-    return product.getInstitutionContractTemplate(getIstitutionType()).getContractTemplatePath();
+    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath();
   }
 
   @Override
   public String getContractTemplateVersion(Product product) {
-    return product.getInstitutionContractTemplate(getIstitutionType()).getContractTemplateVersion();
+    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplateVersion();
   }
 
   public String getType() {
