@@ -611,6 +611,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
         onboarding.getInstitution().setDescription("institution-description");
+        onboarding.getInstitution().setParentDescription("parent-description");
         Aggregator aggregator = new Aggregator();
         aggregator.setDescription("aggregator-description");
         aggregator.setId("aggregator-id");
@@ -630,6 +631,7 @@ public class CompletionServiceDefaultTest {
         Assertions.assertEquals(onboarding.getAggregator().getId(), capture.getValue().getTo());
         Assertions.assertEquals(onboarding.getAggregator().getDescription(), capture.getValue().getInstitutionToName());
         Assertions.assertEquals(onboarding.getProductId(), capture.getValue().getProductId());
+        Assertions.assertEquals(onboarding.getInstitution().getParentDescription(), capture.getValue().getInstitutionFromRootName());
         Assertions.assertEquals("EA", capture.getValue().getType().name());
         Assertions.assertEquals("delegation-id", delegationId);
         Mockito.verify(delegationApi, times(1))

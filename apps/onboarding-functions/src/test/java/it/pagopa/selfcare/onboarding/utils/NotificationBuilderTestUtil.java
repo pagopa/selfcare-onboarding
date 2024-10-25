@@ -52,7 +52,7 @@ public class NotificationBuilderTestUtil {
         institutionResponse.setGeographicTaxonomies(new ArrayList<>());
         institutionResponse.setId(institutionId);
         institutionResponse.setImported(true);
-        institutionResponse.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+        institutionResponse.setInstitutionType("PA");
         institutionResponse.setIstatCode("istatCode");
         institutionResponse.setOnboarding(new ArrayList<>());
         institutionResponse.setOrigin("IPA");

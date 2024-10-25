@@ -130,7 +130,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder implements N
     }
 
     private boolean isAllowedInstitutionType(InstitutionResponse institution) {
-        return isNullOrEmpty(consumer.allowedInstitutionTypes()) || consumer.allowedInstitutionTypes().contains(institution.getInstitutionType().name());
+        return isNullOrEmpty(consumer.allowedInstitutionTypes()) || consumer.allowedInstitutionTypes().contains(institution.getInstitutionType());
     }
 
     private boolean isAllowedOrigin(String origin) {

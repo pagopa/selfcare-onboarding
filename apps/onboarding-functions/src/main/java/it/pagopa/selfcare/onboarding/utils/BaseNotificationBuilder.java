@@ -102,7 +102,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     @Override
     public InstitutionToNotify retrieveInstitution(InstitutionResponse institution) {
         InstitutionToNotify toNotify = new InstitutionToNotify();
-        toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType().value()));
+        toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
         toNotify.setDescription(institution.getDescription());
         toNotify.setDigitalAddress(institution.getDigitalAddress() == null ? alternativeEmail : institution.getDigitalAddress());
         toNotify.setAddress(institution.getAddress());

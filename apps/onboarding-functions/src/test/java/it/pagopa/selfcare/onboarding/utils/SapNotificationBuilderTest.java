@@ -274,10 +274,10 @@ class SapNotificationBuilderTest {
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+        institution.setInstitutionType("PA");
         institution.setOrigin("IPA");
 
-        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of(InstitutionResponse.InstitutionTypeEnum.PA.toString()));
+        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of("PA"));
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
 
         assertTrue(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
@@ -291,9 +291,9 @@ class SapNotificationBuilderTest {
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.AS);
+        institution.setInstitutionType("AS");
 
-        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of(InstitutionResponse.InstitutionTypeEnum.PA.toString()));
+        when(consumer.allowedInstitutionTypes()).thenReturn(Set.of("PA"));
 
         assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
     }
@@ -305,7 +305,7 @@ class SapNotificationBuilderTest {
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+        institution.setInstitutionType("PA");
         institution.setOrigin("INFOCAMERE");
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
 

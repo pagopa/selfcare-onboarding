@@ -289,6 +289,7 @@ public class CompletionServiceDefault implements CompletionService {
         delegationRequest.setFrom(onboarding.getInstitution().getId());
         delegationRequest.setTo(onboarding.getAggregator().getId());
         delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        delegationRequest.setInstitutionFromRootName(onboarding.getInstitution().getParentDescription());
         return delegationRequest;
     }
 
