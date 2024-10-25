@@ -102,7 +102,7 @@ class SapNotificationBuilderTest {
         assertNull(notification.getClosedAt());
         assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertNull(notification.getNotificationType());

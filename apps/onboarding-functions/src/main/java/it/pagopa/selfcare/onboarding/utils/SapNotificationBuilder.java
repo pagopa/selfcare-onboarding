@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.utils;
 
-import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -17,7 +16,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyRes
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
-import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;

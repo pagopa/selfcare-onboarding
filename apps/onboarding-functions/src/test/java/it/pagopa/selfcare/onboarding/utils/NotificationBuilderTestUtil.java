@@ -22,14 +22,14 @@ import static org.mockito.Mockito.when;
 
 public class NotificationBuilderTestUtil {
 
-    public static final String institutionId = "i1";
-    public static final String tokenId = "t1";
-    public static final String productId = "prod";
+    public static final String INSTITUTION_ID = "i1";
+    public static final String TOKEN_ID = "t1";
+    public static final String PRODUCT_ID = "prod";
 
     public static Token createToken() {
         Token token = new Token();
-        token.setId(tokenId);
-        token.setProductId(productId);
+        token.setId(TOKEN_ID);
+        token.setProductId(PRODUCT_ID);
         token.setContractSigned("contractSigned");
         return token;
     }
@@ -50,7 +50,7 @@ public class NotificationBuilderTestUtil {
         institutionResponse.setDigitalAddress("digitalAddress");
         institutionResponse.setExternalId("externalId");
         institutionResponse.setGeographicTaxonomies(new ArrayList<>());
-        institutionResponse.setId(institutionId);
+        institutionResponse.setId(INSTITUTION_ID);
         institutionResponse.setImported(true);
         institutionResponse.setInstitutionType("PA");
         institutionResponse.setIstatCode("istatCode");
@@ -84,8 +84,8 @@ public class NotificationBuilderTestUtil {
 
     public static Onboarding createOnboarding(OnboardingStatus status, OffsetDateTime createdAt, OffsetDateTime activatedAt, OffsetDateTime updateAt, OffsetDateTime deletedAt) {
         Onboarding onboarding = new Onboarding();
-        onboarding.setProductId(productId);
-        onboarding.setId(tokenId);
+        onboarding.setProductId(PRODUCT_ID);
+        onboarding.setId(TOKEN_ID);
         onboarding.setStatus(status);
         onboarding.setCreatedAt(Objects.nonNull(createdAt) ? createdAt.toLocalDateTime() : null);
         onboarding.setActivatedAt(Objects.nonNull(activatedAt) ? activatedAt.toLocalDateTime() : null);
@@ -93,7 +93,7 @@ public class NotificationBuilderTestUtil {
         onboarding.setDeletedAt(Objects.nonNull(deletedAt) ? deletedAt.toLocalDateTime() : null);
 
         Institution institution = new Institution();
-        institution.setId(institutionId);
+        institution.setId(INSTITUTION_ID);
         onboarding.setInstitution(institution);
         return onboarding;
     }
