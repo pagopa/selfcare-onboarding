@@ -21,6 +21,7 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
+import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -99,10 +100,9 @@ public class OnboardingService {
         contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle(), onboardingWorkflow.getPdfFormatFilename());
     }
 
-    // TODO
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getInstitutionContractTemplate(onboarding.getInstitution().getInstitutionType().name()).getContractTemplatePath(), onboarding.getId(), product.getTitle());
+        contractService.loadContractPDF(product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
 
     public void saveTokenWithContract(OnboardingWorkflow onboardingWorkflow) {
