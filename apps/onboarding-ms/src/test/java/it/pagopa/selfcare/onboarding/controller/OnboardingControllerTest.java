@@ -174,7 +174,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingPaAggregator_withoutVatNumber() {
+    void onboardingPaAggregator_withoutVatNumberAndParentDescription() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
         onboardingPaValid.setIsAggregator(Boolean.TRUE);
         List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
@@ -199,17 +199,19 @@ class OnboardingControllerTest {
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
         assertNull(captor.getValue().getAggregates().get(0).getVatNumber());
+        assertNull(captor.getValue().getAggregates().get(0).getParentDescription());
         assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingPaAggregator_WithVatNumber() {
+    void onboardingPaAggregator_WithVatNumberAndParentDescription() {
         OnboardingPaRequest onboardingPaValid = dummyOnboardingPa();
         onboardingPaValid.setIsAggregator(Boolean.TRUE);
         List<AggregateInstitutionRequest> aggregateInstitutions = new ArrayList<>();
         AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
         aggregateInstitutionRequest.setVatNumber("vatNumber");
+        aggregateInstitutionRequest.setParentDescription("parentDescription");
         aggregateInstitutions.add(aggregateInstitutionRequest);
         onboardingPaValid.setAggregates(aggregateInstitutions);
 
@@ -230,6 +232,7 @@ class OnboardingControllerTest {
         assertEquals(captor.getValue().getBilling().getRecipientCode(), onboardingPaValid.getBilling().getRecipientCode().toUpperCase());
         assertTrue(captor.getValue().getIsAggregator());
         assertNotNull(captor.getValue().getAggregates().get(0).getVatNumber());
+        assertNotNull(captor.getValue().getAggregates().get(0).getParentDescription());
         assertFalse(captor.getValue().getAggregates().isEmpty());
     }
 
