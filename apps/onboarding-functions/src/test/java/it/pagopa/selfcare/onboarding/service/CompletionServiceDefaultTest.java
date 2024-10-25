@@ -780,6 +780,23 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void checkExistsDelegationError() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+
+        Institution aggregator = new Institution();
+        aggregator.setId("aggregatorId");
+        input.setInstitution(aggregator);
+
+        when(delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null, aggregate.getTaxCode(), null, null, null))
+                .thenThrow(WebApplicationException.class);
+
+        Assertions.assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.existsDelegation(input));
+    }
+
+    @Test
     void checkExistsDelegationFalse() {
         OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
         Institution aggregate = new Institution();
@@ -876,6 +893,86 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void deleteOldPgManagers_shouldDeleteInactiveManagers_InvalidOrigin() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.IPA);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        UserInstitutionResponse user2 = new UserInstitutionResponse();
+        user2.setUserId("user2");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1, user2));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+        UserResource userResource2 = new UserResource();
+        userResource2.setFiscalCode("taxCode2");
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
+
+        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
+        legalVerificationResult.setVerificationResult(false);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
+
+        Response responseOk = new ServerResponse(null, 204, null);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+                .thenReturn(responseOk);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+                .thenReturn(responseOk);
+
+        Assertions.assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.deleteOldPgManagers(onboarding),
+                "Origin not supported");
+
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldDeleteInactiveManagers_getStatusInfoNotSuccessfull() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.ADE);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        UserInstitutionResponse user2 = new UserInstitutionResponse();
+        user2.setUserId("user2");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1, user2));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+        UserResource userResource2 = new UserResource();
+        userResource2.setFiscalCode("taxCode2");
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
+
+        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
+        legalVerificationResult.setVerificationResult(false);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
+
+        Response responseKo = new ServerResponse(null, 400, null);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+                .thenReturn(responseKo);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+                .thenReturn(responseKo);
+
+        Assertions.assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.deleteOldPgManagers(onboarding),
+                "Failed to delete user user1 from product productId in institution institution-id");
+
+    }
+
+    @Test
     void deleteOldPgManagers_shouldDeleteInactiveManagers_OnAde() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
@@ -912,6 +1009,33 @@ public class CompletionServiceDefaultTest {
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
         verify(userControllerApi, times(2)).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+    }
+
+    @Test
+    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnAde_Error_isActiveManagerOnAdeRegistry() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setId("institution-id");
+        onboarding.getInstitution().setTaxCode("institution-tax-code");
+        onboarding.getInstitution().setOrigin(Origin.ADE);
+
+        UserInstitutionResponse user1 = new UserInstitutionResponse();
+        user1.setUserId("user1");
+        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
+                .thenReturn(List.of(user1));
+
+        UserResource userResource1 = new UserResource();
+        userResource1.setFiscalCode("taxCode1");
+
+        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
+
+        Response responseOk = new ServerResponse(null, 204, null);
+        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+                .thenReturn(responseOk);
+        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenThrow(new WebApplicationException(404));
+
+        Assertions.assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.deleteOldPgManagers(onboarding), "Error during verify legal HTTP 404 Not Found");
     }
 
     @Test
