@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
+
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -22,14 +25,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.bson.Document;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,10 +34,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 import java.util.stream.Stream;
-import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
+import org.bson.Document;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class OnboardingService {
@@ -100,9 +99,10 @@ public class OnboardingService {
         contractService.createContractPDF(onboardingWorkflow.getContractTemplatePath(product), onboarding, manager, delegates, product.getTitle(), onboardingWorkflow.getPdfFormatFilename());
     }
 
+    // TODO
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
+        contractService.loadContractPDF(product.getInstitutionContractTemplate(onboarding.getInstitution().getInstitutionType().name()).getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
 
     public void saveTokenWithContract(OnboardingWorkflow onboardingWorkflow) {
@@ -137,7 +137,7 @@ public class OnboardingService {
         token.setId(onboarding.getId());
         token.setOnboardingId(onboarding.getId());
         token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
-        token.setContractVersion(product.getContractTemplateVersion());
+        token.setContractVersion(onboardingWorkflow.getContractTemplateVersion(product));
         token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(onboardingWorkflow.getPdfFormatFilename(), product.getTitle()));
         token.setCreatedAt(LocalDateTime.now());
         token.setUpdatedAt(LocalDateTime.now());
