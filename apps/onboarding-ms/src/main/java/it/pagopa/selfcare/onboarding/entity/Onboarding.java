@@ -15,7 +15,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @FieldNameConstants(asEnum = true)
-@MongoEntity(collection="onboardings")
+@MongoEntity(collection = "onboardings")
 public class Onboarding extends ReactivePanacheMongoEntityBase {
 
     @BsonId
@@ -35,6 +35,8 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private LocalDateTime activatedAt;
     private LocalDateTime updatedAt;
     private LocalDateTime expiringDate;
+    private LocalDateTime deletedAt;
+
     private OnboardingStatus status;
     private String userRequestUid;
     private AdditionalInformations additionalInformations;
