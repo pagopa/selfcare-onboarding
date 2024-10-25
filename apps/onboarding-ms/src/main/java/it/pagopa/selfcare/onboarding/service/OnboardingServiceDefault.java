@@ -311,7 +311,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
-        return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
+        return switch (onboarding.getInstitution().getSubunitType() != null ? onboarding.getInstitution().getSubunitType() : EC) {
             case AOO -> getAOO(onboarding);
             case UO -> getUO(onboarding);
             default -> getEC();
@@ -1103,22 +1103,25 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {
-        return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
-                .onItem()
-                .invoke(proxyInstitution -> {
-                    if (Objects.nonNull(proxyInstitution)) {
-                        InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
-                        onboarding.getInstitution().setInstitutionType(institutionType);
+        if (Objects.nonNull(onboarding.getInstitution()) && !InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())) {
+            return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
+                    .onItem()
+                    .invoke(proxyInstitution -> {
+                        if (Objects.nonNull(proxyInstitution)) {
+                            InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
+                            onboarding.getInstitution().setInstitutionType(institutionType);
 
-                        Billing billing = new Billing();
-                        billing.setVatNumber(proxyInstitution.getTaxCode());
-                        billing.setRecipientCode(proxyInstitution.getOriginId());
-                        onboarding.setBilling(billing);
-                    } else {
-                        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
-                    }
-                })
-                .replaceWith(Uni.createFrom().item(onboarding));
+                            Billing billing = new Billing();
+                            billing.setVatNumber(proxyInstitution.getTaxCode());
+                            billing.setRecipientCode(proxyInstitution.getOriginId());
+                            onboarding.setBilling(billing);
+                        } else {
+                            onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+                        }
+                    })
+                    .replaceWith(Uni.createFrom().item(onboarding));
+        }
+       return Uni.createFrom().item(onboarding);
     }
 
     private static Uni<Long> updateReasonForRejectAndUpdateStatus(String onboardingId, String reasonForReject) {
