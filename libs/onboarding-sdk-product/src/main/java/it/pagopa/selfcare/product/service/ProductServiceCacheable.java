@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ProductServiceCacheable implements ProductService {
-  private LocalDateTime productLastModifiedDate;
+  protected LocalDateTime productLastModifiedDate;
   private final AzureBlobClient azureBlobClient;
   private ProductServiceDefault productService;
   final String filePath;
