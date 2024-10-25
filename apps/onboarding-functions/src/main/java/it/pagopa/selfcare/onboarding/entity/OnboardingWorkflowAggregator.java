@@ -28,7 +28,7 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
   }
 
   @Override
-  public String emailRegistrationPath(MailTemplatePathConfig config) {
+  public String getEmailRegistrationPath(MailTemplatePathConfig config) {
     return config.registrationAggregatorPath();
   }
 

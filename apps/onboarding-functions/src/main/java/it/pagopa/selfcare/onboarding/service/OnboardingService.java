@@ -161,7 +161,7 @@ public class OnboardingService {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
-        final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
+        final String templatePath = onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig);
         final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
 
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
@@ -186,7 +186,7 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle(), "description",
-                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
+                onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig),
                 onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
 
     }

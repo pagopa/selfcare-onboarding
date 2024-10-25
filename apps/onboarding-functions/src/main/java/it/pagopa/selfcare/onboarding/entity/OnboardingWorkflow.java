@@ -25,7 +25,7 @@ public abstract class OnboardingWorkflow {
 
   protected Onboarding onboarding;
 
-  public abstract String emailRegistrationPath(MailTemplatePathConfig config);
+  public abstract String getEmailRegistrationPath(MailTemplatePathConfig config);
 
   public abstract String getEmailCompletionPath(MailTemplatePathConfig config);
 

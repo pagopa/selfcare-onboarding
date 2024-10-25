@@ -22,7 +22,7 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
   public OnboardingWorkflowUser() {}
 
   @Override
-  public String emailRegistrationPath(MailTemplatePathConfig config) {
+  public String getEmailRegistrationPath(MailTemplatePathConfig config) {
     final String managerId =
         this.onboarding.getUsers().stream()
             .filter(user -> PartyRole.MANAGER == user.getRole())
