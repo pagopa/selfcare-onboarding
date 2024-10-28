@@ -165,6 +165,7 @@ public class OnboardingFunctions {
                 case INCREMENT_REGISTRATION_AGGREGATOR ->
                         workflowExecutor = new WorkflowExecutorIncrementRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
                 case USERS_PG -> workflowExecutor = new WorkflowExecutorForUsersPg(objectMapper, optionsRetry);
+                case USERS_EA -> workflowExecutor = new WorkflowExecutorForUsersEa(objectMapper, optionsRetry, onboardingMapper);
                 default -> throw new IllegalArgumentException("Workflow options not found!");
             }
 
