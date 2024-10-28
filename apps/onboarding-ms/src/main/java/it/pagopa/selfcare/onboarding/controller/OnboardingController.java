@@ -207,6 +207,8 @@ public class OnboardingController {
     )
     @POST
     @Path("/pg/completion")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-pnpg")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
