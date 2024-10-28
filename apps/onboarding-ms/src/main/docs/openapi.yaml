@@ -573,6 +573,7 @@ paths:
   /v1/onboarding/pg/completion:
     post:
       tags:
+      - Onboarding Controller
       - internal-pnpg
       summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
