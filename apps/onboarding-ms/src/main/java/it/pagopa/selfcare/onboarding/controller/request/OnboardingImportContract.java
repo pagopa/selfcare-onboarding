@@ -22,4 +22,5 @@ public class OnboardingImportContract {
     private String contractType;
     @NotNull(message = "createdAt is required")
     private LocalDateTime createdAt;
+    private LocalDateTime activatedAt;
 }

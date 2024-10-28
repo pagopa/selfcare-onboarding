@@ -1679,6 +1679,8 @@ components:
           type: string
         createdAt:
           $ref: "#/components/schemas/LocalDateTime"
+        activatedAt:
+          $ref: "#/components/schemas/LocalDateTime"
     OnboardingImportPspRequest:
       required:
       - institution

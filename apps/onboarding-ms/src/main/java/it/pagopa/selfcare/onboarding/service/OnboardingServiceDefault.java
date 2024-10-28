@@ -71,6 +71,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.*;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
@@ -310,7 +311,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().transform(onboardingMapper::toResponse));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getRegistryResource(Onboarding onboarding) {
         return switch (onboarding.getInstitution().getSubunitType() != null ? onboarding.getInstitution().getSubunitType() : EC) {
             case AOO -> getAOO(onboarding);
             case UO -> getUO(onboarding);
@@ -335,7 +336,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().invoke(onboardingPersisted::setUsers).replaceWith(onboardingPersisted)));
     }
 
-    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
+    private Uni<Onboarding> addParentDescriptionForAooOrUo(Onboarding onboarding, OnboardingUtils.ProxyResource<?> proxyResource) {
 
         Log.infof("Adding parent description AOO/UOO for: taxCode %s, subunitCode %s, type %s",
                 onboarding.getInstitution().getTaxCode(),
@@ -1103,7 +1104,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {
-        if (Objects.nonNull(onboarding.getInstitution()) && !InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())) {
+        if (Objects.nonNull(onboarding.getInstitution()) && !PSP.equals(onboarding.getInstitution().getInstitutionType())) {
             return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                     .onItem()
                     .invoke(proxyInstitution -> {
@@ -1300,7 +1301,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().item(onboardings);
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getUO(Onboarding onboarding) {
         return uoApi.findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(UO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
@@ -1311,7 +1312,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .build()));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getAOO(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getAOO(Onboarding onboarding) {
         return aooApi.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
@@ -1322,7 +1323,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .build()));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getEC() {
+    private Uni<OnboardingUtils.ProxyResource<?>> getEC() {
         return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder()
                 .type(EC)
                 .build());
