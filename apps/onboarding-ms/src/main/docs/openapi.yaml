@@ -1182,6 +1182,8 @@ components:
           type: string
         description:
           type: string
+        parentDescription:
+          type: string
         recipientCode:
           type: string
         users:
@@ -1232,6 +1234,8 @@ components:
         subunitType:
           type: string
         vatNumber:
+          type: string
+        parentDescription:
           type: string
         geographicTaxonomies:
           type: array

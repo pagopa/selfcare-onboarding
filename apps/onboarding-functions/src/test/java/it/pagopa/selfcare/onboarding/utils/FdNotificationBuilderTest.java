@@ -77,7 +77,7 @@ class FdNotificationBuilderTest {
         assertNotEquals(onboarding.getId(), notification.getId());
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertNull(notification.getNotificationType());
@@ -136,7 +136,7 @@ class FdNotificationBuilderTest {
 
         assertNotNull(notification);
         assertNotEquals(onboarding.getId(), notification.getId());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(productResponse.getCreatedAt(), notification.getCreatedAt());
         assertEquals(productResponse.getUpdatedAt(), notification.getUpdatedAt());
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
@@ -162,7 +162,7 @@ class FdNotificationBuilderTest {
 
     private static OnboardedProductResponse getOnboardedProductResponse() {
         OnboardedProductResponse productResponse = new OnboardedProductResponse();
-        productResponse.setProductId(productId);
+        productResponse.setProductId(PRODUCT_ID);
         productResponse.setStatus(OnboardedProductState.ACTIVE);
         productResponse.setProductRole("security");
         productResponse.setRole("OPERATOR");
@@ -173,13 +173,12 @@ class FdNotificationBuilderTest {
     }
 
     private static Onboarding getOnboardingTest() {
-        Onboarding onboarding = createOnboarding(
+        return createOnboarding(
                 OnboardingStatus.COMPLETED,
                 OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
                 OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
                 OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
                 null // deletedAt
         );
-        return onboarding;
     }
 }

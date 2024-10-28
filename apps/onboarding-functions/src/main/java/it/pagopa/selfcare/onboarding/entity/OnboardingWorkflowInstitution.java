@@ -1,89 +1,78 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
+
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
-import it.pagopa.selfcare.product.entity.ContractStorage;
+import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
-
-import java.util.Objects;
-import java.util.Optional;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_FD_GARANTITO;
 
 public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
-    private String type;
+  private String type;
 
-    public OnboardingWorkflowInstitution() {
+  public OnboardingWorkflowInstitution() {}
+
+  public OnboardingWorkflowInstitution(Onboarding onboarding, String type) {
+    super(onboarding);
+    this.type = type;
+  }
+
+  @Override
+  public String getEmailRegistrationPath(MailTemplatePathConfig config) {
+    return config.registrationPath();
+  }
+
+  @Override
+  public String getEmailCompletionPath(MailTemplatePathConfig config) {
+    if (InstitutionType.PT.equals(this.onboarding.getInstitution().getInstitutionType())) {
+      return config.completePathPt();
+    } else {
+      return this.onboarding.getProductId().equals(PROD_FD.getValue())
+              || this.onboarding.getProductId().equals(PROD_FD_GARANTITO.getValue())
+          ? config.completePathFd()
+          : config.completePath();
     }
+  }
 
-    public OnboardingWorkflowInstitution(Onboarding onboarding, String type) {
-        super(onboarding);
-        this.type = type;
-    }
+  @Override
+  public TokenType getTokenType() {
+    return TokenType.INSTITUTION;
+  }
 
-    @Override
-    public String emailRegistrationPath(MailTemplatePathConfig config) {
-        return config.registrationPath();
-    }
+  @Override
+  public String getPdfFormatFilename() {
+    return PDF_FORMAT_FILENAME;
+  }
 
-    @Override
-    public String getEmailCompletionPath(MailTemplatePathConfig config) {
-        if (InstitutionType.PT.equals(this.onboarding.getInstitution().getInstitutionType())) {
-            return config.completePathPt();
-        } else {
-            return this.onboarding.getProductId().equals(PROD_FD.getValue()) || this.onboarding.getProductId().equals(PROD_FD_GARANTITO.getValue())
-                    ? config.completePathFd()
-                    : config.completePath();
-        }
-    }
+  @Override
+  public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
+    return config.confirmTokenPlaceholder();
+  }
 
-    @Override
-    public TokenType getTokenType() {
-        return TokenType.INSTITUTION;
-    }
+  @Override
+  public String getRejectTokenUrl(MailTemplatePlaceholdersConfig config) {
+    return config.rejectTokenPlaceholder();
+  }
 
-    @Override
-    public String getPdfFormatFilename() {
-        return PDF_FORMAT_FILENAME;
-    }
+  @Override
+  public String getContractTemplatePath(Product product) {
+    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath();
+  }
 
-    @Override
-    public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
-        return config.confirmTokenPlaceholder();
-    }
+  @Override
+  public String getContractTemplateVersion(Product product) {
+    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplateVersion();
+  }
 
-    @Override
-    public String getRejectTokenUrl(MailTemplatePlaceholdersConfig config) {
-        return config.rejectTokenPlaceholder();
-    }
+  public String getType() {
+    return type;
+  }
 
-    @Override
-    public String getContractTemplatePath(Product product) {
-        if(Objects.isNull(onboarding.getInstitution()) || Objects.isNull(onboarding.getInstitution().getInstitutionType())){
-            return null;
-        }
-
-        return Optional.ofNullable(product.getInstitutionContractMappings())
-                .filter(mappings -> mappings.containsKey(onboarding.getInstitution().getInstitutionType().name()))
-                .map(mappings -> mappings.get(onboarding.getInstitution().getInstitutionType().name()))
-                .map(ContractStorage::getContractTemplatePath)
-                .orElse(product.getContractTemplatePath());
-    }
-
-    @Override
-    public String getContractTemplateVersion(Product product) {
-        return product.getContractTemplateVersion();
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+  public void setType(String type) {
+    this.type = type;
+  }
 }
