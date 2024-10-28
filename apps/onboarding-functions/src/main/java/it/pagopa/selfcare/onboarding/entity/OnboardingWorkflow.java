@@ -9,44 +9,44 @@ import it.pagopa.selfcare.product.entity.Product;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = OnboardingWorkflowAggregator.class, name = "AGGREGATOR"),
-        @JsonSubTypes.Type(value = OnboardingWorkflowInstitution.class, name = "INSTITUTION"),
-        @JsonSubTypes.Type(value = OnboardingWorkflowUser.class, name = "USER")
+  @JsonSubTypes.Type(value = OnboardingWorkflowAggregator.class, name = "AGGREGATOR"),
+  @JsonSubTypes.Type(value = OnboardingWorkflowInstitution.class, name = "INSTITUTION"),
+  @JsonSubTypes.Type(value = OnboardingWorkflowUser.class, name = "USER")
 })
 public abstract class OnboardingWorkflow {
 
-    protected static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
+  protected static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
 
-    OnboardingWorkflow(Onboarding onboarding) {
-        this.onboarding = onboarding;
-    }
+  OnboardingWorkflow(Onboarding onboarding) {
+    this.onboarding = onboarding;
+  }
 
-    public OnboardingWorkflow() {
-    }
+  public OnboardingWorkflow() {}
 
-    protected Onboarding onboarding;
-    public abstract String emailRegistrationPath(MailTemplatePathConfig config);
+  protected Onboarding onboarding;
 
-    public abstract String getEmailCompletionPath(MailTemplatePathConfig config);
+  public abstract String getEmailRegistrationPath(MailTemplatePathConfig config);
 
-    public abstract String getPdfFormatFilename();
+  public abstract String getEmailCompletionPath(MailTemplatePathConfig config);
 
-    public abstract TokenType getTokenType();
+  public abstract String getPdfFormatFilename();
 
-    public abstract String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config);
+  public abstract TokenType getTokenType();
 
-    public abstract String getRejectTokenUrl(MailTemplatePlaceholdersConfig config);
+  public abstract String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config);
 
-    public abstract String getContractTemplatePath(Product product);
+  public abstract String getRejectTokenUrl(MailTemplatePlaceholdersConfig config);
 
-    public abstract String getContractTemplateVersion(Product product);
+  public abstract String getContractTemplatePath(Product product);
 
-    public Onboarding getOnboarding() {
-        return onboarding;
-    }
+  public abstract String getContractTemplateVersion(Product product);
 
-    public void setOnboarding(Onboarding onboarding) {
-        this.onboarding = onboarding;
-    }
+  public Onboarding getOnboarding() {
+    return onboarding;
+  }
 
+  public void setOnboarding(Onboarding onboarding) {
+    this.onboarding = onboarding;
+  }
+  
 }

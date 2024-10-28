@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -10,16 +14,20 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -40,14 +48,6 @@ import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -1117,11 +1117,29 @@ public class CompletionServiceDefaultTest {
 
     private Product createDummyProduct() {
         Product product = new Product();
-        product.setContractTemplatePath("example");
-        product.setContractTemplateVersion("version");
+        product.setInstitutionContractMappings(createDummyContractTemplateInstitution());
+        product.setUserContractMappings(createDummyContractTemplateInstitution());
         product.setTitle("Title");
         product.setId(productId);
         return product;
+    }
+
+    private static Map<String, ContractTemplate> createDummyContractTemplateInstitution() {
+        Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+        ContractTemplate conctractTemplate = new ContractTemplate();
+        conctractTemplate.setContractTemplatePath("example");
+        conctractTemplate.setContractTemplateVersion("version");
+        institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
+        return institutionTemplate;
+    }
+
+    private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
+        Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+        ContractTemplate conctractTemplate = new ContractTemplate();
+        conctractTemplate.setContractTemplatePath("example");
+        conctractTemplate.setContractTemplateVersion("version");
+        institutionTemplate.put("default", conctractTemplate);
+        return institutionTemplate;
     }
 
 }

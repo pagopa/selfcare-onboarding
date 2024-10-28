@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.product.service;
 
+import static it.pagopa.selfcare.product.utils.ProductUtils.getProductRole;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -8,20 +10,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.*;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.product.utils.ProductUtils.getProductRole;
 
 public class ProductServiceDefault implements ProductService {
 
@@ -150,24 +148,6 @@ public class ProductServiceDefault implements ProductService {
 
         return product;
     }
-
-    /**
-     * Fills contractTemplatePath and ContractTemplateVersion based on @param institutionType.
-     * If institutionContractMappings contains institutionType, it take value from that setting inside
-     * contractTemplatePath and contractTemplateVersion of product
-     *
-     * @param product         Product
-     * @param institutionType InstitutionType
-     */
-    @Override
-    public void fillContractTemplatePathAndVersion(Product product, InstitutionType institutionType) {
-        if (Objects.nonNull(institutionType) && Objects.nonNull(product.getInstitutionContractMappings())
-                && product.getInstitutionContractMappings().containsKey(institutionType.name())) {
-            product.setContractTemplatePath(product.getInstitutionContractMappings().get(institutionType.name()).getContractTemplatePath());
-            product.setContractTemplateVersion(product.getInstitutionContractMappings().get(institutionType.name()).getContractTemplateVersion());
-        }
-    }
-
 
     /**
      * Returns the information for a single product if it has not PHASE_OUT,INACTIVE status and its parent has not PHASE_OUT,INACTIVE status
