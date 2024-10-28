@@ -410,6 +410,14 @@ public class CompletionServiceDefault implements CompletionService {
             .forEach(pgManagerInfo -> deleteManagerFromProduct(pgManagerInfo.getUid(), institutionId, productId));
     }
 
+    @Override
+    public List<DelegationResponse> retrieveAggregates(Onboarding onboarding) {
+        String institutionId = onboarding.getInstitution().getId();
+        String productId = onboarding.getProductId();
+        DelegationWithPaginationResponse delegations = delegationApi.getDelegationsUsingGET1(null, institutionId, productId, null, null, null, null, null);
+        return delegations.getDelegations();
+    }
+
     private List<String> retrieveActiveManagersOnInstitution(String institutionId, String productId) {
         List<UserInstitutionResponse> activeManagers = userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
                 institutionId,
