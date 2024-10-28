@@ -410,7 +410,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .transform(onboardingMapper::toResponse));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getRegistryResource(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getRegistryResource(Onboarding onboarding) {
         return switch ((onboarding.getInstitution().getSubunitType() != null)
                 ? onboarding.getInstitution().getSubunitType()
                 : EC) {
@@ -474,7 +474,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> addParentDescriptionForAooOrUo(
-            Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
+            Onboarding onboarding, OnboardingUtils.ProxyResource<?> proxyResource) {
 
         Log.infof(
                 "Adding parent description AOO/UOO for: taxCode %s, subunitCode %s, type %s",
@@ -495,7 +495,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> setIstatCode(
-            Onboarding onboarding, OnboardingUtils.ProxyResource proxyResource) {
+            Onboarding onboarding, OnboardingUtils.ProxyResource<?> proxyResource) {
         return switch (proxyResource.getType()) {
             case AOO ->
                     Uni.createFrom()
@@ -1849,7 +1849,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().item(onboardings);
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getUO(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getUO(Onboarding onboarding) {
         return uoApi
                 .findByUnicodeUsingGET1(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class)
@@ -1874,7 +1874,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .build()));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getAOO(Onboarding onboarding) {
+    private Uni<OnboardingUtils.ProxyResource<?>> getAOO(Onboarding onboarding) {
         return aooApi
                 .findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure(WebApplicationException.class)
@@ -1899,7 +1899,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .build()));
     }
 
-    private Uni<OnboardingUtils.ProxyResource> getEC() {
+    private Uni<OnboardingUtils.ProxyResource<?>> getEC() {
         return Uni.createFrom().item(OnboardingUtils.ProxyResource.builder().type(EC).build());
     }
 
