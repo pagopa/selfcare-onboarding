@@ -31,6 +31,7 @@ import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.junit.jupiter.api.Test;
@@ -710,6 +711,28 @@ class OnboardingControllerTest {
     void onboardingImportPSP() {
 
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
+
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/psp/import")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingImportPSP_with_activatedAt() {
+
+        OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
+        onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
 
         Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
