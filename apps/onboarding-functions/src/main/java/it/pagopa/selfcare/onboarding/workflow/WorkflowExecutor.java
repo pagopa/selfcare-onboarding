@@ -100,6 +100,29 @@ public interface WorkflowExecutor {
         return Optional.of(COMPLETED);
     }
 
+    default Optional<OnboardingStatus> onboardingCompletionUsersEaActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow, OnboardingMapper onboardingMapper) {
+        final String onboardingString = getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding());
+        final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+
+        Onboarding onboardingAggregator = new Onboarding(); //call function to retrieve onboarding with id = referenceOnboardingId
+
+        List<Task<String>> parallelTasks = new ArrayList<>();
+
+        for (AggregateInstitution aggregate : onboardingAggregator.getAggregates()) {
+            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboardingAggregator, aggregate); //map AggregateInstitution to Onboarding
+            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
+            parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingAggregateString, String.class));
+        }
+
+        ctx.allOf(parallelTasks).await();
+
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
+
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
+        return Optional.of(COMPLETED);
+    }
+
     default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
         List<Task<String>> parallelTasks = new ArrayList<>();
 
