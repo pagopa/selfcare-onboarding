@@ -1,7 +1,10 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import com.microsoft.azure.functions.ExecutionContext;
-import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
@@ -52,6 +55,7 @@ import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
 @ApplicationScoped
+@SuppressWarnings({"java:S6813","java:S107"})
 public class CompletionServiceDefault implements CompletionService {
 
     @RestClient
@@ -174,7 +178,7 @@ public class CompletionServiceDefault implements CompletionService {
             userRoleDto.getProduct().setTokenId(onboarding.getId());
             try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
                 if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                    throw new RuntimeException("Impossible to create or update role for user with ID: " + user.getId());
+                    throw new GenericOnboardingException("Impossible to create or update role for user with ID: " + user.getId());
                 }
             }
         }
@@ -289,6 +293,7 @@ public class CompletionServiceDefault implements CompletionService {
         delegationRequest.setFrom(onboarding.getInstitution().getId());
         delegationRequest.setTo(onboarding.getAggregator().getId());
         delegationRequest.setInstitutionToName(onboarding.getAggregator().getDescription());
+        delegationRequest.setInstitutionFromRootName(onboarding.getInstitution().getParentDescription());
         return delegationRequest;
     }
 
@@ -313,7 +318,7 @@ public class CompletionServiceDefault implements CompletionService {
             if(e.getResponse().getStatus() == 404) {
                 return false;
             }
-            throw new RuntimeException(e);
+            throw new GenericOnboardingException(e.getMessage());
         }
     }
 

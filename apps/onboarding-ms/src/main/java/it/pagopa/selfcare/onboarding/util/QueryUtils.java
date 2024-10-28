@@ -123,14 +123,35 @@ public class QueryUtils {
 
     public static Map<String, Object> createMapForOnboardingUpdate(Onboarding onboarding) {
         Map<String, Object> queryParameterMap = new HashMap<>();
+        // Dates
         Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
         Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
+        Optional.ofNullable(onboarding.getDeletedAt()).ifPresent(value -> queryParameterMap.put("deletedAt", value));
+        // Root elements
         Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
+        // Billing
         Optional.ofNullable(onboarding.getBilling())
                 .ifPresent(billing -> {
                     Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));
                     Optional.ofNullable(billing.getVatNumber()).ifPresent(value -> queryParameterMap.put("billing.vatNumber", value));
                     Optional.ofNullable(billing.getTaxCodeInvoicing()).ifPresent(value -> queryParameterMap.put("billing.taxCodeInvoicing()", value));
+                });
+        // Institution
+        Optional.ofNullable(onboarding.getInstitution())
+                .ifPresent(institution -> {
+                    Optional.ofNullable(institution.getAddress()).ifPresent(value -> queryParameterMap.put("institution.address", value));
+                    Optional.ofNullable(institution.getDescription()).ifPresent(value -> queryParameterMap.put("institution.description", value));
+                    Optional.ofNullable(institution.getDigitalAddress()).ifPresent(value -> queryParameterMap.put("institution.digitalAddress", value));
+                    Optional.ofNullable(institution.getCity()).ifPresent(value -> queryParameterMap.put("institution.city", value));
+                    Optional.ofNullable(institution.getCountry()).ifPresent(value -> queryParameterMap.put("institution.country", value));
+                    Optional.ofNullable(institution.getCounty()).ifPresent(value -> queryParameterMap.put("institution.county", value));
+                    Optional.ofNullable(institution.getZipCode()).ifPresent(value -> queryParameterMap.put("institution.zipCode", value));
+                    Optional.ofNullable(institution.getIstatCode()).ifPresent(value -> queryParameterMap.put("institution.istatCode", value));
+                    Optional.ofNullable(institution.getRea()).ifPresent(value -> queryParameterMap.put("institution.rea", value));
+                    Optional.ofNullable(institution.getShareCapital()).ifPresent(value -> queryParameterMap.put("institution.shareCapital", value));
+                    Optional.ofNullable(institution.getBusinessRegisterPlace()).ifPresent(value -> queryParameterMap.put("institution.businessRegisterPlace", value));
+                    Optional.ofNullable(institution.getSupportEmail()).ifPresent(value -> queryParameterMap.put("institution.supportEmail", value));
+                    Optional.ofNullable(institution.getParentDescription()).ifPresent(value -> queryParameterMap.put("institution.parentDescription", value));
                 });
         queryParameterMap.put("updatedAt", LocalDateTime.now());
         return queryParameterMap;

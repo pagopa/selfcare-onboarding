@@ -22,6 +22,8 @@
   }, {
     "name" : "billing-portal"
   }, {
+    "name" : "internal-pnpg"
+  }, {
     "name" : "internal-v1"
   }, {
     "name" : "support"
@@ -788,7 +790,7 @@
     },
     "/v1/onboarding/pg/completion" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-pnpg" ],
         "summary" : "Complete PG onboarding request on PNPG domain and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPgCompletion",
@@ -1578,6 +1580,9 @@
           "description" : {
             "type" : "string"
           },
+          "parentDescription" : {
+            "type" : "string"
+          },
           "recipientCode" : {
             "type" : "string"
           },
@@ -1649,6 +1654,9 @@
             "type" : "string"
           },
           "vatNumber" : {
+            "type" : "string"
+          },
+          "parentDescription" : {
             "type" : "string"
           },
           "geographicTaxonomies" : {
@@ -2544,6 +2552,18 @@
           },
           "vatNumberGroup" : {
             "type" : "boolean"
+          },
+          "providerNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "contractType" : {
+            "type" : "string"
+          },
+          "contractId" : {
+            "type" : "string"
           }
         }
       },

@@ -14,6 +14,7 @@ tags:
 - name: Onboarding
 - name: Onboarding Controller
 - name: billing-portal
+- name: internal-pnpg
 - name: internal-v1
 - name: support
 paths:
@@ -573,6 +574,7 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-pnpg
       summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
@@ -1156,6 +1158,8 @@ components:
           type: string
         description:
           type: string
+        parentDescription:
+          type: string
         recipientCode:
           type: string
         users:
@@ -1206,6 +1210,8 @@ components:
         subunitType:
           type: string
         vatNumber:
+          type: string
+        parentDescription:
           type: string
         geographicTaxonomies:
           type: array
@@ -1876,6 +1882,14 @@ components:
           type: string
         vatNumberGroup:
           type: boolean
+        providerNames:
+          type: array
+          items:
+            type: string
+        contractType:
+          type: string
+        contractId:
+          type: string
     ReasonRequest:
       type: object
       properties:

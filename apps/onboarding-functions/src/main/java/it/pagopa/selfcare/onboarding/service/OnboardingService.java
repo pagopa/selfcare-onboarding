@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
+
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -18,18 +21,11 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
+import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.bson.Document;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,10 +35,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 import java.util.stream.Stream;
-import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
+import org.bson.Document;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class OnboardingService {
@@ -102,7 +102,7 @@ public class OnboardingService {
 
     public void loadContract(Onboarding onboarding) {
         Product product = productService.getProductIsValid(onboarding.getProductId());
-        contractService.loadContractPDF(product.getContractTemplatePath(), onboarding.getId(), product.getTitle());
+        contractService.loadContractPDF(product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath(), onboarding.getId(), product.getTitle());
     }
 
     public void saveTokenWithContract(OnboardingWorkflow onboardingWorkflow) {
@@ -137,7 +137,7 @@ public class OnboardingService {
         token.setId(onboarding.getId());
         token.setOnboardingId(onboarding.getId());
         token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
-        token.setContractVersion(product.getContractTemplateVersion());
+        token.setContractVersion(onboardingWorkflow.getContractTemplateVersion(product));
         token.setContractFilename(CONTRACT_FILENAME_FUNC.apply(onboardingWorkflow.getPdfFormatFilename(), product.getTitle()));
         token.setCreatedAt(LocalDateTime.now());
         token.setUpdatedAt(LocalDateTime.now());
@@ -161,7 +161,7 @@ public class OnboardingService {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
 
-        final String templatePath = onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig);
+        final String templatePath = onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig);
         final String confirmTokenUrl = onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
 
         notificationService.sendMailRegistrationForContract(onboarding.getId(),
@@ -186,7 +186,7 @@ public class OnboardingService {
                 onboarding.getInstitution().getDigitalAddress(),
                 onboarding.getInstitution().getDescription(), "",
                 product.getTitle(), "description",
-                onboardingWorkflow.emailRegistrationPath(mailTemplatePathConfig),
+                onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig),
                 onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
 
     }
