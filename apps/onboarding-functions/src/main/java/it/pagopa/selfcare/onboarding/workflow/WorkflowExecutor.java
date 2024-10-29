@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,13 +106,14 @@ public interface WorkflowExecutor {
         final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
 
-        Onboarding onboardingAggregator = new Onboarding(); //call function to retrieve onboarding with id = referenceOnboardingId
+        String delegationResponseString = ctx.callActivity(RETRIEVE_AGGREGATES_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        List<DelegationResponse> delegationResponseList = readDelegationResponseList(objectMapper(), delegationResponseString);
 
         List<Task<String>> parallelTasks = new ArrayList<>();
 
-        for (AggregateInstitution aggregate : onboardingAggregator.getAggregates()) {
-            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboardingAggregator, aggregate); //map AggregateInstitution to Onboarding
-            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
+        for (DelegationResponse delegation : delegationResponseList) {
+            Onboarding onboardingAggregate = onboardingMapper.mapToOnboardingFromDelegation(onboardingWorkflow.getOnboarding(), delegation);
+            final String onboardingAggregateString = getOnboardingString(objectMapper(), onboardingAggregate);
             parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingAggregateString, String.class));
         }
 

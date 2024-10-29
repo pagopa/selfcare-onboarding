@@ -9,6 +9,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +30,21 @@ public interface OnboardingMapper {
     @Mapping(target = "users", expression = "java(mapAggregateUsers(onboarding, aggregateInstitution))")
     OnboardingAggregateOrchestratorInput mapToOnboardingAggregateOrchestratorInput(Onboarding onboarding, AggregateInstitution aggregateInstitution);
 
+    @Mapping(target = "institution", expression = "java(mapInstitutionFromDelegation(delegationResponse))")
+    @Mapping(target = "delegationId", source = "delegationResponse.id")
+    @Mapping(target = "users", expression = "java(mapUsers(onboarding))")
+    @Mapping(target = "id", source = "onboarding.id")
+    @Mapping(target = "productId", source = "onboarding.productId")
+    @Mapping(target = "status", source = "onboarding.status")
+    @Mapping(target = "createdAt", source = "onboarding.createdAt")
+    @Mapping(target = "updatedAt", source = "onboarding.updatedAt")
+    Onboarding mapToOnboardingFromDelegation(Onboarding onboarding, DelegationResponse delegationResponse);
+
+    @Mapping(target = "id", source = "institutionId")
+    @Mapping(target = "description", source = "institutionName")
+    @Mapping(target = "parentDescription", source = "institutionRootName")
+    Institution mapInstitutionFromDelegation(DelegationResponse delegationResponse);
+
     /**
      * We need to create an explicit method to map the aggregate into the institution field of the new onboarding entity
      * because the data related to institutionType and origin must be retrieved from the aggregator,
@@ -48,6 +64,14 @@ public interface OnboardingMapper {
         if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
             return aggregateInstitution.getUsers();
         }
+        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId())){
+            onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
+        }
+        return onboarding.getUsers();
+    }
+
+    @Named("mapAggregateUsers")
+    default List<User> mapUsers(Onboarding onboarding) {
         if(PROD_PAGOPA.getValue().equals(onboarding.getProductId())){
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
