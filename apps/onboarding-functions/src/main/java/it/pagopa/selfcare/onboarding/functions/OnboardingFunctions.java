@@ -324,8 +324,9 @@ public class OnboardingFunctions {
     }
 
     @FunctionName(RETRIEVE_AGGREGATES_ACTIVITY)
-    public List<DelegationResponse> retrieveAggregates(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+    public String retrieveAggregates(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, RETRIEVE_AGGREGATES_ACTIVITY, onboardingString));
-        return completionService.retrieveAggregates(readOnboardingValue(objectMapper, onboardingString));
+        List<DelegationResponse> delegationResponseList = completionService.retrieveAggregates(readOnboardingValue(objectMapper, onboardingString));
+        return getDelegationResponseListString(objectMapper, delegationResponseList);
     }
 }
