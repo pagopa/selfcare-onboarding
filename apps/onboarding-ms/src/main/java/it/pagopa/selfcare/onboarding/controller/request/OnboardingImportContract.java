@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @Builder
 public class OnboardingImportContract {
 
-    @NotEmpty(message = "fileName is required")
     private String fileName;
     @NotEmpty(message = "filePath is required")
     private String filePath;
