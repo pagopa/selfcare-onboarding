@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -12,6 +13,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
 import org.apache.commons.lang3.StringUtils;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +55,15 @@ public class Utils {
         }
     }
 
+
+    public static List<DelegationResponse> readDelegationResponseList(ObjectMapper objectMapper, String delegationResponseString) {
+        try {
+            return objectMapper.readValue(delegationResponseString, new TypeReference<List<DelegationResponse>>() {});
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+    }
+
     public static String getOnboardingString(ObjectMapper objectMapper, Onboarding onboarding) {
 
         String onboardingString;
@@ -69,6 +80,17 @@ public class Utils {
         String onboardingWorkflowString;
         try {
             onboardingWorkflowString = objectMapper.writeValueAsString(onboardingWorkflow);
+        } catch (JsonProcessingException e) {
+            throw new FunctionOrchestratedException(e);
+        }
+        return onboardingWorkflowString;
+    }
+
+    public static String getDelegationResponseListString(ObjectMapper objectMapper, List<DelegationResponse> delegationResponseList) {
+
+        String onboardingWorkflowString;
+        try {
+            onboardingWorkflowString = objectMapper.writeValueAsString(delegationResponseList);
         } catch (JsonProcessingException e) {
             throw new FunctionOrchestratedException(e);
         }
