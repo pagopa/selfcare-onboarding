@@ -22,6 +22,7 @@ public class AuthenticationPropagationHeadersFactory implements ClientHeadersFac
     @Override
     public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
         String bearerToken;
+        // If user is founded on PDV, a bearer token is created starting from it
         if (!clientOutgoingHeaders.isEmpty() && clientOutgoingHeaders.containsKey(USER_ID_HEADER)) {
             final String uuid = clientOutgoingHeaders.get(USER_ID_HEADER).get(0);
             final String jwt = tokenService.createJwt(uuid);
