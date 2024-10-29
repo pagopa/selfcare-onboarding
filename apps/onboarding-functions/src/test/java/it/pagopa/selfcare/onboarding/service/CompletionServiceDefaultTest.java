@@ -1,9 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -14,8 +10,8 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -25,9 +21,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +41,14 @@ import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -1081,6 +1082,23 @@ public class CompletionServiceDefaultTest {
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
         verify(userControllerApi, never()).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(any(), eq("institution-id"), eq("productId"));
+    }
+
+    @Test
+    void retrieveAggregates() {
+        Onboarding onboarding = createOnboarding();
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        List<DelegationResponse> delegationResponses = new ArrayList<>();
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponses.add(delegationResponse);
+        delegationWithPaginationResponse.setDelegations(delegationResponses);
+        when(delegationApi.getDelegationsUsingGET1(any(), eq(onboarding.getInstitution().getId()), eq(onboarding.getProductId()), any(), any(), any(), any(), any()))
+                .thenReturn(delegationWithPaginationResponse);
+        List<DelegationResponse> delegations = completionServiceDefault.retrieveAggregates(onboarding);
+
+        assertEquals(delegationResponses, delegations);
+        verify(delegationApi, times(1)).getDelegationsUsingGET1(any(), eq(onboarding.getInstitution().getId()), eq(onboarding.getProductId()), any(), any(), any(), any(), any());
+
     }
 
     private User createDummyUser(Onboarding onboarding) {

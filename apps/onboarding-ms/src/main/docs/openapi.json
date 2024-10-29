@@ -902,6 +902,44 @@
         } ]
       }
     },
+    "/v1/onboarding/psp/import" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Import PSP onboarding with token creation and complete to COMPLETED.",
+        "description" : "Perform onboarding as /onboarding/psp but create token and completing the onboarding request to COMPLETED phase.",
+        "operationId" : "onboardingPspImport",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingImportPspRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/users" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
@@ -2271,11 +2309,10 @@
         }
       },
       "OnboardingImportContract" : {
-        "required" : [ "fileName", "filePath", "createdAt" ],
+        "required" : [ "filePath", "createdAt" ],
         "type" : "object",
         "properties" : {
           "fileName" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "filePath" : {
@@ -2287,6 +2324,28 @@
           },
           "createdAt" : {
             "$ref" : "#/components/schemas/LocalDateTime"
+          },
+          "activatedAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
+      "OnboardingImportPspRequest" : {
+        "required" : [ "institution", "productId", "contractImported" ],
+        "type" : "object",
+        "properties" : {
+          "institution" : {
+            "$ref" : "#/components/schemas/InstitutionPspRequest"
+          },
+          "billing" : {
+            "$ref" : "#/components/schemas/BillingRequest"
+          },
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "contractImported" : {
+            "$ref" : "#/components/schemas/OnboardingImportContract"
           }
         }
       },

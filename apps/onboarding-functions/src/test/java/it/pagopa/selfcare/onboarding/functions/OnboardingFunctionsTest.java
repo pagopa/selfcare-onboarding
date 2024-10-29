@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -20,17 +21,16 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.utils.Utils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -54,6 +54,9 @@ class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -184,14 +187,14 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(6))
+        Mockito.verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
         Mockito.verify(orchestrationContext, times(3))
                 .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), any());
@@ -329,14 +332,14 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(6))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -356,16 +359,16 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(8))
+        verify(orchestrationContext, times(7))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
-        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(5));
-        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(6));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(7));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(4));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(5));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(6));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -491,13 +494,13 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(4))
+        verify(orchestrationContext, times(3))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         // assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(3));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(3));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -561,14 +564,14 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(6))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -698,14 +701,14 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        verify(orchestrationContext, times(6))
+        verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-        assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
-        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+        //assertEquals(REJECT_OUTDATED_ONBOARDINGS, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -929,5 +932,24 @@ class OnboardingFunctionsTest {
 
         verify(completionService, times(1))
                 .deleteOldPgManagers(any());
+    }
+
+    @Test
+    void retrieveAggregates() {
+        List<DelegationResponse> delegationResponseList = new ArrayList<>();
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponse.setId("id");
+        delegationResponse.setInstitutionId("institutionId");
+        delegationResponseList.add(delegationResponse);
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        when(completionService.retrieveAggregates(any())).thenReturn(delegationResponseList);
+
+        String delegationsList = function.retrieveAggregates(onboardinString, executionContext);
+
+        Assertions.assertEquals(Utils.getDelegationResponseListString(objectMapper, delegationResponseList), delegationsList);
+        verify(completionService, times(1))
+                .retrieveAggregates(any());
+
     }
 }
