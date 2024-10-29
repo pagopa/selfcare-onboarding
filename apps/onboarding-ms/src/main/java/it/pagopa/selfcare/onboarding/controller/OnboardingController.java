@@ -187,6 +187,20 @@ public class OnboardingController {
     }
 
     @Operation(
+            summary = "Import PSP onboarding with token creation and complete to COMPLETED.",
+            description = "Perform onboarding as /onboarding/psp but create token and completing the onboarding request to COMPLETED phase."
+    )
+    @POST
+    @Path("/psp/import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingPspImport(@Valid OnboardingImportPspRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported()));
+    }
+
+    @Operation(
             summary = "Complete PSP onboarding request and set status to COMPLETED.",
             description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase."
     )
@@ -199,7 +213,6 @@ public class OnboardingController {
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
-
 
     @Operation(
             summary = "Complete PG onboarding request on PNPG domain and set status to COMPLETED.",
