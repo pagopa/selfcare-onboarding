@@ -70,6 +70,7 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
@@ -991,7 +992,7 @@ class OnboardingServiceDefaultTest {
         Product productResource = new Product();
         productResource.setId(productId);
         productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(productRoleAdminCode)));
-        productResource.setRoleMappingsByInstitutionType(Map.of(InstitutionType.PSP.name(), roleMappingByInstitutionType));
+        productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
 
         if (hasParent) {
             Product parent = new Product();
@@ -1012,7 +1013,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setInstitutionType(PSP);
         onboardingRequest.setInstitution(institutionPspRequest);
 
         mockPersistOnboarding(asserter);
@@ -1039,7 +1040,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productParentId");
         Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setInstitutionType(PSP);
         institutionPspRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionPspRequest);
 
@@ -1825,6 +1826,43 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
         asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_Onboarding_importPSP(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        request.setProductId(PROD_PAGOPA.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(PSP);
+        PaymentServiceProvider paymentServiceProvider = new PaymentServiceProvider();
+        paymentServiceProvider.setAbiCode("abiCode");
+        institutionBaseRequest.setPaymentServiceProvider(paymentServiceProvider);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+        contractImported.setFileName("filename");
+        contractImported.setFilePath("filepath");
+        contractImported.setCreatedAt(LocalDateTime.now());
+        contractImported.setActivatedAt(LocalDateTime.now());
+        contractImported.setContractType("type");
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());

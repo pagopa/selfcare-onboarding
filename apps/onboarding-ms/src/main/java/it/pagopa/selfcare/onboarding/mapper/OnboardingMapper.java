@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.model.*;
 import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,10 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "activatedAt", source = "contractImported.createdAt")
     Onboarding toEntity(OnboardingImportRequest request);
-
+    @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
+    @Mapping(target = "activatedAt", source = "contractImported", qualifiedByName = "getActivatedAt")
+    @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
+    Onboarding toEntity(OnboardingImportPspRequest request);
     @Mapping(source = "taxCode", target = "institution.taxCode")
     @Mapping(source = "businessName", target = "institution.description")
     @Mapping(source = "digitalAddress", target = "institution.digitalAddress")
@@ -72,6 +76,14 @@ public interface OnboardingMapper {
     @Named("toUpperCase")
     default String toUpperCase(String recipientCode) {
         return Objects.nonNull(recipientCode) ? recipientCode.toUpperCase() : null;
+    }
+
+    @Named("getActivatedAt")
+    default LocalDateTime getActivatedAt(OnboardingImportContract onboardingImportContract) {
+        if (Objects.nonNull(onboardingImportContract.getActivatedAt())) {
+            return onboardingImportContract.getActivatedAt();
+        }
+        return onboardingImportContract.getCreatedAt();
     }
 
     @Mapping(target = "workflowType", source = "workflowType", qualifiedByName = "toWorkflowType")

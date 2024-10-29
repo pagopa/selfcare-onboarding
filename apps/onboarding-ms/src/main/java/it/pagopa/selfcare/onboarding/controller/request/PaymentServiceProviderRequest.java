@@ -2,7 +2,7 @@ package it.pagopa.selfcare.onboarding.controller.request;
 
 import lombok.Data;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class PaymentServiceProviderRequest {
@@ -11,7 +11,7 @@ public class PaymentServiceProviderRequest {
   private String legalRegisterNumber;
   private String legalRegisterName;
   private boolean vatNumberGroup;
-  private ArrayList<String> providerNames;
+  private List<String> providerNames;
   private String contractType;
   private String contractId;
 }

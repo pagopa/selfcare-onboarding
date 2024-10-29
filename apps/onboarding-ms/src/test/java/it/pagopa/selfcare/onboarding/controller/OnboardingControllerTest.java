@@ -31,10 +31,9 @@ import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -709,6 +708,66 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
+    void onboardingImportPSP() {
+
+        OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
+
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/psp/import")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingImportPSP_with_activatedAt() {
+
+        OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
+        onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
+
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/psp/import")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingImportPSP_bad_request() {
+
+        OnboardingImportPspRequest onboardingImportRequest = new OnboardingImportPspRequest();
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/psp/import")
+                .then()
+                .statusCode(400);
+
+        Mockito.verifyNoInteractions(onboardingService);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
     void getInstitutionOnboardings() {
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
@@ -935,6 +994,22 @@ class OnboardingControllerTest {
         onboardingImportValid.setInstitution(importInstitution);
 
         return onboardingImportValid;
+    }
+
+    private OnboardingImportPspRequest dummyOnboardingPspRequest() {
+        OnboardingImportPspRequest onboardingPspRequest = new OnboardingImportPspRequest();
+        onboardingPspRequest.setBilling(new BillingRequest());
+        onboardingPspRequest.setContractImported(new OnboardingImportContract());
+        InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
+        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setDigitalAddress("address@gmail.com");
+        PaymentServiceProviderRequest pspData = new PaymentServiceProviderRequest();
+        pspData.setAbiCode("abiCode");
+        pspData.setProviderNames(List.of("test"));
+        institutionPspRequest.setPaymentServiceProvider(new PaymentServiceProviderRequest());
+        onboardingPspRequest.setInstitution(institutionPspRequest);
+        onboardingPspRequest.setProductId("prod-io");
+        return onboardingPspRequest;
     }
 
     @Test
