@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -20,17 +21,16 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.utils.Utils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -54,6 +54,9 @@ class OnboardingFunctionsTest {
 
     @InjectMock
     CompletionService completionService;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
@@ -929,5 +932,24 @@ class OnboardingFunctionsTest {
 
         verify(completionService, times(1))
                 .deleteOldPgManagers(any());
+    }
+
+    @Test
+    void retrieveAggregates() {
+        List<DelegationResponse> delegationResponseList = new ArrayList<>();
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponse.setId("id");
+        delegationResponse.setInstitutionId("institutionId");
+        delegationResponseList.add(delegationResponse);
+
+        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+        when(completionService.retrieveAggregates(any())).thenReturn(delegationResponseList);
+
+        String delegationsList = function.retrieveAggregates(onboardinString, executionContext);
+
+        Assertions.assertEquals(Utils.getDelegationResponseListString(objectMapper, delegationResponseList), delegationsList);
+        verify(completionService, times(1))
+                .retrieveAggregates(any());
+
     }
 }
