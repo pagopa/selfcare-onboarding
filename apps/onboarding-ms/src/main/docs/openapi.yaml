@@ -1670,13 +1670,11 @@ components:
             $ref: "#/components/schemas/OnboardingGet"
     OnboardingImportContract:
       required:
-      - fileName
       - filePath
       - createdAt
       type: object
       properties:
         fileName:
-          minLength: 1
           type: string
         filePath:
           minLength: 1
