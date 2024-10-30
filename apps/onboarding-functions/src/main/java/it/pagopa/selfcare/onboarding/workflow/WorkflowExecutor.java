@@ -114,7 +114,7 @@ public interface WorkflowExecutor {
         for (DelegationResponse delegation : delegationResponseList) {
             Onboarding onboardingAggregate = onboardingMapper.mapToOnboardingFromDelegation(onboardingWorkflow.getOnboarding(), delegation);
             final String onboardingAggregateString = getOnboardingString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingAggregateString, String.class));
+            parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingAggregateString, optionsRetry(), String.class));
         }
 
         ctx.allOf(parallelTasks).await();

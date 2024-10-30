@@ -605,6 +605,20 @@ class OnboardingFunctionsTest {
         return orchestrationContext;
     }
 
+    TaskOrchestrationContext mockTaskOrchestrationContextForUsersEa(Onboarding onboarding, List<DelegationResponse> delegationResponseList) {
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getId());
+        when(service.getOnboarding(anyString())).thenReturn(Optional.of(onboarding));
+        when(completionService.retrieveAggregates(any())).thenReturn(delegationResponseList);
+        String delegationResponseListString = Utils.getDelegationResponseListString(objectMapper, delegationResponseList);
+
+        Task task = mock(Task.class);
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+        when(task.await()).thenReturn(delegationResponseListString);
+        when(orchestrationContext.allOf(anyList())).thenReturn(task);
+        return orchestrationContext;
+    }
+
     @Test
     void buildContract() {
 
@@ -951,5 +965,38 @@ class OnboardingFunctionsTest {
         verify(completionService, times(1))
                 .retrieveAggregates(any());
 
+    }
+
+    @Test
+    void onboardingOrchestratorUsersEaPending() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setWorkflowType(WorkflowType.USERS_EA);
+
+        List<DelegationResponse> delegationResponseList = new ArrayList<>();
+        DelegationResponse delegationResponse = new DelegationResponse();
+        delegationResponse.setId("id");
+        delegationResponseList.add(delegationResponse);
+        delegationResponseList.add(delegationResponse);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContextForUsersEa(onboarding, delegationResponseList);
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(6))
+                .callActivity(captorActivity.capture(), any(), any(), any());
+
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(0));
+        assertEquals(RETRIEVE_AGGREGATES_ACTIVITY, captorActivity.getAllValues().get(1));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
+        assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
+        assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(4));
+        assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(5));
+
+        verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
     }
 }
