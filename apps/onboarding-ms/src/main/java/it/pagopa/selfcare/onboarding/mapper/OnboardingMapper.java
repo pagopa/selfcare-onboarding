@@ -8,7 +8,10 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.*;
-import org.mapstruct.*;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 import java.time.LocalDateTime;
@@ -65,9 +68,9 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "userRequestUid", source = "userId")
     @Mapping(target = "productId", source = "request.productId")
-    @Mapping(target = "workflowType", expression = "java(WorkflowType.USERS)")
+    @Mapping(target = "workflowType", source = "workflowType")
     @Mapping(target = "status", expression = "java(OnboardingStatus.REQUEST)")
-    Onboarding toEntity(OnboardingUserRequest request, String userId);
+    Onboarding toEntity(OnboardingUserRequest request, String userId, WorkflowType workflowType);
 
     OnboardingResponse toResponse(Onboarding model);
 
