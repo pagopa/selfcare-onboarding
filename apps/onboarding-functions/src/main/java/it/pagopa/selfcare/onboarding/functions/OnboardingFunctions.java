@@ -19,8 +19,10 @@ import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.workflow.*;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -311,7 +313,7 @@ public class OnboardingFunctions {
 
     @FunctionName(CREATE_AGGREGATES_CSV_ACTIVITY)
     public void createAggregatesCsv(@DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString, final ExecutionContext context) {
-        context.getLogger().info(String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATES_CSV_ACTIVITY, onboardingWorkflowString));
+        context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_AGGREGATES_CSV_ACTIVITY, onboardingWorkflowString));
         contractService.uploadAggregatesCsv(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
     }
 
@@ -319,5 +321,12 @@ public class OnboardingFunctions {
     public void deleteOldPgManagers(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
         context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, DELETE_MANAGERS_BY_IC_AND_ADE, onboardingString));
         completionService.deleteOldPgManagers(readOnboardingValue(objectMapper, onboardingString));
+    }
+
+    @FunctionName(RETRIEVE_AGGREGATES_ACTIVITY)
+    public String retrieveAggregates(@DurableActivityTrigger(name = "onboardingString") String onboardingString, final ExecutionContext context) {
+        context.getLogger().info(() -> String.format(FORMAT_LOGGER_ONBOARDING_STRING, RETRIEVE_AGGREGATES_ACTIVITY, onboardingString));
+        List<DelegationResponse> delegationResponseList = completionService.retrieveAggregates(readOnboardingValue(objectMapper, onboardingString));
+        return getDelegationResponseListString(objectMapper, delegationResponseList);
     }
 }

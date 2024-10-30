@@ -4,6 +4,9 @@ import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
+
+import java.util.List;
 
 public interface CompletionService {
 
@@ -32,5 +35,8 @@ public interface CompletionService {
     String existsDelegation(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 
     void deleteOldPgManagers(Onboarding onboarding);
+
+    List<DelegationResponse> retrieveAggregates(Onboarding onboarding);
+
 
 }
