@@ -2,6 +2,7 @@ prefix           = "selc"
 env_short        = "d"
 suffix_increment = "-002"
 cae_name         = "cae-002"
+location         = "westeurope"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -31,6 +32,13 @@ container_app = {
   cpu    = 0.5
   memory = "1Gi"
 }
+
+ca_volume_mounts = [
+  {
+    mount_path  = "/opt/sws/custom"
+    volume_name = "swscustomazfile"
+  }
+]
 
 app_settings = [
   {

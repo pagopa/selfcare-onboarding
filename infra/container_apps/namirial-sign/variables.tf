@@ -44,12 +44,6 @@ variable "container_app" {
   })
 }
 
-variable "image_tag" {
-  type        = string
-  default     = "latest"
-  description = "Image tag to use for the container"
-}
-
 variable "app_settings" {
   type = list(object({
     name  = string
@@ -78,4 +72,18 @@ variable "suffix_increment" {
   type        = string
   description = "Suffix increment Container App Environment name"
   default     = ""
+}
+
+variable "ca_volume_mounts" {
+  description = "List of volume mount for container app"
+  type = list(object({
+    mount_path  = string
+    volume_name = string
+  }))
+  default = []
+}
+
+variable "enable_sws" {
+  type = bool
+  default = false
 }
