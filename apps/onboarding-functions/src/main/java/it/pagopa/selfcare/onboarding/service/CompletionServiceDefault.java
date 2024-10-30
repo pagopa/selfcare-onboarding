@@ -176,6 +176,10 @@ public class CompletionServiceDefault implements CompletionService {
             userRoleDto.setUserMailUuid(user.getUserMailUuid());
             userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
             userRoleDto.getProduct().setTokenId(onboarding.getId());
+            /*
+              The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
+              {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}
+             */
             try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
                 if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                     throw new GenericOnboardingException("Impossible to create or update role for user with ID: " + user.getId());
