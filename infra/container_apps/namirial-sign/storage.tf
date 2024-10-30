@@ -1,32 +1,22 @@
-resource "azapi_resource" "managed_environment_storages" {
-  # count       = length(var.ca_volume_mounts) > 0 ? 1 : 0
-  count       = 0
-  type        = "Microsoft.App/managedEnvironments/storages@2022-03-01"
-  name        = "swscustomazfile"   # must equals to ca_volume_mounts.volume_name without -
-  parent_id   = data.azurerm_container_app_environment.container_app_environment.id
-
-  body = jsonencode({
-    properties = {
-      azureFile = {
-        accountName = data.azurerm_storage_account.selc_contracts_storage.name
-        accountKey  = data.azurerm_storage_account.selc_contracts_storage.primary_access_key
-        accessMode  = "ReadWrite"
-        shareName   = "swsstorage"
-      }
-    }
-  })
+# tfsec:ignore:azure-storage-default-action-deny
+# tfsec:ignore:azure-storage-queue-services-logging-enabled
+resource "azurerm_storage_account" "namirial_sws_storage_account" {
+  count                           = var.enable_sws ? 1 : 0
+  name                            = replace(format("%s-namirial-sws-st", local.project), "-", "")
+  resource_group_name             = data.azurerm_resource_group.rg_contracts_storage.name
+  location                        = data.azurerm_resource_group.rg_contracts_storage.location
+  min_tls_version                 = "TLS1_2"
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = false
+  tags                            = var.tags
 }
 
-# Identity for Container App
-#resource "azurerm_user_assigned_identity" "ca_identity" {
-#  name                = "${local.project}-namirial-sign-identity"
-#  resource_group_name = data.azurerm_resource_group.rg_container_app.name
-#  location            = data.azurerm_resource_group.rg_container_app.location
-#}
+resource "azurerm_storage_share" "namirial_sws_storage_share" {
+  count = var.enable_sws ? 1 : 0
+  name  = "${local.project}-namirial-sws-share"
 
-# Assign Contributor role to the Storage Account
-#resource "azurerm_role_assignment" "role_contributor_ca" {
-#  scope                = data.azurerm_storage_account.selc_contracts_storage.id
-#  role_definition_name = "Contributor"
-#  principal_id         = azurerm_user_assigned_identity.ca_identity.principal_id
-#}
+  storage_account_name = azurerm_storage_account.namirial_sws_storage_account[0].name
+
+  quota = 1
+}

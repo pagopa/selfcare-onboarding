@@ -54,3 +54,5 @@ app_settings = [
 secrets_names = {
   "APPLICATIONINSIGHTS_CONNECTION_STRING" = "appinsights-connection-string"
 }
+
+enable_sws = true
