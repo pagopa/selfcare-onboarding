@@ -1973,7 +1973,7 @@ class OnboardingServiceDefaultTest {
         when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), ResourceNotFoundException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS_EA), ResourceNotFoundException.class);
 
     }
 

@@ -285,6 +285,24 @@ class OnboardingControllerTest {
                 .statusCode(204);
     }
 
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingUsersAggregators() {
+        OnboardingUserRequest onboardingUserRequest = dummyOnboardingUser();
+
+        Mockito.when(onboardingService.onboardingUsers(any(), anyString(), eq(WorkflowType.USERS_EA)))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingUserRequest)
+                .contentType(ContentType.JSON)
+                .post("/users/aggregator")
+                .then()
+                .statusCode(204);
+    }
+
     @Test
     @TestSecurity(user = "userJwt")
     void onboardingUsers_shouldNotValidBody() {
