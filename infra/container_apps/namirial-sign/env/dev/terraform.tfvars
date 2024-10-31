@@ -12,47 +12,13 @@ tags = {
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
 }
 
-container_app = {
-  min_replicas = 0
-  max_replicas = 1
-  scale_rules = [
-    {
-      custom = {
-        metadata = {
-          "desiredReplicas" = "1"
-          "start"           = "0 8 * * MON-FRI"
-          "end"             = "0 19 * * MON-FRI"
-          "timezone"        = "Europe/Rome"
-        }
-        type = "cron"
-      }
-      name = "cron-scale-rule"
-    }
-  ]
+container_config = {
   cpu    = 0.5
-  memory = "1Gi"
+  memory = 1
 }
 
-ca_volume_mounts = [
-  {
-    mount_path  = "/opt/sws/custom"
-    volume_name = "swscustomazfile"
-  }
-]
-
-app_settings = [
-  {
-    name  = "JAVA_TOOL_OPTIONS"
-    value = "",
-  },
-  {
-    name  = "APPLICATIONINSIGHTS_ROLE_NAME"
-    value = "namirial-sign",
-  }
-]
-
-secrets_names = {
-  "APPLICATIONINSIGHTS_CONNECTION_STRING" = "appinsights-connection-string"
+environment_variables = {
+  SPRINGDOC_API_DOCS_ENABLED=true
 }
 
 enable_sws = true

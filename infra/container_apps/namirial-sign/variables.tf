@@ -29,3 +29,16 @@ variable "enable_sws" {
   type = bool
   default = false
 }
+
+variable "environment_variables" {
+  type        = map(string)
+  description = "environment variables for container"
+}
+
+variable "container_config" {
+  description = "Container configuration"
+  type = object({
+    cpu    = number
+    memory = number
+  })
+}
