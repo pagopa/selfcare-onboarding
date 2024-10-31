@@ -163,33 +163,28 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     return toNotify;
   }
 
-  private PaymentServiceProvider toSetPaymentServiceProvider(
-      PaymentServiceProviderResponse paymentServiceProvider) {
+  private PaymentServiceProvider toSetPaymentServiceProvider(PaymentServiceProviderResponse psp) {
     PaymentServiceProvider paymentServiceProviderToNotify = new PaymentServiceProvider();
-    if (Objects.isNull(paymentServiceProvider)) {
+    if (Objects.isNull(psp)) {
       return null;
     }
 
-    paymentServiceProviderToNotify.setAbiCode(paymentServiceProvider.getAbiCode());
-    paymentServiceProviderToNotify.setBusinessRegisterNumber(
-        paymentServiceProvider.getBusinessRegisterNumber());
-    paymentServiceProviderToNotify.setLegalRegisterName(
-        paymentServiceProvider.getLegalRegisterName());
-    paymentServiceProviderToNotify.setLegalRegisterNumber(
-        paymentServiceProvider.getLegalRegisterNumber());
-    paymentServiceProviderToNotify.setVatNumberGroup(paymentServiceProvider.getVatNumberGroup());
+    paymentServiceProviderToNotify.setAbiCode(psp.getAbiCode());
+    paymentServiceProviderToNotify.setBusinessRegisterNumber(psp.getBusinessRegisterNumber());
+    paymentServiceProviderToNotify.setLegalRegisterName(psp.getLegalRegisterName());
+    paymentServiceProviderToNotify.setLegalRegisterNumber(psp.getLegalRegisterNumber());
+    paymentServiceProviderToNotify.setVatNumberGroup(psp.getVatNumberGroup());
     return paymentServiceProviderToNotify;
   }
 
   @Override
   public void retrieveAndSetGeographicData(InstitutionToNotify institution) {
-    InstitutionResource institutionProxyInfo =
+    InstitutionResource proxyInfo =
         proxyRegistryInstitutionApi.findInstitutionUsingGET(institution.getTaxCode(), null, null);
-    institution.setIstatCode(institutionProxyInfo.getIstatCode());
-    institution.setCategory(institutionProxyInfo.getCategory());
+    institution.setIstatCode(proxyInfo.getIstatCode());
+    institution.setCategory(proxyInfo.getCategory());
     GeographicTaxonomyResource geographicTaxonomies =
-        geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(
-            institutionProxyInfo.getIstatCode());
+        geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
     institution.setCounty(geographicTaxonomies.getProvinceAbbreviation());
     institution.setCountry(geographicTaxonomies.getCountryAbbreviation());
     institution.setCity(geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
