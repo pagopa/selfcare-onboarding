@@ -1,4 +1,9 @@
 resource "azurerm_container_group" "namirial_sws_cg" {
+
+  depends_on = [
+    data.azurerm_log_analytics_workspace.log_analytics
+  ]
+
   count               = var.enable_sws ? 1 : 0
   name                = "${local.project}-namirial-sws-cg"
   location            = data.azurerm_resource_group.rg_contracts_storage.location
