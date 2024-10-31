@@ -7,12 +7,13 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowUser;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.USER;
 
-public record WorkflowExecutorForUsers(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
+public record WorkflowExecutorForUsersEa(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -26,7 +27,7 @@ public record WorkflowExecutorForUsers(ObjectMapper objectMapper, TaskOptions op
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return onboardingCompletionUsersActivity(ctx, onboardingWorkflow);
+        return onboardingCompletionUsersEaActivity(ctx, onboardingWorkflow, onboardingMapper);
     }
 
     @Override

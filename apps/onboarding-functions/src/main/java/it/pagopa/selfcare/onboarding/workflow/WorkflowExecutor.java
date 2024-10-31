@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,13 @@ public interface WorkflowExecutor {
             ctx.allOf(parallelTasks).await();
         }
     }
+    default Optional<OnboardingStatus> onboardingUsersRequestActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
+        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry(), String.class).await();
+        ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry(), String.class).await();
+        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString, optionsRetry(), String.class).await();
+        return Optional.of(OnboardingStatus.PENDING);
+    }
 
     default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
@@ -96,6 +104,30 @@ public interface WorkflowExecutor {
         final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
+        return Optional.of(COMPLETED);
+    }
+
+    default Optional<OnboardingStatus> onboardingCompletionUsersEaActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow, OnboardingMapper onboardingMapper) {
+        final String onboardingString = getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding());
+        final String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper(), onboardingWorkflow);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+
+        String delegationResponseString = ctx.callActivity(RETRIEVE_AGGREGATES_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
+        List<DelegationResponse> delegationResponseList = readDelegationResponseList(objectMapper(), delegationResponseString);
+
+        List<Task<String>> parallelTasks = new ArrayList<>();
+
+        for (DelegationResponse delegation : delegationResponseList) {
+            Onboarding onboardingAggregate = onboardingMapper.mapToOnboardingFromDelegation(onboardingWorkflow.getOnboarding(), delegation);
+            final String onboardingAggregateString = getOnboardingString(objectMapper(), onboardingAggregate);
+            parallelTasks.add(ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingAggregateString, optionsRetry(), String.class));
+        }
+
+        ctx.allOf(parallelTasks).await();
+
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
+
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, onboardingWorkflowString, optionsRetry(), String.class).await();
         return Optional.of(COMPLETED);
     }
