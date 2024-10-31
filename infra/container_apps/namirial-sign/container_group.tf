@@ -17,17 +17,15 @@ resource "azurerm_container_group" "namirial_sws_cg" {
   container {
     name   = "namirial-sws"
     image  = "namirial/sws:3.0.0"
-    cpu    = "0.5"
-    memory = "1"
+    cpu    = var.container_config.cpu
+    memory = var.container_config.memory
 
     ports {
       port     = 8080
       protocol = "TCP"
     }
 
-    environment_variables = {
-
-    }
+    environment_variables = var.environment_variables
 
     readiness_probe {
       http_get {
