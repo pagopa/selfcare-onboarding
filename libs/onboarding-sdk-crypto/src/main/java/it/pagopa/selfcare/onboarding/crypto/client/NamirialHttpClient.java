@@ -20,8 +20,11 @@ public class NamirialHttpClient {
         HttpTransport httpTransport = new NetHttpTransport();
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
 
+        String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+
         // Create the multipart content
-        MultipartContent multipartContent = new MultipartContent();
+        MultipartContent multipartContent = new MultipartContent()
+                .setBoundary(boundary);
         ObjectMapper objectMapper = new ObjectMapper();
 
 
@@ -58,7 +61,7 @@ public class NamirialHttpClient {
                 new GenericUrl(NAMIRIAL_SIGN_PADES_URL), multipartContent);
 
         // Set any required headers
-        httpRequest.getHeaders().setContentType("multipart/form-data;");
+        httpRequest.getHeaders().setContentType("multipart/form-data; boundary=" + boundary);
 
 
         try {

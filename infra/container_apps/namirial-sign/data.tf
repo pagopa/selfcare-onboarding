@@ -1,5 +1,5 @@
 data "azurerm_resource_group" "rg_contracts_storage" {
-  name     = "${local.project}-contracts-storage-rg"
+  name = "${local.project}-contracts-storage-rg"
 }
 
 data "azurerm_key_vault" "key_vault" {

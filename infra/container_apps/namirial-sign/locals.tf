@@ -1,3 +1,3 @@
 locals {
-  project     = "selc-${var.env_short}"
+  project = "selc-${var.env_short}"
 }
