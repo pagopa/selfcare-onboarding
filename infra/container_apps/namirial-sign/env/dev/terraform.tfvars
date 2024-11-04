@@ -18,7 +18,7 @@ container_config = {
 }
 
 environment_variables = {
-  SPRINGDOC_API_DOCS_ENABLED=true
+  SPRINGDOC_API_DOCS_ENABLED = true
 }
 
 enable_sws = true

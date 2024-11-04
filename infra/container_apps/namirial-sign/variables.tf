@@ -26,7 +26,7 @@ variable "tags" {
 }
 
 variable "enable_sws" {
-  type = bool
+  type    = bool
   default = false
 }
 
