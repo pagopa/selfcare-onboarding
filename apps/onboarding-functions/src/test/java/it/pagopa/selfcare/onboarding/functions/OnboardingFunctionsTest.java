@@ -388,17 +388,17 @@ class OnboardingFunctionsTest {
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
         ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(orchestrationContext, times(6))
+        Mockito.verify(orchestrationContext, times(5))
                 .callActivity(captorActivity.capture(), any(), any(), any());
         assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
         assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
         assertEquals(CREATE_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(2));
         assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
         assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(4));
-        assertEquals(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, captorActivity.getAllValues().get(5));
 
         Mockito.verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+        Mockito.verify(completionService,times(0)).sendCompletedEmailAggregate(any());
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
     }
@@ -847,18 +847,6 @@ class OnboardingFunctionsTest {
 
         verify(completionService, times(1))
                 .sendMailRejection(any(), any());
-    }
-
-    @Test
-    void sendCompletedEmailAggregate() {
-
-        when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-        doNothing().when(completionService).sendCompletedEmailAggregate(any());
-
-        function.sendMailCompletionAggregate(onboardinString, executionContext);
-
-        verify(completionService, times(1))
-                .sendCompletedEmailAggregate(any());
     }
 
 
