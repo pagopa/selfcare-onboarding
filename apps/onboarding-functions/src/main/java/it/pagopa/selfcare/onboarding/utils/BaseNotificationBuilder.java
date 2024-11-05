@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
@@ -148,6 +149,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     }
     if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
       toNotify.setCategory(institution.getAttributes().get(0).getCode());
+    } else if (institution.getInstitutionType().equals(InstitutionType.GSP.name())
+        && institution.getOrigin().equals(Origin.SELC.name())) {
+      toNotify.setCategory("L37");
     }
     if (Objects.isNull(institution.getCity())
         && institution
