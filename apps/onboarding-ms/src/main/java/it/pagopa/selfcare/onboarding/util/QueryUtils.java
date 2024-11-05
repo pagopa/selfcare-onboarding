@@ -33,6 +33,7 @@ public class QueryUtils {
     static class FieldNames {
         private FieldNames() {
         }
+
         public static final String STATUS = "status";
         public static final String FROM = "from";
         public static final String TO = "to";
@@ -41,7 +42,7 @@ public class QueryUtils {
         public static final String INSTITUTION_ID = "institution.id";
         public static final String INSTITUTION_ORIGIN = "institution.origin";
         public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
-        public static final String INSTITUTION_SUBUNIT_CODE =  "institution.subunitCode";
+        public static final String INSTITUTION_SUBUNIT_CODE = "institution.subunitCode";
     }
 
     public static Document buildQuery(Map<String, String> parameters) {
@@ -94,27 +95,22 @@ public class QueryUtils {
 
     public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
         Map<String, String> queryParameterMap = new HashMap<>();
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
-        Optional.ofNullable(subunitCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, value));
-        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
-        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
+        getOptionalForNullableAndEmpty(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
+        queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, subunitCode);
+        getOptionalForNullableAndEmpty(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
+        getOptionalForNullableAndEmpty(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
         Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
+        getOptionalForNullableAndEmpty(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
         return queryParameterMap;
     }
 
-    public static Map<String, String> createMapForVerifyOnboardingQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
-        Map<String, String> queryParameterMap = new HashMap<>();
-
-        Optional.ofNullable(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
-        Optional.ofNullable(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));
-        Optional.ofNullable(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
-        Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
-        Optional.ofNullable(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
-
-        queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, subunitCode);
-
-        return queryParameterMap;
+    /**
+     * The getOptionalForNullableAndEmpty function takes a string value and returns an Optional object.
+     * The optional object will have a value if the input string has a value and is not blank.
+     * Otherwise, the optional object will be empty.
+     */
+    private static Optional<String> getOptionalForNullableAndEmpty(String value) {
+        return Optional.ofNullable(value).filter(v -> !v.isBlank());
     }
 
     public static Map<String, Object> createMapForOnboardingReject(String reasonForReject, String onboardingStatus) {
@@ -127,23 +123,44 @@ public class QueryUtils {
 
     public static Map<String, Object> createMapForOnboardingUpdate(Onboarding onboarding) {
         Map<String, Object> queryParameterMap = new HashMap<>();
+        // Dates
         Optional.ofNullable(onboarding.getActivatedAt()).ifPresent(value -> queryParameterMap.put("activatedAt", value));
         Optional.ofNullable(onboarding.getCreatedAt()).ifPresent(value -> queryParameterMap.put("createdAt", value));
+        Optional.ofNullable(onboarding.getDeletedAt()).ifPresent(value -> queryParameterMap.put("deletedAt", value));
+        // Root elements
         Optional.ofNullable(onboarding.getStatus()).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
+        // Billing
         Optional.ofNullable(onboarding.getBilling())
                 .ifPresent(billing -> {
                     Optional.ofNullable(billing.getRecipientCode()).ifPresent(value -> queryParameterMap.put("billing.recipientCode", value));
                     Optional.ofNullable(billing.getVatNumber()).ifPresent(value -> queryParameterMap.put("billing.vatNumber", value));
                     Optional.ofNullable(billing.getTaxCodeInvoicing()).ifPresent(value -> queryParameterMap.put("billing.taxCodeInvoicing()", value));
                 });
+        // Institution
+        Optional.ofNullable(onboarding.getInstitution())
+                .ifPresent(institution -> {
+                    Optional.ofNullable(institution.getAddress()).ifPresent(value -> queryParameterMap.put("institution.address", value));
+                    Optional.ofNullable(institution.getDescription()).ifPresent(value -> queryParameterMap.put("institution.description", value));
+                    Optional.ofNullable(institution.getDigitalAddress()).ifPresent(value -> queryParameterMap.put("institution.digitalAddress", value));
+                    Optional.ofNullable(institution.getCity()).ifPresent(value -> queryParameterMap.put("institution.city", value));
+                    Optional.ofNullable(institution.getCountry()).ifPresent(value -> queryParameterMap.put("institution.country", value));
+                    Optional.ofNullable(institution.getCounty()).ifPresent(value -> queryParameterMap.put("institution.county", value));
+                    Optional.ofNullable(institution.getZipCode()).ifPresent(value -> queryParameterMap.put("institution.zipCode", value));
+                    Optional.ofNullable(institution.getIstatCode()).ifPresent(value -> queryParameterMap.put("institution.istatCode", value));
+                    Optional.ofNullable(institution.getRea()).ifPresent(value -> queryParameterMap.put("institution.rea", value));
+                    Optional.ofNullable(institution.getShareCapital()).ifPresent(value -> queryParameterMap.put("institution.shareCapital", value));
+                    Optional.ofNullable(institution.getBusinessRegisterPlace()).ifPresent(value -> queryParameterMap.put("institution.businessRegisterPlace", value));
+                    Optional.ofNullable(institution.getSupportEmail()).ifPresent(value -> queryParameterMap.put("institution.supportEmail", value));
+                    Optional.ofNullable(institution.getParentDescription()).ifPresent(value -> queryParameterMap.put("institution.parentDescription", value));
+                });
         queryParameterMap.put("updatedAt", LocalDateTime.now());
         return queryParameterMap;
     }
 
     public static Document buildSortDocument(String field, SortEnum order) {
-        if(SortEnum.ASC == order) {
+        if (SortEnum.ASC == order) {
             return bsonToDocument(Sorts.ascending(field));
-        }else{
+        } else {
             return bsonToDocument(Sorts.descending(field));
         }
     }

@@ -22,6 +22,8 @@
   }, {
     "name" : "billing-portal"
   }, {
+    "name" : "internal-pnpg"
+  }, {
     "name" : "internal-v1"
   }, {
     "name" : "support"
@@ -472,7 +474,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "boolean"
+                  "$ref" : "#/components/schemas/CheckManagerResponse"
                 }
               }
             }
@@ -788,7 +790,7 @@
     },
     "/v1/onboarding/pg/completion" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-pnpg" ],
         "summary" : "Complete PG onboarding request on PNPG domain and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPgCompletion",
@@ -900,6 +902,44 @@
         } ]
       }
     },
+    "/v1/onboarding/psp/import" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Import PSP onboarding with token creation and complete to COMPLETED.",
+        "description" : "Perform onboarding as /onboarding/psp but create token and completing the onboarding request to COMPLETED phase.",
+        "operationId" : "onboardingPspImport",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingImportPspRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/users" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
@@ -938,12 +978,50 @@
         } ]
       }
     },
-    "/v1/onboarding/users/pg-from-ic-and-ade" : {
+    "/v1/onboarding/users/aggregator" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Onboard users for aggregators, save user data, and trigger async onboarding activities.",
+        "description" : "Perform onboarding users request, it is used for aggregators.Users data will be saved on personal data vault if it doesn't already exist.At the end, function triggers async activities related to onboarding based on institution type.",
+        "operationId" : "onboardingUsersAggregator",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingUserRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/users/pg" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
         "summary" : "Add Manager of PG institution",
         "description" : "Create new onboarding request to add new Manager and replace the old inactive Managers of the institution.",
-        "operationId" : "onboardingUsersPgFromIcAndAde",
+        "operationId" : "onboardingUsersPg",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1578,6 +1656,9 @@
           "description" : {
             "type" : "string"
           },
+          "parentDescription" : {
+            "type" : "string"
+          },
           "recipientCode" : {
             "type" : "string"
           },
@@ -1649,6 +1730,9 @@
             "type" : "string"
           },
           "vatNumber" : {
+            "type" : "string"
+          },
+          "parentDescription" : {
             "type" : "string"
           },
           "geographicTaxonomies" : {
@@ -1762,6 +1846,14 @@
             "type" : "string"
           },
           "publicServices" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CheckManagerResponse" : {
+        "type" : "object",
+        "properties" : {
+          "response" : {
             "type" : "boolean"
           }
         }
@@ -2255,11 +2347,10 @@
         }
       },
       "OnboardingImportContract" : {
-        "required" : [ "fileName", "filePath", "createdAt" ],
+        "required" : [ "filePath", "createdAt" ],
         "type" : "object",
         "properties" : {
           "fileName" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "filePath" : {
@@ -2271,6 +2362,28 @@
           },
           "createdAt" : {
             "$ref" : "#/components/schemas/LocalDateTime"
+          },
+          "activatedAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
+      "OnboardingImportPspRequest" : {
+        "required" : [ "institution", "productId", "contractImported" ],
+        "type" : "object",
+        "properties" : {
+          "institution" : {
+            "$ref" : "#/components/schemas/InstitutionPspRequest"
+          },
+          "billing" : {
+            "$ref" : "#/components/schemas/BillingRequest"
+          },
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "contractImported" : {
+            "$ref" : "#/components/schemas/OnboardingImportContract"
           }
         }
       },
@@ -2536,6 +2649,18 @@
           },
           "vatNumberGroup" : {
             "type" : "boolean"
+          },
+          "providerNames" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "contractType" : {
+            "type" : "string"
+          },
+          "contractId" : {
+            "type" : "string"
           }
         }
       },

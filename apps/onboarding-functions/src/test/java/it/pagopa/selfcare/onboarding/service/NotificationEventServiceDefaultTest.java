@@ -8,15 +8,15 @@ import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.*;
+import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.UserToNotify;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.onboarding.utils.BaseNotificationBuilder;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
-import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
+import it.pagopa.selfcare.onboarding.utils.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -24,10 +24,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.user_json.model.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +49,14 @@ public class NotificationEventServiceDefaultTest {
     NotificationBuilderFactory notificationBuilderFactory;
 
     @InjectMock
+    NotificationUserBuilderFactory notificationUserBuilderFactory;
+
+    @InjectMock
     TokenRepository tokenRepository;
+
+    @RestClient
+    @InjectMock
+    org.openapi.quarkus.user_json.api.UserApi userApi;
 
     @RestClient
     @InjectMock
@@ -68,6 +74,9 @@ public class NotificationEventServiceDefaultTest {
         mockNotificationMapper(true);
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+        List<UserDataResponse> users = new ArrayList<>();
+        when(userApi.usersUserIdInstitutionInstitutionIdGet(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(users);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
         doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -194,20 +203,26 @@ public class NotificationEventServiceDefaultTest {
     }
 
     @Test
-    void notificationEventMapTest() {
-        NotificationToSend notificationToSend =  new NotificationToSend();
-        notificationToSend.setId("id");
-        notificationToSend.setInternalIstitutionID("internal");
-        notificationToSend.setProduct("prod");
-        notificationToSend.setState("state");
-        notificationToSend.setFileName("fileName");
-        notificationToSend.setFilePath("filePath");
-        notificationToSend.setContentType("contentType");
+    void onboardingEventMapTest() {
+        final Onboarding onboarding = createOnboarding();
+        onboarding.setId("ID");
+        Map<String, String> properties = NotificationEventServiceDefault.onboardingEventMap(onboarding);
+        assertNotNull(properties);
+        assertEquals("ID", properties.get("id"));
+    }
 
-        InstitutionToNotify institution = new InstitutionToNotify();
-        institution.setDescription("description");
-        institution.setInstitutionType(InstitutionType.SA);
-        institution.setDigitalAddress("mail");
+    @Test
+    void onboardingEventFailureMapTest() {
+        final Onboarding onboarding = createOnboarding();
+        Map<String, String> properties = NotificationEventServiceDefault.onboardingEventFailureMap(onboarding, new Exception());
+        assertNotNull(properties);
+    }
+
+    @Test
+    void notificationEventMapTest() {
+        NotificationToSend notificationToSend = getNotificationBaseToSend();
+
+        InstitutionToNotify institution = getInstitutionToNotify();
         notificationToSend.setInstitution(institution);
 
         BillingToSend billing = new BillingToSend();
@@ -236,19 +251,9 @@ public class NotificationEventServiceDefaultTest {
 
     @Test
     void notificationEventMapRootParentTest() {
-        NotificationToSend notificationToSend =  new NotificationToSend();
-        notificationToSend.setId("id");
-        notificationToSend.setInternalIstitutionID("internal");
-        notificationToSend.setProduct("prod");
-        notificationToSend.setState("state");
-        notificationToSend.setFileName("fileName");
-        notificationToSend.setFilePath("filePath");
-        notificationToSend.setContentType("contentType");
+        NotificationToSend notificationToSend = getNotificationBaseToSend();
 
-        InstitutionToNotify institution = new InstitutionToNotify();
-        institution.setDescription("description");
-        institution.setInstitutionType(InstitutionType.SA);
-        institution.setDigitalAddress("mail");
+        InstitutionToNotify institution = getInstitutionToNotify();
         RootParent rootParent = new RootParent();
         rootParent.setDescription("RootDescription");
         rootParent.setId("RootId");
@@ -337,6 +342,109 @@ public class NotificationEventServiceDefaultTest {
         var product = new Product();
         product.setConsumers(List.of("STANDARD", "SAP", "FD"));
         return product;
+    }
+
+
+    @Test
+    void notificationEventUserMapTest() {
+        NotificationUserToSend notificationUserToSend = getNotificationUserBaseToSend();
+        UserToNotify user = new UserToNotify();
+        user.setUserId("userId");
+        user.setRole("OPERATOR");
+        notificationUserToSend.setUser(user);
+
+        Map<String, String> properties = NotificationEventServiceDefault.notificationUserEventMap(notificationUserToSend, "topic", "traceId");
+        assertNotNull(properties);
+        assertEquals("traceId", properties.get("notificationEventTraceId"));
+        assertEquals("id", properties.get("id"));
+        assertEquals("internal", properties.get("institutionId"));
+        assertEquals("prod", properties.get("product"));
+
+        assertEquals("userId", properties.get("userId"));
+        assertEquals("OPERATOR", properties.get("role"));
+    }
+
+    @Test
+    void getNotificationUserToSendTest() {
+        Onboarding onboarding = createOnboarding();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        Token token = new Token();
+        NotificationsResources notificationsResources = new NotificationsResources(onboarding,
+                institutionResponse, token, QueueEvent.ADD);
+
+        OnboardedProductResponse onboardedProductResponse = new OnboardedProductResponse();
+        onboardedProductResponse.productId("prod-fd-garantito");
+        onboardedProductResponse.setEnv(Env.ROOT);
+        onboardedProductResponse.setStatus(OnboardedProductState.ACTIVE);
+
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId("userId");
+        userResponse.setTaxCode("taxcode");
+        userResponse.setName("Name");
+        userResponse.setSurname("Surname");
+        userResponse.setEmail("prv@email");
+        HashMap<String, String> workContacts = new HashMap<String, String>();
+        workContacts.put("email", "work@email");
+        userResponse.setWorkContacts(workContacts);
+
+        UserDataResponse userDataResponse = new UserDataResponse();
+        userDataResponse.setId("userId");
+        userDataResponse.institutionId("institutionId");
+        userDataResponse.setInstitutionDescription("Institution Name");
+        userDataResponse.setUserMailUuid("userMailId");
+        userDataResponse.role("MANAGER");
+        userDataResponse.setStatus("ADD");
+        userDataResponse.setProducts(List.of(onboardedProductResponse));
+        userDataResponse.setUserResponse(userResponse);
+
+        NotificationUserToSend notificationUserToSendMock = new NotificationUserToSend();
+        notificationUserToSendMock.setId("eventId");
+        notificationUserToSendMock.setInstitutionId("institutionId");
+        notificationUserToSendMock.setProduct("prod-fd-garantito");
+        notificationUserToSendMock.setOnboardingTokenId("onboardingId");
+
+        FdNotificationBuilder fdNotificationBuilder = mock(FdNotificationBuilder.class);
+        when(notificationUserBuilderFactory.create(any())).thenReturn(fdNotificationBuilder);
+        when(fdNotificationBuilder.buildUserNotificationToSend(any(), any(), any(), any(), any(), any(), any(),
+                any(), any())).thenReturn(notificationUserToSendMock);
+        when(fdNotificationBuilder.shouldSendUserNotification(any(), any())).thenReturn(true);
+        doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+
+
+        NotificationUserToSend notificationUserToSend = NotificationEventServiceDefault.getNotificationUserToSend(notificationsResources, userDataResponse,
+                onboardedProductResponse, fdNotificationBuilder);
+
+        assertNotNull(notificationUserToSend);
+    }
+
+
+    private static InstitutionToNotify getInstitutionToNotify() {
+        InstitutionToNotify institution = new InstitutionToNotify();
+        institution.setDescription("description");
+        institution.setInstitutionType(InstitutionType.SA);
+        institution.setDigitalAddress("mail");
+        return institution;
+    }
+
+    private static NotificationToSend getNotificationBaseToSend() {
+        NotificationToSend notificationToSend = new NotificationToSend();
+        notificationToSend.setId("id");
+        notificationToSend.setInternalIstitutionID("internal");
+        notificationToSend.setProduct("prod");
+        notificationToSend.setState("state");
+        notificationToSend.setFileName("fileName");
+        notificationToSend.setFilePath("filePath");
+        notificationToSend.setContentType("contentType");
+        return notificationToSend;
+    }
+
+    private static NotificationUserToSend getNotificationUserBaseToSend() {
+        NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
+        notificationUserToSend.setId("id");
+        notificationUserToSend.setInstitutionId("internal");
+        notificationUserToSend.setProduct("prod");
+        return notificationUserToSend;
     }
 
 }

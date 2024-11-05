@@ -1,319 +1,350 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-
 import java.time.Instant;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class Product {
 
-    private String id;
-    private String logo;
-    private String depictImageUrl;
-    private String title;
-    private String logoBgColor;
-    private String description;
-    private String urlPublic;
-    private String urlBO;
-    private Instant createdAt;
-    private String createdBy;
-    private Instant modifiedAt;
-    private String modifiedBy;
-    private Map<PartyRole, ProductRoleInfo> roleMappings;
-    private Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType;
-    private String roleManagementURL;
-    private Instant contractTemplateUpdatedAt;
-    private String contractTemplatePath;
-    private String contractTemplateVersion;
-    private Map<String, ContractStorage> institutionContractMappings;
-    private boolean enabled = true;
-    private boolean delegable;
-    private boolean invoiceable;
-    private ProductStatus status;
-    private String parentId;
-    private List<String> testEnvProductIds;
-    private String identityTokenAudience;
-    private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
-    private Product parent;
-    private List<String> consumers;
-    private String userContractTemplatePath;
-    private String userContractTemplateVersion;
+  public static final String CONTRACT_TYPE_DEFAULT = "default";
+  private String id;
+  private String alias;
+  private String logo;
+  private String depictImageUrl;
+  private String title;
+  private String logoBgColor;
+  private String description;
+  private String urlPublic;
+  private String urlBO;
+  private Instant createdAt;
+  private String createdBy;
+  private Instant modifiedAt;
+  private String modifiedBy;
+  private Map<PartyRole, ProductRoleInfo> roleMappings;
+  private Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType;
+  private String roleManagementURL;
+  private boolean enabled = true;
+  private boolean delegable;
+  private boolean invoiceable;
+  private ProductStatus status;
+  private String parentId;
+  private List<String> testEnvProductIds;
+  private String identityTokenAudience;
+  private Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations;
+  private Product parent;
+  private List<String> consumers;
+  private Map<String, ContractTemplate> institutionContractMappings;
+  private Map<String, ContractTemplate> userContractMappings;
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public String getLogo() {
-        return logo;
-    }
+  public String getLogo() {
+    return logo;
+  }
 
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
+  public void setLogo(String logo) {
+    this.logo = logo;
+  }
 
-    public String getDepictImageUrl() {
-        return depictImageUrl;
-    }
+  public String getDepictImageUrl() {
+    return depictImageUrl;
+  }
 
-    public void setDepictImageUrl(String depictImageUrl) {
-        this.depictImageUrl = depictImageUrl;
-    }
+  public void setDepictImageUrl(String depictImageUrl) {
+    this.depictImageUrl = depictImageUrl;
+  }
 
-    public String getTitle() {
-        return title;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public String getLogoBgColor() {
-        return logoBgColor;
-    }
+  public String getLogoBgColor() {
+    return logoBgColor;
+  }
 
-    public void setLogoBgColor(String logoBgColor) {
-        this.logoBgColor = logoBgColor;
-    }
+  public void setLogoBgColor(String logoBgColor) {
+    this.logoBgColor = logoBgColor;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public String getUrlPublic() {
-        return urlPublic;
-    }
+  public String getUrlPublic() {
+    return urlPublic;
+  }
 
-    public void setUrlPublic(String urlPublic) {
-        this.urlPublic = urlPublic;
-    }
+  public void setUrlPublic(String urlPublic) {
+    this.urlPublic = urlPublic;
+  }
 
-    public String getUrlBO() {
-        return urlBO;
-    }
+  public String getUrlBO() {
+    return urlBO;
+  }
 
-    public void setUrlBO(String urlBO) {
-        this.urlBO = urlBO;
-    }
+  public void setUrlBO(String urlBO) {
+    this.urlBO = urlBO;
+  }
 
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
 
-    public String getCreatedBy() {
-        return createdBy;
-    }
+  public String getCreatedBy() {
+    return createdBy;
+  }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
+  public void setCreatedBy(String createdBy) {
+    this.createdBy = createdBy;
+  }
 
-    public Instant getModifiedAt() {
-        return modifiedAt;
-    }
+  public Instant getModifiedAt() {
+    return modifiedAt;
+  }
 
-    public void setModifiedAt(Instant modifiedAt) {
-        this.modifiedAt = modifiedAt;
-    }
+  public void setModifiedAt(Instant modifiedAt) {
+    this.modifiedAt = modifiedAt;
+  }
 
-    public String getModifiedBy() {
-        return modifiedBy;
-    }
+  public String getModifiedBy() {
+    return modifiedBy;
+  }
 
-    public void setModifiedBy(String modifiedBy) {
-        this.modifiedBy = modifiedBy;
-    }
+  public void setModifiedBy(String modifiedBy) {
+    this.modifiedBy = modifiedBy;
+  }
 
-    /**
-     * This method returns roleMappings associate with a specific InstitutionType on roleMappingsByInstitutionType map.
-     * In case none InstitutionType exists on roleMappingsByInstitutionType, it returns roleMappings.
-     * @param institutionType InstitutionType
-     * @return Map<PartyRole, ProductRoleInfo>
-     */
-    public Map<PartyRole, ProductRoleInfo> getRoleMappings(String institutionType) {
-        if(Objects.nonNull(institutionType) && Objects.nonNull(roleMappingsByInstitutionType)
-                && roleMappingsByInstitutionType.containsKey(institutionType)){
-            return roleMappingsByInstitutionType.get(institutionType);
-        }
-        return roleMappings;
+  /**
+   * This method returns roleMappings associate with a specific InstitutionType on
+   * roleMappingsByInstitutionType map. In case none InstitutionType exists on
+   * roleMappingsByInstitutionType, it returns roleMappings.
+   *
+   * @param institutionType InstitutionType
+   * @return Map<PartyRole, ProductRoleInfo>
+   */
+  public Map<PartyRole, ProductRoleInfo> getRoleMappings(String institutionType) {
+    if (Objects.nonNull(institutionType)
+        && Objects.nonNull(roleMappingsByInstitutionType)
+        && roleMappingsByInstitutionType.containsKey(institutionType)) {
+      return roleMappingsByInstitutionType.get(institutionType);
     }
+    return roleMappings;
+  }
 
-    public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
-        Map<PartyRole, List<ProductRoleInfo>> roleInfoMap = new HashMap<>();
-        Optional.ofNullable(roleMappings)
-                .ifPresent(roleMappings -> roleMappings.forEach((key, value) -> {
-                    List<ProductRoleInfo> productRoles = new ArrayList<>();
-                    productRoles.add(value);
-                    roleInfoMap.put(key, productRoles);
-                }));
-        Optional.ofNullable(roleMappingsByInstitutionType)
-                .map(Map::values)
-                .ifPresent(items -> items.stream()
-                        .map(Map::entrySet)
-                        .forEach(item -> item.forEach(entry -> {
-                            List<ProductRoleInfo> productRoles = roleInfoMap.getOrDefault(entry.getKey(), new ArrayList<>());
-                            productRoles.add(entry.getValue());
-                            roleInfoMap.put(entry.getKey(), productRoles);
-                        } )));
-        return roleInfoMap;
-    }
+  public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
+    Map<PartyRole, List<ProductRoleInfo>> roleInfoMap = new HashMap<>();
+    Optional.ofNullable(roleMappings)
+        .ifPresent(
+            roleMappings ->
+                roleMappings.forEach(
+                    (key, value) -> {
+                      List<ProductRoleInfo> productRoles = new ArrayList<>();
+                      productRoles.add(value);
+                      roleInfoMap.put(key, productRoles);
+                    }));
+    Optional.ofNullable(roleMappingsByInstitutionType)
+        .map(Map::values)
+        .ifPresent(
+            items ->
+                items.stream()
+                    .map(Map::entrySet)
+                    .forEach(
+                        item ->
+                            item.forEach(
+                                entry -> {
+                                  List<ProductRoleInfo> productRoles =
+                                      roleInfoMap.getOrDefault(entry.getKey(), new ArrayList<>());
+                                  productRoles.add(entry.getValue());
+                                  roleInfoMap.put(entry.getKey(), productRoles);
+                                })));
+    return roleInfoMap;
+  }
 
-    public void setRoleMappings(Map<PartyRole, ProductRoleInfo> roleMappings) {
-        this.roleMappings = roleMappings;
-    }
+  public void setRoleMappings(Map<PartyRole, ProductRoleInfo> roleMappings) {
+    this.roleMappings = roleMappings;
+  }
 
-    public void setRoleMappingsByInstitutionType(Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType) {
-        this.roleMappingsByInstitutionType = roleMappingsByInstitutionType;
-    }
+  public void setRoleMappingsByInstitutionType(
+      Map<String, Map<PartyRole, ProductRoleInfo>> roleMappingsByInstitutionType) {
+    this.roleMappingsByInstitutionType = roleMappingsByInstitutionType;
+  }
 
-    public String getRoleManagementURL() {
-        return roleManagementURL;
-    }
+  public String getRoleManagementURL() {
+    return roleManagementURL;
+  }
 
-    public void setRoleManagementURL(String roleManagementURL) {
-        this.roleManagementURL = roleManagementURL;
-    }
+  public void setRoleManagementURL(String roleManagementURL) {
+    this.roleManagementURL = roleManagementURL;
+  }
 
-    public Instant getContractTemplateUpdatedAt() {
-        return contractTemplateUpdatedAt;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public void setContractTemplateUpdatedAt(Instant contractTemplateUpdatedAt) {
-        this.contractTemplateUpdatedAt = contractTemplateUpdatedAt;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public String getContractTemplatePath() {
-        return contractTemplatePath;
-    }
+  public boolean isDelegable() {
+    return delegable;
+  }
 
-    public void setContractTemplatePath(String contractTemplatePath) {
-        this.contractTemplatePath = contractTemplatePath;
-    }
+  public void setDelegable(boolean delegable) {
+    this.delegable = delegable;
+  }
 
-    public String getContractTemplateVersion() {
-        return contractTemplateVersion;
-    }
+  public boolean isInvoiceable() {
+    return invoiceable;
+  }
 
-    public void setContractTemplateVersion(String contractTemplateVersion) {
-        this.contractTemplateVersion = contractTemplateVersion;
-    }
+  public void setInvoiceable(boolean invoiceable) {
+    this.invoiceable = invoiceable;
+  }
 
-    public Map<String, ContractStorage> getInstitutionContractMappings() {
-        return institutionContractMappings;
-    }
+  public ProductStatus getStatus() {
+    return status;
+  }
 
-    public void setInstitutionContractMappings(Map<String, ContractStorage> institutionContractMappings) {
-        this.institutionContractMappings = institutionContractMappings;
-    }
+  public void setStatus(ProductStatus status) {
+    this.status = status;
+  }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  public String getParentId() {
+    return parentId;
+  }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public void setParentId(String parentId) {
+    this.parentId = parentId;
+  }
 
-    public boolean isDelegable() {
-        return delegable;
-    }
+  public String getIdentityTokenAudience() {
+    return identityTokenAudience;
+  }
 
-    public void setDelegable(boolean delegable) {
-        this.delegable = delegable;
-    }
+  public void setIdentityTokenAudience(String identityTokenAudience) {
+    this.identityTokenAudience = identityTokenAudience;
+  }
 
-    public boolean isInvoiceable() {
-        return invoiceable;
-    }
+  public Map<String, BackOfficeConfigurations> getBackOfficeEnvironmentConfigurations() {
+    return backOfficeEnvironmentConfigurations;
+  }
 
-    public void setInvoiceable(boolean invoiceable) {
-        this.invoiceable = invoiceable;
-    }
+  public void setBackOfficeEnvironmentConfigurations(
+      Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations) {
+    this.backOfficeEnvironmentConfigurations = backOfficeEnvironmentConfigurations;
+  }
 
-    public ProductStatus getStatus() {
-        return status;
-    }
+  public Product getParent() {
+    return parent;
+  }
 
-    public void setStatus(ProductStatus status) {
-        this.status = status;
-    }
+  public void setParent(Product parent) {
+    this.parent = parent;
+  }
 
-    public String getParentId() {
-        return parentId;
-    }
+  public List<String> getTestEnvProductIds() {
+    return testEnvProductIds;
+  }
 
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
+  public void setTestEnvProductIds(List<String> testEnvProductIds) {
+    this.testEnvProductIds = testEnvProductIds;
+  }
 
-    public String getIdentityTokenAudience() {
-        return identityTokenAudience;
-    }
+  public List<String> getConsumers() {
+    return consumers;
+  }
 
-    public void setIdentityTokenAudience(String identityTokenAudience) {
-        this.identityTokenAudience = identityTokenAudience;
-    }
+  public void setConsumers(List<String> consumers) {
+    this.consumers = consumers;
+  }
 
-    public Map<String, BackOfficeConfigurations> getBackOfficeEnvironmentConfigurations() {
-        return backOfficeEnvironmentConfigurations;
-    }
+  public boolean canAddAdmin() {
+    ContractTemplate userContractTemplate = getUserContractTemplate(CONTRACT_TYPE_DEFAULT);
+    return StringUtils.isNotEmpty(userContractTemplate.getContractTemplatePath())
+        && StringUtils.isNotEmpty(userContractTemplate.getContractTemplateVersion());
+  }
 
-    public void setBackOfficeEnvironmentConfigurations(Map<String, BackOfficeConfigurations> backOfficeEnvironmentConfigurations) {
-        this.backOfficeEnvironmentConfigurations = backOfficeEnvironmentConfigurations;
-    }
+  public Map<String, ContractTemplate> getInstitutionContractMappings() {
+    return institutionContractMappings;
+  }
 
-    public Product getParent() {
-        return parent;
-    }
+  public void setInstitutionContractMappings(
+      Map<String, ContractTemplate> institutionContractMappings) {
+    this.institutionContractMappings = institutionContractMappings;
+  }
 
-    public void setParent(Product parent) {
-        this.parent = parent;
-    }
+  public Map<String, ContractTemplate> getUserContractMappings() {
+    return userContractMappings;
+  }
 
-    public List<String> getTestEnvProductIds() {
-        return testEnvProductIds;
-    }
+  public void setUserContractMappings(Map<String, ContractTemplate> userContractMappings) {
+    this.userContractMappings = userContractMappings;
+  }
 
-    public void setTestEnvProductIds(List<String> testEnvProductIds) {
-        this.testEnvProductIds = testEnvProductIds;
-    }
+  public String getAlias() {
+    return alias;
+  }
 
-    public List<String> getConsumers() {
-        return consumers;
-    }
+  public void setAlias(String alias) {
+    this.alias = alias;
+  }
 
-    public void setConsumers(List<String> consumers) {
-        this.consumers = consumers;
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return ContractTemplate
+   */
+  public ContractTemplate getUserContractTemplate(String institutionType) {
+    ContractTemplate userContractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getUserContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getUserContractMappings().containsKey(institutionType)) {
+        userContractTemplate = getUserContractMappings().get(institutionType);
+      } else if (getUserContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        userContractTemplate = getUserContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
     }
+    return userContractTemplate;
+  }
 
-    public String getUserContractTemplatePath() {
-        return userContractTemplatePath;
+  /**
+   * This method returns contractStorage associate with a specific InstitutionType. In case none
+   * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return ContractTemplate
+   */
+  public ContractTemplate getInstitutionContractTemplate(String institutionType) {
+    ContractTemplate contractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getInstitutionContractMappings())) {
+      if (Objects.nonNull(institutionType)
+          && getInstitutionContractMappings().containsKey(institutionType)) {
+        contractTemplate = getInstitutionContractMappings().get(institutionType);
+      } else if (getInstitutionContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        contractTemplate = getInstitutionContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
     }
-
-    public void setUserContractTemplatePath(String userContractTemplatePath) {
-        this.userContractTemplatePath = userContractTemplatePath;
-    }
-
-    public String getUserContractTemplateVersion() {
-        return userContractTemplateVersion;
-    }
-
-    public void setUserContractTemplateVersion(String userContractTemplateVersion) {
-        this.userContractTemplateVersion = userContractTemplateVersion;
-    }
-
-    public boolean canAddAdmin() {
-        return Objects.nonNull(userContractTemplateVersion);
-    }
+    return contractTemplate;
+  }
 }

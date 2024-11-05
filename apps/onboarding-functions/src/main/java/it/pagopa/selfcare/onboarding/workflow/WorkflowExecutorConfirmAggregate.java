@@ -45,7 +45,6 @@ public record WorkflowExecutorConfirmAggregate(ObjectMapper objectMapper, TaskOp
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
 
-        ctx.callActivity(SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY, onboardingWithDelegationIdString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 

@@ -21,12 +21,12 @@ cidr_subnet_selc_onboarding_fn = ["10.1.144.0/24"]
 function_always_on = false
 
 app_service_plan_info = {
-  kind                          = "Linux"
-  sku_size                      = "P1v3"
-  sku_tier                      = "PremiumV3"
-  maximum_elastic_worker_count  = 1
-  worker_count                  = 1
-  zone_balancing_enabled        = false
+  kind                         = "Linux"
+  sku_size                     = "P1v3"
+  sku_tier                     = "PremiumV3"
+  maximum_elastic_worker_count = 1
+  worker_count                 = 1
+  zone_balancing_enabled       = false
 }
 
 storage_account_info = {
@@ -107,6 +107,7 @@ app_settings = {
 
   ##NAMIRIAL SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                 = "disabled",
+  "NAMIRIAL_BASE_URL"                       = "http://selc-d-namirial-sws-cg.westeurope.azurecontainer.io:8080",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }

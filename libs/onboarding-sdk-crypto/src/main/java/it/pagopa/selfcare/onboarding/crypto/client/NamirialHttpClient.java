@@ -11,17 +11,20 @@ import java.io.InputStream;
 
 public class NamirialHttpClient {
 
-    private static final String NAMIRIAL_BASE_URL = "https://sws.test.namirialtsp.com/SignEngineWeb";
+    private static final String NAMIRIAL_BASE_URL = System.getenv("NAMIRIAL_BASE_URL");
 
-    private static final String NAMIRIAL_SIGN_PADES_URL = NAMIRIAL_BASE_URL + "/rest/service/signPAdES";
+    private static final String NAMIRIAL_SIGN_PADES_URL = NAMIRIAL_BASE_URL + "/SignEngineWeb/rest/service/signPAdES";
 
     public byte[] signDocument(SignRequest request) throws IOException {
         // Initialize HTTP Transport and Request Factory
         HttpTransport httpTransport = new NetHttpTransport();
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory();
 
+        String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+
         // Create the multipart content
-        MultipartContent multipartContent = new MultipartContent();
+        MultipartContent multipartContent = new MultipartContent()
+                .setBoundary(boundary);
         ObjectMapper objectMapper = new ObjectMapper();
 
 
@@ -58,7 +61,7 @@ public class NamirialHttpClient {
                 new GenericUrl(NAMIRIAL_SIGN_PADES_URL), multipartContent);
 
         // Set any required headers
-        httpRequest.getHeaders().setContentType("multipart/form-data;");
+        httpRequest.getHeaders().setContentType("multipart/form-data; boundary=" + boundary);
 
 
         try {

@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -8,10 +9,12 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class FdNotificationBuilder extends BaseNotificationBuilder {
+public class FdNotificationBuilder extends BaseNotificationBuilder implements NotificationUserBuilder {
     public FdNotificationBuilder(
             String alternativeEmail,
             NotificationConfig.Consumer consumer,
@@ -44,12 +47,43 @@ public class FdNotificationBuilder extends BaseNotificationBuilder {
 
     @Override
     public BillingToSend retrieveBilling(Onboarding onboarding) {
-        if(Objects.isNull(onboarding.getBilling())) {
+        if (Objects.isNull(onboarding.getBilling())) {
             return null;
         }
 
         BillingToSend billing = super.retrieveBilling(onboarding);
         billing.setPublicService(onboarding.getBilling().isPublicServices());
         return billing;
+    }
+
+    @Override
+    public NotificationUserToSend buildUserNotificationToSend(Onboarding onboarding, Token token, InstitutionResponse institution,
+                                                              String createdAt, String updatedAt, String status,
+                                                              String userId, String partyRole, String productRole) {
+        NotificationToSend notification = buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+        NotificationUserToSend notificationUserToSend = new NotificationUserToSend();
+        notificationUserToSend.setId(notification.getId());
+        notificationUserToSend.setInstitutionId(notification.getInstitutionId());
+        notificationUserToSend.setProduct(notification.getProduct());
+        notificationUserToSend.setOnboardingTokenId(notification.getOnboardingTokenId());
+        notificationUserToSend.setCreatedAt(createdAt.endsWith("Z") ? createdAt : createdAt + "Z");
+        notificationUserToSend.setUpdatedAt(updatedAt.endsWith("Z") ? createdAt : createdAt + "Z");
+        QueueUserEvent queueUserEvent = switch (status) {
+            case "DELETE" -> QueueUserEvent.DELETE_USER;
+            case "SUSPEND" -> QueueUserEvent.SUSPEND_USER;
+            default -> QueueUserEvent.ACTIVE_USER;
+        };
+        notificationUserToSend.setType(NotificationUserType.getNotificationTypeFromQueueEvent(queueUserEvent));
+        UserToNotify user = new UserToNotify();
+        user.setUserId(userId);
+        user.setRole(partyRole);
+        user.setRoles(List.of(productRole));
+        notificationUserToSend.setUser(user);
+        return notificationUserToSend;
+    }
+
+    @Override
+    public boolean shouldSendUserNotification(Onboarding onboarding, InstitutionResponse institution) {
+        return true;
     }
 }

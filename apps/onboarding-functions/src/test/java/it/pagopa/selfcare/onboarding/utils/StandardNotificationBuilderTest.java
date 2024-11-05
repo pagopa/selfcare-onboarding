@@ -74,7 +74,7 @@ class StandardNotificationBuilderTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(token.getContractSigned(), notification.getFilePath());
@@ -114,7 +114,7 @@ class StandardNotificationBuilderTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getCreatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getCreatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(QueueEvent.ADD, notification.getNotificationType());
@@ -151,7 +151,7 @@ class StandardNotificationBuilderTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
@@ -183,7 +183,7 @@ class StandardNotificationBuilderTest {
         assertNotNull(notification);
         assertNull(notification.getClosedAt());
         assertEquals("ACTIVE", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
@@ -214,7 +214,7 @@ class StandardNotificationBuilderTest {
 
         assertNotNull(notification);
         assertEquals("CLOSED", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getDeletedAt(), notification.getClosedAt().toLocalDateTime());
         assertEquals(onboarding.getDeletedAt(), notification.getUpdatedAt().toLocalDateTime());
@@ -246,7 +246,7 @@ class StandardNotificationBuilderTest {
 
         assertNotNull(notification);
         assertEquals("CLOSED", notification.getState());
-        assertEquals(tokenId, notification.getOnboardingTokenId());
+        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
         assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
         assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
         assertEquals(onboarding.getUpdatedAt(), notification.getClosedAt().toLocalDateTime());

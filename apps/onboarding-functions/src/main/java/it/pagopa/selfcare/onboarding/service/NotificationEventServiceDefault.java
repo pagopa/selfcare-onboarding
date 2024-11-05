@@ -10,15 +10,14 @@ import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
+import it.pagopa.selfcare.onboarding.dto.NotificationUserToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationsResources;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilder;
-import it.pagopa.selfcare.onboarding.utils.NotificationBuilderFactory;
-import it.pagopa.selfcare.onboarding.utils.QueueEventExaminer;
+import it.pagopa.selfcare.onboarding.utils.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,6 +27,8 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.user_json.model.OnboardedProductResponse;
+import org.openapi.quarkus.user_json.model.UserDataResponse;
 
 import java.util.*;
 
@@ -46,9 +47,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
     @Inject
     InstitutionApi institutionApi;
 
+    @RestClient
+    @Inject
+    org.openapi.quarkus.user_json.api.UserApi userApi;
+
     private final ProductService productService;
     private final NotificationConfig notificationConfig;
     private final NotificationBuilderFactory notificationBuilderFactory;
+    private final NotificationUserBuilderFactory notificationUserBuilderFactory;
     private final TokenRepository tokenRepository;
     private final ObjectMapper mapper;
     private final QueueEventExaminer queueEventExaminer;
@@ -56,12 +62,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
                                            NotificationBuilderFactory notificationBuilderFactory,
+                                           NotificationUserBuilderFactory notificationUserBuilderFactory,
                                            TokenRepository tokenRepository,
                                            QueueEventExaminer queueEventExaminer,
                                            @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
+        this.notificationUserBuilderFactory = notificationUserBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
         TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
@@ -79,7 +87,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     @Override
     public void send(ExecutionContext context, Onboarding onboarding, QueueEvent queueEvent, String notificationEventTraceId) {
         context.getLogger().info(() -> String.format("Starting send method for onboarding with ID %s", onboarding.getId()));
-        if(isNotInstitutionOnboarding(onboarding)) {
+        if (isNotInstitutionOnboarding(onboarding)) {
             context.getLogger().info(() -> String.format("Onboarding with ID %s doesn't refer to an institution onboarding, skipping send notification", onboarding.getId()));
             return;
         }
@@ -91,7 +99,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             return;
         }
 
-        if(Objects.isNull(queueEvent)) {
+        if (Objects.isNull(queueEvent)) {
             queueEvent = queueEventExaminer.determineEventType(onboarding);
         }
 
@@ -103,6 +111,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         for (String consumer : product.getConsumers()) {
             NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
             prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
+            prepareAndSendUserNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
         }
     }
 
@@ -117,6 +126,50 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
     }
 
+    private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
+        NotificationUserBuilder notificationUserBuilder = notificationUserBuilderFactory.create(consumer);
+        if (notificationUserBuilder != null && notificationUserBuilder.shouldSendUserNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
+            context.getLogger().info(() -> String.format("[APZ] prepareAndSendUserNotification %s [%s]", notificationsResources.getInstitution().getDescription(), consumer.topic()));
+
+            notificationsResources.getOnboarding().getUsers().forEach(onboardingUser -> {
+                context.getLogger().info(() -> String.format("[APZ] onboardingUser %s [%s]", onboardingUser.getId(), consumer.topic()));
+                List<UserDataResponse> users = userApi.usersUserIdInstitutionInstitutionIdGet(notificationsResources.getOnboarding().getInstitution().getId(), onboardingUser.getId(), onboardingUser.getId(), null, List.of(product.getId()), null, null);
+                users.forEach(userDataResponse -> {
+                    context.getLogger().info(() -> String.format("[APZ] userDataResponse %s [%s]", userDataResponse.toString(), consumer.topic()));
+                    userDataResponse.getProducts().forEach(onboardedProductResponse -> {
+                        context.getLogger().info(() -> String.format("[APZ] onboardedProductResponse %s [%s]", onboardedProductResponse.toString(), consumer.topic()));
+                        if (onboardedProductResponse.getProductId().equals(product.getId())) {
+                            context.getLogger().info(() -> String.format("[APZ] getNotificationUserToSend %s [%s]", userDataResponse.getUserId(), consumer.topic()));
+                            NotificationUserToSend notificationUserToSend = getNotificationUserToSend(notificationsResources, userDataResponse, onboardedProductResponse, notificationUserBuilder);
+                            context.getLogger().info(() -> String.format("Sending user notification %s", notificationUserToSend.toString()));
+                            sendUserNotification(context, consumer.topic(), notificationUserToSend, notificationEventTraceId);
+                        }
+                    });
+                });
+            });
+
+
+        } else {
+            context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
+        }
+    }
+
+    public static NotificationUserToSend getNotificationUserToSend(NotificationsResources notificationsResources,
+                                                                   UserDataResponse userDataResponse,
+                                                                   OnboardedProductResponse onboardedProductResponse,
+                                                                   NotificationUserBuilder notificationUserBuilder) {
+        return notificationUserBuilder.buildUserNotificationToSend(
+                notificationsResources.getOnboarding(),
+                notificationsResources.getToken(),
+                notificationsResources.getInstitution(),
+                onboardedProductResponse.getCreatedAt(),
+                onboardedProductResponse.getUpdatedAt(),
+                onboardedProductResponse.getStatus().toString(),
+                userDataResponse.getUserId(),
+                onboardedProductResponse.getRole(),
+                onboardedProductResponse.getProductRole());
+    }
+
     private void sendNotification(ExecutionContext context, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
         String message = null;
         try {
@@ -129,7 +182,22 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         eventHubRestClient.sendMessage(topic, message);
-        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+    }
+
+    private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
+        String message = null;
+        try {
+            message = mapper.writeValueAsString(notificationUserToSend);
+        } catch (JsonProcessingException e) {
+            throw new NotificationException("Notification User cannot be serialized");
+        } finally {
+            String finalMessage = message;
+            context.getLogger().info(() -> String.format("Sending notification user on topic: %s with message: %s", topic, finalMessage));
+        }
+
+        eventHubRestClient.sendMessage(topic, message);
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationUserEventMap(notificationUserToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
@@ -205,6 +273,23 @@ public class NotificationEventServiceDefault implements NotificationEventService
             Optional.ofNullable(notificationToSend.getBilling().isPublicService()).ifPresent(value -> propertiesMap.put("billing.isPublicService", Boolean.TRUE.equals(value) ? "true" : "false"));
         }
 
+        return propertiesMap;
+    }
+
+    public static Map<String, String> notificationUserEventMap(NotificationUserToSend notificationUserToSend, String topic, String notificationEventTraceId) {
+        Map<String, String> propertiesMap = new HashMap<>();
+        Optional.ofNullable(topic).ifPresent(value -> propertiesMap.put("topic", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
+        Optional.ofNullable(notificationUserToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
+        Optional.ofNullable(notificationUserToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));
+        Optional.ofNullable(notificationUserToSend.getProduct()).ifPresent(value -> propertiesMap.put("product", value));
+        Optional.ofNullable(notificationUserToSend.getOnboardingTokenId()).ifPresent(value -> propertiesMap.put("onboardingTokenId", value));
+
+        if (Optional.ofNullable(notificationUserToSend.getUser()).isPresent()) {
+            Optional.ofNullable(notificationUserToSend.getUser().getUserId()).ifPresent(value -> propertiesMap.put("userId", value));
+            Optional.ofNullable(notificationUserToSend.getUser().getRole()).ifPresent(value -> propertiesMap.put("role", value));
+            //Optional.ofNullable(notificationUserToSend.getUser().getRoles()).ifPresent(value -> propertiesMap.put("roles", value.toString()));
+        }
         return propertiesMap;
     }
 }

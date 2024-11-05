@@ -510,7 +510,8 @@
           "CONTRACT_REGISTRATION_AGGREGATOR",
           "CONFIRMATION_AGGREGATE",
           "INCREMENT_REGISTRATION_AGGREGATOR",
-          "USERS_PG"
+          "USERS_PG",
+          "USERS_EA"
         ],
         "type": "string"
       },

@@ -18,13 +18,13 @@ public class ActivityName {
     public static final String CREATE_USERS_ACTIVITY = "CreateUsers";
     public static final String SEND_ONBOARDING_NOTIFICATION = "SendOnboardingNotification";
     public static final String CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY = "CreateAggregateOnboardingRequest";
-    public static final String SEND_MAIL_COMPLETION_AGGREGATE_ACTIVITY = "SendMailCompletionAggregate";
     public static final String CREATE_DELEGATION_ACTIVITY = "CreateDelegation";
     public static final String ONBOARDINGS_AGGREGATE_ORCHESTRATOR =  "OnboardingsAggregate";
     public static final String RESEND_NOTIFICATIONS_ACTIVITY = "ResendNotificationsActivity";
     public static final String CREATE_AGGREGATES_CSV_ACTIVITY = "CreateAggregatesCsv";
     public static final String EXISTS_DELEGATION_ACTIVITY = "ExistsDelegationActivity";
     public static final String DELETE_MANAGERS_BY_IC_AND_ADE = "DeleteManagersByIcAndAde";
+    public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
 
     private ActivityName() {
     }
