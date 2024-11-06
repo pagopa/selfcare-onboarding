@@ -1,22 +1,23 @@
 package it.pagopa.selfcare.product.entity;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ProductTest {
 
@@ -276,5 +277,59 @@ public class ProductTest {
             .get("contractTemplatePath")
             .asText());
     assertEquals(product.getStatus().toString(), jsonNode.get("status").asText());
+  }
+
+  @Test
+  void testGetUserAggregatorContractTemplate_WithValidInstitutionType() {
+    // Setup
+    Product product = new Product();
+    Map<String, ContractTemplate> mappings = new HashMap<>();
+    ContractTemplate contractTemplate = new ContractTemplate();
+    contractTemplate.setContractTemplatePath("path");
+    contractTemplate.setContractTemplatePath("version");
+    mappings.put("validType", contractTemplate);
+    product.setUserAggregatorContractMappings(mappings);
+
+    // Execute
+    ContractTemplate result = product.getUserAggregatorContractTemplate("validType");
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(mappings.get("validType"), result);
+  }
+
+  @Test
+  void testGetUserAggregatorContractTemplate_WithDefault() {
+    // Setup
+    Product product = new Product();
+    Map<String, ContractTemplate> mappings = new HashMap<>();
+    ContractTemplate contractTemplate = new ContractTemplate();
+    contractTemplate.setContractTemplatePath("path");
+    contractTemplate.setContractTemplatePath("version");
+    mappings.put("default", contractTemplate);
+    product.setUserAggregatorContractMappings(mappings);
+
+    // Execute
+    ContractTemplate result = product.getUserAggregatorContractTemplate("unknownType");
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(mappings.get("default"), result);
+  }
+
+  @Test
+  void testGetUserAggregatorContractTemplate_NoMappings() {
+    // Setup
+    Product product = new Product();
+    product.setUserAggregatorContractMappings(null);
+
+    // Execute
+    ContractTemplate result = product.getUserAggregatorContractTemplate("anyType");
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(ContractTemplate.class, result.getClass());
+    assertNull(result.getContractTemplatePath());
+    assertNull(result.getContractTemplateVersion());
   }
 }

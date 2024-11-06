@@ -1,9 +1,10 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.Instant;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 public class Product {
 
@@ -36,6 +37,7 @@ public class Product {
   private List<String> consumers;
   private Map<String, ContractTemplate> institutionContractMappings;
   private Map<String, ContractTemplate> userContractMappings;
+  private Map<String, ContractTemplate> userAggregatorContractMappings;
 
   public String getId() {
     return id;
@@ -300,6 +302,14 @@ public class Product {
     this.userContractMappings = userContractMappings;
   }
 
+  public Map<String, ContractTemplate> getUserAggregatorContractMappings() {
+    return userAggregatorContractMappings;
+  }
+
+  public void setUserAggregatorContractMappings(Map<String, ContractTemplate> userAggregatorContractMappings) {
+    this.userAggregatorContractMappings = userAggregatorContractMappings;
+  }
+
   public String getAlias() {
     return alias;
   }
@@ -346,5 +356,25 @@ public class Product {
       }
     }
     return contractTemplate;
+  }
+
+  /**
+   * This method returns ContractTemplate associate with a specific InstitutionType for UserAggregatorContract.
+   * In case none InstitutionType exists on contractMapping, it returns the default ContractTemplate.
+   *
+   * @param institutionType InstitutionType
+   * @return ContractTemplate
+   */
+  public ContractTemplate getUserAggregatorContractTemplate(String institutionType) {
+    ContractTemplate userAggregatorContractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getUserAggregatorContractMappings())) {
+      if (Objects.nonNull(institutionType)
+              && getUserAggregatorContractMappings().containsKey(institutionType)) {
+        userAggregatorContractTemplate = getUserAggregatorContractMappings().get(institutionType);
+      } else if (getUserAggregatorContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        userAggregatorContractTemplate = getUserAggregatorContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
+    }
+    return userAggregatorContractTemplate;
   }
 }
