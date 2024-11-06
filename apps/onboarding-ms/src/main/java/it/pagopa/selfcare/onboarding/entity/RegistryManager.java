@@ -15,6 +15,6 @@ public interface RegistryManager<T> {
 
     Onboarding getOnboarding();
 
-    RegistryManager setResource(T registryResource);
+    RegistryManager<T> setResource(T registryResource);
 }
 

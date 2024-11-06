@@ -25,11 +25,6 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
     }
 
     @Override
-    public Uni<Onboarding> customValidation(Product product) {
-        return super.customValidation(product);
-    }
-
-    @Override
     public Uni<Boolean> isValid() {
         return Uni.createFrom().item(true);
     }

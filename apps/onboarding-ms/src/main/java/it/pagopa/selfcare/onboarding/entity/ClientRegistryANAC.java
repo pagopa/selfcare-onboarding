@@ -15,7 +15,7 @@ public abstract class ClientRegistryANAC extends BaseRegistryManager<StationReso
 
     private final StationsApi client;
 
-    public ClientRegistryANAC(Onboarding onboarding, StationsApi stationsApi) {
+    protected ClientRegistryANAC(Onboarding onboarding, StationsApi stationsApi) {
         super(onboarding);
         client = stationsApi;
     }

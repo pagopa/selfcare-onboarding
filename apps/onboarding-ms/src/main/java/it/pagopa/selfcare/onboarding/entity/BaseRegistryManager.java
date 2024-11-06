@@ -14,7 +14,7 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
     protected Onboarding onboarding;
     protected T registryResource;
 
-    public BaseRegistryManager(Onboarding onboarding) {
+    protected BaseRegistryManager(Onboarding onboarding) {
         this.onboarding = onboarding;
     }
 
@@ -26,7 +26,7 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
         return onboarding;
     }
 
-    public RegistryManager<?> setResource(T registryResource) {
+    public RegistryManager<T> setResource(T registryResource) {
         this.registryResource = registryResource;
         return this;
     }

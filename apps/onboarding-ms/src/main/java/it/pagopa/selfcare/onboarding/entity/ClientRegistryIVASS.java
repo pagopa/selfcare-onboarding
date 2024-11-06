@@ -15,7 +15,7 @@ public abstract class ClientRegistryIVASS extends BaseRegistryManager<InsuranceC
 
     private final InsuranceCompaniesApi client;
 
-    public ClientRegistryIVASS(Onboarding onboarding, InsuranceCompaniesApi client) {
+    protected ClientRegistryIVASS(Onboarding onboarding, InsuranceCompaniesApi client) {
         super(onboarding);
         this.client = client;
     }

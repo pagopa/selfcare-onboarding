@@ -13,7 +13,7 @@ public abstract class ClientRegistryPDNDInfocamere extends BaseRegistryManager<P
 
     private final InfocamerePdndApi client;
 
-    public ClientRegistryPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
+    protected ClientRegistryPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi) {
         super(onboarding);
         this.client = infocamerePdndApi;
     }

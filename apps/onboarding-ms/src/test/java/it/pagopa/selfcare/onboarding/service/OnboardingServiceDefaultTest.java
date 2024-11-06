@@ -1083,11 +1083,10 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        Product product = mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
 
         // mock parent has already onboarding
-
         mockVerifyOnboardingNotFound();
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 

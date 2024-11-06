@@ -19,13 +19,13 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
     protected String originIdEC;
     protected String resourceTaxCode;
 
-    public ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+    protected ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
         super(onboarding);
         this.uoClient = uoApi;
         this.aooClient = aooApi;
     }
 
-    public ClientRegistryIPA(Onboarding onboarding, UoApi uoApi) {
+    protected ClientRegistryIPA(Onboarding onboarding, UoApi uoApi) {
         super(onboarding);
         this.uoClient = uoApi;
     }
