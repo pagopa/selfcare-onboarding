@@ -57,11 +57,6 @@ import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.party_registry_proxy_json.api.*;
 import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
@@ -612,6 +607,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
@@ -1588,7 +1584,7 @@ class OnboardingServiceDefaultTest {
 
     private void mockUpdateToken(UniAsserter asserter, String filepath) {
 
-        //Mock token updat
+        //Mock token update
         asserter.execute(() -> PanacheMock.mock(Token.class));
         ReactivePanacheUpdate panacheUpdate = mock(ReactivePanacheUpdate.class);
         asserter.execute(() -> when(panacheUpdate.where("contractSigned", filepath))
@@ -2467,9 +2463,7 @@ class OnboardingServiceDefaultTest {
         OnboardingUserRequest request = new OnboardingUserRequest();
         request.setUsers(Collections.emptyList());
 
-        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> {
-            onboardingService.checkManager(request);
-        });
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> onboardingService.checkManager(request));
         assertEquals("At least one user should have role MANAGER", exception.getMessage());
     }
 
