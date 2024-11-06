@@ -258,25 +258,26 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem().transformToUni(product -> Uni.createFrom().item(registryResourceFactory.create(onboarding))
                         .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                         .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                        .onItem().transformToUni(registryManager -> registryManager.isValid().onItem().transformToUni(ignored -> registryManager.customValidation(product)))
-                                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(
-                                                current -> persistOnboarding(onboarding, userRequests, product, aggregates))
-                                        /* Update onboarding data with users and start orchestration */
-                                        .onItem()
-                                        .transformToUni(
-                                                currentOnboarding ->
-                                                        persistAndStartOrchestrationOnboarding(
-                                                                currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), timeout)))
-                                        .onItem()
-                                        .transform(onboardingMapper::toResponse));
+                        .onItem().transformToUni(registryManager -> registryManager.isValid()
+                                .onItem().transformToUni(ignored -> registryManager.customValidation(product)))
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem()
+                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem()
+                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem()
+                        .transformToUni(
+                                current -> persistOnboarding(onboarding, userRequests, product, aggregates))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem()
+                        .transformToUni(
+                                currentOnboarding ->
+                                        persistAndStartOrchestrationOnboarding(
+                                                currentOnboarding,
+                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
+                                                        currentOnboarding.getId(), timeout)))
+                        .onItem()
+                        .transform(onboardingMapper::toResponse));
     }
 
     /**
@@ -354,31 +355,31 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .onItem().invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                         .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                         .onItem().transformToUni(registryManager -> registryManager.isValid().onItem().transformToUni(ignored -> registryManager.customValidation(product)))
-                                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(this::setInstitutionTypeAndBillingData)
-                                        .onItem()
-                                        .transformToUni(
-                                                current -> persistOnboarding(onboarding, userRequests, product, null))
-                                        .onItem()
-                                        .call(
-                                                onboardingPersisted ->
-                                                        Panache.withTransaction(
-                                                                () ->
-                                                                        Token.persist(
-                                                                                getToken(onboardingPersisted, product, contractImported))))
-                                        /* Update onboarding data with users and start orchestration */
-                                        .onItem()
-                                        .transformToUni(
-                                                currentOnboarding ->
-                                                        persistAndStartOrchestrationOnboarding(
-                                                                currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), timeout)))
-                                        .onItem()
-                                        .transform(onboardingMapper::toResponse));
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem()
+                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem()
+                        .transformToUni(this::setInstitutionTypeAndBillingData)
+                        .onItem()
+                        .transformToUni(
+                                current -> persistOnboarding(onboarding, userRequests, product, null))
+                        .onItem()
+                        .call(
+                                onboardingPersisted ->
+                                        Panache.withTransaction(
+                                                () ->
+                                                        Token.persist(
+                                                                getToken(onboardingPersisted, product, contractImported))))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem()
+                        .transformToUni(
+                                currentOnboarding ->
+                                        persistAndStartOrchestrationOnboarding(
+                                                currentOnboarding,
+                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
+                                                        currentOnboarding.getId(), timeout)))
+                        .onItem()
+                        .transform(onboardingMapper::toResponse));
     }
 
     private Uni<Onboarding> persistOnboarding(
