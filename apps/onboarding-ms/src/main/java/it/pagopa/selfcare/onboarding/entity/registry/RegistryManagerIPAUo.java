@@ -1,8 +1,10 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
+import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryIPA;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;

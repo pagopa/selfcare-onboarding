@@ -1,5 +1,8 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry;
 
+
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 
 public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
 

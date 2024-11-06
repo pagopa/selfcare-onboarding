@@ -1,6 +1,7 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry;
 
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;

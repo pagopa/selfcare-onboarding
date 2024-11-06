@@ -1,6 +1,8 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.entity.IPAEntity;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
@@ -25,7 +27,7 @@ public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))
                 .onItem().invoke(this::enrichOnboardingData)
-                .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+                .await().atMost(Duration.of(BaseRegistryManager.DURATION_TIMEOUT, ChronoUnit.SECONDS));
         super.originIdEC = aooResource.getCodiceIpa();
         super.resourceTaxCode = aooResource.getCodiceFiscaleEnte();
         return IPAEntity.builder().aooResource(aooResource).build();

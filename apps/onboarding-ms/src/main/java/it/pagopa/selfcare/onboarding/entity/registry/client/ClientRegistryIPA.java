@@ -1,6 +1,9 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry.client;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.entity.registry.BaseRegistryManager;
+import it.pagopa.selfcare.onboarding.entity.IPAEntity;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;

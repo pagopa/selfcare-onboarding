@@ -1,6 +1,8 @@
-package it.pagopa.selfcare.onboarding.entity;
+package it.pagopa.selfcare.onboarding.entity.registry;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryPDNDInfocamere;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;

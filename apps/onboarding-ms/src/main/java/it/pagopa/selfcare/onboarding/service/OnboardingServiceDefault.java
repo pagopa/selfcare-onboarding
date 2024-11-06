@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.registry.RegistryResourceFactory;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -128,7 +129,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject OnboardingMapper onboardingMapper;
 
     @Inject InstitutionMapper institutionMapper;
-    @Inject RegistryResourceFactory registryResourceFactory;
+    @Inject
+    RegistryResourceFactory registryResourceFactory;
     @Inject OnboardingValidationStrategy onboardingValidationStrategy;
     @Inject ProductService productService;
     @Inject SignatureService signatureService;
