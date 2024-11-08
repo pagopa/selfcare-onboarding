@@ -227,11 +227,11 @@ public class PdfMapper {
     }
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {
-        String businessRegisterNumber = StringUtils.EMPTY;
+        String businessRegisterNumber = UNDERSCORE;
         String businessRegisterNumberLabel = StringUtils.EMPTY;
 
         if (institution.getPaymentServiceProvider() != null) {
-            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(StringUtils.EMPTY);
+            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(UNDERSCORE);
             businessRegisterNumberLabel = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n";
         }
 
