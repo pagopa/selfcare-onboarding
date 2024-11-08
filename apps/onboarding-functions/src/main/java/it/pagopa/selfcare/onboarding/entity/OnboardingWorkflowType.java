@@ -4,6 +4,7 @@ public enum OnboardingWorkflowType {
 
     AGGREGATOR,
     INSTITUTION,
-    USER;
+    USER,
+    USER_EA;
 
 }
