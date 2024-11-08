@@ -288,14 +288,7 @@ public class PdfMapper {
                     .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
 
-            users.stream()
-                    .filter(user -> userResource.getId().toString().equals(user.getId()))
-                    .map(User::getUserMailUuid)
-                    .findFirst()
-                    .filter(userMailUuid -> Objects.nonNull(userResource.getWorkContacts()) &&
-                            userResource.getWorkContacts().containsKey(userMailUuid))
-                    .ifPresent(userMailUuid ->
-                        builder.append(getStringValue(userResource.getWorkContacts().get(userMailUuid).getEmail())));
+            printUserWorkEmail(users, userResource, builder);
 
 
             builder.append("&nbsp;</span></p>\n")
@@ -322,14 +315,7 @@ public class PdfMapper {
                     .append("</span></p>\n")
                     .append("<p class=\"c2\"><span class=\"c1\">Posta Elettronica aziendale: ");
 
-            users.stream()
-                    .filter(user -> userResource.getId().toString().equals(user.getId()))
-                    .map(User::getUserMailUuid)
-                    .findFirst()
-                    .filter(userMailUuid -> Objects.nonNull(userResource.getWorkContacts()) &&
-                            userResource.getWorkContacts().containsKey(userMailUuid))
-                    .ifPresent(userMailUuid ->
-                            builder.append(getStringValue(userResource.getWorkContacts().get(userMailUuid).getEmail())));
+            printUserWorkEmail(users, userResource, builder);
 
 
             builder.append("&nbsp;</span></p>\n")
@@ -339,6 +325,17 @@ public class PdfMapper {
         builder.append("</ol></span></p>");
 
         return builder.toString();
+    }
+
+    private static void printUserWorkEmail(List<User> users, UserResource userResource, StringBuilder builder) {
+        users.stream()
+                .filter(user -> userResource.getId().toString().equals(user.getId()))
+                .map(User::getUserMailUuid)
+                .findFirst()
+                .filter(userMailUuid -> Objects.nonNull(userResource.getWorkContacts()) &&
+                        userResource.getWorkContacts().containsKey(userMailUuid))
+                .ifPresent(userMailUuid ->
+                        builder.append(getStringValue(userResource.getWorkContacts().get(userMailUuid).getEmail())));
     }
 
     private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {
