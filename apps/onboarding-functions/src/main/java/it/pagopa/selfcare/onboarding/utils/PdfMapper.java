@@ -290,7 +290,6 @@ public class PdfMapper {
 
             printUserWorkEmail(users, userResource, builder);
 
-
             builder.append("&nbsp;</span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">PEC: &nbsp;</span></p>\n")
                     .append("</br>");
@@ -316,7 +315,6 @@ public class PdfMapper {
                     .append("<p class=\"c2\"><span class=\"c1\">Posta Elettronica aziendale: ");
 
             printUserWorkEmail(users, userResource, builder);
-
 
             builder.append("&nbsp;</span></p>\n")
                     .append("</li>\n");  // Close list item
