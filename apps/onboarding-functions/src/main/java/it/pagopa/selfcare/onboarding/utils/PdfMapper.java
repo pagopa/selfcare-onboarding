@@ -130,8 +130,10 @@ public class PdfMapper {
         map.put(INSTITUTION_BUSINESS_REGISTER_PLACE, Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
     }
 
-    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding, String baseUrl) {
+    public static void setupPRVData(Map<String, Object> map, Onboarding onboarding, String baseUrl,  List<UserResource> users) {
         addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
+
+        map.put("delegatesPrv", delegatesPrvToText(users, onboarding.getUsers()));
 
         if (onboarding.getBilling() != null) {
             map.put(INSTITUTION_RECIPIENT_CODE, Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
@@ -225,11 +227,11 @@ public class PdfMapper {
     }
 
     private static void addInstitutionRegisterLabelValue(Institution institution, Map<String, Object> map) {
-        String businessRegisterNumber = StringUtils.EMPTY;
+        String businessRegisterNumber = UNDERSCORE;
         String businessRegisterNumberLabel = StringUtils.EMPTY;
 
         if (institution.getPaymentServiceProvider() != null) {
-            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(StringUtils.EMPTY);
+            businessRegisterNumber = Optional.ofNullable(institution.getPaymentServiceProvider().getBusinessRegisterNumber()).orElse(UNDERSCORE);
             businessRegisterNumberLabel = "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${number}</span> </span><span class=\"c1\"></span></li>\n";
         }
 
@@ -286,21 +288,52 @@ public class PdfMapper {
                     .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
 
-            users.stream()
-                    .filter(user -> userResource.getId().toString().equals(user.getId()))
-                    .map(User::getUserMailUuid)
-                    .findFirst()
-                    .filter(userMailUuid -> Objects.nonNull(userResource.getWorkContacts()) &&
-                            userResource.getWorkContacts().containsKey(userMailUuid))
-                    .ifPresent(userMailUuid ->
-                        builder.append(getStringValue(userResource.getWorkContacts().get(userMailUuid).getEmail())));
-
+            printUserWorkEmail(users, userResource, builder);
 
             builder.append("&nbsp;</span></p>\n")
                     .append("<p class=\"c141\"><span class=\"c6\">PEC: &nbsp;</span></p>\n")
                     .append("</br>");
         });
         return builder.toString();
+    }
+
+    private static String delegatesPrvToText(List<UserResource> userResources, List<User> users) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<p class=\"c2\"><span class=\"c1\"><ol class=\"c0\">");
+        userResources.forEach(userResource -> {
+            builder
+                    .append("<br><li class=\"c1\"><br>")
+                    .append("<p class=\"c2\"><span class=\"c1\">Cognome: ")
+                    .append(getStringValue(userResource.getFamilyName()))
+                    .append("&nbsp;</span></p>\n")
+                    .append("<p class=\"c2\"><span class=\"c1\">Nome: ")
+                    .append(getStringValue(userResource.getName()))
+                    .append("&nbsp;</span></p>\n")
+                    .append("<p class=\"c2\"><span class=\"c1\">Codice Fiscale: ")
+                    .append(userResource.getFiscalCode())
+                    .append("</span></p>\n")
+                    .append("<p class=\"c2\"><span class=\"c1\">Posta Elettronica aziendale: ");
+
+            printUserWorkEmail(users, userResource, builder);
+
+            builder.append("&nbsp;</span></p>\n")
+                    .append("</li>\n");  // Close list item
+        });
+
+        builder.append("</ol></span></p>");
+
+        return builder.toString();
+    }
+
+    private static void printUserWorkEmail(List<User> users, UserResource userResource, StringBuilder builder) {
+        users.stream()
+                .filter(user -> userResource.getId().toString().equals(user.getId()))
+                .map(User::getUserMailUuid)
+                .findFirst()
+                .filter(userMailUuid -> Objects.nonNull(userResource.getWorkContacts()) &&
+                        userResource.getWorkContacts().containsKey(userMailUuid))
+                .ifPresent(userMailUuid ->
+                        builder.append(getStringValue(userResource.getWorkContacts().get(userMailUuid).getEmail())));
     }
 
     private static String getStringValue(CertifiableFieldResourceOfstring resourceOfString) {

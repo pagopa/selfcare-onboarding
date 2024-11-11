@@ -11,7 +11,8 @@ import it.pagopa.selfcare.product.entity.Product;
 @JsonSubTypes({
   @JsonSubTypes.Type(value = OnboardingWorkflowAggregator.class, name = "AGGREGATOR"),
   @JsonSubTypes.Type(value = OnboardingWorkflowInstitution.class, name = "INSTITUTION"),
-  @JsonSubTypes.Type(value = OnboardingWorkflowUser.class, name = "USER")
+  @JsonSubTypes.Type(value = OnboardingWorkflowUser.class, name = "USER"),
+  @JsonSubTypes.Type(value = OnboardingWorkflowUserEa.class, name = "USER_EA")
 })
 public abstract class OnboardingWorkflow {
 
