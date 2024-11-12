@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.utils;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
@@ -50,20 +51,21 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         this.coreInstitutionApi = coreInstitutionApi;
     }
 
-    public NotificationToSend buildNotificationToSend(
-            Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
-        NotificationToSend notificationToSend = new NotificationToSend();
-        if (queueEvent.equals(QueueEvent.ADD)) {
-            notificationToSend.setId(onboarding.getId());
-        } else {
-            notificationToSend.setId(UUID.randomUUID().toString());
-        }
-        notificationToSend.setState(convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
-        mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
-        notificationToSend.setInstitution(retrieveInstitution(institution));
-        if (Objects.nonNull(token)) {
-            setTokenData(notificationToSend, token);
-        }
+  public NotificationToSend buildNotificationToSend(
+      Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
+    NotificationToSend notificationToSend = new NotificationToSend();
+    if (queueEvent.equals(QueueEvent.ADD)) {
+      notificationToSend.setId(onboarding.getId());
+    } else {
+      notificationToSend.setId(UUID.randomUUID().toString());
+    }
+    notificationToSend.setState(
+        convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
+    mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
+    notificationToSend.setInstitution(retrieveInstitution(institution, onboarding));
+    if (Objects.nonNull(token)) {
+      setTokenData(notificationToSend, token);
+    }
 
         return notificationToSend;
     }
@@ -116,64 +118,80 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         }
     }
 
-    @Override
-    public InstitutionToNotify retrieveInstitution(InstitutionResponse institution) {
-        InstitutionToNotify toNotify = new InstitutionToNotify();
-        toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
-        toNotify.setDescription(institution.getDescription());
-        toNotify.setDigitalAddress(
-                institution.getDigitalAddress() == null
-                        ? alternativeEmail
-                        : institution.getDigitalAddress());
-        toNotify.setAddress(institution.getAddress());
-        toNotify.setTaxCode(institution.getTaxCode());
-        toNotify.setOrigin(institution.getOrigin());
-        toNotify.setOriginId(institution.getOriginId());
-        toNotify.setZipCode(institution.getZipCode());
-        toNotify.setPaymentServiceProvider(toSetPaymentServiceProvider(institution.getPaymentServiceProvider()));
-        toNotify.setSupportEmail(institution.getSupportEmail());
-        if (institution.getSubunitType() != null && !"EC".equals(institution.getSubunitType())) {
-            toNotify.setSubUnitType(institution.getSubunitType());
-            toNotify.setSubUnitCode(institution.getSubunitCode());
-        }
-        RootParent rootParent = new RootParent();
-        if (Objects.nonNull(institution.getRootParent())) {
-            rootParent.setId(institution.getRootParent().getId());
-            rootParent.setDescription(institution.getRootParent().getDescription());
-            InstitutionResponse parentInstitution = coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId());
-            rootParent.setOriginId(Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
-            toNotify.setRootParent(rootParent);
-        }
-        if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
-            toNotify.setCategory(institution.getAttributes().get(0).getCode());
-        } else if (institution.getInstitutionType().equals(InstitutionType.GSP.name()) && institution.getOrigin().equals(Origin.SELC.name())) {
-            toNotify.setCategory("L37");
-        }
-        if (Objects.isNull(institution.getCity())
-                && institution.getInstitutionType().equals(InstitutionRequest.InstitutionTypeEnum.PA.name())) {
-            retrieveAndSetGeographicData(toNotify);
-        } else {
-            toNotify.setCounty(institution.getCounty());
-            toNotify.setCountry(institution.getCountry());
-            toNotify.setIstatCode(institution.getIstatCode());
-            toNotify.setCity(institution.getCity().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
-        }
-        return toNotify;
+  @Override
+  public InstitutionToNotify retrieveInstitution(
+      InstitutionResponse institution, Onboarding onboarding) {
+    InstitutionToNotify toNotify = new InstitutionToNotify();
+    toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
+    toNotify.setDescription(institution.getDescription());
+    toNotify.setDigitalAddress(
+        institution.getDigitalAddress() == null
+            ? alternativeEmail
+            : institution.getDigitalAddress());
+    toNotify.setAddress(institution.getAddress());
+    toNotify.setTaxCode(institution.getTaxCode());
+    toNotify.setOrigin(institution.getOrigin());
+    toNotify.setOriginId(institution.getOriginId());
+    toNotify.setZipCode(institution.getZipCode());
+    toNotify.setPaymentServiceProvider(
+        toSetPaymentServiceProvider(institution.getPaymentServiceProvider(), onboarding));
+    if (institution.getSubunitType() != null && !"EC".equals(institution.getSubunitType())) {
+      toNotify.setSubUnitType(institution.getSubunitType());
+      toNotify.setSubUnitCode(institution.getSubunitCode());
+    }
+    RootParent rootParent = new RootParent();
+    if (Objects.nonNull(institution.getRootParent())) {
+      rootParent.setId(institution.getRootParent().getId());
+      rootParent.setDescription(institution.getRootParent().getDescription());
+      InstitutionResponse parentInstitution =
+          coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId());
+      rootParent.setOriginId(
+          Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
+      toNotify.setRootParent(rootParent);
+    }
+    if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
+      toNotify.setCategory(institution.getAttributes().get(0).getCode());
+    } else if (institution.getInstitutionType().equals(InstitutionType.GSP.name())
+        && institution.getOrigin().equals(Origin.SELC.name())) {
+      toNotify.setCategory("L37");
+    }
+    if (Objects.isNull(institution.getCity())
+        && institution
+            .getInstitutionType()
+            .equals(InstitutionRequest.InstitutionTypeEnum.PA.name())) {
+      retrieveAndSetGeographicData(toNotify);
+    } else {
+      toNotify.setCounty(institution.getCounty());
+      toNotify.setCountry(institution.getCountry());
+      toNotify.setIstatCode(institution.getIstatCode());
+      toNotify.setCity(institution.getCity().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
+    }
+    return toNotify;
+  }
+
+  private PaymentServiceProvider toSetPaymentServiceProvider(
+      PaymentServiceProviderResponse psp, Onboarding onboarding) {
+    PaymentServiceProvider paymentServiceProviderToNotify = new PaymentServiceProvider();
+    if (Objects.isNull(psp)) {
+      return null;
     }
 
-    private PaymentServiceProvider toSetPaymentServiceProvider(PaymentServiceProviderResponse psp) {
-        PaymentServiceProvider paymentServiceProviderToNotify = new PaymentServiceProvider();
-        if (Objects.isNull(psp)) {
-            return null;
-        }
-
-        paymentServiceProviderToNotify.setAbiCode(psp.getAbiCode());
-        paymentServiceProviderToNotify.setBusinessRegisterNumber(psp.getBusinessRegisterNumber());
-        paymentServiceProviderToNotify.setLegalRegisterName(psp.getLegalRegisterName());
-        paymentServiceProviderToNotify.setLegalRegisterNumber(psp.getLegalRegisterNumber());
-        paymentServiceProviderToNotify.setVatNumberGroup(psp.getVatNumberGroup());
-        return paymentServiceProviderToNotify;
+    paymentServiceProviderToNotify.setAbiCode(psp.getAbiCode());
+    paymentServiceProviderToNotify.setBusinessRegisterNumber(psp.getBusinessRegisterNumber());
+    paymentServiceProviderToNotify.setLegalRegisterName(psp.getLegalRegisterName());
+    paymentServiceProviderToNotify.setLegalRegisterNumber(psp.getLegalRegisterNumber());
+    paymentServiceProviderToNotify.setVatNumberGroup(psp.getVatNumberGroup());
+    if (InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())
+        && WorkflowType.IMPORT.equals(onboarding.getWorkflowType())) {
+      paymentServiceProviderToNotify.setProviderNames(
+          onboarding.getInstitution().getPaymentServiceProvider().getProviderNames());
+      paymentServiceProviderToNotify.setContractId(
+          onboarding.getInstitution().getPaymentServiceProvider().getContractId());
+      paymentServiceProviderToNotify.setContractType(
+          onboarding.getInstitution().getPaymentServiceProvider().getContractType());
     }
+    return paymentServiceProviderToNotify;
+  }
 
     @Override
     public void retrieveAndSetGeographicData(InstitutionToNotify institution) {
