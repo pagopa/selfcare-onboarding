@@ -61,3 +61,29 @@ resource "github_actions_environment_secret" "integration_environment" {
       apimKeyPN = "ciao" //data.azurerm_key_vault_secret.apim_product_pn.value
     })
 }
+
+
+data "azurerm_api_management" "apim" {
+  name = format("%s-apim-v2", local.project)
+  resource_group_name = format("%s-api-v2-rg", local.project)
+}
+
+data "azurerm_api_management_product" "product_pn" {
+  product_id          = "pn"
+  api_management_name = data.azurerm_api_management.apim.name
+  resource_group_name = data.azurerm_api_management.apim.resource_group_name
+}
+
+data "azurerm_api_management_user" "admin" {
+  user_id             = "1"
+  api_management_name = data.azurerm_api_management.apim.name
+  resource_group_name = data.azurerm_api_management.apim.resource_group_name
+}
+
+resource "azurerm_api_management_subscription" "example" {
+  api_management_name = data.azurerm_api_management.apim.name
+  resource_group_name = data.azurerm_api_management.apim.resource_group_name
+  user_id             = data.azurerm_api_management_user.admin.id
+  product_id          = data.azurerm_api_management_product.product_pn.id
+  display_name        = "Parser API"
+}
