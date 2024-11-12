@@ -32,27 +32,34 @@ jobs:
     # pool:
     #   name: $(selfHostedAgentPool)
     steps:
-      - uses: NodeTool@0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        name: Checkout
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          versionSpec: '16.x'
-      - uses: Npm@1
-        name: Install newman
-        with:
-          command: custom
-          customCommand: install -g newman
-      - uses: DownloadSecureFile@1
-        name: 'download postman environment'
-        with:
-          secureFile: $(postmanEnvFile)
+          node-version: '16.x'
+      - name: Install newman
+        shell: bash
+        run: install -g newman
+      - name: 'Read postman environment'
+        env: 
+          TESTENV: ${{ secrets.integration_environment }}
+        run: 'echo "$TESTENV" | base64'
+        shell: bash
+      - name: 'Download postman environment'
+        env: 
+          TESTENV: ${{ secrets.integration_environment }}
+        run: 'echo "$TESTENV" | base64 > selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json'
+        shell: bash
       - name: Run newman
         shell: bash
-        run:  newman run selfcare-onboarding/test/newman/Selfcare-Integration.postman_collection.json -e $(postman_env.secureFilePath) --reporters cli,junit --reporter-junit-export result/test-result.xml
-      - uses: PublishTestResults@2
-        with:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/test-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-          testRunTitle: 'Publish Newman Test Results'
+        run:  newman run selfcare-onboarding/test/newman/Selfcare-Integration.postman_collection.json -e selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
+      # - uses: PublishTestResults@2
+      #   with:
+      #     testResultsFormat: 'JUnit'
+      #     testResultsFiles: '**/test-*.xml'
+      #     searchFolder: '$(System.DefaultWorkingDirectory)/result/'
+      #     testRunTitle: 'Publish Newman Test Results'
       # - task: 'Bash@3'
       #   displayName: 'Send message on Slack'
       #   condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues', 'Failed')
