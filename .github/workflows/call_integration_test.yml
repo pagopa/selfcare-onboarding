@@ -37,11 +37,6 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout
-      - name: 'Read postman environment'
-        env: 
-          INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
-        run: 'echo $INTEGRATION_ENVIRONMENT'
-        shell: bash
       - name: 'Download postman environment'
         env: 
           INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
@@ -58,7 +53,7 @@ jobs:
           node-version: '16.x'
       - name: Install newman
         shell: bash
-        run: install -g newman
+        run: npm install -g newman
       
       - name: Run newman
         shell: bash
