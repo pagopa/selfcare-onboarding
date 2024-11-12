@@ -138,8 +138,8 @@ class FdNotificationBuilderTest {
         assertNotNull(notification);
         assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(productResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)+"Z", notification.getCreatedAt());
-        assertEquals(productResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)+"Z", notification.getUpdatedAt());
+        assertEquals(productResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), notification.getCreatedAt());
+        assertEquals(productResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME), notification.getUpdatedAt());
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
 
