@@ -58,12 +58,28 @@ jobs:
       - name: Run newman
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
-      # - uses: PublishTestResults@2
-      #   with:
-      #     testResultsFormat: 'JUnit'
-      #     testResultsFiles: '**/test-*.xml'
-      #     searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-      #     testRunTitle: 'Publish Newman Test Results'
+
+      - uses: PublishTestResults@2
+        with:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/test-*.xml'
+          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
+          testRunTitle: 'Publish Newman Test Results'
+
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          # Slack channel id, channel name, or user id to post message.
+          # See also: https://api.slack.com/methods/chat.postMessage#channels
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
+          channel-id: 'selfcare_test_reports'
+          # For posting a simple plain text message
+          slack-message: "GitHub build result: ${{ job.status }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
+
       # - task: 'Bash@3'
       #   displayName: 'Send message on Slack'
       #   condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues', 'Failed')
