@@ -30,7 +30,7 @@ env:
 jobs:
   test:
     environment: ${{ inputs.environment }}-ci
-    name: 'Run Postman collection on ${{ env.TERRAFORM_ENVIRONMENT }}'
+    name: 'Run Postman collection on ${{ inputs.environment }}'
     runs-on: ubuntu-20.04
     # pool:
     #   name: $(selfHostedAgentPool)
