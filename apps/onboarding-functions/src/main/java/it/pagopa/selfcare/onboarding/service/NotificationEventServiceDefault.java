@@ -30,6 +30,7 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.user_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.user_json.model.UserDataResponse;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
@@ -162,8 +163,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 notificationsResources.getOnboarding(),
                 notificationsResources.getToken(),
                 notificationsResources.getInstitution(),
-                onboardedProductResponse.getCreatedAt(),
-                onboardedProductResponse.getUpdatedAt(),
+                onboardedProductResponse.getCreatedAt() != null ? onboardedProductResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
+                onboardedProductResponse.getUpdatedAt() != null ? onboardedProductResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
                 onboardedProductResponse.getStatus().toString(),
                 userDataResponse.getUserId(),
                 onboardedProductResponse.getRole(),

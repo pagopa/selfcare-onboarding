@@ -4,8 +4,8 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
-import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -18,6 +18,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.user_json.model.*;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,15 +121,15 @@ class FdNotificationBuilderTest {
         users.add(userDataResponse);
 
 
-        when(userApi.usersUserIdInstitutionInstitutionIdGet(any(), any(), any(), any(), any(), any(), any()))
+        when(userApi.retrieveUsers(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(users);
 
         NotificationUserToSend notification = fdNotificationBuilder.buildUserNotificationToSend(
                 onboarding,
                 token,
                 institution,
-                productResponse.getCreatedAt(),
-                productResponse.getUpdatedAt(),
+                productResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                productResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
                 "ACTIVE",
                 userDataResponse.getUserId(),
                 productResponse.getRole(),
@@ -137,8 +138,8 @@ class FdNotificationBuilderTest {
         assertNotNull(notification);
         assertNotEquals(onboarding.getId(), notification.getId());
         assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(productResponse.getCreatedAt(), notification.getCreatedAt());
-        assertEquals(productResponse.getUpdatedAt(), notification.getUpdatedAt());
+        assertEquals(productResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)+"Z", notification.getCreatedAt());
+        assertEquals(productResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)+"Z", notification.getUpdatedAt());
         assertEquals(NotificationUserType.ACTIVE_USER, notification.getType());
         assertEquals(productResponse.getRole(), notification.getUser().getRole());
 
@@ -167,8 +168,8 @@ class FdNotificationBuilderTest {
         productResponse.setProductRole("security");
         productResponse.setRole("OPERATOR");
         productResponse.setEnv(Env.PROD);
-        productResponse.setCreatedAt("2024-10-10T10:35:42.144Z");
-        productResponse.setUpdatedAt("2024-10-10T10:35:42.144Z");
+        productResponse.setCreatedAt(OffsetDateTime.now());
+        productResponse.setUpdatedAt(OffsetDateTime.now());
         return productResponse;
     }
 
