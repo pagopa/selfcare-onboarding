@@ -41,7 +41,7 @@ jobs:
       - name: 'Read postman environment'
         env: 
           INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
-        run: 'echo "$INTEGRATION_ENVIRONMENT"'
+        run: 'echo $INTEGRATION_ENVIRONMENT'
         shell: bash
       - name: 'Download postman environment'
         env: 
