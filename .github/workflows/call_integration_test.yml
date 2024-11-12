@@ -24,11 +24,12 @@ env:
 
 # stages: 
 #   - stage: stage_postman_test
-#     environment: ${{ inputs.environment }}-ci
+#     
 #     displayName: 'Test_e2e_on_${{ variables.environment }}'
     # condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
 jobs:
   test:
+    environment: ${{ inputs.environment }}-ci
     name: 'Run Postman collection on ${{ env.TERRAFORM_ENVIRONMENT }}'
     runs-on: ubuntu-20.04
     # pool:
