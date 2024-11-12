@@ -1,17 +1,10 @@
-resource "azurerm_resource_group" "onboarding_fn_rg" {
-  name     = "${local.app_name}-rg"
-  location = var.location
-
-  tags = var.tags
-}
-
 data "azurerm_key_vault" "key_vault" {
   resource_group_name = var.key_vault.resource_group_name
   name                = var.key_vault.name
 }
 
-data "azurerm_key_vault_secret" "apim_product_pn" {
-  name         = "anac-ftp-known-host"
+data "azurerm_key_vault_secret" "apim_product_pn_sk" {
+  name         = "apim-product-pn-sk"
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
 
@@ -55,14 +48,14 @@ resource "github_actions_environment_secret" "integration_environment" {
   repository  = data.github_repository.repo.name
   environment = github_repository_environment.repo_environment.environment
   secret_name = "integration_environment"
-  encrypted_value = templatefile("Selfcare-Integration.postman_environment.json",
+  plaintext_value = base64encode(templatefile("Selfcare-Integration.postman_environment.json",
     {
       env       = "${local.env_url}"
-      apimKeyPN = "ciao" //data.azurerm_key_vault_secret.apim_product_pn.value
-    })
+      apimKeyPN = data.azurerm_key_vault_secret.apim_product_pn_sk.value
+    }))
 }
 
-
+/*
 data "azurerm_api_management" "apim" {
   name = format("%s-apim-v2", local.project)
   resource_group_name = format("%s-api-v2-rg", local.project)
@@ -80,10 +73,10 @@ data "azurerm_api_management_user" "admin" {
   resource_group_name = data.azurerm_api_management.apim.resource_group_name
 }
 
-resource "azurerm_api_management_subscription" "example" {
+resource "azurerm_api_management_subscription" "admin_product_pn" {
   api_management_name = data.azurerm_api_management.apim.name
   resource_group_name = data.azurerm_api_management.apim.resource_group_name
   user_id             = data.azurerm_api_management_user.admin.id
   product_id          = data.azurerm_api_management_product.product_pn.id
   display_name        = "Parser API"
-}
+}*/

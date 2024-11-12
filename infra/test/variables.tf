@@ -37,7 +37,7 @@ variable "env" {
   type        = string
   validation {
     condition = (
-    length(var.env_short) <= 4
+    length(var.env) <= 4
     )
     error_message = "Max length is 4 chars."
   }
