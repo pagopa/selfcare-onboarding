@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.utils;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
@@ -61,7 +62,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     notificationToSend.setState(
         convertOnboardingStatusToNotificationStatus(onboarding.getStatus()));
     mapDataFromOnboarding(onboarding, notificationToSend, queueEvent);
-    notificationToSend.setInstitution(retrieveInstitution(institution));
+    notificationToSend.setInstitution(retrieveInstitution(institution, onboarding));
     if (Objects.nonNull(token)) {
       setTokenData(notificationToSend, token);
     }
@@ -118,7 +119,8 @@ public class BaseNotificationBuilder implements NotificationBuilder {
   }
 
   @Override
-  public InstitutionToNotify retrieveInstitution(InstitutionResponse institution) {
+  public InstitutionToNotify retrieveInstitution(
+      InstitutionResponse institution, Onboarding onboarding) {
     InstitutionToNotify toNotify = new InstitutionToNotify();
     toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
     toNotify.setDescription(institution.getDescription());
@@ -132,7 +134,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     toNotify.setOriginId(institution.getOriginId());
     toNotify.setZipCode(institution.getZipCode());
     toNotify.setPaymentServiceProvider(
-        toSetPaymentServiceProvider(institution.getPaymentServiceProvider()));
+        toSetPaymentServiceProvider(institution.getPaymentServiceProvider(), onboarding));
     if (institution.getSubunitType() != null && !"EC".equals(institution.getSubunitType())) {
       toNotify.setSubUnitType(institution.getSubunitType());
       toNotify.setSubUnitCode(institution.getSubunitCode());
@@ -167,7 +169,8 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     return toNotify;
   }
 
-  private PaymentServiceProvider toSetPaymentServiceProvider(PaymentServiceProviderResponse psp) {
+  private PaymentServiceProvider toSetPaymentServiceProvider(
+      PaymentServiceProviderResponse psp, Onboarding onboarding) {
     PaymentServiceProvider paymentServiceProviderToNotify = new PaymentServiceProvider();
     if (Objects.isNull(psp)) {
       return null;
@@ -178,6 +181,15 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     paymentServiceProviderToNotify.setLegalRegisterName(psp.getLegalRegisterName());
     paymentServiceProviderToNotify.setLegalRegisterNumber(psp.getLegalRegisterNumber());
     paymentServiceProviderToNotify.setVatNumberGroup(psp.getVatNumberGroup());
+    if (InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())
+        && WorkflowType.IMPORT.equals(onboarding.getWorkflowType())) {
+      paymentServiceProviderToNotify.setProviderNames(
+          onboarding.getInstitution().getPaymentServiceProvider().getProviderNames());
+      paymentServiceProviderToNotify.setContractId(
+          onboarding.getInstitution().getPaymentServiceProvider().getContractId());
+      paymentServiceProviderToNotify.setContractType(
+          onboarding.getInstitution().getPaymentServiceProvider().getContractType());
+    }
     return paymentServiceProviderToNotify;
   }
 

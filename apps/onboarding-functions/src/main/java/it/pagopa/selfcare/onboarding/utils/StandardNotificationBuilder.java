@@ -1,11 +1,8 @@
 package it.pagopa.selfcare.onboarding.utils;
 
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
@@ -37,19 +34,6 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder
     this.retrieveAndSetAggregatorInfo(onboarding, notificationToSend);
     notificationToSend.setInternalIstitutionID(institution.getId());
     notificationToSend.setNotificationType(queueEvent);
-    if (Objects.nonNull(notificationToSend.getInstitution().getPaymentServiceProvider())) {
-      PaymentServiceProvider paymentServiceProvider =
-          notificationToSend.getInstitution().getPaymentServiceProvider();
-      if (InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())
-          && WorkflowType.IMPORT.equals(onboarding.getWorkflowType())) {
-        paymentServiceProvider.setProviderNames(
-            onboarding.getInstitution().getPaymentServiceProvider().getProviderNames());
-        paymentServiceProvider.setContractId(
-            onboarding.getInstitution().getPaymentServiceProvider().getContractId());
-        paymentServiceProvider.setContractType(
-            onboarding.getInstitution().getPaymentServiceProvider().getContractType());
-      }
-    }
     return notificationToSend;
   }
 
