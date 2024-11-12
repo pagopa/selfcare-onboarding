@@ -37,7 +37,6 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout
-  
       - name: 'Read postman environment'
         env: 
           INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
@@ -50,6 +49,9 @@ jobs:
         shell: bash
       - name: 'List file'
         run: 'ls -la'
+        shell: bash
+      - name: 'Cat file'
+        run: 'cat Selfcare-Integration.postman_environment.json'
         shell: bash
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
