@@ -43,13 +43,13 @@ jobs:
         run: install -g newman
       - name: 'Read postman environment'
         env: 
-          TESTENV: ${{ secrets.integration_environment }}
-        run: 'echo "$TESTENV" | base64'
+          INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
+        run: 'echo "$INTEGRATION_ENVIRONMENT" | base64'
         shell: bash
       - name: 'Download postman environment'
         env: 
-          TESTENV: ${{ secrets.integration_environment }}
-        run: 'echo "$TESTENV" | base64 > selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json'
+          INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
+        run: 'echo "$INTEGRATION_ENVIRONMENT" | base64 > selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json'
         shell: bash
       - name: Run newman
         shell: bash
