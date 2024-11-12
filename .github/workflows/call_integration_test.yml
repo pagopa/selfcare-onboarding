@@ -9,8 +9,8 @@ on:
         required: true
         description: add '-pnpg' if workflow is related to pnpg
 
-variables:
-  postmanEnvFile: integration_environment
+# variables:
+#   postmanEnvFile: integration_environment
   
   # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/uat') }}:
   #   # selfHostedAgentPool: $(UAT_AGENT_POOL)
