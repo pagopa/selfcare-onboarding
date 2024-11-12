@@ -54,18 +54,19 @@ jobs:
       - name: Install newman
         shell: bash
         run: npm install -g newman
-      
+
+      - name: Install newman htmlextra
+        shell: bash
+        run: npm install -g newman-reporter-htmlextra
+
       - name: Run newman
         shell: bash
-        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
+        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json -r htmlextra --reporter-htmlextra-export htmlreport.html --reporter-htmlextra-darkTheme  > runreport1.html
 
-      - uses: PublishTestResults@2
-        with:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/test-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-          testRunTitle: 'Publish Newman Test Results'
-
+      - name: 'List file'
+        run: 'ls -la'
+        shell: bash
+        
       - name: Post to a Slack channel
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
