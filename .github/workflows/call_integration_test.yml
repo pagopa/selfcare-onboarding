@@ -24,7 +24,6 @@ stages:
   stage: stage_postman_test
   environment: ${{ inputs.environment }}-ci
   displayName: 'Test_e2e_on_${{ variables.environment }}'
-  dependsOn: [ stage_deploy ]
   condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
   jobs:
     job: 'Run_Postman_collection_on_${{ variables.environment }}'
