@@ -59,12 +59,12 @@ jobs:
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
 
-      - uses: PublishTestResults@2
-        with:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/test-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-          testRunTitle: 'Publish Newman Test Results'
+      # - uses: PublishTestResults@2
+      #   with:
+      #     testResultsFormat: 'JUnit'
+      #     testResultsFiles: '**/test-*.xml'
+      #     searchFolder: '$(System.DefaultWorkingDirectory)/result/'
+      #     testRunTitle: 'Publish Newman Test Results'
 
       # - name: Run newman
       #   shell: bash
