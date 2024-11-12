@@ -37,13 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout
-
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
-        with:
-          node-version: '16.x'
-      - name: Install newman
-        shell: bash
-        run: install -g newman
+  
       - name: 'Read postman environment'
         env: 
           INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
@@ -54,6 +48,14 @@ jobs:
           INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
         run: 'echo "$INTEGRATION_ENVIRONMENT" | base64 > selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json'
         shell: bash
+        
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: '16.x'
+      - name: Install newman
+        shell: bash
+        run: install -g newman
+      
       - name: Run newman
         shell: bash
         run:  newman run selfcare-onboarding/test/newman/Selfcare-Integration.postman_collection.json -e selfcare-onboarding/test/newman/Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
