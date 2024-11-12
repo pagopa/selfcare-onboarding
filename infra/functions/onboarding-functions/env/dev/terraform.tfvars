@@ -23,7 +23,6 @@ function_always_on = false
 app_service_plan_info = {
   kind                         = "Linux"
   sku_size                     = "P1v3"
-  sku_tier                     = "PremiumV3"
   maximum_elastic_worker_count = 1
   worker_count                 = 1
   zone_balancing_enabled       = false
