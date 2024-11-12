@@ -10,7 +10,7 @@ on:
         description: add '-pnpg' if workflow is related to pnpg
 
 env:
-  ENVIRONMENT: ${{ inputs.environment }}
+  TERRAFORM_ENVIRONMENT: ${{ inputs.tf_environment || inputs.environment }}
 # variables:
 #   postmanEnvFile: integration_environment
   
@@ -29,7 +29,7 @@ env:
     # condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
 jobs:
   test:
-    name: 'Run Postman collection on ${{ env.ENVIRONMENT }}'
+    name: 'Run Postman collection on ${{ env.TERRAFORM_ENVIRONMENT }}'
     runs-on: ubuntu-20.04
     # pool:
     #   name: $(selfHostedAgentPool)
