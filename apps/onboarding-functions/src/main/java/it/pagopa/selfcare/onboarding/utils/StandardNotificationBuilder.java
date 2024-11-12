@@ -40,8 +40,8 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder
     if (Objects.nonNull(notificationToSend.getInstitution().getPaymentServiceProvider())) {
       PaymentServiceProvider paymentServiceProvider =
           notificationToSend.getInstitution().getPaymentServiceProvider();
-      if (onboarding.getInstitution().getInstitutionType().equals(InstitutionType.PSP)
-          && onboarding.getWorkflowType().equals(WorkflowType.IMPORT)) {
+      if (InstitutionType.PSP.equals(onboarding.getInstitution().getInstitutionType())
+          && WorkflowType.IMPORT.equals(onboarding.getWorkflowType())) {
         paymentServiceProvider.setProviderNames(
             onboarding.getInstitution().getPaymentServiceProvider().getProviderNames());
         paymentServiceProvider.setContractId(
