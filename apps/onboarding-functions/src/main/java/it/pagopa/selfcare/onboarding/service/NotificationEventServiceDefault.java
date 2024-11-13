@@ -30,6 +30,7 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.user_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.user_json.model.UserDataResponse;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
@@ -58,6 +59,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     private final TokenRepository tokenRepository;
     private final ObjectMapper mapper;
     private final QueueEventExaminer queueEventExaminer;
+    private static final String NOTIFICATION_EVENT_STRING = "notificationEventTraceId";
 
     public NotificationEventServiceDefault(ProductService productService,
                                            NotificationConfig notificationConfig,
@@ -111,7 +113,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         for (String consumer : product.getConsumers()) {
             NotificationConfig.Consumer consumerConfig = notificationConfig.consumers().get(consumer.toLowerCase());
             prepareAndSendNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
-            prepareAndSendUserNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
+//            prepareAndSendUserNotification(context, product, consumerConfig, notificationsResources, notificationEventTraceId);
         }
     }
 
@@ -126,7 +128,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
     }
 
-    private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
+    /*private void prepareAndSendUserNotification(ExecutionContext context, Product product, NotificationConfig.Consumer consumer, NotificationsResources notificationsResources, String notificationEventTraceId) {
         NotificationUserBuilder notificationUserBuilder = notificationUserBuilderFactory.create(consumer);
         if (notificationUserBuilder != null && notificationUserBuilder.shouldSendUserNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             context.getLogger().info(() -> String.format("[APZ] prepareAndSendUserNotification %s [%s]", notificationsResources.getInstitution().getDescription(), consumer.topic()));
@@ -152,7 +154,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         } else {
             context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
         }
-    }
+    }*/
 
     public static NotificationUserToSend getNotificationUserToSend(NotificationsResources notificationsResources,
                                                                    UserDataResponse userDataResponse,
@@ -162,8 +164,8 @@ public class NotificationEventServiceDefault implements NotificationEventService
                 notificationsResources.getOnboarding(),
                 notificationsResources.getToken(),
                 notificationsResources.getInstitution(),
-                onboardedProductResponse.getCreatedAt(),
-                onboardedProductResponse.getUpdatedAt(),
+                onboardedProductResponse.getCreatedAt() != null ? onboardedProductResponse.getCreatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
+                onboardedProductResponse.getUpdatedAt() != null ? onboardedProductResponse.getUpdatedAt().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) : null,
                 onboardedProductResponse.getStatus().toString(),
                 userDataResponse.getUserId(),
                 onboardedProductResponse.getRole(),
@@ -185,7 +187,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
-    private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
+    /*private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
         String message = null;
         try {
             message = mapper.writeValueAsString(notificationUserToSend);
@@ -198,7 +200,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
         eventHubRestClient.sendMessage(topic, message);
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationUserEventMap(notificationUserToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
-    }
+    }*/
 
     private void sendTestEnvProductsNotification(ExecutionContext context, Product product, String topic, NotificationToSend notificationToSend, String notificationEventTraceId) {
         context.getLogger().info(() -> String.format("Starting sendTestEnvProductsNotification with testEnv %s", product.getTestEnvProductIds()));
@@ -224,7 +226,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
     public static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e, String notificationEventTraceId) {
         Map<String, String> propertiesMap = onboardingEventMap(onboarding);
-        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put(NOTIFICATION_EVENT_STRING, value));
         Optional.ofNullable(e).ifPresent(value -> propertiesMap.put("error", Arrays.toString(e.getStackTrace())));
         return propertiesMap;
     }
@@ -232,7 +234,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public static Map<String, String> notificationEventMap(NotificationToSend notificationToSend, String topic, String notificationEventTraceId) {
         Map<String, String> propertiesMap = new HashMap<>();
         Optional.ofNullable(topic).ifPresent(value -> propertiesMap.put("topic", value));
-        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put(NOTIFICATION_EVENT_STRING, value));
         Optional.ofNullable(notificationToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
         Optional.ofNullable(notificationToSend.getInternalIstitutionID()).ifPresent(value -> propertiesMap.put("internalIstitutionID", value));
         Optional.ofNullable(notificationToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));
@@ -279,7 +281,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
     public static Map<String, String> notificationUserEventMap(NotificationUserToSend notificationUserToSend, String topic, String notificationEventTraceId) {
         Map<String, String> propertiesMap = new HashMap<>();
         Optional.ofNullable(topic).ifPresent(value -> propertiesMap.put("topic", value));
-        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put("notificationEventTraceId", value));
+        Optional.ofNullable(notificationEventTraceId).ifPresent(value -> propertiesMap.put(NOTIFICATION_EVENT_STRING, value));
         Optional.ofNullable(notificationUserToSend.getId()).ifPresent(value -> propertiesMap.put("id", value));
         Optional.ofNullable(notificationUserToSend.getInstitutionId()).ifPresent(value -> propertiesMap.put("institutionId", value));
         Optional.ofNullable(notificationUserToSend.getProduct()).ifPresent(value -> propertiesMap.put("product", value));

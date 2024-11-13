@@ -587,12 +587,12 @@ public class CompletionServiceDefaultTest {
         onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
-        when(userControllerApi.usersUserIdPost(any(), any(), any())).thenReturn(response);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
 
         completionServiceDefault.persistUsers(onboarding);
 
         Mockito.verify(userControllerApi, times(1))
-                .usersUserIdPost(any(), any(), any());
+                .createUserByUserId(any(), any());
     }
 
     @Test
@@ -601,7 +601,7 @@ public class CompletionServiceDefaultTest {
         createDummyUser(onboarding);
 
         Response response = new ServerResponse(null, 500, null);
-        when(userControllerApi.usersUserIdPost(any(), any(), any())).thenReturn(response);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
 
         assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
 
@@ -868,7 +868,7 @@ public class CompletionServiceDefaultTest {
         user1.setUserId("user1");
         UserInstitutionResponse user2 = new UserInstitutionResponse();
         user2.setUserId("user2");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1, user2));
 
@@ -883,14 +883,14 @@ public class CompletionServiceDefaultTest {
         when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(new BusinessesResource());
 
         Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
                 .thenReturn(responseOk);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
                 .thenReturn(responseOk);
 
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
-        verify(userControllerApi, times(2)).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+        verify(userControllerApi, times(2)).deleteProducts(eq("institution-id"), eq("productId"), any());
     }
 
     @Test
@@ -904,7 +904,7 @@ public class CompletionServiceDefaultTest {
         user1.setUserId("user1");
         UserInstitutionResponse user2 = new UserInstitutionResponse();
         user2.setUserId("user2");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1, user2));
 
@@ -922,9 +922,9 @@ public class CompletionServiceDefaultTest {
         when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
 
         Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
                 .thenReturn(responseOk);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
                 .thenReturn(responseOk);
 
         Assertions.assertThrows(GenericOnboardingException.class,
@@ -944,7 +944,7 @@ public class CompletionServiceDefaultTest {
         user1.setUserId("user1");
         UserInstitutionResponse user2 = new UserInstitutionResponse();
         user2.setUserId("user2");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1, user2));
 
@@ -962,9 +962,9 @@ public class CompletionServiceDefaultTest {
         when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
 
         Response responseKo = new ServerResponse(null, 400, null);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
                 .thenReturn(responseKo);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
                 .thenReturn(responseKo);
 
         Assertions.assertThrows(GenericOnboardingException.class,
@@ -984,7 +984,7 @@ public class CompletionServiceDefaultTest {
         user1.setUserId("user1");
         UserInstitutionResponse user2 = new UserInstitutionResponse();
         user2.setUserId("user2");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1, user2));
 
@@ -1002,14 +1002,14 @@ public class CompletionServiceDefaultTest {
         when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(400));
 
         Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
                 .thenReturn(responseOk);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user2"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
                 .thenReturn(responseOk);
 
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
-        verify(userControllerApi, times(2)).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+        verify(userControllerApi, times(2)).deleteProducts(eq("institution-id"), eq("productId"), any());
     }
 
     @Test
@@ -1021,7 +1021,7 @@ public class CompletionServiceDefaultTest {
 
         UserInstitutionResponse user1 = new UserInstitutionResponse();
         user1.setUserId("user1");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1));
 
@@ -1031,7 +1031,7 @@ public class CompletionServiceDefaultTest {
         when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
 
         Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete("institution-id","productId", "user1"))
+        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
                 .thenReturn(responseOk);
         when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenThrow(new WebApplicationException(404));
 
@@ -1049,7 +1049,7 @@ public class CompletionServiceDefaultTest {
 
         UserInstitutionResponse user1 = new UserInstitutionResponse();
         user1.setUserId("user1");
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(List.of(user1));
 
@@ -1065,7 +1065,7 @@ public class CompletionServiceDefaultTest {
 
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
-        verify(userControllerApi, never()).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(eq("institution-id"), eq("productId"), any());
+        verify(userControllerApi, never()).deleteProducts(eq("institution-id"), eq("productId"), any());
     }
 
     @Test
@@ -1075,13 +1075,13 @@ public class CompletionServiceDefaultTest {
         onboarding.getInstitution().setTaxCode("institution-tax-code");
         onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
 
-        when(userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        when(userInstitutionApi.retrieveUserInstitutions(
                 eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
                 .thenReturn(Collections.emptyList());
 
         completionServiceDefault.deleteOldPgManagers(onboarding);
 
-        verify(userControllerApi, never()).usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(any(), eq("institution-id"), eq("productId"));
+        verify(userControllerApi, never()).deleteProducts(any(), eq("institution-id"), eq("productId"));
     }
 
     @Test

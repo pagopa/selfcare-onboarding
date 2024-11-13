@@ -26,6 +26,7 @@ public class InstitutionToNotify {
     private String category;
     private String subUnitType;
     private RootParent rootParent;
+    private String supportEmail;
 
     public InstitutionType getInstitutionType() {
         return institutionType;
@@ -177,5 +178,13 @@ public class InstitutionToNotify {
 
     public void setRootParent(RootParent rootParent) {
         this.rootParent = rootParent;
+    }
+
+    public String getSupportEmail() {
+        return supportEmail;
+    }
+
+    public void setSupportEmail(String supportEmail) {
+        this.supportEmail = supportEmail;
     }
 }

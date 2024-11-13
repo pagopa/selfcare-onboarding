@@ -7,9 +7,9 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.dto.UserToNotify;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -75,7 +75,7 @@ public class NotificationEventServiceDefaultTest {
         when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
         when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
         List<UserDataResponse> users = new ArrayList<>();
-        when(userApi.usersUserIdInstitutionInstitutionIdGet(any(), any(), any(), any(), any(), any(), any()))
+        when(userApi.retrieveUsers(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(users);
         ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();

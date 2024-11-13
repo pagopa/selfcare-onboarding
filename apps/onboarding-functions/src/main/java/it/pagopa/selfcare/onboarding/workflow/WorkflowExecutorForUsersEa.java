@@ -6,12 +6,12 @@ import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowUser;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowUserEa;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.Optional;
 
-import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.USER;
+import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.USER_EA;
 
 public record WorkflowExecutorForUsersEa(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
 
@@ -32,7 +32,7 @@ public record WorkflowExecutorForUsersEa(ObjectMapper objectMapper, TaskOptions 
 
     @Override
     public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
-        return new OnboardingWorkflowUser(onboarding, USER.name());
+        return new OnboardingWorkflowUserEa(onboarding, USER_EA.name());
     }
 
 }
