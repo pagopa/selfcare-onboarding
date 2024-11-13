@@ -64,16 +64,12 @@ jobs:
         shell: bash
         run:  NEWMAN_RESULTS=$(cat result/test-result.json)
 
-      - name: Cat newman report
-        shell: bash
-        run:  cat result/test-result.json
-
       - name: 'Send message on Slack'
         shell: bash
         run: >
-          curl -X POST -H 'Content-type: application/json' --data "{
-              \"text\": \"Newman Test Results:\n\`\`\`$NEWMAN_RESULTS\`\`\`\"
-          }" ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{
+              "text": "Newman Test", "Results": $NEWMAN_RESULTS
+          }'" ${{ secrets.SLACK_WEBHOOK_URL }}
 
       #       curl -X POST \
       # -H "Content-type: application/json" \
