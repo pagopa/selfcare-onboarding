@@ -58,7 +58,7 @@ jobs:
       # run newman classic
       - name: Run newman
         shell: bash
-        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export test/test-result.json
+        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export ./test/test-result.json
 
       # - name: Cat newman report
       #   shell: bash
