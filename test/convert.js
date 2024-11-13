@@ -4,7 +4,7 @@ fs.readFile('test/test-result.json', 'utf8', function (err, data) {
     if (err) throw err; // we'll not consider error handling for now
     var obj = JSON.parse(data);
     
-    let json = createBody(obj["run"]["stats"]);
+    let json = JSON.stringify(createBody(obj["run"]["stats"]));
     fs.writeFile("test/stats.json", json, 'utf8', (err) => {
       if (err) {
           console.error('Error writing to file', err);
@@ -71,6 +71,6 @@ function createBody(payload) {
       ]
     }
 
-    payload = JSON.stringify(block)
+    return block
 }
 
