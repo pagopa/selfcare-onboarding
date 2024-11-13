@@ -50,3 +50,4 @@ jobs:
         shell: bash
         run: >
           curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} -H 'Content-type: application/json' -d @test/stats.json
+
