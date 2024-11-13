@@ -64,9 +64,9 @@ jobs:
       #   shell: bash
       #   run:  $NEWMAN_RESULTS=$(cat result/test-result.json)
 
-      # - name: Cat newman report
-      #   shell: bash
-      #   run:  'echo "$NEWMAN_RESULTS"'
+      - name: Cat newman report
+        shell: bash
+        run:  'echo "$NEWMAN_RESULTS"'
 
       # - name: 'Send message on Slack'
       #   shell: bash
@@ -77,7 +77,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          payload-file-path: "./test-result.json"
+          payload-file-path: "./result/test-result.json"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       #       curl -X POST \
