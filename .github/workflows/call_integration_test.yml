@@ -30,8 +30,6 @@ on:
 jobs:
   test:
     environment: ${{ inputs.environment }}-ci
-    env:
-      NEWMAN_RESULTS: '{}'
     name: 'Run Postman collection on ${{ inputs.environment }}'
     runs-on: ubuntu-20.04
     # pool:
@@ -62,19 +60,26 @@ jobs:
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export result/test-result.json
 
-      - name: Cat newman report
-        shell: bash
-        run:  $NEWMAN_RESULTS=$(cat result/test-result.json)
+      # - name: Cat newman report
+      #   shell: bash
+      #   run:  $NEWMAN_RESULTS=$(cat result/test-result.json)
 
-      - name: Cat newman report
-        shell: bash
-        run:  'echo "$NEWMAN_RESULTS"'
+      # - name: Cat newman report
+      #   shell: bash
+      #   run:  'echo "$NEWMAN_RESULTS"'
 
-      - name: 'Send message on Slack'
-        shell: bash
-        run: >
-          curl -X POST -H 'Content-type: application/json' --data '"$NEWMAN_RESULTS"' ${{ secrets.SLACK_WEBHOOK_URL }}
+      # - name: 'Send message on Slack'
+      #   shell: bash
+      #   run: >
+      #     curl -X POST -H 'Content-type: application/json' --data '"$NEWMAN_RESULTS"' ${{ secrets.SLACK_WEBHOOK_URL }}
 
+      - name: Send custom JSON data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload-file-path: "./test-result.json"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       #       curl -X POST \
       # -H "Content-type: application/json" \
       # --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
