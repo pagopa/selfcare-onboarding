@@ -1,17 +1,22 @@
-'use strict';
 var fs = require('fs');
-const axios = require('axios').default;
 
 fs.readFile('test/test-result.json', 'utf8', function (err, data) {
-    if (err) throw err; 
+    if (err) throw err; // we'll not consider error handling for now
     var obj = JSON.parse(data);
-    sendToSlack(obj["run"]["stats"], process.argv[2]);
+    
+    let json = JSON.stringify(createBody(obj["run"]["stats"]));
+    fs.writeFile("test/stats.json", json, 'utf8', (err) => {
+      if (err) {
+          console.error('Error writing to file', err);
+      } else {
+          console.log('Data written to file');
+      }
+  });
 });
 
 
-async function sendToSlack(payload, url) {
-    //console.log(payload);
-
+function createBody(payload) {
+    
     var block =
     {
       "blocks": [
@@ -67,14 +72,5 @@ async function sendToSlack(payload, url) {
     }
 
     payload = JSON.stringify(block)
-    try {
-     
-      await axios.post(url, payload, {headers: {
-        'Content-Type': 'application/json'
-      }});
-    } catch (e) {
-      const status = e.response.status;
-      console.error(`There was an error, HTTP status code: ${status}`);
-    }
 }
 
