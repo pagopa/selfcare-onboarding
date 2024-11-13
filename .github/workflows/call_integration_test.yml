@@ -68,8 +68,8 @@ jobs:
         shell: bash
         run: >
           curl -X POST -H 'Content-type: application/json' --data '{
-              "text": "Newman Test", "Results": $NEWMAN_RESULTS
-          }'" ${{ secrets.SLACK_WEBHOOK_URL }}
+              "text": "Newman Test", "Results": "$NEWMAN_RESULTS"
+          }' ${{ secrets.SLACK_WEBHOOK_URL }}
 
       #       curl -X POST \
       # -H "Content-type: application/json" \
