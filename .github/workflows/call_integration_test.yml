@@ -64,6 +64,10 @@ jobs:
         shell: bash
         run:  NEWMAN_RESULTS=$(cat result/test-result.json)
 
+      - name: Cat newman report
+        shell: bash
+        run:  cat "$NEWMAN_RESULTS"
+
       - name: 'Send message on Slack'
         shell: bash
         run: >
