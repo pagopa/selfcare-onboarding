@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
@@ -398,7 +397,7 @@ public class CompletionServiceDefault implements CompletionService {
                 .map(Optional::get)
                 .filter(workContract -> StringUtils.isNotBlank(workContract.getEmail().getValue()))
                 .map(workContract -> workContract.getEmail().getValue())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
