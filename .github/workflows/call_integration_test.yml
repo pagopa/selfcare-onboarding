@@ -30,6 +30,8 @@ on:
 jobs:
   test:
     environment: ${{ inputs.environment }}-ci
+    env:
+      NEWMAN_RESULTS: '{}'
     name: 'Run Postman collection on ${{ inputs.environment }}'
     runs-on: ubuntu-20.04
     # pool:
@@ -62,7 +64,7 @@ jobs:
 
       - name: Cat newman report
         shell: bash
-        run:  NEWMAN_RESULTS=$(cat result/test-result.json)
+        run:  $NEWMAN_RESULTS=$(cat result/test-result.json)
 
       - name: Cat newman report
         shell: bash
