@@ -9,24 +9,6 @@ on:
         required: true
         description: add '-pnpg' if workflow is related to pnpg
 
-# env:
-#   TERRAFORM_ENVIRONMENT: ${{ inputs.tf_environment || inputs.environment }}
-# variables:
-#   postmanEnvFile: integration_environment
-  
-  # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/uat') }}:
-  #   # selfHostedAgentPool: $(UAT_AGENT_POOL)
-    
-
-  # ${{ else }}:
-  #   # selfHostedAgentPool: $(DEV_AGENT_POOL)
-  #   postmanEnvFile: integration_environment.json
-
-# stages: 
-#   - stage: stage_postman_test
-#     
-#     displayName: 'Test_e2e_on_${{ variables.environment }}'
-    # condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
 jobs:
   test:
     environment: ${{ inputs.environment }}-ci
@@ -60,53 +42,17 @@ jobs:
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export ./test/test-result.json
 
-      # - name: Cat newman report
-      #   shell: bash
-      #   run:  $NEWMAN_RESULTS=$(cat result/test-result.json)
-
       - name: Cat newman report
         shell: bash
         run:  node ./test/convert.js
-
-      # - name: 'Send message on Slack'
-      #   shell: bash
-      #   run: >
-      #     curl -X POST -H 'Content-type: application/json' --data '"$NEWMAN_RESULTS"' ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Send custom JSON data to Slack workflow
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          payload-file-path: "test/stats.json"
+          payload-file-path: "./test/stats.json"
           payload-file-path-parsed: false
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      #       curl -X POST \
-      # -H "Content-type: application/json" \
-      # --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
-      # $(SLACK_WEBHOOK_URL)
 
-      # - name: Run newman
-      #   shell: bash
-      #   run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json -r htmlextra --reporter-htmlextra-export htmlreport.html --reporter-htmlextra-darkTheme  > runreport.html
-
-      # - name: 'List file'
-      #   run: 'ls -la'
-      #   shell: bash
-        
-      # - name: Post to a Slack channel
-      #   id: slack
-      #   uses: slackapi/slack-github-action@v1.27.0
-      #   with:
-      #     # Slack channel id, channel name, or user id to post message.
-      #     # See also: https://api.slack.com/methods/chat.postMessage#channels
-      #     # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
-      #     channel-id: 'selfcare_test_reports'
-      #     # For posting a simple plain text message
-      #     slack-message: "GitHub build result: ${{ job.status }}"
-      #   env:
-      #     SLACK_BOT_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      
-
-      
-
+    
