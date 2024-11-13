@@ -58,7 +58,7 @@ jobs:
       # run newman classic
       - name: Run newman
         shell: bash
-        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export result/test-result.json
+        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export test/test-result.json
 
       # - name: Cat newman report
       #   shell: bash
@@ -66,7 +66,7 @@ jobs:
 
       - name: Cat newman report
         shell: bash
-        run:  'echo "$NEWMAN_RESULTS"'
+        run:  node ./test/convert.js
 
       # - name: 'Send message on Slack'
       #   shell: bash
@@ -77,7 +77,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          payload-file-path: "./result/test-result.json"
+          payload-file-path: "./test/stats.json"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       #       curl -X POST \
