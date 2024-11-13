@@ -48,7 +48,7 @@ jobs:
 
       - name: Cat newman report
         shell: bash
-        run:  node ./test/convert.js
+        run:  node ./test/convert.js ./test/convert.js ${{ secrets.SLACK_WEBHOOK_URL }}
 
       # - name: Send custom JSON data to Slack workflow
       #   id: slack
