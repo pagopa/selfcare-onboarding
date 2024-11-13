@@ -49,4 +49,4 @@ jobs:
       - name: 'Send message on Slack'
         shell: bash
         run: >
-          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} -H 'Content-type: application/json' -d '@test/stats.json
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} -H 'Content-type: application/json' -d @test/stats.json
