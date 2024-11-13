@@ -36,6 +36,10 @@ jobs:
       - name: Install newman
         shell: bash
         run: npm install -g newman
+
+      - name: Install axios
+        shell: bash
+        run: npm install -g axios
       
       # run newman classic
       - name: Run newman
@@ -46,13 +50,13 @@ jobs:
         shell: bash
         run:  node ./test/convert.js
 
-      - name: Send custom JSON data to Slack workflow
-        id: slack
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload-file-path: "./test/stats.json"
-          payload-file-path-parsed: false
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # - name: Send custom JSON data to Slack workflow
+      #   id: slack
+      #   uses: slackapi/slack-github-action@v1.27.0
+      #   with:
+      #     payload-file-path: "./test/stats.json"
+      #     payload-file-path-parsed: false
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     
