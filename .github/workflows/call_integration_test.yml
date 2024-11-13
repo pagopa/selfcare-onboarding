@@ -1,0 +1,69 @@
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      short_env:
+        type: string
+        required: true
+        description: add '-pnpg' if workflow is related to pnpg
+
+variables:
+  postmanEnvFile: integration_environment
+  
+  # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/uat') }}:
+  #   # selfHostedAgentPool: $(UAT_AGENT_POOL)
+    
+
+  # ${{ else }}:
+  #   # selfHostedAgentPool: $(DEV_AGENT_POOL)
+  #   postmanEnvFile: integration_environment.json
+
+stages: 
+  - stage: stage_postman_test
+    environment: ${{ inputs.environment }}-ci
+    displayName: 'Test_e2e_on_${{ variables.environment }}'
+    dependsOn: [ stage_deploy ]
+    condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
+    jobs:
+      - job: 'Run_Postman_collection_on_${{ variables.environment }}'
+        displayName: 'Run Postman collection on ${{ variables.environment }}'
+        # pool:
+        #   name: $(selfHostedAgentPool)
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '16.x'
+          - task: Npm@1
+            displayName: Install newman
+            inputs:
+              command: custom
+              customCommand: install -g newman
+          - task: DownloadSecureFile@1
+            displayName: 'download postman environment'
+            name: postman_env
+            inputs:
+              secureFile: $(postmanEnvFile)
+          - task: CmdLine@2
+            displayName: Run newman
+            continueOnError: true # Useful to avoid the skipping of result publishing task
+            inputs:
+              script: newman run selfcare-onboarding/test/newman/Selfcare-Integration.postman_collection.json -e $(postman_env.secureFilePath) --reporters cli,junit --reporter-junit-export result/test-result.xml
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/test-*.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)/result/'
+              testRunTitle: 'Publish Newman Test Results'
+          # - task: 'Bash@3'
+          #   displayName: 'Send message on Slack'
+          #   condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues', 'Failed')
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: >
+          #       curl -X POST \
+          #         -H "Content-type: application/json" \
+          #         --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
+          #         $(SLACK_WEBHOOK_URL)
+
