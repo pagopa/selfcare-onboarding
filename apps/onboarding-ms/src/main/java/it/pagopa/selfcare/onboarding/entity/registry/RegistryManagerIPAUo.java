@@ -38,7 +38,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     public Uni<Onboarding> customValidation(Product product) {
         return checkRecipientCode().onItem().transformToUni(unused -> {
             if (!PROD_INTEROP.getValue().equals(onboarding.getProductId())
-                    && Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode())) {
+                    && (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))) {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
             }
             return Uni.createFrom().item(onboarding);
