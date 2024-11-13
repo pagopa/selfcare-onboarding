@@ -55,20 +55,29 @@ jobs:
         shell: bash
         run: npm install -g newman
       
+      # run newman classic
       - name: Run newman
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
 
-      # - uses: PublishTestResults@2
-      #   with:
-      #     testResultsFormat: 'JUnit'
-      #     testResultsFiles: '**/test-*.xml'
-      #     searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-      #     testRunTitle: 'Publish Newman Test Results'
+      - uses: PublishTestResults@2
+        with:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/test-*.xml'
+          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
+          testRunTitle: 'Publish Newman Test Results'
+
+      - name: 'Send message on Slack'
+        shell: bash
+        run: >
+            curl -X POST \
+              -H "Content-type: application/json" \
+              --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
+              $(SLACK_WEBHOOK_URL)
 
       # - name: Run newman
       #   shell: bash
-      #   run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json -r htmlextra --reporter-htmlextra-export htmlreport.html --reporter-htmlextra-darkTheme  > runreport1.html
+      #   run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json -r htmlextra --reporter-htmlextra-export htmlreport.html --reporter-htmlextra-darkTheme  > runreport.html
 
       # - name: 'List file'
       #   run: 'ls -la'
@@ -88,14 +97,5 @@ jobs:
       #     SLACK_BOT_TOKEN: ${{ secrets.SONAR_TOKEN }}
       
 
-      # - task: 'Bash@3'
-      #   displayName: 'Send message on Slack'
-      #   condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues', 'Failed')
-      #   inputs:
-      #     targetType: 'inline'
-      #     script: >
-      #       curl -X POST \
-      #         -H "Content-type: application/json" \
-      #         --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
-      #         $(SLACK_WEBHOOK_URL)
+      
 
