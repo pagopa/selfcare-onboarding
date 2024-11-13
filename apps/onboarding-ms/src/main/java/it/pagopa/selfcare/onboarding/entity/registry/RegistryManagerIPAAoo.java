@@ -23,6 +23,7 @@ public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
     @Override
     public IPAEntity retrieveInstitution() {
         AOOResource aooResource = super.aooClient.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+                .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
                         : Uni.createFrom().failure(ex))

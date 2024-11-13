@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.entity.registry;
 
 
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 
 public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
 
@@ -13,6 +12,7 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
     protected static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
     protected static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
     protected static final int DURATION_TIMEOUT = 5;
+    protected static final int MAX_NUMBER_ATTEMPTS = 2;
 
     protected Onboarding onboarding;
     protected T registryResource;

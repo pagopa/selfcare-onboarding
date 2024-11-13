@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
@@ -27,6 +28,10 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi) {
         super(onboarding, uoApi);
+    }
+
+    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi) {
+        super(onboarding, uoApi, institutionApi);
     }
 
     @Override
@@ -60,7 +65,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
         if (isInvoiceablePA(onboarding)) {
             final String recipientCode = onboarding.getBilling().getRecipientCode();
             return getUoFromRecipientCode(recipientCode)
-                    .onItem().transformToUni(this::validationRecipientCode)
+                    .onItem().transformToUni(this::validateRecipientCode)
                     .onItem().transformToUni(customError -> {
                         if (Objects.nonNull(customError)) {
                             return Uni.createFrom().failure(new InvalidRequestException(customError.getMessage()));
@@ -71,7 +76,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
         return Uni.createFrom().nullItem();
     }
 
-    protected Uni<CustomError> validationRecipientCode(UOResource uoResource) {
+    protected Uni<CustomError> validateRecipientCode(UOResource uoResource) {
             if (Objects.nonNull(originIdEC) && !originIdEC.equals(uoResource.getCodiceIpa())) {
                 return Uni.createFrom().item(DENIED_NO_ASSOCIATION);
             }

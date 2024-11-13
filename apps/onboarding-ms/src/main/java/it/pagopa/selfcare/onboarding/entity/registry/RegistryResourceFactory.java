@@ -16,7 +16,11 @@ public class RegistryResourceFactory {
 
     @RestClient
     @Inject
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
+
+    @RestClient
+    @Inject
+    NationalRegistriesApi nationalRegistriesApi;
 
     @RestClient
     @Inject
@@ -43,13 +47,14 @@ public class RegistryResourceFactory {
             case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
             case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
             case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
+            case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, nationalRegistriesApi);
             case IPA -> getResourceFromIPA(onboarding);
             default -> getRegistryManagerSELC(onboarding);
         };
     }
 
     private RegistryManager<?> getResourceFromIPA(Onboarding onboarding) {
-        return switch ((onboarding.getInstitution().getSubunitType() != null) ? onboarding.getInstitution().getSubunitType() : EC) {
+        return switch (onboarding.getInstitution().getSubunitType() != null ? onboarding.getInstitution().getSubunitType() : EC) {
             case AOO -> new RegistryManagerIPAAoo(onboarding, uoApi, aooApi);
             case UO -> new RegistryManagerIPAUo(onboarding, uoApi);
             default -> getResourceFromInstitutionType(onboarding);
@@ -67,6 +72,6 @@ public class RegistryResourceFactory {
         if (GSP.equals(onboarding.getInstitution().getInstitutionType())) {
             new RegistryManagerIPAGps(onboarding, uoApi);
         }
-        return new RegistryManagerIPA(onboarding, uoApi);
+        return new RegistryManagerIPA(onboarding, uoApi, institutionApi);
     }
 }

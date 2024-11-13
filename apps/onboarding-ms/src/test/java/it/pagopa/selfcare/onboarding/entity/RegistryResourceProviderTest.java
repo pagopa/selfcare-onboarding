@@ -50,7 +50,7 @@ class RegistryResourceProviderTest {
     }
 
     @Test
-    void getWrapperIPA() {
+    void getRegistryIPA() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IPA));
         assertTrue(registryManager instanceof RegistryManagerIPA);
     }
@@ -72,7 +72,7 @@ class RegistryResourceProviderTest {
     }
 
     @Test
-    void getWrapperIVASS() {
+    void getRegistryIVASS() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IVASS));
         assertTrue(registryManager instanceof RegistryManagerIVASS);
     }
@@ -87,6 +87,12 @@ class RegistryResourceProviderTest {
     void getRegistryPDNDInfocamere() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.PDND_INFOCAMERE));
         assertTrue(registryManager instanceof RegistryManagerPDNDInfocamere);
+    }
+
+    @Test
+    void getRegistryInfocamere() {
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.INFOCAMERE));
+        assertTrue(registryManager instanceof RegistryManagerInfocamere);
     }
 
 }

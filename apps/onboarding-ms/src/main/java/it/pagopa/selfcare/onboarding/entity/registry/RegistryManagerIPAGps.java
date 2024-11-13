@@ -20,7 +20,8 @@ public class RegistryManagerIPAGps extends RegistryManagerIPAUo {
     public Uni<Onboarding> customValidation(Product product) {
         if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) && Objects.isNull(onboarding.getAdditionalInformations())) {
             return Uni.createFrom().failure(new InvalidRequestException(BaseRegistryManager.ADDITIONAL_INFORMATION_REQUIRED));
-        } else if (!onboarding.getAdditionalInformations().isIpa() &&
+        } else if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) &&
+                !onboarding.getAdditionalInformations().isIpa() &&
                 !onboarding.getAdditionalInformations().isBelongRegulatedMarket() &&
                 !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision() &&
                 !onboarding.getAdditionalInformations().isAgentOfPublicService() &&

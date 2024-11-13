@@ -22,6 +22,7 @@ public abstract class ClientRegistryPDNDInfocamere extends BaseRegistryManager<P
 
     public PDNDBusinessResource retrieveInstitution() {
         return client.institutionPdndByTaxCodeUsingGET(onboarding.getInstitution().getTaxCode())
+                .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(
