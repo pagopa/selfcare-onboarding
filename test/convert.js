@@ -6,24 +6,6 @@ fs.readFile('test/test-result.json', 'utf8', function (err, data) {
     if (err) throw err; // we'll not consider error handling for now
     var obj = JSON.parse(data);
     sendToSlack(obj["run"]["stats"], process.argv[2]);
-
-    let json = JSON.stringify(result);
-    fs.writeFile("test/stats.json", json, 'utf8', (err) => {
-      if (err) {
-          console.error('Error writing to file', err);
-      } else {
-          console.log('Data written to file');
-      }
-  });
-});
-
-var fs = require('fs');
-// const axios = require('axios').default;
-
-fs.readFile('test/test-result.json', 'utf8', function (err, data) {
-    if (err) throw err; 
-    var obj = JSON.parse(data);
-    sendToSlack(obj["run"]["stats"], process.argv[2]);
 });
 
 
