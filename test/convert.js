@@ -7,7 +7,7 @@ fs.readFile('test/test-result.json', 'utf8', function (err, data) {
     result = {}
     result["stats"] = run["stats"]
     let json = JSON.stringify(result);
-    fs.writeFile("test/result.json", json, 'utf8', (err) => {
+    fs.writeFile("test/stats.json", json, 'utf8', (err) => {
       if (err) {
           console.error('Error writing to file', err);
       } else {
