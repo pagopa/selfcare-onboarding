@@ -33,21 +33,21 @@ jobs:
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: '16.x'
-          
+
       - name: Install newman
         shell: bash
         run: npm install -g newman
-
-      - name: Install axios
-        shell: bash
-        run: npm install -g axios
       
       # run newman classic
       - name: Run newman
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export ./test/test-result.json
 
-      - name: Cat newman report
+      - name: Install axios
+        shell: bash
+        run: npm install -g axios
+
+      - name: Send newman report
         shell: bash
         run:  node ./test/convert.js ${{ secrets.SLACK_WEBHOOK_URL }}
 
