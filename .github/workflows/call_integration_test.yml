@@ -43,26 +43,26 @@ jobs:
         shell: bash
         run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export ./test/test-result.json
 
-      # - name: Install axios
-      #   shell: bash
-      #   run: npm install -g axios
+      - name: Install axios
+        shell: bash
+        run: npm install -g axios
 
 
-      # - name: List modules installed
-      #   shell: bash
-      #   run: npm -g list
+      - name: List modules installed
+        shell: bash
+        run: npm -g list
 
       - name: Send newman report
         shell: bash
         run:  node ./test/convert.js ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Send custom JSON data to Slack workflow
-        id: slack
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          payload-file-path: "./test/stats.json"
-          payload-file-path-parsed: false
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # - name: Send custom JSON data to Slack workflow
+      #   id: slack
+      #   uses: slackapi/slack-github-action@v1.27.0
+      #   with:
+      #     payload-file-path: "./test/stats.json"
+      #     payload-file-path-parsed: false
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     
