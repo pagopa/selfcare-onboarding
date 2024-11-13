@@ -9,61 +9,45 @@ on:
         required: true
         description: add '-pnpg' if workflow is related to pnpg
 
-variables:
-  postmanEnvFile: integration_environment
-  
-  # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/uat') }}:
-  #   # selfHostedAgentPool: $(UAT_AGENT_POOL)
-    
-
-  # ${{ else }}:
-  #   # selfHostedAgentPool: $(DEV_AGENT_POOL)
-  #   postmanEnvFile: integration_environment.json
-
-stages: 
-  - stage: stage_postman_test
+jobs:
+  test:
     environment: ${{ inputs.environment }}-ci
-    displayName: 'Test_e2e_on_${{ variables.environment }}'
-    dependsOn: [ stage_deploy ]
-    condition: and(succeeded(),or(eq(variables.environment, 'DEV'), eq(variables.environment, 'UAT')))
-    jobs:
-      - job: 'Run_Postman_collection_on_${{ variables.environment }}'
-        displayName: 'Run Postman collection on ${{ variables.environment }}'
-        # pool:
-        #   name: $(selfHostedAgentPool)
-        steps:
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '16.x'
-          - task: Npm@1
-            displayName: Install newman
-            inputs:
-              command: custom
-              customCommand: install -g newman
-          - task: DownloadSecureFile@1
-            displayName: 'download postman environment'
-            name: postman_env
-            inputs:
-              secureFile: $(postmanEnvFile)
-          - task: CmdLine@2
-            displayName: Run newman
-            continueOnError: true # Useful to avoid the skipping of result publishing task
-            inputs:
-              script: newman run selfcare-onboarding/test/newman/Selfcare-Integration.postman_collection.json -e $(postman_env.secureFilePath) --reporters cli,junit --reporter-junit-export result/test-result.xml
-          - task: PublishTestResults@2
-            inputs:
-              testResultsFormat: 'JUnit'
-              testResultsFiles: '**/test-*.xml'
-              searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-              testRunTitle: 'Publish Newman Test Results'
-          # - task: 'Bash@3'
-          #   displayName: 'Send message on Slack'
-          #   condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues', 'Failed')
-          #   inputs:
-          #     targetType: 'inline'
-          #     script: >
-          #       curl -X POST \
-          #         -H "Content-type: application/json" \
-          #         --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
-          #         $(SLACK_WEBHOOK_URL)
+    name: 'Run Postman collection on ${{ inputs.environment }}'
+    runs-on: ubuntu-20.04
+    # pool:
+    #   name: $(selfHostedAgentPool)
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        name: Checkout
+      - name: 'Download postman environment'
+        env: 
+          INTEGRATION_ENVIRONMENT: ${{ secrets.INTEGRATION_ENVIRONMENT }}
+        run: 'echo "$INTEGRATION_ENVIRONMENT" | base64 --decode > Selfcare-Integration.postman_environment.json'
+        shell: bash
+      - name: 'List file'
+        run: 'ls -la'
+        shell: bash
+      - name: 'Cat file'
+        run: 'cat Selfcare-Integration.postman_environment.json'
+        shell: bash
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: '16.x'
+
+      - name: Install newman
+        shell: bash
+        run: npm install -g newman
+      
+      - name: Run newman
+        shell: bash
+        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export ./test/test-result.json
+
+      - name: Send newman report
+        shell: bash
+        run:  node ./test/convert.js
+
+      - name: 'Send message on Slack'
+        shell: bash
+        run: >
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} -H 'Content-type: application/json' -d @test/stats.json
 

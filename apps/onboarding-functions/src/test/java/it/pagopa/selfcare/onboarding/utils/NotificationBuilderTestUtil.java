@@ -47,7 +47,7 @@ public class NotificationBuilderTestUtil {
     institutionResponse.setCity("city");
     institutionResponse.setCountry("country");
     institutionResponse.setCounty("county");
-    institutionResponse.setCreatedAt(OffsetDateTime.now());
+    institutionResponse.setCreatedAt(OffsetDateTime.parse("2020-11-01T10:00:00Z"));
     institutionResponse.setDataProtectionOfficer(new DataProtectionOfficerResponse());
     institutionResponse.setDelegation(true);
     institutionResponse.setDescription("description");
@@ -70,7 +70,7 @@ public class NotificationBuilderTestUtil {
     institutionResponse.setSupportEmail("supportEmail");
     institutionResponse.setSupportPhone("supportPhone");
     institutionResponse.setTaxCode("taxCode");
-    institutionResponse.setUpdatedAt(OffsetDateTime.now());
+    institutionResponse.setUpdatedAt(OffsetDateTime.parse("2020-11-02T10:05:00Z"));
     institutionResponse.setZipCode("zipCode");
 
     return institutionResponse;
