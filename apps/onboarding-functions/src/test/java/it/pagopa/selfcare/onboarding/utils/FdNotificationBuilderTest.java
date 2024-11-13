@@ -168,8 +168,8 @@ class FdNotificationBuilderTest {
         productResponse.setProductRole("security");
         productResponse.setRole("OPERATOR");
         productResponse.setEnv(Env.PROD);
-        productResponse.setCreatedAt(OffsetDateTime.now());
-        productResponse.setUpdatedAt(OffsetDateTime.now());
+        productResponse.setCreatedAt(OffsetDateTime.parse("2020-11-01T10:00:00Z"));
+        productResponse.setUpdatedAt(OffsetDateTime.parse("2020-11-02T10:05:00Z"));
         return productResponse;
     }
 
