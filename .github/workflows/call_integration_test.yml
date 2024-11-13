@@ -58,22 +58,23 @@ jobs:
       # run newman classic
       - name: Run newman
         shell: bash
-        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,junit --reporter-junit-export result/test-result.xml
+        run:  newman run ./test/newman/Selfcare-Integration.postman_collection.json -e Selfcare-Integration.postman_environment.json --reporters cli,json --reporter-json-export result/test-result.json
 
-      - uses: PublishTestResults@2
-        with:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**/test-*.xml'
-          searchFolder: '$(System.DefaultWorkingDirectory)/result/'
-          testRunTitle: 'Publish Newman Test Results'
+      - name: Run newman
+        shell: bash
+        run:  NEWMAN_RESULTS=$(cat result/test-result.json)
 
       - name: 'Send message on Slack'
         shell: bash
         run: >
-            curl -X POST \
-              -H "Content-type: application/json" \
-              --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
-              $(SLACK_WEBHOOK_URL)
+          curl -X POST -H 'Content-type: application/json' --data "{
+              \"text\": \"Newman Test Results:\n\`\`\`$NEWMAN_RESULTS\`\`\`\"
+          }" ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+      #       curl -X POST \
+      # -H "Content-type: application/json" \
+      # --data '{"text": "*Attention: There is an error in pipeline $(System.DefinitionName) in step _postman test_!*\nCheck the logs for more details $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId) to view the build results."}' \
+      # $(SLACK_WEBHOOK_URL)
 
       # - name: Run newman
       #   shell: bash
