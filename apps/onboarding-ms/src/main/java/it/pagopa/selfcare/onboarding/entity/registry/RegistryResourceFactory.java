@@ -17,7 +17,7 @@ public class RegistryResourceFactory {
   @RestClient @Inject
   org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
 
-  @RestClient @Inject NationalRegistriesApi nationalRegistriesApi;
+  @RestClient @Inject InfocamereApi infocamereApi;
 
   @RestClient @Inject AooApi aooApi;
 
@@ -36,7 +36,7 @@ public class RegistryResourceFactory {
       case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
       case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
       case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
-      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, nationalRegistriesApi);
+      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi);
       case IPA -> getResourceFromIPA(onboarding);
       default -> getRegistryManagerSELC(onboarding);
     };
