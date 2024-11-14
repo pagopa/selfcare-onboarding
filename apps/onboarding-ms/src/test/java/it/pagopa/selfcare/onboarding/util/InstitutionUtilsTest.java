@@ -26,7 +26,20 @@ public class InstitutionUtilsTest {
   }
 
   @Test
-  void getCurrentInstitutionTypeTest_shouldReturnDefault() {
+  void getCurrentInstitutionTypeTest_shouldReturnDefault_whenInstitutionIsNull() {
+    // given
+    Onboarding onboarding = createDummyOnboarding();
+    onboarding.setInstitution(null);
+
+    // when
+    String result = InstitutionUtils.getCurrentInstitutionType(onboarding);
+
+    // then
+    assertEquals("default", result);
+  }
+
+  @Test
+  void getCurrentInstitutionTypeTest_shouldReturnDefault_whenInstitutionTypeIsNull() {
     // given
     Onboarding onboarding = createDummyOnboarding();
     onboarding.getInstitution().setInstitutionType(null);
