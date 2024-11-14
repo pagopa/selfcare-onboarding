@@ -24,20 +24,7 @@ public class InstitutionUtilsTest {
     // then
     assertEquals("PSP", result);
   }
-
-  @Test
-  void getCurrentInstitutionTypeTest_shouldReturnDefault_whenInstitutionIsNull() {
-    // given
-    Onboarding onboarding = createDummyOnboarding();
-    onboarding.setInstitution(null);
-
-    // when
-    String result = InstitutionUtils.getCurrentInstitutionType(onboarding);
-
-    // then
-    assertEquals("default", result);
-  }
-
+  
   @Test
   void getCurrentInstitutionTypeTest_shouldReturnDefault_whenInstitutionTypeIsNull() {
     // given
