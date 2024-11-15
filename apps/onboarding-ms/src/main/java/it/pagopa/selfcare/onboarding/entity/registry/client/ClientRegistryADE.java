@@ -1,17 +1,17 @@
 package it.pagopa.selfcare.onboarding.entity.registry.client;
 
-
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.entity.registry.BaseRegistryManager;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.LegalAddressResponse;
 
-public abstract class ClientRegistryADE extends BaseRegistryManager<LegalAddressResponse> {
+public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
 
   private final NationalRegistriesApi client;
 
@@ -20,9 +20,9 @@ public abstract class ClientRegistryADE extends BaseRegistryManager<LegalAddress
     this.client = client;
   }
 
-  public LegalAddressResponse retrieveInstitution() {
+  public Boolean retrieveInstitution() {
     return client
-        .legalAddressUsingGET(onboarding.getInstitution().getTaxCode())
+        .verifyLegalUsingGET(getManagerId(), onboarding.getInstitution().getTaxCode())
         .onFailure()
         .retry()
         .atMost(MAX_NUMBER_ATTEMPTS)
@@ -38,6 +38,15 @@ public abstract class ClientRegistryADE extends BaseRegistryManager<LegalAddress
                                     onboarding.getInstitution().getTaxCode())))
                     : Uni.createFrom().failure(ex))
         .await()
-        .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS))
+        .getVerificationResult();
+  }
+
+  private String getManagerId() {
+    return onboarding.getUsers().stream()
+        .filter(user -> user.getRole().equals(PartyRole.MANAGER))
+        .map(User::getId)
+        .findFirst()
+        .orElse(null);
   }
 }
