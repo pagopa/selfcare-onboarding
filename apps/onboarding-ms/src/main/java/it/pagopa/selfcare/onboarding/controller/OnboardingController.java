@@ -484,7 +484,7 @@ public class OnboardingController {
         billing.setRecipientCode(recipientCode.trim());
         onboarding.setBilling(billing);
         log.trace("update RecipientCode start");
-        log.debug("Onboarding id {} and recipientCode {}", onboardingId, recipientCode.replace("\n", "").replace("\r", ""));
+        log.debug("Onboarding id {} and recipientCode {}", onboardingId.replace("\n", "").replace("\r", ""), recipientCode.replace("\n", "").replace("\r", ""));
         return onboardingService
                 .updateOnboarding(onboardingId, onboarding)
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
