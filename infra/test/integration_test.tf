@@ -40,9 +40,8 @@ data "github_repository" "repo" {
 
 resource "github_repository_environment" "repo_environment" {
   repository  = data.github_repository.repo.name
-  environment = "dev-ci"
+  environment = "${var.env}-ci"
 }
-
 
 resource "github_actions_environment_secret" "integration_environment" {
   repository  = data.github_repository.repo.name

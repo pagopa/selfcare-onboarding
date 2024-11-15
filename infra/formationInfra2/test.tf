@@ -10,6 +10,6 @@ data "azurerm_key_vault_secret" "formation_reader" {
 
 resource "azurerm_key_vault_secret" "formation_writer" {
   name         = "formation2"
-  value        = data.azurerm_key_vault_secret.formation_reader.value
+  value        = "${data.azurerm_key_vault_secret.formation_reader.value}2"
   key_vault_id = data.azurerm_key_vault.first_try.id
 }

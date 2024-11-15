@@ -116,8 +116,3 @@ variable "function_always_on" {
   description = "Always on property"
   default     = false
 }
-
-
-variable "app_settings" {
-  type = map(any)
-}
