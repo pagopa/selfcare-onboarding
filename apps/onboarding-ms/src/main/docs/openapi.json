@@ -2407,6 +2407,12 @@
           },
           "contractImported" : {
             "$ref" : "#/components/schemas/OnboardingImportContract"
+          },
+          "billing" : {
+            "$ref" : "#/components/schemas/BillingPaRequest"
+          },
+          "forceImport" : {
+            "type" : "boolean"
           }
         }
       },
