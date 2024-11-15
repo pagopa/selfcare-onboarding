@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
@@ -12,8 +14,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 class RegistryResourceProviderTest {
@@ -93,6 +93,12 @@ class RegistryResourceProviderTest {
     void getRegistryInfocamere() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.INFOCAMERE));
         assertTrue(registryManager instanceof RegistryManagerInfocamere);
+    }
+
+    @Test
+    void getRegistryADE() {
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ADE));
+        assertTrue(registryManager instanceof RegistryManagerADE);
     }
 
 }

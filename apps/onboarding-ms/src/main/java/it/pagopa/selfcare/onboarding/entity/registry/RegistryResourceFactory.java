@@ -19,6 +19,8 @@ public class RegistryResourceFactory {
 
   @RestClient @Inject InfocamereApi infocamereApi;
 
+  @RestClient @Inject NationalRegistriesApi nationalRegistriesApi;
+
   @RestClient @Inject AooApi aooApi;
 
   @RestClient @Inject UoApi uoApi;
@@ -37,6 +39,7 @@ public class RegistryResourceFactory {
       case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
       case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
       case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi);
+      case ADE -> new RegistryManagerADE(onboarding, nationalRegistriesApi);
       case IPA -> getResourceFromIPA(onboarding);
       default -> getRegistryManagerSELC(onboarding);
     };
