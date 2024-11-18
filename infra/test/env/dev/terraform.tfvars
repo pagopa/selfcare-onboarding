@@ -1,5 +1,6 @@
 prefix    = "selc"
 env_short = "d"
+env       = "dev"
 location  = "westeurope"
 
 tags = {
@@ -15,28 +16,6 @@ key_vault = {
   name                = "selc-d-kv"
 }
 
-
-cidr_subnet_selc_onboarding_fn = ["10.1.144.0/24"]
-
-function_always_on = false
-
-app_service_plan_info = {
-  kind                         = "Linux"
-  sku_size                     = "P1v3"
-  maximum_elastic_worker_count = 1
-  worker_count                 = 1
-  zone_balancing_enabled       = false
-}
-
-storage_account_info = {
-  account_kind                      = "StorageV2"
-  account_tier                      = "Standard"
-  account_replication_type          = "LRS"
-  access_tier                       = "Hot"
-  advanced_threat_protection_enable = false
-  use_legacy_defender_version       = true
-  public_network_access_enabled     = false
-}
 
 app_settings = {
   "APPLICATIONINSIGHTS_CONNECTION_STRING"              = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/appinsights-connection-string/)",
@@ -102,7 +81,7 @@ app_settings = {
   "EMAIL_SERVICE_AVAILABLE"                            = "true"
   "JWT_TOKEN_ISSUER"                                   = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-private-key/)"
-  "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
+  "JWT_TOKEN_KID" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                 = "disabled",

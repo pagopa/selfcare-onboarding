@@ -5,7 +5,6 @@ import it.pagopa.selfcare.onboarding.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.openapi.quarkus.user_json.model.PartyRole;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,9 +19,9 @@ public interface ProductMapper {
     org.openapi.quarkus.user_json.model.Product toProduct(Onboarding onboarding, User user);
 
     @Named("setRole")
-    default PartyRole setRole(User user) {
+    default String setRole(User user) {
         if(Objects.nonNull(user.getRole())) {
-            return PartyRole.valueOf(user.getRole().name());
+            return user.getRole().name();
         }
         return null;
     }

@@ -2,8 +2,8 @@
 
 This repo structure and build monorepo with Apache Maven for selfcare onboarding domain.
 
-Applications under apps/ depend on shared code under libs/. test-coverage/ is used to assess the test coverage of the entire project.
-
+Applications under apps/ depend on shared code under libs/. test-coverage/ is used to assess the test coverage of the
+entire project.
 
 ```
 .
@@ -24,8 +24,8 @@ Look at single README module for more information.
 
 ## Infrastructure
 
-The [`.infra/`] sub folder contains terraform files for deploying infrastructure such as container apps or functions in Azure.
-
+The [`.infra/`] sub folder contains terraform files for deploying infrastructure such as container apps or functions in
+Azure.
 
 ## Continous integration
 
@@ -48,14 +48,14 @@ and usage of a couple of lesser known command line switches.
 |:---------------------------------------------------------------------------------------------------|:----------------------:|:--------------------------------------------------------------------------------------|
 | Build the world                                                                                    |          `.`           | `mvn clean package -DskipTests`                                                       |
 | Run `onboarding-ms`                                                                                |          `.`           | `java -jar apps/onboarding-ms/target/onboarding-ms-1.0.0-SNAPSHOT.jar`                |
-| Build and test the world                                                                           |     `.`                | `mvn clean package`                                                                   |
+| Build and test the world                                                                           |          `.`           | `mvn clean package`                                                                   |
 | Build the world                                                                                    | `./apps/onboarding-ms` | `mvn --file ../.. clean package -DskipTests`                                          |
 | Build `onboarding-ms` and its dependencies                                                         |          `.`           | `mvn --projects :onboarding-ms --also-make clean package -DskipTests`                 |
 | Build `onboarding-ms` and its dependencies                                                         | `./apps/onboarding-ms` | `mvn --file ../.. --projects :onboarding-ms --also-make clean package -DskipTests`    |
 | Build `onboarding-sdk` and its dependents (aka. reverse dependencies or *rdeps* in Bazel parlance) |          `.`           | `mvn --projects :onboarding-sdk-pom --also-make-dependents clean package -DskipTests` |
 | Print dependencies of `onboarding-sdk`                                                             | `./apps/onboarding-ms` | `mvn dependency:list`                                                                 |
-| Change version  of `onboarding-sdk`                                                             | `.` | `mvn versions:set -DnewVersion=0.3.5 --projects :onboarding-sdk-pom  `                |
-| Persist version  of `onboarding-sdk`                                                             | `.` | `mvn versions:commit   `                                                              |
+| Change version  of `onboarding-sdk`                                                                |          `.`           | `mvn versions:set -DnewVersion=0.3.5 --projects :onboarding-sdk-pom  `                |
+| Persist version  of `onboarding-sdk`                                                               |          `.`           | `mvn versions:commit   `                                                              |
 
 -----
 
