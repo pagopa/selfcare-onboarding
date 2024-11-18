@@ -1825,7 +1825,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported, false), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -1862,7 +1862,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported, false), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());

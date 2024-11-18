@@ -22,4 +22,8 @@ public class OnboardingImportRequest {
 
     @NotNull
     private OnboardingImportContract contractImported;
+
+    private BillingPaRequest billing;
+
+    private boolean forceImport;
 }

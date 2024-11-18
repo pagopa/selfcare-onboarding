@@ -700,7 +700,7 @@ class OnboardingControllerTest {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -712,7 +712,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any());
+                .onboardingImport(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -734,7 +734,7 @@ class OnboardingControllerTest {
 
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -746,7 +746,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any());
+                .onboardingImport(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -756,7 +756,7 @@ class OnboardingControllerTest {
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
         onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -768,7 +768,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any());
+                .onboardingImport(any(), any(), any(), anyBoolean());
     }
 
     @Test
@@ -1140,35 +1140,35 @@ class OnboardingControllerTest {
         return queryParameterMap;
     }
 
-  @Test
-  @TestSecurity(user = "userJwt")
-  void updateRecipientCodeByOnboardingIdTest() {
-    // given
-    String fakeOnboardingId = "ASDF22234545";
-    String fakeRecipientCode = "TEST_CODE2234";
+    @Test
+    @TestSecurity(user = "userJwt")
+    void updateRecipientCodeByOnboardingIdTest() {
+        // given
+        String fakeOnboardingId = "ASDF22234545";
+        String fakeRecipientCode = "TEST_CODE2234";
 
-    Onboarding onboarding = new Onboarding();
-      Billing billing = new Billing();
-      billing.setRecipientCode(fakeRecipientCode);
-      onboarding.setBilling(billing);
+        Onboarding onboarding = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode(fakeRecipientCode);
+        onboarding.setBilling(billing);
 
-    when(onboardingService.updateOnboarding(fakeOnboardingId, onboarding))
-        .thenReturn(Uni.createFrom().item(1L));
+        when(onboardingService.updateOnboarding(fakeOnboardingId, onboarding))
+                .thenReturn(Uni.createFrom().item(1L));
 
-    // when
-    given()
-        .when()
-        .queryParam("recipientCode", fakeRecipientCode)
-        .pathParam("onboardingId", fakeOnboardingId)
-        .contentType(ContentType.JSON)
-        .put("/{onboardingId}/recipient-code")
-        .then()
-        .statusCode(204);
+        // when
+        given()
+                .when()
+                .queryParam("recipientCode", fakeRecipientCode)
+                .pathParam("onboardingId", fakeOnboardingId)
+                .contentType(ContentType.JSON)
+                .put("/{onboardingId}/recipient-code")
+                .then()
+                .statusCode(204);
 
-    // then
-    ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
-    Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
-    assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
-  }
+        // then
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
+        assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
+    }
 
 }

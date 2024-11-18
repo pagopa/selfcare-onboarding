@@ -103,37 +103,64 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
 
-    @RestClient @Inject UserApi userRegistryApi;
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
 
-    @RestClient @Inject OnboardingApi onboardingApi;
+    @RestClient
+    @Inject
+    OnboardingApi onboardingApi;
 
-    @RestClient @Inject
+    @RestClient
+    @Inject
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
-    @RestClient @Inject AooApi aooApi;
+    @RestClient
+    @Inject
+    AooApi aooApi;
 
-    @RestClient @Inject InstitutionApi institutionApi;
+    @RestClient
+    @Inject
+    InstitutionApi institutionApi;
 
-    @RestClient @Inject UoApi uoApi;
+    @RestClient
+    @Inject
+    UoApi uoApi;
 
-    @RestClient @Inject OrchestrationApi orchestrationApi;
+    @RestClient
+    @Inject
+    OrchestrationApi orchestrationApi;
 
-    @RestClient @Inject InfocamereApi infocamereApi;
+    @RestClient
+    @Inject
+    InfocamereApi infocamereApi;
 
-    @RestClient @Inject NationalRegistriesApi nationalRegistriesApi;
+    @RestClient
+    @Inject
+    NationalRegistriesApi nationalRegistriesApi;
 
-    @RestClient @Inject org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
+    @RestClient
+    @Inject
+    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
 
-    @Inject OnboardingMapper onboardingMapper;
+    @Inject
+    OnboardingMapper onboardingMapper;
 
-    @Inject InstitutionMapper institutionMapper;
+    @Inject
+    InstitutionMapper institutionMapper;
 
-    @Inject OnboardingValidationStrategy onboardingValidationStrategy;
-    @Inject ProductService productService;
-    @Inject SignatureService signatureService;
-    @Inject AzureBlobClient azureBlobClient;
-    @Inject UserMapper userMapper;
-    @Inject OnboardingUtils onboardingUtils;
+    @Inject
+    OnboardingValidationStrategy onboardingValidationStrategy;
+    @Inject
+    ProductService productService;
+    @Inject
+    SignatureService signatureService;
+    @Inject
+    AzureBlobClient azureBlobClient;
+    @Inject
+    UserMapper userMapper;
+    @Inject
+    OnboardingUtils onboardingUtils;
 
     @ConfigProperty(name = "onboarding.expiring-date")
     Integer onboardingExpireDate;
@@ -173,7 +200,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, true);
     }
 
-    /** As onboarding but it is specific for USERS workflow */
+    /**
+     * As onboarding but it is specific for USERS workflow
+     */
     @Override
     public Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest request, String userId, WorkflowType workflowType) {
         return getInstitutionFromUserRequest(request)
@@ -219,22 +248,24 @@ public class OnboardingServiceDefault implements OnboardingService {
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
 
-    /** As onboarding but it is specific for IMPORT workflow */
+    /**
+     * As onboarding but it is specific for IMPORT workflow
+     */
     @Override
     public Uni<OnboardingResponse> onboardingImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            OnboardingImportContract contractImported) {
+            OnboardingImportContract contractImported, boolean forceImport) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(OnboardingStatus.PENDING);
         return fillUsersAndOnboardingForImport(
-                onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE);
+                onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, forceImport);
     }
 
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *     response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *     response is delivered asynchronously
+     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
+     *                response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsersAndOnboarding(
             Onboarding onboarding,
@@ -316,8 +347,8 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *     response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *     response is delivered asynchronously
+     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
+     *                response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsers(
             Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
@@ -349,14 +380,14 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     /**
      * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *     response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *     response is delivered asynchronously
+     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
+     *                response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsersAndOnboardingForImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
             OnboardingImportContract contractImported,
-            String timeout) {
+            String timeout, boolean forceImport) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -388,7 +419,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .onItem()
                                         .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                                         .onItem()
-                                        .transformToUni(this::setInstitutionTypeAndBillingData)
+                                        .transformToUni(current -> setInstitutionTypeAndBillingData(current, forceImport))
                                         .onItem()
                                         .transformToUni(
                                                 current -> persistOnboarding(onboarding, userRequests, product, null))
@@ -498,22 +529,20 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Onboarding> setIstatCode(
             Onboarding onboarding, OnboardingUtils.ProxyResource<?> proxyResource) {
         return switch (proxyResource.getType()) {
-            case AOO ->
-                    Uni.createFrom()
-                            .item(
-                                    () -> {
-                                        AOOResource resource = (AOOResource) proxyResource.getResource();
-                                        onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
-                                        return onboarding;
-                                    });
-            case UO ->
-                    Uni.createFrom()
-                            .item(
-                                    () -> {
-                                        UOResource resource = (UOResource) proxyResource.getResource();
-                                        onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
-                                        return onboarding;
-                                    });
+            case AOO -> Uni.createFrom()
+                    .item(
+                            () -> {
+                                AOOResource resource = (AOOResource) proxyResource.getResource();
+                                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
+                                return onboarding;
+                            });
+            case UO -> Uni.createFrom()
+                    .item(
+                            () -> {
+                                UOResource resource = (UOResource) proxyResource.getResource();
+                                onboarding.getInstitution().setIstatCode(resource.getCodiceComuneISTAT());
+                                return onboarding;
+                            });
             default -> Uni.createFrom().item(onboarding);
         };
     }
@@ -1584,15 +1613,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .asList();
     }
 
-    private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding) {
-        if (Objects.nonNull(onboarding.getInstitution()) && !PSP.equals(onboarding.getInstitution().getInstitutionType())) {
+    private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding, boolean forceImport) {
+        if (Objects.nonNull(onboarding.getInstitution())
+                && !PSP.equals(onboarding.getInstitution().getInstitutionType())
+                && !forceImport) {
             return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
                     .onItem()
                     .invoke(proxyInstitution -> {
                         if (Objects.nonNull(proxyInstitution)) {
                             InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
                             onboarding.getInstitution().setInstitutionType(institutionType);
-
                             Billing billing = new Billing();
                             billing.setVatNumber(proxyInstitution.getTaxCode());
                             billing.setRecipientCode(proxyInstitution.getOriginId());
@@ -1600,8 +1630,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         } else {
                             onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
                         }
-                    })
-                    .replaceWith(Uni.createFrom().item(onboarding));
+                    }).replaceWith(Uni.createFrom().item(onboarding));
         }
         return Uni.createFrom().item(onboarding);
     }
@@ -1798,8 +1827,8 @@ public class OnboardingServiceDefault implements OnboardingService {
      * selfcare-user API.
      *
      * @param institutionId institution id
-     * @param productId product id
-     * @param uuid user uuid
+     * @param productId     product id
+     * @param uuid          user uuid
      * @return a Uni with the result of the check
      */
     private Uni<Boolean> isUserActiveManager(String institutionId, String productId, String uuid) {
@@ -1921,10 +1950,10 @@ public class OnboardingServiceDefault implements OnboardingService {
      *   <li>Persists the onboarding data and initiates orchestration.
      * </ul>
      *
-     * @param onboarding the onboarding data to process
+     * @param onboarding   the onboarding data to process
      * @param userRequests the list of user requests associated with the onboarding
      * @return a Uni that emits the onboarding response upon successful completion
-     * @throws InvalidRequestException if the user list is invalid or the user is already a manager
+     * @throws InvalidRequestException   if the user list is invalid or the user is already a manager
      * @throws ResourceNotFoundException if no previous onboarding data is found for the institution
      */
     public Uni<OnboardingResponse> onboardingUserPg(
@@ -1954,7 +1983,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      *
      * @param userRequests the list of user requests to validate
      * @throws InvalidRequestException if the user list is empty, contains more than one user, or the
-     *     user role is not MANAGER
+     *                                 user role is not MANAGER
      */
     private void checkOnboardingPgUserList(List<UserRequest> userRequests) {
         if (CollectionUtils.isEmpty(userRequests)
@@ -2071,7 +2100,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     /**
      * Checks if the user is a manager in the external registries based on the institution's origin.
      *
-     * @param onboarding the current onboarding data
+     * @param onboarding   the current onboarding data
      * @param userRequests the list of user requests associated with the onboarding
      * @return a Uni that completes if the user is a valid manager in the registry, otherwise fails
      * @throws InvalidRequestException if the user is not a manager in the external registry
@@ -2100,7 +2129,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     /**
      * Checks if the user is a manager in the Infocamere registry.
      *
-     * @param userTaxCode the tax code of the user
+     * @param userTaxCode     the tax code of the user
      * @param businessTaxCode the tax code of the business (institution)
      * @return a Uni that completes if the user is a manager, otherwise fails
      * @throws InvalidRequestException if the user is not a manager in Infocamere
@@ -2122,7 +2151,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * Validates if the business tax code is contained within the retrieved businesses.
      *
      * @param businessesResource the resource containing businesses data
-     * @param taxCode the tax code to validate against
+     * @param taxCode            the tax code to validate against
      * @return a Uni that completes if the tax code is found, otherwise fails
      * @throws InvalidRequestException if the tax code is not found in the businesses resource
      */
@@ -2141,7 +2170,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     /**
      * Checks if the user is a manager in the ADE (Agenzia delle Entrate) registry.
      *
-     * @param userTaxCode the tax code of the user
+     * @param userTaxCode     the tax code of the user
      * @param businessTaxCode the tax code of the business (institution)
      * @return a Uni that completes if the user is a manager, otherwise fails
      * @throws InvalidRequestException if the user is not a manager in ADE
