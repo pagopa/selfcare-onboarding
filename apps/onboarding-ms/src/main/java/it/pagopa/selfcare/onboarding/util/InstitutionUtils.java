@@ -11,7 +11,8 @@ public class InstitutionUtils {
   public static String getCurrentInstitutionType(Onboarding onboarding) {
     String institutionType = Product.CONTRACT_TYPE_DEFAULT;
 
-    if (Objects.nonNull(onboarding.getInstitution().getInstitutionType())) {
+    if (Objects.nonNull(onboarding.getInstitution())
+        && Objects.nonNull(onboarding.getInstitution().getInstitutionType())) {
       institutionType = onboarding.getInstitution().getInstitutionType().name();
     }
 
