@@ -32,6 +32,17 @@ variable "env_short" {
   }
 }
 
+variable "env" {
+  description = "Environment name"
+  type        = string
+  validation {
+    condition = (
+    length(var.env) <= 4
+    )
+    error_message = "Max length is 4 chars."
+  }
+}
+
 variable "tags" {
   type = map(any)
 }
@@ -80,6 +91,7 @@ variable "app_service_plan_info" {
     kind = string
     # The kind of the App Service Plan to create. Possible values are Windows (also available as App), Linux, elastic (for Premium Consumption) and FunctionApp (for a Consumption Plan).
     sku_size = string # Specifies the plan's instance size.
+    sku_tier               = string
     maximum_elastic_worker_count = number
     # The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
     worker_count = number # The number of Workers (instances) to be allocated.
@@ -92,6 +104,7 @@ variable "app_service_plan_info" {
   default = {
     kind                         = "Linux"
     sku_size                     = "S1"
+    sku_tier                     = "StandardS1"
     maximum_elastic_worker_count = 0
     worker_count                 = 0
     zone_balancing_enabled       = false

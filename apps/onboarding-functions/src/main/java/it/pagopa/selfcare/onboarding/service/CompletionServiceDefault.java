@@ -180,7 +180,7 @@ public class CompletionServiceDefault implements CompletionService {
               The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
               {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}
              */
-            try (Response response = userApi.usersUserIdPost(user.getId(), onboarding.getUserRequestUid(), userRoleDto)) {
+            try (Response response = userApi.createUserByUserId(user.getId(), userRoleDto)) {
                 if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                     throw new GenericOnboardingException("Impossible to create or update role for user with ID: " + user.getId());
                 }
@@ -423,7 +423,7 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     private List<String> retrieveActiveManagersOnInstitution(String institutionId, String productId) {
-        List<UserInstitutionResponse> activeManagers = userInstitutionApi.institutionsInstitutionIdUserInstitutionsGet(
+        List<UserInstitutionResponse> activeManagers = userInstitutionApi.retrieveUserInstitutions(
                 institutionId,
                 null,
                 List.of(productId),
@@ -485,7 +485,7 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     private void deleteManagerFromProduct(String uid, String institutionId, String productId) {
-        try (Response response = userApi.usersUserIdInstitutionsInstitutionIdProductsProductIdDelete(institutionId, productId, uid)) {
+        try (Response response = userApi.deleteProducts(institutionId, productId, uid)) {
             if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 throw new GenericOnboardingException(String.format("Failed to delete user %s from product %s in institution %s", uid, productId, institutionId));
             }
