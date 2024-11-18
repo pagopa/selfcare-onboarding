@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.util;
+package it.pagopa.selfcare.onboarding.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
