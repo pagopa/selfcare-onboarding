@@ -21,3 +21,8 @@ data "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "${local.project}-law"
   resource_group_name = "${local.project}-monitor-rg"
 }
+
+data "azurerm_virtual_network" "vnet_selc" {
+  name                = "${local.project}-vnet"
+  resource_group_name = "${local.project}-vnet-rg"
+}
