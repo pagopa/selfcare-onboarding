@@ -106,7 +106,7 @@ app_settings = {
 
   ##NAMIRIAL SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                 = "disabled",
-  "NAMIRIAL_BASE_URL"                       = "http://selc-d-namirial-sws-cg.westeurope.azurecontainer.io:8080",
+  "NAMIRIAL_BASE_URL"                       = "http://10.1.154.4:8080",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }

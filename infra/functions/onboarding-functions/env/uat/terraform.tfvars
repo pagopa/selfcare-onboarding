@@ -117,7 +117,7 @@ app_settings = {
   "JWT_TOKEN_KID"                                  = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
-  "NAMIRIAL_BASE_URL"                       = "http://selc-u-namirial-sws-cg.westeurope.azurecontainer.io:8080",
+  "NAMIRIAL_BASE_URL"                       = "http://10.1.154.4:8080",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }
