@@ -1750,6 +1750,10 @@ components:
             $ref: "#/components/schemas/UserRequest"
         contractImported:
           $ref: "#/components/schemas/OnboardingImportContract"
+        billing:
+          $ref: "#/components/schemas/BillingPaRequest"
+        forceImport:
+          type: boolean
     OnboardingPaRequest:
       required:
       - productId

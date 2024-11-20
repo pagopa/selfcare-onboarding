@@ -1,12 +1,16 @@
+
+# when create a new one container, you should put ./custom.properties file inside selcdnamirialswsst/selc-d-namirial-sws-share
+# pay attention to set this file only when you want to reset Namirial config properties
+
 resource "azurerm_container_group" "namirial_sws_cg" {
 
   count               = var.enable_sws ? 1 : 0
   name                = "${local.project}-namirial-sws-cg"
   location            = data.azurerm_resource_group.rg_contracts_storage.location
   resource_group_name = data.azurerm_resource_group.rg_contracts_storage.name
-  ip_address_type     = "Public"
-  dns_name_label      = "${local.project}-namirial-sws-cg"
+  ip_address_type     = "Private"
   os_type             = "Linux"
+  subnet_ids          = [azurerm_subnet.namirial_sws_snet.id]
 
   image_registry_credential {
     server   = "index.docker.io"
@@ -64,20 +68,6 @@ resource "azurerm_container_group" "namirial_sws_cg" {
       workspace_id  = data.azurerm_log_analytics_workspace.log_analytics.workspace_id
       workspace_key = data.azurerm_log_analytics_workspace.log_analytics.primary_shared_key
     }
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-      az storage file upload \
-        --account-name ${azurerm_storage_account.namirial_sws_storage_account[0].name} \
-        --account-key ${azurerm_storage_account.namirial_sws_storage_account[0].primary_access_key} \
-        --share-name ${azurerm_storage_share.namirial_sws_storage_share[0].name} \
-        --source "custom.properties" \
-        --path "custom.properties" \
-    EOT
-
-    # Ensure it only runs on first creation
-    when = create
   }
 
   tags = var.tags

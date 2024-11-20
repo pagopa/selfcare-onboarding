@@ -136,7 +136,7 @@ public class OnboardingController {
 
     @Operation(summary = "Perform Increment for aggregates",
             description = "Perform the increment of the aggregates for an aggregator entity that has already completed the initial onboarding."
-            + "The API initiates the onboarding process for the aggregated entities received as input.")
+                    + "The API initiates the onboarding process for the aggregated entities received as input.")
     @POST
     @Path("/aggregation/increment")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -202,7 +202,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported(), onboardingRequest.isForceImport()));
     }
 
     @Operation(
@@ -216,7 +216,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPspImport(@Valid OnboardingImportPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported(), false));
     }
 
     @Operation(
@@ -380,7 +380,7 @@ public class OnboardingController {
 
     @Operation(summary = "Perform reject operation of an onboarding request",
             description = "Perform reject operation of an onboarding request receiving onboarding id." +
-            "Function change status to REJECT for an onboarding request that is not COMPLETED. ")
+                    "Function change status to REJECT for an onboarding request that is not COMPLETED. ")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}/reject")
@@ -467,29 +467,29 @@ public class OnboardingController {
                 .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build());
     }
 
-  @Operation(
-      summary = "Update recipient code",
-      description = "Update recipient code receiving onboarding id.",
-      operationId = "updateOnboardingRecipientIdUsingPUT")
-  @PUT
-  @Tag(name = "billing-portal")
-  @Tag(name = "Onboarding")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Path("/{onboardingId}/recipient-code")
-  public Uni<Response> updateRecipientCodeByOnboardingId(
-      @PathParam(value = "onboardingId") String onboardingId,
-      @QueryParam(value = "recipientCode") String recipientCode) {
-    Onboarding onboarding = new Onboarding();
-    Billing billing = new Billing();
-    billing.setRecipientCode(recipientCode.trim());
-    onboarding.setBilling(billing);
-    log.trace("update RecipientCode start");
-    log.debug("Onboarding id {} and recipientCode {}", onboardingId, recipientCode.replace("\n", "").replace("\r", ""));
-    return onboardingService
-        .updateOnboarding(onboardingId, onboarding)
-        .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
-        .log("update RecipientCode end");
-  }
+    @Operation(
+            summary = "Update recipient code",
+            description = "Update recipient code receiving onboarding id.",
+            operationId = "updateOnboardingRecipientIdUsingPUT")
+    @PUT
+    @Tag(name = "billing-portal")
+    @Tag(name = "Onboarding")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{onboardingId}/recipient-code")
+    public Uni<Response> updateRecipientCodeByOnboardingId(
+            @PathParam(value = "onboardingId") String onboardingId,
+            @QueryParam(value = "recipientCode") String recipientCode) {
+        Onboarding onboarding = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode(recipientCode.trim());
+        onboarding.setBilling(billing);
+        log.trace("update RecipientCode start");
+        log.debug("Onboarding id {} and recipientCode {}", onboardingId.replace("\n", "").replace("\r", ""), recipientCode.replace("\n", "").replace("\r", ""));
+        return onboardingService
+                .updateOnboarding(onboardingId, onboarding)
+                .map(ignore -> Response.status(HttpStatus.SC_NO_CONTENT).build())
+                .log("update RecipientCode end");
+    }
 
     @Operation(
             summary = "Check if new manager matches the current manager.",
@@ -552,10 +552,10 @@ public class OnboardingController {
         return onboardingService.checkRecipientCode(recipientCode, originId)
                 .onItem().transform(customError -> {
                     if (Objects.nonNull(customError) && customError.name().equals(RecipientCodeStatus.DENIED_NO_BILLING.name())) {
-                        return  RecipientCodeStatus.DENIED_NO_BILLING;
+                        return RecipientCodeStatus.DENIED_NO_BILLING;
                     }
                     if (Objects.nonNull(customError) && customError.name().equals(RecipientCodeStatus.DENIED_NO_ASSOCIATION.name())) {
-                        return  RecipientCodeStatus.DENIED_NO_ASSOCIATION;
+                        return RecipientCodeStatus.DENIED_NO_ASSOCIATION;
                     }
                     return RecipientCodeStatus.ACCEPTED;
                 });

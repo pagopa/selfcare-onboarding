@@ -17,5 +17,5 @@ container_config = {
 }
 
 enable_sws = true
-
+cidr_subnet_namirial_sws = ["10.1.150.0/29"]
 environment_variables = {}
