@@ -17,6 +17,7 @@ import it.pagopa.selfcare.product.entity.Product;
 public abstract class OnboardingWorkflow {
 
   protected static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
+  protected static final String PDF_ATTACHMENT_FORMAT_FILENAME = "%s_checklist.pdf";
 
   OnboardingWorkflow(Onboarding onboarding) {
     this.onboarding = onboarding;
@@ -32,6 +33,8 @@ public abstract class OnboardingWorkflow {
 
   public abstract String getPdfFormatFilename();
 
+  public abstract String getPdfAttachmentFormatFilename();
+
   public abstract TokenType getTokenType();
 
   public abstract String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config);
@@ -42,6 +45,8 @@ public abstract class OnboardingWorkflow {
 
   public abstract String getContractTemplateVersion(Product product);
 
+  public abstract String getAttachmentTemplatePath(Product product);
+
   public Onboarding getOnboarding() {
     return onboarding;
   }
@@ -49,5 +54,4 @@ public abstract class OnboardingWorkflow {
   public void setOnboarding(Onboarding onboarding) {
     this.onboarding = onboarding;
   }
-  
 }

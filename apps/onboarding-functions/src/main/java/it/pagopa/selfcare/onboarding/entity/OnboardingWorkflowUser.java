@@ -29,13 +29,13 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
   @Override
   public String getEmailRegistrationPath(MailTemplatePathConfig config) {
     final String managerId =
-            this.onboarding.getUsers().stream()
-                    .filter(user -> PartyRole.MANAGER == user.getRole())
-                    .map(User::getId)
-                    .findAny()
-                    .orElse(null);
+        this.onboarding.getUsers().stream()
+            .filter(user -> PartyRole.MANAGER == user.getRole())
+            .map(User::getId)
+            .findAny()
+            .orElse(null);
     if (Objects.nonNull(this.onboarding.getPreviousManagerId())
-            && this.onboarding.getPreviousManagerId().equals(managerId)) {
+        && this.onboarding.getPreviousManagerId().equals(managerId)) {
       return config.registrationUserPath();
     }
     return config.registrationUserNewManagerPath();
@@ -49,6 +49,11 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
   @Override
   public String getPdfFormatFilename() {
     return PDF_FORMAT_USER_FILENAME;
+  }
+
+  @Override
+  public String getPdfAttachmentFormatFilename() {
+    return PDF_ATTACHMENT_FORMAT_FILENAME;
   }
 
   @Override
@@ -78,6 +83,19 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
     return product
         .getUserContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
         .getContractTemplateVersion();
+  }
+
+  @Override
+  public String getAttachmentTemplatePath(Product product) {
+    return Objects.requireNonNull(
+            product
+                .getInstitutionContractTemplate(
+                    InstitutionUtils.getCurrentInstitutionType(onboarding))
+                .getAttachmentMappings()
+                .stream()
+                .findFirst()
+                .orElse(null))
+        .getTemplatePath();
   }
 
   public String getType() {

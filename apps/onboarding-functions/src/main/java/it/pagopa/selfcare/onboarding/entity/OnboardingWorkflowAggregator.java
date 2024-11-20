@@ -6,6 +6,8 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 
+import java.util.Objects;
+
 public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
 
   private String type;
@@ -25,6 +27,11 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
   @Override
   public String getPdfFormatFilename() {
     return PDF_FORMAT_FILENAME;
+  }
+
+  @Override
+  public String getPdfAttachmentFormatFilename() {
+    return PDF_ATTACHMENT_FORMAT_FILENAME;
   }
 
   @Override
@@ -49,6 +56,19 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
     return product
         .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
         .getContractTemplateVersion();
+  }
+
+  @Override
+  public String getAttachmentTemplatePath(Product product) {
+    return Objects.requireNonNull(
+            product
+                .getInstitutionContractTemplate(
+                    InstitutionUtils.getCurrentInstitutionType(onboarding))
+                .getAttachmentMappings()
+                .stream()
+                .findFirst()
+                .orElse(null))
+        .getTemplatePath();
   }
 
   @Override

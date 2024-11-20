@@ -10,6 +10,8 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 
+import java.util.Objects;
+
 public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
   private String type;
@@ -49,6 +51,11 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
   }
 
   @Override
+  public String getPdfAttachmentFormatFilename() {
+    return PDF_ATTACHMENT_FORMAT_FILENAME;
+  }
+
+  @Override
   public String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config) {
     return config.confirmTokenPlaceholder();
   }
@@ -60,12 +67,29 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
   @Override
   public String getContractTemplatePath(Product product) {
-    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath();
+    return product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getContractTemplatePath();
+  }
+
+  @Override
+  public String getAttachmentTemplatePath(Product product) {
+    return Objects.requireNonNull(
+            product
+                .getInstitutionContractTemplate(
+                    InstitutionUtils.getCurrentInstitutionType(onboarding))
+                .getAttachmentMappings()
+                .stream()
+                .findFirst()
+                .orElse(null))
+        .getTemplatePath();
   }
 
   @Override
   public String getContractTemplateVersion(Product product) {
-    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplateVersion();
+    return product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getContractTemplateVersion();
   }
 
   public String getType() {

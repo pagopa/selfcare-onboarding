@@ -9,12 +9,22 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ContractService {
-    File createContractPDF(String contractTemplatePath, Onboarding onboarding, UserResource manager, List<UserResource> users, String productName, String pdfFormatFilename);
+  File createContractPDF(
+      String contractTemplatePath,
+      Onboarding onboarding,
+      UserResource manager,
+      List<UserResource> users,
+      String productName,
+      String pdfFormatFilename);
 
-    File loadContractPDF(String contractTemplatePath, String onboardingId, String productName);
-    File retrieveContractNotSigned(OnboardingWorkflow onboardingWorkflow, String productName);
+  File createAttachmentPDF(
+      String templatePath, Onboarding onboarding, String productName, String pdfFormatFilename);
 
-    Optional<File> getLogoFile();
+  File loadContractPDF(String contractTemplatePath, String onboardingId, String productName);
 
-    void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow);
+  File retrieveContractNotSigned(OnboardingWorkflow onboardingWorkflow, String productName);
+
+  Optional<File> getLogoFile();
+
+  void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow);
 }
