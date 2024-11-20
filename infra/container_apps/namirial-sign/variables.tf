@@ -42,3 +42,9 @@ variable "container_config" {
     memory = number
   })
 }
+
+variable "cidr_subnet_namirial_sws" {
+  type        = list(string)
+  description = "Cosmosdb pnpg address space."
+  default     = ["10.1.154.0/29"]
+}
