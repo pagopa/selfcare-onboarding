@@ -434,7 +434,6 @@ class ContractServiceDefaultTest {
     Onboarding onboarding = createOnboarding();
     onboarding.setProductId("prod-interop");
     OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowAggregator(onboarding, "string");
-    ;
 
     Assertions.assertThrows(
         IllegalArgumentException.class,
