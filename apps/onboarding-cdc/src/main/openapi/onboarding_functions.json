@@ -539,7 +539,8 @@
           "AS",
           "REC",
           "CON",
-          "PRV"
+          "PRV",
+          "GPU"
         ],
         "type": "string"
       },
