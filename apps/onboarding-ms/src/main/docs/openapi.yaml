@@ -1591,6 +1591,7 @@ components:
       - REC
       - CON
       - PRV
+      - GPU
       type: string
     LocalDateTime:
       format: date-time

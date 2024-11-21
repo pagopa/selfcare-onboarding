@@ -16,6 +16,7 @@
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.coverage.exclusions>**/exception/**, **/response/**, **/request/**, **/entity/**, **/common/**, **/utils/**, **/*Constant*, **/*Config.java, **/error/**, **/filter/**, org/**</sonar.coverage.exclusions>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <commons-sdk-version>0.5.0</commons-sdk-version>
     </properties>
 
     <build>
@@ -77,22 +78,22 @@
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-product</artifactId>
-                    <version>0.4.1</version>
+                    <version>${commons-sdk-version}</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-common</artifactId>
-                    <version>0.4.1</version>
+                    <version>${commons-sdk-version}</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-azure-storage</artifactId>
-                    <version>0.4.1</version>
+                    <version>${commons-sdk-version}</version>
                 </dependency>
                 <dependency>
                     <groupId>it.pagopa.selfcare</groupId>
                     <artifactId>onboarding-sdk-crypto</artifactId>
-                    <version>0.4.1</version>
+                    <version>${commons-sdk-version}</version>
                 </dependency>
             </dependencies>
 
