@@ -14,7 +14,9 @@ import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.*;
@@ -61,6 +63,8 @@ class OnboardingServiceTest {
     institution.setInstitutionType(InstitutionType.PA);
     onboarding.setInstitution(institution);
     onboarding.setUserRequestUid("example-uid");
+    onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
+    onboarding.setStatus(OnboardingStatus.REQUEST);
     return onboarding;
   }
 
@@ -223,12 +227,14 @@ class OnboardingServiceTest {
 
   private static Map<String, ContractTemplate> createDummyContractTemplateInstitution() {
     Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-    List<AttachmentTemplate> attachements = new ArrayList<>();
+    List<AttachmentTemplate> attachments = new ArrayList<>();
     AttachmentTemplate attachmentTemplate = new AttachmentTemplate();
     attachmentTemplate.setTemplatePath("path");
-    attachements.add(attachmentTemplate);
+    attachmentTemplate.setWorkflowState(OnboardingStatus.REQUEST);
+    attachmentTemplate.setWorkflowType(List.of(WorkflowType.FOR_APPROVE));
+    attachments.add(attachmentTemplate);
     ContractTemplate conctractTemplate = new ContractTemplate();
-    conctractTemplate.setAttachments(attachements);
+    conctractTemplate.setAttachments(attachments);
     conctractTemplate.setContractTemplatePath("example");
     conctractTemplate.setContractTemplateVersion("version");
     institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
