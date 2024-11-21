@@ -28,6 +28,7 @@ public class AggregateInstitution {
     private String service;
     private String syncAsyncMode;
     private String recipientCode;
+    private String parentDescription;
 
     public String getTaxCode() {
         return taxCode;
@@ -167,6 +168,14 @@ public class AggregateInstitution {
 
     public void setRecipientCode(String recipientCode) {
         this.recipientCode = recipientCode;
+    }
+
+    public String getParentDescription() {
+        return parentDescription;
+    }
+
+    public void setParentDescription(String parentDescription) {
+        this.parentDescription = parentDescription;
     }
 
 }
