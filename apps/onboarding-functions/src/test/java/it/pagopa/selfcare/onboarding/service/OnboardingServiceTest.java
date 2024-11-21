@@ -21,6 +21,7 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
+import it.pagopa.selfcare.product.entity.AttachmentTemplate;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -184,6 +185,32 @@ class OnboardingServiceTest {
             .getContractTemplatePath());
   }
 
+  @Test
+  void createAttachment() {
+
+    Onboarding onboarding = createOnboarding();
+
+    Product product = createDummyProduct();
+
+    when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
+
+    OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+    onboardingService.createAttachment(onboardingWorkflow);
+
+    Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
+
+    ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(contractService, Mockito.times(1))
+        .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any());
+    assertEquals(
+        captorTemplatePath.getValue(),
+        product
+            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+            .getAttachments()
+            .get(0)
+            .getTemplatePath());
+  }
+
   private Product createDummyProduct() {
     Product product = new Product();
     product.setTitle("Title");
@@ -196,7 +223,12 @@ class OnboardingServiceTest {
 
   private static Map<String, ContractTemplate> createDummyContractTemplateInstitution() {
     Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+    List<AttachmentTemplate> attachements = new ArrayList<>();
+    AttachmentTemplate attachmentTemplate = new AttachmentTemplate();
+    attachmentTemplate.setTemplatePath("path");
+    attachements.add(attachmentTemplate);
     ContractTemplate conctractTemplate = new ContractTemplate();
+    conctractTemplate.setAttachments(attachements);
     conctractTemplate.setContractTemplatePath("example");
     conctractTemplate.setContractTemplateVersion("version");
     institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);

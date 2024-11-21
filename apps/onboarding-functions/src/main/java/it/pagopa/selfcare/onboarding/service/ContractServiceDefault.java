@@ -214,11 +214,11 @@ public class ContractServiceDefault implements ContractService {
       File temporaryPdfFile =
           "pdf".equals(fileType)
               ? azureBlobClient.getFileAsPdf(attachmentTemplatePath)
-              : createPdfFileContract(
-                  attachmentTemplatePath, onboarding, new UserResource(), List.of());
+              : createPdfFileAttachment(attachmentTemplatePath, onboarding);
 
       // Define the filename and path for storage.
-      final String filename = CONTRACT_FILENAME_FUNC.apply(pdfFormatFilename, productName);
+      final String filename =
+          CONTRACT_FILENAME_FUNC.apply("%s_" + pdfFormatFilename + ".pdf", productName);
       final String path =
           String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
@@ -277,6 +277,26 @@ public class ContractServiceDefault implements ContractService {
     } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)) {
       setupSAProdInteropData(data, institution);
     }
+    log.debug("data Map for PDF: {}", data);
+    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
+    return temporaryPdfFile.toFile();
+  }
+
+  private File createPdfFileAttachment(String contractTemplatePath, Onboarding onboarding)
+      throws IOException {
+    final String builder =
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+            + "_"
+            + UUID.randomUUID()
+            + "_contratto_interoperabilita.";
+
+    // Read the content of the contract template file.
+    String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
+    // Create a temporary PDF file to store the contract.
+    Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
+    // Prepare common data for the contract document.
+    Map<String, Object> data = setUpAttachmentData(onboarding);
+
     log.debug("data Map for PDF: {}", data);
     fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
     return temporaryPdfFile.toFile();

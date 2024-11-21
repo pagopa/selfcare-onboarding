@@ -52,8 +52,18 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
   }
 
   @Override
-  public String getPdfAttachmentFormatFilename() {
-    return PDF_ATTACHMENT_FORMAT_FILENAME;
+  public String getPdfAttachmentFormatFilename(Product product) {
+    return product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getAttachments()
+        .stream()
+        .filter(
+            attachment ->
+                attachment.getWorkflowType().contains(onboarding.getWorkflowType())
+                    && onboarding.getStatus().equals(attachment.getWorkflowState()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("No valid attachment found"))
+        .getName();
   }
 
   @Override
@@ -91,10 +101,14 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
             product
                 .getInstitutionContractTemplate(
                     InstitutionUtils.getCurrentInstitutionType(onboarding))
-                .getAttachmentMappings()
+                .getAttachments()
                 .stream()
+                .filter(
+                    attachment ->
+                        attachment.getWorkflowType().contains(onboarding.getWorkflowType())
+                            && onboarding.getStatus().equals(attachment.getWorkflowState()))
                 .findFirst()
-                .orElse(null))
+                .orElseThrow(() -> new IllegalArgumentException("No valid attachment found")))
         .getTemplatePath();
   }
 

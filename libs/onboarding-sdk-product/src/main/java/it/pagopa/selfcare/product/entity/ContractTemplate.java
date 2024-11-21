@@ -6,14 +6,14 @@ public class ContractTemplate {
 
   private String contractTemplatePath;
   private String contractTemplateVersion;
-  private List<AttachmentTemplate> attachmentMappings;
+  private List<AttachmentTemplate> attachments;
 
-  public List<AttachmentTemplate> getAttachmentMappings() {
-    return attachmentMappings;
+  public List<AttachmentTemplate> getAttachments() {
+    return attachments;
   }
 
-  public void setAttachmentMappings(List<AttachmentTemplate> attachmentMappings) {
-    this.attachmentMappings = attachmentMappings;
+  public void setAttachments(List<AttachmentTemplate> attachments) {
+    this.attachments = attachments;
   }
 
   public String getContractTemplatePath() {

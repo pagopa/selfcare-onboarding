@@ -116,7 +116,7 @@ public class OnboardingService {
         onboardingWorkflow.getAttachmentTemplatePath(product),
         onboarding,
         product.getTitle(),
-        onboardingWorkflow.getPdfAttachmentFormatFilename());
+        onboardingWorkflow.getPdfAttachmentFormatFilename(product));
   }
 
   public void loadContract(Onboarding onboarding) {

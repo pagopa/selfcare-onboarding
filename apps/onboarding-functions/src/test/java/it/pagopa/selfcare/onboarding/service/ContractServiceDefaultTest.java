@@ -45,7 +45,6 @@ class ContractServiceDefaultTest {
   static final String PRODUCT_NAME_EXAMPLE = "product-name";
   static final String LOGO_PATH = "logo-path";
   static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
-  static final String PDF_ATTACHMENT_FORMAT_FILENAME = "%s_checklist.pdf";
 
   @BeforeEach
   void setup() {
@@ -205,6 +204,7 @@ class ContractServiceDefaultTest {
     final String contractFilepath = "attachment";
     final String contractHtml = "attachment";
     final String productNameAccent = "Interoperabilità";
+    final String pdfFormatFile = "checklist";
 
     Onboarding onboarding = createOnboarding();
 
@@ -214,7 +214,7 @@ class ContractServiceDefaultTest {
 
     File attachmentPDF =
         contractService.createAttachmentPDF(
-            contractFilepath, onboarding, productNameAccent, PDF_ATTACHMENT_FORMAT_FILENAME);
+            contractFilepath, onboarding, productNameAccent, pdfFormatFile);
 
     assertNotNull(attachmentPDF);
 
