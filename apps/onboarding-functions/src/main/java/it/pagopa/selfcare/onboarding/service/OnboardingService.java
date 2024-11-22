@@ -118,6 +118,10 @@ public class OnboardingService {
             .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
             .getAttachments();
 
+    createAttachments(attachments, onboarding, product);
+  }
+
+  private void createAttachments(List<AttachmentTemplate> attachments, Onboarding onboarding, Product product) {
     Optional.ofNullable(attachments)
         .filter(list -> !list.isEmpty())
         .orElseThrow(
@@ -133,7 +137,7 @@ public class OnboardingService {
             attachment ->
                 contractService.createAttachmentPDF(
                     attachment.getTemplatePath(),
-                    onboarding,
+                        onboarding,
                     product.getTitle(),
                     attachment.getName()));
   }
