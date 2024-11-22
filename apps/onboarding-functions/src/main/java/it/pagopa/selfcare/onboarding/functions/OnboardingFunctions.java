@@ -255,7 +255,7 @@ public class OnboardingFunctions {
                     FORMAT_LOGGER_ONBOARDING_STRING,
                     BUILD_ATTACHMENT_ACTIVITY_NAME,
                     onboardingWorkflowString));
-    service.createAttachment(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+    service.createAttachments(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */

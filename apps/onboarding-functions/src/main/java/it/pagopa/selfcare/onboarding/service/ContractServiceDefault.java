@@ -202,7 +202,7 @@ public class ContractServiceDefault implements ContractService {
       String attachmentTemplatePath,
       Onboarding onboarding,
       String productName,
-      String pdfFormatFilename) {
+      String attachmentName) {
 
     log.info("START - createAttachmentPDF for template: {}", attachmentTemplatePath);
 
@@ -211,20 +211,20 @@ public class ContractServiceDefault implements ContractService {
       final String fileType = split[split.length - 1];
 
       // If contract template is a PDF, I get without parsing
-      File temporaryPdfFile =
+      File attachmentPdfFile =
           "pdf".equals(fileType)
               ? azureBlobClient.getFileAsPdf(attachmentTemplatePath)
               : createPdfFileAttachment(attachmentTemplatePath, onboarding);
 
       // Define the filename and path for storage.
       final String filename =
-          CONTRACT_FILENAME_FUNC.apply("%s_" + pdfFormatFilename + ".pdf", productName);
+          CONTRACT_FILENAME_FUNC.apply("%s_" + attachmentName + ".pdf", productName);
       final String path =
           String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
-      azureBlobClient.uploadFile(path, filename, Files.readAllBytes(temporaryPdfFile.toPath()));
+      azureBlobClient.uploadFile(path, filename, Files.readAllBytes(attachmentPdfFile.toPath()));
 
-      return temporaryPdfFile;
+      return attachmentPdfFile;
     } catch (IOException e) {
       throw new GenericOnboardingException(
           String.format("Can not create attachment PDF, message: %s", e.getMessage()));

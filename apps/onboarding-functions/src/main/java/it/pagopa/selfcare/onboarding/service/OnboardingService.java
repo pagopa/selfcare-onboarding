@@ -22,6 +22,7 @@ import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
 import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
+import it.pagopa.selfcare.product.entity.AttachmentTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -109,14 +110,32 @@ public class OnboardingService {
         onboardingWorkflow.getPdfFormatFilename());
   }
 
-  public void createAttachment(OnboardingWorkflow onboardingWorkflow) {
+  public void createAttachments(OnboardingWorkflow onboardingWorkflow) {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
     Product product = productService.getProductIsValid(onboarding.getProductId());
-    contractService.createAttachmentPDF(
-        onboardingWorkflow.getAttachmentTemplatePath(product),
-        onboarding,
-        product.getTitle(),
-        onboardingWorkflow.getPdfAttachmentFormatFilename(product));
+    List<AttachmentTemplate> attachments =
+        product
+            .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+            .getAttachments();
+
+    Optional.ofNullable(attachments)
+        .filter(list -> !list.isEmpty())
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    "No attachments found for the specified product and institution type."))
+        .stream()
+        .filter(
+            attachment ->
+                attachment.getWorkflowType().contains(onboarding.getWorkflowType())
+                    && onboarding.getStatus().equals(attachment.getWorkflowState()))
+        .forEach(
+            attachment ->
+                contractService.createAttachmentPDF(
+                    attachment.getTemplatePath(),
+                    onboarding,
+                    product.getTitle(),
+                    attachment.getName()));
   }
 
   public void loadContract(Onboarding onboarding) {

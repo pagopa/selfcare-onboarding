@@ -6,8 +6,6 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.product.entity.Product;
 
-import java.util.Objects;
-
 public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
 
   private String type;
@@ -27,21 +25,6 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
   @Override
   public String getPdfFormatFilename() {
     return PDF_FORMAT_FILENAME;
-  }
-
-  @Override
-  public String getPdfAttachmentFormatFilename(Product product) {
-    return product
-        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
-        .getAttachments()
-        .stream()
-        .filter(
-            attachment ->
-                attachment.getWorkflowType().contains(onboarding.getWorkflowType())
-                    && onboarding.getStatus().equals(attachment.getWorkflowState()))
-        .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException("No valid attachment found"))
-        .getName();
   }
 
   @Override
@@ -66,23 +49,6 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
     return product
         .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
         .getContractTemplateVersion();
-  }
-
-  @Override
-  public String getAttachmentTemplatePath(Product product) {
-    return Objects.requireNonNull(
-            product
-                .getInstitutionContractTemplate(
-                    InstitutionUtils.getCurrentInstitutionType(onboarding))
-                .getAttachments()
-                .stream()
-                .filter(
-                    attachment ->
-                        attachment.getWorkflowType().contains(onboarding.getWorkflowType())
-                            && onboarding.getStatus().equals(attachment.getWorkflowState()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No valid attachment found")))
-        .getTemplatePath();
   }
 
   @Override

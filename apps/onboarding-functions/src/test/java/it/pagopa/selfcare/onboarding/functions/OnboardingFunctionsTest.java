@@ -632,11 +632,11 @@ class OnboardingFunctionsTest {
   @Test
   void buildAttachment() {
 
-    doNothing().when(service).createAttachment(any());
+    doNothing().when(service).createAttachments(any());
 
     function.buildAttachment(onboardingWorkflowString, executionContext);
 
-    verify(service, times(1)).createAttachment(any());
+    verify(service, times(1)).createAttachments(any());
   }
 
   @Test

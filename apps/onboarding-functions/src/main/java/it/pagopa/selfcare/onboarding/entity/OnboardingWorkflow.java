@@ -32,8 +32,6 @@ public abstract class OnboardingWorkflow {
 
   public abstract String getPdfFormatFilename();
 
-  public abstract String getPdfAttachmentFormatFilename(Product product);
-
   public abstract TokenType getTokenType();
 
   public abstract String getConfirmTokenUrl(MailTemplatePlaceholdersConfig config);
@@ -43,8 +41,6 @@ public abstract class OnboardingWorkflow {
   public abstract String getContractTemplatePath(Product product);
 
   public abstract String getContractTemplateVersion(Product product);
-
-  public abstract String getAttachmentTemplatePath(Product product);
 
   public Onboarding getOnboarding() {
     return onboarding;

@@ -190,29 +190,31 @@ class OnboardingServiceTest {
   }
 
   @Test
-  void createAttachment() {
+  void createAttachments() {
 
+    // Arrange
     Onboarding onboarding = createOnboarding();
-
     Product product = createDummyProduct();
 
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
-    onboardingService.createAttachment(onboardingWorkflow);
 
+    // Act
+    onboardingService.createAttachments(onboardingWorkflow);
+
+    // Assert
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
 
+    // Capture the path of the template used for the PDF
     ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
     Mockito.verify(contractService, Mockito.times(1))
         .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any());
+
+    // Check that the correct template was used
     assertEquals(
-        captorTemplatePath.getValue(),
-        product
-            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-            .getAttachments()
-            .get(0)
-            .getTemplatePath());
+        "path", // This is the template matching the onboarding filter
+        captorTemplatePath.getValue());
   }
 
   private Product createDummyProduct() {
