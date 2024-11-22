@@ -284,21 +284,28 @@ public class ContractServiceDefault implements ContractService {
 
   private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding)
       throws IOException {
-    final String builder =
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
-            + "_"
-            + UUID.randomUUID()
-            + "_allegato_interoperabilita.";
+    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    String uniqueId = UUID.randomUUID().toString();
+    String filePrefix = "allegato_interoperabilita_" + timestamp + "_" + uniqueId;
 
-    // Read the content of the contract template file.
+    // Usa una directory temporanea dedicata
+    Path tempDir = Files.createTempDirectory("secureTempDir");
+
+    // Crea il file temporaneo nella directory sicura
+    Path attachmentPdfFile = Files.createTempFile(tempDir, filePrefix, ".pdf");
+
+    // Leggi il contenuto del template del contratto
     String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
-    // Create a temporary PDF file to store the contract.
-    Path attachmentPdfFile = Files.createTempFile(builder, ".pdf");
-    // Prepare common data for the contract document.
+
+    // Prepara i dati comuni per il documento PDF
     Map<String, Object> data = setUpAttachmentData(onboarding);
 
     log.debug("data Map for PDF: {}", data);
+
+    // Scrivi i dati nel file PDF
     fillPDFAsFile(attachmentPdfFile, attachmentTemplateText, data);
+
+    // Restituisci il file temporaneo
     return attachmentPdfFile.toFile();
   }
 

@@ -121,7 +121,8 @@ public class OnboardingService {
     createAttachments(attachments, onboarding, product);
   }
 
-  private void createAttachments(List<AttachmentTemplate> attachments, Onboarding onboarding, Product product) {
+  private void createAttachments(
+      List<AttachmentTemplate> attachments, Onboarding onboarding, Product product) {
     Optional.ofNullable(attachments)
         .filter(list -> !list.isEmpty())
         .orElseThrow(
@@ -137,7 +138,7 @@ public class OnboardingService {
             attachment ->
                 contractService.createAttachmentPDF(
                     attachment.getTemplatePath(),
-                        onboarding,
+                    onboarding,
                     product.getTitle(),
                     attachment.getName()));
   }
