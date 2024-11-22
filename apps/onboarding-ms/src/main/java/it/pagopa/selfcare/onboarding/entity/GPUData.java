@@ -3,8 +3,8 @@ package it.pagopa.selfcare.onboarding.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class GPUData extends BusinessData {
 
     private boolean manager;
