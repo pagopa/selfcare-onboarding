@@ -291,15 +291,15 @@ public class ContractServiceDefault implements ContractService {
             + "_allegato_interoperabilita.";
 
     // Read the content of the contract template file.
-    String contractTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
+    String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
     // Create a temporary PDF file to store the contract.
-    Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
+    Path attachmentPdfFile = Files.createTempFile(builder, ".pdf");
     // Prepare common data for the contract document.
     Map<String, Object> data = setUpAttachmentData(onboarding);
 
     log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
-    return temporaryPdfFile.toFile();
+    fillPDFAsFile(attachmentPdfFile, attachmentTemplateText, data);
+    return attachmentPdfFile.toFile();
   }
 
   private File signPdf(File pdf, String institutionDescription, String productId)
