@@ -1,5 +1,40 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATES_CSV_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_DELEGATION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.DELETE_MANAGERS_BY_IC_AND_ADE;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.EXISTS_DELEGATION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -23,22 +58,23 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.utils.Utils;
+import it.pagopa.selfcare.product.entity.AttachmentTemplate;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
-
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /** Unit test for Function class. */
 @QuarkusTest
@@ -50,12 +86,15 @@ class OnboardingFunctionsTest {
 
   @InjectMock CompletionService completionService;
 
+   @InjectMock
+  ProductService productService;
+
   @Inject ObjectMapper objectMapper;
 
   final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
   final String onboardingWorkflowString =
-      "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":null,\"testEnvProductIds\":null,\"workflowType\":null,\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":null,\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+      "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
 
   static ExecutionContext executionContext;
 
@@ -583,6 +622,7 @@ class OnboardingFunctionsTest {
 
     Task task = mock(Task.class);
     when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+
     when(orchestrationContext.callSubOrchestrator(any(), any())).thenReturn(task);
     when(task.await()).thenReturn("false");
     when(orchestrationContext.allOf(anyList())).thenReturn(task);
@@ -632,19 +672,25 @@ class OnboardingFunctionsTest {
 
   @Test
   void buildAttachmentsAndSaveTokensOrchestrator_invokeActivity() throws JsonProcessingException {
+    // given
+    Product product = createDummyProduct();
+    when(productService.getProductIsValid(anyString())).thenReturn(product);
+
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(onboardingWorkflowString);
-    Task task = mock(Task.class);
-    when(orchestrationContext.getInstanceId()).thenReturn("instanceId");
 
-    when(orchestrationContext.callActivity(
-            "BuildAttachmentAndSaveToken", onboardingWorkflowString, String.class))
-        .thenReturn(task);
-    when(task.await()).thenReturn(null);
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.allOf(anyList())).thenReturn(task);
+
+    // when
     function.buildAttachmentAndSaveToken(orchestrationContext, executionContext);
 
-    Mockito.verify(orchestrationContext, times(1))
-        .callActivity("BuildAttachmentAndSaveToken", onboardingWorkflowString, String.class);
+    // then
+    verify(productService, times(1)).getProductIsValid(anyString());
+    Mockito.verify(orchestrationContext, times(2))
+        .callActivity(any(), any(), any(), any());
   }
 
   // @Test
@@ -1002,5 +1048,45 @@ class OnboardingFunctionsTest {
         .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
 
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
+  }
+
+  private Product createDummyProduct() {
+    Product product = new Product();
+    product.setTitle("Title");
+    product.setId("test");
+    product.setInstitutionContractMappings(createDummyContractTemplateInstitution());
+    product.setUserContractMappings(createDummyContractTemplateInstitution());
+
+    return product;
+  }
+
+  private static Map<String, ContractTemplate> createDummyContractTemplateInstitution() {
+    Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+
+    List<AttachmentTemplate> attachments = new ArrayList<>();
+
+    AttachmentTemplate attachmentTemplate = new AttachmentTemplate();
+    attachmentTemplate.setTemplatePath("path");
+    attachmentTemplate.setWorkflowState(OnboardingStatus.REQUEST);
+    attachmentTemplate.setWorkflowType(List.of(WorkflowType.FOR_APPROVE));
+
+    attachments.add(attachmentTemplate);
+
+    ContractTemplate conctractTemplate = new ContractTemplate();
+    conctractTemplate.setContractTemplatePath("example");
+    conctractTemplate.setContractTemplateVersion("version");
+    conctractTemplate.setAttachments(attachments);
+
+    institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
+    return institutionTemplate;
+  }
+
+  private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
+    Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+    ContractTemplate conctractTemplate = new ContractTemplate();
+    conctractTemplate.setContractTemplatePath("example");
+    conctractTemplate.setContractTemplateVersion("version");
+    institutionTemplate.put("default", conctractTemplate);
+    return institutionTemplate;
   }
 }
