@@ -299,6 +299,26 @@ class OnboardingFunctionsTest {
     }
 
     @Test
+    void onboardingsOrchestratorForApproveGpu() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_GPU);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(1))
+                .callActivity(captorActivity.capture(), any(), any(), any());
+        assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
+
+        verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);
+    }
+
+    @Test
     void onboardingsOrchestratorForApproveWhenToBeValidated() {
         Onboarding onboarding = new Onboarding();
         onboarding.setId("onboardingId");
@@ -306,7 +326,6 @@ class OnboardingFunctionsTest {
         onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
 
         TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-
 
         function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
@@ -572,6 +591,28 @@ class OnboardingFunctionsTest {
 
         verify(service, times(1))
                 .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+    }
+
+    @Test
+    void onboardingsOrchestratorForApproveGpuWhenToBeValidated() {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("onboardingId");
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+        onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_GPU);
+
+        TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+        function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+        ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+        verify(orchestrationContext, times(3))
+                .callActivity(captorActivity.capture(), any(), any(), any());
+        assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
+        assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
+        assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
+
+        verify(service, times(1))
+                .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
     }
 
     TaskOrchestrationContext mockTaskOrchestrationContext(Onboarding onboarding) {

@@ -157,6 +157,7 @@ public class OnboardingFunctions {
                         workflowExecutor = new WorkflowExecutorContractRegistrationAggregator(objectMapper, optionsRetry, onboardingMapper);
                 case FOR_APPROVE -> workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
                 case FOR_APPROVE_PT -> workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
+                case FOR_APPROVE_GPU -> workflowExecutor = new WorkflowExecutorForApproveGpu(objectMapper, optionsRetry);
                 case CONFIRMATION -> workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
                 case CONFIRMATION_AGGREGATE ->
                         workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
