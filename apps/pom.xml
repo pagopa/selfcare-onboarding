@@ -12,11 +12,15 @@
     <artifactId>onboarding-apps</artifactId>
     <packaging>pom</packaging>
 
+  <properties>
+    <commons-sdk-version>0.5.0</commons-sdk-version>
+  </properties>
+
     <dependencies>
         <dependency>
             <groupId>it.pagopa.selfcare</groupId>
             <artifactId>onboarding-sdk-common</artifactId>
-            <version>0.4.1</version>
+            <version>${commons-sdk-version}</version>
         </dependency>
     </dependencies>
 
