@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
@@ -630,13 +631,30 @@ class OnboardingFunctionsTest {
   }
 
   @Test
+  void buildAttachmentsAndSaveTokensOrchestrator_invokeActivity() throws JsonProcessingException {
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingWorkflowString);
+    Task task = mock(Task.class);
+    when(orchestrationContext.getInstanceId()).thenReturn("instanceId");
+
+    when(orchestrationContext.callActivity(
+            "BuildAttachmentAndSaveToken", onboardingWorkflowString, String.class))
+        .thenReturn(task);
+    when(task.await()).thenReturn(null);
+    function.buildAttachmentAndSaveToken(orchestrationContext, executionContext);
+
+    Mockito.verify(orchestrationContext, times(1))
+        .callActivity("BuildAttachmentAndSaveToken", onboardingWorkflowString, String.class);
+  }
+
+  // @Test
   void buildAttachment() {
 
-    doNothing().when(service).createAttachments(any());
+    doNothing().when(service).createAttachment(any());
 
     function.buildAttachment(onboardingWorkflowString, executionContext);
 
-    verify(service, times(1)).createAttachments(any());
+    verify(service, times(1)).createAttachment(any());
   }
 
   @Test

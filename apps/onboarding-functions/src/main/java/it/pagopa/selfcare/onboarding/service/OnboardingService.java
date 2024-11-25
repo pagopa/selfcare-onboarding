@@ -9,14 +9,12 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -31,10 +29,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bson.Document;
@@ -110,37 +105,13 @@ public class OnboardingService {
         onboardingWorkflow.getPdfFormatFilename());
   }
 
-  public void createAttachments(OnboardingWorkflow onboardingWorkflow) {
-    Onboarding onboarding = onboardingWorkflow.getOnboarding();
+  public void createAttachment(OnboardingAttachment onboardingAttachment) {
+    Onboarding onboarding = onboardingAttachment.getOnboarding();
     Product product = productService.getProductIsValid(onboarding.getProductId());
-    List<AttachmentTemplate> attachments =
-        product
-            .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
-            .getAttachments();
+    AttachmentTemplate attachment = onboardingAttachment.getAttachment();
 
-    createAttachments(attachments, onboarding, product);
-  }
-
-  private void createAttachments(
-      List<AttachmentTemplate> attachments, Onboarding onboarding, Product product) {
-    Optional.ofNullable(attachments)
-        .filter(list -> !list.isEmpty())
-        .orElseThrow(
-            () ->
-                new IllegalStateException(
-                    "No attachments found for the specified product and institution type."))
-        .stream()
-        .filter(
-            attachment ->
-                attachment.getWorkflowType().contains(onboarding.getWorkflowType())
-                    && onboarding.getStatus().equals(attachment.getWorkflowState()))
-        .forEach(
-            attachment ->
-                contractService.createAttachmentPDF(
-                    attachment.getTemplatePath(),
-                    onboarding,
-                    product.getTitle(),
-                    attachment.getName()));
+    contractService.createAttachmentPDF(
+        attachment.getTemplatePath(), onboarding, product.getTitle(), attachment.getName());
   }
 
   public void loadContract(Onboarding onboarding) {
@@ -158,11 +129,7 @@ public class OnboardingService {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
     // Skip if token already exists
-    Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
-    if (optToken.isPresent()) {
-      log.debug("Token has already exists for onboarding {}", onboarding.getId());
-      return;
-    }
+    if (checkTokenExist(onboarding)) return;
 
     Product product = productService.getProductIsValid(onboarding.getProductId());
 
@@ -175,28 +142,69 @@ public class OnboardingService {
     saveToken(onboardingWorkflow, product, digest);
   }
 
+  public void saveTokenWithAttachment(OnboardingAttachment onboardingAttachment) {
+
+    Onboarding onboarding = onboardingAttachment.getOnboarding();
+
+    if (checkTokenExist(onboarding)) return;
+
+    Product product = productService.getProductIsValid(onboarding.getProductId());
+
+    saveTokenAttachment(onboardingAttachment, product);
+  }
+
+  private boolean checkTokenExist(Onboarding onboarding) {
+    // Skip if token already exists
+    Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
+    if (optToken.isPresent()) {
+      log.debug("Token has already exists for onboarding {}", onboarding.getId());
+      return true;
+    }
+    return false;
+  }
+
   private void saveToken(OnboardingWorkflow onboardingWorkflow, Product product, String digest) {
 
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
-    log.debug("creating Token for onboarding {} ...", onboarding.getId());
-
     // Persist token entity
-    Token token = new Token();
-    token.setId(onboarding.getId());
-    token.setOnboardingId(onboarding.getId());
+    Token token = buildBaseToken(onboarding);
     token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
     token.setContractVersion(onboardingWorkflow.getContractTemplateVersion(product));
     token.setContractFilename(
         CONTRACT_FILENAME_FUNC.apply(
             onboardingWorkflow.getPdfFormatFilename(), product.getTitle()));
-    token.setCreatedAt(LocalDateTime.now());
-    token.setUpdatedAt(LocalDateTime.now());
-    token.setProductId(onboarding.getProductId());
     token.setChecksum(digest);
     token.setType(onboardingWorkflow.getTokenType());
 
     tokenRepository.persist(token);
+  }
+
+  private void saveTokenAttachment(OnboardingAttachment onboardingAttachment, Product product) {
+
+    Onboarding onboarding = onboardingAttachment.getOnboarding();
+    AttachmentTemplate attachmentTemplate = onboardingAttachment.getAttachment();
+
+    // Persist token entity
+    Token token = buildBaseToken(onboarding);
+    token.setContractTemplate(attachmentTemplate.getTemplatePath());
+    token.setContractVersion(attachmentTemplate.getTemplateVersion());
+    token.setContractFilename(
+        CONTRACT_FILENAME_FUNC.apply(attachmentTemplate.getName(), product.getTitle()));
+    token.setType(TokenType.ATTACHMENT);
+
+    tokenRepository.persist(token);
+  }
+
+  private Token buildBaseToken(Onboarding onboarding) {
+    log.debug("creating Token for onboarding {} ...", onboarding.getId());
+    Token token = new Token();
+    token.setId(UUID.randomUUID().toString());
+    token.setOnboardingId(onboarding.getId());
+    token.setCreatedAt(LocalDateTime.now());
+    token.setUpdatedAt(LocalDateTime.now());
+    token.setProductId(onboarding.getProductId());
+    return token;
   }
 
   public void sendMailRegistration(Onboarding onboarding) {

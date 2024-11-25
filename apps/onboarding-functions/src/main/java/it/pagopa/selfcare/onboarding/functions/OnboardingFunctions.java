@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -13,12 +14,17 @@ import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.onboarding.workflow.*;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
@@ -36,12 +42,16 @@ public class OnboardingFunctions {
 
   public static final String CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG =
       "Created new Onboarding orchestration with instance ID = ";
+  private static final String CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG =
+      "Created new Build Attachments orchestration with instance ID = ";
+
   private final OnboardingService service;
   private final CompletionService completionService;
   private final ContractService contractService;
   private final ObjectMapper objectMapper;
   private final TaskOptions optionsRetry;
   private final OnboardingMapper onboardingMapper;
+  private final ProductService productService;
 
   public OnboardingFunctions(
       OnboardingService service,
@@ -49,12 +59,14 @@ public class OnboardingFunctions {
       RetryPolicyConfig retryPolicyConfig,
       CompletionService completionService,
       ContractService contractService,
-      OnboardingMapper onboardingMapper) {
+      OnboardingMapper onboardingMapper,
+      ProductService productService) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
+    this.productService = productService;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -242,10 +254,86 @@ public class OnboardingFunctions {
     service.createContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
   }
 
+  /** This HTTP-triggered function invokes an orchestration to build attachments and save tokens */
+  @FunctionName("BuildAttachmentsAndSaveTokens")
+  public HttpResponseMessage buildAttachmentsAndSaveTokens(
+      @HttpTrigger(
+              name = "req",
+              methods = {HttpMethod.POST},
+              authLevel = AuthorizationLevel.FUNCTION)
+          HttpRequestMessage<Optional<String>> request,
+      @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
+      final ExecutionContext context) {
+    context.getLogger().info("buildAttachmentsAndSaveTokens trigger processed a request");
+    Optional<String> onboardingWorkflowString = request.getBody();
+
+    if (onboardingWorkflowString.isEmpty()) {
+      return request
+          .createResponseBuilder(HttpStatus.BAD_REQUEST)
+          .body("Body can not be empty")
+          .build();
+    }
+
+    DurableTaskClient client = durableContext.getClient();
+    String instanceId =
+        client.scheduleNewOrchestrationInstance(
+            "BuildAttachmentAndSaveToken", onboardingWorkflowString.get());
+    context
+        .getLogger()
+        .info(
+            () ->
+                String.format(
+                    "%s %s",
+                    CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
+
+    return durableContext.createCheckStatusResponse(request, instanceId);
+  }
+
+  /**
+   * This function is the orchestrator that manages the build attachment process, it is responsible
+   * for invoking the activity function "BuildAttachment" and "saveTokenAttachment" until there are
+   * no more attachment to process.
+   */
+  @FunctionName("BuildAttachmentAndSaveToken")
+  public void buildAttachmentAndSaveToken(
+      @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+      ExecutionContext functionContext)
+      throws JsonProcessingException {
+
+    String onboardingWorkflowString = ctx.getInput(String.class);
+    OnboardingWorkflow onboardingWorkflow =
+        objectMapper.readValue(onboardingWorkflowString, OnboardingWorkflow.class);
+    Onboarding onboarding = onboardingWorkflow.getOnboarding();
+    Product product = productService.getProductIsValid(onboarding.getProductId());
+
+    product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getAttachments()
+        .stream()
+        .filter(
+            attachment ->
+                attachment.getWorkflowType().contains(onboarding.getWorkflowType())
+                    && onboarding.getStatus().equals(attachment.getWorkflowState()))
+        .forEach(
+            attachment -> {
+              OnboardingAttachment onboardingAttachment =
+                  OnboardingAttachment.builder()
+                      .attachment(attachment)
+                      .onboarding(onboarding)
+                      .build();
+              ctx.callActivity(BUILD_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, String.class)
+                  .await();
+              ctx.callActivity(
+                      SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, String.class)
+                  .await();
+            });
+    functionContext.getLogger().info("BuildAttachmentAndSaveToken orchestration completed");
+  }
+
   /** This is the activity function that gets invoked by the orchestrator function. */
   @FunctionName(BUILD_ATTACHMENT_ACTIVITY_NAME)
   public void buildAttachment(
-      @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
+      @DurableActivityTrigger(name = "onboardingString") String onboardingAttachmentString,
       final ExecutionContext context) {
     context
         .getLogger()
@@ -254,8 +342,9 @@ public class OnboardingFunctions {
                 String.format(
                     FORMAT_LOGGER_ONBOARDING_STRING,
                     BUILD_ATTACHMENT_ACTIVITY_NAME,
-                    onboardingWorkflowString));
-    service.createAttachments(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+                    onboardingAttachmentString));
+    service.createAttachment(
+        readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString));
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
@@ -273,6 +362,23 @@ public class OnboardingFunctions {
                     onboardingWorkflowString));
     service.saveTokenWithContract(
         readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
+  }
+
+  /** This is the activity function that gets invoked by the orchestrator function. */
+  @FunctionName(SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME)
+  public void saveTokenAttachment(
+      @DurableActivityTrigger(name = "onboardingString") String onboardingAttachmentString,
+      final ExecutionContext context) {
+    context
+        .getLogger()
+        .info(
+            () ->
+                String.format(
+                    FORMAT_LOGGER_ONBOARDING_STRING,
+                    SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
+                    onboardingAttachmentString));
+    service.saveTokenWithAttachment(
+        readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString));
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
