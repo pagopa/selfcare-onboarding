@@ -53,6 +53,7 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
                 onboarding.getInstitution().getDescription().equals(institutionResource.getDescription());
     }
 
+    @Override
     public RegistryManager<IPAEntity> setResource(IPAEntity registryResource) {
         this.registryResource = registryResource;
         if (onboarding.getInstitution().isImported()) {
