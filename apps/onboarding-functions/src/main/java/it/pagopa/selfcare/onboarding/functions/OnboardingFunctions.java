@@ -321,10 +321,10 @@ public class OnboardingFunctions {
                       .attachment(attachment)
                       .onboarding(onboarding)
                       .build();
-              ctx.callActivity(BUILD_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, String.class)
+              ctx.callActivity(BUILD_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, optionsRetry, String.class)
                   .await();
               ctx.callActivity(
-                      SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, String.class)
+                      SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, optionsRetry, String.class)
                   .await();
             });
     functionContext.getLogger().info("BuildAttachmentAndSaveToken orchestration completed");
