@@ -9,10 +9,7 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
-import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -382,6 +379,16 @@ public class ContractServiceDefault implements ContractService {
     final String onboardingId = onboardingWorkflow.getOnboarding().getId();
     final String filename =
         CONTRACT_FILENAME_FUNC.apply(onboardingWorkflow.getPdfFormatFilename(), productName);
+    final String path =
+        String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
+    return azureBlobClient.getFileAsPdf(path);
+  }
+
+  @Override
+  public File retrieveAttachment(OnboardingAttachment onboardingAttachment, String productName) {
+    final String onboardingId = onboardingAttachment.getOnboarding().getId();
+    final String filename =
+        CONTRACT_FILENAME_FUNC.apply(onboardingAttachment.getAttachment().getName(), productName);
     final String path =
         String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
     return azureBlobClient.getFileAsPdf(path);

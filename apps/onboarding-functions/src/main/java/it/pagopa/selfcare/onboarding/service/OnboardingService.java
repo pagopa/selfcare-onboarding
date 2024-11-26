@@ -150,7 +150,11 @@ public class OnboardingService {
 
     Product product = productService.getProductIsValid(onboarding.getProductId());
 
-    saveTokenAttachment(onboardingAttachment, product);
+    File contract = contractService.retrieveAttachment(onboardingAttachment, product.getTitle());
+    DSSDocument document = new FileDocument(contract);
+    String digest = document.getDigest(DigestAlgorithm.SHA256);
+
+    saveTokenAttachment(onboardingAttachment, product, digest);
   }
 
   private boolean checkTokenExist(Onboarding onboarding) {
@@ -168,25 +172,25 @@ public class OnboardingService {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
     // Persist token entity
-    Token token = buildBaseToken(onboarding);
+    Token token = buildBaseToken(onboarding, digest);
     token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
     token.setContractVersion(onboardingWorkflow.getContractTemplateVersion(product));
     token.setContractFilename(
         CONTRACT_FILENAME_FUNC.apply(
             onboardingWorkflow.getPdfFormatFilename(), product.getTitle()));
-    token.setChecksum(digest);
     token.setType(onboardingWorkflow.getTokenType());
 
     tokenRepository.persist(token);
   }
 
-  private void saveTokenAttachment(OnboardingAttachment onboardingAttachment, Product product) {
+  private void saveTokenAttachment(
+      OnboardingAttachment onboardingAttachment, Product product, String digest) {
 
     Onboarding onboarding = onboardingAttachment.getOnboarding();
     AttachmentTemplate attachmentTemplate = onboardingAttachment.getAttachment();
 
     // Persist token entity
-    Token token = buildBaseToken(onboarding);
+    Token token = buildBaseToken(onboarding, digest);
     token.setContractTemplate(attachmentTemplate.getTemplatePath());
     token.setContractVersion(attachmentTemplate.getTemplateVersion());
     token.setContractFilename(
@@ -196,13 +200,14 @@ public class OnboardingService {
     tokenRepository.persist(token);
   }
 
-  private Token buildBaseToken(Onboarding onboarding) {
+  private Token buildBaseToken(Onboarding onboarding, String digest) {
     log.debug("creating Token for onboarding {} ...", onboarding.getId());
     Token token = new Token();
     token.setId(UUID.randomUUID().toString());
     token.setOnboardingId(onboarding.getId());
     token.setCreatedAt(LocalDateTime.now());
     token.setUpdatedAt(LocalDateTime.now());
+    token.setChecksum(digest);
     token.setProductId(onboarding.getProductId());
     return token;
   }

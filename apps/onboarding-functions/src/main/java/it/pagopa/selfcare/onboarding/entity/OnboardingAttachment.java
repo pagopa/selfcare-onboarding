@@ -6,6 +6,8 @@ public class OnboardingAttachment {
   private Onboarding onboarding;
   private AttachmentTemplate attachment;
 
+  public OnboardingAttachment() {}
+
   private OnboardingAttachment(OnboardingAttachment.Builder builder) {
     this.onboarding = builder.onboarding;
     this.attachment = builder.attachment;

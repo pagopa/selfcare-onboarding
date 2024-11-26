@@ -1,25 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATES_CSV_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_DELEGATION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.DELETE_MANAGERS_BY_IC_AND_ADE;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.EXISTS_DELEGATION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,8 +67,7 @@ class OnboardingFunctionsTest {
 
   @InjectMock CompletionService completionService;
 
-   @InjectMock
-  ProductService productService;
+  @InjectMock ProductService productService;
 
   @Inject ObjectMapper objectMapper;
 
@@ -95,6 +75,13 @@ class OnboardingFunctionsTest {
 
   final String onboardingWorkflowString =
       "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+
+  final String onboardingWorkflowString2 =
+      "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+
+  final String onboardingAttachmentString =
+      "{\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
+          + "\"templatePath\": null, \"templateVersion\": null, \"name\": null, \"mandatory\": null, \"generated\": null, \"workflowType\": null, \"workflowState\": null, \"order\": null}}";
 
   static ExecutionContext executionContext;
 
@@ -671,7 +658,78 @@ class OnboardingFunctionsTest {
   }
 
   @Test
-  void buildAttachmentsAndSaveTokensOrchestrator_invokeActivity() throws JsonProcessingException {
+  void buildAttachmentsAndSaveTokens_validBody_returnsAccepted() {
+    // Mock HttpRequestMessage with valid body
+    final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+    doReturn(Optional.of(onboardingWorkflowString)).when(req).getBody();
+
+    doAnswer(
+            (Answer<HttpResponseMessage.Builder>)
+                invocation -> {
+                  HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                  return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                      .status(status);
+                })
+        .when(req)
+        .createResponseBuilder(any(HttpStatus.class));
+
+    final ExecutionContext context = mock(ExecutionContext.class);
+    doReturn(Logger.getGlobal()).when(context).getLogger();
+
+    final DurableClientContext durableContext = mock(DurableClientContext.class);
+    final DurableTaskClient client = mock(DurableTaskClient.class);
+    final String instanceId = "instanceId123";
+
+    doReturn(client).when(durableContext).getClient();
+    doReturn(instanceId)
+        .when(client)
+        .scheduleNewOrchestrationInstance("BuildAttachmentAndSaveToken", onboardingWorkflowString);
+    when(durableContext.createCheckStatusResponse(req, instanceId))
+        .thenReturn(
+            new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                .status(HttpStatus.ACCEPTED)
+                .build());
+
+    // Invoke
+    HttpResponseMessage responseMessage =
+        function.buildAttachmentsAndSaveTokens(req, durableContext, context);
+
+    // Verify
+    assertEquals(HttpStatus.ACCEPTED.value(), responseMessage.getStatusCode());
+  }
+
+  @Test
+  void buildAttachmentsAndSaveTokens_emptyBody_returnsBadRequest() {
+    // Mock HttpRequestMessage with empty body
+    final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+    doReturn(Optional.empty()).when(req).getBody();
+
+    doAnswer(
+            (Answer<HttpResponseMessage.Builder>)
+                invocation -> {
+                  HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                  return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                      .status(status);
+                })
+        .when(req)
+        .createResponseBuilder(any(HttpStatus.class));
+
+    final ExecutionContext context = mock(ExecutionContext.class);
+    doReturn(Logger.getGlobal()).when(context).getLogger();
+
+    final DurableClientContext durableContext = mock(DurableClientContext.class);
+
+    // Invoke
+    HttpResponseMessage responseMessage =
+        function.buildAttachmentsAndSaveTokens(req, durableContext, context);
+
+    // Verify
+    assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+    assertEquals("Body can not be empty", responseMessage.getBody());
+  }
+
+  @Test
+  void buildAttachmentAndSaveToken_invokeActivity() throws JsonProcessingException {
     // given
     Product product = createDummyProduct();
     when(productService.getProductIsValid(anyString())).thenReturn(product);
@@ -689,18 +747,49 @@ class OnboardingFunctionsTest {
 
     // then
     verify(productService, times(1)).getProductIsValid(anyString());
-    Mockito.verify(orchestrationContext, times(2))
-        .callActivity(any(), any(), any(), any());
+    Mockito.verify(orchestrationContext, times(2)).callActivity(any(), any(), any(), any());
   }
 
-  // @Test
+  @Test
+  void buildAttachmentAndSaveToken_noAttachments_invokeActivity() throws JsonProcessingException {
+    // given
+    Product product = createDummyProduct();
+
+    when(productService.getProductIsValid(anyString())).thenReturn(product);
+
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingWorkflowString2);
+
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.allOf(anyList())).thenReturn(task);
+
+    // when
+    function.buildAttachmentAndSaveToken(orchestrationContext, executionContext);
+
+    // then
+    verify(productService, times(1)).getProductIsValid(anyString());
+  }
+
+  @Test
   void buildAttachment() {
 
     doNothing().when(service).createAttachment(any());
 
-    function.buildAttachment(onboardingWorkflowString, executionContext);
+    function.buildAttachment(onboardingAttachmentString, executionContext);
 
     verify(service, times(1)).createAttachment(any());
+  }
+
+  @Test
+  void saveTokenAttachment() {
+
+    doNothing().when(service).saveTokenWithAttachment(any());
+
+    function.saveTokenAttachment(onboardingAttachmentString, executionContext);
+
+    verify(service, times(1)).saveTokenWithAttachment(any());
   }
 
   @Test
