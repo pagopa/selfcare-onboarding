@@ -146,7 +146,7 @@ public class OnboardingService {
 
     Onboarding onboarding = onboardingAttachment.getOnboarding();
 
-    if (checkTokenExist(onboarding)) return;
+    //  if (checkTokenExist(onboarding)) return;
 
     Product product = productService.getProductIsValid(onboarding.getProductId());
 
@@ -194,7 +194,8 @@ public class OnboardingService {
     token.setContractTemplate(attachmentTemplate.getTemplatePath());
     token.setContractVersion(attachmentTemplate.getTemplateVersion());
     token.setContractFilename(
-        CONTRACT_FILENAME_FUNC.apply(attachmentTemplate.getName(), product.getTitle()));
+        CONTRACT_FILENAME_FUNC.apply(
+            "%s_" + attachmentTemplate.getName() + ".pdf", product.getTitle()));
     token.setType(TokenType.ATTACHMENT);
 
     tokenRepository.persist(token);

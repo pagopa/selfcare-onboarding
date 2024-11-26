@@ -217,7 +217,8 @@ public class ContractServiceDefault implements ContractService {
       final String filename =
           CONTRACT_FILENAME_FUNC.apply("%s_" + attachmentName + ".pdf", productName);
       final String path =
-          String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
+          String.format(
+              "%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/attachments");
 
       azureBlobClient.uploadFile(path, filename, Files.readAllBytes(attachmentPdfFile.toPath()));
 
@@ -388,9 +389,11 @@ public class ContractServiceDefault implements ContractService {
   public File retrieveAttachment(OnboardingAttachment onboardingAttachment, String productName) {
     final String onboardingId = onboardingAttachment.getOnboarding().getId();
     final String filename =
-        CONTRACT_FILENAME_FUNC.apply(onboardingAttachment.getAttachment().getName(), productName);
+        CONTRACT_FILENAME_FUNC.apply(
+            "%s_" + onboardingAttachment.getAttachment().getName() + ".pdf", productName);
     final String path =
-        String.format("%s%s/%s", azureStorageConfig.contractPath(), onboardingId, filename);
+        String.format(
+            "%s%s/%s/%s", azureStorageConfig.contractPath(), onboardingId, "attachments", filename);
     return azureBlobClient.getFileAsPdf(path);
   }
 
