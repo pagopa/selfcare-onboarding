@@ -74,13 +74,16 @@ class OnboardingFunctionsTest {
   final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
 
   final String onboardingWorkflowString =
-      "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+      "{\"type\":\"INSTITUTION\",\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
 
-  final String onboardingWorkflowString2 =
-      "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+  final String onboardingString =
+      "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
+
+  final String onboardingString2 =
+      "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   final String onboardingAttachmentString =
-      "{\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
+      "{\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
           + "\"templatePath\": null, \"templateVersion\": null, \"name\": null, \"mandatory\": null, \"generated\": null, \"workflowType\": null, \"workflowState\": null, \"order\": null}}";
 
   static ExecutionContext executionContext;
@@ -661,7 +664,7 @@ class OnboardingFunctionsTest {
   void buildAttachmentsAndSaveTokens_validBody_returnsAccepted() {
     // Mock HttpRequestMessage with valid body
     final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-    doReturn(Optional.of(onboardingWorkflowString)).when(req).getBody();
+    doReturn(Optional.of(onboardingString)).when(req).getBody();
 
     doAnswer(
             (Answer<HttpResponseMessage.Builder>)
@@ -683,7 +686,7 @@ class OnboardingFunctionsTest {
     doReturn(client).when(durableContext).getClient();
     doReturn(instanceId)
         .when(client)
-        .scheduleNewOrchestrationInstance("BuildAttachmentAndSaveToken", onboardingWorkflowString);
+        .scheduleNewOrchestrationInstance("BuildAttachmentAndSaveToken", onboardingString);
     when(durableContext.createCheckStatusResponse(req, instanceId))
         .thenReturn(
             new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
@@ -735,7 +738,7 @@ class OnboardingFunctionsTest {
     when(productService.getProductIsValid(anyString())).thenReturn(product);
 
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingWorkflowString);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
 
     Task task = mock(Task.class);
     when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
@@ -758,7 +761,7 @@ class OnboardingFunctionsTest {
     when(productService.getProductIsValid(anyString())).thenReturn(product);
 
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingWorkflowString2);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString2);
 
     Task task = mock(Task.class);
     when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);

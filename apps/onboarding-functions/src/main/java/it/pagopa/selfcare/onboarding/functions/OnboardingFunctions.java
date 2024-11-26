@@ -15,7 +15,6 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
@@ -265,9 +264,9 @@ public class OnboardingFunctions {
       @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
       final ExecutionContext context) {
     context.getLogger().info("buildAttachmentsAndSaveTokens trigger processed a request");
-    Optional<String> onboardingWorkflowString = request.getBody();
+    Optional<String> onboardingString = request.getBody();
 
-    if (onboardingWorkflowString.isEmpty()) {
+    if (onboardingString.isEmpty()) {
       return request
           .createResponseBuilder(HttpStatus.BAD_REQUEST)
           .body("Body can not be empty")
@@ -277,7 +276,7 @@ public class OnboardingFunctions {
     DurableTaskClient client = durableContext.getClient();
     String instanceId =
         client.scheduleNewOrchestrationInstance(
-            "BuildAttachmentAndSaveToken", onboardingWorkflowString.get());
+            "BuildAttachmentAndSaveToken", onboardingString.get());
     context
         .getLogger()
         .info(
@@ -300,10 +299,8 @@ public class OnboardingFunctions {
       ExecutionContext functionContext)
       throws JsonProcessingException {
 
-    String onboardingWorkflowString = ctx.getInput(String.class);
-    OnboardingWorkflow onboardingWorkflow =
-        objectMapper.readValue(onboardingWorkflowString, OnboardingWorkflow.class);
-    Onboarding onboarding = onboardingWorkflow.getOnboarding();
+    String onboardingString = ctx.getInput(String.class);
+    Onboarding onboarding = objectMapper.readValue(onboardingString, Onboarding.class);
     Product product = productService.getProductIsValid(onboarding.getProductId());
 
     product
@@ -321,10 +318,17 @@ public class OnboardingFunctions {
                       .attachment(attachment)
                       .onboarding(onboarding)
                       .build();
-              ctx.callActivity(BUILD_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, optionsRetry, String.class)
+              ctx.callActivity(
+                      BUILD_ATTACHMENT_ACTIVITY_NAME,
+                      onboardingAttachment,
+                      optionsRetry,
+                      String.class)
                   .await();
               ctx.callActivity(
-                      SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME, onboardingAttachment, optionsRetry, String.class)
+                      SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
+                      onboardingAttachment,
+                      optionsRetry,
+                      String.class)
                   .await();
             });
     functionContext.getLogger().info("BuildAttachmentAndSaveToken orchestration completed");
