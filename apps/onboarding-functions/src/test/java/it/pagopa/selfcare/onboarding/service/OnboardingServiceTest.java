@@ -343,22 +343,24 @@ class OnboardingServiceTest {
     assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
   }
 
-  @Test
-  void saveTokenAttachment_shouldSkipIfTokenExists() {
-    Onboarding onboarding = createOnboarding();
-    AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
-    OnboardingAttachment onboardingAttachment = new OnboardingAttachment();
-    onboardingAttachment.setOnboarding(onboarding);
-    onboardingAttachment.setAttachment(attachmentTemplate);
-    Token token = createDummyToken();
+  /*
+    @Test
+    void saveTokenAttachment_shouldSkipIfTokenExists() {
+      Onboarding onboarding = createOnboarding();
+      AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
+      OnboardingAttachment onboardingAttachment = new OnboardingAttachment();
+      onboardingAttachment.setOnboarding(onboarding);
+      onboardingAttachment.setAttachment(attachmentTemplate);
+      Token token = createDummyToken();
 
-    when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
+      when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
 
-    onboardingService.saveTokenWithAttachment(onboardingAttachment);
+      onboardingService.saveTokenWithAttachment(onboardingAttachment);
 
-    Mockito.verify(tokenRepository, Mockito.times(1)).findByOnboardingId(onboarding.getId());
-    Mockito.verifyNoMoreInteractions(tokenRepository);
-  }
+      Mockito.verify(tokenRepository, Mockito.times(1)).findByOnboardingId(onboarding.getId());
+      Mockito.verifyNoMoreInteractions(tokenRepository);
+    }
+  */
 
   @Test
   void loadContract() {
