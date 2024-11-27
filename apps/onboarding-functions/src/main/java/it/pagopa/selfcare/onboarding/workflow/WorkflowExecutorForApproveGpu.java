@@ -1,46 +1,27 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
-import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.INSTITUTION;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
 import java.util.Optional;
 
-public record WorkflowExecutorForApproveGpu(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
+public class WorkflowExecutorForApproveGpu extends WorkflowExecutorForApprove {
+
+    public WorkflowExecutorForApproveGpu(ObjectMapper objectMapper, TaskOptions optionsRetry) {
+        super(objectMapper, optionsRetry);
+    }
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        String onboardingString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
-        ctx.callActivity("BuildAttachmentsAndSaveTokens", onboardingString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
+        String onboardingString = getOnboardingString(super.objectMapper(), onboardingWorkflow.getOnboarding());
+        ctx.callActivity("BuildAttachmentsAndSaveTokens", onboardingString, super.optionsRetry(), String.class).await();
+        ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, super.optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.TOBEVALIDATED);
     }
 
-    @Override
-    public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper, onboardingWorkflow);
-        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
-        ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
-        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString, optionsRetry, String.class).await();
-        return Optional.of(OnboardingStatus.PENDING);
-    }
-
-    @Override
-    public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return onboardingCompletionActivity(ctx, onboardingWorkflow);
-    }
-
-    @Override
-    public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
-        return new OnboardingWorkflowInstitution(onboarding, INSTITUTION.name());
-    }
 }

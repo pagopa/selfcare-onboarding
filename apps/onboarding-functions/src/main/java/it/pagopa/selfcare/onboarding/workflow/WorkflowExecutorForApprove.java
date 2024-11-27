@@ -15,7 +15,15 @@ import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 
-public record WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
+public class WorkflowExecutorForApprove implements WorkflowExecutor {
+
+    private final ObjectMapper objectMapper;
+    private final TaskOptions optionsRetry;
+
+    public WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions optionsRetry) {
+        this.objectMapper = objectMapper;
+        this.optionsRetry = optionsRetry;
+    }
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -41,5 +49,15 @@ public record WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions 
     @Override
     public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
         return new OnboardingWorkflowInstitution(onboarding, INSTITUTION.name());
+    }
+
+    @Override
+    public ObjectMapper objectMapper() {
+        return objectMapper;
+    }
+
+    @Override
+    public TaskOptions optionsRetry() {
+        return optionsRetry;
     }
 }
