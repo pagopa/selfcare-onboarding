@@ -3,10 +3,9 @@ package it.pagopa.selfcare.onboarding.entity;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
+import java.util.List;
 import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonProperty;
-
-import java.util.List;
 
 @Data
 public class Institution {
@@ -41,6 +40,7 @@ public class Institution {
 
     private PaymentServiceProvider paymentServiceProvider;
     private DataProtectionOfficer dataProtectionOfficer;
+    private GPUData gpuData;
 
     private String parentDescription;
 }

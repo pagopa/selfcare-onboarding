@@ -481,6 +481,7 @@
           "CONTRACT_REGISTRATION",
           "FOR_APPROVE",
           "FOR_APPROVE_PT",
+          "FOR_APPROVE_GPU",
           "CONFIRMATION",
           "IMPORT"
         ],

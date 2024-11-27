@@ -89,14 +89,6 @@ public interface OnboardingMapper {
         return onboardingImportContract.getCreatedAt();
     }
 
-    @Mapping(target = "workflowType", source = "workflowType", qualifiedByName = "toWorkflowType")
-    @Mapping(target = "users", source = "users", qualifiedByName = "toUsers")
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "toOffsetDateTime")
-    @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "toOffsetDateTime")
-    @Mapping(target = "activatedAt", source = "activatedAt", qualifiedByName = "toOffsetDateTime")
-    @Mapping(target = "expiringDate", source = "expiringDate", qualifiedByName = "toOffsetDateTime")
-    org.openapi.quarkus.onboarding_functions_json.model.Onboarding mapOnboardingForNotification(Onboarding onboarding);
-
     @Named("toWorkflowType")
     default org.openapi.quarkus.onboarding_functions_json.model.WorkflowType toWorkflowType(WorkflowType workflowType) {
         if (Objects.isNull(workflowType)) {
