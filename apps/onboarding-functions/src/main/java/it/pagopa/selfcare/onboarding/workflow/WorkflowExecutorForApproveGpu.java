@@ -20,6 +20,7 @@ public record WorkflowExecutorForApproveGpu(ObjectMapper objectMapper, TaskOptio
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
+        ctx.callActivity("BuildAttachmentsAndSaveTokens", onboardingString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.TOBEVALIDATED);
     }
