@@ -49,5 +49,4 @@ public abstract class OnboardingWorkflow {
   public void setOnboarding(Onboarding onboarding) {
     this.onboarding = onboarding;
   }
-  
 }

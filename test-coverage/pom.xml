@@ -13,10 +13,13 @@
     <name>test-coverage</name>
 
     <properties>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>**/exception/**, **/response/**, **/request/**, **/entity/**, **/common/**, **/utils/**, **/*Constant*, **/*Config.java, **/error/**, **/filter/**, org/**</sonar.coverage.exclusions>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.exclusions>**/exception/**, **/response/**, **/request/**, **/entity/**, **/common/**,
+            **/utils/**, **/*Constant*, **/*Config.java, **/error/**, **/filter/**, org/**
+        </sonar.coverage.exclusions>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <commons-sdk-version>0.5.0</commons-sdk-version>
+        <commons-sdk-version>0.5.1</commons-sdk-version>
     </properties>
 
     <build>
