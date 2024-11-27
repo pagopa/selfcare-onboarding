@@ -14,13 +14,16 @@ import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
+import it.pagopa.selfcare.product.entity.AttachmentTemplate;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -52,7 +55,7 @@ class OnboardingServiceTest {
 
   private Onboarding createOnboarding() {
     Onboarding onboarding = new Onboarding();
-    onboarding.setId(onboarding.getId());
+    onboarding.setId("id");
     onboarding.setProductId(productId);
     onboarding.setUsers(List.of());
     Institution institution = new Institution();
@@ -60,6 +63,8 @@ class OnboardingServiceTest {
     institution.setInstitutionType(InstitutionType.PA);
     onboarding.setInstitution(institution);
     onboarding.setUserRequestUid("example-uid");
+    onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
+    onboarding.setStatus(OnboardingStatus.REQUEST);
     return onboarding;
   }
 
@@ -184,6 +189,36 @@ class OnboardingServiceTest {
             .getContractTemplatePath());
   }
 
+  @Test
+  void createAttachments() {
+
+    // Arrange
+    Onboarding onboarding = createOnboarding();
+    AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
+    Product product = createDummyProduct();
+    OnboardingAttachment onboardingAttachment = new OnboardingAttachment();
+    onboardingAttachment.setAttachment(attachmentTemplate);
+    onboardingAttachment.setOnboarding(onboarding);
+
+    when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
+
+    // Act
+    onboardingService.createAttachment(onboardingAttachment);
+
+    // Assert
+    Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
+
+    // Capture the path of the template used for the PDF
+    ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
+    Mockito.verify(contractService, Mockito.times(1))
+        .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any());
+
+    // Check that the correct template was used
+    assertEquals(
+        "path", // This is the template matching the onboarding filter
+        captorTemplatePath.getValue());
+  }
+
   private Product createDummyProduct() {
     Product product = new Product();
     product.setTitle("Title");
@@ -196,11 +231,24 @@ class OnboardingServiceTest {
 
   private static Map<String, ContractTemplate> createDummyContractTemplateInstitution() {
     Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
+    List<AttachmentTemplate> attachments = new ArrayList<>();
+    AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
+    attachments.add(attachmentTemplate);
     ContractTemplate conctractTemplate = new ContractTemplate();
+    conctractTemplate.setAttachments(attachments);
     conctractTemplate.setContractTemplatePath("example");
     conctractTemplate.setContractTemplateVersion("version");
     institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
     return institutionTemplate;
+  }
+
+  private static AttachmentTemplate createDummyAttachmentTemplate() {
+    AttachmentTemplate attachmentTemplate = new AttachmentTemplate();
+    attachmentTemplate.setTemplatePath("path");
+    attachmentTemplate.setName("name");
+    attachmentTemplate.setWorkflowState(OnboardingStatus.REQUEST);
+    attachmentTemplate.setWorkflowType(List.of(WorkflowType.FOR_APPROVE));
+    return attachmentTemplate;
   }
 
   private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
@@ -263,6 +311,36 @@ class OnboardingServiceTest {
             .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
             .getContractTemplateVersion(),
         tokenArgumentCaptor.getValue().getContractVersion());
+  }
+
+  @Test
+  void saveTokenAttachment() {
+    Onboarding onboarding = createOnboarding();
+    AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
+    OnboardingAttachment onboardingAttachment = new OnboardingAttachment();
+    onboardingAttachment.setOnboarding(onboarding);
+    onboardingAttachment.setAttachment(attachmentTemplate);
+    File contract =
+        new File(
+            Objects.requireNonNull(
+                    getClass().getClassLoader().getResource("application.properties"))
+                .getFile());
+    DSSDocument document = new FileDocument(contract);
+    String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
+
+    Product productExpected = createDummyProduct();
+    when(contractService.retrieveAttachment(onboardingAttachment, productExpected.getTitle()))
+        .thenReturn(contract);
+    when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(productExpected);
+
+    Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
+
+    onboardingService.saveTokenWithAttachment(onboardingAttachment);
+
+    ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
+    Mockito.verify(tokenRepository, Mockito.times(1)).persist(tokenArgumentCaptor.capture());
+    assertEquals(onboarding.getProductId(), tokenArgumentCaptor.getValue().getProductId());
+    assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
   }
 
   @Test

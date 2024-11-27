@@ -2564,9 +2564,6 @@
       "PaymentServiceProviderRequest" : {
         "type" : "object",
         "properties" : {
-          "abiCode" : {
-            "type" : "string"
-          },
           "businessRegisterNumber" : {
             "type" : "string"
           },
@@ -2574,6 +2571,9 @@
             "type" : "string"
           },
           "legalRegisterName" : {
+            "type" : "string"
+          },
+          "abiCode" : {
             "type" : "string"
           },
           "vatNumberGroup" : {
@@ -2660,7 +2660,7 @@
         }
       },
       "TokenType" : {
-        "enum" : [ "INSTITUTION", "LEGALS", "USER" ],
+        "enum" : [ "INSTITUTION", "LEGALS", "USER", "ATTACHMENT" ],
         "type" : "string"
       },
       "UserOnboardingResponse" : {

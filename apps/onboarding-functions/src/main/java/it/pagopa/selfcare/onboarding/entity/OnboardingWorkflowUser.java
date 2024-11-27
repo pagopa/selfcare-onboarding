@@ -29,13 +29,13 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
   @Override
   public String getEmailRegistrationPath(MailTemplatePathConfig config) {
     final String managerId =
-            this.onboarding.getUsers().stream()
-                    .filter(user -> PartyRole.MANAGER == user.getRole())
-                    .map(User::getId)
-                    .findAny()
-                    .orElse(null);
+        this.onboarding.getUsers().stream()
+            .filter(user -> PartyRole.MANAGER == user.getRole())
+            .map(User::getId)
+            .findAny()
+            .orElse(null);
     if (Objects.nonNull(this.onboarding.getPreviousManagerId())
-            && this.onboarding.getPreviousManagerId().equals(managerId)) {
+        && this.onboarding.getPreviousManagerId().equals(managerId)) {
       return config.registrationUserPath();
     }
     return config.registrationUserNewManagerPath();

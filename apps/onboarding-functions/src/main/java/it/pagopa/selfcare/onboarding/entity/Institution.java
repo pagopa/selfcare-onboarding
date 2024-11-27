@@ -3,9 +3,8 @@ package it.pagopa.selfcare.onboarding.entity;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
-import org.bson.codecs.pojo.annotations.BsonProperty;
-
 import java.util.List;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class Institution {
 
@@ -39,6 +38,7 @@ public class Institution {
 
     private PaymentServiceProvider paymentServiceProvider;
     private DataProtectionOfficer dataProtectionOfficer;
+    private GPUData gpuData;
     private String parentDescription;
 
     public InstitutionType getInstitutionType() {
@@ -231,6 +231,14 @@ public class Institution {
 
     public void setParentDescription(String parentDescription) {
         this.parentDescription = parentDescription;
+    }
+
+    public GPUData getGpuData() {
+        return gpuData;
+    }
+
+    public void setGpuData(GPUData gpuData) {
+        this.gpuData = gpuData;
     }
 
     @Override

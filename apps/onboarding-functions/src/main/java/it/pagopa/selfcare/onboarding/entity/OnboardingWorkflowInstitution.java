@@ -60,12 +60,16 @@ public class OnboardingWorkflowInstitution extends OnboardingWorkflow {
 
   @Override
   public String getContractTemplatePath(Product product) {
-    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplatePath();
+    return product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getContractTemplatePath();
   }
 
   @Override
   public String getContractTemplateVersion(Product product) {
-    return product.getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding)).getContractTemplateVersion();
+    return product
+        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getContractTemplateVersion();
   }
 
   public String getType() {
