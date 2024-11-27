@@ -66,20 +66,48 @@ class ContractServiceDefaultTest {
     onboarding.setProductId("productId");
     onboarding.setUsers(List.of());
 
-    Institution institution = new Institution();
-    institution.setInstitutionType(InstitutionType.PSP);
-    institution.setDescription("42");
-
-    institution.setRea("rea");
-    institution.setBusinessRegisterPlace("place");
-    institution.setShareCapital("10000");
-    onboarding.setInstitution(institution);
+    createInstitution(onboarding);
 
     User user = new User();
     user.setId(UUID.randomUUID().toString());
     user.setUserMailUuid("setUserMailUuid");
     onboarding.setUsers(List.of(user));
     return onboarding;
+  }
+
+  private static void createInstitution(Onboarding onboarding) {
+    Institution institution = new Institution();
+    institution.setInstitutionType(InstitutionType.PSP);
+    institution.setDescription("42");
+
+    PaymentServiceProvider paymentServiceProvider = createPaymentServiceProvider();
+    institution.setPaymentServiceProvider(paymentServiceProvider);
+
+    GPUData gpuData = createGpuData();
+    institution.setGpuData(gpuData);
+
+    institution.setRea("rea");
+    institution.setBusinessRegisterPlace("place");
+    institution.setShareCapital("10000");
+    onboarding.setInstitution(institution);
+  }
+
+  private static GPUData createGpuData() {
+    GPUData gpuData = new GPUData();
+    gpuData.setManager(true);
+    gpuData.setManagerAuthorized(true);
+    gpuData.setManagerEligible(true);
+    gpuData.setManagerProsecution(true);
+    gpuData.setInstitutionCourtMeasures(true);
+    return gpuData;
+  }
+
+  private static PaymentServiceProvider createPaymentServiceProvider() {
+    PaymentServiceProvider paymentServiceProvider = new PaymentServiceProvider();
+    paymentServiceProvider.setBusinessRegisterNumber("businessRegisterNumber");
+    paymentServiceProvider.setLegalRegisterName("legalRegisterName");
+    paymentServiceProvider.setLegalRegisterNumber("legalRegisterNumber");
+    return paymentServiceProvider;
   }
 
   AggregateInstitution createAggregateInstitutionIO(int number) {

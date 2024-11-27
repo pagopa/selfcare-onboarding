@@ -99,7 +99,35 @@ public class PdfMapper {
   }
 
   public static Map<String, Object> setUpAttachmentData(Onboarding onboarding) {
-    return new HashMap<>();
+    Map<String, Object> map = new HashMap<>();
+    if (Objects.nonNull(onboarding.getInstitution().getPaymentServiceProvider())) {
+      map.put(
+          "businessRegisterNumber",
+          onboarding.getInstitution().getPaymentServiceProvider().getBusinessRegisterNumber());
+      map.put(
+          "legalRegisterNumber",
+          onboarding.getInstitution().getPaymentServiceProvider().getLegalRegisterNumber());
+      map.put(
+          "legalRegisterName",
+          onboarding.getInstitution().getPaymentServiceProvider().getLegalRegisterName());
+    }
+
+    if (Objects.nonNull(onboarding.getInstitution().getGpuData())) {
+      map.put("manager", onboarding.getInstitution().getGpuData().isManager() ? "Si" : "No");
+      map.put(
+          "managerAuthorized",
+          onboarding.getInstitution().getGpuData().isManagerAuthorized() ? "Si" : "No");
+      map.put(
+          "managerEligible",
+          onboarding.getInstitution().getGpuData().isManagerEligible() ? "Si" : "No");
+      map.put(
+          "managerProsecution",
+          onboarding.getInstitution().getGpuData().isManagerProsecution() ? "Si" : "No");
+      map.put(
+          "institutionCourtMeasures",
+          onboarding.getInstitution().getGpuData().isInstitutionCourtMeasures() ? "Si" : "No");
+    }
+    return map;
   }
 
   private static String getMailManager(UserResource manager, String userMailUuid) {
