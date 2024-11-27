@@ -1241,12 +1241,4 @@ class OnboardingFunctionsTest {
     return institutionTemplate;
   }
 
-  private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
-    Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-    ContractTemplate conctractTemplate = new ContractTemplate();
-    conctractTemplate.setContractTemplatePath("example");
-    conctractTemplate.setContractTemplateVersion("version");
-    institutionTemplate.put("default", conctractTemplate);
-    return institutionTemplate;
-  }
 }
