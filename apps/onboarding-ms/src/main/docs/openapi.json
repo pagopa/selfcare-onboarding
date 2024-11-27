@@ -14,8 +14,6 @@
   "tags" : [ {
     "name" : "Aggregates Controller"
   }, {
-    "name" : "Notification Controller"
-  }, {
     "name" : "Onboarding"
   }, {
     "name" : "Onboarding Controller"
@@ -193,44 +191,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/VerifyAggregateResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
-          }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ ]
-        } ]
-      }
-    },
-    "/v1/notification/resend" : {
-      "post" : {
-        "tags" : [ "Notification Controller" ],
-        "summary" : "Resend onboarding notifications for onboarding which are retrieved given a set of filters",
-        "description" : "Resends notifications for all onboarding records that match the specified filter criteria. This allows administrators to trigger notification processes again for specific onboardings based on parameters such as product ID, tax code, institution ID, and more.",
-        "operationId" : "resendOnboardingNotifications",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/OnboardingGetFilters"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "string"
                 }
               }
             }
@@ -2291,43 +2251,6 @@
           },
           "reasonForReject" : {
             "type" : "string"
-          }
-        }
-      },
-      "OnboardingGetFilters" : {
-        "type" : "object",
-        "properties" : {
-          "productId" : {
-            "type" : "string"
-          },
-          "institutionId" : {
-            "type" : "string"
-          },
-          "onboardingId" : {
-            "type" : "string"
-          },
-          "subunitCode" : {
-            "type" : "string"
-          },
-          "taxCode" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "string"
-          },
-          "from" : {
-            "type" : "string"
-          },
-          "to" : {
-            "type" : "string"
-          },
-          "page" : {
-            "format" : "int32",
-            "type" : "integer"
-          },
-          "size" : {
-            "format" : "int32",
-            "type" : "integer"
           }
         }
       },
