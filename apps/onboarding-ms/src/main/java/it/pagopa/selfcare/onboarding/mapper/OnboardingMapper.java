@@ -2,18 +2,25 @@ package it.pagopa.selfcare.onboarding.mapper;
 
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.model.*;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
-
+import it.pagopa.selfcare.onboarding.model.Aggregate;
+import it.pagopa.selfcare.onboarding.model.AggregateUser;
+import it.pagopa.selfcare.onboarding.model.CsvAggregateAppIo;
+import it.pagopa.selfcare.onboarding.model.CsvAggregatePagoPa;
+import it.pagopa.selfcare.onboarding.model.CsvAggregateSend;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -21,6 +28,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 @Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class })
 public interface OnboardingMapper {
@@ -33,6 +45,7 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingPspRequest request);
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
+    @Mapping(target = "institution.gpuData", source = "gpuData")
     Onboarding toEntity(OnboardingDefaultRequest request);
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
