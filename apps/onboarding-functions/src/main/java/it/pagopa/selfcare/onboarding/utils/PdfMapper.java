@@ -100,19 +100,13 @@ public class PdfMapper {
 
   public static Map<String, Object> setUpAttachmentData(Onboarding onboarding) {
     Map<String, Object> map = new HashMap<>();
-    if (Objects.nonNull(onboarding.getInstitution().getPaymentServiceProvider())) {
+    if (Objects.nonNull(onboarding.getInstitution().getGpuData())) {
       map.put(
           "businessRegisterNumber",
-          onboarding.getInstitution().getPaymentServiceProvider().getBusinessRegisterNumber());
+          onboarding.getInstitution().getGpuData().getBusinessRegisterNumber());
       map.put(
-          "legalRegisterNumber",
-          onboarding.getInstitution().getPaymentServiceProvider().getLegalRegisterNumber());
-      map.put(
-          "legalRegisterName",
-          onboarding.getInstitution().getPaymentServiceProvider().getLegalRegisterName());
-    }
-
-    if (Objects.nonNull(onboarding.getInstitution().getGpuData())) {
+          "legalRegisterNumber", onboarding.getInstitution().getGpuData().getLegalRegisterNumber());
+      map.put("legalRegisterName", onboarding.getInstitution().getGpuData().getLegalRegisterName());
       map.put("manager", onboarding.getInstitution().getGpuData().isManager() ? "Si" : "No");
       map.put(
           "managerAuthorized",
