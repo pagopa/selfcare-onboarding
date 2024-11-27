@@ -1985,6 +1985,7 @@ components:
       - INSTITUTION
       - LEGALS
       - USER
+      - ATTACHMENT
       type: string
     UserOnboardingResponse:
       type: object

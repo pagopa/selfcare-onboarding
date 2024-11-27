@@ -2692,7 +2692,7 @@
         }
       },
       "TokenType" : {
-        "enum" : [ "INSTITUTION", "LEGALS", "USER" ],
+        "enum" : [ "INSTITUTION", "LEGALS", "USER", "ATTACHMENT" ],
         "type" : "string"
       },
       "UserOnboardingResponse" : {

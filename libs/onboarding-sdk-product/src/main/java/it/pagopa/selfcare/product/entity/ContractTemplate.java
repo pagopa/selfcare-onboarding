@@ -1,9 +1,20 @@
 package it.pagopa.selfcare.product.entity;
 
+import java.util.List;
+
 public class ContractTemplate {
 
   private String contractTemplatePath;
   private String contractTemplateVersion;
+  private List<AttachmentTemplate> attachments;
+
+  public List<AttachmentTemplate> getAttachments() {
+    return attachments;
+  }
+
+  public void setAttachments(List<AttachmentTemplate> attachments) {
+    this.attachments = attachments;
+  }
 
   public String getContractTemplatePath() {
     return contractTemplatePath;
