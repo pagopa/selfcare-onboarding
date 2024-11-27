@@ -2,9 +2,9 @@ package it.pagopa.selfcare.onboarding.entity;
 
 public class BusinessData {
 
-    String businessRegisterNumber;
-    String legalRegisterNumber;
-    String legalRegisterName;
+    private String businessRegisterNumber;
+    private String legalRegisterNumber;
+    private String legalRegisterName;
 
     public String getBusinessRegisterNumber() {
         return businessRegisterNumber;
