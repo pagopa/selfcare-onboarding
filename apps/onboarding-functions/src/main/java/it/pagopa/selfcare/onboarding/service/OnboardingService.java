@@ -146,8 +146,6 @@ public class OnboardingService {
 
     Onboarding onboarding = onboardingAttachment.getOnboarding();
 
-    //  if (checkTokenExist(onboarding)) return;
-
     Product product = productService.getProductIsValid(onboarding.getProductId());
 
     File contract = contractService.retrieveAttachment(onboardingAttachment, product.getTitle());
@@ -173,6 +171,7 @@ public class OnboardingService {
 
     // Persist token entity
     Token token = buildBaseToken(onboarding, digest);
+    token.setId(onboarding.getId());
     token.setContractTemplate(onboardingWorkflow.getContractTemplatePath(product));
     token.setContractVersion(onboardingWorkflow.getContractTemplateVersion(product));
     token.setContractFilename(
@@ -191,6 +190,7 @@ public class OnboardingService {
 
     // Persist token entity
     Token token = buildBaseToken(onboarding, digest);
+    token.setId(UUID.randomUUID().toString());
     token.setContractTemplate(attachmentTemplate.getTemplatePath());
     token.setContractVersion(attachmentTemplate.getTemplateVersion());
     token.setContractFilename(
@@ -204,7 +204,6 @@ public class OnboardingService {
   private Token buildBaseToken(Onboarding onboarding, String digest) {
     log.debug("creating Token for onboarding {} ...", onboarding.getId());
     Token token = new Token();
-    token.setId(UUID.randomUUID().toString());
     token.setOnboardingId(onboarding.getId());
     token.setCreatedAt(LocalDateTime.now());
     token.setUpdatedAt(LocalDateTime.now());
