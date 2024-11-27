@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
@@ -91,7 +90,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             "Institution with external id '%s' is not allowed to onboard '%s' product";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
             "Onboarding with id %s not found or already deleted";
-    private static final String GSP_CATEGORY_INSTITUTION_TYPE = "L37";
+    public static final String GSP_CATEGORY_INSTITUTION_TYPE = "L37";
     public static final String
             UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED =
             "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
@@ -414,8 +413,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                                         .onItem()
                                         .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(current -> setInstitutionTypeAndBillingData(current, forceImport))
                                         .onItem()
                                         .transformToUni(
                                                 current -> persistOnboarding(onboarding, userRequests, product, null))
@@ -1530,28 +1527,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .merge()
                 .collect()
                 .asList();
-    }
-
-    private Uni<Onboarding> setInstitutionTypeAndBillingData(Onboarding onboarding, boolean forceImport) {
-        if (Objects.nonNull(onboarding.getInstitution())
-                && !PSP.equals(onboarding.getInstitution().getInstitutionType())
-                && !forceImport) {
-            return institutionRegistryProxyApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
-                    .onItem()
-                    .invoke(proxyInstitution -> {
-                        if (Objects.nonNull(proxyInstitution)) {
-                            InstitutionType institutionType = proxyInstitution.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
-                            onboarding.getInstitution().setInstitutionType(institutionType);
-                            Billing billing = new Billing();
-                            billing.setVatNumber(proxyInstitution.getTaxCode());
-                            billing.setRecipientCode(proxyInstitution.getOriginId());
-                            onboarding.setBilling(billing);
-                        } else {
-                            onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
-                        }
-                    }).replaceWith(Uni.createFrom().item(onboarding));
-        }
-        return Uni.createFrom().item(onboarding);
     }
 
     private static Uni<Long> updateReasonForRejectAndUpdateStatus(

@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
@@ -30,8 +31,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
         super(onboarding, uoApi);
     }
 
-    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi) {
-        super(onboarding, uoApi, institutionApi);
+    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi, GeographicTaxonomiesApi geographicTaxonomiesApi) {
+        super(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
     }
 
     @Override
@@ -62,7 +63,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     }
 
     protected Uni<Void> checkRecipientCode() {
-        if (isInvoiceablePA(onboarding)) {
+        if (isInvoiceablePA(onboarding) && !onboarding.getInstitution().isImported()) {
             final String recipientCode = onboarding.getBilling().getRecipientCode();
             return getUoFromRecipientCode(recipientCode)
                     .onItem().transformToUni(this::validateRecipientCode)
