@@ -46,6 +46,7 @@ public interface OnboardingMapper {
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     @Mapping(target = "institution.gpuData", source = "gpuData")
+    @Mapping(target = "institution", source = "institution")
     Onboarding toEntity(OnboardingDefaultRequest request);
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
