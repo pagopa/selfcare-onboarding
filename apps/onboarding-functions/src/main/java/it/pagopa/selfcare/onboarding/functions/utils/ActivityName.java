@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.functions.utils;
 public class ActivityName {
 
   public static final String SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME = "SaveTokenWithContract";
+  public static final String BUILD_ATTACHMENTS_SAVE_TOKENS = "BuildAttachmentAndSaveTokens";
   public static final String SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME = "SaveTokenWithAttachment";
   public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
   public static final String BUILD_ATTACHMENT_ACTIVITY_NAME = "BuildAttachment";
