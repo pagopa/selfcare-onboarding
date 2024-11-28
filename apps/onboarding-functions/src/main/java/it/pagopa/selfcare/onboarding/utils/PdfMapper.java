@@ -106,9 +106,12 @@ public class PdfMapper {
           Optional.ofNullable(onboarding.getInstitution().getGpuData().getBusinessRegisterNumber())
               .orElse(UNDERSCORE));
       map.put(
-          "legalRegisterNumber",  Optional.ofNullable(onboarding.getInstitution().getGpuData().getLegalRegisterNumber())
-                      .orElse(UNDERSCORE));
-      map.put("legalRegisterName", Optional.ofNullable(onboarding.getInstitution().getGpuData().getLegalRegisterName())
+          "legalRegisterNumber",
+          Optional.ofNullable(onboarding.getInstitution().getGpuData().getLegalRegisterNumber())
+              .orElse(UNDERSCORE));
+      map.put(
+          "legalRegisterName",
+          Optional.ofNullable(onboarding.getInstitution().getGpuData().getLegalRegisterName())
               .orElse(UNDERSCORE));
       map.put("manager", onboarding.getInstitution().getGpuData().isManager() ? "Si" : "No");
       map.put(
