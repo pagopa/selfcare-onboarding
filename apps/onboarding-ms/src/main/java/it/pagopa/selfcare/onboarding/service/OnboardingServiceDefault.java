@@ -593,6 +593,10 @@ public class OnboardingServiceDefault implements OnboardingService {
             return WorkflowType.CONFIRMATION;
         }
 
+        if (InstitutionType.GPU.equals(institutionType)) {
+            return WorkflowType.FOR_APPROVE_GPU;
+        }
+
         return WorkflowType.FOR_APPROVE;
     }
 
