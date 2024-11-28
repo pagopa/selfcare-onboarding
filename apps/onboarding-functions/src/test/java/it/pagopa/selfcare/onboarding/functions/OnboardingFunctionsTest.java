@@ -1160,7 +1160,7 @@ class OnboardingFunctionsTest {
     assertEquals(SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY, captorActivity.getAllValues().get(0));
 
     Mockito.verify(orchestrationContext, times(1))
-            .callSubOrchestrator(eq(BUILD_ATTACHMENTS_SAVE_TOKENS), any(), any());
+            .callSubOrchestrator(eq(BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY), any(), any());
 
     verify(service, times(1))
             .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.TOBEVALIDATED);

@@ -295,7 +295,7 @@ public class OnboardingFunctions {
    * for invoking the activity function "BuildAttachment" and "saveTokenAttachment" until there are
    * no more attachment to process.
    */
-  @FunctionName(BUILD_ATTACHMENTS_SAVE_TOKENS)
+  @FunctionName(BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY)
   public void buildAttachmentAndSaveToken(
       @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
       ExecutionContext functionContext)
