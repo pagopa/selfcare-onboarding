@@ -201,6 +201,8 @@ public class OnboardingFunctions {
             workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
         case FOR_APPROVE_PT ->
             workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
+        case FOR_APPROVE_GPU ->
+            workflowExecutor = new WorkflowExecutorForApproveGpu(objectMapper, optionsRetry);
         case CONFIRMATION ->
             workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
         case CONFIRMATION_AGGREGATE ->
@@ -254,7 +256,7 @@ public class OnboardingFunctions {
   }
 
   /** This HTTP-triggered function invokes an orchestration to build attachments and save tokens */
-  @FunctionName("BuildAttachmentsAndSaveTokens")
+  @FunctionName("TriggerBuildAttachmentsAndSaveTokens")
   public HttpResponseMessage buildAttachmentsAndSaveTokens(
       @HttpTrigger(
               name = "req",
@@ -293,7 +295,7 @@ public class OnboardingFunctions {
    * for invoking the activity function "BuildAttachment" and "saveTokenAttachment" until there are
    * no more attachment to process.
    */
-  @FunctionName("BuildAttachmentAndSaveToken")
+  @FunctionName(BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY)
   public void buildAttachmentAndSaveToken(
       @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
       ExecutionContext functionContext)

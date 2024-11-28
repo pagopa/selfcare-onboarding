@@ -32,6 +32,7 @@ public class ActivityName {
   public static final String EXISTS_DELEGATION_ACTIVITY = "ExistsDelegationActivity";
   public static final String DELETE_MANAGERS_BY_IC_AND_ADE = "DeleteManagersByIcAndAde";
   public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
+  public static final String BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY = "BuildAttachmentAndSaveTokens";
 
   private ActivityName() {}
 }
