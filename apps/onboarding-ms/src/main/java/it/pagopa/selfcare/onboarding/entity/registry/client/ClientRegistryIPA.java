@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
@@ -21,6 +22,7 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
     protected InstitutionApi institutionApi;
     protected final UoApi uoClient;
     protected AooApi aooClient;
+    protected GeographicTaxonomiesApi geographicTaxonomiesApi;
     protected String originIdEC;
     protected String resourceTaxCode;
 
@@ -35,10 +37,11 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
         this.uoClient = uoApi;
     }
 
-    protected ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi) {
+    protected ClientRegistryIPA(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi, GeographicTaxonomiesApi geographicTaxonomiesApi) {
         super(onboarding);
         this.uoClient = uoApi;
         this.institutionApi = institutionApi;
+        this.geographicTaxonomiesApi = geographicTaxonomiesApi;
     }
 
     public IPAEntity retrieveInstitution() {

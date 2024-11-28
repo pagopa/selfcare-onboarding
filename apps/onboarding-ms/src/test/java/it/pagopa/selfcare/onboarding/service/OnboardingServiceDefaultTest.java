@@ -147,6 +147,10 @@ class OnboardingServiceDefaultTest {
     OrchestrationApi orchestrationApi;
 
     @InjectMock
+    @RestClient
+    GeographicTaxonomiesApi geographicTaxonomiesApi;
+
+    @InjectMock
     OnboardingValidationStrategy onboardingValidationStrategy;
 
     @Spy
@@ -1905,6 +1909,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setOrigin(Origin.IPA);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setImported(true);
         institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
         institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         request.setInstitution(institutionBaseRequest);
@@ -1935,8 +1940,16 @@ class OnboardingServiceDefaultTest {
         institutionResource.setCategory("L37");
         institutionResource.setDescription(DESCRIPTION_FIELD);
         institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
         asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported, false), Assertions::assertNotNull);
 

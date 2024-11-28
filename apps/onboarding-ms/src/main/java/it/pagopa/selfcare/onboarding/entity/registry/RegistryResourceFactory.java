@@ -34,6 +34,8 @@ public class RegistryResourceFactory {
 
   @RestClient @Inject StationsApi stationsApi;
 
+  @RestClient @Inject GeographicTaxonomiesApi geographicTaxonomiesApi;
+
   public RegistryManager<?> create(Onboarding onboarding) {
     return switch (onboarding.getInstitution().getOrigin() != null
         ? onboarding.getInstitution().getOrigin()
@@ -69,6 +71,6 @@ public class RegistryResourceFactory {
     if (GSP.equals(onboarding.getInstitution().getInstitutionType())) {
       new RegistryManagerIPAGps(onboarding, uoApi);
     }
-    return new RegistryManagerIPA(onboarding, uoApi, institutionApi);
+    return new RegistryManagerIPA(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
   }
 }
