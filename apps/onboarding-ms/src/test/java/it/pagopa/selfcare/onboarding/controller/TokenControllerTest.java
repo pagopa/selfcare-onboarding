@@ -62,7 +62,35 @@ class TokenControllerTest {
                 .get("/{onboardingId}/contract", onboardingId)
                 .then()
                 .statusCode(200);
+    }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getAttachment() {
+        final String onboardingId = "onboardingId";
+        final String filename = "filename";
+        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
+        when(tokenService.retrieveAttachment(onboardingId, filename))
+                .thenReturn(Uni.createFrom().item(response.build()));
 
+        given()
+                .when()
+                .queryParam("attachmentName", filename)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .get("/{onboardingId}/attachment", onboardingId)
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getAttachmentBadRequest() {
+        final String onboardingId = "onboardingId";
+        given()
+                .when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .get("/{onboardingId}/attachment", onboardingId)
+                .then()
+                .statusCode(400);
     }
 }

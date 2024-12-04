@@ -19,6 +19,7 @@ public class Token extends ReactivePanacheMongoEntityBase {
     private TokenType type;
     private String onboardingId;
     private String productId;
+    private String name;
     private String checksum;
     private String contractVersion;
     private String contractTemplate;

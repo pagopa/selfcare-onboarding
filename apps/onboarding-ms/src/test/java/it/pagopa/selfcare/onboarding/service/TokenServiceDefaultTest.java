@@ -9,6 +9,7 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import jakarta.inject.Inject;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -61,6 +62,30 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
         UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContractNotSigned(onboardingId)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        RestResponse<File> actual = subscriber.awaitItem().getItem();
+        Assertions.assertNotNull(actual);
+        Assertions.assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+    }
+
+    @Test
+    void retrieveAttachment() {
+        final String onboardingId = "onboardingId";
+        final String filename = "filename";
+        Token token = new Token();
+        token.setContractFilename(filename);
+        token.setName(filename);
+        ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+        when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
+
+        PanacheMock.mock(Token.class);
+        when(Token.find("onboardingId", onboardingId, "type", TokenType.ATTACHMENT.name(), "name", filename))
+        .thenReturn(queryPage);
+
+        when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+
+        UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveAttachment(onboardingId, filename)
                 .subscribe().withSubscriber(UniAssertSubscriber.create());
 
         RestResponse<File> actual = subscriber.awaitItem().getItem();
