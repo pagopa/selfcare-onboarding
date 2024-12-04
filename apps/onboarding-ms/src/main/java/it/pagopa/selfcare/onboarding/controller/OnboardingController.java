@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.util.Utils.parseOnboardingRequest;
 import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
@@ -169,26 +170,58 @@ public class OnboardingController {
     )
     @Path("/completion")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
-        return readUserIdFromToken(ctx)
-                .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    public Uni<OnboardingResponse> onboardingCompletion(
+            @NotNull @RestForm("contract") File file,
+            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @Context ResteasyReactiveRequestContext ctx,
+            @Context SecurityContext securityContext) {
+
+        return readUserIdFromToken(securityContext)
+                .onItem()
+                .transformToUni(
+                        userId -> {
+                            // Parse JSON into OnboardingDefaultRequest
+                            OnboardingDefaultRequest onboardingRequest =
+                                    parseOnboardingRequest(onboardingRequestJson, OnboardingDefaultRequest.class);
+
+                            // Call the onboarding service
+                            return onboardingService.onboardingCompletion(
+                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                    onboardingRequest.getUsers(),
+                                    retrieveContractFromFormData(ctx.getFormData(), file));
+                        });
     }
 
     @Operation(
             summary = "Complete PA onboarding request and set status to COMPLETED.",
-            description = "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase."
-    )
+            description =
+                    "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
     @POST
     @Path("/pa/completion")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
-        return readUserIdFromToken(ctx)
-                .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    public Uni<OnboardingResponse> onboardingPaCompletion(
+            @NotNull @RestForm("contract") File file,
+            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @Context ResteasyReactiveRequestContext ctx,
+            @Context SecurityContext securityContext) {
+
+        return readUserIdFromToken(securityContext)
+                .onItem()
+                .transformToUni(
+                        userId -> {
+                            // Parse JSON into OnboardingDefaultRequest
+                            OnboardingPaRequest onboardingRequest =
+                                    parseOnboardingRequest(onboardingRequestJson, OnboardingPaRequest.class);
+
+                            // Call the onboarding service
+                            return onboardingService.onboardingCompletion(
+                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                    onboardingRequest.getUsers(),
+                                    retrieveContractFromFormData(ctx.getFormData(), file));
+                        });
     }
 
     @Operation(
@@ -221,16 +254,32 @@ public class OnboardingController {
 
     @Operation(
             summary = "Complete PSP onboarding request and set status to COMPLETED.",
-            description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase."
-    )
+            description =
+                    "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
     @POST
     @Path("/psp/completion")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
-        return readUserIdFromToken(ctx)
-                .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+    public Uni<OnboardingResponse> onboardingPspCompletion(
+            @NotNull @RestForm("contract") File file,
+            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @Context ResteasyReactiveRequestContext ctx,
+            @Context SecurityContext securityContext) {
+
+        return readUserIdFromToken(securityContext)
+                .onItem()
+                .transformToUni(
+                        userId -> {
+                            // Parse JSON into OnboardingDefaultRequest
+                            OnboardingPspRequest onboardingRequest =
+                                    parseOnboardingRequest(onboardingRequestJson, OnboardingPspRequest.class);
+
+                            // Call the onboarding service
+                            return onboardingService.onboardingCompletion(
+                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                    onboardingRequest.getUsers(),
+                                    retrieveContractFromFormData(ctx.getFormData(), file));
+                        });
     }
 
     @Operation(
@@ -246,7 +295,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
 
     @Operation(

@@ -1,11 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
-
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -49,14 +46,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -74,9 +63,28 @@ import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalDto;
+import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.onboarding.util.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -100,6 +108,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
+    protected static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
 
     @RestClient
     @Inject
@@ -204,7 +213,8 @@ public class OnboardingServiceDefault implements OnboardingService {
      * As onboarding but it is specific for USERS workflow
      */
     @Override
-    public Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest request, String userId, WorkflowType workflowType) {
+    public Uni<OnboardingResponse> onboardingUsers(
+            OnboardingUserRequest request, String userId, WorkflowType workflowType) {
         return getInstitutionFromUserRequest(request)
                 .onItem()
                 .transform(response -> institutionMapper.toEntity(response))
@@ -229,12 +239,12 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     @Override
     public Uni<OnboardingResponse> onboardingCompletion(
-            Onboarding onboarding, List<UserRequest> userRequests) {
+            Onboarding onboarding, List<UserRequest> userRequests, FormItem formItem) {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboarding(
-                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+        return fillUsersAndOnboardingCompletion(
+                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false, formItem);
     }
 
     @Override
@@ -273,6 +283,29 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<AggregateInstitutionRequest> aggregates,
             String timeout,
             boolean isAggregatesIncrement) {
+        return processOnboarding(
+                onboarding, userRequests, aggregates, timeout, isAggregatesIncrement, null);
+    }
+
+    private Uni<OnboardingResponse> fillUsersAndOnboardingCompletion(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates,
+            String timeout,
+            boolean isAggregatesIncrement,
+            FormItem formItem) {
+        return processOnboarding(
+                onboarding, userRequests, aggregates, timeout, isAggregatesIncrement, formItem);
+    }
+
+    private Uni<OnboardingResponse> processOnboarding(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates,
+            String timeout,
+            boolean isAggregatesIncrement,
+            FormItem formItem) {
+
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -303,13 +336,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 .onItem()
                                                                 .transformToUni(
                                                                         ignored -> registryManager.customValidation(product)))
-                                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
                                         .onItem()
                                         .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                                         .onItem()
                                         .transformToUni(
                                                 current -> persistOnboarding(onboarding, userRequests, product, aggregates))
-                                        /* Update onboarding data with users and start orchestration */
+                                        .onItem()
+                                        .transformToUni(
+                                                persistedOnboarding ->
+                                                        Optional.ofNullable(formItem)
+                                                                .map(item ->
+                                                                        uploadSignedContractAndUpdateToken(persistedOnboarding, item)
+                                                                                .map(ignore -> persistedOnboarding))
+                                                                .orElse(Uni.createFrom().item(persistedOnboarding)))
                                         .onItem()
                                         .transformToUni(
                                                 currentOnboarding ->
@@ -653,7 +692,6 @@ public class OnboardingServiceDefault implements OnboardingService {
         Log.infof(
                 "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
                 taxCode, subunitCode, productId);
-
         if (!onboardingValidationStrategy.validate(productId, taxCode)) {
             return Uni.createFrom()
                     .failure(
@@ -661,7 +699,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
                                     DEFAULT_ERROR.getCode()));
         }
-
         return Uni.createFrom().item(Boolean.TRUE);
     }
 
@@ -1157,8 +1194,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(
                         onboarding ->
-                                uploadSignedContractAndUpdateToken(onboardingId, formItem)
-                                        .map(ignore -> onboarding))
+                                uploadSignedContractAndUpdateToken(onboarding, formItem).map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem()
                 .transformToUni(
@@ -1193,8 +1229,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(
                         onboarding ->
-                                uploadSignedContractAndUpdateToken(onboardingId, formItem)
-                                        .map(ignore -> onboarding))
+                                uploadSignedContractAndUpdateToken(onboarding, formItem).map(ignore -> onboarding))
                 // Start async activity if onboardingOrchestrationEnabled is true
                 .onItem()
                 .transformToUni(
@@ -1206,47 +1241,91 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         : Uni.createFrom().item(onboarding));
     }
 
-    private Uni<String> uploadSignedContractAndUpdateToken(String onboardingId, FormItem formItem) {
-        return retrieveToken(onboardingId)
-                .onItem()
-                .transformToUni(
-                        token ->
-                                Uni.createFrom()
-                                        .item(
-                                                Unchecked.supplier(
-                                                        () -> {
-                                                            final String path =
-                                                                    String.format("%s%s", pathContracts, onboardingId);
-                                                            final String signedContractExtension =
-                                                                    getFileExtension(formItem.getFileName());
-                                                            final String persistedContractFileName =
-                                                                    Optional.ofNullable(token.getContractFilename())
-                                                                            .orElse(onboardingId);
-                                                            final String signedContractFileName =
-                                                                    replaceFileExtension(
-                                                                            persistedContractFileName, signedContractExtension);
-                                                            final String filename =
-                                                                    String.format("signed_%s", signedContractFileName);
+    private Uni<String> uploadSignedContractAndUpdateToken(Onboarding onboarding, FormItem formItem) {
+        String onboardingId = onboarding.getId();
 
-                                                            try {
-                                                                return azureBlobClient.uploadFile(
-                                                                        path,
-                                                                        filename,
-                                                                        Files.readAllBytes(formItem.getFile().toPath()));
-                                                            } catch (IOException e) {
-                                                                throw new OnboardingNotAllowedException(
-                                                                        GENERIC_ERROR.getCode(),
-                                                                        "Error on upload contract for onboarding with id "
-                                                                                + onboardingId);
-                                                            }
-                                                        }))
-                                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                                        .onItem()
-                                        .transformToUni(
-                                                filepath ->
-                                                        Token.update("contractSigned", filepath)
-                                                                .where("_id", token.getId())
-                                                                .replaceWith(filepath)));
+        return retrieveToken(onboardingId)
+                .onFailure()
+                .recoverWithUni(() -> createToken(onboarding, onboardingId, formItem))
+                .onItem()
+                .call(this::persistToken)
+                .onItem()
+                .transformToUni(token -> processAndUploadFile(token, onboardingId, formItem));
+    }
+
+    private Uni<Token> createToken(Onboarding onboarding, String onboardingId, FormItem formItem) {
+        return Uni.createFrom()
+                .item(() -> createToken(onboarding, new Token(), onboardingId, formItem.getFile()));
+    }
+
+    private Uni<Void> persistToken(Token tokenPersisted) {
+        return Panache.withTransaction(() -> Token.persist(tokenPersisted));
+    }
+
+    private Uni<String> processAndUploadFile(Token token, String onboardingId, FormItem formItem) {
+        return Uni.createFrom()
+                .item(Unchecked.supplier(() -> uploadFileToAzure(token, onboardingId, formItem)))
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                .onItem()
+                .transformToUni(filepath -> updateTokenWithFilePath(filepath, token));
+    }
+
+    private String uploadFileToAzure(Token token, String onboardingId, FormItem formItem)
+            throws OnboardingNotAllowedException {
+        final String path = String.format("%s%s", pathContracts, onboardingId);
+        final String signedContractExtension = getFileExtension(formItem.getFileName());
+        final String persistedContractFileName =
+                Optional.ofNullable(token.getContractFilename()).orElse(onboardingId);
+        final String signedContractFileName =
+                replaceFileExtension(persistedContractFileName, signedContractExtension);
+        final String filename = String.format("signed_%s", signedContractFileName);
+
+        try {
+            return azureBlobClient.uploadFile(
+                    path, filename, Files.readAllBytes(formItem.getFile().toPath()));
+        } catch (IOException e) {
+            throw new OnboardingNotAllowedException(
+                    GENERIC_ERROR.getCode(),
+                    "Error on upload contract for onboarding with id " + onboardingId);
+        }
+    }
+
+    private Uni<String> updateTokenWithFilePath(String filepath, Token token) {
+        return Token.update("contractSigned", filepath)
+                .where("_id", token.getId())
+                .replaceWith(filepath);
+    }
+
+    private Token createToken(Onboarding onboarding, Token token, String onboardingId, File file) {
+        Product product = productService.getProduct(onboarding.getProductId());
+        final String filename = CONTRACT_FILENAME_FUNC.apply(PDF_FORMAT_FILENAME, product.getTitle());
+        DSSDocument document = new FileDocument(file);
+        String digest = document.getDigest(DigestAlgorithm.SHA256);
+        token.setCreatedAt(LocalDateTime.now());
+        token.setOnboardingId(onboardingId);
+        token.setId(onboardingId);
+        token.setProductId(onboarding.getProductId());
+        token.setUpdatedAt(LocalDateTime.now());
+        token.setActivatedAt(LocalDateTime.now());
+        token.setContractFilename(filename);
+        token.setContractTemplate(getContractTemplatePath(product, onboarding));
+        token.setContractVersion(getContractTemplateVersion(product, onboarding));
+        token.setChecksum(digest);
+        token.setType(TokenType.INSTITUTION);
+        Panache.withTransaction(() -> Token.persist(token));
+        return token;
+    }
+
+    private String getContractTemplatePath(Product product, Onboarding onboarding) {
+        return product
+                .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+                .getContractTemplatePath();
+    }
+
+    private String getContractTemplateVersion(Product product, Onboarding onboarding) {
+        return product
+                .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+                .getContractTemplateVersion();
     }
 
     private String getFileExtension(String name) {
