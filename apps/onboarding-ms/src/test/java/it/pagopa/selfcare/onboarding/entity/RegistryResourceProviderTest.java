@@ -98,7 +98,7 @@ class RegistryResourceProviderTest {
     @Test
     void getRegistryADE() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ADE));
-        assertTrue(registryManager instanceof RegistryManagerADETest);
+        assertTrue(registryManager instanceof RegistryManagerADE);
     }
 
 }
