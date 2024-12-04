@@ -25,7 +25,7 @@ public class RegistryManagerADE extends ClientRegistryADE {
   @Override
   public Uni<Boolean> isValid() {
     Boolean result = super.registryResource;
-    if (Objects.isNull(result) || !result) {
+    if (Boolean.FALSE.equals(result)) {
       return Uni.createFrom()
           .failure(
               new InvalidRequestException(
