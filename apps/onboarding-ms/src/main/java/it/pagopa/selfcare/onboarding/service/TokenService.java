@@ -8,7 +8,10 @@ import java.io.File;
 import java.util.List;
 
 public interface TokenService {
+
     Uni<List<Token>> getToken(String onboardingId);
 
     Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId);
+
+    Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName);
 }

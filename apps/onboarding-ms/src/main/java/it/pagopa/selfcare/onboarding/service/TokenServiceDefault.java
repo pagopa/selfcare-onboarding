@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,6 +12,8 @@ import org.jboss.resteasy.reactive.RestResponse;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Executors;
+
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
@@ -42,5 +45,20 @@ public class TokenServiceDefault implements TokenService {
                                         response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
                                         return response.build();
                                     }));
+    }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
+        return Token.find("onboardingId", onboardingId, "type", ATTACHMENT.name(), "name", attachmentName)
+                .firstResult()
+                .map(Token.class::cast)
+                .onItem().transformToUni(token ->
+                        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
+                                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                                .onItem().transform(contract -> {
+                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+                                    response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
+                                    return response.build();
+                                }));
     }
 }
