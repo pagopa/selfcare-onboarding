@@ -340,6 +340,7 @@ class OnboardingServiceTest {
     ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
     Mockito.verify(tokenRepository, Mockito.times(1)).persist(tokenArgumentCaptor.capture());
     assertEquals(onboarding.getProductId(), tokenArgumentCaptor.getValue().getProductId());
+    assertEquals(attachmentTemplate.getName(), tokenArgumentCaptor.getValue().getName());
     assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
   }
 
