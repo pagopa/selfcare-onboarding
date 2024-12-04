@@ -43,7 +43,7 @@ public class RegistryResourceFactory {
       case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
       case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
       case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
-      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi);
+      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi, userApi);
       case ADE -> new RegistryManagerADE(onboarding, nationalRegistriesApi, userApi);
       case IPA -> getResourceFromIPA(onboarding);
       default -> getRegistryManagerSELC(onboarding);
