@@ -57,7 +57,7 @@ public class TokenController {
     }
 
     @Operation(
-            summary = "Retrieve attachment for a given onboarding and name",
+            summary = "Retrieve attachment for a given onboarding and filename",
             description = "Downloads the attachment file associated with the specified onboarding ID and filename."
     )
     @GET
