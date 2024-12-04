@@ -8,8 +8,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 
-import java.util.Objects;
-
 public class RegistryManagerADE extends ClientRegistryADE {
 
   public RegistryManagerADE(
