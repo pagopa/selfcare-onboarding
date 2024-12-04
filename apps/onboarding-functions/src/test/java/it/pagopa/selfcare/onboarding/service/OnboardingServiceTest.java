@@ -251,15 +251,6 @@ class OnboardingServiceTest {
     return attachmentTemplate;
   }
 
-  private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
-    Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-    ContractTemplate conctractTemplate = new ContractTemplate();
-    conctractTemplate.setContractTemplatePath("example");
-    conctractTemplate.setContractTemplateVersion("version");
-    institutionTemplate.put("default", conctractTemplate);
-    return institutionTemplate;
-  }
-
   @Test
   void saveToken_shouldSkipIfTokenExists() {
     OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
