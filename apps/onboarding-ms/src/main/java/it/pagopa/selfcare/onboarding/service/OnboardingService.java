@@ -20,15 +20,27 @@ import java.util.List;
 
 public interface OnboardingService {
 
-    Uni<OnboardingResponse> onboarding(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
+    Uni<OnboardingResponse> onboarding(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates);
 
-    Uni<OnboardingResponse> onboardingUsers(OnboardingUserRequest onboardingUserRequest, String userId, WorkflowType workflowType);
+    Uni<OnboardingResponse> onboardingUsers(
+            OnboardingUserRequest onboardingUserRequest, String userId, WorkflowType workflowType);
 
-    Uni<OnboardingResponse> onboardingImport(Onboarding onboarding, List<UserRequest> userRequests, OnboardingImportContract contractImported, boolean forceImport);
+    Uni<OnboardingResponse> onboardingImport(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            OnboardingImportContract contractImported,
+            boolean forceImport);
 
-    Uni<OnboardingResponse> onboardingCompletion(Onboarding onboarding, List<UserRequest> userRequests);
+    Uni<OnboardingResponse> onboardingCompletion(
+            Onboarding onboarding, List<UserRequest> userRequests, FormItem formItem);
 
-    Uni<OnboardingResponse> onboardingAggregationCompletion(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
+    Uni<OnboardingResponse> onboardingAggregationCompletion(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests);
 
@@ -46,9 +58,16 @@ public interface OnboardingService {
 
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 
-    Uni<List<OnboardingResponse>> institutionOnboardings(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
+    Uni<List<OnboardingResponse>> institutionOnboardings(
+            String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
 
-    Uni<List<OnboardingResponse>> verifyOnboarding(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId);
+    Uni<List<OnboardingResponse>> verifyOnboarding(
+            String taxCode,
+            String subunitCode,
+            String origin,
+            String originId,
+            OnboardingStatus status,
+            String productId);
 
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
@@ -60,6 +79,8 @@ public interface OnboardingService {
 
     Uni<CustomError> checkRecipientCode(String recipientCode, String originId);
 
-    Uni<OnboardingResponse> onboardingIncrement(Onboarding onboarding, List<UserRequest> userRequests, List<AggregateInstitutionRequest> aggregates);
-
+    Uni<OnboardingResponse> onboardingIncrement(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates);
 }

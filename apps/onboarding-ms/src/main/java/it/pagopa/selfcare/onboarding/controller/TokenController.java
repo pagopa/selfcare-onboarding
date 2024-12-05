@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import lombok.AllArgsConstructor;
@@ -53,5 +54,17 @@ public class TokenController {
     @Path("/{onboardingId}/contract")
     public Uni<RestResponse<File>> getContract(@PathParam(value = "onboardingId") String onboardingId){
         return tokenService.retrieveContractNotSigned(onboardingId);
+    }
+
+    @Operation(
+            summary = "Retrieve attachment for a given onboarding and filename",
+            description = "Downloads the attachment file associated with the specified onboarding ID and filename."
+    )
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("/{onboardingId}/attachment")
+    public Uni<RestResponse<File>> getAttachment(@PathParam(value = "onboardingId") String onboardingId,
+                                                 @NotNull @QueryParam(value = "name") String attachmentName){
+        return tokenService.retrieveAttachment(onboardingId, attachmentName);
     }
 }
