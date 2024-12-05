@@ -105,7 +105,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "65";
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";

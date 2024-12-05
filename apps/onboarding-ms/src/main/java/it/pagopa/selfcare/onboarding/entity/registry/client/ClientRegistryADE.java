@@ -3,9 +3,7 @@ package it.pagopa.selfcare.onboarding.entity.registry.client;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.entity.registry.BaseRegistryManager;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
@@ -48,14 +46,8 @@ public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
   }
 
   private String getManagerTaxCode() {
-    final String managerId =
-        onboarding.getUsers().stream()
-            .filter(user -> user.getRole().equals(PartyRole.MANAGER))
-            .map(User::getId)
-            .findFirst()
-            .orElse(null);
     return userApi
-        .findByIdUsingGET(USERS_FIELD_LIST, managerId)
+        .findByIdUsingGET(USERS_FIELD_LIST, getManagerIdFromOnboarding())
         .await()
             .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS))
             .getFiscalCode();

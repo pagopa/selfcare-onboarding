@@ -3,13 +3,15 @@ package it.pagopa.selfcare.onboarding.entity.registry;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryADE;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 public class RegistryManagerADE extends ClientRegistryADE {
 
-  public RegistryManagerADE(Onboarding onboarding, NationalRegistriesApi nationalRegistriesApi, UserApi userApi) {
+  public RegistryManagerADE(
+      Onboarding onboarding, NationalRegistriesApi nationalRegistriesApi, UserApi userApi) {
     super(onboarding, nationalRegistriesApi, userApi);
   }
 
@@ -20,7 +22,15 @@ public class RegistryManagerADE extends ClientRegistryADE {
 
   @Override
   public Uni<Boolean> isValid() {
+    Boolean result = super.registryResource;
+    if (Boolean.FALSE.equals(result)) {
+      return Uni.createFrom()
+          .failure(
+              new InvalidRequestException(
+                  String.format(
+                      PNPG_INSTITUTION_REGISTRY_NOT_FOUND,
+                      onboarding.getInstitution().getTaxCode())));
+    }
     return Uni.createFrom().item(true);
   }
-
 }
