@@ -1261,7 +1261,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Token> createToken(Onboarding onboarding, String onboardingId, FormItem formItem) {
         return Uni.createFrom()
-                .item(() -> createToken(onboarding, new Token(), onboardingId, formItem.getFile()));
+                .item(() -> createToken(onboarding, onboardingId, formItem.getFile()));
     }
 
     private Uni<Void> persistToken(Token tokenPersisted) {
@@ -1302,11 +1302,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(filepath);
     }
 
-    private Token createToken(Onboarding onboarding, Token token, String onboardingId, File file) {
+    private Token createToken(Onboarding onboarding, String onboardingId, File file) {
         Product product = productService.getProduct(onboarding.getProductId());
         final String filename = CONTRACT_FILENAME_FUNC.apply(PDF_FORMAT_FILENAME, product.getTitle());
         DSSDocument document = new FileDocument(file);
         String digest = document.getDigest(DigestAlgorithm.SHA256);
+        Token token = new Token();
         token.setCreatedAt(LocalDateTime.now());
         token.setOnboardingId(onboardingId);
         token.setId(onboardingId);
@@ -1318,7 +1319,6 @@ public class OnboardingServiceDefault implements OnboardingService {
         token.setContractVersion(getContractTemplateVersion(product, onboarding));
         token.setChecksum(digest);
         token.setType(TokenType.INSTITUTION);
-        Panache.withTransaction(() -> Token.persist(token));
         return token;
     }
 

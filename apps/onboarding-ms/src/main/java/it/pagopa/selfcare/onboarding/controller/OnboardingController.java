@@ -212,7 +212,7 @@ public class OnboardingController {
                 .onItem()
                 .transformToUni(
                         userId -> {
-                            // Parse JSON into OnboardingDefaultRequest
+                            // Parse JSON into OnboardingPaRequest
                             OnboardingPaRequest onboardingRequest =
                                     parseOnboardingRequest(onboardingRequestJson, OnboardingPaRequest.class);
 
@@ -270,7 +270,7 @@ public class OnboardingController {
                 .onItem()
                 .transformToUni(
                         userId -> {
-                            // Parse JSON into OnboardingDefaultRequest
+                            // Parse JSON into OnboardingPspRequest
                             OnboardingPspRequest onboardingRequest =
                                     parseOnboardingRequest(onboardingRequestJson, OnboardingPspRequest.class);
 
