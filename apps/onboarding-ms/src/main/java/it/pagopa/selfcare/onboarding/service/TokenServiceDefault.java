@@ -47,11 +47,11 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
-        return Token.find("onboardingId", onboardingId, "type", ATTACHMENT.name(), "name", attachmentName)
+        return Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), attachmentName)
                 .firstResult()
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
-                        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(getAttachmentByOnboarding(onboardingId, token.getName())))
+                        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(getAttachmentByOnboarding(onboardingId, token.getContractFilename())))
                                 .runSubscriptionOn(Executors.newSingleThreadExecutor())
                                 .onItem().transform(contract -> {
                                     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);

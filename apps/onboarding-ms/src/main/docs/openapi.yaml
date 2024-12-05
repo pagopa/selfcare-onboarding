@@ -1127,7 +1127,7 @@ paths:
     get:
       tags:
       - Token Controller
-      summary: Retrieve attachment for a given onboarding and name
+      summary: Retrieve attachment for a given onboarding and filename
       description: Downloads the attachment file associated with the specified onboarding
         ID and filename.
       operationId: getAttachment
@@ -1137,7 +1137,7 @@ paths:
         required: true
         schema:
           type: string
-      - name: attachmentName
+      - name: name
         in: query
         required: true
         schema:

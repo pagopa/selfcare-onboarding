@@ -75,7 +75,7 @@ class TokenControllerTest {
 
         given()
                 .when()
-                .queryParam("attachmentName", filename)
+                .queryParam("name", filename)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .get("/{onboardingId}/attachment", onboardingId)
                 .then()

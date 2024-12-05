@@ -1534,7 +1534,7 @@
     "/v1/tokens/{onboardingId}/attachment" : {
       "get" : {
         "tags" : [ "Token Controller" ],
-        "summary" : "Retrieve attachment for a given onboarding and name",
+        "summary" : "Retrieve attachment for a given onboarding and filename",
         "description" : "Downloads the attachment file associated with the specified onboarding ID and filename.",
         "operationId" : "getAttachment",
         "parameters" : [ {
@@ -1545,7 +1545,7 @@
             "type" : "string"
           }
         }, {
-          "name" : "attachmentName",
+          "name" : "name",
           "in" : "query",
           "required" : true,
           "schema" : {

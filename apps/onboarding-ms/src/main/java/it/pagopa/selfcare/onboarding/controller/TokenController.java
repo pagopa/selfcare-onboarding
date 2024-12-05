@@ -64,7 +64,7 @@ public class TokenController {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/attachment")
     public Uni<RestResponse<File>> getAttachment(@PathParam(value = "onboardingId") String onboardingId,
-                                                 @NotNull @QueryParam(value = "attachmentName") String attachmentName){
+                                                 @NotNull @QueryParam(value = "name") String attachmentName){
         return tokenService.retrieveAttachment(onboardingId, attachmentName);
     }
 }
