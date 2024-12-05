@@ -230,7 +230,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             return onboarding;
                         })
                 .onItem()
-                .transformToUni(onboarding -> fillUsers(onboarding, request.getUsers(), null));
+                .transformToUni(onboarding -> verifyExistingOnboarding(onboarding, request.getUsers(), null));
     }
 
     /**
@@ -287,7 +287,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
-        return fillUsers(onboarding, isAggregatesIncrement)
+        return verifyExistingOnboarding(onboarding, isAggregatesIncrement)
                 .onItem()
                 .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product, null));
     }
@@ -300,12 +300,12 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
-        return fillUsers(onboarding, false)
+        return verifyExistingOnboarding(onboarding, false)
                 .onItem()
                 .transformToUni(product -> handleOnboarding(onboarding, userRequests, null, timeout, product, formItem));
     }
 
-    private Uni<Product> fillUsers(Onboarding onboarding, boolean isAggregatesIncrement) {
+    private Uni<Product> verifyExistingOnboarding(Onboarding onboarding, boolean isAggregatesIncrement) {
         return getProductByOnboarding(onboarding)
                 .onItem()
                 .transformToUni(
@@ -390,7 +390,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      *                response is delivered synchronously. If is null the timeout is default 1 sec and the
      *                response is delivered asynchronously
      */
-    private Uni<OnboardingResponse> fillUsers(
+    private Uni<OnboardingResponse> verifyExistingOnboarding(
             Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
