@@ -244,7 +244,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(OnboardingStatus.PENDING);
 
         return fillUsersAndOnboardingCompletion(
-                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false, formItem);
+                onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE, formItem);
     }
 
     @Override
@@ -290,12 +290,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<OnboardingResponse> fillUsersAndOnboardingCompletion(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates,
             String timeout,
-            boolean isAggregatesIncrement,
             FormItem formItem) {
         return processOnboarding(
-                onboarding, userRequests, aggregates, timeout, isAggregatesIncrement, formItem);
+                onboarding, userRequests, null, timeout, false, formItem);
     }
 
     private Uni<OnboardingResponse> processOnboarding(
