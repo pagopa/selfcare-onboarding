@@ -31,7 +31,7 @@ class TokenServiceDefaultTest {
     @InjectMock
     AzureBlobClient azureBlobClient;
 
-    private final static String onboardingId = "onboardingId";
+    private static final String onboardingId = "onboardingId";
 
     @Test
     void getToken() {
