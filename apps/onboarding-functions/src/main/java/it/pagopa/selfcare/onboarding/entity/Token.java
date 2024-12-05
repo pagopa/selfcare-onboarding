@@ -15,6 +15,7 @@ public class Token {
     private TokenType type;
     private String onboardingId;
     private String productId;
+    private String name;
     private String checksum;
     private String contractVersion;
     private String contractTemplate;
@@ -129,5 +130,9 @@ public class Token {
     public void setContractFilename(String contractFilename) {
         this.contractFilename = contractFilename;
     }
+
+    public String getName() { return name; }
+
+    public void setName(String name) { this.name = name; }
 }
 

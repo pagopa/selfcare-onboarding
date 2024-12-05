@@ -191,6 +191,7 @@ public class OnboardingService {
     // Persist token entity
     Token token = buildBaseToken(onboarding, digest);
     token.setId(UUID.randomUUID().toString());
+    token.setName(attachmentTemplate.getName());
     token.setContractTemplate(attachmentTemplate.getTemplatePath());
     token.setContractVersion(attachmentTemplate.getTemplateVersion());
     token.setContractFilename(
