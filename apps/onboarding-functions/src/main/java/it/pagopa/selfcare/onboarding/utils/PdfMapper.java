@@ -6,9 +6,18 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.GeographicTaxonomy;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -201,6 +210,8 @@ public class PdfMapper {
           INSTITUTION_RECIPIENT_CODE,
           Optional.ofNullable(onboarding.getBilling().getRecipientCode()).orElse(UNDERSCORE));
     }
+
+    map.put("isAggregatorCheckbox", Boolean.TRUE.equals(onboarding.getIsAggregator()) ? "X" : "");
 
     setECData(map, onboarding);
     addAggregatesCsvLink(onboarding, map, baseUrl);
