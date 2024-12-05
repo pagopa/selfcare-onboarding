@@ -59,9 +59,6 @@ class OnboardingControllerTest {
 
     static final OnboardingUserPgRequest onboardingUserPgValid;
 
-    final String onboardingRequestJson =
-            "{\"productId\":\"prod-pn\",\"users\":[{\"taxCode\":\"GRSGNT71A62C950S\",\"name\":\"Gianantonio\",\"surname\":\"Grassi\",\"email\":\"g.grassi@test.it\",\"role\":\"MANAGER\"}],\"institution\":{\"institutionType\":\"PA\",\"taxCode\":\"80415740580\",\"origin\":\"IPA\",\"originId\":\"m_ef\",\"city\":\"ROMA\",\"country\":\"IT\",\"county\":\"RM\",\"description\":\"Ministero dell'Economia e delle Finanze\",\"digitalAddress\":\"mef@pec.mef.gov.it\",\"address\":\"Via XX Settembre, 97\",\"zipCode\":\"00187\",\"geographicTaxonomies\":[{\"code\":\"ITA\",\"desc\":\"ITALIA\"}],\"imported\":true},\"billing\":{\"vatNumber\":\"80415740580\",\"recipientCode\":\"Y7NS8B\",\"publicServices\":true}}";
-
     @InjectMock
     OnboardingService onboardingService;
 
@@ -591,7 +588,7 @@ class OnboardingControllerTest {
         // Esecuzione della richiesta simulata
         given()
                 .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
+                .multiPart("onboardingRequest", new OnboardingDefaultRequest()) // Aggiunta del JSON come stringa
                 .contentType("multipart/form-data")
                 .when()
                 .post("/completion")
@@ -616,7 +613,7 @@ class OnboardingControllerTest {
         // Esecuzione della richiesta simulata
         given()
                 .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
+                .multiPart("onboardingRequest", new OnboardingPaRequest()) // Aggiunta del JSON come stringa
                 .contentType("multipart/form-data")
                 .when()
                 .post("/pa/completion")
@@ -641,7 +638,7 @@ class OnboardingControllerTest {
         // Esecuzione della richiesta simulata
         given()
                 .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
+                .multiPart("onboardingRequest", new OnboardingPspRequest()) // Aggiunta del JSON come stringa
                 .contentType("multipart/form-data")
                 .when()
                 .post("/psp/completion")

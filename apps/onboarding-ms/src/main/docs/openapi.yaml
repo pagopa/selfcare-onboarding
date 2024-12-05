@@ -370,14 +370,16 @@ paths:
             schema:
               required:
               - contract
-              - onboardingRequest
               type: object
               properties:
+                onboardingRequest:
+                  $ref: "#/components/schemas/OnboardingDefaultRequest"
                 contract:
                   format: binary
                   type: string
-                onboardingRequest:
-                  type: string
+            encoding:
+              onboardingRequest:
+                contentType: application/json
       responses:
         "200":
           description: OK
@@ -511,14 +513,16 @@ paths:
             schema:
               required:
               - contract
-              - onboardingRequest
               type: object
               properties:
+                onboardingRequest:
+                  $ref: "#/components/schemas/OnboardingPaRequest"
                 contract:
                   format: binary
                   type: string
-                onboardingRequest:
-                  type: string
+            encoding:
+              onboardingRequest:
+                contentType: application/json
       responses:
         "200":
           description: OK
@@ -628,14 +632,16 @@ paths:
             schema:
               required:
               - contract
-              - onboardingRequest
               type: object
               properties:
+                onboardingRequest:
+                  $ref: "#/components/schemas/OnboardingPspRequest"
                 contract:
                   format: binary
                   type: string
-                onboardingRequest:
-                  type: string
+            encoding:
+              onboardingRequest:
+                contentType: application/json
       responses:
         "200":
           description: OK

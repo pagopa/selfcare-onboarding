@@ -33,6 +33,7 @@ import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 
@@ -40,7 +41,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-import static it.pagopa.selfcare.onboarding.util.Utils.parseOnboardingRequest;
 import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
@@ -174,24 +174,17 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingCompletion(
             @NotNull @RestForm("contract") File file,
-            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @NotNull @FormParam("onboardingRequest") @PartType(MediaType.APPLICATION_JSON) OnboardingDefaultRequest onboardingRequest,
             @Context ResteasyReactiveRequestContext ctx,
             @Context SecurityContext securityContext) {
 
         return readUserIdFromToken(securityContext)
                 .onItem()
                 .transformToUni(
-                        userId -> {
-                            // Parse JSON into OnboardingDefaultRequest
-                            OnboardingDefaultRequest onboardingRequest =
-                                    parseOnboardingRequest(onboardingRequestJson, OnboardingDefaultRequest.class);
-
-                            // Call the onboarding service
-                            return onboardingService.onboardingCompletion(
-                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
-                                    onboardingRequest.getUsers(),
-                                    retrieveContractFromFormData(ctx.getFormData(), file));
-                        });
+                        userId -> onboardingService.onboardingCompletion(
+                                fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                retrieveContractFromFormData(ctx.getFormData(), file)));
     }
 
     @Operation(
@@ -204,24 +197,17 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPaCompletion(
             @NotNull @RestForm("contract") File file,
-            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @NotNull @FormParam("onboardingRequest") @PartType(MediaType.APPLICATION_JSON) OnboardingPaRequest onboardingRequest,
             @Context ResteasyReactiveRequestContext ctx,
             @Context SecurityContext securityContext) {
 
         return readUserIdFromToken(securityContext)
                 .onItem()
                 .transformToUni(
-                        userId -> {
-                            // Parse JSON into OnboardingPaRequest
-                            OnboardingPaRequest onboardingRequest =
-                                    parseOnboardingRequest(onboardingRequestJson, OnboardingPaRequest.class);
-
-                            // Call the onboarding service
-                            return onboardingService.onboardingCompletion(
-                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
-                                    onboardingRequest.getUsers(),
-                                    retrieveContractFromFormData(ctx.getFormData(), file));
-                        });
+                        userId -> onboardingService.onboardingCompletion(
+                                fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                retrieveContractFromFormData(ctx.getFormData(), file)));
     }
 
     @Operation(
@@ -262,24 +248,17 @@ public class OnboardingController {
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPspCompletion(
             @NotNull @RestForm("contract") File file,
-            @NotNull @RestForm("onboardingRequest") String onboardingRequestJson,
+            @NotNull @FormParam("onboardingRequest") @PartType(MediaType.APPLICATION_JSON) OnboardingPspRequest onboardingRequest,
             @Context ResteasyReactiveRequestContext ctx,
             @Context SecurityContext securityContext) {
 
         return readUserIdFromToken(securityContext)
                 .onItem()
                 .transformToUni(
-                        userId -> {
-                            // Parse JSON into OnboardingPspRequest
-                            OnboardingPspRequest onboardingRequest =
-                                    parseOnboardingRequest(onboardingRequestJson, OnboardingPspRequest.class);
-
-                            // Call the onboarding service
-                            return onboardingService.onboardingCompletion(
-                                    fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
-                                    onboardingRequest.getUsers(),
-                                    retrieveContractFromFormData(ctx.getFormData(), file));
-                        });
+                        userId -> onboardingService.onboardingCompletion(
+                                fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                retrieveContractFromFormData(ctx.getFormData(), file)));
     }
 
     @Operation(
