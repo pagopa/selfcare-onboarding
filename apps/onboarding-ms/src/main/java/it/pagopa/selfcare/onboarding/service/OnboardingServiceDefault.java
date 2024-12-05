@@ -23,6 +23,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryResourceFactory;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
@@ -283,8 +284,12 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<AggregateInstitutionRequest> aggregates,
             String timeout,
             boolean isAggregatesIncrement) {
-        return processOnboarding(
-                onboarding, userRequests, aggregates, timeout, isAggregatesIncrement, null);
+
+        onboarding.setCreatedAt(LocalDateTime.now());
+
+        return fillUsers(onboarding, isAggregatesIncrement)
+                .onItem()
+                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product, null));
     }
 
     private Uni<OnboardingResponse> fillUsersAndOnboardingCompletion(
@@ -292,70 +297,73 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             String timeout,
             FormItem formItem) {
-        return processOnboarding(
-                onboarding, userRequests, null, timeout, false, formItem);
+
+        onboarding.setCreatedAt(LocalDateTime.now());
+
+        return fillUsers(onboarding, false)
+                .onItem()
+                .transformToUni(product -> handleOnboarding(onboarding, userRequests, null, timeout, product, formItem));
     }
 
-    private Uni<OnboardingResponse> processOnboarding(
+    private Uni<Product> fillUsers(Onboarding onboarding, boolean isAggregatesIncrement) {
+        return getProductByOnboarding(onboarding)
+                .onItem()
+                .transformToUni(
+                        product -> verifyAlreadyOnboarding(
+                                onboarding.getInstitution(),
+                                product.getId(),
+                                product.getParentId(),
+                                isAggregatesIncrement)
+                                .replaceWith(product));
+    }
+
+    private Uni<OnboardingResponse> handleOnboarding(
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             String timeout,
-            boolean isAggregatesIncrement,
+            Product product,
             FormItem formItem) {
 
-        onboarding.setCreatedAt(LocalDateTime.now());
+        return Uni.createFrom()
+                .item(registryResourceFactory.create(onboarding))
+                .onItem()
+                .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                .onItem()
+                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, formItem, timeout));
+    }
 
-        return getProductByOnboarding(onboarding)
+    private Uni<OnboardingResponse> validateAndPersistOnboarding(
+            RegistryManager<?> registryManager,
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates,
+            Product product,
+            FormItem formItem,
+            String timeout) {
+
+        return registryManager.isValid()
                 .onItem()
-                .transformToUni(
-                        product ->
-                                verifyAlreadyOnboarding(
-                                        onboarding.getInstitution(),
-                                        product.getId(),
-                                        product.getParentId(),
-                                        isAggregatesIncrement)
-                                        .replaceWith(product))
+                .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
-                .transformToUni(
-                        product ->
-                                Uni.createFrom()
-                                        .item(registryResourceFactory.create(onboarding))
-                                        .onItem()
-                                        .invoke(
-                                                registryManager ->
-                                                        registryManager.setResource(registryManager.retrieveInstitution()))
-                                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                                        .onItem()
-                                        .transformToUni(
-                                                registryManager ->
-                                                        registryManager
-                                                                .isValid()
-                                                                .onItem()
-                                                                .transformToUni(
-                                                                        ignored -> registryManager.customValidation(product)))
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(
-                                                current -> persistOnboarding(onboarding, userRequests, product, aggregates))
-                                        .onItem()
-                                        .transformToUni(
-                                                persistedOnboarding ->
-                                                        Optional.ofNullable(formItem)
-                                                                .map(item ->
-                                                                        uploadSignedContractAndUpdateToken(persistedOnboarding, item)
-                                                                                .map(ignore -> persistedOnboarding))
-                                                                .orElse(Uni.createFrom().item(persistedOnboarding)))
-                                        .onItem()
-                                        .transformToUni(
-                                                currentOnboarding ->
-                                                        persistAndStartOrchestrationOnboarding(
-                                                                currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), timeout)))
-                                        .onItem()
-                                        .transform(onboardingMapper::toResponse));
+                .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                .onItem()
+                .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
+                .onItem()
+                .transformToUni(persistedOnboarding -> handleSignedContractAndToken(persistedOnboarding, formItem))
+                .onItem()
+                .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
+                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                .onItem()
+                .transform(onboardingMapper::toResponse);
+    }
+
+    private Uni<Onboarding> handleSignedContractAndToken(Onboarding persistedOnboarding, FormItem formItem) {
+        return Optional.ofNullable(formItem)
+                .map(item -> uploadSignedContractAndUpdateToken(persistedOnboarding, item)
+                        .map(ignore -> persistedOnboarding))
+                .orElse(Uni.createFrom().item(persistedOnboarding));
     }
 
     /**
