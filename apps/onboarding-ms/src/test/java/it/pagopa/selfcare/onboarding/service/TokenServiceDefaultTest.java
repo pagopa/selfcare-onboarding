@@ -31,9 +31,10 @@ class TokenServiceDefaultTest {
     @InjectMock
     AzureBlobClient azureBlobClient;
 
+    private final static String onboardingId = "onboardingId";
+
     @Test
     void getToken() {
-        final String onboardingId = "onboardingId";
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
         when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(new Token())));
 
@@ -41,7 +42,7 @@ class TokenServiceDefaultTest {
         when(Token.find("onboardingId", onboardingId))
                 .thenReturn(queryPage);
 
-        UniAssertSubscriber<List<Token>> subscriber = tokenService.getToken(onboardingId)
+        tokenService.getToken(onboardingId)
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted();
     }
@@ -50,7 +51,6 @@ class TokenServiceDefaultTest {
     void retrieveContractNotSigned() {
         Token token = new Token();
         token.setContractFilename("fileName");
-        final String onboardingId = "onboardingId";
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
         when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
 
@@ -70,7 +70,6 @@ class TokenServiceDefaultTest {
 
     @Test
     void retrieveAttachment() {
-        final String onboardingId = "onboardingId";
         final String filename = "filename";
         Token token = new Token();
         token.setContractFilename(filename);
