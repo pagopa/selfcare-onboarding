@@ -82,6 +82,7 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 import static it.pagopa.selfcare.onboarding.util.Utils.CONTRACT_FILENAME_FUNC;
@@ -1586,7 +1587,17 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                     OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
                                                     onboardingGet.setUsers(userResponses);
                                                     return onboardingGet;
-                                                }));
+                                                }))
+                .flatMap(onboardingGet -> getAttachments(onboardingId)
+                        .onItem().invoke(onboardingGet::setAttachments)
+                        .replaceWith(onboardingGet));
+    }
+
+    private Uni<List<String>> getAttachments(String onboardingId) {
+        return Token.find("onboardingId = ?1 and type = ?", onboardingId, ATTACHMENT.name())
+                .stream().onItem().transform(Token.class::cast)
+                .map(Token::getName)
+                .collect().asList();
     }
 
     private Uni<List<UserResponse>> toUserResponseWithUserInfo(List<User> users) {
