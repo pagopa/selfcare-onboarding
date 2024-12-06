@@ -1594,7 +1594,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<List<String>> getAttachments(String onboardingId) {
-        return Token.find("onboardingId = ?1 and type = ?", onboardingId, ATTACHMENT.name())
+        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name())
                 .stream().onItem().transform(Token.class::cast)
                 .map(Token::getName)
                 .collect().asList();
