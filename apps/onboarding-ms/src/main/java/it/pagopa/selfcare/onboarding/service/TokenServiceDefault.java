@@ -18,11 +18,9 @@ public class TokenServiceDefault implements TokenService {
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
 
-
     public TokenServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
         this.azureBlobClient = azureBlobClient;
         this.onboardingMsConfig = onboardingMsConfig;
-
     }
 
     @Override
@@ -58,6 +56,14 @@ public class TokenServiceDefault implements TokenService {
                                     response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
                                     return response.build();
                                 }));
+    }
+
+    @Override
+    public Uni<List<String>> getAttachments(String onboardingId) {
+        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name())
+                .stream().onItem().transform(Token.class::cast)
+                .map(Token::getName)
+                .collect().asList();
     }
 
     private String getAttachmentByOnboarding(String onboardingId, String filename) {

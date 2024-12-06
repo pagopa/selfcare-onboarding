@@ -1,5 +1,12 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.onboarding.util.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
@@ -47,6 +54,15 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -69,24 +85,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.onboarding.util.Utils.CONTRACT_FILENAME_FUNC;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -164,6 +162,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     ProductService productService;
     @Inject
     SignatureService signatureService;
+    @Inject
+    TokenService tokenService;
     @Inject
     AzureBlobClient azureBlobClient;
     @Inject
@@ -1588,16 +1588,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                     onboardingGet.setUsers(userResponses);
                                                     return onboardingGet;
                                                 }))
-                .flatMap(onboardingGet -> getAttachments(onboardingId)
+                .flatMap(onboardingGet -> tokenService.getAttachments(onboardingId)
                         .onItem().invoke(onboardingGet::setAttachments)
                         .replaceWith(onboardingGet));
-    }
-
-    private Uni<List<String>> getAttachments(String onboardingId) {
-        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name())
-                .stream().onItem().transform(Token.class::cast)
-                .map(Token::getName)
-                .collect().asList();
     }
 
     private Uni<List<UserResponse>> toUserResponseWithUserInfo(List<User> users) {
