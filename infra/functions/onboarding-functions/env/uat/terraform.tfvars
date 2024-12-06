@@ -22,7 +22,7 @@ function_always_on = true
 
 app_service_plan_info = {
   kind                         = "Linux"
-  sku_size                     = "P1v3"
+  sku_size                     = "B2"
   maximum_elastic_worker_count = 1
   worker_count                 = 1
   zone_balancing_enabled       = false
@@ -97,7 +97,7 @@ app_settings = {
   "PROD_FD_URL"                                        = "https://fid00001fe.siachain.ti.sia.eu:30008"
   "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
   "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-id/)"
-  "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+  "FD_TOKEN_CLIENT_SECRET" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
 
 
   ##ARUBA SIGNATURE
@@ -114,7 +114,7 @@ app_settings = {
   "EMAIL_SERVICE_AVAILABLE"                        = "true",
   "JWT_TOKEN_ISSUER"                               = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                          = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-private-key/)"
-  "JWT_TOKEN_KID"                                  = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
+  "JWT_TOKEN_KID" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
   "NAMIRIAL_BASE_URL"                       = "http://10.1.154.4:8080",
