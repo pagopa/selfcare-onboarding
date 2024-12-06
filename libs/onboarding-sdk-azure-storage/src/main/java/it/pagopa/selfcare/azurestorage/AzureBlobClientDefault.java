@@ -5,17 +5,21 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobListDetails;
 import com.azure.storage.blob.models.BlobProperties;
 import com.azure.storage.blob.models.BlobStorageException;
+import com.azure.storage.blob.models.ListBlobsOptions;
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageError;
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class AzureBlobClientDefault implements AzureBlobClient {
@@ -149,6 +153,28 @@ public class AzureBlobClientDefault implements AzureBlobClient {
             throw new SelfcareAzureStorageException(String.format(SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getMessage(), filePath),
                     SelfcareAzureStorageError.ERROR_DURING_DOWNLOAD_FILE.getCode());
         }
+    }
+
+    @Override
+    public List<String> getFiles(String path) {
+        log.debug("START - getFiles by given path: {}", path);
+        List<String> listOfResource = new ArrayList<>();
+        final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
+
+        if (StringUtils.isNotEmpty(path)) {
+
+            ListBlobsOptions options = new ListBlobsOptions()
+                .setPrefix(path)
+                .setDetails(new BlobListDetails()
+                    .setRetrieveDeletedBlobs(true)
+                    .setRetrieveSnapshots(true));
+
+            blobContainer.listBlobs(options, null).forEach(blob -> listOfResource.add(blob.getName()));
+        }
+
+        log.debug("Results: {}", listOfResource.size());
+        log.debug("END - getFiles");
+        return listOfResource;
     }
 
 }
