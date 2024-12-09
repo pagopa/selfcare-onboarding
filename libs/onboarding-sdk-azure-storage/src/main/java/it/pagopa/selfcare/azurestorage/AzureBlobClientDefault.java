@@ -158,13 +158,14 @@ public class AzureBlobClientDefault implements AzureBlobClient {
     @Override
     public List<String> getFiles(String path) {
         log.debug("START - getFiles by given path: {}", path);
+        String sanitizePath = StringUtils.replace(path, "\n", StringUtils.EMPTY).replace("\r", StringUtils.EMPTY);
         List<String> listOfResource = new ArrayList<>();
         final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
 
-        if (StringUtils.isNotEmpty(path)) {
+        if (StringUtils.isNotEmpty(sanitizePath)) {
 
             ListBlobsOptions options = new ListBlobsOptions()
-                .setPrefix(path)
+                .setPrefix(sanitizePath)
                 .setDetails(new BlobListDetails()
                     .setRetrieveDeletedBlobs(true)
                     .setRetrieveSnapshots(true));
