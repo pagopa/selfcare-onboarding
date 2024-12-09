@@ -360,6 +360,7 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding but completing the onboarding
         request to COMPLETED phase.
@@ -503,6 +504,7 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete PA onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
@@ -622,6 +624,7 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete PSP onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
