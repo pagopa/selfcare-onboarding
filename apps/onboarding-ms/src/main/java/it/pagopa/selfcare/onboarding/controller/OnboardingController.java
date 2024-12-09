@@ -170,6 +170,8 @@ public class OnboardingController {
     )
     @Path("/completion")
     @POST
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingCompletion(
@@ -193,6 +195,8 @@ public class OnboardingController {
                     "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
     @POST
     @Path("/pa/completion")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPaCompletion(
@@ -244,6 +248,8 @@ public class OnboardingController {
                     "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
     @POST
     @Path("/psp/completion")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingPspCompletion(
