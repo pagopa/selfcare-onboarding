@@ -13,6 +13,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -42,7 +43,8 @@ public class DocumentController {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/list-file")
     public Uni<List<String>> getFiles(@QueryParam(value = "path") String path) {
-        return Uni.createFrom().item(blobClient.getFiles(path));
+        String sanitizePath = StringUtils.replace(path, "\n", StringUtils.EMPTY).replace("\r", StringUtils.EMPTY);
+        return Uni.createFrom().item(blobClient.getFiles(sanitizePath));
     }
 
 }
