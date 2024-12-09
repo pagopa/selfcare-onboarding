@@ -139,6 +139,9 @@ class OnboardingServiceDefaultTest {
     SignatureService signatureService;
 
     @InjectMock
+    TokenService tokenService;
+
+    @InjectMock
     @RestClient
     OnboardingApi onboardingApi;
 
@@ -1807,6 +1810,9 @@ class OnboardingServiceDefaultTest {
 
         when(userRegistryApi.findByIdUsingGET(anyString(), anyString()))
                 .thenReturn(Uni.createFrom().item(managerResource));
+
+        when(tokenService.getAttachments(any()))
+                .thenReturn(Uni.createFrom().item(List.of("filename")));
 
         UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
                 .onboardingGetWithUserInfo(onboarding.getId())

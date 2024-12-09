@@ -496,7 +496,7 @@
     },
     "/v1/onboarding/completion" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
         "summary" : "Complete onboarding request and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingCompletion",
@@ -689,7 +689,7 @@
     },
     "/v1/onboarding/pa/completion" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
         "summary" : "Complete PA onboarding request and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPaCompletion",
@@ -856,7 +856,7 @@
     },
     "/v1/onboarding/psp/completion" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
         "summary" : "Complete PSP onboarding request and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPspCompletion",
@@ -2373,6 +2373,12 @@
           },
           "reasonForReject" : {
             "type" : "string"
+          },
+          "attachments" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },

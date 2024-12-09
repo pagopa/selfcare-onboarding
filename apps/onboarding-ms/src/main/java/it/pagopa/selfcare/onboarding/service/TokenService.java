@@ -14,4 +14,6 @@ public interface TokenService {
     Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId);
 
     Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName);
+
+    Uni<List<String>> getAttachments(String onboardingId);
 }
