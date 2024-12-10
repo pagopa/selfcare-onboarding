@@ -33,8 +33,8 @@ public class AzureBlobClientDefault implements AzureBlobClient {
         log.trace("it.pagopa.selfcare.azurestorage.AzureBlobClient.it.pagopa.selfcare.azurestorage.AzureBlobClient");
         this.containerName = containerName;
         this.blobClient = new BlobServiceClientBuilder()
-                .connectionString(connectionString)
-                .buildClient();
+            .connectionString(connectionString)
+            .buildClient();
     }
 
     @Override
@@ -156,20 +156,33 @@ public class AzureBlobClientDefault implements AzureBlobClient {
     }
 
     @Override
+    public List<String> getFiles() {
+        log.debug("START - getFiles");
+        List<String> listOfResource = new ArrayList<>();
+
+        final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
+        blobContainer.listBlobs().forEach(blob -> listOfResource.add(blob.getName()));
+
+        log.debug("Results: {}", listOfResource.size());
+        log.debug("END - getFiles");
+        return listOfResource;
+    }
+
+    @Override
     public List<String> getFiles(String path) {
-        log.debug("START - getFiles by given path: {}", path);
-        String sanitizePath = StringUtils.replace(path, "\n", StringUtils.EMPTY).replace("\r", StringUtils.EMPTY);
+        log.debug("START - getFiles");
         List<String> listOfResource = new ArrayList<>();
         final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
 
-        if (StringUtils.isNotEmpty(sanitizePath)) {
+        if (StringUtils.isNotEmpty(path)) {
+            String sanitizePath = StringUtils.replace(path, "\n", StringUtils.EMPTY).replace("\r", StringUtils.EMPTY);
+            log.debug("getFiles by given path: {}", sanitizePath);
 
             ListBlobsOptions options = new ListBlobsOptions()
                 .setPrefix(sanitizePath)
                 .setDetails(new BlobListDetails()
                     .setRetrieveDeletedBlobs(true)
                     .setRetrieveSnapshots(true));
-
             blobContainer.listBlobs(options, null).forEach(blob -> listOfResource.add(blob.getName()));
         }
 

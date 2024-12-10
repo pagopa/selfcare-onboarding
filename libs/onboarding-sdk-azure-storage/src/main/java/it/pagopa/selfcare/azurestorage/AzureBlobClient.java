@@ -18,5 +18,7 @@ public interface AzureBlobClient {
 
     BlobProperties getProperties(String filePath);
 
+    List<String> getFiles();
+
     List<String> getFiles(String path);
 }
