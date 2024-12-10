@@ -1371,6 +1371,8 @@ components:
           type: string
         legalRegisterName:
           type: string
+        longTermPayments:
+          type: boolean
         manager:
           type: boolean
         managerAuthorized:
@@ -1960,6 +1962,8 @@ components:
           type: string
         legalRegisterName:
           type: string
+        longTermPayments:
+          type: boolean
         abiCode:
           type: string
         vatNumberGroup:

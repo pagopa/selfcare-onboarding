@@ -1889,6 +1889,9 @@
           "legalRegisterName" : {
             "type" : "string"
           },
+          "longTermPayments" : {
+            "type" : "boolean"
+          },
           "manager" : {
             "type" : "boolean"
           },
@@ -2655,6 +2658,9 @@
           },
           "legalRegisterName" : {
             "type" : "string"
+          },
+          "longTermPayments" : {
+            "type" : "boolean"
           },
           "abiCode" : {
             "type" : "string"
