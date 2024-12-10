@@ -28,7 +28,7 @@ class DocumentControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getFiles_OK() {
+    void getFiles_ByPath_OK() {
         // given
         final String path = "/test/test";
         List<String> result = new ArrayList<>();
@@ -39,13 +39,34 @@ class DocumentControllerTest {
         given()
             .when()
             .contentType(ContentType.JSON)
-            .queryParams("path", path)
-            .get("/list-file")
+            .pathParam("path", path)
+            .get("{path}")
             .then()
             .statusCode(200);
 
         // then
         Mockito.verify(blobClient, times(1)).getFiles(anyString());
+
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getFiles_OK() {
+        // given
+        List<String> result = new ArrayList<>();
+
+        // when
+        when(blobClient.getFiles()).thenReturn(result);
+
+        given()
+            .when()
+            .contentType(ContentType.JSON)
+            .get()
+            .then()
+            .statusCode(200);
+
+        // then
+        Mockito.verify(blobClient, times(1)).getFiles();
 
     }
 
