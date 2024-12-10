@@ -35,7 +35,7 @@ public interface OnboardingService {
             boolean forceImport);
 
     Uni<OnboardingResponse> onboardingCompletion(
-            Onboarding onboarding, List<UserRequest> userRequests, FormItem formItem);
+            Onboarding onboarding, List<UserRequest> userRequests);
 
     Uni<OnboardingResponse> onboardingAggregationCompletion(
             Onboarding onboarding,

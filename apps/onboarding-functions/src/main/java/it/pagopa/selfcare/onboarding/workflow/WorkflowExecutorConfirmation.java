@@ -11,12 +11,18 @@ import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
 import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.INSTITUTION;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 
-public record WorkflowExecutorConfirmation(ObjectMapper objectMapper, TaskOptions optionsRetry) implements WorkflowExecutor {
+public record WorkflowExecutorConfirmation(ObjectMapper objectMapper,
+                                           TaskOptions optionsRetry) implements WorkflowExecutor {
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return Optional.empty();
+        String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper, onboardingWorkflow);
+        ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
+        ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
+        return Optional.of(OnboardingStatus.PENDING);
     }
 
     @Override
