@@ -153,7 +153,30 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
-  /v1/document/list-file:
+  /v1/documents:
+    get:
+      tags:
+      - Document Controller
+      summary: Retrieves the list of files on the azure storage on the given path
+      description: Fetches a list of files associated with the specified path on the
+        storage.
+      operationId: getFiles
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/documents/{path}:
     get:
       tags:
       - Document Controller
@@ -163,7 +186,8 @@ paths:
       operationId: getFiles
       parameters:
       - name: path
-        in: query
+        in: path
+        required: true
         schema:
           type: string
       responses:
