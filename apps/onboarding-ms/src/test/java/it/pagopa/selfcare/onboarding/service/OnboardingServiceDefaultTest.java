@@ -2134,11 +2134,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        final String filepath = "upload-file-path";
-        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
-        mockUpdateToken(asserter, filepath);
-
-        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users, TEST_FORM_ITEM), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
