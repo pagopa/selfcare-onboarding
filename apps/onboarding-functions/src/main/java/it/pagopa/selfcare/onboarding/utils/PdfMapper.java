@@ -122,19 +122,12 @@ public class PdfMapper {
           "legalRegisterName",
           Optional.ofNullable(onboarding.getInstitution().getGpuData().getLegalRegisterName())
               .orElse(UNDERSCORE));
-      map.put("manager", onboarding.getInstitution().getGpuData().isManager() ? "Si" : "No");
-      map.put(
-          "managerAuthorized",
-          onboarding.getInstitution().getGpuData().isManagerAuthorized() ? "Si" : "No");
-      map.put(
-          "managerEligible",
-          onboarding.getInstitution().getGpuData().isManagerEligible() ? "Si" : "No");
-      map.put(
-          "managerProsecution",
-          onboarding.getInstitution().getGpuData().isManagerProsecution() ? "Si" : "No");
-      map.put(
-          "institutionCourtMeasures",
-          onboarding.getInstitution().getGpuData().isInstitutionCourtMeasures() ? "Si" : "No");
+      map.put("businessRegisterCheckbox1", StringUtils.isNotEmpty(onboarding.getInstitution().getGpuData().getBusinessRegisterNumber()) ? "X" : "");
+      map.put("businessRegisterCheckbox2", StringUtils.isEmpty(onboarding.getInstitution().getGpuData().getBusinessRegisterNumber()) ? "X" : "");
+      map.put("publicServicesCheckbox1", StringUtils.isNotEmpty(onboarding.getInstitution().getGpuData().getLegalRegisterName()) ? "X" : "");
+      map.put("publicServicesCheckbox2", StringUtils.isEmpty(onboarding.getInstitution().getGpuData().getLegalRegisterName()) ? "X" : "");
+      map.put("longTermPaymentsCheckbox1", onboarding.getInstitution().getGpuData().isLongTermPayments() ? "X" : "");
+      map.put("longTermPaymentsCheckbox2", !onboarding.getInstitution().getGpuData().isLongTermPayments() ? "X" : "");
     }
     return map;
   }

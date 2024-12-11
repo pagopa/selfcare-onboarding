@@ -5,6 +5,7 @@ public class BusinessData {
     private String businessRegisterNumber;
     private String legalRegisterNumber;
     private String legalRegisterName;
+    private boolean longTermPayments;
 
     public String getBusinessRegisterNumber() {
         return businessRegisterNumber;
@@ -28,5 +29,13 @@ public class BusinessData {
 
     public void setLegalRegisterName(String legalRegisterName) {
         this.legalRegisterName = legalRegisterName;
+    }
+
+    public boolean isLongTermPayments() {
+        return longTermPayments;
+    }
+
+    public void setLongTermPayments(boolean longTermPayments) {
+        this.longTermPayments = longTermPayments;
     }
 }
