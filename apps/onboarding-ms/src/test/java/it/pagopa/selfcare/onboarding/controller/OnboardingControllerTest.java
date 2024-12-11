@@ -679,7 +679,7 @@ class OnboardingControllerTest {
         onboardingPgRequest.setDigitalAddress("digital@address.it");
         onboardingPgRequest.setOrigin(Origin.INFOCAMERE);
 
-        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
+        Mockito.when(onboardingService.onboardingPgCompletion(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -691,7 +691,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
-        Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
+        Mockito.verify(onboardingService, times(1)).onboardingPgCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
     }
 
