@@ -109,6 +109,9 @@ public class PdfMapper {
 
   public static Map<String, Object> setUpAttachmentData(Onboarding onboarding) {
     Map<String, Object> map = new HashMap<>();
+    map.put(INSTITUTION_NAME, onboarding.getInstitution().getDescription());
+    map.put("institutionTaxCode", Optional.ofNullable(onboarding.getInstitution().getTaxCode()).orElse(UNDERSCORE));
+    map.put("institutionMail", onboarding.getInstitution().getDigitalAddress());
     if (Objects.nonNull(onboarding.getInstitution().getGpuData())) {
       map.put(
           "businessRegisterNumber",
