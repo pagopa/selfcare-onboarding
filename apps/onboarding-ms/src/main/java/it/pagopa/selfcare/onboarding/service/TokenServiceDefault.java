@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.common.TokenType.INSTITUTION;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -30,7 +31,7 @@ public class TokenServiceDefault implements TokenService {
     }
     @Override
     public Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId) {
-        return Token.find("onboardingId", onboardingId)
+        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, INSTITUTION.name())
                 .firstResult()
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
