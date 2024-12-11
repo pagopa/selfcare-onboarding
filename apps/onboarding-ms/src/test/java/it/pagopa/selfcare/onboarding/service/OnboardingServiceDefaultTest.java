@@ -2154,6 +2154,7 @@ class OnboardingServiceDefaultTest {
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setInstitutionType(InstitutionType.PG);
+        institutionBaseRequest.setOrigin(Origin.INFOCAMERE);
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
