@@ -20,6 +20,7 @@ public class RegistryManagerPT extends RegistryManagerSELC {
                     onboarding.getInstitution().getTaxCode(),
                     onboarding.getProductId()), DEFAULT_ERROR.getCode());
         }
-        return Uni.createFrom().item(onboarding);
+
+        return super.customValidation(product);
     }
 }
