@@ -247,6 +247,16 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
+    public Uni<OnboardingResponse> onboardingPgCompletion(
+            Onboarding onboarding, List<UserRequest> userRequests) {
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+
+        return fillUsersAndOnboarding(
+                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+    }
+
+    @Override
     public Uni<OnboardingResponse> onboardingAggregationCompletion(
             Onboarding onboarding,
             List<UserRequest> userRequests,
