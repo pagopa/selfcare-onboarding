@@ -819,7 +819,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         // onboardingCompletion will set the workflowType to COMPLETION, which is not allowed for GSP
-        asserter.assertFailedWith(() -> onboardingService.onboardingCompletion(request, users, null), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingCompletion(request, users), InvalidRequestException.class);
     }
 
     @Test
