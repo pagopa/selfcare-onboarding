@@ -17,6 +17,7 @@ import java.io.File;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @Authenticated
@@ -77,6 +78,7 @@ public class TokenController {
         description = "Find  an attachment for a given onboarding id and update the contract signed path"
     )
     @PUT
+    @Tag(name = "internal-v1")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/contract-signed")
     public Uni<Long> updateContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId,

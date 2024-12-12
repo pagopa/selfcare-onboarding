@@ -1129,7 +1129,7 @@ paths:
   /v1/tokens/contract-signed:
     put:
       tags:
-      - Token Controller
+      - internal-v1
       summary: Find an attachment for a given onboarding id and update the contract
         signed path
       description: Find  an attachment for a given onboarding id and update the contract
