@@ -156,7 +156,7 @@ paths:
   /v1/documents:
     get:
       tags:
-      - Document Controller
+      - internal-v1
       summary: Retrieves the list of files on the azure storage on the given path
       description: Fetches a list of files associated with the specified path on the
         storage.
@@ -179,7 +179,7 @@ paths:
   /v1/documents/{path}:
     get:
       tags:
-      - Document Controller
+      - internal-v1
       summary: Retrieves the list of files on the azure storage on the given path
       description: Fetches a list of files associated with the specified path on the
         storage.

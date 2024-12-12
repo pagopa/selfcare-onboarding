@@ -38,6 +38,7 @@ public class DocumentController {
         description = "Fetches a list of files associated with the specified path on the storage."
     )
     @GET
+    @Tag(name = "internal-v1")
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<List<String>> getFiles() {
         return Uni.createFrom().item(blobClient.getFiles());
@@ -56,6 +57,7 @@ public class DocumentController {
         description = "Fetches a list of files associated with the specified path on the storage."
     )
     @GET
+    @Tag(name = "internal-v1")
     @Path("/{path}")
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<List<String>> getFiles(@PathParam(value = "path") String path) {
