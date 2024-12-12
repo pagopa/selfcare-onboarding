@@ -139,6 +139,9 @@ class OnboardingServiceDefaultTest {
     SignatureService signatureService;
 
     @InjectMock
+    TokenService tokenService;
+
+    @InjectMock
     @RestClient
     OnboardingApi onboardingApi;
 
@@ -274,6 +277,9 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setInstitutionType(InstitutionType.PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setOriginId("originId");
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         onboardingRequest.setInstitution(institutionBaseRequest);
         Billing billing = new Billing();
         billing.setRecipientCode("recCode");
@@ -290,6 +296,12 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
         mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
         mockVerifyOnboardingNotEmpty(asserter);
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
+
 
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
@@ -314,6 +326,9 @@ class OnboardingServiceDefaultTest {
         institution.setInstitutionType("PA");
         institution.setOriginId("originId");
         institution.setTaxCode("taxCode");
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
+        institution.setOrigin(Origin.IPA);
         onboardingResponse.setInstitution(institution);
 
         UserOnboardingResponse userOnboardingResponse = new UserOnboardingResponse();
@@ -482,6 +497,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
+        institutionBaseRequest.setOrigin(Origin.IPA);
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
@@ -591,6 +607,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
+        institutionBaseRequest.setOrigin(Origin.IPA);
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
@@ -776,6 +793,33 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_SELC_Forbidden_WorkflowType(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_PAGOPA.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.GSP);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        // onboardingCompletion will set the workflowType to COMPLETION, which is not allowed for GSP
+        asserter.assertFailedWith(() -> onboardingService.onboardingCompletion(request, users), InvalidRequestException.class);
     }
 
     @Test
@@ -1140,7 +1184,7 @@ class OnboardingServiceDefaultTest {
 
     Institution dummyInstitution() {
         Institution institution = new Institution();
-        institution.setInstitutionType(InstitutionType.SA);
+        institution.setInstitutionType(InstitutionType.GSP);
         return institution;
     }
 
@@ -1247,7 +1291,7 @@ class OnboardingServiceDefaultTest {
 
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(wrongManager);
-        request.setProductId(PROD_INTEROP.getValue());
+        request.setProductId(PROD_PAGOPA.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
@@ -1288,7 +1332,7 @@ class OnboardingServiceDefaultTest {
 
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(newManager);
-        request.setProductId(PROD_INTEROP.getValue());
+        request.setProductId(PROD_IO.getValue());
         Institution institutionPspRequest = new Institution();
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
@@ -1346,6 +1390,12 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
+
+
         asserter.execute(() -> when(Onboarding.persistOrUpdate(any(List.class)))
                 .thenAnswer(arg -> {
                     List<Onboarding> onboardings = (List<Onboarding>) arg.getArguments()[0];
@@ -1368,8 +1418,10 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
         Onboarding onboardingDefaultRequest = new Onboarding();
-        onboardingDefaultRequest.setInstitution(dummyInstitution());
-        onboardingDefaultRequest.setProductId(PROD_INTEROP.getValue());
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.GSP);
+        onboardingDefaultRequest.setInstitution(institution);
+        onboardingDefaultRequest.setProductId(PROD_PAGOPA.getValue());
         List<UserRequest> users = List.of(manager);
 
         mockPersistOnboarding(asserter);
@@ -1808,6 +1860,9 @@ class OnboardingServiceDefaultTest {
         when(userRegistryApi.findByIdUsingGET(anyString(), anyString()))
                 .thenReturn(Uni.createFrom().item(managerResource));
 
+        when(tokenService.getAttachments(any()))
+                .thenReturn(Uni.createFrom().item(List.of("filename")));
+
         UniAssertSubscriber<OnboardingGet> subscriber = onboardingService
                 .onboardingGetWithUserInfo(onboarding.getId())
                 .subscribe()
@@ -2004,11 +2059,17 @@ class OnboardingServiceDefaultTest {
     void onboarding_aggregationCompletion(UniAsserter asserter) {
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
-        request.setProductId(PROD_IO.getValue());
+        request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setInstitutionType(InstitutionType.SA);
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         request.setInstitution(institutionBaseRequest);
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        request.setBilling(billing);
 
         mockPersistOnboarding(asserter);
         mockPersistToken(asserter);
@@ -2023,6 +2084,8 @@ class OnboardingServiceDefaultTest {
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setCategory("L37");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
@@ -2040,12 +2103,58 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingCompletion(UniAsserter asserter) {
         Onboarding request = new Onboarding();
-        Product product = createDummyProduct(PROD_IO.getValue(), false);
+        Product product = createDummyProduct(PROD_INTEROP.getValue(), false);
         List<UserRequest> users = List.of(manager);
-        request.setProductId(PROD_IO.getValue());
+        request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setInstitutionType(InstitutionType.SA);
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        request.setInstitution(institutionBaseRequest);
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(productService.getProduct(any())).thenReturn(product));
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingPgCompletion(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        Product product = createDummyProduct(PROD_PN.getValue(), false);
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_PN.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setInstitutionType(InstitutionType.PG);
+        institutionBaseRequest.setOrigin(Origin.INFOCAMERE);
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
@@ -2066,11 +2175,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        final String filepath = "upload-file-path";
-        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
-        mockUpdateToken(asserter, filepath);
-
-        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users, TEST_FORM_ITEM), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingPgCompletion(request, users), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());

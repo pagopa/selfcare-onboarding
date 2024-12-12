@@ -23,4 +23,5 @@ public class OnboardingGet {
     private String status;
     private String userRequestUid;
     private String reasonForReject;
+    private List<String> attachments;
 }

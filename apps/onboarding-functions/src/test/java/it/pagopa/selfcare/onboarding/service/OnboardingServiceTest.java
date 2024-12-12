@@ -251,15 +251,6 @@ class OnboardingServiceTest {
     return attachmentTemplate;
   }
 
-  private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
-    Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-    ContractTemplate conctractTemplate = new ContractTemplate();
-    conctractTemplate.setContractTemplatePath("example");
-    conctractTemplate.setContractTemplateVersion("version");
-    institutionTemplate.put("default", conctractTemplate);
-    return institutionTemplate;
-  }
-
   @Test
   void saveToken_shouldSkipIfTokenExists() {
     OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
@@ -267,11 +258,11 @@ class OnboardingServiceTest {
     Token token = createDummyToken();
     onboardingWorkflow.setOnboarding(onboarding);
 
-    when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
+    when(tokenRepository.findByIdOptional(onboarding.getId())).thenReturn(Optional.of(token));
 
     onboardingService.saveTokenWithContract(onboardingWorkflow);
 
-    Mockito.verify(tokenRepository, Mockito.times(1)).findByOnboardingId(onboarding.getId());
+    Mockito.verify(tokenRepository, Mockito.times(1)).findByIdOptional(onboarding.getId());
     Mockito.verifyNoMoreInteractions(tokenRepository);
   }
 
@@ -340,6 +331,7 @@ class OnboardingServiceTest {
     ArgumentCaptor<Token> tokenArgumentCaptor = ArgumentCaptor.forClass(Token.class);
     Mockito.verify(tokenRepository, Mockito.times(1)).persist(tokenArgumentCaptor.capture());
     assertEquals(onboarding.getProductId(), tokenArgumentCaptor.getValue().getProductId());
+    assertEquals(attachmentTemplate.getName(), tokenArgumentCaptor.getValue().getName());
     assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
   }
 

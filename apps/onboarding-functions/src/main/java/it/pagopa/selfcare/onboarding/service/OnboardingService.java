@@ -157,7 +157,7 @@ public class OnboardingService {
 
   private boolean checkTokenExist(Onboarding onboarding) {
     // Skip if token already exists
-    Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
+    Optional<Token> optToken = tokenRepository.findByIdOptional(onboarding.getId());
     if (optToken.isPresent()) {
       log.debug("Token has already exists for onboarding {}", onboarding.getId());
       return true;
@@ -191,6 +191,7 @@ public class OnboardingService {
     // Persist token entity
     Token token = buildBaseToken(onboarding, digest);
     token.setId(UUID.randomUUID().toString());
+    token.setName(attachmentTemplate.getName());
     token.setContractTemplate(attachmentTemplate.getTemplatePath());
     token.setContractVersion(attachmentTemplate.getTemplateVersion());
     token.setContractFilename(

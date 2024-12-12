@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.common.TokenType.INSTITUTION;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -18,11 +19,9 @@ public class TokenServiceDefault implements TokenService {
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
 
-
     public TokenServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
         this.azureBlobClient = azureBlobClient;
         this.onboardingMsConfig = onboardingMsConfig;
-
     }
 
     @Override
@@ -32,7 +31,7 @@ public class TokenServiceDefault implements TokenService {
     }
     @Override
     public Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId) {
-        return Token.find("onboardingId", onboardingId)
+        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, INSTITUTION.name())
                 .firstResult()
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
@@ -58,6 +57,14 @@ public class TokenServiceDefault implements TokenService {
                                     response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
                                     return response.build();
                                 }));
+    }
+
+    @Override
+    public Uni<List<String>> getAttachments(String onboardingId) {
+        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name())
+                .stream().onItem().transform(Token.class::cast)
+                .map(Token::getName)
+                .collect().asList();
     }
 
     private String getAttachmentByOnboarding(String onboardingId, String filename) {

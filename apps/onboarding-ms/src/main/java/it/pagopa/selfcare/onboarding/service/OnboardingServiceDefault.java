@@ -1,8 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.FileDocument;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -47,6 +50,16 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -69,23 +82,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.onboarding.util.Utils.CONTRACT_FILENAME_FUNC;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -164,6 +160,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject
     SignatureService signatureService;
     @Inject
+    TokenService tokenService;
+    @Inject
     AzureBlobClient azureBlobClient;
     @Inject
     UserMapper userMapper;
@@ -240,12 +238,22 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     @Override
     public Uni<OnboardingResponse> onboardingCompletion(
-            Onboarding onboarding, List<UserRequest> userRequests, FormItem formItem) {
+            Onboarding onboarding, List<UserRequest> userRequests) {
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+        onboarding.setStatus(OnboardingStatus.REQUEST);
+
+        return fillUsersAndOnboarding(
+                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+    }
+
+    @Override
+    public Uni<OnboardingResponse> onboardingPgCompletion(
+            Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
-        return fillUsersAndOnboardingCompletion(
-                onboarding, userRequests, TIMEOUT_ORCHESTRATION_RESPONSE, formItem);
+        return fillUsersAndOnboarding(
+                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
     }
 
     @Override
@@ -289,21 +297,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return verifyExistingOnboarding(onboarding, isAggregatesIncrement)
                 .onItem()
-                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product, null));
+                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product));
     }
 
-    private Uni<OnboardingResponse> fillUsersAndOnboardingCompletion(
-            Onboarding onboarding,
-            List<UserRequest> userRequests,
-            String timeout,
-            FormItem formItem) {
-
-        onboarding.setCreatedAt(LocalDateTime.now());
-
-        return verifyExistingOnboarding(onboarding, false)
-                .onItem()
-                .transformToUni(product -> handleOnboarding(onboarding, userRequests, null, timeout, product, formItem));
-    }
 
     private Uni<Product> verifyExistingOnboarding(Onboarding onboarding, boolean isAggregatesIncrement) {
         return getProductByOnboarding(onboarding)
@@ -322,8 +318,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             String timeout,
-            Product product,
-            FormItem formItem) {
+            Product product) {
 
         return Uni.createFrom()
                 .item(registryResourceFactory.create(onboarding))
@@ -331,7 +326,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                 .onItem()
-                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, formItem, timeout));
+                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, timeout));
     }
 
     private Uni<OnboardingResponse> validateAndPersistOnboarding(
@@ -340,7 +335,6 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             Product product,
-            FormItem formItem,
             String timeout) {
 
         return registryManager.isValid()
@@ -351,19 +345,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                 .onItem()
-                .transformToUni(persistedOnboarding -> handleSignedContractAndToken(persistedOnboarding, formItem))
-                .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                         orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
-    }
-
-    private Uni<Onboarding> handleSignedContractAndToken(Onboarding persistedOnboarding, FormItem formItem) {
-        return Optional.ofNullable(formItem)
-                .map(item -> uploadSignedContractAndUpdateToken(persistedOnboarding, item)
-                        .map(ignore -> persistedOnboarding))
-                .orElse(Uni.createFrom().item(persistedOnboarding));
     }
 
     /**
@@ -1251,21 +1236,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         String onboardingId = onboarding.getId();
 
         return retrieveToken(onboardingId)
-                .onFailure()
-                .recoverWithUni(() -> createToken(onboarding, onboardingId, formItem))
-                .onItem()
-                .call(this::persistToken)
                 .onItem()
                 .transformToUni(token -> processAndUploadFile(token, onboardingId, formItem));
-    }
-
-    private Uni<Token> createToken(Onboarding onboarding, String onboardingId, FormItem formItem) {
-        return Uni.createFrom()
-                .item(() -> createToken(onboarding, onboardingId, formItem.getFile()));
-    }
-
-    private Uni<Void> persistToken(Token tokenPersisted) {
-        return Panache.withTransaction(() -> Token.persist(tokenPersisted));
     }
 
     private Uni<String> processAndUploadFile(Token token, String onboardingId, FormItem formItem) {
@@ -1302,37 +1274,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(filepath);
     }
 
-    private Token createToken(Onboarding onboarding, String onboardingId, File file) {
-        Product product = productService.getProduct(onboarding.getProductId());
-        final String filename = CONTRACT_FILENAME_FUNC.apply(PDF_FORMAT_FILENAME, product.getTitle());
-        DSSDocument document = new FileDocument(file);
-        String digest = document.getDigest(DigestAlgorithm.SHA256);
-        Token token = new Token();
-        token.setCreatedAt(LocalDateTime.now());
-        token.setOnboardingId(onboardingId);
-        token.setId(onboardingId);
-        token.setProductId(onboarding.getProductId());
-        token.setUpdatedAt(LocalDateTime.now());
-        token.setActivatedAt(LocalDateTime.now());
-        token.setContractFilename(filename);
-        token.setContractTemplate(getContractTemplatePath(product, onboarding));
-        token.setContractVersion(getContractTemplateVersion(product, onboarding));
-        token.setChecksum(digest);
-        token.setType(TokenType.INSTITUTION);
-        return token;
-    }
-
-    private String getContractTemplatePath(Product product, Onboarding onboarding) {
-        return product
-                .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
-                .getContractTemplatePath();
-    }
-
-    private String getContractTemplateVersion(Product product, Onboarding onboarding) {
-        return product
-                .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
-                .getContractTemplateVersion();
-    }
 
     private String getFileExtension(String name) {
         String[] parts = name.split("\\.");
@@ -1586,7 +1527,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                     OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
                                                     onboardingGet.setUsers(userResponses);
                                                     return onboardingGet;
-                                                }));
+                                                }))
+                .flatMap(onboardingGet -> tokenService.getAttachments(onboardingId)
+                        .onItem().invoke(onboardingGet::setAttachments)
+                        .replaceWith(onboardingGet));
     }
 
     private Uni<List<UserResponse>> toUserResponseWithUserInfo(List<User> users) {

@@ -360,24 +360,16 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding but completing the onboarding
         request to COMPLETED phase.
       operationId: onboardingCompletion
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              required:
-              - contract
-              - onboardingRequest
-              type: object
-              properties:
-                contract:
-                  format: binary
-                  type: string
-                onboardingRequest:
-                  type: string
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
       responses:
         "200":
           description: OK
@@ -501,24 +493,16 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete PA onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
       operationId: onboardingPaCompletion
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              required:
-              - contract
-              - onboardingRequest
-              type: object
-              properties:
-                contract:
-                  format: binary
-                  type: string
-                onboardingRequest:
-                  type: string
+              $ref: "#/components/schemas/OnboardingPaRequest"
       responses:
         "200":
           description: OK
@@ -618,24 +602,16 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Complete PSP onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
       operationId: onboardingPspCompletion
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              required:
-              - contract
-              - onboardingRequest
-              type: object
-              properties:
-                contract:
-                  format: binary
-                  type: string
-                onboardingRequest:
-                  type: string
+              $ref: "#/components/schemas/OnboardingPspRequest"
       responses:
         "200":
           description: OK
@@ -1395,6 +1371,8 @@ components:
           type: string
         legalRegisterName:
           type: string
+        longTermPayments:
+          type: boolean
         manager:
           type: boolean
         managerAuthorized:
@@ -1714,6 +1692,10 @@ components:
           type: string
         reasonForReject:
           type: string
+        attachments:
+          type: array
+          items:
+            type: string
     OnboardingGetResponse:
       type: object
       properties:
@@ -1980,6 +1962,8 @@ components:
           type: string
         legalRegisterName:
           type: string
+        longTermPayments:
+          type: boolean
         abiCode:
           type: string
         vatNumberGroup:

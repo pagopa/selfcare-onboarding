@@ -1,8 +1,8 @@
 package it.pagopa.selfcare.azurestorage;
 
 import com.azure.storage.blob.models.BlobProperties;
-
 import java.io.File;
+import java.util.List;
 
 public interface AzureBlobClient {
 
@@ -17,4 +17,8 @@ public interface AzureBlobClient {
     void removeFile(String fileName);
 
     BlobProperties getProperties(String filePath);
+
+    List<String> getFiles();
+
+    List<String> getFiles(String path);
 }

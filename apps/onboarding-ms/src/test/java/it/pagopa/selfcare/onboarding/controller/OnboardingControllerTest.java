@@ -59,9 +59,6 @@ class OnboardingControllerTest {
 
     static final OnboardingUserPgRequest onboardingUserPgValid;
 
-    final String onboardingRequestJson =
-            "{\"productId\":\"prod-pn\",\"users\":[{\"taxCode\":\"GRSGNT71A62C950S\",\"name\":\"Gianantonio\",\"surname\":\"Grassi\",\"email\":\"g.grassi@test.it\",\"role\":\"MANAGER\"}],\"institution\":{\"institutionType\":\"PA\",\"taxCode\":\"80415740580\",\"origin\":\"IPA\",\"originId\":\"m_ef\",\"city\":\"ROMA\",\"country\":\"IT\",\"county\":\"RM\",\"description\":\"Ministero dell'Economia e delle Finanze\",\"digitalAddress\":\"mef@pec.mef.gov.it\",\"address\":\"Via XX Settembre, 97\",\"zipCode\":\"00187\",\"geographicTaxonomies\":[{\"code\":\"ITA\",\"desc\":\"ITALIA\"}],\"imported\":true},\"billing\":{\"vatNumber\":\"80415740580\",\"recipientCode\":\"Y7NS8B\",\"publicServices\":true}}";
-
     @InjectMock
     OnboardingService onboardingService;
 
@@ -579,77 +576,96 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingCompletionMultipart() {
+    void onboardingCompletion() {
 
-        // Mock della risposta del servizio
-        Mockito.when(onboardingService.onboardingCompletion(any(), any(), any()))
+        OnboardingDefaultRequest onboardingDefaultRequest = dummyOnboardingDefaultRequest();
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        // Creazione di un file fittizio per il test
-        File testFile = new File("src/test/resources/application.properties");
-
-        // Esecuzione della richiesta simulata
         given()
-                .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
-                .contentType("multipart/form-data")
                 .when()
+                .body(onboardingDefaultRequest)
+                .contentType(ContentType.JSON)
                 .post("/completion")
                 .then()
-                .statusCode(200); // Verifica del codice di stato
+                .statusCode(200);
 
-        // Verifica che il servizio sia stato chiamato correttamente
-        Mockito.verify(onboardingService, times(1)).onboardingCompletion(any(), any(), any());
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
+        assertEquals(InstitutionType.PRV, captor.getValue().getInstitution().getInstitutionType());
+    }
+
+    private static OnboardingDefaultRequest dummyOnboardingDefaultRequest() {
+        OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
+        InstitutionBaseRequest institution = new InstitutionBaseRequest();
+        onboardingDefaultRequest.setProductId("productId");
+        onboardingDefaultRequest.setUsers(List.of(userDTO));
+        institution.setTaxCode("taxCode");
+        institution.setDigitalAddress("digital@address.it");
+        institution.setOrigin(Origin.SELC);
+        institution.setInstitutionType(InstitutionType.PRV);
+        onboardingDefaultRequest.setInstitution(institution);
+        return onboardingDefaultRequest;
     }
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingPaCompletionMultipart() {
+    void onboardingPaCompletion() {
 
-        // Mock della risposta del servizio
-        Mockito.when(onboardingService.onboardingCompletion(any(), any(), any()))
+        OnboardingPaRequest onboardingPaRequest = dummyOnboardingPa();
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        // Creazione di un file fittizio per il test
-        File testFile = new File("src/test/resources/application.properties");
-
-        // Esecuzione della richiesta simulata
         given()
-                .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
-                .contentType("multipart/form-data")
                 .when()
+                .body(onboardingPaRequest)
+                .contentType(ContentType.JSON)
                 .post("/pa/completion")
                 .then()
-                .statusCode(200); // Verifica del codice di stato
+                .statusCode(200);
 
-        // Verifica che il servizio sia stato chiamato correttamente
-        Mockito.verify(onboardingService, times(1)).onboardingCompletion(any(), any(), any());
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
+        assertEquals(InstitutionType.PA, captor.getValue().getInstitution().getInstitutionType());
     }
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingPspCompletionMultipart() {
+    void onboardingPspCompletion() {
 
-        // Mock della risposta del servizio
-        Mockito.when(onboardingService.onboardingCompletion(any(), any(), any()))
+        OnboardingPspRequest onboardingPspRequest = getOnboardingPspRequest();
+
+        Mockito.when(onboardingService.onboardingCompletion(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        // Creazione di un file fittizio per il test
-        File testFile = new File("src/test/resources/application.properties");
-
-        // Esecuzione della richiesta simulata
         given()
-                .multiPart("contract", testFile) // Aggiunta del file
-                .multiPart("onboardingRequest", onboardingRequestJson) // Aggiunta del JSON come stringa
-                .contentType("multipart/form-data")
                 .when()
+                .body(onboardingPspRequest)
+                .contentType(ContentType.JSON)
                 .post("/psp/completion")
                 .then()
-                .statusCode(200); // Verifica del codice di stato
+                .statusCode(200);
 
-        // Verifica che il servizio sia stato chiamato correttamente
-        Mockito.verify(onboardingService, times(1)).onboardingCompletion(any(), any(), any());
+        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
+        Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
+        assertEquals(InstitutionType.PSP, captor.getValue().getInstitution().getInstitutionType());
+    }
+
+    private static OnboardingPspRequest getOnboardingPspRequest() {
+        OnboardingPspRequest onboardingPspRequest = new OnboardingPspRequest();
+        InstitutionPspRequest institution = new InstitutionPspRequest();
+        onboardingPspRequest.setProductId("productId");
+        onboardingPspRequest.setUsers(List.of(userDTO));
+        institution.setTaxCode("taxCode");
+        institution.setDigitalAddress("digital@address.it");
+        institution.setOrigin(Origin.SELC);
+        institution.setInstitutionType(InstitutionType.PSP);
+        institution.setPaymentServiceProvider(new PaymentServiceProviderRequest());
+        institution.setDataProtectionOfficer(new DataProtectionOfficerRequest());
+        onboardingPspRequest.setInstitution(institution);
+        return onboardingPspRequest;
     }
 
     @Test
@@ -663,7 +679,7 @@ class OnboardingControllerTest {
         onboardingPgRequest.setDigitalAddress("digital@address.it");
         onboardingPgRequest.setOrigin(Origin.INFOCAMERE);
 
-        Mockito.when(onboardingService.onboardingCompletion(any(), any(), any()))
+        Mockito.when(onboardingService.onboardingPgCompletion(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -675,7 +691,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
-        Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any(), any());
+        Mockito.verify(onboardingService, times(1)).onboardingPgCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
     }
 
@@ -1016,6 +1032,8 @@ class OnboardingControllerTest {
         BillingPaRequest billingPaRequest = new BillingPaRequest();
         billingPaRequest.setRecipientCode("code");
         billingPaRequest.setVatNumber("vat");
+
+        institution.setInstitutionType(InstitutionType.PA);
 
         onboardingPaValid.setUsers(List.of(userDTO));
         onboardingPaValid.setInstitution(institution);
