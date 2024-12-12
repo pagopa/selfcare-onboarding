@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.common.TokenType.INSTITUTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -18,6 +19,7 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.inject.Inject;
@@ -59,12 +61,13 @@ class TokenServiceDefaultTest {
     void retrieveContractNotSigned() {
         Token token = new Token();
         token.setContractFilename("fileName");
+        token.setType(TokenType.INSTITUTION);
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
         when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
 
         PanacheMock.mock(Token.class);
-        when(Token.find("onboardingId", onboardingId))
-            .thenReturn(queryPage);
+        when(Token.find("onboardingId = ?1 and type = ?2", onboardingId, INSTITUTION.name()))
+                .thenReturn(queryPage);
 
         when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
