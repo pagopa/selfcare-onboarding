@@ -22,7 +22,7 @@
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <commons-sdk-version>0.6.1</commons-sdk-version>
+    <commons-sdk-version>0.6.2</commons-sdk-version>
   </properties>
 
   <dependencyManagement>
