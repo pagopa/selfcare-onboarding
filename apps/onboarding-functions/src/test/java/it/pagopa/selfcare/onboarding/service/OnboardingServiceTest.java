@@ -258,11 +258,11 @@ class OnboardingServiceTest {
     Token token = createDummyToken();
     onboardingWorkflow.setOnboarding(onboarding);
 
-    when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
+    when(tokenRepository.findByIdOptional(onboarding.getId())).thenReturn(Optional.of(token));
 
     onboardingService.saveTokenWithContract(onboardingWorkflow);
 
-    Mockito.verify(tokenRepository, Mockito.times(1)).findByOnboardingId(onboarding.getId());
+    Mockito.verify(tokenRepository, Mockito.times(1)).findByIdOptional(onboarding.getId());
     Mockito.verifyNoMoreInteractions(tokenRepository);
   }
 
