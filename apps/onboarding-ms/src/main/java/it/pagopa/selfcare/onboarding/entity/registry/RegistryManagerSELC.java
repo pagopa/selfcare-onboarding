@@ -35,7 +35,8 @@ public class RegistryManagerSELC extends BaseRegistryManager<Object> {
     protected boolean isWorkflowTypeAllowed(WorkflowType workflowType) {
         return workflowType == WorkflowType.FOR_APPROVE ||
                 workflowType == WorkflowType.IMPORT ||
-                workflowType == WorkflowType.FOR_APPROVE_PT;
+                workflowType == WorkflowType.FOR_APPROVE_PT ||
+                workflowType == WorkflowType.FOR_APPROVE_GPU;
     }
 
     @Override
