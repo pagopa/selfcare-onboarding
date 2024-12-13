@@ -107,11 +107,14 @@ public class PdfMapper {
     return map;
   }
 
-  public static Map<String, Object> setUpAttachmentData(Onboarding onboarding) {
+  public static Map<String, Object> setUpAttachmentData(Onboarding onboarding, UserResource userResource) {
     Map<String, Object> map = new HashMap<>();
+
     map.put(INSTITUTION_NAME, onboarding.getInstitution().getDescription());
     map.put("institutionTaxCode", Optional.ofNullable(onboarding.getInstitution().getTaxCode()).orElse(UNDERSCORE));
     map.put("institutionMail", onboarding.getInstitution().getDigitalAddress());
+    map.put("managerName", getStringValue(userResource.getName()));
+    map.put("managerSurname", getStringValue(userResource.getFamilyName()));
     if (Objects.nonNull(onboarding.getInstitution().getGpuData())) {
       map.put(
           "businessRegisterNumber",

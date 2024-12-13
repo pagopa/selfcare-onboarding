@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 
 import com.microsoft.azure.functions.ExecutionContext;
@@ -14,7 +14,11 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -29,7 +33,11 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.bson.Document;
@@ -84,8 +92,6 @@ public class OnboardingService {
 
   public void createContract(OnboardingWorkflow onboardingWorkflow) {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
-    String validManagerId = getValidManagerId(onboarding.getUsers());
-    UserResource manager = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, validManagerId);
 
     List<UserResource> delegates =
         onboarding.getUsers().stream()
@@ -99,10 +105,15 @@ public class OnboardingService {
     contractService.createContractPDF(
         onboardingWorkflow.getContractTemplatePath(product),
         onboarding,
-        manager,
+        getUserResource(onboarding),
         delegates,
         product.getTitle(),
         onboardingWorkflow.getPdfFormatFilename());
+  }
+
+  private UserResource getUserResource(Onboarding onboarding) {
+    String validManagerId = getValidManagerId(onboarding.getUsers());
+    return userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, validManagerId);
   }
 
   public void createAttachment(OnboardingAttachment onboardingAttachment) {
@@ -111,7 +122,7 @@ public class OnboardingService {
     AttachmentTemplate attachment = onboardingAttachment.getAttachment();
 
     contractService.createAttachmentPDF(
-        attachment.getTemplatePath(), onboarding, product.getTitle(), attachment.getName());
+        attachment.getTemplatePath(), onboarding, product.getTitle(), attachment.getName(), getUserResource(onboarding));
   }
 
   public void loadContract(Onboarding onboarding) {
