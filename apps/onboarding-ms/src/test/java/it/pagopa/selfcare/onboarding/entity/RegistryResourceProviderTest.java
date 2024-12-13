@@ -41,6 +41,8 @@ class RegistryResourceProviderTest {
     @RestClient
     StationsApi stationsApi;
 
+    private static final String MANAGER_TAX_CODE = "managerTaxCode";
+
     private Onboarding createOnboarding(Origin origin) {
         Onboarding onboarding = new Onboarding();
         Institution institution = new Institution();
@@ -51,7 +53,7 @@ class RegistryResourceProviderTest {
 
     @Test
     void getRegistryIPA() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IPA));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IPA), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerIPA);
     }
 
@@ -59,7 +61,7 @@ class RegistryResourceProviderTest {
     void getRegistryUO() {
         Onboarding onboarding = createOnboarding(Origin.IPA);
         onboarding.getInstitution().setSubunitType(InstitutionPaSubunitType.UO);
-        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding);
+        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding, MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerIPAUo);
     }
 
@@ -67,37 +69,37 @@ class RegistryResourceProviderTest {
     void getRegistryAOO() {
         Onboarding onboarding = createOnboarding(Origin.IPA);
         onboarding.getInstitution().setSubunitType(InstitutionPaSubunitType.AOO);
-        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding);
+        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding, MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerIPAAoo);
     }
 
     @Test
     void getRegistryIVASS() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IVASS));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IVASS), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerIVASS);
     }
 
     @Test
     void getRegistryANAC() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ANAC));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ANAC), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerANAC);
     }
 
     @Test
     void getRegistryPDNDInfocamere() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.PDND_INFOCAMERE));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.PDND_INFOCAMERE), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerPDNDInfocamere);
     }
 
     @Test
     void getRegistryInfocamere() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.INFOCAMERE));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.INFOCAMERE), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerInfocamere);
     }
 
     @Test
     void getRegistryADE() {
-        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ADE));
+        RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.ADE), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerADE);
     }
 

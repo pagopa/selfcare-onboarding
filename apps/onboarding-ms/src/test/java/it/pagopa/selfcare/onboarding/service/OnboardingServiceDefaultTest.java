@@ -930,7 +930,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_Onboarding_Aggregator(UniAsserter asserter) {
         UserRequest managerUser = UserRequest.builder()
                 .name("name")
-                .taxCode(managerResource.getFiscalCode())
+                .taxCode("taxCode")
                 .role(PartyRole.MANAGER)
                 .build();
 
@@ -989,7 +989,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_Onboarding_Aggregator_WithUsers(UniAsserter asserter) {
         UserRequest managerUser = UserRequest.builder()
                 .name("name")
-                .taxCode(managerResource.getFiscalCode())
+                .taxCode("taxCode")
                 .role(PartyRole.MANAGER)
                 .build();
 
@@ -1285,7 +1285,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_whenUserFoundAndWillNotUpdate(UniAsserter asserter) {
         UserRequest wrongManager = UserRequest.builder()
                 .name("wrong_name")
-                .taxCode(managerResourceWkSpid.getFiscalCode())
+                .taxCode("managerTaxCode")
                 .role(PartyRole.MANAGER)
                 .build();
 
@@ -1325,7 +1325,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_whenUserFoundedAndWillUpdateMailUuid(UniAsserter asserter) {
         UserRequest newManager = UserRequest.builder()
                 .name("name")
-                .taxCode(managerResourceWk.getFiscalCode())
+                .taxCode("taxCode")
                 .role(PartyRole.MANAGER)
                 .email("example@live.it")
                 .build();
@@ -2169,6 +2169,12 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        BusinessResource businessResource = new BusinessResource();
+        businessResource.setBusinessTaxId("taxCode");
+        BusinessesResource resource = new BusinessesResource();
+        resource.setBusinesses(List.of(businessResource));
+        when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(Uni.createFrom().item(resource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setCategory("L37");
