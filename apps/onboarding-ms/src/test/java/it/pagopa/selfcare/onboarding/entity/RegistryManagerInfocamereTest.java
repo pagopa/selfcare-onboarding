@@ -18,28 +18,22 @@ import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 @QuarkusTest
 public class RegistryManagerInfocamereTest {
+
     @InjectMock
     @RestClient
     InfocamereApi infocamereApi;
 
-    @InjectMock
-    @RestClient
-    UserApi userApi;
-
     @Test
     void retrieveInstitution() {
         Onboarding onboarding = createOnboarding();
-        RegistryManagerInfocamere registryManagerInfocamere = new RegistryManagerInfocamere(onboarding, infocamereApi, userApi);
+        RegistryManagerInfocamere registryManagerInfocamere = new RegistryManagerInfocamere(onboarding, infocamereApi, "taxCode");
         BusinessResource businessResource = new BusinessResource();
         businessResource.setBusinessTaxId("taxCode");
         BusinessesResource resource = new BusinessesResource();
         resource.setBusinesses(List.of(businessResource));
-        mockUserRegistry();
         when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(Uni.createFrom().item(resource));
         BusinessesResource result = registryManagerInfocamere.retrieveInstitution();
         assertNotNull(result);
@@ -51,7 +45,7 @@ public class RegistryManagerInfocamereTest {
     @Test
     void isNotValid() {
         Onboarding onboarding = createOnboarding();
-        RegistryManagerInfocamere registryManagerInfocamere = new RegistryManagerInfocamere(onboarding, infocamereApi, userApi);
+        RegistryManagerInfocamere registryManagerInfocamere = new RegistryManagerInfocamere(onboarding, infocamereApi, "taxCode");
         BusinessesResource businessesResource = new BusinessesResource();
         businessesResource.setBusinesses(List.of());
         registryManagerInfocamere.setResource(businessesResource);
@@ -73,9 +67,4 @@ public class RegistryManagerInfocamereTest {
         return onboarding;
     }
 
-    private void mockUserRegistry() {
-        UserResource user = new UserResource();
-        user.setFiscalCode("taxCode");
-        when(userApi.findByIdUsingGET(any(), any())).thenReturn(Uni.createFrom().item(user));
-    }
 }

@@ -14,8 +14,8 @@ import java.util.Objects;
 public class RegistryManagerADE extends ClientRegistryADE {
 
   public RegistryManagerADE(
-      Onboarding onboarding, NationalRegistriesApi nationalRegistriesApi, UserApi userApi) {
-    super(onboarding, nationalRegistriesApi, userApi);
+      Onboarding onboarding, NationalRegistriesApi nationalRegistriesApi, String managerTaxCode) {
+    super(onboarding, nationalRegistriesApi, managerTaxCode);
   }
 
   @Override

@@ -16,8 +16,8 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 public class RegistryManagerInfocamere extends ClientRegistryInfocamere {
 
   public RegistryManagerInfocamere(
-      Onboarding onboarding, InfocamereApi infocamereApi, UserApi userApi) {
-    super(onboarding, infocamereApi, userApi);
+      Onboarding onboarding, InfocamereApi infocamereApi, String managerTaxCode) {
+    super(onboarding, infocamereApi, managerTaxCode);
   }
 
   @Override

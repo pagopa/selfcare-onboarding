@@ -50,7 +50,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -59,7 +58,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -105,8 +103,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
-    protected static final String PDF_FORMAT_FILENAME = "%s_accordo_adesione.pdf";
-
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -321,12 +317,23 @@ public class OnboardingServiceDefault implements OnboardingService {
             Product product) {
 
         return Uni.createFrom()
-                .item(registryResourceFactory.create(onboarding))
+                .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
                 .onItem()
                 .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                 .onItem()
                 .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, timeout));
+    }
+
+    private String getManagerTaxCode(List<UserRequest> userRequests) {
+        if (Objects.nonNull(userRequests)) {
+            return userRequests.stream()
+                    .filter(userRequest -> userRequest.getRole().equals(PartyRole.MANAGER))
+                    .map(UserRequest::getTaxCode)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
     }
 
     private Uni<OnboardingResponse> validateAndPersistOnboarding(
@@ -426,7 +433,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         product ->
                                 Uni.createFrom()
-                                        .item(registryResourceFactory.create(onboarding))
+                                        .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
                                         .onItem()
                                         .invoke(
                                                 registryManager ->

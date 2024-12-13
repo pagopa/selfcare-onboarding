@@ -17,8 +17,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.LegalVerificationResult;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 @QuarkusTest
 public class RegistryManagerADETest {
@@ -27,17 +25,12 @@ public class RegistryManagerADETest {
     @RestClient
     NationalRegistriesApi nationalRegistriesApi;
 
-    @InjectMock
-    @RestClient
-    UserApi userApi;
-
     @Test
     void retrieveInstitution() {
         Onboarding onboarding = createOnboarding();
-        RegistryManagerADE registryManagerADE = new RegistryManagerADE(onboarding, nationalRegistriesApi, userApi);
+        RegistryManagerADE registryManagerADE = new RegistryManagerADE(onboarding, nationalRegistriesApi, "taxCode");
         LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
         legalVerificationResult.setVerificationResult(true);
-        mockUserRegistry();
         when(nationalRegistriesApi.verifyLegalUsingGET(any(), any())).thenReturn(Uni.createFrom().item(legalVerificationResult));
         Boolean result = registryManagerADE.retrieveInstitution();
         assertTrue(result);
@@ -47,7 +40,7 @@ public class RegistryManagerADETest {
     @Test
     void isNotValid() {
         Onboarding onboarding = createOnboarding();
-        RegistryManagerADE registryManagerADE = new RegistryManagerADE(onboarding, nationalRegistriesApi, userApi);
+        RegistryManagerADE registryManagerADE = new RegistryManagerADE(onboarding, nationalRegistriesApi, "taxCode");
         registryManagerADE.setResource(false);
         UniAssertSubscriber<Boolean> subscriber = registryManagerADE.isValid()
                 .subscribe().withSubscriber(UniAssertSubscriber.create());
@@ -67,9 +60,4 @@ public class RegistryManagerADETest {
         return onboarding;
     }
 
-    private void mockUserRegistry() {
-        UserResource user = new UserResource();
-        user.setFiscalCode("taxCode");
-        when(userApi.findByIdUsingGET(any(), any())).thenReturn(Uni.createFrom().item(user));
-    }
 }

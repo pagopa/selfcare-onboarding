@@ -1,16 +1,15 @@
 package it.pagopa.selfcare.onboarding.entity.registry;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.GSP;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PT;
+
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.*;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.EC;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.GSP;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PT;
 
 @ApplicationScoped
 public class RegistryResourceFactory {
@@ -26,8 +25,6 @@ public class RegistryResourceFactory {
 
   @RestClient @Inject UoApi uoApi;
 
-  @RestClient @Inject UserApi userApi;
-
   @RestClient @Inject InfocamerePdndApi infocamerePdndApi;
 
   @RestClient @Inject InsuranceCompaniesApi insuranceCompaniesApi;
@@ -36,15 +33,15 @@ public class RegistryResourceFactory {
 
   @RestClient @Inject GeographicTaxonomiesApi geographicTaxonomiesApi;
 
-  public RegistryManager<?> create(Onboarding onboarding) {
+  public RegistryManager<?> create(Onboarding onboarding, String managerTaxCode) {
     return switch (onboarding.getInstitution().getOrigin() != null
         ? onboarding.getInstitution().getOrigin()
         : Origin.SELC) {
       case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
       case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
       case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
-      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi, userApi);
-      case ADE -> new RegistryManagerADE(onboarding, nationalRegistriesApi, userApi);
+      case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi, managerTaxCode);
+      case ADE -> new RegistryManagerADE(onboarding, nationalRegistriesApi, managerTaxCode);
       case IPA -> getResourceFromIPA(onboarding);
       default -> getRegistryManagerSELC(onboarding);
     };

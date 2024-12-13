@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.entity.registry.client;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -13,17 +12,16 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalDto;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 public abstract class ClientRegistryInfocamere extends BaseRegistryManager<BusinessesResource> {
 
   private final InfocamereApi client;
-  private final UserApi userApi;
+  private final String managerTaxCode;
 
-  protected ClientRegistryInfocamere(Onboarding onboarding, InfocamereApi client, UserApi userApi) {
+  protected ClientRegistryInfocamere(Onboarding onboarding, InfocamereApi client, String managerTaxCode) {
     super(onboarding);
     this.client = client;
-    this.userApi = userApi;
+    this.managerTaxCode = managerTaxCode;
   }
 
   public BusinessesResource retrieveInstitution() {
@@ -32,7 +30,7 @@ public abstract class ClientRegistryInfocamere extends BaseRegistryManager<Busin
             GetInstitutionsByLegalDto.builder()
                 .filter(
                     GetInstitutionsByLegalFilterDto.builder()
-                        .legalTaxId(getManagerTaxCode())
+                        .legalTaxId(managerTaxCode)
                         .build())
                 .build())
         .onFailure()
@@ -51,13 +49,5 @@ public abstract class ClientRegistryInfocamere extends BaseRegistryManager<Busin
                     : Uni.createFrom().failure(ex))
         .await()
         .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
-  }
-
-  private String getManagerTaxCode() {
-    return userApi
-        .findByIdUsingGET(USERS_FIELD_LIST, getManagerIdFromOnboarding())
-        .await()
-        .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS))
-        .getFiscalCode();
   }
 }
