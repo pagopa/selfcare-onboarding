@@ -1,5 +1,26 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_SIGN;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.CREATE_AGGREGATES_CSV_ERROR;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.LOAD_AGGREGATES_CSV_ERROR;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.UNABLE_TO_DOWNLOAD_FILE;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setECData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setUpAttachmentData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setUpCommonData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupPRVData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupPSPData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupProdIOData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupProdIODataAggregates;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupProdPNData;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.setupSAProdInteropData;
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -9,20 +30,14 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.text.StringSubstitutor;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jsoup.Jsoup;
-import org.jsoup.helper.W3CDom;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -33,13 +48,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jsoup.Jsoup;
+import org.jsoup.helper.W3CDom;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
@@ -259,7 +283,7 @@ public class ContractServiceDefault implements ContractService {
         && InstitutionType.PSP == institution.getInstitutionType()) {
       setupPSPData(data, manager, onboarding);
     } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
-        && InstitutionType.PRV == institution.getInstitutionType()) {
+        && InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType()) {
       setupPRVData(data, onboarding, baseUrl.toString(), users);
     } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
         && InstitutionType.PSP != institution.getInstitutionType()
