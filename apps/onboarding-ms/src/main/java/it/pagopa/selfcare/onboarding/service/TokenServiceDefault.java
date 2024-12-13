@@ -7,17 +7,25 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
+import org.bson.Document;
 import org.jboss.resteasy.reactive.RestResponse;
 
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
+
+    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
+        "Token with id %s not found or already deleted";
 
     public TokenServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
         this.azureBlobClient = azureBlobClient;
@@ -60,14 +68,36 @@ public class TokenServiceDefault implements TokenService {
     }
 
     @Override
+    public Uni<Long> updateContractSigned(String onboardingId, String documentSignedPath) {
+
+        Map<String, Object> queryParameter = new HashMap<>();
+        queryParameter.put("contractSigned", documentSignedPath);
+        Document query = QueryUtils.buildUpdateDocument(queryParameter);
+
+        return Token.update(query)
+            .where("_id", onboardingId)
+            .onItem()
+            .transformToUni(
+                updateItemCount -> {
+                    if (updateItemCount == 0) {
+                        return Uni.createFrom()
+                            .failure(
+                                new InvalidRequestException(
+                                    String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                    }
+                    return Uni.createFrom().item(updateItemCount);
+                });
+    }
+
     public Uni<List<String>> getAttachments(String onboardingId) {
         return Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name())
-                .stream().onItem().transform(Token.class::cast)
-                .map(Token::getName)
-                .collect().asList();
+            .stream().onItem().transform(Token.class::cast)
+            .map(Token::getName)
+            .collect().asList();
     }
 
     private String getAttachmentByOnboarding(String onboardingId, String filename) {
-        return String.format("%s%s%s%s",onboardingMsConfig.getContractPath(), onboardingId, "/attachments", "/" + filename);
+        return String.format("%s%s%s%s", onboardingMsConfig.getContractPath(), onboardingId, "/attachments", "/" + filename);
     }
+
 }

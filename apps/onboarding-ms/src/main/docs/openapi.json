@@ -1605,6 +1605,51 @@
         } ]
       }
     },
+    "/v1/tokens/contract-signed" : {
+      "put" : {
+        "tags" : [ "internal-v1" ],
+        "summary" : "Find an attachment for a given onboarding id and update the contract signed path",
+        "description" : "Find  an attachment for a given onboarding id and update the contract signed path",
+        "operationId" : "updateContractSigned",
+        "parameters" : [ {
+          "name" : "contractSigned",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "onboardingId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "format" : "int64",
+                  "type" : "integer"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/tokens/{onboardingId}/attachment" : {
       "get" : {
         "tags" : [ "Token Controller" ],
