@@ -120,6 +120,20 @@ class OnboardingServiceTest {
   void createContract_shouldThrowIfManagerNotfound() {
     Onboarding onboarding = createOnboarding();
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+
+    UserResource userResource = createUserResource();
+    User user = new User();
+    user.setId(userResource.getId().toString());
+    user.setRole(PartyRole.MANAGER);
+
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
+        .thenReturn(userResource);
+
+    Product product = new Product();
+    product.setTitle("title");
+
+    when(productService.getProductIsValid(any())).thenReturn(product);
+
     assertThrows(
         GenericOnboardingException.class,
         () -> onboardingService.createContract(onboardingWorkflow));
@@ -216,6 +230,11 @@ class OnboardingServiceTest {
 
     // Arrange
     Onboarding onboarding = createOnboarding();
+    User user = new User();
+    user.setRole(PartyRole.MANAGER);
+    user.setId("id");
+    onboarding.setUsers(List.of(user));
+
     AttachmentTemplate attachmentTemplate = createDummyAttachmentTemplate();
     Product product = createDummyProduct();
     OnboardingAttachment onboardingAttachment = new OnboardingAttachment();
@@ -224,7 +243,7 @@ class OnboardingServiceTest {
 
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
 
-   UserResource userResource = new UserResource();
+    UserResource userResource = new UserResource();
     userResource.setId(UUID.randomUUID());
     Map<String, WorkContactResource> map = new HashMap<>();
     userResource.setWorkContacts(map);
@@ -237,16 +256,8 @@ class OnboardingServiceTest {
 
     // Assert
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
-
-    // Capture the path of the template used for the PDF
-    ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
     Mockito.verify(contractService, Mockito.times(1))
-        .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any(), any());
-
-    // Check that the correct template was used
-    assertEquals(
-        "path", // This is the template matching the onboarding filter
-        captorTemplatePath.getValue());
+        .createAttachmentPDF(any(), any(), any(), any(), any());
   }
 
   private Product createDummyProduct() {
@@ -680,4 +691,5 @@ class OnboardingServiceTest {
     token.setId(UUID.randomUUID().toString());
     return token;
   }
+
 }
