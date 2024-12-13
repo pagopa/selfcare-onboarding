@@ -2,9 +2,18 @@ package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -19,7 +28,13 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
@@ -29,7 +44,13 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
@@ -38,6 +59,7 @@ import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -202,6 +224,14 @@ class OnboardingServiceTest {
 
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
 
+   UserResource userResource = new UserResource();
+    userResource.setId(UUID.randomUUID());
+    Map<String, WorkContactResource> map = new HashMap<>();
+    userResource.setWorkContacts(map);
+
+    when(userRegistryApi.findByIdUsingGET(anyString(), anyString()))
+        .thenReturn(userResource);
+
     // Act
     onboardingService.createAttachment(onboardingAttachment);
 
@@ -211,7 +241,7 @@ class OnboardingServiceTest {
     // Capture the path of the template used for the PDF
     ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
     Mockito.verify(contractService, Mockito.times(1))
-        .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any());
+        .createAttachmentPDF(captorTemplatePath.capture(), any(), any(), any(), any());
 
     // Check that the correct template was used
     assertEquals(

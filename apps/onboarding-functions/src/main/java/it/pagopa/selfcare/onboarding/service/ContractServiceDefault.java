@@ -223,7 +223,7 @@ public class ContractServiceDefault implements ContractService {
       String attachmentTemplatePath,
       Onboarding onboarding,
       String productName,
-      String attachmentName) {
+      String attachmentName, UserResource userResource) {
 
     log.info("START - createAttachmentPDF for template: {}", attachmentTemplatePath);
 
@@ -235,7 +235,7 @@ public class ContractServiceDefault implements ContractService {
       File attachmentPdfFile =
           "pdf".equals(fileType)
               ? azureBlobClient.getFileAsPdf(attachmentTemplatePath)
-              : createPdfFileAttachment(attachmentTemplatePath, onboarding);
+              : createPdfFileAttachment(attachmentTemplatePath, onboarding, userResource);
 
       // Define the filename and path for storage.
       final String filename =
@@ -304,7 +304,7 @@ public class ContractServiceDefault implements ContractService {
     return temporaryPdfFile.toFile();
   }
 
-  private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding)
+  private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
       throws IOException {
     final String builder =
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
@@ -317,7 +317,7 @@ public class ContractServiceDefault implements ContractService {
     // Create a temporary PDF file to store the contract.
     Path attachmentPdfFile = Files.createTempFile(builder, ".pdf");
     // Prepare common data for the contract document.
-    Map<String, Object> data = setUpAttachmentData(onboarding);
+    Map<String, Object> data = setUpAttachmentData(onboarding, userResource);
 
     log.debug("data Map for PDF: {}", data);
     fillPDFAsFile(attachmentPdfFile, attachmentTemplateText, data);
