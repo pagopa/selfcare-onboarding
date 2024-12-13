@@ -16,10 +16,12 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 public abstract class ClientRegistryInfocamere extends BaseRegistryManager<BusinessesResource> {
 
   private final InfocamereApi client;
+  private final String managerTaxCode;
 
-  protected ClientRegistryInfocamere(Onboarding onboarding, InfocamereApi client) {
+  protected ClientRegistryInfocamere(Onboarding onboarding, InfocamereApi client, String managerTaxCode) {
     super(onboarding);
     this.client = client;
+    this.managerTaxCode = managerTaxCode;
   }
 
   public BusinessesResource retrieveInstitution() {
@@ -28,7 +30,7 @@ public abstract class ClientRegistryInfocamere extends BaseRegistryManager<Busin
             GetInstitutionsByLegalDto.builder()
                 .filter(
                     GetInstitutionsByLegalFilterDto.builder()
-                        .legalTaxId(onboarding.getInstitution().getTaxCode())
+                        .legalTaxId(managerTaxCode)
                         .build())
                 .build())
         .onFailure()
@@ -42,7 +44,7 @@ public abstract class ClientRegistryInfocamere extends BaseRegistryManager<Busin
                         .failure(
                             new ResourceNotFoundException(
                                 String.format(
-                                    "Institution with taxCode %s not found",
+                                    "Institutions' list for user with taxCode %s not found",
                                     onboarding.getInstitution().getTaxCode())))
                     : Uni.createFrom().failure(ex))
         .await()

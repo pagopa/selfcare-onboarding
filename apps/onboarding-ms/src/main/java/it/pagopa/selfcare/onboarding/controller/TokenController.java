@@ -6,14 +6,19 @@ import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import lombok.AllArgsConstructor;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.jboss.resteasy.reactive.RestResponse;
-
 import java.io.File;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @Authenticated
 @Path("/v1/tokens")
@@ -67,4 +72,18 @@ public class TokenController {
                                                  @NotNull @QueryParam(value = "name") String attachmentName){
         return tokenService.retrieveAttachment(onboardingId, attachmentName);
     }
+
+    @Operation(
+        summary = "Find an attachment for a given onboarding id and update the contract signed path",
+        description = "Find  an attachment for a given onboarding id and update the contract signed path"
+    )
+    @PUT
+    @Tag(name = "internal-v1")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/contract-signed")
+    public Uni<Long> updateContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId,
+        @NotNull @QueryParam(value = "contractSigned") String contractSigned) {
+        return tokenService.updateContractSigned(onboardingId, contractSigned);
+    }
+
 }
