@@ -95,8 +95,8 @@ public class NotificationFunctions {
                     .build();
         }
 
-        final String queueEventString = request.getQueryParameters().get("queueEvent");
-        final QueueEvent queueEvent = Objects.isNull(queueEventString) ? QueueEvent.UPDATE : QueueEvent.valueOf(queueEventString);
+    final String queueEventString = request.getQueryParameters().get("queueEvent");
+    final QueueEvent queueEvent = Objects.isNull(queueEventString) ? null : QueueEvent.valueOf(queueEventString);
 
 
         final Optional<Onboarding> onboarding = onboardingService.getOnboarding(onboardingId);
