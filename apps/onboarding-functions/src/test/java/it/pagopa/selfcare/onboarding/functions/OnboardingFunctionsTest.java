@@ -917,11 +917,10 @@ class OnboardingFunctionsTest {
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(3))
+    verify(orchestrationContext, times(2))
         .callActivity(captorActivity.capture(), any(), any(), any());
-    assertEquals(DELETE_MANAGERS_BY_IC_AND_ADE, captorActivity.getAllValues().get(0));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(0));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(1));
   }
 
   @Test
@@ -1075,18 +1074,6 @@ class OnboardingFunctionsTest {
     function.sendTestEmail(req, executionContext);
 
     verify(completionService, times(1)).sendTestEmail(executionContext);
-  }
-
-  @Test
-  void deleteOldPgManagers() {
-    final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
-
-    when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
-    doNothing().when(completionService).deleteOldPgManagers(any());
-
-    function.deleteOldPgManagers(onboardingString, executionContext);
-
-    verify(completionService, times(1)).deleteOldPgManagers(any());
   }
 
   @Test

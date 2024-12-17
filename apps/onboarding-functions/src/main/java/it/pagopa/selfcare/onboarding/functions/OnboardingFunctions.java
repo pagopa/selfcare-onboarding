@@ -648,21 +648,6 @@ public class OnboardingFunctions {
         readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
   }
 
-  @FunctionName(DELETE_MANAGERS_BY_IC_AND_ADE)
-  public void deleteOldPgManagers(
-      @DurableActivityTrigger(name = "onboardingString") String onboardingString,
-      final ExecutionContext context) {
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    FORMAT_LOGGER_ONBOARDING_STRING,
-                    DELETE_MANAGERS_BY_IC_AND_ADE,
-                    onboardingString));
-    completionService.deleteOldPgManagers(readOnboardingValue(objectMapper, onboardingString));
-  }
-
   @FunctionName(RETRIEVE_AGGREGATES_ACTIVITY)
   public String retrieveAggregates(
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
