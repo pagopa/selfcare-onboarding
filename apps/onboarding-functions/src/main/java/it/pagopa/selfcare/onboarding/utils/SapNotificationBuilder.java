@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.common.ProductId;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -21,33 +22,33 @@ import java.util.Set;
 import java.util.UUID;
 
 public class SapNotificationBuilder extends BaseNotificationBuilder
-    implements NotificationUserBuilder {
+  implements NotificationUserBuilder {
   private final UoApi proxyRegistryUoApi;
   private final AooApi proxyRegistryAooApi;
 
   public SapNotificationBuilder(
-      String alternativeEmail,
-      NotificationConfig.Consumer consumer,
-      InstitutionApi proxyRegistryInstitutionApi,
-      GeographicTaxonomiesApi geographicTaxonomiesApi,
-      org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi,
-      UoApi proxyRegistryUoApi,
-      AooApi proxyRegistryAooApi) {
+    String alternativeEmail,
+    NotificationConfig.Consumer consumer,
+    InstitutionApi proxyRegistryInstitutionApi,
+    GeographicTaxonomiesApi geographicTaxonomiesApi,
+    org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi,
+    UoApi proxyRegistryUoApi,
+    AooApi proxyRegistryAooApi) {
     super(
-        alternativeEmail,
-        consumer,
-        proxyRegistryInstitutionApi,
-        geographicTaxonomiesApi,
-        coreInstitutionApi);
+      alternativeEmail,
+      consumer,
+      proxyRegistryInstitutionApi,
+      geographicTaxonomiesApi,
+      coreInstitutionApi);
     this.proxyRegistryUoApi = proxyRegistryUoApi;
     this.proxyRegistryAooApi = proxyRegistryAooApi;
   }
 
   @Override
   public NotificationToSend buildNotificationToSend(
-      Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
+    Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
     NotificationToSend notificationToSend =
-        super.buildNotificationToSend(onboarding, token, institution, queueEvent);
+      super.buildNotificationToSend(onboarding, token, institution, queueEvent);
     notificationToSend.setId(UUID.randomUUID().toString());
     notificationToSend.setInstitutionId(institution.getId());
     notificationToSend.setType(NotificationType.getNotificationTypeFromQueueEvent(queueEvent));
@@ -55,22 +56,26 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
     notificationToSend.getInstitution().setFileName(notificationToSend.getFileName());
     notificationToSend.getInstitution().setContentType(notificationToSend.getContentType());
     if (Objects.nonNull(onboarding.getBilling())
-        && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
+      && Objects.nonNull(onboarding.getBilling().getTaxCodeInvoicing())) {
       // If there is tax code invoicing in billing, set it as taxCode in the institution
       notificationToSend.getInstitution().setTaxCode(onboarding.getBilling().getTaxCodeInvoicing());
+    }
+    // set Origin = SELC if not IPA
+    if (!notificationToSend.getInstitution().getOrigin().equals(Origin.IPA.getValue())) {
+      notificationToSend.getInstitution().setOrigin(Origin.SELC.getValue());
     }
     return notificationToSend;
   }
 
   private static void setNotificationToSendInstitutionDescription(
-      NotificationToSend notificationToSend) {
+    NotificationToSend notificationToSend) {
     if (notificationToSend.getInstitution().getRootParent() != null) {
       notificationToSend
-          .getInstitution()
-          .setDescription(
-              notificationToSend.getInstitution().getRootParent().getDescription()
-                  + " - "
-                  + notificationToSend.getInstitution().getDescription());
+        .getInstitution()
+        .setDescription(
+          notificationToSend.getInstitution().getRootParent().getDescription()
+            + " - "
+            + notificationToSend.getInstitution().getDescription());
     }
   }
 
@@ -87,7 +92,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
 
   @Override
   public InstitutionToNotify retrieveInstitution(
-      InstitutionResponse institution, Onboarding onboarding) {
+    InstitutionResponse institution, Onboarding onboarding) {
     InstitutionToNotify institutionToNotify = super.retrieveInstitution(institution, onboarding);
 
     // Field not allowed in SAP schema
@@ -102,51 +107,51 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
       switch (Objects.requireNonNull(institutionToNotify.getSubUnitType())) {
         case "UO" -> {
           UOResource organizationUnit =
-              proxyRegistryUoApi.findByUnicodeUsingGET1(institutionToNotify.getSubUnitCode(), null);
+            proxyRegistryUoApi.findByUnicodeUsingGET1(institutionToNotify.getSubUnitCode(), null);
           institutionToNotify.setIstatCode(organizationUnit.getCodiceComuneISTAT());
           geographicTaxonomies =
-              geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(
-                  organizationUnit.getCodiceComuneISTAT());
+            geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(
+              organizationUnit.getCodiceComuneISTAT());
         }
         case "AOO" -> {
           AOOResource homogeneousOrganizationalArea =
-              proxyRegistryAooApi.findByUnicodeUsingGET(institutionToNotify.getSubUnitCode(), null);
+            proxyRegistryAooApi.findByUnicodeUsingGET(institutionToNotify.getSubUnitCode(), null);
           institutionToNotify.setIstatCode(homogeneousOrganizationalArea.getCodiceComuneISTAT());
           geographicTaxonomies =
-              geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(
-                  homogeneousOrganizationalArea.getCodiceComuneISTAT());
+            geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(
+              homogeneousOrganizationalArea.getCodiceComuneISTAT());
         }
         default -> {
           InstitutionResource proxyInfo =
-              proxyRegistryInstitutionApi.findInstitutionUsingGET(
-                  institutionToNotify.getTaxCode(), null, null);
+            proxyRegistryInstitutionApi.findInstitutionUsingGET(
+              institutionToNotify.getTaxCode(), null, null);
           institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
           geographicTaxonomies =
-              geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
+            geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
         }
       }
     } else {
       InstitutionResource proxyInfo =
-          proxyRegistryInstitutionApi.findInstitutionUsingGET(
-              institutionToNotify.getTaxCode(), null, null);
+        proxyRegistryInstitutionApi.findInstitutionUsingGET(
+          institutionToNotify.getTaxCode(), null, null);
       institutionToNotify.setIstatCode(proxyInfo.getIstatCode());
       geographicTaxonomies =
-          geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
+        geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(proxyInfo.getIstatCode());
     }
 
     if (geographicTaxonomies != null) {
       institutionToNotify.setCounty(geographicTaxonomies.getProvinceAbbreviation());
       institutionToNotify.setCountry(geographicTaxonomies.getCountryAbbreviation());
       institutionToNotify.setCity(
-          geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
+        geographicTaxonomies.getDesc().replace(DESCRIPTION_TO_REPLACE_REGEX, ""));
     }
   }
 
   @Override
   public boolean shouldSendNotification(Onboarding onboarding, InstitutionResponse institution) {
     return isProductAllowed(onboarding)
-        && isAllowedInstitutionType(institution)
-        && isAllowedOrigin(institution.getOrigin());
+      && isAllowedInstitutionType(institution)
+      && isAllowedOrigin(institution.getOrigin());
   }
 
   private boolean isProductAllowed(Onboarding onboarding) {
@@ -158,7 +163,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
 
   private boolean isAllowedInstitutionType(InstitutionResponse institution) {
     return isNullOrEmpty(consumer.allowedInstitutionTypes())
-        || consumer.allowedInstitutionTypes().contains(institution.getInstitutionType());
+      || consumer.allowedInstitutionTypes().contains(institution.getInstitutionType());
   }
 
   private boolean isAllowedOrigin(String origin) {
@@ -171,15 +176,15 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
 
   @Override
   public NotificationUserToSend buildUserNotificationToSend(
-      Onboarding onboarding,
-      Token token,
-      InstitutionResponse institution,
-      String createdAt,
-      String updatedAt,
-      String status,
-      String userId,
-      String partyRole,
-      String productRole) {
+    Onboarding onboarding,
+    Token token,
+    InstitutionResponse institution,
+    String createdAt,
+    String updatedAt,
+    String status,
+    String userId,
+    String partyRole,
+    String productRole) {
     return null;
   }
 }
