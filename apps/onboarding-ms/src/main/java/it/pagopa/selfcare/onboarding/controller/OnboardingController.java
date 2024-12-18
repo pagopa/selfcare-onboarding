@@ -439,6 +439,7 @@ public class OnboardingController {
     )
     @GET
     @Tag(name = "support")
+    @Tag(name = "internal-v1")
     @Tag(name = "Onboarding")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/institutionOnboardings")
