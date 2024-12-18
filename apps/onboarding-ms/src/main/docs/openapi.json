@@ -2693,6 +2693,9 @@
           },
           "isAggregator" : {
             "type" : "boolean"
+          },
+          "createdAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
           }
         }
       },

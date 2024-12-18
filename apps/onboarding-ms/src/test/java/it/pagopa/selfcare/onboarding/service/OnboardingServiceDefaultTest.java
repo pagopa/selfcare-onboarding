@@ -75,6 +75,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -315,7 +316,13 @@ class OnboardingServiceDefaultTest {
 
         Uni<OnboardingResponse> response = onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest));
 
-        asserter.assertEquals(() -> response, onboardingResponse);
+        // Confronta con AssertJ ignorando `createdAt`
+        asserter.execute(() -> response.subscribe().with(actualResponse -> {
+            assertThat(actualResponse)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(onboardingResponse);
+        }));
     }
 
     private static OnboardingResponse getOnboardingResponse() {

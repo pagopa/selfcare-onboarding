@@ -1965,6 +1965,8 @@ components:
           type: string
         isAggregator:
           type: boolean
+        createdAt:
+          $ref: "#/components/schemas/LocalDateTime"
     OnboardingStatus:
       enum:
       - REQUEST
