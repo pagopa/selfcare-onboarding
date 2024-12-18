@@ -1,8 +1,10 @@
 package it.pagopa.selfcare.onboarding.controller;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.quarkus.test.InjectMock;
@@ -14,9 +16,10 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
 
 @QuarkusTest
 @TestHTTPEndpoint(DocumentController.class)
@@ -30,23 +33,25 @@ class DocumentControllerTest {
     @TestSecurity(user = "userJwt")
     void getFiles_ByPath_OK() {
         // given
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         final String path = "/test/test";
+        var builderPath = Base64.getEncoder().encodeToString(path.getBytes());
         List<String> result = new ArrayList<>();
 
         // when
-        when(blobClient.getFiles(anyString())).thenReturn(result);
+        when(blobClient.getFiles(captor.capture())).thenReturn(result);
 
         given()
             .when()
             .contentType(ContentType.JSON)
-            .pathParam("path", path)
+            .pathParam("path", builderPath)
             .get("{path}")
             .then()
             .statusCode(200);
 
         // then
-        Mockito.verify(blobClient, times(1)).getFiles(anyString());
-
+        verify(blobClient, times(1)).getFiles(anyString());
+        assertEquals(captor.getValue(), path);
     }
 
     @Test
@@ -66,7 +71,7 @@ class DocumentControllerTest {
             .statusCode(200);
 
         // then
-        Mockito.verify(blobClient, times(1)).getFiles();
+        verify(blobClient, times(1)).getFiles();
 
     }
 
