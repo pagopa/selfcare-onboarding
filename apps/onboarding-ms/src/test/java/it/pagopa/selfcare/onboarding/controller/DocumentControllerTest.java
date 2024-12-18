@@ -31,7 +31,7 @@ class DocumentControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void getFiles_ByPath_OK() {
+    void getFilesFromPath_ByPath_OK() {
         // given
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         final String path = "/test/test";

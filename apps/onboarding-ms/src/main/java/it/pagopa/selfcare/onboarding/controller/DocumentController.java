@@ -61,7 +61,7 @@ public class DocumentController {
     @Tag(name = "internal-v1")
     @Path("/{path}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<List<String>> getFiles(@PathParam(value = "path") String path) {
+    public Uni<List<String>> getFilesFromPath(@PathParam(value = "path") String path) {
         var buildPath = new String(Base64.getDecoder().decode(path));
         return Uni.createFrom().item(blobClient.getFiles(buildPath));
     }
