@@ -123,7 +123,7 @@
             "name": "productId",
             "in": "path",
             "description": "Product's unique identifier",
-            "required": true,
+            "required": false,
             "style": "simple",
             "schema": {
               "type": "string"
