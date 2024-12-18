@@ -10,6 +10,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Base64;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +61,9 @@ public class DocumentController {
     @Tag(name = "internal-v1")
     @Path("/{path}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<List<String>> getFiles(@PathParam(value = "path") String path) {
-        return Uni.createFrom().item(blobClient.getFiles(path));
+    public Uni<List<String>> getFilesFromPath(@PathParam(value = "path") String path) {
+        var buildPath = new String(Base64.getDecoder().decode(path));
+        return Uni.createFrom().item(blobClient.getFiles(buildPath));
     }
 
 }

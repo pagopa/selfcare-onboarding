@@ -183,7 +183,7 @@ paths:
       summary: Retrieves the list of files on the azure storage on the given path
       description: Fetches a list of files associated with the specified path on the
         storage.
-      operationId: getFiles
+      operationId: getFilesFromPath
       parameters:
       - name: path
         in: path
