@@ -1,5 +1,14 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -8,8 +17,23 @@ import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
+import it.pagopa.selfcare.onboarding.entity.GPUData;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowAggregator;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
+import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
+import it.pagopa.selfcare.onboarding.entity.User;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,13 +44,6 @@ import org.mockito.Mockito;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.io.File;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class ContractServiceDefaultTest {
@@ -237,12 +254,13 @@ class ContractServiceDefaultTest {
     Onboarding onboarding = createOnboarding();
 
     Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
-
     Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+    UserResource userResource = createUserResource();
 
     File attachmentPDF =
         contractService.createAttachmentPDF(
-            contractFilepath, onboarding, productNameAccent, pdfFormatFile);
+            contractFilepath, onboarding, productNameAccent, pdfFormatFile, userResource);
 
     assertNotNull(attachmentPDF);
 
@@ -499,5 +517,21 @@ class ContractServiceDefaultTest {
     Mockito.verify(azureBlobClient, Mockito.times(1)).getFileAsText(contractFilepath);
     Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
     Mockito.verifyNoMoreInteractions(azureBlobClient);
+  }
+
+  private UserResource createUserResource() {
+    UserResource userResource = new UserResource();
+    userResource.setId(UUID.randomUUID());
+
+    CertifiableFieldResourceOfstring resourceOfName = new CertifiableFieldResourceOfstring();
+    resourceOfName.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+    resourceOfName.setValue("name");
+    userResource.setName(resourceOfName);
+
+    CertifiableFieldResourceOfstring resourceOfSurname = new CertifiableFieldResourceOfstring();
+    resourceOfSurname.setCertification(CertifiableFieldResourceOfstring.CertificationEnum.NONE);
+    resourceOfSurname.setValue("surname");
+    userResource.setFamilyName(resourceOfSurname);
+    return userResource;
   }
 }
