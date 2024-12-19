@@ -246,7 +246,7 @@
         "tags" : [ "internal-v1" ],
         "summary" : "Retrieves the list of files on the azure storage on the given path",
         "description" : "Fetches a list of files associated with the specified path on the storage.",
-        "operationId" : "getFiles",
+        "operationId" : "getFilesFromPath",
         "parameters" : [ {
           "name" : "path",
           "in" : "path",
@@ -608,7 +608,7 @@
     },
     "/v1/onboarding/institutionOnboardings" : {
       "get" : {
-        "tags" : [ "support", "Onboarding" ],
+        "tags" : [ "support", "internal-v1", "Onboarding" ],
         "summary" : "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
         "description" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
         "operationId" : "onboardingInstitutionUsingGET",
@@ -2693,6 +2693,9 @@
           },
           "isAggregator" : {
             "type" : "boolean"
+          },
+          "createdAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
           }
         }
       },

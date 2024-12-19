@@ -23,7 +23,7 @@ function_always_on = true
 
 app_service_plan_info = {
   kind                         = "Linux"
-  sku_size                     = "P1v3"
+  sku_size                     = "B2"
   maximum_elastic_worker_count = 1
   worker_count                 = 1
   zone_balancing_enabled       = false
@@ -79,7 +79,7 @@ app_settings = {
   "FD_TOPIC_NAME"                                = "Selfcare-FD"
   "SAP_ALLOWED_INSTITUTION_TYPE"                 = "PA,GSP,SA,AS,SCP"
   "SAP_ALLOWED_ORIGINS"                          = "IPA,SELC"
-  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"    = "5"
+  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION" = "5"
 
   ## IGNORE VALUES
 
