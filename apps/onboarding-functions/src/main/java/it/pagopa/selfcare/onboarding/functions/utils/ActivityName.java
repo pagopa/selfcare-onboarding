@@ -30,7 +30,6 @@ public class ActivityName {
   public static final String RESEND_NOTIFICATIONS_ACTIVITY = "ResendNotificationsActivity";
   public static final String CREATE_AGGREGATES_CSV_ACTIVITY = "CreateAggregatesCsv";
   public static final String EXISTS_DELEGATION_ACTIVITY = "ExistsDelegationActivity";
-  public static final String DELETE_MANAGERS_BY_IC_AND_ADE = "DeleteManagersByIcAndAde";
   public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
   public static final String BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY = "BuildAttachmentAndSaveTokens";
 

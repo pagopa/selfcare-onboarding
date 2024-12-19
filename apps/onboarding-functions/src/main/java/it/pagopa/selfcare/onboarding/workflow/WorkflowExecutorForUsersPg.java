@@ -29,7 +29,6 @@ public record WorkflowExecutorForUsersPg(ObjectMapper objectMapper, TaskOptions 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         final String onboardingString = getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding());
-        ctx.callActivity(DELETE_MANAGERS_BY_IC_AND_ADE, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingString, optionsRetry(), String.class).await();
         return Optional.of(COMPLETED);

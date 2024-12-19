@@ -31,13 +31,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalDto;
-import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
-import org.openapi.quarkus.party_registry_proxy_json.model.LegalVerificationResult;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
-import org.openapi.quarkus.user_json.model.OnboardedProductState;
-import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
@@ -402,111 +396,10 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     @Override
-    public void deleteOldPgManagers(Onboarding onboarding) {
-        String institutionId = onboarding.getInstitution().getId();
-        String productId = onboarding.getProductId();
-        List<String> oldPgManagersUid = retrieveActiveManagersOnInstitution(institutionId, productId);
-        Origin origin = onboarding.getInstitution().getOrigin();
-
-        oldPgManagersUid.stream()
-            .map(uid -> new PgManagerInfo(uid, retrieveTaxCode(uid)))
-            .filter(pgManagerInfo -> !isActiveManagerOnRegistries(pgManagerInfo.getTaxCode(), onboarding.getInstitution().getTaxCode(), origin))
-            .forEach(pgManagerInfo -> deleteManagerFromProduct(pgManagerInfo.getUid(), institutionId, productId));
-    }
-
-    @Override
     public List<DelegationResponse> retrieveAggregates(Onboarding onboarding) {
         String institutionId = onboarding.getInstitution().getId();
         String productId = onboarding.getProductId();
         DelegationWithPaginationResponse delegations = delegationApi.getDelegationsUsingGET1(null, institutionId, productId, null, null, null, null, null);
         return delegations.getDelegations();
-    }
-
-    private List<String> retrieveActiveManagersOnInstitution(String institutionId, String productId) {
-        List<UserInstitutionResponse> activeManagers = userInstitutionApi.retrieveUserInstitutions(
-                institutionId,
-                null,
-                List.of(productId),
-                List.of(MANAGER.name()),
-                List.of(OnboardedProductState.ACTIVE.name()),
-                null
-        );
-
-        if(Objects.isNull(activeManagers) || CollectionUtils.isEmpty(activeManagers)) {
-            return Collections.emptyList();
-        }
-
-        return activeManagers.stream()
-                .map(UserInstitutionResponse::getUserId)
-                .toList();
-    }
-
-    private String retrieveTaxCode(String uid) {
-        return userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, uid).getFiscalCode();
-    }
-
-    private boolean isActiveManagerOnRegistries(String userTaxCode, String institutionTaxCode, Origin origin) {
-        return switch (origin) {
-            case INFOCAMERE -> isActiveManagerOnInfocamereRegistry(userTaxCode, institutionTaxCode);
-            case ADE -> isActiveManagerOnAdeRegistry(userTaxCode, institutionTaxCode);
-            default -> throw new GenericOnboardingException("Origin not supported");
-        };
-    }
-
-    private boolean isActiveManagerOnInfocamereRegistry(String userTaxCode, String institutionTaxCode) {
-        BusinessesResource businessesResource = infocamereApi.institutionsByLegalTaxIdUsingPOST(toGetInstitutionByLegalDto(userTaxCode));
-        if(Objects.isNull(businessesResource) || CollectionUtils.isEmpty(businessesResource.getBusinesses())) {
-            return false;
-        }
-
-        return businessesResource.getBusinesses().stream()
-                .anyMatch(business -> institutionTaxCode.equals(business.getBusinessTaxId()));
-    }
-
-    private GetInstitutionsByLegalDto toGetInstitutionByLegalDto(String userTaxCode) {
-        GetInstitutionsByLegalDto getInstitutionsByLegalDto = new GetInstitutionsByLegalDto();
-        GetInstitutionsByLegalFilterDto getInstitutionsByLegalFilterDto = new GetInstitutionsByLegalFilterDto();
-        getInstitutionsByLegalFilterDto.setLegalTaxId(userTaxCode);
-        getInstitutionsByLegalDto.setFilter(getInstitutionsByLegalFilterDto);
-        return getInstitutionsByLegalDto;
-    }
-
-    private boolean isActiveManagerOnAdeRegistry(String userTaxCode, String institutionTaxCode) {
-        try {
-            LegalVerificationResult legalVerificationResult = nationalRegistriesApi.verifyLegalUsingGET(userTaxCode, institutionTaxCode);
-            return legalVerificationResult.getVerificationResult();
-        } catch (WebApplicationException e) {
-            // 400 status code means that the user is not a manager of the institution
-            if (e.getResponse().getStatus() == 400) {
-                return false;
-            }
-            throw new GenericOnboardingException(String.format("Error during verify legal %s", e.getMessage()));
-        }
-    }
-
-    private void deleteManagerFromProduct(String uid, String institutionId, String productId) {
-        try (Response response = userApi.deleteProducts(institutionId, productId, uid)) {
-            if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                throw new GenericOnboardingException(String.format("Failed to delete user %s from product %s in institution %s", uid, productId, institutionId));
-            }
-        }
-    }
-
-    private static class PgManagerInfo {
-        private final String uid;
-        private final String taxCode;
-
-        public PgManagerInfo(String uid, String taxCode) {
-            this.uid = uid;
-            this.taxCode = taxCode;
-        }
-
-        public String getUid() {
-            return uid;
-        }
-
-        public String getTaxCode() {
-            return taxCode;
-        }
     }
 }
