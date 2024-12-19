@@ -804,7 +804,7 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void onboarding_SELC_Forbidden_WorkflowType(UniAsserter asserter) {
+    void onboarding_SELC_WorkflowType_CONFIRMATION(UniAsserter asserter) {
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_PAGOPA.getValue());
@@ -825,8 +825,35 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        // onboardingCompletion will set the workflowType to COMPLETION, which is not allowed for GSP
-        asserter.assertFailedWith(() -> onboardingService.onboardingCompletion(request, users), InvalidRequestException.class);
+        // onboardingCompletion will set the workflowType to CONFIRMATION, which is allowed for GSP
+        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users), Assertions::assertNotNull);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_SELC_Forbidden_WorkflowType(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.GSP);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        // onboarding will set the workflowType to CONTRACT_REGISTRATION when institutionType is GSP and product is interop, which is not allowed for GSP with origin SELC
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
     }
 
     @Test
