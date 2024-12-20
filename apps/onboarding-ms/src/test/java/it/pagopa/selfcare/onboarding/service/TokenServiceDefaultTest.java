@@ -62,11 +62,10 @@ class TokenServiceDefaultTest {
         token.setContractFilename("fileName");
         token.setType(TokenType.INSTITUTION);
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
-        when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
 
         PanacheMock.mock(Token.class);
-        when(Token.find("onboardingId = ?1 and type = ?2", onboardingId, INSTITUTION.name()))
-                .thenReturn(queryPage);
+        when(Token.findById(onboardingId))
+                .thenReturn(Uni.createFrom().item(token));
 
         when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 

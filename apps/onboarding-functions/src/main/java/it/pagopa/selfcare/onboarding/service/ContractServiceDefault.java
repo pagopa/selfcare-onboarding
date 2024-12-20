@@ -51,7 +51,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -423,7 +422,7 @@ public class ContractServiceDefault implements ContractService {
 
   @Override
   public Optional<File> getLogoFile() {
-    if (Objects.nonNull(isLogoEnable) && isLogoEnable) {
+    if (Boolean.TRUE.equals(isLogoEnable)) {
 
       StringBuilder stringBuilder =
           new StringBuilder(
