@@ -36,6 +36,8 @@ public class Product {
   private Product parent;
   private List<String> consumers;
   private Map<String, ContractTemplate> institutionContractMappings;
+  private Map<String, ContractTemplate> institutionAggregatorContractMappings;
+
   private Map<String, ContractTemplate> userContractMappings;
   private Map<String, ContractTemplate> userAggregatorContractMappings;
 
@@ -294,6 +296,15 @@ public class Product {
     this.institutionContractMappings = institutionContractMappings;
   }
 
+  public Map<String, ContractTemplate> getInstitutionAggregatorContractMappings() {
+    return institutionAggregatorContractMappings;
+  }
+
+  public void setInstitutionAggregatorContractMappings(
+          Map<String, ContractTemplate> institutionAggregatorContractMappings) {
+    this.institutionAggregatorContractMappings = institutionAggregatorContractMappings;
+  }
+
   public Map<String, ContractTemplate> getUserContractMappings() {
     return userContractMappings;
   }
@@ -376,5 +387,18 @@ public class Product {
       }
     }
     return userAggregatorContractTemplate;
+  }
+
+  public ContractTemplate getInstitutionAggregatorContractTemplate(String institutionType) {
+    ContractTemplate contractTemplate = new ContractTemplate();
+    if (Objects.nonNull(getInstitutionAggregatorContractMappings())) {
+      if (Objects.nonNull(institutionType)
+              && getInstitutionAggregatorContractMappings().containsKey(institutionType)) {
+        contractTemplate = getInstitutionAggregatorContractMappings().get(institutionType);
+      } else if (getInstitutionAggregatorContractMappings().containsKey(CONTRACT_TYPE_DEFAULT)) {
+        contractTemplate = getInstitutionAggregatorContractMappings().get(CONTRACT_TYPE_DEFAULT);
+      }
+    }
+    return contractTemplate;
   }
 }
