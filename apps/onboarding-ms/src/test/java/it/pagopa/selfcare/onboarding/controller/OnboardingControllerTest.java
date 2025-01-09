@@ -1,5 +1,20 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -14,7 +29,25 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingRequest;
+import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionBaseRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
+import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -26,23 +59,18 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -825,6 +853,7 @@ class OnboardingControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void getInstitutionOnboardings() {
+        // given
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
         onboardingResponses.add(onboardingResponse);
@@ -833,6 +862,7 @@ class OnboardingControllerTest {
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
 
+        // when
         given()
                 .when()
                 .queryParams(queryParameterMap)
@@ -840,8 +870,10 @@ class OnboardingControllerTest {
                 .then()
                 .statusCode(200);
 
+        // then
         verify(onboardingService, times(1))
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
+        assertNotNull(onboardingResponses);
     }
 
     @Test
@@ -1004,10 +1036,15 @@ class OnboardingControllerTest {
     }
 
     private static OnboardingResponse dummyOnboardingResponse() {
+        String str = "2025-01-09 11:36";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+
         OnboardingResponse onboarding = new OnboardingResponse();
         onboarding.setId("id");
         onboarding.setStatus("PENDING");
         onboarding.setProductId("prod-io");
+        onboarding.setUpdatedAt(dateTime);
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
         institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");

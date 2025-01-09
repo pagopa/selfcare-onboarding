@@ -1967,6 +1967,8 @@ components:
           type: boolean
         createdAt:
           $ref: "#/components/schemas/LocalDateTime"
+        updatedAt:
+          $ref: "#/components/schemas/LocalDateTime"
     OnboardingStatus:
       enum:
       - REQUEST

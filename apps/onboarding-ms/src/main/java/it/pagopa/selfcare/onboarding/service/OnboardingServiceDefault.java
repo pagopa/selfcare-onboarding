@@ -2,8 +2,15 @@ package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.INSTITUTION_NOT_FOUND;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.USERS_UPDATE_NOT_ALLOWED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.INVALID_REFERENCE_ONBORADING;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_EXPIRED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_NOT_TO_BE_VALIDATED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_ALREADY_ONBOARDED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_NOT_ONBOARDED;
 import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 import io.quarkus.logging.Log;
@@ -15,7 +22,12 @@ import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.smallrye.mutiny.tuples.Tuple2;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
@@ -25,7 +37,11 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryResourceFactory;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
@@ -54,7 +70,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -79,7 +101,12 @@ import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalDto;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.*;
+import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
+import org.openapi.quarkus.user_registry_json.model.MutableUserFieldsDto;
+import org.openapi.quarkus.user_registry_json.model.SaveUserDto;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.openapi.quarkus.user_registry_json.model.UserSearchDto;
+import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -687,7 +714,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Boolean> validateAllowedMap(String taxCode, String subunitCode, String productId) {
-        Log.infof(
+        LOG.infof(
                 "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
                 taxCode, subunitCode, productId);
         if (!onboardingValidationStrategy.validate(productId, taxCode)) {
