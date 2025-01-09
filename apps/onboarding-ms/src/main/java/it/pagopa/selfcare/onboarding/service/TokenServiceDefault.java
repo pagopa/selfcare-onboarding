@@ -39,8 +39,7 @@ public class TokenServiceDefault implements TokenService {
     }
     @Override
     public Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId) {
-        return Token.find("onboardingId = ?1 and type = ?2", onboardingId, INSTITUTION.name())
-                .firstResult()
+        return Token.findById(onboardingId)
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
                             Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
