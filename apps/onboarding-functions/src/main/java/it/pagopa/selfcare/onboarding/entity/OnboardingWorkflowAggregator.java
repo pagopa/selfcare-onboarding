@@ -40,14 +40,14 @@ public class OnboardingWorkflowAggregator extends OnboardingWorkflow {
   @Override
   public String getContractTemplatePath(Product product) {
     return product
-        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getInstitutionAggregatorContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
         .getContractTemplatePath();
   }
 
   @Override
   public String getContractTemplateVersion(Product product) {
     return product
-        .getInstitutionContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
+        .getInstitutionAggregatorContractTemplate(InstitutionUtils.getCurrentInstitutionType(onboarding))
         .getContractTemplateVersion();
   }
 
