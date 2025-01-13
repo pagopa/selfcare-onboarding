@@ -508,9 +508,14 @@ public class ContractServiceDefault implements ContractService {
                 break;
             case "prod-pn":
                 headers = CSV_HEADERS_SEND;
-                User user = institutions.get(0).getUsers().get(0);
-                UserResource userInfo = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
-                mapper = sendMapper(userInfo, user);
+                mapper = institution -> {
+                    List<Object> records = new ArrayList<>();
+                    for (User user : institution.getUsers()) {
+                        UserResource userInfo = userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, user.getId());
+                        records.addAll(sendMapper(userInfo, user).apply(institution));
+                    }
+                    return records;
+                };
                 break;
             default:
                 throw new IllegalArgumentException(
