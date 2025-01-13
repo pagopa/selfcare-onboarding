@@ -1,26 +1,19 @@
 package it.pagopa.selfcare.onboarding.utils;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
-
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.GeographicTaxonomy;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
+
+import java.util.*;
+
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
 
 public class PdfMapper {
 
@@ -42,14 +35,15 @@ public class PdfMapper {
       "<li class=\"c19 c39 li-bullet-0\"><span class=\"c1\">codice di iscrizione all&rsquo;Indice delle Pubbliche Amministrazioni e dei gestori di pubblici servizi (I.P.A.) <span class=\"c3\">${originId}</span> </span><span class=\"c1\"></span></li>";
   public static final String CSV_AGGREGATES_LABEL =
       "&emsp;- <span class=\"c3\" style=\"color:blue\"><a class=\"c15\" href=\"%s\"><u>%s</u></a></span>";
-  public static final String CSV_AGGREGATES_TEXT_PAGOPA = "Dati di Enti Aggregati";
+  public static final String CSV_AGGREGATES_LABEL_SEND = "<span class=\"c3\" style=\"color:blue\"><a class=\"c15\" href=\"%s\"><u>%s</u></a></span>";
+  public static final String CSV_AGGREGATES_TEXT = "Dati di Enti Aggregati";
   public static final String CSV_AGGREGATES_TEXT_IO = "Dati degli Enti Aggregati_IO";
   public static final String INSTITUTION_RECIPIENT_CODE = "institutionRecipientCode";
 
   private PdfMapper() {}
 
   public static Map<String, Object> setUpCommonData(
-      UserResource manager, List<UserResource> users, Onboarding onboarding) {
+      UserResource manager, List<UserResource> users, Onboarding onboarding, String baseUrl) {
 
     Institution institution = onboarding.getInstitution();
     Billing billing = onboarding.getBilling();
@@ -86,7 +80,9 @@ public class PdfMapper {
     map.put("institutionMail", institution.getDigitalAddress());
     map.put("managerTaxCode", manager.getFiscalCode());
     map.put("managerEmail", mailManager);
+    map.put("managerPhone", "_____________");
     map.put("delegates", delegatesToText(users, onboarding.getUsers()));
+    map.put("delegatesSend", delegatesSendToText(users, onboarding.getUsers()));
     map.put("institutionType", decodeInstitutionType(institution.getInstitutionType()));
     map.put(
         "institutionVatNumber",
@@ -94,6 +90,8 @@ public class PdfMapper {
     map.put(
         "taxCodeInvoicing",
         Optional.ofNullable(billing).map(Billing::getTaxCodeInvoicing).orElse(UNDERSCORE));
+    addAggregatesCsvLink(onboarding, map, baseUrl);
+
 
     if (!geographicTaxonomies.isEmpty()) {
       map.put("institutionGeoTaxonomies", geographicTaxonomies);
@@ -199,7 +197,7 @@ public class PdfMapper {
   }
 
   public static void setupPRVData(
-      Map<String, Object> map, Onboarding onboarding, String baseUrl, List<UserResource> users) {
+      Map<String, Object> map, Onboarding onboarding, List<UserResource> users) {
     addInstitutionRegisterLabelValue(onboarding.getInstitution(), map);
 
     map.put("delegatesPrv", delegatesPrvToText(users, onboarding.getUsers()));
@@ -213,7 +211,6 @@ public class PdfMapper {
     map.put("isAggregatorCheckbox", Boolean.TRUE.equals(onboarding.getIsAggregator()) ? "X" : "");
 
     setECData(map, onboarding);
-    addAggregatesCsvLink(onboarding, map, baseUrl);
   }
 
   public static void setupProdIOData(
@@ -258,12 +255,6 @@ public class PdfMapper {
         Optional.ofNullable(institution.getBusinessRegisterPlace()).orElse(UNDERSCORE));
 
     addPricingPlan(onboarding.getPricingPlan(), map);
-  }
-
-  public static void setupProdIODataAggregates(
-      Onboarding onboarding, Map<String, Object> map, UserResource validManager, String baseUrl) {
-    setupProdIOData(onboarding, map, validManager);
-    addAggregatesCsvLink(onboarding, map, baseUrl);
   }
 
   public static void setupSAProdInteropData(Map<String, Object> map, Institution institution) {
@@ -319,8 +310,11 @@ public class PdfMapper {
       String csvText =
           PROD_IO.getValue().equals(onboarding.getProductId())
               ? CSV_AGGREGATES_TEXT_IO
-              : CSV_AGGREGATES_TEXT_PAGOPA;
-      csvLink = String.format(CSV_AGGREGATES_LABEL, url, csvText);
+              : CSV_AGGREGATES_TEXT;
+      csvLink =
+          PROD_PN.getValue().equals(onboarding.getProductId())
+              ? String.format(CSV_AGGREGATES_LABEL_SEND, url, csvText)
+              : String.format(CSV_AGGREGATES_LABEL, url, csvText);
     }
 
     map.put(CSV_AGGREGATES_LABEL_VALUE, csvLink);
@@ -427,6 +421,35 @@ public class PdfMapper {
 
           builder.append("&nbsp;</span></p>\n").append("</li>\n"); // Close list item
         });
+
+    builder.append("</ol></span></p>");
+
+    return builder.toString();
+  }
+
+  private static String delegatesSendToText(List<UserResource> userResources, List<User> users) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("<p class=\"c2\"><span class=\"c1\"><ol class=\"c34 lst-kix_list_23-0 start\" start=\"1\"");
+    userResources.forEach(
+            userResource -> {
+              builder
+                      .append("<br><li class=\"c2 c16 li-bullet-3\"><span class=\"c1\">")
+                      .append("Nome e Cognome: ")
+                      .append(getStringValue(userResource.getName()))
+                      .append(" ")
+                      .append(getStringValue(userResource.getFamilyName()))
+                      .append("</span></li>")
+                      .append("<li class=\"c2 c16 li-bullet-3\"><span class=\"c1\">")
+                      .append("Codice Fiscale: ")
+                      .append(userResource.getFiscalCode())
+                      .append("</span></li>")
+                      .append("<li class=\"c2 c16 li-bullet-3\"><span class=\"c1\">")
+                      .append("Posta Elettronica aziendale: ");
+
+              printUserWorkEmail(users, userResource, builder);
+
+              builder.append("</span></li><br>"); // Close list item
+            });
 
     builder.append("</ol></span></p>");
 

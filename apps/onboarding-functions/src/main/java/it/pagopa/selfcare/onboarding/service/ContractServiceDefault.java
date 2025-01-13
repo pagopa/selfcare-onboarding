@@ -307,26 +307,23 @@ public class ContractServiceDefault implements ContractService {
         String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
         // Create a temporary PDF file to store the contract.
         Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
+        // Setting baseUrl used to construct aggregates csv url
+        String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
         // Prepare common data for the contract document.
-        Map<String, Object> data = setUpCommonData(manager, users, onboarding);
-
-        StringBuilder baseUrl =
-                new StringBuilder(templatePlaceholdersConfig.rejectOnboardingUrlValue());
-
+        Map<String, Object> data = setUpCommonData(manager, users, onboarding, baseUrl);
         // Customize data based on the product and institution type.
         if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
                 && InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
                 && InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType()) {
-            setupPRVData(data, onboarding, baseUrl.toString(), users);
+            setupPRVData(data, onboarding, users);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
                 && InstitutionType.PSP != institution.getInstitutionType()
                 && InstitutionType.PT != institution.getInstitutionType()) {
             setECData(data, onboarding);
-        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)) {
-            setupProdIODataAggregates(onboarding, data, manager, baseUrl.toString());
-        } else if (PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+        } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
+                || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
                 || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
             setupProdIOData(onboarding, data, manager);
         } else if (PROD_PN.getValue().equalsIgnoreCase(productId)) {
