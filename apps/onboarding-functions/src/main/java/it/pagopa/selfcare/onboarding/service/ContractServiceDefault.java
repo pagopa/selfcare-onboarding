@@ -64,27 +64,37 @@ public class ContractServiceDefault implements ContractService {
 
     private final String logoPath;
 
+    private static final String INSTITUTION_DESCRIPTION_HEADER = "Ragione Sociale";
+    private static final String PEC_HEADER = "PEC";
+    private static final String FISCAL_CODE_HEADER = "Codice Fiscale";
+    private static final String PIVA_HEADER = "P.IVA";
+    private static final String REGISTERED_OFFICE_ADDRESS = "Sede legale - Indirizzo";
+    private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
+    private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
+
+
+
     private static final String[] CSV_HEADERS_IO = {
-            "Ragione Sociale",
-            "PEC",
-            "Codice Fiscale",
-            "P.IVA",
-            "Sede legale - Indirizzo",
-            "Sede legale - Citta'",
-            "Sede legale - Provincia (Sigla)",
+            INSTITUTION_DESCRIPTION_HEADER,
+            PEC_HEADER,
+            FISCAL_CODE_HEADER,
+            PIVA_HEADER,
+            REGISTERED_OFFICE_ADDRESS,
+            REGISTERED_OFFICE_CITY,
+            REGISTERED_OFFICE_COUNTY,
             "Codice IPA",
             "AOO/UO",
             "Codice Univoco"
     };
 
     private static final String[] CSV_HEADERS_PAGOPA = {
-            "Ragione Sociale",
-            "PEC",
-            "Codice Fiscale",
-            "P.IVA",
-            "Sede legale - Indirizzo",
-            "Sede legale - Citta'",
-            "Sede legale - Provincia (Sigla)",
+            INSTITUTION_DESCRIPTION_HEADER,
+            PEC_HEADER,
+            FISCAL_CODE_HEADER,
+            PIVA_HEADER,
+            REGISTERED_OFFICE_ADDRESS,
+            REGISTERED_OFFICE_CITY,
+            REGISTERED_OFFICE_COUNTY,
             "Ragione Sociale Partener Tecnologico",
             "Codice Fiscale Partner Tecnologico",
             "IBAN",
@@ -93,14 +103,14 @@ public class ContractServiceDefault implements ContractService {
     };
 
     private static final String[] CSV_HEADERS_SEND = {
-            "Ragione Sociale",
-            "PEC",
-            "Codice Fiscale",
-            "P.IVA",
+            INSTITUTION_DESCRIPTION_HEADER,
+            PEC_HEADER,
+            FISCAL_CODE_HEADER,
+            PIVA_HEADER,
             "Codice SDI",
-            "Sede legale - Indirizzo",
-            "Sede legale - Citta'",
-            "Sede legale - Provincia (Sigla)",
+            REGISTERED_OFFICE_ADDRESS,
+            REGISTERED_OFFICE_CITY,
+            REGISTERED_OFFICE_COUNTY,
             "Codice IPA",
             "AOO/UO",
             "Codice Univoco",
