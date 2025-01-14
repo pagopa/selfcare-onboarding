@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.*;
+import it.pagopa.selfcare.onboarding.util.Utils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -66,6 +67,9 @@ public class AggregatesServiceDefault implements AggregatesService {
     @Inject
     CsvService csvService;
 
+    @Inject
+    Utils utils;
+
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
@@ -81,11 +85,11 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     public static final String LOG_CSV_ROWS = "CSV file validated end: %s valid row and %s invalid row";
     protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
-    public static final String ERROR_IPA = "Codice fiscale non presente su IPA";
-    public static final String ERROR_TAXCODE = "Il codice fiscale è obbligatorio";
+    public static final String ERROR_IPA = "Codice Fiscale non presente su IPA";
+    public static final String ERROR_TAXCODE = "Il Codice Fiscale è obbligatorio";
     public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
     public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
-    public static final String ERROR_VATNUMBER = "La partita IVA è obbligatoria";
+    public static final String ERROR_VATNUMBER = "La Partita IVA è obbligatoria";
     public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
@@ -95,6 +99,10 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_SERVICE = "Servizio è obbligatorio";
     public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     public static final String ERROR_CODICE_SDI = "Codice SDI è obbligatorio";
+    private static final String ERROR_ADMIN_NAME_MISMATCH = "Nome non corretto o diverso dal Codice Fiscale";
+    private static final String ERROR_ADMIN_SURNAME_MISMATCH = "Cognome non corretto o diverso dal Codice Fiscale";
+    private static final String ERROR_TAXCODE_LENGTH = "Il Codice Fiscale non è valido";
+    private static final String ERROR_VATNUMBER_LENGTH = "La Partita IVA non è valida";
     private static final String PEC = "Pec";
     private static final String FILE_NAME_AGGREGATES_CSV = "aggregates.csv";
 
@@ -211,16 +219,20 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     private Uni<Aggregate> checkCsvAggregateAppIo(CsvAggregateAppIo csvAggregateAppIo) {
         return checkRequiredFieldsAppIo(csvAggregateAppIo)
+                .onItem().transformToUni(unused -> formalCheckTaxCodeAndVatNumber(csvAggregateAppIo.getTaxCode(), csvAggregateAppIo.getVatNumber()))
                 .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregateAppIo(csvAggregateAppIo)));
     }
 
     private Uni<Aggregate> checkCsvAggregateSend(CsvAggregateSend csvAggregateSend) {
         return checkRequiredFieldsSend(csvAggregateSend)
+                .onItem().transformToUni(unused -> formalCheckTaxCodeAndVatNumber(csvAggregateSend.getTaxCode(), csvAggregateSend.getVatNumber()))
+                .onItem().transformToUni(unused -> checkAdminTaxCode(csvAggregateSend))
                 .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregateSend(csvAggregateSend)));
     }
 
     private Uni<Aggregate> checkCsvAggregatePagoPa(CsvAggregatePagoPa csvAggregatePagoPa) {
         return checkRequiredFieldsPagoPa(csvAggregatePagoPa)
+                .onItem().transformToUni(unused -> formalCheckTaxCodeAndVatNumber(csvAggregatePagoPa.getTaxCode(), csvAggregatePagoPa.getVatNumber()))
                 .onItem().transformToUni(unused -> retrieveDataFromIpa(onboardingMapper.csvToAggregatePagoPa(csvAggregatePagoPa)));
     }
 
@@ -370,6 +382,39 @@ public class AggregatesServiceDefault implements AggregatesService {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_CODICE_SDI));
 
         }
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> checkAdminTaxCode(CsvAggregateSend csvAggregate) {
+
+        String expectedSurnamePart = utils.extractSurnamePart(csvAggregate.getAdminAggregateSurname());
+        String expectedNamePart = utils.extractNamePart(csvAggregate.getAdminAggregateName());
+
+        String taxCode = csvAggregate.getAdminAggregateTaxCode();
+        String taxCodeSurnamePart = taxCode.substring(0, 3).toUpperCase();
+        String taxCodeNamePart = taxCode.substring(3, 6).toUpperCase();
+
+        if (!taxCodeSurnamePart.equals(expectedSurnamePart)) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME_MISMATCH));
+        }
+
+        if (!taxCodeNamePart.equals(expectedNamePart)) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME_MISMATCH));
+        }
+
+        return Uni.createFrom().voidItem();
+    }
+
+    private Uni<Void> formalCheckTaxCodeAndVatNumber(String taxCode, String vatNumber) {
+
+        if (taxCode.length() < 11) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_LENGTH));
+        }
+
+        if (vatNumber.length() < 11) {
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER_LENGTH));
+        }
+
         return Uni.createFrom().voidItem();
     }
 }
