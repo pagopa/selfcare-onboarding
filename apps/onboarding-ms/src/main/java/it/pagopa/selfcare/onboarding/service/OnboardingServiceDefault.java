@@ -1731,6 +1731,15 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 onboardingUserRequest.getProductId(),
                                                                 onboardingUserRequest.getSubunitCode());
 
+                                                        response.setResponse(false);
+                                                        return Uni.createFrom().item(response);
+                                                    }
+
+                                                    // If the list of onboardings filtered by manager's id is empty, the response is set true
+                                                    if (onboardings.stream().noneMatch(onboarding -> onboarding.getUsers().stream()
+                                                            .map(User::getId)
+                                                            .toList()
+                                                            .contains(uuid.toString()))) {
                                                         response.setResponse(true);
                                                         return Uni.createFrom().item(response);
                                                     }

@@ -2739,6 +2739,30 @@ class OnboardingServiceDefaultTest {
         subscriber.assertCompleted();
         CheckManagerResponse checkResponse = subscriber.getItem();
         assertNotNull(checkResponse);
+        assertFalse(checkResponse.isResponse());
+    }
+
+    @Test
+    void testCheckManagerWithRemovedUser() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        PanacheMock.mock(Onboarding.class);
+        Onboarding onboarding = createDummyOnboarding();
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().item(userResource));
+
+        UniAssertSubscriber<CheckManagerResponse> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted();
+        CheckManagerResponse checkResponse = subscriber.getItem();
+        assertNotNull(checkResponse);
         assertTrue(checkResponse.isResponse());
     }
 
