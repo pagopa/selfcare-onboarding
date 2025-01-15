@@ -300,7 +300,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(OnboardingStatus.PENDING);
 
         return fillUsersAndOnboardingForImport(
-            onboarding, userRequests, aggregates, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+            onboarding, userRequests, aggregates, contractImported);
     }
 
 
@@ -311,11 +311,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingResponse> onboardingImport(
         Onboarding onboarding,
         List<UserRequest> userRequests,
-        OnboardingImportContract contractImported, boolean forceImport) {
+        OnboardingImportContract contractImported) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(OnboardingStatus.PENDING);
         return fillUsersAndOnboardingForImport(
-            onboarding, userRequests, null, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, forceImport);
+            onboarding, userRequests, null, contractImported);
     }
 
     /**
@@ -452,15 +452,18 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     /**
-     * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously. If is null
-     *                the timeout is default 1 sec and the response is delivered asynchronously
+     *
+     * @param onboarding
+     * @param userRequests
+     * @param aggregateRequests
+     * @param contractImported
+     * @return OnboardingResponse
      */
     private Uni<OnboardingResponse> fillUsersAndOnboardingForImport(
         Onboarding onboarding,
         List<UserRequest> userRequests,
         List<AggregateInstitutionRequest> aggregateRequests,
-        OnboardingImportContract contractImported,
-        String timeout, boolean forceImport) {
+        OnboardingImportContract contractImported) {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
@@ -509,7 +512,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 persistAndStartOrchestrationOnboarding(
                                     currentOnboarding,
                                     orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                        currentOnboarding.getId(), timeout)))
+                                        currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
                         .onItem()
                         .transform(onboardingMapper::toResponse));
     }

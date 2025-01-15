@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -763,7 +762,7 @@ class OnboardingControllerTest {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -775,7 +774,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -797,7 +796,7 @@ class OnboardingControllerTest {
 
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -809,7 +808,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -819,7 +818,7 @@ class OnboardingControllerTest {
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
         onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -831,7 +830,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test

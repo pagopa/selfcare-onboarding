@@ -30,8 +30,7 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            OnboardingImportContract contractImported,
-            boolean forceImport);
+            OnboardingImportContract contractImported);
 
     Uni<OnboardingResponse> onboardingCompletion(
             Onboarding onboarding, List<UserRequest> userRequests);

@@ -224,7 +224,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported(), onboardingRequest.isForceImport()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
     }
 
     @Operation(
@@ -238,7 +238,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPspImport(@Valid OnboardingImportPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported(), false));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported()));
     }
 
     @Operation(

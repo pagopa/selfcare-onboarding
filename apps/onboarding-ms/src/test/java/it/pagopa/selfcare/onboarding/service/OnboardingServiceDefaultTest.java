@@ -2091,7 +2091,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported, false), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -2128,7 +2128,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported, false), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
