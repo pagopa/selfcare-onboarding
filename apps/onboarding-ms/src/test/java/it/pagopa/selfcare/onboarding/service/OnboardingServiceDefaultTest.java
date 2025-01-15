@@ -1,5 +1,30 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
+
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -14,14 +39,32 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
-import it.pagopa.selfcare.onboarding.controller.response.*;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.controller.response.BillingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.UserOnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
+import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
+import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
+import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
+import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -42,6 +85,15 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -57,30 +109,28 @@ import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.*;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.BusinessResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.InsuranceCompanyResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.LegalVerificationResult;
+import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 
 @QuarkusTest
@@ -2923,6 +2973,76 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> when(userInstitutionApi.retrieveUserInstitutions(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(shouldRetrieveUser ? List.of(userInstitutionResponse) : Collections.emptyList())));
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingAggregationImportTest(UniAsserter asserter) {
+        // given
+        Onboarding request = new Onboarding();
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        request.setBilling(billing);
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setImported(true);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        request.setInstitution(institutionBaseRequest);
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+        contractImported.setFileName("filename");
+        contractImported.setFilePath("filepath");
+        contractImported.setCreatedAt(LocalDateTime.now());
+        contractImported.setContractType("type");
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+            .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("codiceIPA");
+        uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+            .thenReturn(Uni.createFrom().item(uoResource));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+            .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+            .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+
+        List<AggregateInstitutionRequest> aggregates = new ArrayList<>();
+
+        // when
+        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates),
+            Assertions::assertNotNull);
+
+        // then
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
     }
 
     private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {

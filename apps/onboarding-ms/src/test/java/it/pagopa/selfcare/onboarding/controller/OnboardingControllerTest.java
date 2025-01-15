@@ -55,6 +55,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
@@ -1242,6 +1243,67 @@ class OnboardingControllerTest {
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_KO() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = new OnboardingAggregationImportRequest();
+
+        //when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_OK() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = dummyOnboardingAggregationImportRequest();
+
+        Mockito.when(onboardingService.onboardingAggregationImport(any(), any(), any(), any()))
+            .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        // when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(200);
+
+        // then
+        Mockito.verify(onboardingService, times(1))
+            .onboardingAggregationImport(any(), any(), any(), any());
+    }
+
+    private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
+        OnboardingAggregationImportRequest onboardingRequest = new OnboardingAggregationImportRequest();
+        onboardingRequest.setBilling(new BillingRequest());
+        InstitutionPspRequest institutionRequest = new InstitutionPspRequest();
+        institutionRequest.setInstitutionType(InstitutionType.PSP);
+        institutionRequest.setDigitalAddress("address@gmail.com");
+        PaymentServiceProviderRequest pspData = new PaymentServiceProviderRequest();
+        pspData.setAbiCode("abiCode");
+        pspData.setProviderNames(List.of("test"));
+        institutionRequest.setPaymentServiceProvider(new PaymentServiceProviderRequest());
+        onboardingRequest.setInstitution(institutionRequest);
+        onboardingRequest.setProductId("prod-io");
+        OnboardingImportContract importContract = new OnboardingImportContract();
+        importContract.setFilePath("/test/path");
+        String str = "2025-01-15 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+        importContract.setCreatedAt(dateTime);
+        onboardingRequest.setOnboardingImportContract(new OnboardingImportContract());
+        return onboardingRequest;
     }
 
 }
