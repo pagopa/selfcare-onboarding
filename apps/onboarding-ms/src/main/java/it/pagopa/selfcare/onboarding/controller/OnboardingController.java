@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
+
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
@@ -7,13 +9,22 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
@@ -22,11 +33,24 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -35,12 +59,6 @@ import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
-
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -566,5 +584,21 @@ public class OnboardingController {
                     }
                     return RecipientCodeStatus.ACCEPTED;
                 });
+    }
+
+    @Operation(
+        summary = "Asynchronously import aggregated onboarding to COMPLETED status and create token",
+        description = "Perform a manual onboarding with aggregator, create token and set onboarding status to COMPLETED phase."
+    )
+    @Path("/aggregation/import")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingAggregationImport(@Valid OnboardingAggregationImportRequest onboardingRequest,
+        @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+            .onItem().transformToUni(userId -> onboardingService
+                .onboardingAggregationImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                    onboardingRequest.getOnboardingImportContract(), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
     }
 }

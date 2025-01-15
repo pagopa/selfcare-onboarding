@@ -290,18 +290,32 @@ public class OnboardingServiceDefault implements OnboardingService {
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
 
+    @Override
+    public Uni<OnboardingResponse> onboardingAggregationImport(
+        Onboarding onboarding,
+        OnboardingImportContract contractImported,
+        List<UserRequest> userRequests,
+        List<AggregateInstitutionRequest> aggregates) {
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+
+        return fillUsersAndOnboardingForImport(
+            onboarding, userRequests, aggregates, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+    }
+
+
     /**
      * As onboarding but it is specific for IMPORT workflow
      */
     @Override
     public Uni<OnboardingResponse> onboardingImport(
-            Onboarding onboarding,
-            List<UserRequest> userRequests,
-            OnboardingImportContract contractImported, boolean forceImport) {
+        Onboarding onboarding,
+        List<UserRequest> userRequests,
+        OnboardingImportContract contractImported, boolean forceImport) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(OnboardingStatus.PENDING);
         return fillUsersAndOnboardingForImport(
-                onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, forceImport);
+            onboarding, userRequests, null, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, forceImport);
     }
 
     /**
@@ -438,65 +452,66 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     /**
-     * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *                response is delivered asynchronously
+     * @param timeout The orchestration instances will try complete within the defined timeout and the response is delivered synchronously. If is null
+     *                the timeout is default 1 sec and the response is delivered asynchronously
      */
     private Uni<OnboardingResponse> fillUsersAndOnboardingForImport(
-            Onboarding onboarding,
-            List<UserRequest> userRequests,
-            OnboardingImportContract contractImported,
-            String timeout, boolean forceImport) {
+        Onboarding onboarding,
+        List<UserRequest> userRequests,
+        List<AggregateInstitutionRequest> aggregateRequests,
+        OnboardingImportContract contractImported,
+        String timeout, boolean forceImport) {
+
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
-                .onItem()
-                .transformToUni(
-                        product ->
-                                verifyAlreadyOnboardingForProductAndProductParent(
-                                        onboarding.getInstitution(), product.getId(), product.getParentId())
-                                        .replaceWith(product))
-                .onItem()
-                .transformToUni(
-                        product ->
-                                Uni.createFrom()
-                                        .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
-                                        .onItem()
-                                        .invoke(
-                                                registryManager ->
-                                                        registryManager.setResource(registryManager.retrieveInstitution()))
-                                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                                        .onItem()
-                                        .transformToUni(
-                                                registryManager ->
-                                                        registryManager
-                                                                .isValid()
-                                                                .onItem()
-                                                                .transformToUni(
-                                                                        ignored -> registryManager.customValidation(product)))
-                                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(
-                                                current -> persistOnboarding(onboarding, userRequests, product, null))
-                                        .onItem()
-                                        .call(
-                                                onboardingPersisted ->
-                                                        Panache.withTransaction(
-                                                                () ->
-                                                                        Token.persist(
-                                                                                getToken(onboardingPersisted, product, contractImported))))
-                                        /* Update onboarding data with users and start orchestration */
-                                        .onItem()
-                                        .transformToUni(
-                                                currentOnboarding ->
-                                                        persistAndStartOrchestrationOnboarding(
-                                                                currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), timeout)))
-                                        .onItem()
-                                        .transform(onboardingMapper::toResponse));
+            .onItem()
+            .transformToUni(
+                product ->
+                    verifyAlreadyOnboardingForProductAndProductParent(
+                        onboarding.getInstitution(), product.getId(), product.getParentId())
+                        .replaceWith(product))
+            .onItem()
+            .transformToUni(
+                product ->
+                    Uni.createFrom()
+                        .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
+                        .onItem()
+                        .invoke(
+                            registryManager ->
+                                registryManager.setResource(registryManager.retrieveInstitution()))
+                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                        .onItem()
+                        .transformToUni(
+                            registryManager ->
+                                registryManager
+                                    .isValid()
+                                    .onItem()
+                                    .transformToUni(
+                                        ignored -> registryManager.customValidation(product)))
+                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
+                        .onItem()
+                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                        .onItem()
+                        .transformToUni(
+                            current -> persistOnboarding(onboarding, userRequests, product, aggregateRequests))
+                        .onItem()
+                        .call(
+                            onboardingPersisted ->
+                                Panache.withTransaction(
+                                    () ->
+                                        Token.persist(
+                                            getToken(onboardingPersisted, product, contractImported))))
+                        /* Update onboarding data with users and start orchestration */
+                        .onItem()
+                        .transformToUni(
+                            currentOnboarding ->
+                                persistAndStartOrchestrationOnboarding(
+                                    currentOnboarding,
+                                    orchestrationApi.apiStartOnboardingOrchestrationGet(
+                                        currentOnboarding.getId(), timeout)))
+                        .onItem()
+                        .transform(onboardingMapper::toResponse));
     }
 
     private Uni<Onboarding> persistOnboarding(
