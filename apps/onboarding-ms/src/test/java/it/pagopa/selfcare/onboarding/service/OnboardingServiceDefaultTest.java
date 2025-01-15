@@ -706,6 +706,81 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), WebApplicationException.class);
     }
 
+    @Test
+    @RunOnVertxContext
+    void onboardingPa_allowedPricingPlan(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_IO_PREMIUM.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setDescription("TEST");
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        request.setInstitution(institutionBaseRequest);
+        request.setPricingPlan("C0");
+
+        mockPersistOnboarding(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setDescription("TEST");
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingPa_notAllowedPricingPlan(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_IO_PREMIUM.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setDescription("TEST");
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        request.setInstitution(institutionBaseRequest);
+        request.setPricingPlan("C1");
+
+        mockPersistOnboarding(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setDescription("TEST");
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
+    }
+
     void mockSimpleSearchPOSTAndPersist(UniAsserter asserter) {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));

@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.entity.IPAEntity;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
@@ -18,11 +19,14 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.GSP_CATEGORY_INSTITUTION_TYPE;
 
 public class RegistryManagerIPA extends RegistryManagerIPAUo {
 
     private static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
+
+    private static final String ALLOWED_PRICING_PLAN = "C0";
 
     public RegistryManagerIPA(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi, GeographicTaxonomiesApi geographicTaxonomiesApi) {
         super(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
@@ -31,12 +35,12 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
     @Override
     public IPAEntity retrieveInstitution() {
         super.originIdEC = onboarding.getInstitution().getOriginId();
-        InstitutionResource institutionResource =  super.institutionApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
-                    .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
-                    .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                            ? Uni.createFrom().failure(new ResourceNotFoundException(String.format("Institution with taxCode %s not found", onboarding.getInstitution().getTaxCode())))
-                            : Uni.createFrom().failure(ex))
-                    .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        InstitutionResource institutionResource = super.institutionApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
+                .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format("Institution with taxCode %s not found", onboarding.getInstitution().getTaxCode())))
+                        : Uni.createFrom().failure(ex))
+                .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
         return IPAEntity.builder().institutionResource(institutionResource).build();
     }
 
@@ -46,6 +50,15 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
             return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
         }
         return Uni.createFrom().item(true);
+    }
+
+    @Override
+    public Uni<Onboarding> customValidation(Product product) {
+        if (PROD_IO_PREMIUM.getValue().equals(onboarding.getProductId()) &&
+                !ALLOWED_PRICING_PLAN.equals(onboarding.getPricingPlan())) {
+            return Uni.createFrom().failure(new InvalidRequestException(BaseRegistryManager.NOT_ALLOWED_PRICING_PLAN));
+        }
+        return Uni.createFrom().item(onboarding);
     }
 
     private boolean originIPA(Onboarding onboarding, InstitutionResource institutionResource) {
