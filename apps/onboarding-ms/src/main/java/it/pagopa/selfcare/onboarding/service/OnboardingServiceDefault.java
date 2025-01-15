@@ -1735,11 +1735,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         return Uni.createFrom().item(response);
                                                     }
 
-                                                    // If the list of onboardings filtered by manager's id is empty, the response is set true
+                                                    // If the list of onboardings filtered by manager's role is empty, the response is set true
                                                     if (onboardings.stream().noneMatch(onboarding -> onboarding.getUsers().stream()
-                                                            .map(User::getId)
+                                                            .map(User::getRole)
                                                             .toList()
-                                                            .contains(uuid.toString()))) {
+                                                            .contains(PartyRole.MANAGER))) {
                                                         response.setResponse(true);
                                                         return Uni.createFrom().item(response);
                                                     }

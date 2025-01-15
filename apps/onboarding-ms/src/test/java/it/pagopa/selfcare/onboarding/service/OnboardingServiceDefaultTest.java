@@ -2747,6 +2747,7 @@ class OnboardingServiceDefaultTest {
         OnboardingUserRequest request = createDummyUserRequest();
         PanacheMock.mock(Onboarding.class);
         Onboarding onboarding = createDummyOnboarding();
+        onboarding.getUsers().get(0).setRole(PartyRole.OPERATOR);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
         when(Onboarding.find((Document) any(), any())).thenReturn(query);
