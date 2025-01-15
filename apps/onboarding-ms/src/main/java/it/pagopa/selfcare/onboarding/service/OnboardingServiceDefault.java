@@ -301,7 +301,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(OnboardingStatus.PENDING);
         return fillUsersAndOnboardingForImport(
-                onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE, forceImport);
+                onboarding, userRequests, contractImported, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
     /**
@@ -446,7 +446,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             OnboardingImportContract contractImported,
-            String timeout, boolean forceImport) {
+            String timeout) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -1731,7 +1731,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 onboardingUserRequest.getProductId(),
                                                                 onboardingUserRequest.getSubunitCode());
 
-                                                        response.setResponse(false);
+                                                        response.setResponse(true);
                                                         return Uni.createFrom().item(response);
                                                     }
 

@@ -2739,7 +2739,7 @@ class OnboardingServiceDefaultTest {
         subscriber.assertCompleted();
         CheckManagerResponse checkResponse = subscriber.getItem();
         assertNotNull(checkResponse);
-        assertFalse(checkResponse.isResponse());
+        assertTrue(checkResponse.isResponse());
     }
 
     @Test
