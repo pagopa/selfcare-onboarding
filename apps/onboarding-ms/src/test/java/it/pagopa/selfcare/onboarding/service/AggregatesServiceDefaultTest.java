@@ -14,6 +14,7 @@ import it.pagopa.selfcare.onboarding.model.AggregateUser;
 import it.pagopa.selfcare.onboarding.model.RowError;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
+import it.pagopa.selfcare.onboarding.util.Utils;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -68,6 +69,9 @@ class AggregatesServiceDefaultTest {
     @InjectMock
     AzureBlobClient azureBlobClient;
 
+    @Inject
+    Utils utils;
+
     @Test
     @RunOnVertxContext
     void testValidateAppIoAggregatesCsv() {
@@ -81,7 +85,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("123");
-        uoResource.setCodiceFiscaleEnte("1307110484");
+        uoResource.setCodiceFiscaleEnte("13071104841");
 
         AOOResource aooResource = new AOOResource();
         aooResource.setTipoMail1("Altro");
@@ -89,10 +93,10 @@ class AggregatesServiceDefaultTest {
         aooResource.setCodiceUniAoo("18SU3S");
         aooResource.setDenominazioneAoo("denominazione");
         aooResource.setCap("00100");
-        aooResource.setCodiceFiscaleEnte("1307110484");
+        aooResource.setCodiceFiscaleEnte("13071104841");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         aooResource.setCodiceComuneISTAT("123");
-        aooResource.setCodiceFiscaleEnte("1307110484");
+        aooResource.setCodiceFiscaleEnte("13071104841");
 
         InstitutionResource institutionResource = mock(InstitutionResource.class);
         when(institutionResource.getIstatCode()).thenReturn("123");
@@ -111,7 +115,7 @@ class AggregatesServiceDefaultTest {
         when(response.getStatus()).thenReturn(404);
         when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
         when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
-        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
+        when(institutionApi.findInstitutionUsingGET("13071104841", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
         when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("123")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
 
@@ -125,16 +129,13 @@ class AggregatesServiceDefaultTest {
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(1), resp.getItem().getAggregates().get(1));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(2), resp.getItem().getAggregates().get(2));
-        Assertions.assertEquals(5, resp.getItem().getErrors().size());
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(3), resp.getItem().getErrors().get(3));
+        Assertions.assertEquals(6, resp.getItem().getErrors().size());
+        Assertions.assertEquals(verifyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("123");
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
-        verify(institutionApi, times(3)).findInstitutionUsingGET("1307110484", null, null);
+        verify(institutionApi, times(3)).findInstitutionUsingGET("13071104841", null, null);
 
     }
 
@@ -169,13 +170,8 @@ class AggregatesServiceDefaultTest {
 
         Assertions.assertEquals(1, resp.getItem().getAggregates().size());
         Assertions.assertEquals(verifiyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
-        Assertions.assertEquals(7, resp.getItem().getErrors().size());
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(3), resp.getItem().getErrors().get(3));
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(4), resp.getItem().getErrors().get(4));
-        Assertions.assertEquals(verifiyAggregateResponse.getErrors().get(5), resp.getItem().getErrors().get(5));
+        Assertions.assertEquals(8, resp.getItem().getErrors().size());
+        Assertions.assertEquals(verifiyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
     }
 
@@ -193,7 +189,7 @@ class AggregatesServiceDefaultTest {
         uoResource.setDescrizioneUo("denominazione");
         uoResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         uoResource.setCodiceComuneISTAT("456");
-        uoResource.setCodiceFiscaleEnte("1307110484");
+        uoResource.setCodiceFiscaleEnte("13071104841");
 
         AOOResource aooResource = new AOOResource();
         aooResource.setTipoMail1("Pec");
@@ -203,7 +199,7 @@ class AggregatesServiceDefaultTest {
         aooResource.setCap("00100");
         aooResource.setIndirizzo("Palazzo Vecchio Piazza Della Signoria");
         aooResource.setCodiceComuneISTAT("456");
-        aooResource.setCodiceFiscaleEnte("1307110484");
+        aooResource.setCodiceFiscaleEnte("13071104841");
 
         InstitutionResource institutionResource = mock(InstitutionResource.class);
         when(institutionResource.getIstatCode()).thenReturn("456");
@@ -221,7 +217,7 @@ class AggregatesServiceDefaultTest {
         when(response.getStatus()).thenReturn(404);
         when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
         when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
-        when(institutionApi.findInstitutionUsingGET("1307110484", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
+        when(institutionApi.findInstitutionUsingGET("13071104841", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
         when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("456")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
 
@@ -232,19 +228,17 @@ class AggregatesServiceDefaultTest {
                 .assertCompleted();
 
         Assertions.assertEquals(3, resp.getItem().getAggregates().size());
+        Assertions.assertEquals(verifyAggregateResponse.getAggregates(), resp.getItem().getAggregates());
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(1), resp.getItem().getAggregates().get(1));
         Assertions.assertEquals(verifyAggregateResponse.getAggregates().get(2), resp.getItem().getAggregates().get(2));
-        Assertions.assertEquals(10, resp.getItem().getErrors().size());
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(0), resp.getItem().getErrors().get(0));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(1), resp.getItem().getErrors().get(1));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(2), resp.getItem().getErrors().get(2));
-        Assertions.assertEquals(verifyAggregateResponse.getErrors().get(3), resp.getItem().getErrors().get(3));
+        Assertions.assertEquals(13, resp.getItem().getErrors().size());
+        Assertions.assertEquals(verifyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("456");
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
         verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
-        verify(institutionApi, times(3)).findInstitutionUsingGET("1307110484", null, null);
+        verify(institutionApi, times(3)).findInstitutionUsingGET("13071104841", null, null);
     }
 
     private static VerifyAggregateResponse mockResponseForIO() {
@@ -254,8 +248,8 @@ class AggregatesServiceDefaultTest {
         aggregateUO.setSubunitType("UO");
         aggregateUO.setDescription("denominazione");
         aggregateUO.setDigitalAddress("pec@Pec");
-        aggregateUO.setTaxCode("1307110484");
-        aggregateUO.setVatNumber("1307110484");
+        aggregateUO.setTaxCode("13071104841");
+        aggregateUO.setVatNumber("13071104841");
         aggregateUO.setAddress("Palazzo Vecchio Piazza Della Signoria");
         aggregateUO.setCity("città");
         aggregateUO.setCounty("Provincia");
@@ -269,8 +263,8 @@ class AggregatesServiceDefaultTest {
         aggregateAOO.setSubunitType("AOO");
         aggregateAOO.setDescription("denominazione");
         aggregateAOO.setDigitalAddress("pec@Pec");
-        aggregateAOO.setTaxCode("1307110484");
-        aggregateAOO.setVatNumber("1307110484");
+        aggregateAOO.setTaxCode("13071104841");
+        aggregateAOO.setVatNumber("13071104841");
         aggregateAOO.setAddress("Palazzo Vecchio Piazza Della Signoria");
         aggregateAOO.setCity("città");
         aggregateAOO.setCounty("Provincia");
@@ -284,8 +278,8 @@ class AggregatesServiceDefaultTest {
         aggregate.setSubunitType(null);
         aggregate.setDescription("descrizione ente");
         aggregate.setDigitalAddress("pec@Pec");
-        aggregate.setTaxCode("1307110484");
-        aggregate.setVatNumber("1307110484");
+        aggregate.setTaxCode("13071104841");
+        aggregate.setVatNumber("13071104841");
         aggregate.setAddress(null);
         aggregate.setCity("città");
         aggregate.setCounty("Provincia");
@@ -297,11 +291,14 @@ class AggregatesServiceDefaultTest {
 
         verifyAggregateResponse.setAggregates(List.of(aggregateUO, aggregateAOO, aggregate));
 
-        RowError error0 = new RowError(2, "1307110484", "SubunitType non valido");
-        RowError error1 = new RowError(3, "1307110484", "La partita IVA è obbligatoria");
-        RowError error2 = new RowError(7, "1307110484", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
-        RowError error4 = new RowError(4, "1307110484", "Codice fiscale non presente su IPA");
-        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2));
+        RowError error0 = new RowError(2, "13071104841", "SubunitType non valido");
+        RowError error1 = new RowError(3, "13071104841", "La Partita IVA è obbligatoria");
+        RowError error2 = new RowError(7, "13071104841", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
+        RowError error3 = new RowError(8, "1307110484", "Il Codice Fiscale non è valido");
+        RowError error4 = new RowError(4, "13071104841", "Codice Fiscale non presente su IPA");
+        RowError error5 = new RowError(9, "13071104841", "La Partita IVA non è valida");
+
+        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2, error3, error5));
         return verifyAggregateResponse;
     }
 
@@ -329,24 +326,40 @@ class AggregatesServiceDefaultTest {
 
         verifyAggregateResponse.setAggregates(List.of(aggregate));
 
-        RowError error0 = new RowError(2, null, "Il codice fiscale è obbligatorio");
-        RowError error1 = new RowError(3, "12345678901", "La partita IVA è obbligatoria");
+        RowError error0 = new RowError(2, null, "Il Codice Fiscale è obbligatorio");
+        RowError error1 = new RowError(3, "12345678901", "La Partita IVA è obbligatoria");
         RowError error2 = new RowError(4, "12345678901", "Codice Fiscale Partner Tecnologico è obbligatorio");
         RowError error3 = new RowError(5, "12345678901", "IBAN è obbligatorio");
         RowError error4 = new RowError(6, "12345678901", "Servizio è obbligatorio");
         RowError error5 = new RowError(7, "12345678901", "Modalità Sincrona/Asincrona è obbligatorio");
+        RowError error6 = new RowError(8, "12345901", "Il Codice Fiscale non è valido");
+        RowError error7 = new RowError(9, "12345678901", "La Partita IVA non è valida");
 
-        verifyAggregateResponse.setErrors(List.of(error0, error1, error2, error3, error4, error5));
+        verifyAggregateResponse.setErrors(List.of(error0, error1, error2, error3, error4, error5, error6, error7));
         return verifyAggregateResponse;
     }
 
     private static VerifyAggregateResponse mockResponseForSEND() {
+        AggregateUser aggregateUserUO = new AggregateUser();
+        aggregateUserUO.setName("Mario");
+        aggregateUserUO.setSurname("Rossi");
+        aggregateUserUO.setTaxCode("RSSMRA66A01H501W");
+        aggregateUserUO.setEmail("mario.rossi@acme.it");
+        aggregateUserUO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+
         AggregateUser aggregateUser = new AggregateUser();
-        aggregateUser.setName("Mario");
-        aggregateUser.setSurname("Rossi");
-        aggregateUser.setTaxCode("RSSMRA66A01H501W");
-        aggregateUser.setEmail("mario.rossi@acme.it");
+        aggregateUser.setName("Guendalina");
+        aggregateUser.setSurname("Giordano");
+        aggregateUser.setTaxCode("GRDGDL66A01H501W");
+        aggregateUser.setEmail("guendalina.giordano@test.it");
         aggregateUser.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+
+        AggregateUser aggregateUserAOO = new AggregateUser();
+        aggregateUserAOO.setName("Ma");
+        aggregateUserAOO.setSurname("Re");
+        aggregateUserAOO.setTaxCode("REXMAX66A01H501W");
+        aggregateUserAOO.setEmail("ma.re@test.it");
+        aggregateUserAOO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
 
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
         Aggregate aggregateUO = new Aggregate();
@@ -354,8 +367,8 @@ class AggregatesServiceDefaultTest {
         aggregateUO.setSubunitType("UO");
         aggregateUO.setDescription("denominazione");
         aggregateUO.setDigitalAddress("pec@Pec");
-        aggregateUO.setTaxCode("1307110484");
-        aggregateUO.setVatNumber("1864440019");
+        aggregateUO.setTaxCode("13071104841");
+        aggregateUO.setVatNumber("18644400191");
         aggregateUO.setAddress("Palazzo Vecchio Piazza Della Signoria");
         aggregateUO.setCity("città");
         aggregateUO.setCounty("Provincia");
@@ -363,7 +376,7 @@ class AggregatesServiceDefaultTest {
         aggregateUO.setOrigin("IPA");
         aggregateUO.setRecipientCode("NYJTPK");
         aggregateUO.setRowNumber(1);
-        aggregateUO.setUsers(List.of(aggregateUser));
+        aggregateUO.setUsers(List.of(aggregateUserUO));
         aggregateUO.setParentDescription("testDenominazioneEnte");
 
         Aggregate aggregateAOO = new Aggregate();
@@ -371,8 +384,8 @@ class AggregatesServiceDefaultTest {
         aggregateAOO.setSubunitType("AOO");
         aggregateAOO.setDescription("denominazione");
         aggregateAOO.setDigitalAddress("pec@Pec");
-        aggregateAOO.setTaxCode("1307110484");
-        aggregateAOO.setVatNumber("1864440019");
+        aggregateAOO.setTaxCode("13071104841");
+        aggregateAOO.setVatNumber("18644400191");
         aggregateAOO.setAddress("Palazzo Vecchio Piazza Della Signoria");
         aggregateAOO.setCity("città");
         aggregateAOO.setCounty("Provincia");
@@ -380,7 +393,7 @@ class AggregatesServiceDefaultTest {
         aggregateAOO.setRecipientCode("NYJTPK");
         aggregateAOO.setOrigin("IPA");
         aggregateAOO.setRowNumber(9);
-        aggregateAOO.setUsers(List.of(aggregateUser));
+        aggregateAOO.setUsers(List.of(aggregateUserAOO));
         aggregateAOO.setParentDescription("testDenominazioneEnte");
 
         Aggregate aggregate = new Aggregate();
@@ -388,8 +401,8 @@ class AggregatesServiceDefaultTest {
         aggregate.setSubunitType(null);
         aggregate.setDescription("testDenominazioneEnte");
         aggregate.setDigitalAddress(null);
-        aggregate.setTaxCode("1307110484");
-        aggregate.setVatNumber("1864440019");
+        aggregate.setTaxCode("13071104841");
+        aggregate.setVatNumber("18644400191");
         aggregate.setAddress(null);
         aggregate.setCity("città");
         aggregate.setCounty("Provincia");
@@ -404,12 +417,21 @@ class AggregatesServiceDefaultTest {
 
         verifyAggregateResponse.setAggregates(List.of(aggregateUO, aggregateAOO, aggregate));
 
-        RowError error0 = new RowError(2, "1307110484", "SubunitType non valido");
-        RowError error1 = new RowError(3, "1307110484", "Email Amministratore Ente Aggregato è obbligatorio");
-        RowError error2 = new RowError(5, "1307110484", "Cognome Amministratore Ente Aggregato è obbligatorio");
-        RowError error4 = new RowError(4, "1307110484", "Codice Fiscale Amministratore Ente Aggregato è obbligatorio");
-        RowError error3 = new RowError(7, "1307110484", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
-        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2, error3));
+        RowError error0 = new RowError(2, "13071104841", "SubunitType non valido");
+        RowError error1 = new RowError(3, "13071104841", "Email Amministratore Ente Aggregato è obbligatorio");
+        RowError error2 = new RowError(5, "13071104841", "Cognome Amministratore Ente Aggregato è obbligatorio");
+        RowError error3 = new RowError(7, "13071104841", "Nome Amministratore Ente Aggregato è obbligatorio");
+        RowError error4 = new RowError(4, "13071104841", "Codice Fiscale Amministratore Ente Aggregato è obbligatorio");
+        RowError error5 = new RowError(8, "13071104841", "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO");
+        RowError error6 = new RowError(12, "13071104841", "Codice SDI è obbligatorio");
+        RowError error7 = new RowError(13, "1307110484", "Il Codice Fiscale non è valido");
+        RowError error8 = new RowError(14, "13071104841", "La Partita IVA non è valida");
+        RowError error9 = new RowError(10, "13071104841", "Codice Fiscale non presente su IPA");
+        RowError error10 = new RowError(15, "13071104841", "Cognome non corretto o diverso dal Codice Fiscale");
+        RowError error11 = new RowError(16, "13071104841", "Nome non corretto o diverso dal Codice Fiscale");
+        RowError error12 = new RowError(6, "13071104841", "La Partita IVA è obbligatoria");
+
+        verifyAggregateResponse.setErrors(List.of(error0, error1, error4, error2, error12, error3, error5, error9, error6, error7, error8, error10, error11));
         return verifyAggregateResponse;
     }
 
