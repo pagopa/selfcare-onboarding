@@ -2761,10 +2761,7 @@ class OnboardingServiceDefaultTest {
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 
-        subscriber.assertCompleted();
-        CheckManagerResponse checkResponse = subscriber.getItem();
-        assertNotNull(checkResponse);
-        assertTrue(checkResponse.isResponse());
+        subscriber.assertFailedWith(ResourceNotFoundException.class);
     }
 
     @Test
