@@ -769,6 +769,9 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setOrigin(Origin.IPA);
         request.setInstitution(institutionBaseRequest);
         request.setPricingPlan("C1");
+        Billing billing = new Billing();
+        billing.setRecipientCode("recCode");
+        request.setBilling(billing);
 
         mockPersistOnboarding(asserter);
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
@@ -779,6 +782,11 @@ class OnboardingServiceDefaultTest {
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound();
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleSfe("codSfe");
+        uoResource.setCodiceIpa("originId");
+        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDescription("TEST");
