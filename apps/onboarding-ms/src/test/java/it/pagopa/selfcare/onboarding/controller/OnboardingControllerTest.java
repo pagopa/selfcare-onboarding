@@ -1265,9 +1265,10 @@ class OnboardingControllerTest {
     void onboardingAggregationImportTest_OK() {
         // given
         OnboardingAggregationImportRequest onboardingImport = dummyOnboardingAggregationImportRequest();
+        OnboardingResponse response = dummyOnboardingResponse();
 
         Mockito.when(onboardingService.onboardingAggregationImport(any(), any(), any(), any()))
-            .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+            .thenReturn(Uni.createFrom().item(response));
 
         // when
         given()
@@ -1301,7 +1302,7 @@ class OnboardingControllerTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
         importContract.setCreatedAt(dateTime);
-        onboardingRequest.setOnboardingImportContract(new OnboardingImportContract());
+        onboardingRequest.setOnboardingImportContract(importContract);
         return onboardingRequest;
     }
 
