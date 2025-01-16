@@ -1287,14 +1287,14 @@ class OnboardingControllerTest {
     private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
         OnboardingAggregationImportRequest onboardingRequest = new OnboardingAggregationImportRequest();
         onboardingRequest.setBilling(new BillingRequest());
-        InstitutionPspRequest institutionRequest = new InstitutionPspRequest();
-        institutionRequest.setInstitutionType(InstitutionType.PSP);
-        institutionRequest.setDigitalAddress("address@gmail.com");
-        PaymentServiceProviderRequest pspData = new PaymentServiceProviderRequest();
-        pspData.setAbiCode("abiCode");
-        pspData.setProviderNames(List.of("test"));
-        institutionRequest.setPaymentServiceProvider(new PaymentServiceProviderRequest());
-        onboardingRequest.setInstitution(institutionRequest);
+        InstitutionBaseRequest institution = new InstitutionBaseRequest();
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setUsers(List.of(userDTO));
+        institution.setTaxCode("taxCode");
+        institution.setDigitalAddress("digital@address.it");
+        institution.setOrigin(Origin.SELC);
+        institution.setInstitutionType(InstitutionType.PRV);
+        onboardingRequest.setInstitution(institution);
         onboardingRequest.setProductId("prod-io");
         OnboardingImportContract importContract = new OnboardingImportContract();
         importContract.setFilePath("/test/path");
