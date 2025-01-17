@@ -15,6 +15,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
+import java.util.List;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
@@ -24,7 +25,7 @@ import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
-    private static final String ALLOWED_PRICING_PLAN = "C0";
+    private static final List<String> ALLOWED_PRICING_PLANS = List.of("C0");
 
     public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
         super(onboarding, uoApi, aooApi);
@@ -45,7 +46,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
                     && (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))) {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
             } else if (PROD_IO_PREMIUM.getValue().equals(onboarding.getProductId()) &&
-                    !ALLOWED_PRICING_PLAN.equals(onboarding.getPricingPlan())) {
+                    ALLOWED_PRICING_PLANS.stream().noneMatch(
+                            pricingPlan -> pricingPlan.equals(onboarding.getPricingPlan()))) { // Uso di Stream.anyMatch
                 return Uni.createFrom().failure(new InvalidRequestException(BaseRegistryManager.NOT_ALLOWED_PRICING_PLAN));
             }
             return Uni.createFrom().item(onboarding);
