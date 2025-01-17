@@ -47,7 +47,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
             } else if (PROD_IO_PREMIUM.getValue().equals(onboarding.getProductId()) &&
                     ALLOWED_PRICING_PLANS.stream().noneMatch(
-                            pricingPlan -> pricingPlan.equals(onboarding.getPricingPlan()))) { // Uso di Stream.anyMatch
+                            pricingPlan -> pricingPlan.equals(onboarding.getPricingPlan()))) {
                 return Uni.createFrom().failure(new InvalidRequestException(BaseRegistryManager.NOT_ALLOWED_PRICING_PLAN));
             }
             return Uni.createFrom().item(onboarding);
