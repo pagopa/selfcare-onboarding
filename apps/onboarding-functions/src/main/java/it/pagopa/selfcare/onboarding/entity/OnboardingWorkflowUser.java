@@ -34,8 +34,8 @@ public class OnboardingWorkflowUser extends OnboardingWorkflow {
             .map(User::getId)
             .findAny()
             .orElse(null);
-    if (Objects.nonNull(this.onboarding.getPreviousManagerId())
-        && this.onboarding.getPreviousManagerId().equals(managerId)) {
+    if (Objects.isNull(this.onboarding.getPreviousManagerId())
+        || this.onboarding.getPreviousManagerId().equals(managerId)) {
       return config.registrationUserPath();
     }
     return config.registrationUserNewManagerPath();

@@ -2834,6 +2834,28 @@ class OnboardingServiceDefaultTest {
     }
 
     @Test
+    void testCheckManagerWithRemovedUser() {
+        OnboardingUserRequest request = createDummyUserRequest();
+        PanacheMock.mock(Onboarding.class);
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.getUsers().get(0).setRole(PartyRole.OPERATOR);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+        when(userRegistryApi.searchUsingPOST(any(), any()))
+                .thenReturn(Uni.createFrom().item(userResource));
+
+        UniAssertSubscriber<CheckManagerResponse> subscriber = onboardingService
+                .checkManager(request)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(ResourceNotFoundException.class);
+    }
+
+    @Test
     void testCheckManagerWithEmptyUserList() {
         final UUID uuid = UUID.randomUUID();
         OnboardingUserRequest request = createDummyUserRequest();
