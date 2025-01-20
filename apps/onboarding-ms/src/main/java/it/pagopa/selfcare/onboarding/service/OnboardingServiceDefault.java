@@ -296,7 +296,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         OnboardingImportContract contractImported,
         List<UserRequest> userRequests,
         List<AggregateInstitutionRequest> aggregates) {
-        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
+        onboarding.setWorkflowType(WorkflowType.IMPORT_AGGREGATION);
         onboarding.setStatus(OnboardingStatus.PENDING);
 
         return fillUsersAndOnboardingForImport(
