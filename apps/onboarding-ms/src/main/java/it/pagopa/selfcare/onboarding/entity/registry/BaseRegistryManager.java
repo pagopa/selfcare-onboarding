@@ -13,7 +13,8 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
     protected static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_NOT_DELEGABLE = "Institution with external id '%s' is not allowed to onboard '%s' product because it is not delegable";
     protected static final String PARENT_TAX_CODE_IS_INVALID = "The tax code of the parent entity of the request does not match the tax code of the parent entity retrieved by IPA";
     protected static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
-    protected static final String PNPG_INSTITUTION_REGISTRY_NOT_FOUND =  "Institution with taxCode %s is not into registry";
+    protected static final String PNPG_INSTITUTION_REGISTRY_NOT_FOUND = "Institution with taxCode %s is not into registry";
+    protected static final String NOT_ALLOWED_PRICING_PLAN = "onboarding pricing plan for io-premium is not allowed";
     protected static final int DURATION_TIMEOUT = 5;
     protected static final int MAX_NUMBER_ATTEMPTS = 2;
 
