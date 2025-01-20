@@ -256,7 +256,7 @@ public class OnboardingFunctions {
         case CONFIRMATION_AGGREGATE ->
             workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
         case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
-        case IMPORT_AGGREGATION -> workflowExecutor = new WorkflowExecutorImportAggregation(objectMapper, optionsRetry);
+        case IMPORT_AGGREGATION -> workflowExecutor = new WorkflowExecutorImportAggregation(objectMapper, optionsRetry, onboardingMapper);
         case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
         case INCREMENT_REGISTRATION_AGGREGATOR ->
             workflowExecutor =
