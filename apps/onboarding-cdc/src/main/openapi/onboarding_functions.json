@@ -518,6 +518,7 @@
           "FOR_APPROVE_GPU",
           "CONFIRMATION",
           "IMPORT",
+          "IMPORT_AGGREGATION",
           "USERS",
           "USERS_IMPORT",
           "CONTRACT_REGISTRATION_AGGREGATOR",
