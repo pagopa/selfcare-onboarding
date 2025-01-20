@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
