@@ -591,7 +591,6 @@ public class OnboardingController {
         description = "Perform a manual onboarding with aggregator, create token and set onboarding status to COMPLETED phase."
     )
     @Path("/aggregation/import")
-    @Tag(name = "internal-v1")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

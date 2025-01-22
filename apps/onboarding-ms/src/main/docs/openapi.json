@@ -451,7 +451,7 @@
     },
     "/v1/onboarding/aggregation/import" : {
       "post" : {
-        "tags" : [ "internal-v1" ],
+        "tags" : [ "Onboarding Controller" ],
         "summary" : "Asynchronously import aggregated onboarding to COMPLETED status and create token",
         "description" : "Perform a manual onboarding with aggregator, create token and set onboarding status to COMPLETED phase.",
         "operationId" : "onboardingAggregationImport",

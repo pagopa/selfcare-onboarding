@@ -329,7 +329,7 @@ paths:
   /v1/onboarding/aggregation/import:
     post:
       tags:
-      - internal-v1
+      - Onboarding Controller
       summary: Asynchronously import aggregated onboarding to COMPLETED status and
         create token
       description: "Perform a manual onboarding with aggregator, create token and\
