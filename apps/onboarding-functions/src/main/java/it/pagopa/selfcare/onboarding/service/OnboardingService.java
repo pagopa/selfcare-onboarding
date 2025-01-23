@@ -99,7 +99,7 @@ public class OnboardingService {
                     .map(
                             userToOnboard ->
                                     userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, userToOnboard.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
 
     Product product = productService.getProductIsValid(onboarding.getProductId());
     contractService.createContractPDF(
