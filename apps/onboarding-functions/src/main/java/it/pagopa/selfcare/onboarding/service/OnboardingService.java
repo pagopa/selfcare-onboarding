@@ -539,10 +539,12 @@ public class OnboardingService {
                     .orElse(null);
 
     List<UserInstitutionResponse> userInstitutions = getUserInstitutions(onboarding);
-    if (!userInstitutions.isEmpty()) {
+    if (!userInstitutions.isEmpty() &&
+            userInstitutions.stream().anyMatch(userInstitution ->
+                    userInstitution.getUserId().equals(onboarding.getPreviousManagerId()))) {
       UserResource previousManager =
               userRegistryApi.findByIdUsingGET(
-                      USERS_WORKS_FIELD_LIST, userInstitutions.get(0).getUserId());
+                      USERS_WORKS_FIELD_LIST, onboarding.getPreviousManagerId());
       sendMailInput.previousManagerName = previousManager.getName().getValue();
       sendMailInput.previousManagerSurname = previousManager.getFamilyName().getValue();
       UserResource currentManager =
