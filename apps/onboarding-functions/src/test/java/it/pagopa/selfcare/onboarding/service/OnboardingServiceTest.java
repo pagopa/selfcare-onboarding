@@ -22,10 +22,7 @@ import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.mongodb.panache.PanacheQuery;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Institution;
@@ -44,18 +41,14 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -67,6 +60,7 @@ class OnboardingServiceTest {
   @InjectMock OnboardingRepository onboardingRepository;
   @InjectMock TokenRepository tokenRepository;
   @RestClient @InjectMock UserApi userRegistryApi;
+  @RestClient @InjectMock InstitutionApi userInstitutionApi;
   @InjectMock NotificationService notificationService;
   @InjectMock ContractService contractService;
   @InjectMock ProductService productService;
@@ -542,6 +536,85 @@ class OnboardingServiceTest {
             userResource.getName().getValue(),
             userResource.getFamilyName().getValue(),
             product.getTitle());
+  }
+
+  @Test
+  void sendMailRegistration_with_deletedManager() {
+
+    UserResource userResource = createUserResource();
+    Product product = createDummyProduct();
+    Onboarding onboarding = createOnboarding();
+    onboarding.getInstitution().setOrigin(Origin.IPA);
+    onboarding.setPreviousManagerId("previousManagerId");
+
+    when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+            .thenReturn(userResource);
+
+    when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+        .thenReturn(Collections.emptyList());
+
+    doNothing()
+            .when(notificationService)
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle());
+
+    onboardingService.sendMailRegistration(onboarding);
+
+    Mockito.verify(notificationService, times(1))
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle());
+  }
+
+  @Test
+  void sendMailRegistration_with_check_userMS() {
+
+    UserResource userResource = createUserResource();
+    Product product = createDummyProduct();
+    Onboarding onboarding = createOnboarding();
+    onboarding.getInstitution().setOrigin(Origin.IPA);
+    onboarding.setPreviousManagerId("previousManagerId");
+
+    when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(userRegistryApi.findByIdUsingGET(any(), any()))
+            .thenReturn(userResource);
+
+    when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+            .thenReturn(List.of(onboarding));
+
+    UserInstitutionResponse userInstitutionResponse = new UserInstitutionResponse();
+    userInstitutionResponse.setInstitutionId(onboarding.getInstitution().getId());
+    userInstitutionResponse.setUserId("previousManagerId");
+
+    when(userInstitutionApi.retrieveUserInstitutions(any(), any(), any(), any(), any(), any()))
+            .thenReturn(List.of(userInstitutionResponse));
+
+    doNothing()
+            .when(notificationService)
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle());
+
+    onboardingService.sendMailRegistration(onboarding);
+
+    Mockito.verify(notificationService, times(1))
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle());
   }
 
   @Test
