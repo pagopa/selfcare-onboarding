@@ -77,7 +77,10 @@ public interface WorkflowExecutor {
         if (Stream.of(WorkflowType.IMPORT, WorkflowType.IMPORT_AGGREGATION).noneMatch(onboarding.getWorkflowType()::equals)) {
             ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         }
-        //ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+
+        /* TODO
+        ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+        */
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
 

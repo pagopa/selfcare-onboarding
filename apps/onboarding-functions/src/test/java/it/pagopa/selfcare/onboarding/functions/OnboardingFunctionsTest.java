@@ -90,7 +90,7 @@ class OnboardingFunctionsTest {
 
   @Inject ObjectMapper objectMapper;
 
-  final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
+  final String onboardingStringBase = "{\"onboardingId\":\"onboardingId\"}";
 
   final String onboardingWorkflowString =
       "{\"type\":\"INSTITUTION\",\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
@@ -842,7 +842,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(service).sendMailRegistration(any());
 
-    function.sendMailRegistration(onboardinString, executionContext);
+    function.sendMailRegistration(onboardingStringBase, executionContext);
 
     verify(service, times(1)).sendMailRegistration(any());
   }
@@ -853,7 +853,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(service).sendMailRegistrationApprove(any());
 
-    function.sendMailRegistrationApprove(onboardinString, executionContext);
+    function.sendMailRegistrationApprove(onboardingStringBase, executionContext);
 
     verify(service, times(1)).sendMailRegistrationApprove(any());
   }
@@ -864,7 +864,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(service).sendMailOnboardingApprove(any());
 
-    function.sendMailOnboardingApprove(onboardinString, executionContext);
+    function.sendMailOnboardingApprove(onboardingStringBase, executionContext);
 
     verify(service, times(1)).sendMailOnboardingApprove(any());
   }
@@ -968,7 +968,7 @@ class OnboardingFunctionsTest {
         .thenReturn(institutionId);
 
     String actualInstitutionId =
-        function.createInstitutionAndPersistInstitutionId(onboardinString, executionContext);
+        function.createInstitutionAndPersistInstitutionId(onboardingStringBase, executionContext);
 
     assertEquals(institutionId, actualInstitutionId);
     verify(completionService, times(1)).createInstitutionAndPersistInstitutionId(any());
@@ -980,7 +980,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(completionService).rejectOutdatedOnboardings(any());
 
-    function.rejectOutdatedOnboardings(onboardinString, executionContext);
+    function.rejectOutdatedOnboardings(onboardingStringBase, executionContext);
 
     verify(completionService, times(1)).rejectOutdatedOnboardings(any());
   }
@@ -991,7 +991,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(completionService).persistOnboarding(any());
 
-    function.createOnboarding(onboardinString, executionContext);
+    function.createOnboarding(onboardingStringBase, executionContext);
 
     verify(completionService, times(1)).persistOnboarding(any());
   }
@@ -1013,7 +1013,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(completionService).sendMailRejection(any(), any());
 
-    function.sendMailRejection(onboardinString, executionContext);
+    function.sendMailRejection(onboardingStringBase, executionContext);
 
     verify(completionService, times(1)).sendMailRejection(any(), any());
   }
@@ -1024,7 +1024,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(completionService).persistUsers(any());
 
-    function.createOnboardedUsers(onboardinString, executionContext);
+    function.createOnboardedUsers(onboardingStringBase, executionContext);
 
     verify(completionService, times(1)).persistUsers(any());
   }
@@ -1047,13 +1047,11 @@ class OnboardingFunctionsTest {
 
   @Test
   void createDelegationForAggregation() {
-    final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
-
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     when(completionService.createDelegation(any())).thenReturn("delegationId");
 
     String delegationId =
-        function.createDelegationForAggregation(onboardingString, executionContext);
+        function.createDelegationForAggregation(onboardingStringBase, executionContext);
 
     Assertions.assertEquals("delegationId", delegationId);
     verify(completionService, times(1)).createDelegation(any());
@@ -1061,12 +1059,10 @@ class OnboardingFunctionsTest {
 
   @Test
   void createDelegationForAggregationIncrement() {
-    final String onboardingString = "{\"onboardingId\":\"onboardingId\"}";
-
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     when(completionService.existsDelegation(any())).thenReturn("true");
 
-    String exists = function.existsDelegation(onboardingString, executionContext);
+    String exists = function.existsDelegation(onboardingStringBase, executionContext);
 
     Assertions.assertEquals("true", exists);
     verify(completionService, times(1)).existsDelegation(any());
@@ -1106,7 +1102,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     when(completionService.retrieveAggregates(any())).thenReturn(delegationResponseList);
 
-    String delegationsList = function.retrieveAggregates(onboardinString, executionContext);
+    String delegationsList = function.retrieveAggregates(onboardingStringBase, executionContext);
 
     Assertions.assertEquals(
         Utils.getDelegationResponseListString(objectMapper, delegationResponseList),
