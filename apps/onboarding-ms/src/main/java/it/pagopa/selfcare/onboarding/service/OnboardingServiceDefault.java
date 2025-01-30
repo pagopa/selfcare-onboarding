@@ -2135,7 +2135,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        "User is not manager of the institution on the registry"));
+                                                        NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY));
                             }
 
                             return Uni.createFrom().failure(ex);

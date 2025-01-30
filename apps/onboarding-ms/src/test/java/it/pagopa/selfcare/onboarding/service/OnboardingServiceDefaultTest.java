@@ -133,7 +133,6 @@ import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
 class OnboardingServiceDefaultTest {
@@ -222,8 +221,8 @@ class OnboardingServiceDefaultTest {
     static final UserResource managerResourceWk;
     static final UserResource managerResourceWkSpid;
 
-    static final String productRoleAdminCode = "admin";
-    static final String productRoleAdminPspCode = "admin-psp";
+    static final String PRODUCT_ROLE_ADMIN_CODE = "admin";
+    static final String PRODUCT_ROLE_ADMIN_PSP_CODE = "admin-psp";
     static final String DIGITAL_ADDRESS_FIELD = "digitalAddress";
     static final String DESCRIPTION_FIELD = "description";
     static final File testFile = new File("src/test/resources/application.properties");
@@ -1281,18 +1280,18 @@ class OnboardingServiceDefaultTest {
     Product createDummyProduct(String productId, boolean hasParent) {
 
         Map<PartyRole, ProductRoleInfo> roleMappingByInstitutionType = new HashMap<>();
-        roleMappingByInstitutionType.put(manager.getRole(), dummyProductRoleInfo(productRoleAdminPspCode));
+        roleMappingByInstitutionType.put(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_PSP_CODE));
 
         Product productResource = new Product();
         productResource.setId(productId);
-        productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(productRoleAdminCode)));
+        productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE)));
         productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
         productResource.setTitle("title");
 
         if (hasParent) {
             Product parent = new Product();
             parent.setId("productParentId");
-            parent.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(productRoleAdminCode)));
+            parent.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE)));
             productResource.setParentId(parent.getId());
             productResource.setParent(parent);
         }
