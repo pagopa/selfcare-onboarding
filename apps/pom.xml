@@ -12,9 +12,9 @@
     <artifactId>onboarding-apps</artifactId>
     <packaging>pom</packaging>
 
-  <properties>
-    <commons-sdk-version>0.6.4</commons-sdk-version>
-  </properties>
+    <properties>
+        <commons-sdk-version>0.6.5</commons-sdk-version>
+    </properties>
 
     <dependencies>
         <dependency>
