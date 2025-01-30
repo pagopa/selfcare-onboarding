@@ -6,6 +6,7 @@ import java.util.Objects;
 public class ProductRoleInfo {
 
     private boolean multiroleAllowed;
+    private boolean enableUser;
 
     /**
      * List of phases where addition of the role is allowed
@@ -19,6 +20,14 @@ public class ProductRoleInfo {
 
     public void setMultiroleAllowed(boolean multiroleAllowed) {
         this.multiroleAllowed = multiroleAllowed;
+    }
+
+    public boolean isEnableUser() {
+        return enableUser;
+    }
+
+    public void setEnableUser(boolean enableUser) {
+        this.enableUser = enableUser;
     }
 
     public List<String> getPhasesAdditionAllowed() {
@@ -41,11 +50,11 @@ public class ProductRoleInfo {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ProductRoleInfo that)) return false;
-        return isMultiroleAllowed() == that.isMultiroleAllowed() && Objects.equals(getPhasesAdditionAllowed(), that.getPhasesAdditionAllowed()) && Objects.equals(getRoles(), that.getRoles());
+        return isMultiroleAllowed() == that.isMultiroleAllowed() && Objects.equals(getPhasesAdditionAllowed(), that.getPhasesAdditionAllowed()) && Objects.equals(getRoles(), that.getRoles()) && Objects.equals(isEnableUser(), that.isEnableUser());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(isMultiroleAllowed(), getPhasesAdditionAllowed(), getRoles());
+        return Objects.hash(isMultiroleAllowed(), getPhasesAdditionAllowed(), getRoles(), isEnableUser());
     }
 }
