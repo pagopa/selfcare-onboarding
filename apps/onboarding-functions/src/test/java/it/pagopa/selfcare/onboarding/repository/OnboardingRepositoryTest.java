@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @QuarkusTest
-public class OnboardingRepositoryTest {
+class OnboardingRepositoryTest {
 
     @InjectMock
     OnboardingRepository onboardingRepository;
