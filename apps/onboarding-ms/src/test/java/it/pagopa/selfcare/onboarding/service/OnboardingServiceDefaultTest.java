@@ -3144,6 +3144,17 @@ class OnboardingServiceDefaultTest {
             .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
         List<AggregateInstitutionRequest> aggregates = new ArrayList<>();
+        AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest.setTaxCode("taxCode");
+        aggregateInstitutionRequest.setUsers(users);
+        aggregates.add(aggregateInstitutionRequest);
+
+        AggregateInstitution aggregateInstitution = new AggregateInstitution();
+        aggregateInstitution.setTaxCode("taxCode");
+        aggregateInstitution.setUsers(List.of(User.builder().id("test")
+            .role(PartyRole.MANAGER)
+            .build()));
+        request.setAggregates(List.of(aggregateInstitution));
 
         // when
         asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates),
