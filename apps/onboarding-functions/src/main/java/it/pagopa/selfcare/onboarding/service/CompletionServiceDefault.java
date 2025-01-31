@@ -164,19 +164,25 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistUsers(Onboarding onboarding) {
+        Product product = productService.getProduct(onboarding.getProductId());
         for (User user: onboarding.getUsers()) {
-            AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
-            userRoleDto.hasToSendEmail(hasToSendEmail);
-            userRoleDto.setUserMailUuid(user.getUserMailUuid());
-            userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
-            userRoleDto.getProduct().setTokenId(onboarding.getId());
+
+            if (product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                    .get(user.getRole()).isEnableUser()) {
+
+                AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
+                userRoleDto.hasToSendEmail(hasToSendEmail);
+                userRoleDto.setUserMailUuid(user.getUserMailUuid());
+                userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
+                userRoleDto.getProduct().setTokenId(onboarding.getId());
             /*
               The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
               {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}
              */
-            try (Response response = userApi.createUserByUserId(user.getId(), userRoleDto)) {
-                if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                    throw new GenericOnboardingException("Impossible to create or update role for user with ID: " + user.getId());
+                try (Response response = userApi.createUserByUserId(user.getId(), userRoleDto)) {
+                    if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                        throw new GenericOnboardingException("Impossible to create or update role for user with ID: " + user.getId());
+                    }
                 }
             }
         }
