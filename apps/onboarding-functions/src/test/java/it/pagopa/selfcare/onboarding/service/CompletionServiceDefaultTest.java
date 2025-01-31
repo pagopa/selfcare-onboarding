@@ -600,6 +600,24 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUsers_skip() {
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setEnableUser(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        onboarding.setDelegationId("delegationId");
+
+        when(productService.getProduct(any())).thenReturn(product);
+        completionServiceDefault.persistUsers(onboarding);
+
+        Mockito.verifyNoInteractions(userControllerApi);
+    }
+
+    @Test
     void persistUsersWithException() {
         Onboarding onboarding = createOnboarding();
         createDummyUser(onboarding);
