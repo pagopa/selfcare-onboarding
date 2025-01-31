@@ -1,27 +1,28 @@
 package it.pagopa.selfcare.onboarding.entity.registry;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.DENIED_NO_ASSOCIATION;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.DENIED_NO_BILLING;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
+
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryIPA;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryIPA;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
+import java.util.List;
+import java.util.Objects;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
-
-import java.util.List;
-import java.util.Objects;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
@@ -42,7 +43,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     @Override
     public Uni<Onboarding> customValidation(Product product) {
         return checkRecipientCode().onItem().transformToUni(unused -> {
-            if (!PROD_INTEROP.getValue().equals(onboarding.getProductId())
+            if (!PROD_INTEROP.getValue().equals(onboarding.getProductId()) && !onboarding.getInstitution().isImported()
                     && (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))) {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
             } else if (PROD_IO_PREMIUM.getValue().equals(onboarding.getProductId()) &&
