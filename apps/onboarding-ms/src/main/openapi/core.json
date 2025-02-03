@@ -1,7 +1,7 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : "selc-ms-core",
+    "title" : "institution-ms",
     "version" : "1.0-SNAPSHOT"
   },
   "servers" : [ {
@@ -33,9 +33,6 @@
   }, {
     "name" : "Onboarding",
     "description" : "Onboarding Controller"
-  }, {
-    "name" : "kafka",
-    "description" : "Queue Notification Controller"
   } ],
   "paths" : {
     "/delegations" : {
@@ -88,16 +85,6 @@
           "style" : "form",
           "schema" : {
             "type" : "string"
-          }
-        }, {
-          "name" : "mode",
-          "in" : "query",
-          "description" : "Mode (full or normal) to retreieve institution's delegations",
-          "required" : false,
-          "style" : "form",
-          "schema" : {
-            "type" : "string",
-            "enum" : [ "FULL", "NORMAL" ]
           }
         }, {
           "name" : "order",
@@ -232,7 +219,7 @@
     },
     "/delegations/from-taxcode" : {
       "post" : {
-        "tags" : [ "Delegation" ],
+        "tags" : [ "Delegation", "internal-v1" ],
         "summary" : "Create an association between institution and technical partner using taxCode for both instead of internal id. It is useful when we don't know institution's internal id.",
         "description" : "Create an association between institution and technical partner using taxCode for both instead of internal id. It is useful when we don't know institution's internal id.",
         "operationId" : "createDelegationFromInstitutionsTaxCodeUsingPOST",
@@ -348,6 +335,125 @@
         } ]
       }
     },
+    "/v2/delegations" : {
+      "get" : {
+        "tags" : [ "Delegation" ],
+        "summary" : "Retrieve institution's delegations with pagination",
+        "description" : "Retrieve institution's delegations with pagination",
+        "operationId" : "getDelegationsUsingGET_1",
+        "parameters" : [ {
+          "name" : "institutionId",
+          "in" : "query",
+          "description" : "The internal identifier of the institution",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "brokerId",
+          "in" : "query",
+          "description" : "The internal identifier of the institution",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "query",
+          "description" : "Product's unique identifier",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "search",
+          "in" : "query",
+          "description" : "Description ente",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "taxCode",
+          "in" : "query",
+          "description" : "Institution's tax code",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "order",
+          "in" : "query",
+          "description" : "Order to show response NONE, ASC, DESC",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC", "NONE" ]
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "description" : "page",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "description" : "size",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DelegationWithPaginationResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/external/institutions" : {
       "get" : {
         "tags" : [ "External" ],
@@ -391,68 +497,6 @@
           },
           "404" : {
             "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ "global" ]
-        } ]
-      }
-    },
-    "/external/institutions/pn-pg" : {
-      "post" : {
-        "tags" : [ "External" ],
-        "summary" : "create an institution (PG) using external institution id fetching data from info-camere",
-        "description" : "create an institution (PG) using external institution id fetching data from info-camere",
-        "operationId" : "createPnPgInstitutionUsingPOST",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreatePnPgInstitutionRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/InstitutionPnPgResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "409" : {
-            "description" : "Conflict",
             "content" : {
               "application/problem+json" : {
                 "schema" : {
@@ -704,7 +748,7 @@
     },
     "/institutions" : {
       "get" : {
-        "tags" : [ "Institution", "external-v2", "support" ],
+        "tags" : [ "Institution", "external-v2", "support", "support-pnpg" ],
         "summary" : "Gets institutions filtering by taxCode and/or subunitCode",
         "description" : "Gets institutions filtering by taxCode and/or subunitCode",
         "operationId" : "getInstitutionsUsingGET",
@@ -739,6 +783,15 @@
           "name" : "originId",
           "in" : "query",
           "description" : "originId",
+          "required" : false,
+          "style" : "form",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "query",
+          "description" : "productId",
           "required" : false,
           "style" : "form",
           "schema" : {
@@ -1504,7 +1557,7 @@
     },
     "/institutions/{id}" : {
       "get" : {
-        "tags" : [ "Institution", "external-v2" ],
+        "tags" : [ "Institution", "external-pnpg", "external-v2", "internal-v1" ],
         "summary" : "Gets the corresponding institution using internal institution id",
         "description" : "Gets the corresponding institution using internal institution id",
         "operationId" : "retrieveInstitutionByIdUsingGET",
@@ -1707,6 +1760,16 @@
           }
         },
         "responses" : {
+          "200" : {
+            "description" : "User already exists an onboarding in status ACTIVE or SUSPENDED with that productId",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstitutionResponse"
+                }
+              }
+            }
+          },
           "201" : {
             "description" : "Created",
             "content" : {
@@ -1817,9 +1880,74 @@
         } ]
       }
     },
-    "/institutions/{institutionId}/createdAt" : {
-      "put" : {
+    "/institutions/{id}/products/{productId}" : {
+      "delete" : {
         "tags" : [ "Institution" ],
+        "summary" : "The service set DELETE status on onboarding association with the product and institutionId",
+        "description" : "The service set DELETE status on onboarding association with the product and institutionId",
+        "operationId" : "deleteOnboardedInstitutionUsingDELETE",
+        "parameters" : [ {
+          "name" : "productId",
+          "in" : "path",
+          "description" : "productId",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id",
+          "required" : true,
+          "style" : "simple",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/institutions/{institutionId}/created-at" : {
+      "put" : {
+        "tags" : [ "Institution", "internal-v1" ],
         "summary" : "The service updates the createdAt field for the institution-product pair",
         "description" : "The service updates the createdAt field for the institution-product pair",
         "operationId" : "updateCreatedAtUsingPUT",
@@ -1967,7 +2095,7 @@
           "style" : "simple",
           "schema" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP", "PRV", "GPU" ]
+            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
           }
         } ],
         "responses" : {
@@ -2281,71 +2409,6 @@
           "bearerAuth" : [ "global" ]
         } ]
       }
-    },
-    "/notification-event/contracts" : {
-      "put" : {
-        "tags" : [ "kafka" ],
-        "summary" : "resendContractsByInstitutionIdAndTokenId",
-        "description" : "Function to send a specific onboarding using institutionId and tokenId ",
-        "operationId" : "resendContractsByInstitutionIdAndTokenIdUsingPUT",
-        "parameters" : [ {
-          "name" : "tokenId",
-          "in" : "query",
-          "description" : "tokenId",
-          "required" : true,
-          "style" : "form",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "institutionId",
-          "in" : "query",
-          "description" : "institutionId",
-          "required" : true,
-          "style" : "form",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          },
-          "400" : {
-            "description" : "Bad Request",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Forbidden",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Not Found",
-            "content" : {
-              "application/problem+json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ "global" ]
-        } ]
-      }
     }
   },
   "components" : {
@@ -2423,6 +2486,9 @@
           "recipientCode" : {
             "type" : "string"
           },
+          "taxCodeInvoicing" : {
+            "type" : "string"
+          },
           "vatNumber" : {
             "type" : "string"
           }
@@ -2438,6 +2504,9 @@
           "recipientCode" : {
             "type" : "string"
           },
+          "taxCodeInvoicing" : {
+            "type" : "string"
+          },
           "vatNumber" : {
             "type" : "string"
           }
@@ -2451,6 +2520,9 @@
             "type" : "boolean"
           },
           "recipientCode" : {
+            "type" : "string"
+          },
+          "taxCodeInvoicing" : {
             "type" : "string"
           },
           "vatNumber" : {
@@ -2503,8 +2575,7 @@
             "type" : "string"
           },
           "institutionType" : {
-            "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "type" : "string"
           },
           "origin" : {
             "type" : "string"
@@ -2602,18 +2673,6 @@
           }
         }
       },
-      "CreatePnPgInstitutionRequest" : {
-        "title" : "CreatePnPgInstitutionRequest",
-        "type" : "object",
-        "properties" : {
-          "description" : {
-            "type" : "string"
-          },
-          "taxId" : {
-            "type" : "string"
-          }
-        }
-      },
       "CreatedAtRequest" : {
         "title" : "CreatedAtRequest",
         "type" : "object",
@@ -2686,6 +2745,9 @@
           "institutionFromName" : {
             "type" : "string"
           },
+          "institutionFromRootName" : {
+            "type" : "string"
+          },
           "institutionToName" : {
             "type" : "string"
           },
@@ -2697,7 +2759,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           }
         }
       },
@@ -2728,7 +2790,7 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           }
         }
       },
@@ -2765,8 +2827,7 @@
             "type" : "string"
           },
           "institutionType" : {
-            "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "type" : "string"
           },
           "productId" : {
             "type" : "string"
@@ -2780,11 +2841,26 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "AOO", "PT" ]
+            "enum" : [ "AOO", "EA", "PT" ]
           },
           "updatedAt" : {
             "type" : "string",
             "format" : "date-time"
+          }
+        }
+      },
+      "DelegationWithPaginationResponse" : {
+        "title" : "DelegationWithPaginationResponse",
+        "type" : "object",
+        "properties" : {
+          "delegations" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DelegationResponse"
+            }
+          },
+          "pageInfo" : {
+            "$ref" : "#/components/schemas/PageInfo"
           }
         }
       },
@@ -2859,12 +2935,11 @@
             "type" : "string"
           },
           "institutionType" : {
-            "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "type" : "string"
           },
           "origin" : {
             "type" : "string",
-            "enum" : [ "ADE", "ANAC", "INFOCAMERE", "IPA", "IVASS", "MOCK", "SELC", "UNKNOWN", "PDND_INFOCAMERE" ]
+            "enum" : [ "ADE", "ANAC", "INFOCAMERE", "IPA", "IVASS", "MOCK", "PDND_INFOCAMERE", "SELC", "UNKNOWN" ]
           },
           "originId" : {
             "type" : "string"
@@ -2898,7 +2973,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
           },
           "subunitCode" : {
             "type" : "string"
@@ -2906,6 +2981,12 @@
           "subunitType" : {
             "type" : "string",
             "enum" : [ "AOO", "UO" ]
+          },
+          "supportEmail" : {
+            "type" : "string"
+          },
+          "supportPhone" : {
+            "type" : "string"
           },
           "taxCode" : {
             "type" : "string"
@@ -2950,6 +3031,9 @@
           "contractPath" : {
             "type" : "string"
           },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -2958,12 +3042,6 @@
           },
           "tokenId" : {
             "type" : "string"
-          },
-          "users" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/Person"
-            }
           }
         }
       },
@@ -3015,8 +3093,7 @@
             "type" : "boolean"
           },
           "institutionType" : {
-            "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "type" : "string"
           },
           "onboardings" : {
             "type" : "object",
@@ -3063,15 +3140,6 @@
           }
         }
       },
-      "InstitutionPnPgResponse" : {
-        "title" : "InstitutionPnPgResponse",
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string"
-          }
-        }
-      },
       "InstitutionProduct" : {
         "title" : "InstitutionProduct",
         "type" : "object",
@@ -3100,6 +3168,9 @@
             "items" : {
               "type" : "string"
             }
+          },
+          "parentDescription" : {
+            "type" : "string"
           }
         }
       },
@@ -3164,7 +3235,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
           },
           "onboarding" : {
             "type" : "array",
@@ -3265,8 +3336,13 @@
             "type" : "boolean"
           },
           "institutionType" : {
-            "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "type" : "string"
+          },
+          "istatCode" : {
+            "type" : "string"
+          },
+          "logo" : {
+            "type" : "string"
           },
           "onboarding" : {
             "type" : "array",
@@ -3305,9 +3381,6 @@
             "type" : "string"
           },
           "taxCode" : {
-            "type" : "string"
-          },
-          "taxCodeSfe" : {
             "type" : "string"
           },
           "updatedAt" : {
@@ -3376,9 +3449,12 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
           },
           "ivassCode" : {
+            "type" : "string"
+          },
+          "parentDescription" : {
             "type" : "string"
           },
           "paymentServiceProvider" : {
@@ -3416,6 +3492,21 @@
           }
         }
       },
+      "InvalidParam" : {
+        "title" : "InvalidParam",
+        "required" : [ "name", "reason" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Invalid parameter name."
+          },
+          "reason" : {
+            "type" : "string",
+            "description" : "Invalid parameter reason."
+          }
+        }
+      },
       "OnboardedProductResponse" : {
         "title" : "OnboardedProductResponse",
         "type" : "object",
@@ -3426,6 +3517,9 @@
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "isAggregator" : {
+            "type" : "boolean"
           },
           "productId" : {
             "type" : "string"
@@ -3524,6 +3618,9 @@
             "type" : "string",
             "format" : "date-time"
           },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
           "pricingPlan" : {
             "type" : "string"
           },
@@ -3552,6 +3649,28 @@
             "items" : {
               "$ref" : "#/components/schemas/OnboardingResponse"
             }
+          }
+        }
+      },
+      "PageInfo" : {
+        "title" : "PageInfo",
+        "type" : "object",
+        "properties" : {
+          "pageNo" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalElements" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int64"
           }
         }
       },
@@ -3636,60 +3755,42 @@
           }
         }
       },
-      "Person" : {
-        "title" : "Person",
-        "type" : "object",
-        "properties" : {
-          "email" : {
-            "type" : "string"
-          },
-          "env" : {
-            "type" : "string",
-            "enum" : [ "COLL", "DEV", "PROD", "ROOT" ]
-          },
-          "id" : {
-            "type" : "string"
-          },
-          "name" : {
-            "type" : "string"
-          },
-          "productRole" : {
-            "type" : "string"
-          },
-          "role" : {
-            "type" : "string",
-            "enum" : [ "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
-          },
-          "roleLabel" : {
-            "type" : "string"
-          },
-          "surname" : {
-            "type" : "string"
-          },
-          "taxCode" : {
-            "type" : "string"
-          }
-        }
-      },
       "Problem" : {
         "title" : "Problem",
+        "required" : [ "status", "title" ],
         "type" : "object",
         "properties" : {
-          "errors" : {
+          "detail" : {
+            "type" : "string",
+            "description" : "Human-readable description of this specific problem."
+          },
+          "instance" : {
+            "type" : "string",
+            "description" : "A URI that describes where the problem occurred."
+          },
+          "invalidParams" : {
             "type" : "array",
+            "description" : "A list of invalid parameters details.",
             "items" : {
-              "$ref" : "#/components/schemas/ProblemError"
+              "$ref" : "#/components/schemas/InvalidParam"
             }
           },
           "status" : {
             "type" : "integer",
-            "format" : "int32"
+            "description" : "The HTTP status code.",
+            "format" : "int32",
+            "example" : 500
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Short human-readable summary of the problem."
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "A URL to a page with more details regarding the problem."
           }
-        }
-      },
-      "ProblemError" : {
-        "title" : "ProblemError",
-        "type" : "object"
+        },
+        "description" : "A \"problem detail\" as a way to carry machine-readable details of errors (https://datatracker.ietf.org/doc/html/rfc7807)"
       },
       "RootParentResponse" : {
         "title" : "RootParentResponse",
@@ -3725,7 +3826,7 @@
           },
           "role" : {
             "type" : "string",
-            "enum" : [ "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
+            "enum" : [ "ADMIN_EA", "ADMIN_EA_IO", "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
           },
           "roleLabel" : {
             "type" : "string"

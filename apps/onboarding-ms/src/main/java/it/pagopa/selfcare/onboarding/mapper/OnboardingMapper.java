@@ -2,25 +2,17 @@ package it.pagopa.selfcare.onboarding.mapper;
 
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.response.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.model.Aggregate;
-import it.pagopa.selfcare.onboarding.model.AggregateUser;
-import it.pagopa.selfcare.onboarding.model.CsvAggregateAppIo;
-import it.pagopa.selfcare.onboarding.model.CsvAggregatePagoPa;
-import it.pagopa.selfcare.onboarding.model.CsvAggregateSend;
+import it.pagopa.selfcare.onboarding.model.*;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
+
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Collections;
@@ -28,11 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 @Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class })
 public interface OnboardingMapper {
@@ -48,6 +35,42 @@ public interface OnboardingMapper {
     @Mapping(target = "institution.gpuData", source = "gpuData")
     @Mapping(target = "institution", source = "institution")
     Onboarding toEntity(OnboardingDefaultRequest request);
+
+    @Mapping(target = "users", source = "users", qualifiedByName = "toUsersList")
+    OnboardingResponseV1 toOnboardingResponseV1(OnboardingResponse request);
+
+    @Named("toUsersList")
+    default List<UserOnboardingResponseV1> toUsersList(List<UserOnboardingResponse> list) {
+        if(Objects.isNull(list) || list.isEmpty()) {
+            return null;
+        }
+        return list.stream()
+                .map(this::toUserOnboardingResponseV1)
+                .toList();
+    }
+
+
+    @Mapping(target = "role", source = "role", qualifiedByName = "toPartyRoleV1")
+    UserOnboardingResponseV1 toUserOnboardingResponseV1(UserOnboardingResponse userOnboardingResponse);
+
+    @Named("toPartyRoleV1")
+    default PartyRoleV1 toPartyRoleV1(PartyRole partyRole) {
+        switch (partyRole) {
+            case MANAGER:
+                return PartyRoleV1.MANAGER;
+            case DELEGATE:
+                return PartyRoleV1.DELEGATE;
+            case SUB_DELEGATE:
+                return PartyRoleV1.SUB_DELEGATE;
+            case OPERATOR:
+                return PartyRoleV1.OPERATOR;
+            case ADMIN_EA:
+                return PartyRoleV1.ADMIN_EA;
+            default:
+                return null;
+        }
+    }
+
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     @Mapping(target = "status", expression = "java((newStatus != null) ? newStatus : null)")
