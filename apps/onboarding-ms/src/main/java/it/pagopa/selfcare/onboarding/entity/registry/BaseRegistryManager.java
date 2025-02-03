@@ -1,9 +1,14 @@
 package it.pagopa.selfcare.onboarding.entity.registry;
 
 
+import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.product.entity.Product;
+
+import java.util.Objects;
 
 public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
 
@@ -15,6 +20,7 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
     protected static final String TAX_CODE_INVOICING_IS_INVALID = "The tax code invoicing of the request does not match any tax code of institutions' hierarchy";
     protected static final String PNPG_INSTITUTION_REGISTRY_NOT_FOUND = "Institution with taxCode %s is not into registry";
     protected static final String NOT_ALLOWED_PRICING_PLAN = "onboarding pricing plan for io-premium is not allowed";
+    protected static final String NOT_ALLOWED_INSTITUTION_TYPE = "institution with institution type %s is not allowed to onboard product %s";
     protected static final int DURATION_TIMEOUT = 5;
     protected static final int MAX_NUMBER_ATTEMPTS = 2;
 
@@ -36,6 +42,20 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
     public RegistryManager<T> setResource(T registryResource) {
         this.registryResource = registryResource;
         return this;
+    }
+
+    public Uni<Onboarding> validateInstitutionType(Product product) {
+        if (Objects.nonNull(product.getInstitutionTypesAllowed()) && !product.getInstitutionTypesAllowed().isEmpty()) {
+            return product.getInstitutionTypesAllowed().stream()
+                    .anyMatch(type -> type.equals(onboarding.getInstitution().getInstitutionType().name()))
+                    ? Uni.createFrom().item(onboarding)
+                    : Uni.createFrom().failure(new InvalidRequestException(
+                    String.format(NOT_ALLOWED_INSTITUTION_TYPE,
+                            onboarding.getInstitution().getInstitutionType().name(),
+                            product.getId())
+            ));
+        }
+        return Uni.createFrom().item(onboarding);
     }
 
     protected String getManagerIdFromOnboarding() {
