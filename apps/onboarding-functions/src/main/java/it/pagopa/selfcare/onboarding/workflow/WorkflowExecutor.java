@@ -1,5 +1,24 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.REJECT_OUTDATED_ONBOARDINGS;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingAggregateString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readDelegationResponseList;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
@@ -11,16 +30,12 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import java.util.stream.Stream;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 public interface WorkflowExecutor {
 
@@ -58,10 +73,14 @@ public interface WorkflowExecutor {
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-        if (!onboarding.getWorkflowType().equals(WorkflowType.IMPORT)) {
+
+        if (Stream.of(WorkflowType.IMPORT, WorkflowType.IMPORT_AGGREGATION).noneMatch(onboarding.getWorkflowType()::equals)) {
             ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         }
-        //ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+
+        /* TODO
+        ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+        */
 
         createTestEnvironmentsOnboarding(ctx, onboarding, onboardingWithInstitutionIdString);
 

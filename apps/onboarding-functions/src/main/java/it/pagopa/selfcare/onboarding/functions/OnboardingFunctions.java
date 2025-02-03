@@ -1,12 +1,52 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_ATTACHMENT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATES_CSV_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_DELEGATION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.EXISTS_DELEGATION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.REJECT_OUTDATED_ONBOARDINGS;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getDelegationResponseListString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAggregateOrchestratorInputValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingAttachmentValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
+import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingWorkflowValue;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.functions.*;
+import com.microsoft.azure.functions.ExecutionContext;
+import com.microsoft.azure.functions.HttpMethod;
+import com.microsoft.azure.functions.HttpRequestMessage;
+import com.microsoft.azure.functions.HttpResponseMessage;
+import com.microsoft.azure.functions.HttpStatus;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
-import com.microsoft.durabletask.*;
+import com.microsoft.durabletask.DurableTaskClient;
+import com.microsoft.durabletask.OrchestrationMetadata;
+import com.microsoft.durabletask.OrchestrationRuntimeStatus;
+import com.microsoft.durabletask.RetryPolicy;
+import com.microsoft.durabletask.TaskFailedException;
+import com.microsoft.durabletask.TaskOptions;
+import com.microsoft.durabletask.TaskOrchestrationContext;
 import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
@@ -21,20 +61,28 @@ import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
-import it.pagopa.selfcare.onboarding.workflow.*;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutor;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorConfirmAggregate;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorConfirmation;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorContractRegistration;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorContractRegistrationAggregator;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForApprove;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForApproveGpu;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForApprovePt;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForUsers;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForUsersEa;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorForUsersPg;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorImport;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorImportAggregation;
+import it.pagopa.selfcare.onboarding.workflow.WorkflowExecutorIncrementRegistrationAggregator;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
-
-import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 /** Azure Functions with HTTP Trigger integrated with Quarkus */
 public class OnboardingFunctions {
@@ -208,6 +256,7 @@ public class OnboardingFunctions {
         case CONFIRMATION_AGGREGATE ->
             workflowExecutor = new WorkflowExecutorConfirmAggregate(objectMapper, optionsRetry);
         case IMPORT -> workflowExecutor = new WorkflowExecutorImport(objectMapper, optionsRetry);
+        case IMPORT_AGGREGATION -> workflowExecutor = new WorkflowExecutorImportAggregation(objectMapper, optionsRetry, onboardingMapper);
         case USERS -> workflowExecutor = new WorkflowExecutorForUsers(objectMapper, optionsRetry);
         case INCREMENT_REGISTRATION_AGGREGATOR ->
             workflowExecutor =
