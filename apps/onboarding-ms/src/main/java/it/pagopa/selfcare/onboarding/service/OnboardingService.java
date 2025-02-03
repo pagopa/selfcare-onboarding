@@ -15,7 +15,6 @@ import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
-
 import java.util.List;
 
 public interface OnboardingService {
@@ -31,8 +30,7 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            OnboardingImportContract contractImported,
-            boolean forceImport);
+            OnboardingImportContract contractImported);
 
     Uni<OnboardingResponse> onboardingCompletion(
             Onboarding onboarding, List<UserRequest> userRequests);
@@ -44,6 +42,12 @@ public interface OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates);
+
+    Uni<OnboardingResponse> onboardingAggregationImport(
+        Onboarding onboarding,
+        OnboardingImportContract contractImported,
+        List<UserRequest> userRequests,
+        List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests);
 

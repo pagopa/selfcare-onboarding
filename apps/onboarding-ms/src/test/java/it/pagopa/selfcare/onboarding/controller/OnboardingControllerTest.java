@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -55,6 +54,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
@@ -762,7 +762,7 @@ class OnboardingControllerTest {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -774,7 +774,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -796,7 +796,7 @@ class OnboardingControllerTest {
 
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -808,7 +808,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -818,7 +818,7 @@ class OnboardingControllerTest {
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
         onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -830,7 +830,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -1242,6 +1242,68 @@ class OnboardingControllerTest {
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_KO() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = new OnboardingAggregationImportRequest();
+
+        //when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_OK() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = dummyOnboardingAggregationImportRequest();
+        OnboardingResponse response = dummyOnboardingResponse();
+
+        Mockito.when(onboardingService.onboardingAggregationImport(any(), any(), any(), any()))
+            .thenReturn(Uni.createFrom().item(response));
+
+        // when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(200);
+
+        // then
+        Mockito.verify(onboardingService, times(1))
+            .onboardingAggregationImport(any(), any(), any(), any());
+    }
+
+    private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
+        OnboardingAggregationImportRequest onboardingRequest = new OnboardingAggregationImportRequest();
+        onboardingRequest.setBilling(new BillingRequest());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setUsers(List.of(userDTO));
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setDigitalAddress("digital@address.it");
+        institutionBaseRequest.setOrigin(Origin.SELC);
+        institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
+        onboardingRequest.setInstitution(institutionBaseRequest);
+        onboardingRequest.setProductId("prod-io");
+        OnboardingImportContract importContract = new OnboardingImportContract();
+        importContract.setFilePath("/test/path");
+        String str = "2025-01-15 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+        importContract.setCreatedAt(dateTime);
+        onboardingRequest.setOnboardingImportContract(importContract);
+        return onboardingRequest;
     }
 
 }
