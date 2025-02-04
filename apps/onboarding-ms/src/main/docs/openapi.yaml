@@ -1336,7 +1336,7 @@ paths:
       summary: Complete onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding but completing the onboarding
         request to COMPLETED phase.
-      operationId: onboardingCompletion
+      operationId: onboardingCompletionV2
       requestBody:
         content:
           application/json:
@@ -1363,7 +1363,7 @@ paths:
       - Onboarding
       summary: "Get onboardings by institution taxCode, subunitCode, origin, or originId."
       description: Returns onboardings record by institution taxCode/subunitCode/origin/originId
-      operationId: onboardingInstitutionUsingGET
+      operationId: onboardingInstitutionUsingGETV2
       parameters:
       - name: origin
         in: query
@@ -1409,7 +1409,7 @@ paths:
       summary: Complete PA onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/pa but completing the onboarding
         request to COMPLETED phase.
-      operationId: onboardingPaCompletion
+      operationId: onboardingPaCompletionV2
       requestBody:
         content:
           application/json:
@@ -1436,7 +1436,7 @@ paths:
       summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
-      operationId: onboardingPgCompletion
+      operationId: onboardingPgCompletionV2
       requestBody:
         content:
           application/json:
@@ -1463,7 +1463,7 @@ paths:
       summary: Complete PSP onboarding request and set status to COMPLETED.
       description: Perform onboarding as /onboarding/psp but completing the onboarding
         request to COMPLETED phase.
-      operationId: onboardingPspCompletion
+      operationId: onboardingPspCompletionV2
       requestBody:
         content:
           application/json:

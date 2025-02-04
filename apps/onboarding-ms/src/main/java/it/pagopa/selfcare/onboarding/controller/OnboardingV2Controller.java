@@ -41,7 +41,8 @@ public class OnboardingV2Controller {
 
     @Operation(
             summary = "Complete onboarding request and set status to COMPLETED.",
-            description = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase."
+            description = "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.",
+            operationId = "onboardingCompletionV2"
     )
     @Path("/completion")
     @POST
@@ -58,7 +59,9 @@ public class OnboardingV2Controller {
     @Operation(
             summary = "Complete PA onboarding request and set status to COMPLETED.",
             description =
-                    "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.")
+                    "Perform onboarding as /onboarding/pa but completing the onboarding request to COMPLETED phase.",
+            operationId = "onboardingPaCompletionV2"
+    )
     @POST
     @Path("/pa/completion")
     @Tag(name = "Onboarding Controller")
@@ -75,7 +78,9 @@ public class OnboardingV2Controller {
     @Operation(
             summary = "Complete PSP onboarding request and set status to COMPLETED.",
             description =
-                    "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.")
+                    "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.",
+            operationId = "onboardingPspCompletionV2"
+    )
     @POST
     @Path("/psp/completion")
     @Tag(name = "Onboarding Controller")
@@ -90,7 +95,8 @@ public class OnboardingV2Controller {
 
     @Operation(
             summary = "Complete PG onboarding request on PNPG domain and set status to COMPLETED.",
-            description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase."
+            description = "Perform onboarding as /onboarding/psp but completing the onboarding request to COMPLETED phase.",
+            operationId = "onboardingPgCompletionV2"
     )
     @POST
     @Path("/pg/completion")
@@ -125,7 +131,7 @@ public class OnboardingV2Controller {
     @Operation(
             summary = "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
             description = "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
-            operationId = "onboardingInstitutionUsingGET",
+            operationId = "onboardingInstitutionUsingGETV2",
             extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
