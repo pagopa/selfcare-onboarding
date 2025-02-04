@@ -796,6 +796,48 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
     }
 
+    @Test
+    @RunOnVertxContext
+    void onboarding_notAllowedInstitutionType(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_DASHBOARD_PSP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setInstitutionType(InstitutionType.PA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setDescription("TEST");
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        request.setInstitution(institutionBaseRequest);
+        request.setPricingPlan("C1");
+        Billing billing = new Billing();
+        billing.setRecipientCode("recCode");
+        request.setBilling(billing);
+
+        mockPersistOnboarding(asserter);
+        mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceFiscaleSfe("codSfe");
+        uoResource.setCodiceIpa("originId");
+        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setDescription("TEST");
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
+    }
+
     void mockSimpleSearchPOSTAndPersist(UniAsserter asserter) {
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
@@ -1236,6 +1278,11 @@ class OnboardingServiceDefaultTest {
         productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE)));
         productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
         productResource.setTitle("title");
+        if (PROD_DASHBOARD_PSP.getValue().equals(productId)) {
+            List<String> institutionTypeList = new ArrayList<>();
+            institutionTypeList.add(PSP.name());
+            productResource.setInstitutionTypesAllowed(institutionTypeList);
+        }
 
         if (hasParent) {
             Product parent = new Product();
@@ -3069,13 +3116,13 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
-            .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
-            .thenReturn(Uni.createFrom().item(uoResource));
+                .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setCategory("L37");
@@ -3083,14 +3130,14 @@ class OnboardingServiceDefaultTest {
         institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         institutionResource.setIstatCode("istatCode");
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
-            .thenReturn(Uni.createFrom().item(institutionResource)));
+                .thenReturn(Uni.createFrom().item(institutionResource)));
 
         GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
         geographicTaxonomyResource.setCountryAbbreviation("IT");
         geographicTaxonomyResource.setProvinceAbbreviation("RM");
         geographicTaxonomyResource.setDesc("desc");
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
-            .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
         List<AggregateInstitutionRequest> aggregates = new ArrayList<>();
         AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
@@ -3101,13 +3148,13 @@ class OnboardingServiceDefaultTest {
         AggregateInstitution aggregateInstitution = new AggregateInstitution();
         aggregateInstitution.setTaxCode("taxCode");
         aggregateInstitution.setUsers(List.of(User.builder().id("test")
-            .role(PartyRole.MANAGER)
-            .build()));
+                .role(PartyRole.MANAGER)
+                .build()));
         request.setAggregates(List.of(aggregateInstitution));
 
         // when
         asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates),
-            Assertions::assertNotNull);
+                Assertions::assertNotNull);
 
         // then
         asserter.execute(() -> {
