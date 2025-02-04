@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class })
 public interface OnboardingMapper {
@@ -174,7 +173,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateSendList.stream()
                 .map(this::csvToAggregateSend)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
@@ -183,7 +182,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateAppIoList.stream()
                 .map(this::csvToAggregateAppIo)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {
