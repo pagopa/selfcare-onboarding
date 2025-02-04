@@ -885,8 +885,6 @@ class OnboardingControllerTest {
         List<OnboardingResponseV1> onboardingResponseList = response.jsonPath().getList("", OnboardingResponseV1.class);
 
         // then
-        ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
-
         verify(onboardingService, times(1))
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
         assertNotNull(onboardingResponseList);
