@@ -42,7 +42,7 @@ public interface OnboardingMapper {
     @Named("toUsersList")
     default List<UserOnboardingResponseV1> toUsersList(List<UserOnboardingResponse> list) {
         if(Objects.isNull(list) || list.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
         return list.stream()
                 .map(this::toUserOnboardingResponseV1)
