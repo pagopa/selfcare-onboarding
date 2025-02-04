@@ -55,20 +55,14 @@ public interface OnboardingMapper {
 
     @Named("toPartyRoleV1")
     default PartyRoleV1 toPartyRoleV1(PartyRole partyRole) {
-        switch (partyRole) {
-            case MANAGER:
-                return PartyRoleV1.MANAGER;
-            case DELEGATE:
-                return PartyRoleV1.DELEGATE;
-            case SUB_DELEGATE:
-                return PartyRoleV1.SUB_DELEGATE;
-            case OPERATOR:
-                return PartyRoleV1.OPERATOR;
-            case ADMIN_EA:
-                return PartyRoleV1.ADMIN_EA;
-            default:
-                return null;
-        }
+        return switch (partyRole) {
+            case MANAGER -> PartyRoleV1.MANAGER;
+            case DELEGATE -> PartyRoleV1.DELEGATE;
+            case SUB_DELEGATE -> PartyRoleV1.SUB_DELEGATE;
+            case OPERATOR -> PartyRoleV1.OPERATOR;
+            case ADMIN_EA -> PartyRoleV1.ADMIN_EA;
+            default -> null;
+        };
     }
 
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
