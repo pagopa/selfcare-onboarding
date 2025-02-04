@@ -167,8 +167,8 @@ public class CompletionServiceDefault implements CompletionService {
         Product product = productService.getProduct(onboarding.getProductId());
         for (User user: onboarding.getUsers()) {
 
-            if (product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
-                    .get(user.getRole()).isEnableUser()) {
+            if (!product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+                    .get(user.getRole()).isSkipUserCreation()) {
 
                 AddUserRoleDto userRoleDto = userMapper.toUserRole(onboarding);
                 userRoleDto.hasToSendEmail(hasToSendEmail);

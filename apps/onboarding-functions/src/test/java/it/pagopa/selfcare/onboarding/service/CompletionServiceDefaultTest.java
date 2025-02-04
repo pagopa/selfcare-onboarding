@@ -582,7 +582,7 @@ public class CompletionServiceDefaultTest {
     void persistUsers() {
         Product product = mock(Product.class);
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
-        productRoleInfo.setEnableUser(true);
+        productRoleInfo.setSkipUserCreation(false);
         Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
         when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
         Onboarding onboarding = createOnboarding();
@@ -603,7 +603,7 @@ public class CompletionServiceDefaultTest {
     void persistUsers_skip() {
         Product product = mock(Product.class);
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
-        productRoleInfo.setEnableUser(false);
+        productRoleInfo.setSkipUserCreation(true);
         Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
         when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
         Onboarding onboarding = createOnboarding();
@@ -623,7 +623,7 @@ public class CompletionServiceDefaultTest {
         createDummyUser(onboarding);
         Product product = mock(Product.class);
         ProductRoleInfo productRoleInfo = new ProductRoleInfo();
-        productRoleInfo.setEnableUser(true);
+        productRoleInfo.setSkipUserCreation(true);
         Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
         when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
 
