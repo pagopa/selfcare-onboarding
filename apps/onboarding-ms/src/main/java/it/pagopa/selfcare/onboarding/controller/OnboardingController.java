@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.controller;
 
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
-
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
@@ -9,18 +7,11 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
-import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponseV1;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -33,24 +24,11 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HEAD;
-import jakarta.ws.rs.InternalServerErrorException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -59,6 +37,12 @@ import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
@@ -191,10 +175,11 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+    public Uni<OnboardingResponseV1> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers())
+                        .map(onboardingMapper::toOnboardingResponseV1));
     }
 
     @Operation(
@@ -207,10 +192,11 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
+    public Uni<OnboardingResponseV1> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers())
+                        .map(onboardingMapper::toOnboardingResponseV1));
     }
 
     @Operation(
@@ -251,10 +237,11 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
+    public Uni<OnboardingResponseV1> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers())
+                        .map(onboardingMapper::toOnboardingResponseV1));
     }
 
     @Operation(
@@ -267,10 +254,11 @@ public class OnboardingController {
     @Tag(name = "internal-pnpg")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
+    public Uni<OnboardingResponseV1> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingPgCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingPgCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers())
+                        .map(onboardingMapper::toOnboardingResponseV1));
     }
 
     @Operation(
@@ -461,12 +449,16 @@ public class OnboardingController {
     @Tag(name = "Onboarding")
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/institutionOnboardings")
-    public Uni<List<OnboardingResponse>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,
+    public Uni<List<OnboardingResponseV1>> getOnboardingPending(@QueryParam(value = "taxCode") String taxCode,
                                                               @QueryParam(value = "subunitCode") String subunitCode,
                                                               @QueryParam(value = "origin") String origin,
                                                               @QueryParam(value = "originId") String originId,
                                                               @QueryParam(value = "status") OnboardingStatus status) {
-        return onboardingService.institutionOnboardings(taxCode, subunitCode, origin, originId, status);
+        return onboardingService.institutionOnboardings(taxCode, subunitCode, origin, originId, status)
+                .map(onboardingResponses -> onboardingResponses.stream()
+                        .map(onboardingMapper::toOnboardingResponseV1)
+                        .toList()
+                );
     }
 
     private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {

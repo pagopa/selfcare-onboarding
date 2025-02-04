@@ -34,6 +34,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import java.io.File;
 import java.util.List;
 
+import static it.pagopa.selfcare.onboarding.common.PartyRole.DELEGATE;
 import static org.mockito.Mockito.*;
 
 
@@ -345,21 +346,21 @@ class AggregatesServiceDefaultTest {
         aggregateUserUO.setSurname("Rossi");
         aggregateUserUO.setTaxCode("RSSMRA66A01H501W");
         aggregateUserUO.setEmail("mario.rossi@acme.it");
-        aggregateUserUO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUserUO.setRole(DELEGATE.name());
 
         AggregateUser aggregateUser = new AggregateUser();
         aggregateUser.setName("Guendalina");
         aggregateUser.setSurname("Giordano");
         aggregateUser.setTaxCode("GRDGDL66A01H501W");
         aggregateUser.setEmail("guendalina.giordano@test.it");
-        aggregateUser.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUser.setRole(DELEGATE.name());
 
         AggregateUser aggregateUserAOO = new AggregateUser();
         aggregateUserAOO.setName("Ma");
         aggregateUserAOO.setSurname("Re");
         aggregateUserAOO.setTaxCode("REXMAX66A01H501W");
         aggregateUserAOO.setEmail("ma.re@test.it");
-        aggregateUserAOO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUserAOO.setRole(DELEGATE.name());
 
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
         Aggregate aggregateUO = new Aggregate();
