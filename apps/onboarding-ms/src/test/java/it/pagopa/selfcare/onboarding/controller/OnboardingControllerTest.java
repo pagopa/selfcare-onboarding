@@ -668,12 +668,12 @@ class OnboardingControllerTest {
                 .extract()
                 .response();
 
-        OnboardingResponseV1 onboardingResponse = response.as(OnboardingResponseV1.class);
+        OnboardingResponseV1 actualOnboardingResponse = response.as(OnboardingResponseV1.class);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PSP, captor.getValue().getInstitution().getInstitutionType());
-        assertNull(onboardingResponse.getUsers().get(0).getRole());
+        assertNull(actualOnboardingResponse.getUsers().get(0).getRole());
     }
 
     static OnboardingPspRequest getOnboardingPspRequest() {
@@ -718,12 +718,12 @@ class OnboardingControllerTest {
                 .extract()
                 .response();
 
-        OnboardingResponseV1 onboardingResponse = response.as(OnboardingResponseV1.class);
+        OnboardingResponseV1 actualOnboardingResponse = response.as(OnboardingResponseV1.class);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingPgCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
-        assertEquals(PartyRole.SUB_DELEGATE.name(), onboardingResponse.getUsers().get(0).getRole().name());
+        assertEquals(PartyRole.SUB_DELEGATE.name(), actualOnboardingResponse.getUsers().get(0).getRole().name());
     }
 
     @Test
@@ -857,16 +857,16 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void getInstitutionOnboardings() {
         // given
-        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        OnboardingResponse dummyOnboardingResponse = dummyOnboardingResponse();
         UserOnboardingResponse userOnboardingResponse = new UserOnboardingResponse();
         userOnboardingResponse.setRole(PartyRole.ADMIN_EA);
         UserOnboardingResponse userOnboardingResponse2 = new UserOnboardingResponse();
         userOnboardingResponse2.setRole(PartyRole.DELEGATE);
         UserOnboardingResponse userOnboardingResponse3 = new UserOnboardingResponse();
         userOnboardingResponse3.setRole(PartyRole.OPERATOR);
-        onboardingResponse.setUsers(List.of(userOnboardingResponse, userOnboardingResponse2, userOnboardingResponse3));
+        dummyOnboardingResponse.setUsers(List.of(userOnboardingResponse, userOnboardingResponse2, userOnboardingResponse3));
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
-        onboardingResponses.add(onboardingResponse);
+        onboardingResponses.add(dummyOnboardingResponse);
         when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
@@ -898,9 +898,9 @@ class OnboardingControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void verifyOnboardingNoContentType() {
-        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        OnboardingResponse dummyOnboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
-        onboardingResponses.add(onboardingResponse);
+        onboardingResponses.add(dummyOnboardingResponse);
         when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
