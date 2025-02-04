@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -10,17 +14,21 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -40,14 +48,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -580,14 +580,19 @@ public class CompletionServiceDefaultTest {
 
     @Test
     void persistUsers() {
-
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
         createDummyUser(onboarding);
         onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
         when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
-
+        when(productService.getProduct(any())).thenReturn(product);
         completionServiceDefault.persistUsers(onboarding);
 
         Mockito.verify(userControllerApi, times(1))
@@ -595,12 +600,36 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUsers_skip() {
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(true);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        onboarding.setDelegationId("delegationId");
+
+        when(productService.getProduct(any())).thenReturn(product);
+        completionServiceDefault.persistUsers(onboarding);
+
+        Mockito.verifyNoInteractions(userControllerApi);
+    }
+
+    @Test
     void persistUsersWithException() {
         Onboarding onboarding = createOnboarding();
         createDummyUser(onboarding);
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(true);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
 
         Response response = new ServerResponse(null, 500, null);
         when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
 
         assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
 
@@ -920,15 +949,6 @@ public class CompletionServiceDefaultTest {
         conctractTemplate.setContractTemplatePath("example");
         conctractTemplate.setContractTemplateVersion("version");
         institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
-        return institutionTemplate;
-    }
-
-    private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
-        Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-        ContractTemplate conctractTemplate = new ContractTemplate();
-        conctractTemplate.setContractTemplatePath("example");
-        conctractTemplate.setContractTemplateVersion("version");
-        institutionTemplate.put("default", conctractTemplate);
         return institutionTemplate;
     }
 
