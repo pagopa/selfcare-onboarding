@@ -1,12 +1,6 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponseV1;
-import it.pagopa.selfcare.onboarding.controller.response.UserOnboardingResponse;
-import it.pagopa.selfcare.onboarding.model.Aggregate;
-import it.pagopa.selfcare.onboarding.model.AggregateUser;
-import it.pagopa.selfcare.onboarding.model.CsvAggregateAppIo;
-import it.pagopa.selfcare.onboarding.model.CsvAggregateSend;
+import it.pagopa.selfcare.onboarding.model.*;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 import org.openapi.quarkus.onboarding_functions_json.model.WorkflowType;
@@ -162,19 +156,5 @@ class OnboardingMapperTest {
         List<AggregateUser> result = mapper.mapUsers(input);
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void toOnboardingResponseV1() {
-        OnboardingResponse onboardingResponse = new OnboardingResponse();
-        onboardingResponse.setId("id");
-        UserOnboardingResponse userOnboardingResponse = new UserOnboardingResponse();
-        userOnboardingResponse.setId("userId");
-        userOnboardingResponse.setRole(it.pagopa.selfcare.onboarding.common.PartyRole.ADMIN_EA_IO);
-        onboardingResponse.setUsers(List.of(userOnboardingResponse));
-
-        OnboardingResponseV1 response = mapper.toOnboardingResponseV1(onboardingResponse);
-        assertNotNull(response);
-        assertNull(response.getUsers().get(0).getRole());
     }
 }
