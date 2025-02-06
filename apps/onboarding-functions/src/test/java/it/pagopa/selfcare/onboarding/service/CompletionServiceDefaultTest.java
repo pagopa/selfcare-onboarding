@@ -44,9 +44,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
@@ -124,7 +122,7 @@ public class CompletionServiceDefaultTest {
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(new InstitutionResponse(), new InstitutionResponse()));
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
@@ -139,7 +137,7 @@ public class CompletionServiceDefaultTest {
         institutionResponse.setId("actual-id");
         response.setInstitutions(List.of(institutionResponse));
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
@@ -158,7 +156,7 @@ public class CompletionServiceDefaultTest {
         institutionResponse.setId("actual-id");
         response.setInstitutions(List.of(institutionResponse));
 
-        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null))
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
 
         InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
@@ -179,7 +177,7 @@ public class CompletionServiceDefaultTest {
         InstitutionResponse institutionResponse = new InstitutionResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
 
-        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null))
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
@@ -246,7 +244,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -267,7 +265,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -287,7 +285,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setInstitution(institution);
 
         InstitutionsResponse response = new InstitutionsResponse();
-        when(institutionApi.getInstitutionsUsingGET(null, null, Origin.IVASS.getValue(), "originId", null))
+        when(institutionApi.getInstitutionsUsingGET(null, null, Origin.IVASS.getValue(), "originId"))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -308,7 +306,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -334,7 +332,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -370,7 +368,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null, null))
+                onboarding.getInstitution().getSubunitCode(), null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -404,7 +402,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                null, null, null, null))
+                null, null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -436,7 +434,7 @@ public class CompletionServiceDefaultTest {
 
         InstitutionsResponse response = new InstitutionsResponse();
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                null, null, null, null))
+                null, null, null))
                 .thenReturn(response);
 
         InstitutionResponse institutionResponse = dummyInstitutionResponse();
@@ -873,7 +871,7 @@ public class CompletionServiceDefaultTest {
         InstitutionsResponse institutionsResponse = new InstitutionsResponse();
         institutionsResponse.setInstitutions(List.of(dummyInstitutionResponse()));
 
-        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any()))
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
                 .thenReturn(institutionsResponse);
 
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
@@ -884,7 +882,7 @@ public class CompletionServiceDefaultTest {
         completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
 
         // then
-        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any(), any());
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
     }
 
     @Test

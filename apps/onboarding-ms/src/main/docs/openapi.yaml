@@ -456,7 +456,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OnboardingResponseV1"
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -501,7 +501,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/OnboardingResponseV1"
+                  $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -590,7 +590,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OnboardingResponseV1"
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -643,7 +643,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OnboardingResponseV1"
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -699,7 +699,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OnboardingResponseV1"
+                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -1322,160 +1322,6 @@ paths:
               schema:
                 format: binary
                 type: string
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v2/onboarding/completion:
-    post:
-      tags:
-      - Onboarding Controller
-      - internal-v1
-      summary: Complete onboarding request and set status to COMPLETED.
-      description: Perform onboarding as /onboarding but completing the onboarding
-        request to COMPLETED phase.
-      operationId: onboardingCompletionV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OnboardingDefaultRequest"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OnboardingResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v2/onboarding/institutionOnboardings:
-    get:
-      tags:
-      - support
-      - internal-v1
-      - Onboarding
-      summary: "Get onboardings by institution taxCode, subunitCode, origin, or originId."
-      description: Returns onboardings record by institution taxCode/subunitCode/origin/originId
-      operationId: onboardingInstitutionUsingGETV2
-      parameters:
-      - name: origin
-        in: query
-        schema:
-          type: string
-      - name: originId
-        in: query
-        schema:
-          type: string
-      - name: status
-        in: query
-        schema:
-          $ref: "#/components/schemas/OnboardingStatus"
-      - name: subunitCode
-        in: query
-        schema:
-          type: string
-      - name: taxCode
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/OnboardingResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-      x-legacy-api: "true"
-  /v2/onboarding/pa/completion:
-    post:
-      tags:
-      - Onboarding Controller
-      - internal-v1
-      summary: Complete PA onboarding request and set status to COMPLETED.
-      description: Perform onboarding as /onboarding/pa but completing the onboarding
-        request to COMPLETED phase.
-      operationId: onboardingPaCompletionV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OnboardingPaRequest"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OnboardingResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v2/onboarding/pg/completion:
-    post:
-      tags:
-      - Onboarding Controller
-      - internal-pnpg
-      summary: Complete PG onboarding request on PNPG domain and set status to COMPLETED.
-      description: Perform onboarding as /onboarding/psp but completing the onboarding
-        request to COMPLETED phase.
-      operationId: onboardingPgCompletionV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OnboardingPgRequest"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OnboardingResponse"
-        "401":
-          description: Not Authorized
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme: []
-  /v2/onboarding/psp/completion:
-    post:
-      tags:
-      - Onboarding Controller
-      - internal-v1
-      summary: Complete PSP onboarding request and set status to COMPLETED.
-      description: Perform onboarding as /onboarding/psp but completing the onboarding
-        request to COMPLETED phase.
-      operationId: onboardingPspCompletionV2
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OnboardingPspRequest"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OnboardingResponse"
         "401":
           description: Not Authorized
         "403":
@@ -2216,37 +2062,6 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         updatedAt:
           $ref: "#/components/schemas/LocalDateTime"
-    OnboardingResponseV1:
-      type: object
-      properties:
-        id:
-          type: string
-        productId:
-          type: string
-        workflowType:
-          type: string
-        institution:
-          $ref: "#/components/schemas/InstitutionResponse"
-        pricingPlan:
-          type: string
-        users:
-          type: array
-          items:
-            $ref: "#/components/schemas/UserOnboardingResponseV1"
-        billing:
-          $ref: "#/components/schemas/BillingResponse"
-        status:
-          type: string
-        additionalInformations:
-          $ref: "#/components/schemas/AdditionalInformationsDto"
-        userRequestUid:
-          type: string
-        isAggregator:
-          type: boolean
-        createdAt:
-          $ref: "#/components/schemas/LocalDateTime"
-        updatedAt:
-          $ref: "#/components/schemas/LocalDateTime"
     OnboardingStatus:
       enum:
       - REQUEST
@@ -2316,15 +2131,6 @@ components:
       - PDND_INFOCAMERE
       type: string
     PartyRole:
-      enum:
-      - MANAGER
-      - DELEGATE
-      - SUB_DELEGATE
-      - OPERATOR
-      - ADMIN_EA
-      - ADMIN_EA_IO
-      type: string
-    PartyRoleV1:
       enum:
       - MANAGER
       - DELEGATE
@@ -2417,17 +2223,6 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/PartyRole"
-        productRole:
-          type: string
-        userMailUuid:
-          type: string
-    UserOnboardingResponseV1:
-      type: object
-      properties:
-        id:
-          type: string
-        role:
-          $ref: "#/components/schemas/PartyRoleV1"
         productRole:
           type: string
         userMailUuid:

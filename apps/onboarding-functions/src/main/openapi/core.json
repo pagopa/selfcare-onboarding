@@ -788,15 +788,6 @@
           "schema" : {
             "type" : "string"
           }
-        }, {
-          "name" : "productId",
-          "in" : "query",
-          "description" : "productId",
-          "required" : false,
-          "style" : "form",
-          "schema" : {
-            "type" : "string"
-          }
         } ],
         "responses" : {
           "200" : {
@@ -2095,7 +2086,7 @@
           "style" : "simple",
           "schema" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP", "GPU" ]
           }
         } ],
         "responses" : {
@@ -2973,7 +2964,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP", "GPU" ]
           },
           "subunitCode" : {
             "type" : "string"
@@ -3235,7 +3226,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP", "GPU" ]
           },
           "onboarding" : {
             "type" : "array",
@@ -3449,7 +3440,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP", "GPU" ]
           },
           "ivassCode" : {
             "type" : "string"
@@ -3826,7 +3817,7 @@
           },
           "role" : {
             "type" : "string",
-            "enum" : [ "ADMIN_EA", "ADMIN_EA_IO", "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
+            "enum" : [ "DELEGATE", "MANAGER", "OPERATOR", "SUB_DELEGATE" ]
           },
           "roleLabel" : {
             "type" : "string"

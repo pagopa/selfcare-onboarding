@@ -5,7 +5,6 @@ public enum PartyRole {
     DELEGATE,
     SUB_DELEGATE,
     OPERATOR,
-    ADMIN_EA,
-    ADMIN_EA_IO
+    ADMIN_EA
 
 }

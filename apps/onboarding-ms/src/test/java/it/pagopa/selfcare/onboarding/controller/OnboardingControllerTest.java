@@ -1,5 +1,19 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -9,10 +23,34 @@ import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.*;
-import it.pagopa.selfcare.onboarding.controller.response.*;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingRequest;
+import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionBaseRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
+import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
+import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
+import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -21,21 +59,18 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -51,8 +86,6 @@ class OnboardingControllerTest {
     static final InstitutionPspRequest institutionPsp;
 
     static final OnboardingUserPgRequest onboardingUserPgValid;
-    static final OnboardingResponse onboardingResponse;
-    static final UserOnboardingResponse userResponse;
 
     @InjectMock
     OnboardingService onboardingService;
@@ -101,11 +134,6 @@ class OnboardingControllerTest {
         onboardingUserPgValid.setProductId("productId");
         onboardingUserPgValid.setUsers(List.of(userDTO));
         onboardingUserPgValid.setOrigin(Origin.ADE);
-
-        /* response */
-        userResponse = new UserOnboardingResponse();
-        onboardingResponse = new OnboardingResponse();
-        onboardingResponse.setUsers(List.of(userResponse));
 
     }
 
@@ -580,31 +608,23 @@ class OnboardingControllerTest {
 
         OnboardingDefaultRequest onboardingDefaultRequest = dummyOnboardingDefaultRequest();
 
-        onboardingResponse.setUsers(null);
-
         Mockito.when(onboardingService.onboardingCompletion(any(), any()))
-                .thenReturn(Uni.createFrom().item(onboardingResponse));
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        Response response = given()
+        given()
                 .when()
                 .body(onboardingDefaultRequest)
                 .contentType(ContentType.JSON)
                 .post("/completion")
                 .then()
-                .statusCode(200)
-                .extract()
-                .response();
-
-        OnboardingResponseV1 onboardingResponse = response.as(OnboardingResponseV1.class);
-
+                .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PRV, captor.getValue().getInstitution().getInstitutionType());
-        assertEquals(Collections.EMPTY_LIST, onboardingResponse.getUsers());
     }
 
-    static OnboardingDefaultRequest dummyOnboardingDefaultRequest() {
+    private static OnboardingDefaultRequest dummyOnboardingDefaultRequest() {
         OnboardingDefaultRequest onboardingDefaultRequest = new OnboardingDefaultRequest();
         InstitutionBaseRequest institution = new InstitutionBaseRequest();
         onboardingDefaultRequest.setProductId("productId");
@@ -623,28 +643,20 @@ class OnboardingControllerTest {
 
         OnboardingPaRequest onboardingPaRequest = dummyOnboardingPa();
 
-        userResponse.setRole(PartyRole.MANAGER);
-        onboardingResponse.setUsers(List.of(userResponse));
-
         Mockito.when(onboardingService.onboardingCompletion(any(), any()))
-                .thenReturn(Uni.createFrom().item(onboardingResponse));
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        Response response = given()
+        given()
                 .when()
                 .body(onboardingPaRequest)
                 .contentType(ContentType.JSON)
                 .post("/pa/completion")
                 .then()
-                .statusCode(200)
-                .extract()
-                .response();
-
-        OnboardingResponseV1 onboardingResponse = response.as(OnboardingResponseV1.class);
+                .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PA, captor.getValue().getInstitution().getInstitutionType());
-        assertEquals(PartyRole.MANAGER.name(), onboardingResponse.getUsers().get(0).getRole().name());
     }
 
     @Test
@@ -653,34 +665,26 @@ class OnboardingControllerTest {
 
         OnboardingPspRequest onboardingPspRequest = getOnboardingPspRequest();
 
-        userResponse.setRole(PartyRole.ADMIN_EA_IO);
-
         Mockito.when(onboardingService.onboardingCompletion(any(), any()))
-                .thenReturn(Uni.createFrom().item(onboardingResponse));
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        Response response = given()
+        given()
                 .when()
                 .body(onboardingPspRequest)
                 .contentType(ContentType.JSON)
                 .post("/psp/completion")
                 .then()
-                .statusCode(200)
-                .extract()
-                .response();
-
-        OnboardingResponseV1 actualOnboardingResponse = response.as(OnboardingResponseV1.class);
+                .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PSP, captor.getValue().getInstitution().getInstitutionType());
-        assertNull(actualOnboardingResponse.getUsers().get(0).getRole());
     }
 
-    static OnboardingPspRequest getOnboardingPspRequest() {
+    private static OnboardingPspRequest getOnboardingPspRequest() {
         OnboardingPspRequest onboardingPspRequest = new OnboardingPspRequest();
         InstitutionPspRequest institution = new InstitutionPspRequest();
         onboardingPspRequest.setProductId("productId");
-        userDTO.setRole(PartyRole.MANAGER);
         onboardingPspRequest.setUsers(List.of(userDTO));
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("digital@address.it");
@@ -703,27 +707,20 @@ class OnboardingControllerTest {
         onboardingPgRequest.setDigitalAddress("digital@address.it");
         onboardingPgRequest.setOrigin(Origin.INFOCAMERE);
 
-        userResponse.setRole(PartyRole.SUB_DELEGATE);
-
         Mockito.when(onboardingService.onboardingPgCompletion(any(), any()))
-                .thenReturn(Uni.createFrom().item(onboardingResponse));
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
-        Response response = given()
+        given()
                 .when()
                 .body(onboardingPgRequest)
                 .contentType(ContentType.JSON)
                 .post("/pg/completion")
                 .then()
-                .statusCode(200)
-                .extract()
-                .response();
-
-        OnboardingResponseV1 actualOnboardingResponse = response.as(OnboardingResponseV1.class);
+                .statusCode(200);
 
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).onboardingPgCompletion(captor.capture(), any());
         assertEquals(InstitutionType.PG, captor.getValue().getInstitution().getInstitutionType());
-        assertEquals(PartyRole.SUB_DELEGATE.name(), actualOnboardingResponse.getUsers().get(0).getRole().name());
     }
 
     @Test
@@ -857,48 +854,34 @@ class OnboardingControllerTest {
     @TestSecurity(user = "userJwt")
     void getInstitutionOnboardings() {
         // given
-        OnboardingResponse dummyOnboardingResponse = dummyOnboardingResponse();
-        UserOnboardingResponse userOnboardingResponse = new UserOnboardingResponse();
-        userOnboardingResponse.setRole(PartyRole.ADMIN_EA);
-        UserOnboardingResponse userOnboardingResponse2 = new UserOnboardingResponse();
-        userOnboardingResponse2.setRole(PartyRole.DELEGATE);
-        UserOnboardingResponse userOnboardingResponse3 = new UserOnboardingResponse();
-        userOnboardingResponse3.setRole(PartyRole.OPERATOR);
-        dummyOnboardingResponse.setUsers(List.of(userOnboardingResponse, userOnboardingResponse2, userOnboardingResponse3));
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
-        onboardingResponses.add(dummyOnboardingResponse);
+        onboardingResponses.add(onboardingResponse);
         when(onboardingService.institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
 
         // when
-        Response response = given()
+        given()
                 .when()
                 .queryParams(queryParameterMap)
                 .get("/institutionOnboardings")
                 .then()
-                .statusCode(200)
-                .extract()
-                .response();
-
-        List<OnboardingResponseV1> onboardingResponseList = response.jsonPath().getList("", OnboardingResponseV1.class);
+                .statusCode(200);
 
         // then
         verify(onboardingService, times(1))
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
-        assertNotNull(onboardingResponseList);
-        assertEquals(PartyRole.ADMIN_EA.name(), onboardingResponseList.get(0).getUsers().get(0).getRole().name());
-        assertEquals(PartyRole.DELEGATE.name(), onboardingResponseList.get(0).getUsers().get(1).getRole().name());
-        assertEquals(PartyRole.OPERATOR.name(), onboardingResponseList.get(0).getUsers().get(2).getRole().name());
+        assertNotNull(onboardingResponses);
     }
 
     @Test
     @TestSecurity(user = "userJwt")
     void verifyOnboardingNoContentType() {
-        OnboardingResponse dummyOnboardingResponse = dummyOnboardingResponse();
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
-        onboardingResponses.add(dummyOnboardingResponse);
+        onboardingResponses.add(onboardingResponse);
         when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
@@ -1021,7 +1004,7 @@ class OnboardingControllerTest {
         return queryParameterMap;
     }
 
-    static Map<String, String> getStringStringMapOnboardings() {
+    private static Map<String, String> getStringStringMapOnboardings() {
         Map<String, String> queryParameterMap = new HashMap<>();
         queryParameterMap.put("taxCode", "taxCode");
         queryParameterMap.put("subunitCode", "subunitCode");
@@ -1052,7 +1035,7 @@ class OnboardingControllerTest {
         return onboarding;
     }
 
-    static OnboardingResponse dummyOnboardingResponse() {
+    private static OnboardingResponse dummyOnboardingResponse() {
         String str = "2025-01-09 11:36";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
@@ -1079,7 +1062,7 @@ class OnboardingControllerTest {
         return onboardingUserRequest;
     }
 
-    static OnboardingPaRequest dummyOnboardingPa() {
+    private OnboardingPaRequest dummyOnboardingPa() {
         OnboardingPaRequest onboardingPaValid = new OnboardingPaRequest();
         onboardingPaValid.setProductId("productId");
 
@@ -1089,7 +1072,6 @@ class OnboardingControllerTest {
 
         institution.setInstitutionType(InstitutionType.PA);
 
-        userDTO.setRole(PartyRole.ADMIN_EA_IO);
         onboardingPaValid.setUsers(List.of(userDTO));
         onboardingPaValid.setInstitution(institution);
         onboardingPaValid.setBilling(billingPaRequest);
