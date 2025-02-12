@@ -5,12 +5,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.INSTITUTION_NOT_FOUND;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.USERS_UPDATE_NOT_ALLOWED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.INVALID_REFERENCE_ONBORADING;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_EXPIRED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_NOT_TO_BE_VALIDATED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_ALREADY_ONBOARDED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_NOT_ONBOARDED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 import io.quarkus.logging.Log;
@@ -336,7 +331,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return verifyExistingOnboarding(onboarding, isAggregatesIncrement)
                 .onItem()
-                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product));
+                .transformToUni(product -> verifyOnboardingProductParent(onboarding.getInstitution(), product.getParentId())
+                        .onItem()
+                        .transformToUni(ignored -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product)));
     }
 
 
@@ -1515,6 +1512,29 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .map(onboardingMapper::toResponse)
                 .collect()
                 .asList();
+    }
+
+    @Override
+    public Uni<Void> verifyOnboardingProductParent(Institution institution, String parentId) {
+        if (Objects.nonNull(parentId)) {
+            return verifyOnboarding(
+                    institution.getTaxCode(),
+                    institution.getSubunitCode(),
+                    institution.getOrigin().getValue(),
+                    institution.getOriginId(),
+                    OnboardingStatus.COMPLETED,
+                    parentId)
+                    .flatMap(onboardingResponses -> !onboardingResponses.isEmpty()
+                            ? Uni.createFrom().voidItem()
+                            : Uni.createFrom().failure(
+                            new InvalidRequestException(
+                                    String.format(
+                                            PRODUCT_PARENT_NOT_ONBOARDED.getMessage(),
+                                            parentId,
+                                            institution.getTaxCode()),
+                                    PRODUCT_PARENT_NOT_ONBOARDED.getCode())));
+        }
+        return Uni.createFrom().voidItem();
     }
 
     @Override

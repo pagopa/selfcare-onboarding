@@ -12,9 +12,11 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+
 import java.util.List;
 
 public interface OnboardingService {
@@ -44,10 +46,10 @@ public interface OnboardingService {
             List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingAggregationImport(
-        Onboarding onboarding,
-        OnboardingImportContract contractImported,
-        List<UserRequest> userRequests,
-        List<AggregateInstitutionRequest> aggregates);
+            Onboarding onboarding,
+            OnboardingImportContract contractImported,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates);
 
     Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests);
 
@@ -67,6 +69,8 @@ public interface OnboardingService {
 
     Uni<List<OnboardingResponse>> institutionOnboardings(
             String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status);
+
+    Uni<Void> verifyOnboardingProductParent(Institution institution, String parentId);
 
     Uni<List<OnboardingResponse>> verifyOnboarding(
             String taxCode,
