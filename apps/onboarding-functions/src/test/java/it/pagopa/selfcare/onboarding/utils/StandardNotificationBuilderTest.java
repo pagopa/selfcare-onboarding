@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.utils;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -28,296 +29,335 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class StandardNotificationBuilderTest {
-    @InjectMock
-    @RestClient
-    InstitutionApi registryProxyInstitutionsApi;
-    @InjectMock
-    @RestClient
-    GeographicTaxonomiesApi geographicTaxonomiesApi;
-    @InjectMock
-    @RestClient
-    org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
+  @InjectMock
+  @RestClient
+  InstitutionApi registryProxyInstitutionsApi;
+  @InjectMock
+  @RestClient
+  GeographicTaxonomiesApi geographicTaxonomiesApi;
+  @InjectMock
+  @RestClient
+  org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi;
 
-    StandardNotificationBuilder standardNotificationBuilder;
+  StandardNotificationBuilder standardNotificationBuilder;
 
-    @BeforeEach
-    public void setup() {
-        NotificationConfig.Consumer consumer = mock(NotificationConfig.Consumer.class);
-        when(consumer.topic()).thenReturn(SC_CONTRACTS.getValue());
-        standardNotificationBuilder = new StandardNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
-    }
+  @BeforeEach
+  public void setup() {
+    NotificationConfig.Consumer consumer = mock(NotificationConfig.Consumer.class);
+    when(consumer.topic()).thenReturn(SC_CONTRACTS.getValue());
+    standardNotificationBuilder = new StandardNotificationBuilder("alternativeEmail", consumer, registryProxyInstitutionsApi, geographicTaxonomiesApi, coreInstitutionApi);
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventAdd() {
+  @Test
+  void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventAdd() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
-                null // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+      null // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
-        onboarding.setIsAggregator(true);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
+    onboarding.setIsAggregator(true);
 
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
-        assertNotNull(notification);
-        assertNull(notification.getClosedAt());
-        assertEquals("ACTIVE", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(token.getContractSigned(), notification.getFilePath());
-        assertEquals(QueueEvent.ADD, notification.getNotificationType());
-    }
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(token.getContractSigned(), notification.getFilePath());
+    assertEquals(QueueEvent.ADD, notification.getNotificationType());
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventAdd() {
+  @Test
+  void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventAdd() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                null, // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
-                null // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      null, // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+      null // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        onboarding.setIsAggregator(false);
-        Aggregator aggregator = new Aggregator();
-        aggregator.setId("Id");
-        aggregator.setDescription("Des");
-        aggregator.setTaxCode("TaxCode");
-        aggregator.setOriginId("OriginId");
-        onboarding.setAggregator(aggregator);
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+    onboarding.setIsAggregator(false);
+    Aggregator aggregator = new Aggregator();
+    aggregator.setId("Id");
+    aggregator.setDescription("Des");
+    aggregator.setTaxCode("TaxCode");
+    aggregator.setOriginId("OriginId");
+    onboarding.setAggregator(aggregator);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
 
-        assertNotNull(notification);
-        assertNull(notification.getClosedAt());
-        assertEquals("ACTIVE", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getCreatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getCreatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(QueueEvent.ADD, notification.getNotificationType());
-        assertNotNull(notification.getRootAggregator());
-        assertEquals("Id", notification.getRootAggregator().getInstitutionId());
-        assertEquals("OriginId", notification.getRootAggregator().getOriginId());
-        assertEquals("Des", notification.getRootAggregator().getDescription());
-        assertFalse(notification.getIsAggregator());
-    }
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getCreatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getCreatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(QueueEvent.ADD, notification.getNotificationType());
+    assertNotNull(notification.getRootAggregator());
+    assertEquals("Id", notification.getRootAggregator().getInstitutionId());
+    assertEquals("OriginId", notification.getRootAggregator().getOriginId());
+    assertEquals("Des", notification.getRootAggregator().getDescription());
+    assertFalse(notification.getIsAggregator());
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventUpdate() {
+  @Test
+  void toNotificationToSendWhenOnboardingHasActivatedAtAndQueueEventUpdate() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
-                null // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+      null // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
-        assertNotNull(notification);
-        assertNull(notification.getClosedAt());
-        assertEquals("ACTIVE", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
-    }
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventUpdate() {
+  @Test
+  void toNotificationToSendWhenOnboardingHasNotActivatedAtAndQueueEventUpdate() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:07:00Z"), // updatedAt
-                null // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:07:00Z"), // updatedAt
+      null // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
-        assertNotNull(notification);
-        assertNull(notification.getClosedAt());
-        assertEquals("ACTIVE", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
-    }
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingDeletedHasDeletedAtAndQueueEventUpdate() {
+  @Test
+  void toNotificationToSendWhenOnboardingDeletedHasDeletedAtAndQueueEventUpdate() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.DELETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:06:00Z"), // updatedAt
-                OffsetDateTime.parse("2020-12-02T18:22:00Z") // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.DELETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:06:00Z"), // updatedAt
+      OffsetDateTime.parse("2020-12-02T18:22:00Z") // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
-        assertNotNull(notification);
-        assertEquals("CLOSED", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getDeletedAt(), notification.getClosedAt().toLocalDateTime());
-        assertEquals(onboarding.getDeletedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
-    }
+    assertNotNull(notification);
+    assertEquals("CLOSED", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getDeletedAt(), notification.getClosedAt().toLocalDateTime());
+    assertEquals(onboarding.getDeletedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
+  }
 
-    @Test
-    void toNotificationToSendWhenOnboardingDeletedHasNotDeletedAtAndQueueEventUpdate() {
+  @Test
+  void toNotificationToSendWhenOnboardingDeletedHasNotDeletedAtAndQueueEventUpdate() {
 
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.DELETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:06:00Z"), // updatedAt
-                null // deletedAt
-        );
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        // Create Token
-        Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.DELETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:06:00Z"), // updatedAt
+      null // deletedAt
+    );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    // Create Token
+    Token token = createToken();
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
 
-        assertNotNull(notification);
-        assertEquals("CLOSED", notification.getState());
-        assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
-        assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
-        assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
-        assertEquals(onboarding.getUpdatedAt(), notification.getClosedAt().toLocalDateTime());
-        assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
-    }
+    assertNotNull(notification);
+    assertEquals("CLOSED", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getUpdatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(onboarding.getUpdatedAt(), notification.getClosedAt().toLocalDateTime());
+    assertEquals(QueueEvent.UPDATE, notification.getNotificationType());
+  }
 
-    @Test
-    void toNotificationAttributesNotNull() {
+  @Test
+  void toNotificationAttributesNotNull() {
 
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        AttributesResponse attribute = new AttributesResponse();
-        attribute.setCode("code");
-        institution.setAttributes(List.of(attribute));
-        // Create Token
-        Token token = createToken();
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                null, // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
-                null
-        );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    AttributesResponse attribute = new AttributesResponse();
+    attribute.setCode("code");
+    institution.setAttributes(List.of(attribute));
+    // Create Token
+    Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      null, // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
+      null
+    );
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
 
-        //when
-        NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
-        //then
-        assertNotNull(notificationToSend);
-        verifyNoInteractions(registryProxyInstitutionsApi);
-        verifyNoInteractions(geographicTaxonomiesApi);
-    }
+    //when
+    NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+    //then
+    assertNotNull(notificationToSend);
+    verifyNoInteractions(registryProxyInstitutionsApi);
+    verifyNoInteractions(geographicTaxonomiesApi);
+  }
 
-    @Test
-    void toNotificationCityNull() {
+  @Test
+  void toNotificationCityNull() {
 
-        // Create Institution
-        InstitutionResponse institution = createInstitution();
-        institution.setCity(null);
-        // Create Token
-        Token token = createToken();
-        // Create Onboarding
-        Onboarding onboarding = createOnboarding(
-                OnboardingStatus.COMPLETED,
-                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
-                null, // activatedAt
-                OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
-                null
-        );
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+    institution.setCity(null);
+    // Create Token
+    Token token = createToken();
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      null, // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
+      null
+    );
 
-        InstitutionResponse institutionParentResource = new InstitutionResponse();
-        institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
-                .thenReturn(institutionParentResource);
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
 
-        mockPartyRegistryProxy(registryProxyInstitutionsApi, geographicTaxonomiesApi, institution);
+    mockPartyRegistryProxy(registryProxyInstitutionsApi, geographicTaxonomiesApi, institution);
 
-        //when
-        NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
-        //then
-        assertNotNull(notificationToSend);
-        verify(registryProxyInstitutionsApi).findInstitutionUsingGET(any(), any(), any());
-        verify(geographicTaxonomiesApi).retrieveGeoTaxonomiesByCodeUsingGET(any());
+    //when
+    NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+    //then
+    assertNotNull(notificationToSend);
+    verify(registryProxyInstitutionsApi).findInstitutionUsingGET(any(), any(), any());
+    verify(geographicTaxonomiesApi).retrieveGeoTaxonomiesByCodeUsingGET(any());
 
-    }
+  }
+
+
+  @Test
+  void toNotificationToSendWhenPSPOnboardingHasActivatedAtAndQueueEventAdd() {
+
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+      null // deletedAt
+    );
+    onboarding.getInstitution().getPaymentServiceProvider().setProviderNames(List.of("providerName1", "providerName2"));
+    onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+
+    // Create Token
+    Token token = createToken();
+
+    InstitutionResponse institutionParentResource = new InstitutionResponse();
+    institutionParentResource.setOriginId("parentOriginId");
+    when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+      .thenReturn(institutionParentResource);
+    onboarding.setIsAggregator(true);
+
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+    assertEquals(onboarding.getActivatedAt(), notification.getCreatedAt().toLocalDateTime());
+    assertEquals(onboarding.getActivatedAt(), notification.getUpdatedAt().toLocalDateTime());
+    assertEquals(token.getContractSigned(), notification.getFilePath());
+    assertEquals(QueueEvent.ADD, notification.getNotificationType());
+    assertEquals(2, notification.getInstitution().getPaymentServiceProvider().getProviderNames().size());
+  }
 
 
 }
