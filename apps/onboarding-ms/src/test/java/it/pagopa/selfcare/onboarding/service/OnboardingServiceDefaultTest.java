@@ -82,7 +82,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -92,7 +91,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -1371,36 +1369,48 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+  @Test
+  @RunOnVertxContext
+  void onboardingPsp_whenUserFoundedAndWillNotUpdateAndProductHasParent(UniAsserter asserter) {
+    Onboarding onboardingRequest = new Onboarding();
+    List<UserRequest> users = List.of(manager);
+    onboardingRequest.setProductId("productParentId");
+    Institution institutionPspRequest = new Institution();
+    institutionPspRequest.setOrigin(Origin.SELC);
+    institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+    institutionPspRequest.setInstitutionType(PSP);
+    institutionPspRequest.setTaxCode("taxCode");
+    onboardingRequest.setInstitution(institutionPspRequest);
 
-    @Test
-    @RunOnVertxContext
-    void onboardingPsp_whenUserFoundedAndWillNotUpdateAndProductHasParent(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
-        List<UserRequest> users = List.of(manager);
-        onboardingRequest.setProductId("productParentId");
-        Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setOrigin(Origin.SELC);
-        institutionPspRequest.setInstitutionType(InstitutionType.PSP);
-        institutionPspRequest.setInstitutionType(PSP);
-        institutionPspRequest.setTaxCode("taxCode");
-        onboardingRequest.setInstitution(institutionPspRequest);
+    mockPersistOnboarding(asserter);
+    mockSimpleSearchPOSTAndPersist(asserter);
+    mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+    mockVerifyAllowedMap(
+        onboardingRequest.getInstitution().getTaxCode(),
+        onboardingRequest.getProductId(),
+        asserter);
 
-        mockPersistOnboarding(asserter);
-        mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
-        mockVerifyAllowedMap(onboardingRequest.getInstitution().getTaxCode(), onboardingRequest.getProductId(), asserter);
+    // mock parent has already onboarding
+    PanacheMock.mock(Onboarding.class);
+    ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
 
-        // mock parent has already onboarding
-        mockVerifyOnboardingNotFound();
-        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
+    when(Onboarding.find(any())).thenReturn(query);
 
-        asserter.execute(() -> {
-            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
-            PanacheMock.verify(Onboarding.class).find(any(Document.class));
-            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+    when(query.stream())
+        .thenReturn(Multi.createFrom().empty(), Multi.createFrom().item(onboardingRequest));
+
+    asserter.assertThat(
+        () -> onboardingService.onboarding(onboardingRequest, users, null),
+        Assertions::assertNotNull);
+
+    asserter.execute(
+        () -> {
+          PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+          PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+          PanacheMock.verify(Onboarding.class, times(2)).find(any(Document.class));
+          PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
-    }
+  }
 
     Institution dummyInstitution() {
         Institution institution = new Institution();
