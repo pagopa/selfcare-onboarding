@@ -51,7 +51,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*'], 'prod-fd-garantito': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-dashboard-psp': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*'], 'prod-fd-garantito': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
