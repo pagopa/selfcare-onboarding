@@ -5,12 +5,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DEFAULT_ERROR;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.INSTITUTION_NOT_FOUND;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.USERS_UPDATE_NOT_ALLOWED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.INVALID_REFERENCE_ONBORADING;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_EXPIRED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ONBOARDING_NOT_TO_BE_VALIDATED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_ALREADY_ONBOARDED;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.PRODUCT_NOT_ONBOARDED;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 import io.quarkus.logging.Log;
@@ -66,7 +61,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -81,7 +75,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -455,13 +448,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .transform(onboardingMapper::toResponse));
     }
 
-    /**
-     * @param onboarding
-     * @param userRequests
-     * @param aggregateRequests
-     * @param contractImported
-     * @return OnboardingResponse
-     */
     private Uni<OnboardingResponse> fillUsersAndOnboardingForImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
@@ -712,14 +698,22 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(
             Institution institution, String productId, String productParentId) {
-        return (Objects.nonNull(productParentId)
-                // If product has parent, I must verify if onboarding is present for parent and child
-                ? checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
-                .onFailure(ResourceConflictException.class)
-                .recoverWithUni(
-                        ignore -> checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId))
-                // If product is a root, I must only verify if onboarding for root
-                : checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId));
+        if (Objects.nonNull(productParentId)) {
+            return checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId)
+                    .onItem().transformToUni(ignored ->
+                            checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
+                                    .onItem().transformToUni(result -> Uni.createFrom().failure(
+                                            new InvalidRequestException(
+                                                    String.format(PARENT_PRODUCT_NOT_ONBOARDED.getMessage(),
+                                                            productParentId,
+                                                            institution.getTaxCode()),
+                                                    PARENT_PRODUCT_NOT_ONBOARDED.getCode())))
+                                    .onFailure(ResourceConflictException.class)
+                                    .recoverWithNull().replaceWith(Uni.createFrom().item(true))
+                    );
+        } else {
+            return checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId);
+        }
     }
 
     private Uni<Boolean> verifyOnboardingNotExistForProductAndProductParent(
