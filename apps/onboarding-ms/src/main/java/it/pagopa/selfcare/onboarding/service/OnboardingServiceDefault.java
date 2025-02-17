@@ -656,6 +656,8 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     private WorkflowType getWorkflowType(Onboarding onboarding) {
         InstitutionType institutionType = onboarding.getInstitution().getInstitutionType();
+        Product product = productService.getProductIsValid(onboarding.getProductId());
+
         if (InstitutionType.PT.equals(institutionType)) {
             return WorkflowType.FOR_APPROVE_PT;
         }
@@ -669,6 +671,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || isGspAndProdInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
+                || Objects.nonNull(product.getParentId())
                 || (InstitutionType.PRV.equals(institutionType)
                 && !PROD_PAGOPA.getValue().equals(onboarding.getProductId()))) {
             return WorkflowType.CONTRACT_REGISTRATION;
