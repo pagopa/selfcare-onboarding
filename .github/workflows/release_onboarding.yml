@@ -1,0 +1,75 @@
+name: Release Onboarding
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options:
+          - dev
+          - uat
+          - prod
+
+jobs:
+  create_branch:
+    name: 'Create Release Branch'
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+      actions: write
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+
+      - name: Trigger Functions Infra Release
+        run: |
+          gh workflow run release_functions_infra.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger Mongo Infra Release
+        run: |
+          gh workflow run release_mongo_infra.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger PNPG Functions Infra Release
+        run: |
+          gh workflow run release_functions_pnpg_infra.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger PNPG Mongo Infra Release
+        run: |
+          gh workflow run release_mongo_pnpg_infra.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger Functions Release
+        run: |
+          gh workflow run release_functions.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger Onboarding ms Release
+        run: |
+          gh workflow run release_ms.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger Onboarding CDC Release
+        run: |
+          gh workflow run release_cdc.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger PNPG Functions Release
+        run: |
+          gh workflow run release_pnpg_functions.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger PNPG Onboarding ms Release
+        run: |
+          gh workflow run release_pnpg_ms.yml \
+            --ref ${{ inputs.env }}
+
+      - name: Trigger PNPG Onboarding CDC Release
+        run: |
+          gh workflow run release_pnpg_cdc.yml \
+            --ref ${{ inputs.env }}
