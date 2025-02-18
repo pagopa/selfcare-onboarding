@@ -11,28 +11,29 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import java.util.Objects;
 
 public class StandardNotificationBuilder extends BaseNotificationBuilder
-    implements NotificationUserBuilder {
+  implements NotificationUserBuilder {
   public StandardNotificationBuilder(
-      String alternativeEmail,
-      NotificationConfig.Consumer consumer,
-      InstitutionApi proxyRegistryInstitutionApi,
-      GeographicTaxonomiesApi geographicTaxonomiesApi,
-      org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi) {
+    String alternativeEmail,
+    NotificationConfig.Consumer consumer,
+    InstitutionApi proxyRegistryInstitutionApi,
+    GeographicTaxonomiesApi geographicTaxonomiesApi,
+    org.openapi.quarkus.core_json.api.InstitutionApi coreInstitutionApi) {
     super(
-        alternativeEmail,
-        consumer,
-        proxyRegistryInstitutionApi,
-        geographicTaxonomiesApi,
-        coreInstitutionApi);
+      alternativeEmail,
+      consumer,
+      proxyRegistryInstitutionApi,
+      geographicTaxonomiesApi,
+      coreInstitutionApi);
   }
 
   @Override
   public NotificationToSend buildNotificationToSend(
-      Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
+    Onboarding onboarding, Token token, InstitutionResponse institution, QueueEvent queueEvent) {
     NotificationToSend notificationToSend =
-        super.buildNotificationToSend(onboarding, token, institution, queueEvent);
+      super.buildNotificationToSend(onboarding, token, institution, queueEvent);
     this.retrieveAndSetAggregatorInfo(onboarding, notificationToSend);
     notificationToSend.setInternalIstitutionID(institution.getId());
+    notificationToSend.setInstitutionId(institution.getId());
     notificationToSend.setNotificationType(queueEvent);
     return notificationToSend;
   }
@@ -58,7 +59,7 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder
   }
 
   private void retrieveAndSetAggregatorInfo(
-      Onboarding onboarding, NotificationToSend notificationToSend) {
+    Onboarding onboarding, NotificationToSend notificationToSend) {
     boolean isAggregator = Boolean.TRUE.equals(onboarding.getIsAggregator());
     notificationToSend.setIsAggregator(isAggregator);
     if (Objects.nonNull(onboarding.getAggregator())) {
@@ -72,15 +73,15 @@ public class StandardNotificationBuilder extends BaseNotificationBuilder
 
   @Override
   public NotificationUserToSend buildUserNotificationToSend(
-      Onboarding onboarding,
-      Token token,
-      InstitutionResponse institution,
-      String createdAt,
-      String updatedAt,
-      String status,
-      String userId,
-      String partyRole,
-      String productRole) {
+    Onboarding onboarding,
+    Token token,
+    InstitutionResponse institution,
+    String createdAt,
+    String updatedAt,
+    String status,
+    String userId,
+    String partyRole,
+    String productRole) {
     return null;
   }
 }
