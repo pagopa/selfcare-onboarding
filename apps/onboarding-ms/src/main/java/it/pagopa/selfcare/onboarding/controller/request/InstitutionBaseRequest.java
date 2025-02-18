@@ -17,7 +17,9 @@ public class InstitutionBaseRequest {
     private String taxCode;
     private String subunitCode;
     private InstitutionPaSubunitType subunitType;
+    @NotNull(message = "origin is required")
     private Origin origin;
+    @NotEmpty(message = "originId is required")
     private String originId;
     private String city;
     private String country;

@@ -81,10 +81,8 @@ class OnboardingControllerTest {
     static final UserRequest userDTO;
     static final OnboardingPgRequest onboardingPgValid;
     static final OnboardingDefaultRequest onboardingBaseValid;
-
     static final InstitutionBaseRequest institution;
     static final InstitutionPspRequest institutionPsp;
-
     static final OnboardingUserPgRequest onboardingUserPgValid;
 
     @InjectMock
@@ -107,6 +105,8 @@ class OnboardingControllerTest {
         institution.setInstitutionType(InstitutionType.PT);
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("example@example.it");
+        institution.setOriginId("originId");
+        institution.setOrigin(Origin.IPA);
         onboardingBaseValid.setInstitution(institution);
 
         /* PSP */
@@ -115,6 +115,8 @@ class OnboardingControllerTest {
         onboardingPspValid.setUsers(List.of(userDTO));
 
         institutionPsp = new InstitutionPspRequest();
+        institutionPsp.setOrigin(Origin.SELC);
+        institutionPsp.setOriginId("originId");
         institutionPsp.setInstitutionType(InstitutionType.PT);
         institutionPsp.setTaxCode("taxCode");
         institutionPsp.setDigitalAddress("example@example.it");
@@ -632,6 +634,7 @@ class OnboardingControllerTest {
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("digital@address.it");
         institution.setOrigin(Origin.SELC);
+        institution.setOriginId("originId");
         institution.setInstitutionType(InstitutionType.PRV);
         onboardingDefaultRequest.setInstitution(institution);
         return onboardingDefaultRequest;
@@ -689,6 +692,7 @@ class OnboardingControllerTest {
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("digital@address.it");
         institution.setOrigin(Origin.SELC);
+        institution.setOriginId("originId");
         institution.setInstitutionType(InstitutionType.PSP);
         institution.setPaymentServiceProvider(new PaymentServiceProviderRequest());
         institution.setDataProtectionOfficer(new DataProtectionOfficerRequest());
@@ -1097,6 +1101,8 @@ class OnboardingControllerTest {
         onboardingPspRequest.setContractImported(new OnboardingImportContract());
         InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setOrigin(Origin.SELC);
+        institutionPspRequest.setOriginId("originId");
         institutionPspRequest.setDigitalAddress("address@gmail.com");
         PaymentServiceProviderRequest pspData = new PaymentServiceProviderRequest();
         pspData.setAbiCode("abiCode");
@@ -1293,6 +1299,7 @@ class OnboardingControllerTest {
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setDigitalAddress("digital@address.it");
         institutionBaseRequest.setOrigin(Origin.SELC);
+        institutionBaseRequest.setOriginId("originId");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         onboardingRequest.setInstitution(institutionBaseRequest);
         onboardingRequest.setProductId("prod-io");
