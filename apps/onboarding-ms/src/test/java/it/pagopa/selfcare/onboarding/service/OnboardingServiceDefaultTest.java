@@ -274,8 +274,11 @@ class OnboardingServiceDefaultTest {
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
 
+        Product productResource = new Product();
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
-                .thenThrow(IllegalArgumentException.class));
+                .thenReturn(productResource) // Prima chiamata: ritorna un valore valido
+                .thenThrow(new IllegalArgumentException()) // Seconda chiamata: lancia un'eccezione
+        );
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
@@ -289,8 +292,11 @@ class OnboardingServiceDefaultTest {
         onboardingRequest.setProductId("productId");
         onboardingRequest.setInstitution(new Institution());
 
+        Product productResource = new Product();
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
-                .thenThrow(ProductNotFoundException.class));
+                .thenReturn(productResource) // Prima chiamata: ritorna un valore valido
+                .thenThrow(new ProductNotFoundException()) // Seconda chiamata: lancia un'eccezione
+        );
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), OnboardingNotAllowedException.class);
     }
@@ -464,7 +470,7 @@ class OnboardingServiceDefaultTest {
     void onboarding_throwExceptionIfProductRoleIsNotValid(UniAsserter asserter) {
         Onboarding onboardingRequest = new Onboarding();
         List<UserRequest> users = List.of(manager);
-        onboardingRequest.setProductId("productId");
+        onboardingRequest.setProductId("prod-pn");
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setInstitutionType(InstitutionType.PG);
         onboardingRequest.setInstitution(institutionBaseRequest);
