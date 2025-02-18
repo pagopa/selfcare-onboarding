@@ -236,12 +236,22 @@ paths:
         in: query
         schema:
           type: string
+      - name: productIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
       - name: size
         in: query
         schema:
           format: int32
           default: "20"
           type: integer
+      - name: skipPagination
+        in: query
+        schema:
+          type: boolean
       - name: status
         in: query
         schema:
@@ -255,6 +265,10 @@ paths:
         schema:
           type: string
       - name: to
+        in: query
+        schema:
+          type: string
+      - name: userId
         in: query
         schema:
           type: string

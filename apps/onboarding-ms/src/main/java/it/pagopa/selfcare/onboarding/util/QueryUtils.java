@@ -18,10 +18,7 @@ import org.bson.conversions.Bson;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.*;
 
@@ -43,9 +40,10 @@ public class QueryUtils {
         public static final String INSTITUTION_ORIGIN = "institution.origin";
         public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
         public static final String INSTITUTION_SUBUNIT_CODE = "institution.subunitCode";
+        public static final String USER_ID = "users._id";
     }
 
-    public static Document buildQuery(Map<String, String> parameters) {
+    public static Document buildQuery(Map<String, Object> parameters) {
         if (!parameters.isEmpty()) {
             return bsonToDocument(Filters.and(constructBsonFilter(parameters)));
         } else {
@@ -58,13 +56,15 @@ public class QueryUtils {
      * The function iterates over the entries in the parameter map, and for each entry it creates
      * either an equality filter or a range filter depending on whether the key is &quot;from&quot; or &quot;to&quot;.
      */
-    private static List<Bson> constructBsonFilter(Map<String, String> parameters) {
+    private static List<Bson> constructBsonFilter(Map<String, Object> parameters) {
         return parameters.entrySet().stream()
                 .map(entry -> {
                     if (StringUtils.equalsIgnoreCase(entry.getKey(), FROM)) {
-                        return Filters.gte(Onboarding.Fields.createdAt.name(), LocalDate.parse(entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE));
+                        return Filters.gte(Onboarding.Fields.createdAt.name(), LocalDate.parse((String) entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE));
                     } else if (StringUtils.equalsIgnoreCase(entry.getKey(), TO)) {
-                        return Filters.lt(Onboarding.Fields.createdAt.name(), LocalDate.parse(entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1));
+                        return Filters.lt(Onboarding.Fields.createdAt.name(), LocalDate.parse((String) entry.getValue(), DateTimeFormatter.ISO_LOCAL_DATE).plusDays(1));
+                    } else if (entry.getValue() instanceof List<?>) {
+                        return Filters.in(entry.getKey(), (Iterable<?>) entry.getValue());
                     }
                     return Filters.eq(entry.getKey(), entry.getValue());
                 }).toList();
@@ -80,8 +80,9 @@ public class QueryUtils {
     /**
      * The createMapForOnboardingQueryParameter function creates a map of query parameters for the Onboarding Collection.
      */
-    public static Map<String, String> createMapForOnboardingQueryParameter(OnboardingGetFilters filters) {
-        Map<String, String> queryParameterMap = new HashMap<>();
+    public static Map<String, Object> createMapForOnboardingQueryParameter(OnboardingGetFilters filters) {
+        Map<String, Object> queryParameterMap = new HashMap<>();
+        Optional.ofNullable(filters.getUserId()).ifPresent(value -> queryParameterMap.put(USER_ID, filters.getUserId()));
         Optional.ofNullable(filters.getProductId()).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
         Optional.ofNullable(filters.getTaxCode()).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
         Optional.ofNullable(filters.getSubunitCode()).ifPresent(value -> queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, value));
@@ -90,11 +91,14 @@ public class QueryUtils {
         Optional.ofNullable(filters.getTo()).ifPresent(value -> queryParameterMap.put(TO, value));
         Optional.ofNullable(filters.getInstitutionId()).ifPresent(value -> queryParameterMap.put(INSTITUTION_ID, value));
         Optional.ofNullable(filters.getOnboardingId()).ifPresent(value -> queryParameterMap.put("_id", value));
+        if (Objects.nonNull(filters.getProductIds()) && !filters.getProductIds().isEmpty()) {
+            queryParameterMap.put(PRODUCT, filters.getProductIds());
+        }
         return queryParameterMap;
     }
 
-    public static Map<String, String> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
-        Map<String, String> queryParameterMap = new HashMap<>();
+    public static Map<String, Object> createMapForInstitutionOnboardingsQueryParameter(String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status, String productId) {
+        Map<String, Object> queryParameterMap = new HashMap<>();
         getOptionalForNullableAndEmpty(taxCode).ifPresent(value -> queryParameterMap.put(INSTITUTION_TAX_CODE, value));
         queryParameterMap.put(INSTITUTION_SUBUNIT_CODE, subunitCode);
         getOptionalForNullableAndEmpty(origin).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value));

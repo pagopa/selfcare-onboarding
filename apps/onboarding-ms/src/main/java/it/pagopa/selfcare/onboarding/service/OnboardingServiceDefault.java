@@ -601,7 +601,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Multi<Onboarding> getOnboardingByFilters(
             String taxCode, String subunitCode, String origin, String originId, String productId) {
-        final Map<String, String> queryParameter =
+        final Map<String, Object> queryParameter =
                 QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
                         taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId);
         Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
@@ -1421,13 +1421,14 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters) {
         Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
-        Map<String, String> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(filters);
+        Map<String, Object> queryParameter = QueryUtils.createMapForOnboardingQueryParameter(filters);
         Document query = QueryUtils.buildQuery(queryParameter);
 
         return Uni.combine()
                 .all()
                 .unis(
-                        runQuery(query, sort).page(filters.getPage(), filters.getSize()).list(),
+                        filters.isSkipPagination() ? runQuery(query, sort).list()
+                                : runQuery(query, sort).page(filters.getPage(), filters.getSize()).list(),
                         runQuery(query, null).count())
                 .asTuple()
                 .map(this::constructOnboardingGetResponse);
@@ -1503,7 +1504,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<List<OnboardingResponse>> institutionOnboardings(
             String taxCode, String subunitCode, String origin, String originId, OnboardingStatus status) {
-        Map<String, String> queryParameter =
+        Map<String, Object> queryParameter =
                 QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
                         taxCode, subunitCode, origin, originId, status, null);
         Document query = QueryUtils.buildQuery(queryParameter);
@@ -1522,7 +1523,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             String originId,
             OnboardingStatus status,
             String productId) {
-        Map<String, String> queryParameter =
+        Map<String, Object> queryParameter =
                 QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
                         taxCode, subunitCode, origin, originId, status, productId);
         Document query = QueryUtils.buildQuery(queryParameter);
