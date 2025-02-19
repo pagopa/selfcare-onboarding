@@ -385,8 +385,11 @@ public class OnboardingController {
                                                               @QueryParam(value = "from") String from,
                                                               @QueryParam(value = "to") String to,
                                                               @QueryParam(value = "status") String status,
+                                                              @QueryParam(value = "userId") String userId,
+                                                              @QueryParam(value = "productIds") List<String> productIds,
                                                               @QueryParam(value = "page") @DefaultValue("0") Integer page,
-                                                              @QueryParam(value = "size") @DefaultValue("20") Integer size) {
+                                                              @QueryParam(value = "size") @DefaultValue("20") Integer size,
+                                                              @QueryParam(value = "skipPagination") boolean skipPagination) {
         OnboardingGetFilters filters = OnboardingGetFilters.builder()
                 .productId(productId)
                 .taxCode(taxCode)
@@ -396,7 +399,10 @@ public class OnboardingController {
                 .from(from)
                 .to(to)
                 .status(status)
+                .userId(userId)
+                .productIds(productIds)
                 .page(page)
+                .skipPagination(skipPagination)
                 .size(size)
                 .build();
         return onboardingService.onboardingGet(filters);

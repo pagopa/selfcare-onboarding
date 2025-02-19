@@ -1920,6 +1920,34 @@ class OnboardingServiceDefaultTest {
         subscriber.assertCompleted().assertItem(getResponse);
     }
 
+    @Test
+    void testOnboardingGetWithNoPagination() {
+        Onboarding onboarding = createDummyOnboarding();
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
+        when(Onboarding.find(any(Document.class), eq(null))).thenReturn(query);
+        when(query.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
+        when(query.count()).thenReturn(Uni.createFrom().item(1L));
+
+        OnboardingGetResponse getResponse = getOnboardingGetResponse(onboarding);
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .taxCode("taxCode")
+                .subunitCode("subunitCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .productIds(List.of("prod-io"))
+                .status("ACTIVE")
+                .skipPagination(true)
+                .build();
+        UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
+                .onboardingGet(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(getResponse);
+    }
+
     private OnboardingGetResponse getOnboardingGetResponse(Onboarding onboarding) {
         OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);
         OnboardingGetResponse response = new OnboardingGetResponse();
