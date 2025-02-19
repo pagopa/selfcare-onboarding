@@ -1560,6 +1560,8 @@ components:
     InstitutionBaseRequest:
       required:
       - institutionType
+      - origin
+      - originId
       - digitalAddress
       type: object
       properties:
@@ -1574,6 +1576,7 @@ components:
         origin:
           $ref: "#/components/schemas/Origin"
         originId:
+          minLength: 1
           type: string
         city:
           type: string
@@ -1661,6 +1664,8 @@ components:
     InstitutionPspRequest:
       required:
       - institutionType
+      - origin
+      - originId
       - digitalAddress
       - paymentServiceProvider
       type: object
@@ -1676,6 +1681,7 @@ components:
         origin:
           $ref: "#/components/schemas/Origin"
         originId:
+          minLength: 1
           type: string
         city:
           type: string
@@ -2111,6 +2117,8 @@ components:
     OnboardingUserRequest:
       required:
       - productId
+      - origin
+      - originId
       - users
       type: object
       properties:
@@ -2122,8 +2130,10 @@ components:
         subunitCode:
           type: string
         origin:
+          minLength: 1
           type: string
         originId:
+          minLength: 1
           type: string
         taxCode:
           type: string

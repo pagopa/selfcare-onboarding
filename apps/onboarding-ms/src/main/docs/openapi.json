@@ -2155,7 +2155,7 @@
         }
       },
       "InstitutionBaseRequest" : {
-        "required" : [ "institutionType", "digitalAddress" ],
+        "required" : [ "institutionType", "origin", "originId", "digitalAddress" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
@@ -2174,6 +2174,7 @@
             "$ref" : "#/components/schemas/Origin"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "city" : {
@@ -2296,7 +2297,7 @@
         "type" : "string"
       },
       "InstitutionPspRequest" : {
-        "required" : [ "institutionType", "digitalAddress", "paymentServiceProvider" ],
+        "required" : [ "institutionType", "origin", "originId", "digitalAddress", "paymentServiceProvider" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
@@ -2315,6 +2316,7 @@
             "$ref" : "#/components/schemas/Origin"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "city" : {
@@ -2884,7 +2886,7 @@
         }
       },
       "OnboardingUserRequest" : {
-        "required" : [ "productId", "users" ],
+        "required" : [ "productId", "origin", "originId", "users" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2898,9 +2900,11 @@
             "type" : "string"
           },
           "origin" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "taxCode" : {
