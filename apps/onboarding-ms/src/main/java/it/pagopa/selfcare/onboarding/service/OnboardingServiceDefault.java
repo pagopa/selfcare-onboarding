@@ -1758,7 +1758,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
                                                     // If the list of onboardings filtered by manager's role is empty, the
                                                     // response is 404
-                                                    if (onboardings.stream()
+                                                    /*if (onboardings.stream()
                                                             .noneMatch(
                                                                     onboarding ->
                                                                             onboarding.getUsers().stream()
@@ -1769,7 +1769,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 .failure(
                                                                         new ResourceNotFoundException(
                                                                                 "No manager found for the data in input"));
-                                                    }
+                                                    }*/
 
                                                     String institutionId = onboardings.get(0).getInstitution().getId();
                                                     return isUserActiveManager(
