@@ -76,6 +76,10 @@ app_settings = [
   {
     name  = "MS_USER_URL"
     value = "http://selc-u-user-ms-ca"
+  },
+  {
+    name  =  "JWT_BEARER_TOKEN"
+    value = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
   }
 ]
 
