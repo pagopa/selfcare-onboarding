@@ -25,6 +25,7 @@
         <surefire-plugin.version>3.1.2</surefire-plugin.version>
         <quarkus-openapi-generator.version>2.4.1</quarkus-openapi-generator.version>
         <commons-sdk-version>0.6.9</commons-sdk-version>
+        <quarkus-cucumber-version>1.2.0</quarkus-cucumber-version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -262,7 +263,7 @@
         <dependency>
             <groupId>io.quarkiverse.cucumber</groupId>
             <artifactId>quarkus-cucumber</artifactId>
-            <version>1.2.0</version>
+            <version>${quarkus-cucumber-version}</version>
         </dependency>
     </dependencies>
     <build>
