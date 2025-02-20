@@ -258,6 +258,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- cucumber dependency -->
+        <dependency>
+            <groupId>io.quarkiverse.cucumber</groupId>
+            <artifactId>quarkus-cucumber</artifactId>
+            <version>1.2.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
