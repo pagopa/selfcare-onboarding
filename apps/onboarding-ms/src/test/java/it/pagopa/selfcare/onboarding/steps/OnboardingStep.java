@@ -14,6 +14,7 @@ import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
+import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.restassured.response.ValidatableResponse;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -25,7 +26,9 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import java.util.List;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +42,8 @@ import org.junit.jupiter.api.BeforeEach;
     })
 @TestHTTPEndpoint(OnboardingController.class)
 @QuarkusTestResource(MongoTestResource.class)
+@TestProfile(IntegrationProfile.class)
+@Slf4j
 public class OnboardingStep extends CucumberQuarkusTest {
 
   private static MongoDatabase database;
@@ -48,8 +53,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   private Onboarding onboarding;
 
-  private static String auth;
-  private static final String JWT_BEARER_TOKEN_ENV = "JWT_BEARER_TOKEN";
+  private static String tokenTest;
+  private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
@@ -59,7 +64,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
   public static void setup() {
     database = MongoClients.create("mongodb://localhost:27017").getDatabase("dummyOnboarding");
     collection = database.getCollection("onboardings");
-    auth = System.getenv(JWT_BEARER_TOKEN_ENV);
+    tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
+    log.debug("Init completed");
   }
 
   @BeforeEach
@@ -85,7 +91,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
             .header(
                 "Authorization",
                 "Bearer "
-                    + auth)
+                    + tokenTest)
             .pathParam("onboardingId", onboardingId)
             .queryParam("recipientCode", recipientCode)
             .when()
