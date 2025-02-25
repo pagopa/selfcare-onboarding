@@ -152,8 +152,8 @@ public class QueryUtils {
         Optional.ofNullable(institution.getBusinessRegisterPlace()).ifPresent(value -> queryParameterMap.put("institution.businessRegisterPlace", value));
         Optional.ofNullable(institution.getSupportEmail()).ifPresent(value -> queryParameterMap.put("institution.supportEmail", value));
         Optional.ofNullable(institution.getParentDescription()).ifPresent(value -> queryParameterMap.put("institution.parentDescription", value));
-        Optional.ofNullable(institution.getOrigin()).ifPresent(value -> queryParameterMap.put("institution.origin", value.getValue()));
-        Optional.ofNullable(institution.getOriginId()).ifPresent(value -> queryParameterMap.put("institution.originId", value));
+        Optional.ofNullable(institution.getOrigin()).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN, value.getValue()));
+        Optional.ofNullable(institution.getOriginId()).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
       });
     queryParameterMap.put("updatedAt", LocalDateTime.now());
     return queryParameterMap;
