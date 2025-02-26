@@ -20,6 +20,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -229,7 +230,8 @@ public class BaseNotificationBuilder implements NotificationBuilder {
   @Override
   public void setTokenData(NotificationToSend notificationToSend, Token token) {
     if (Objects.nonNull(token) && Objects.nonNull(token.getContractSigned())) {
-      notificationToSend.setFileName(token.getContractSigned());
+      File file = new File(token.getContractSigned());
+      notificationToSend.setFileName(file.getName());
       notificationToSend.setContentType(token.getContractSigned());
     }
   }
