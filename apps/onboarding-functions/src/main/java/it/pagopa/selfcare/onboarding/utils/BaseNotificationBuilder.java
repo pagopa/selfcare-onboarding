@@ -229,7 +229,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
   @Override
   public void setTokenData(NotificationToSend notificationToSend, Token token) {
     if (Objects.nonNull(token) && Objects.nonNull(token.getContractSigned())) {
-      notificationToSend.setFileName(Paths.get(token.getContractSigned()).getFileName().toString());
+      notificationToSend.setFileName(token.getContractSigned());
       notificationToSend.setContentType(token.getContractSigned());
     }
   }
