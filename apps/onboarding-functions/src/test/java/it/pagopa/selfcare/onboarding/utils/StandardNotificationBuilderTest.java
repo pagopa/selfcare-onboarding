@@ -360,4 +360,33 @@ class StandardNotificationBuilderTest {
   }
 
 
+  @Test
+  void toSetTokenDataForCharWithAccent() {
+    // Create Onboarding
+    Onboarding onboarding = createOnboarding(
+      OnboardingStatus.COMPLETED,
+      OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+      OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+      OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+      null // deletedAt
+    );
+    onboarding.getInstitution().getPaymentServiceProvider().setProviderNames(List.of("providerName1", "providerName2"));
+    onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
+    // Create Institution
+    InstitutionResponse institution = createInstitution();
+
+    // Create Token
+    Token token = createToken();
+    token.setContractSigned("path/Interoperabilità.p7m");
+
+
+    NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+    standardNotificationBuilder.setTokenData(notification, token);
+
+    assertNotNull(notification);
+    assertNull(notification.getClosedAt());
+    assertEquals("ACTIVE", notification.getState());
+    assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
+
+  }
 }
