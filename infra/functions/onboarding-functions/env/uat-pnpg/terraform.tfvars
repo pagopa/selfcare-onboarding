@@ -79,7 +79,7 @@ app_settings = {
   "FD_TOPIC_NAME"                                = "Selfcare-FD"
   "SAP_ALLOWED_INSTITUTION_TYPE"                 = "PA,GSP,SA,AS,SCP"
   "SAP_ALLOWED_ORIGINS"                          = "IPA,SELC"
-  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION" = "5"
+  "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"    = "5"
 
   ## IGNORE VALUES
 

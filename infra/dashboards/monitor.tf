@@ -15,5 +15,5 @@ resource "azurerm_portal_dashboard" "monitoring_onboarding_event" {
     {
       subscription_id = data.azurerm_subscription.current.subscription_id
       prefix          = "${var.prefix}-${var.env_short}"
-    })
+  })
 }

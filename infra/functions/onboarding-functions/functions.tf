@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "onboarding_fn_rg" {
 module "onboarding_fn_snet" {
   count                = var.cidr_subnet_selc_onboarding_fn != null ? 1 : 0
   source               = "github.com/pagopa/terraform-azurerm-v3.git//subnet?ref=v8.53.0"
-  name = format("%s-snet", local.app_name)
+  name                 = format("%s-snet", local.app_name)
   resource_group_name  = data.azurerm_resource_group.rg_vnet.name
   virtual_network_name = data.azurerm_virtual_network.vnet.name
   address_prefixes     = var.cidr_subnet_selc_onboarding_fn
@@ -16,7 +16,7 @@ module "onboarding_fn_snet" {
   delegation = {
     name = "default"
     service_delegation = {
-      name = "Microsoft.Web/serverFarms"
+      name    = "Microsoft.Web/serverFarms"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
@@ -42,7 +42,7 @@ module "selc_onboarding_fn" {
   runtime_version                          = "~4"
 
   system_identity_enabled = true
-  storage_account_name = replace(format("%s-sa", local.app_name), "-", "")
+  storage_account_name    = replace(format("%s-sa", local.app_name), "-", "")
   export_keys             = true
   app_service_plan_info   = var.app_service_plan_info
   storage_account_info    = var.storage_account_info
