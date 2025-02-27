@@ -17,7 +17,7 @@ on:
 jobs:
   release:
     name: 'Build & Release'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment:
       name: ${{ inputs.environment }}-cd
       url: ${{ format('https://selc-{0}-onboarding-fn.azurewebsites.net', inputs.short_env) }}
