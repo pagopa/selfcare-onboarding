@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.pagopa.selfcare.onboarding.utils.CustomOffsetDateTimeSerializer;
 
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
