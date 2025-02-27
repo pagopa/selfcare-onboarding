@@ -20,7 +20,7 @@ jobs:
 
   build:
     name: 'Build Docker image'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: ${{ inputs.environment }}-cd
     permissions:
       packages: write
@@ -73,7 +73,7 @@ jobs:
 
   tf_plan:
     name: 'Terraform Plan'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: ${{ inputs.environment }}-ci
     permissions:
       id-token: write
@@ -125,7 +125,7 @@ jobs:
 
   release:
     name: 'Release'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [build, tf_plan]
     environment: ${{ inputs.environment }}-cd
     permissions:

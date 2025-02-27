@@ -64,7 +64,7 @@ jobs:
 
   promote_release:
     name: 'Promote prerelase release'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [release_prod]
     steps:
       - uses:  pagopa/selfcare-commons/github-actions-template/promote-release@main

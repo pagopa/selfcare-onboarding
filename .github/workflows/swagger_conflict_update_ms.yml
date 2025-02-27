@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   swagger_conflict_update:  
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     permissions: write-all
     name: Swagger Detect Rule and Conflict
     steps:
