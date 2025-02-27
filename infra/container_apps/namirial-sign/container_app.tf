@@ -60,7 +60,7 @@ resource "azapi_resource" "namirial_container_app" {
             volumeMounts = [
               {
                 mountPath  = "/opt/sws/custom"
-                volumeName = "sws-storage"
+                volumeName = azurerm_storage_share.namirial_sws_storage_share[0].name
               }
             ]
             probes = [
@@ -96,9 +96,9 @@ resource "azapi_resource" "namirial_container_app" {
         }
         volumes = [
           {
-            name       = "sws-storage"
+            name       = azurerm_storage_share.namirial_sws_storage_share[0].name
             storageType = "AzureFile"
-            storageName = azurerm_storage_share.namirial_sws_storage_share[0].name
+            storageName = azurerm_storage_account.namirial_sws_storage_account[0].name
           }
         ]
       }
