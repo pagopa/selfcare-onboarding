@@ -73,7 +73,7 @@ resource "azapi_resource" "namirial_container_app" {
                 timeoutSeconds      = 4
                 type                = "Liveness"
                 failureThreshold    = 3
-                initialDelaySeconds = 900
+                initialDelaySeconds = 60
               },
               {
                 httpGet = {
@@ -99,12 +99,6 @@ resource "azapi_resource" "namirial_container_app" {
             name       = "sws-storage"
             storageType = "AzureFile"
             storageName = azurerm_storage_share.namirial_sws_storage_share[0].name
-            secrets = [
-              {
-                path       = "storage-key"
-                secretRef  = "storage-account-key"
-              }
-            ]
           }
         ]
       }
