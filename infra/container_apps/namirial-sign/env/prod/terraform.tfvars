@@ -38,7 +38,7 @@ container_app = {
 }
 
 enable_sws               = true
-enable_ca_sws            = false
+enable_ca_sws            = true
 cidr_subnet_namirial_sws = ["10.1.150.0/29"]
 app_settings             = []
 environment_variables    = {}
