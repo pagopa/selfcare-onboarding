@@ -1,3 +1,21 @@
+resource "azapi_resource" "namirial_sws_storage_env" {
+  count               = var.enable_ca_sws ? 1 : 0
+  type                = "Microsoft.App/managedEnvironments/storages@2023-05-01"
+  name                = "${local.project}-namirial-sws-st"
+  parent_id           = data.azurerm_container_app_environment.container_app_environment.id
+
+  body = jsonencode({
+    properties = {
+      azureFile = {
+        accountName = azurerm_storage_account.namirial_sws_storage_account[0].name
+        shareName   = azurerm_storage_share.namirial_sws_storage_share[0].name
+        accessMode  = "ReadWrite"
+        accountKey  = azurerm_storage_account.namirial_sws_storage_account[0].primary_access_key
+      }
+    }
+  })
+}
+
 resource "azapi_resource" "namirial_container_app" {
   count     = var.enable_ca_sws ? 1 : 0
   type      = "Microsoft.App/containerApps@2023-05-01"
@@ -60,7 +78,7 @@ resource "azapi_resource" "namirial_container_app" {
             volumeMounts = [
               {
                 mountPath  = "/opt/sws/custom"
-                volumeName = azurerm_storage_share.namirial_sws_storage_share[0].name
+                volumeName = "sws-storage"
               }
             ]
             probes = [
@@ -96,9 +114,9 @@ resource "azapi_resource" "namirial_container_app" {
         }
         volumes = [
           {
-            name       = azurerm_storage_share.namirial_sws_storage_share[0].name
+            name       = "sws-storage"
             storageType = "AzureFile"
-            storageName = azurerm_storage_account.namirial_sws_storage_account[0].name
+            storageName = azapi_resource.namirial_sws_storage_env[0].name
           }
         ]
       }
