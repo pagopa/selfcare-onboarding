@@ -102,7 +102,7 @@ app_settings = {
   "EMAIL_SERVICE_AVAILABLE"                            = "true"
   "JWT_TOKEN_ISSUER"                                   = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-private-key/)"
-  "JWT_TOKEN_KID" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
+  "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
   "PAGOPA_SIGNATURE_SOURCE"                 = "namirial",

@@ -1,7 +1,7 @@
 resource "azapi_resource" "namirial_sws_storage_env" {
   count     = var.enable_ca_sws ? 1 : 0
   type      = "Microsoft.App/managedEnvironments/storages@2023-05-01"
-  name      = "${local.project}-namirial-sws-st"
+  name      = "${local.project}-namirial-sws-se"
   parent_id = data.azurerm_container_app_environment.container_app_environment.id
 
   body = jsonencode({
