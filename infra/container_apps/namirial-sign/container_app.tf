@@ -1,8 +1,8 @@
 resource "azapi_resource" "namirial_sws_storage_env" {
-  count               = var.enable_ca_sws ? 1 : 0
-  type                = "Microsoft.App/managedEnvironments/storages@2023-05-01"
-  name                = "${local.project}-namirial-sws-st"
-  parent_id           = data.azurerm_container_app_environment.container_app_environment.id
+  count     = var.enable_ca_sws ? 1 : 0
+  type      = "Microsoft.App/managedEnvironments/storages@2023-05-01"
+  name      = "${local.project}-namirial-sws-st"
+  parent_id = data.azurerm_container_app_environment.container_app_environment.id
 
   body = jsonencode({
     properties = {
@@ -59,7 +59,7 @@ resource "azapi_resource" "namirial_container_app" {
             value = data.azurerm_key_vault_secret.hub_docker_pwd.value
           },
           {
-            name = "storage-account-key"
+            name  = "storage-account-key"
             value = azurerm_storage_account.namirial_sws_storage_account[0].primary_access_key
           }
         ], local.secrets)
@@ -114,7 +114,7 @@ resource "azapi_resource" "namirial_container_app" {
         }
         volumes = [
           {
-            name       = "sws-storage"
+            name        = "sws-storage"
             storageType = "AzureFile"
             storageName = azapi_resource.namirial_sws_storage_env[0].name
           }
