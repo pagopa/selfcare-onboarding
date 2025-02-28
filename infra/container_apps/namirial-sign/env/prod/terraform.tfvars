@@ -12,8 +12,8 @@ tags = {
 }
 
 container_config = {
-  cpu    = 2
-  memory = 1
+  cpu    = 1
+  memory = 2
 }
 
 container_app = {
