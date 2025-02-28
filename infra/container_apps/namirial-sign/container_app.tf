@@ -57,10 +57,6 @@ resource "azapi_resource" "namirial_container_app" {
           {
             name  = "docker-password"
             value = data.azurerm_key_vault_secret.hub_docker_pwd.value
-          },
-          {
-            name  = "storage-account-key"
-            value = azurerm_storage_account.namirial_sws_storage_account[0].primary_access_key
           }
         ], local.secrets)
       }
