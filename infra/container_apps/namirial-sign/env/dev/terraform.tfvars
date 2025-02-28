@@ -36,5 +36,5 @@ app_settings = [
   }
 ]
 
-enable_sws = true
+enable_sws    = true
 enable_ca_sws = true
