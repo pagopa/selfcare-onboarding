@@ -12,8 +12,8 @@ tags = {
 }
 
 container_config = {
-  cpu    = 1
-  memory = 2
+  cpu    = 2
+  memory = 1
 }
 
 container_app = {
@@ -33,8 +33,8 @@ container_app = {
       name = "cron-scale-rule"
     }
   ]
-  cpu    = 2
-  memory = "1Gi"
+  cpu    = 1
+  memory = "2Gi"
 }
 
 enable_sws               = true
