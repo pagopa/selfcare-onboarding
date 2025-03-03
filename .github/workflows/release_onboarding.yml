@@ -29,36 +29,35 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Install Node.js
-        uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
-
-      - name: Install semver
-        run: npm install -g semver
-
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger Mongo Infra Release
         run: |
           gh workflow run release_mongo_infra.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger PNPG Functions Infra Release
         run: |
           gh workflow run release_functions_pnpg_infra.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger PNPG Mongo Infra Release
         run: |
           gh workflow run release_mongo_pnpg_infra.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger Functions Release
         run: |
           gh workflow run release_functions.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger Onboarding ms Release
         run: |
@@ -68,19 +67,23 @@ jobs:
       - name: Trigger Onboarding CDC Release
         run: |
           gh workflow run release_cdc.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger PNPG Functions Release
         run: |
           gh workflow run release_pnpg_functions.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger PNPG Onboarding ms Release
         run: |
           gh workflow run release_pnpg_ms.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
 
       - name: Trigger PNPG Onboarding CDC Release
         run: |
           gh workflow run release_pnpg_cdc.yml \
-            --ref ${{ inputs.env }}
+            --repo pagopa/selfcare-onboarding \
+            --ref ${{ inputs.branch }}
