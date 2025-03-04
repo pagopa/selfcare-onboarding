@@ -10,6 +10,10 @@ on:
           - dev
           - uat
           - prod
+      branch:
+        type: string
+        description: Branch name
+        required: true
 
 jobs:
   create_branch:
