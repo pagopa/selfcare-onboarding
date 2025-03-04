@@ -21,6 +21,7 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      $GITHUB_BRANCH_NAME: ${{ github.ref }}
     
     steps:
       # - name: Detect branch name
@@ -37,7 +38,7 @@ jobs:
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref $GITHUB_REF
+            --ref $GITHUB_BRANCH_NAME
 
       - name: Trigger Mongo Infra Release
         run: |
