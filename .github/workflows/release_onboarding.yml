@@ -10,6 +10,10 @@ on:
           - dev
           - uat
           - prod
+      branch:
+        type: string
+        description: Branch name
+        required: true
 
 jobs:
   create_branch:
@@ -23,53 +27,62 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        name: Checkout
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Get branch name
+        id: get_branch
+        run: echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Mongo Infra Release
         run: |
           gh workflow run release_mongo_infra.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Functions Infra Release
         run: |
           gh workflow run release_functions_pnpg_infra.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Mongo Infra Release
         run: |
           gh workflow run release_mongo_pnpg_infra.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Functions Release
         run: |
           gh workflow run release_functions.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Onboarding ms Release
         run: |
           gh workflow run release_ms.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Onboarding CDC Release
         run: |
           gh workflow run release_cdc.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Functions Release
         run: |
           gh workflow run release_pnpg_functions.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Onboarding ms Release
         run: |
           gh workflow run release_pnpg_ms.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Onboarding CDC Release
         run: |
           gh workflow run release_pnpg_cdc.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
