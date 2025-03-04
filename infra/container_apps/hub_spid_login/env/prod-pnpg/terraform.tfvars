@@ -103,7 +103,7 @@ app_settings = [
   },
   {
     name  = "COMPANY_EMAIL"
-    value = "pagopa@pec.governo.it"
+    value = "pagopaspa@pec.pagopa.it"
   },
   {
     name  = "COMPANY_FISCAL_CODE"
