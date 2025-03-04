@@ -21,7 +21,6 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_BRANCH: ${{ github.ref }}
     
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -30,7 +29,7 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Ottieni il nome del branch
+      - name: Get branch name
         id: get_branch
         run: echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
@@ -42,52 +41,44 @@ jobs:
       - name: Trigger Mongo Infra Release
         run: |
           gh workflow run release_mongo_infra.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Functions Infra Release
         run: |
           gh workflow run release_functions_pnpg_infra.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Mongo Infra Release
         run: |
           gh workflow run release_mongo_pnpg_infra.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Functions Release
         run: |
           gh workflow run release_functions.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Onboarding ms Release
         run: |
           gh workflow run release_ms.yml \
-            --ref ${{ inputs.env }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Onboarding CDC Release
         run: |
           gh workflow run release_cdc.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Functions Release
         run: |
           gh workflow run release_pnpg_functions.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Onboarding ms Release
         run: |
           gh workflow run release_pnpg_ms.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger PNPG Onboarding CDC Release
         run: |
           gh workflow run release_pnpg_cdc.yml \
-            --repo pagopa/selfcare-onboarding \
-            --ref ${{ inputs.branch }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
