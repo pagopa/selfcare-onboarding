@@ -30,10 +30,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Ottieni il nome del branch
+        id: get_branch
+        run: echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{ RELEASE_BRANCH }}
+            --ref ${{ steps.get_branch.outputs.BRANCH_NAME }}
 
       - name: Trigger Mongo Infra Release
         run: |
