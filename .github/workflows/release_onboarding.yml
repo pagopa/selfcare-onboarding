@@ -38,7 +38,7 @@ jobs:
       - name: Set Branch Name
         id: set_branch
         run: |
-          echo "BRANCH_NAME=${GITHUB_BRANCH_NAME}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${{ github.ref }}" >> $GITHUB_ENV
 
       - name: Trigger Functions Infra Release
         run: |
