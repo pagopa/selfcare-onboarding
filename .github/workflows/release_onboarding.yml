@@ -21,7 +21,7 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GITHUB_RELEASE_BRANCH: ${{ github.ref }}
+      RELEASE_BRANCH: ${{ github.ref }}
     
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -33,7 +33,7 @@ jobs:
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{GITHUB_RELEASE_BRANCH}}
+            --ref ${{ RELEASE_BRANCH }}
 
       - name: Trigger Mongo Infra Release
         run: |
