@@ -32,7 +32,6 @@ jobs:
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --repo pagopa/selfcare-onboarding \
             --ref ${{ inputs.branch }}
 
       - name: Trigger Mongo Infra Release
