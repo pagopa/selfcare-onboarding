@@ -32,7 +32,7 @@ jobs:
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{GITHUB_REF##*/}}
+            --ref ${{ github.head_ref }}
 
       - name: Trigger Mongo Infra Release
         run: |
