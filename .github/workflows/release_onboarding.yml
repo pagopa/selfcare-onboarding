@@ -38,12 +38,12 @@ jobs:
       - name: Set Branch Name
         id: set_branch
         run: |
-          echo "GITHUB_BRANCH_NAME=${GITHUB_BRANCH_NAME}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${GITHUB_BRANCH_NAME}" >> $GITHUB_ENV
 
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref ${{GITHUB_BRANCH_NAME}}
+            --ref ${{BRANCH_NAME}}
 
       - name: Trigger Mongo Infra Release
         run: |
