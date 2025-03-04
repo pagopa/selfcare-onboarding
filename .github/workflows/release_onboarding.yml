@@ -23,10 +23,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
-      - name: Detect branch name
-        shell: bash
-        run: echo "${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_BRANCH_NAME
-        id: extract_branch
+      # - name: Detect branch name
+      #   shell: bash
+      #   run: echo "${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_BRANCH_NAME
+      #   id: extract_branch
       
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         name: Checkout
@@ -37,7 +37,7 @@ jobs:
       - name: Trigger Functions Infra Release
         run: |
           gh workflow run release_functions_infra.yml \
-            --ref $GITHUB_BRANCH_NAME
+            --ref $GITHUB_REF
 
       - name: Trigger Mongo Infra Release
         run: |
