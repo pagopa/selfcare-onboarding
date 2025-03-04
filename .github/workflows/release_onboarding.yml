@@ -27,7 +27,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         name: Checkout
         with:
           ref: main
