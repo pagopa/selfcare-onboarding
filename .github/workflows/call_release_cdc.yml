@@ -20,7 +20,7 @@ jobs:
 
   build:
     name: 'Build Docker image'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: ${{ inputs.environment }}-cd
     permissions:
       packages: write
@@ -73,7 +73,7 @@ jobs:
 
   tf_plan:
     name: 'Terraform Plan'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: ${{ inputs.environment }}-ci
     permissions:
       id-token: write
@@ -125,8 +125,8 @@ jobs:
 
   release:
     name: 'Release'
-    runs-on: ubuntu-20.04
-    needs: [build, tf_plan]
+    runs-on: ubuntu-24.04
+    needs: [ build, tf_plan ]
     environment: ${{ inputs.environment }}-cd
     permissions:
       id-token: write
@@ -155,7 +155,7 @@ jobs:
 
       - name: Retrieve Terraform Modules from Cache
         id: cache-terraform-modules
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@v4 # latest-version
         with:
           path: ${{ env.DIR }}/.terraform
           key: terraform-${{ env.DIR }}-${{ github.sha }}
