@@ -912,6 +912,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.getAggregates().stream()
                 .filter(
                         aggregateInstitution ->
+                                Optional.ofNullable(aggregateInstitution.getSubunitCode()).equals(Optional.ofNullable(aggregate.getSubunitCode())) &&
                                 aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
                 .findAny()
                 .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
