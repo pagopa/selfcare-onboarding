@@ -1,12 +1,15 @@
 package it.pagopa.selfcare.onboarding.steps;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -16,16 +19,22 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.ValidatableResponse;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.OnboardingController;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -35,11 +44,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 @CucumberOptions(
-    features = "src/test/resources/features",
-    plugin = {
-      "html:target/cucumber-report/cucumber.html",
-      "json:target/cucumber-report/cucumber.json"
-    })
+        features = "src/test/resources/features",
+        plugin = {
+                "html:target/cucumber-report/cucumber.html",
+                "json:target/cucumber-report/cucumber.json"
+        })
 @TestHTTPEndpoint(OnboardingController.class)
 @QuarkusTestResource(MongoTestResource.class)
 @TestProfile(IntegrationProfile.class)
@@ -48,11 +57,10 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   private static MongoDatabase database;
   private static MongoCollection<Document> collection;
-
   private ValidatableResponse validatableResponse;
-
   private Onboarding onboarding;
-
+  private Onboarding duplicatedOnboardingPA;
+  private static ObjectMapper objectMapper;
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
@@ -65,6 +73,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     database = MongoClients.create("mongodb://localhost:27017").getDatabase("dummyOnboarding");
     collection = database.getCollection("onboardings");
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
+    objectMapper = new ObjectMapper();
     log.debug("Init completed");
   }
 
@@ -72,13 +81,14 @@ public class OnboardingStep extends CucumberQuarkusTest {
   public void initData() {
     onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
-
+    duplicatedOnboardingPA = createOnboardingForConflictScenario();
+    duplicatedOnboardingPA.persist().await().indefinitely();
     // verify
     assertNotNull(onboarding.getId());
+    assertNotNull(duplicatedOnboardingPA.getId());
   }
 
-  @Given(
-      "I have an onboarding record with onboardingId {string} the current recipient code is {string}")
+  @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")
   public void givenDataCheck(String onboardingId, String recipientCode) {
     assertNotNull(onboardingId);
     assertNotNull(recipientCode);
@@ -87,21 +97,108 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @When("I send a PUT request to {string} with {string} and {string}")
   public void doCallApi(String url, String onboardingId, String recipientCode) {
     validatableResponse =
-        given()
-            .header(
-                "Authorization",
-                "Bearer "
-                    + tokenTest)
-            .pathParam("onboardingId", onboardingId)
-            .queryParam("recipientCode", recipientCode)
-            .when()
-            .put(url)
-            .then();
+            given()
+                    .header(
+                            "Authorization",
+                            "Bearer "
+                                    + tokenTest)
+                    .pathParam("onboardingId", onboardingId)
+                    .queryParam("recipientCode", recipientCode)
+                    .when()
+                    .put(url)
+                    .then();
   }
 
   @Then("the response status code should be {int}")
   public void verifyStatusCodeResponse(int statusCode) {
     assertEquals(statusCode, validatableResponse.extract().statusCode());
+  }
+
+  @Given("I have an empty request object")
+  public void givenEmptyRequst() {
+    OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+    Arrays.stream(request.getClass().getDeclaredFields()).forEach(field -> {
+      field.setAccessible(true);
+      try {
+        assertNull(field.get(request), "L'attributo " + field.getName() + " dovrebbe essere nullo");
+      } catch (IllegalAccessException e) {
+        fail("Impossibile accedere all'attributo " + field.getName());
+      }
+    });
+  }
+
+  @Given("I have an invalid request object with attributes")
+  public void givenInvalidRequest(DataTable dataTable) {
+    List<Map<String, String>> data = dataTable.asMaps(String.class, String.class);
+    Map<String, String> attributes = data.get(0);
+    OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+    request.setProductId(attributes.get("productId"));
+  }
+
+  @Given("I have a request object")
+  public void givenValidObject(String onboardingRequest) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
+    assertNotNull(request);
+  }
+
+  @Given("I have a valid request object")
+  public void givenDuplicatedOnboardingPA(String onboardingRequest) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
+    assertNotNull(request);
+  }
+
+  @When("I send a POST request to {string} with empty body")
+  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  public void doCallApi(String url) {
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .when()
+                    .post(url)
+                    .then();
+  }
+
+  @When("I send a POST request to {string} with the request body")
+  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  public void doCallApi(String url, DataTable dataTable) {
+    List<Map<String, String>> data = dataTable.asMaps(String.class, String.class);
+    Map<String, String> attributes = data.get(0);
+    OnboardingDefaultRequest request = new OnboardingDefaultRequest();
+    request.setProductId(attributes.get("productId"));
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
+  }
+
+  @When("I send a valid POST request to {string} with the request body")
+  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  public void doCallApi(String url, String requestBody) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
+  }
+
+  @When("I send a duplicated POST request to {string} with the request body")
+  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  public void doCallApiForConflictScenario(String url, String requestBody) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
   }
 
   @AfterEach
@@ -128,6 +225,32 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
     Billing billing = new Billing();
     billing.setRecipientCode("RC000");
+    onboarding.setBilling(billing);
+
+    User user = new User();
+    user.setId("actual-user-id");
+    user.setRole(PartyRole.MANAGER);
+    onboarding.setUsers(List.of(user));
+
+    return onboarding;
+  }
+
+  private static Onboarding createOnboardingForConflictScenario() {
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId(UUID.randomUUID().toString());
+    onboarding.setProductId("prod-io");
+    onboarding.setStatus(OnboardingStatus.COMPLETED);
+    onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+
+    Institution institution = new Institution();
+    institution.setOrigin(Origin.IPA);
+    institution.setOriginId("c_l186");
+    institution.setTaxCode("00231830688");
+    institution.setInstitutionType(InstitutionType.PA);
+    onboarding.setInstitution(institution);
+
+    Billing billing = new Billing();
+    billing.setRecipientCode("UFD333");
     onboarding.setBilling(billing);
 
     User user = new User();
