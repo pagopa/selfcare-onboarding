@@ -109,7 +109,7 @@ jobs:
 
       - name: Retrieve Terraform Modules from Cache
         id: cache-terraform-modules
-        uses: actions/cache@v4 # latest-version
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4 # latest-version
         with:
           path: ${{ inputs.dir }}/.terraform
           key: terraform-${{ inputs.dir }}-${{ github.sha }}
