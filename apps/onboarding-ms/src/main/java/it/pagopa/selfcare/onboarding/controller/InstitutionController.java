@@ -27,7 +27,9 @@ public class InstitutionController {
     private final InstitutionService institutionService;
 
     @Operation(
-            summary = "Retrieve list of institutions given ids in input."
+            summary = "Retrieve list of institutions given ids in input.",
+            description = "Retrieve list of institutions given ids in input. If list in input is null" +
+                    "or empty, a bad request exception is thrown"
     )
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
