@@ -287,6 +287,7 @@
       "post" : {
         "tags" : [ "Institution Controller" ],
         "summary" : "Retrieve list of institutions given ids in input.",
+        "description" : "Retrieve list of institutions given ids in input. If list in input is nullor empty, a bad request exception is thrown",
         "operationId" : "getInstitutions",
         "requestBody" : {
           "content" : {
