@@ -11,6 +11,7 @@ servers:
 tags:
 - name: Aggregates Controller
 - name: Document Controller
+- name: Institution Controller
 - name: Onboarding
 - name: Onboarding Controller
 - name: billing-portal
@@ -199,6 +200,34 @@ paths:
                 type: array
                 items:
                   type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/institutions:
+    post:
+      tags:
+      - Institution Controller
+      summary: Retrieve list of institutions given ids in input.
+      description: "Retrieve list of institutions given ids in input. If list in input\
+        \ is nullor empty, a bad request exception is thrown"
+      operationId: getInstitutions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetInstitutionRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InstitutionResponse"
         "401":
           description: Not Authorized
         "403":
@@ -1557,6 +1586,16 @@ components:
           type: string
         desc:
           type: string
+    GetInstitutionRequest:
+      required:
+      - institutionIds
+      type: object
+      properties:
+        institutionIds:
+          minItems: 1
+          type: array
+          items:
+            type: string
     InstitutionBaseRequest:
       required:
       - institutionType

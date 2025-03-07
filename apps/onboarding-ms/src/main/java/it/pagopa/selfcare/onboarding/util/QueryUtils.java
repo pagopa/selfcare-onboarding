@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.util;
 
+import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.*;
+
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
@@ -7,6 +9,10 @@ import com.mongodb.client.model.Updates;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
@@ -15,19 +21,12 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.DocumentCodec;
 import org.bson.conversions.Bson;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.*;
-
 public class QueryUtils {
 
   private QueryUtils() {
   }
 
-  static class FieldNames {
+  public static class FieldNames {
     private FieldNames() {
     }
 
