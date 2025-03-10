@@ -23,6 +23,14 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Set missing library
+        run: |
+          wget https://www.openssl.org/source/openssl-1.1.1.tar.gz
+          tar -xvf openssl-1.1.1.tar.gz
+          cd openssl-1.1.1
+          ./config
+          make
+          sudo make install
 
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
