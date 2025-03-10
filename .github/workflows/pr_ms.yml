@@ -41,9 +41,10 @@ jobs:
 
     steps:
 
-      - name: Clean mongo resources
+      - name: Set symblinks
         run: |
-          sudo apt-get purge mongodb-org*
+          sudo ln -s /lib64/libcrypto.so.1.0.0 /lib64/libcrypto.so.10
+          sudo ln -s /lib64/libssl.so.1.0.0 /lib64/libssl.so.10
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
