@@ -41,11 +41,9 @@ jobs:
 
     steps:
 
-      - name: Install crypto libs
+      - name: Clean mongo resources
         run: |
-          sudo apt-get install libssl3
-          cd /lib/x86_64-linux-gnu
-          sudo ln -s libcrypto.so.1.0.0 libcrypto.so.1
+          sudo apt-get purge mongodb-org*
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
