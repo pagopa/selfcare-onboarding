@@ -43,7 +43,6 @@ jobs:
 
       - name: Set missing library
         run: |
-            npm install
             sudo add-apt-repository universe
             sudo apt-get update
             sudo apt-get install -y libssl3 || sudo apt-get install -y libssl3t64
