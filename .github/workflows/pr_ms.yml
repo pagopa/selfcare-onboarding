@@ -44,8 +44,13 @@ jobs:
       - name: Set missing library
         run: |
           sudo apt update
-          sudo apt install openssl1.1
-          sudo ln -s /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/libcrypto.so.1.1
+          wget https://www.openssl.org/source/openssl-1.1.1.tar.gz \
+          tar -xzvf openssl-1.1.1.tar.gz \ 
+          cd openssl-1.1.1 \ 
+          ./config \
+          make \ 
+          sudo make install \
+          sudo ln -s /usr/local/lib/libcrypto.so.1.1 /usr/lib/libcrypto.so.1.1 \
           sudo ldconfig
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
