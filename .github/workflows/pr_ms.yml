@@ -41,10 +41,12 @@ jobs:
 
     steps:
 
-      - name: Set symblinks
+      - name: Set missing library
         run: |
-          sudo ln -s /lib64/libcrypto.so.1.0.0 /lib64/libcrypto.so.10
-          sudo ln -s /lib64/libssl.so.1.0.0 /lib64/libssl.so.10
+          sudo apt update
+          sudo apt install openssl1.1
+          sudo ln -s /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/libcrypto.so.1.1
+          sudo ldconfig
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
