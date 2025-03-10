@@ -52,6 +52,7 @@ jobs:
           sudo make install
           sudo ln -s /usr/local/lib/libcrypto.so.1.1 /usr/lib/libcrypto.so.1.1 
           sudo ldconfig
+          
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
