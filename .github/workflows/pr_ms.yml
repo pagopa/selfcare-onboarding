@@ -43,9 +43,12 @@ jobs:
 
       - name: Set missing library
         run: |
-          wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
-          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb
-          sudo apt-get install -f
+          wget https://www.openssl.org/source/openssl-1.1.1.tar.gz
+          tar -xvf openssl-1.1.1.tar.gz
+          cd openssl-1.1.1
+          ./config
+          make
+          sudo make install
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
