@@ -43,7 +43,7 @@ jobs:
 
       - name: Install crypto libs
         run: |
-          sudo apt install libssl1.0.0
+          sudo apt-get install libssl3
           cd /lib/x86_64-linux-gnu
           sudo ln -s libcrypto.so.1.0.0 libcrypto.so.1
 
