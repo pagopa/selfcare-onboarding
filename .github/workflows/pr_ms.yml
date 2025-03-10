@@ -48,7 +48,6 @@ jobs:
             sudo apt-get install -y libssl3 || sudo apt-get install -y libssl3t64
             dpkg -l | grep libssl3 || dpkg -l | grep libssl3t64
             sudo apt-get update && sudo apt-get upgrade -y
-            sudo systemctl restart mongod
             
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         name: Checkout
