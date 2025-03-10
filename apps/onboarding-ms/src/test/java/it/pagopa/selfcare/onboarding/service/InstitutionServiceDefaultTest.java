@@ -65,6 +65,15 @@ class InstitutionServiceDefaultTest {
         PanacheMock.verifyNoInteractions(Onboarding.class);
     }
 
+    @Test
+    @RunOnVertxContext
+    void getInstitutions_withNullIds(UniAsserter asserter) {
+        final List<String> institutionIds = null;
+        PanacheMock.mock(Onboarding.class);
+        asserter.execute(() -> institutionService.getInstitutions(institutionIds));
+        PanacheMock.verifyNoInteractions(Onboarding.class);
+    }
+
     private Institution dummyInstitution() {
         Institution institution = new Institution();
         institution.setId("institutionId");
