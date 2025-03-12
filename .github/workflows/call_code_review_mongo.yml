@@ -50,7 +50,7 @@ jobs:
       - name: Initalize MongoDB
         run: |
           mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
-            db = db.getSiblingDB('onboardings);
+            db = db.getSiblingDB('onboardings');
             db.createUser({ user: 'APP-USERNAME', pwd: 'APP-PASSWORD', roles: [{ role: 'readWrite', db: 'onboardings' }] })
             db.createCollection('onboardings');
           EOF
@@ -59,6 +59,12 @@ jobs:
         run: |
           echo "Run your integration Tests"
 
-      - name: Destroy MongoDB Instance
+      - name: Shutdown MongoDB instance
         run: |
-          docker-compose down
+          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db.getSiblingDB('admin').shutdownServer();
+          EOF
+
+      - name: Remove MongoDB Data
+        run: |
+          sudo rm -rf /var/lib/mongodb
