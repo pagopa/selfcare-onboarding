@@ -1,0 +1,64 @@
+name: Code Review Mongo Instance
+
+on:
+  push:
+    branches:
+      - main
+      - releases/*
+      - feature/code-review-mongo
+
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options:
+          - dev
+          - uat
+
+jobs:
+  mongo_instance:
+    runs-on: ubuntu-24.04
+
+    services:
+      mongodb:
+        image: mongo:4.4.6
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
+          MONGO_INITDB_DATABASE: onboardings
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd mongo
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install mongosh
+        run: |
+          sudo apt-get install gnupg
+          wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+          mongosh --version
+
+      - name: Initalize MongoDB
+        run: |
+          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db = db.getSiblingDB('onboardings);
+            db.createUser({ user: 'APP-USERNAME', pwd: 'APP-PASSWORD', roles: [{ role: 'readWrite', db: 'onboardings' }] })
+            db.createCollection('onboardings');
+          EOF
+
+      - name: Test
+        run: |
+          echo "Run your integration Tests"
+
+      - name: Destroy MongoDB Instance
+        run: |
+          docker-compose down
