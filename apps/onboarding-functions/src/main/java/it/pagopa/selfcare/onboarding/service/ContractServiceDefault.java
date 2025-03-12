@@ -70,8 +70,7 @@ public class ContractServiceDefault implements ContractService {
     private static final String REGISTERED_OFFICE_ADDRESS = "Sede legale - Indirizzo";
     private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
     private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
-
-
+    public static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
 
     private static final String[] CSV_HEADERS_IO = {
             INSTITUTION_DESCRIPTION_HEADER,
@@ -294,7 +293,7 @@ public class ContractServiceDefault implements ContractService {
             List<UserResource> users)
             throws IOException {
         final String builder =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
                         + "_"
                         + UUID.randomUUID()
                         + "_contratto_interoperabilita.";
@@ -338,7 +337,7 @@ public class ContractServiceDefault implements ContractService {
     private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
             throws IOException {
         final String builder =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
                         + "_"
                         + UUID.randomUUID()
                         + "_allegato_interoperabilita.";
@@ -460,7 +459,7 @@ public class ContractServiceDefault implements ContractService {
 
             StringBuilder stringBuilder =
                     new StringBuilder(
-                            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+                            LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS)));
             stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
             try {
                 Path path = Files.createTempFile(stringBuilder.toString(), ".png");
