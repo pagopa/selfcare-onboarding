@@ -59,6 +59,23 @@ jobs:
         run: |
           echo "Run your integration Tests"
 
+      - name: Insert Dummy Data
+        run: |
+          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./integration-test/mongo/dummy_data.json', 'utf8'));
+            db = db.getSiblingDB('onboardings');
+            db.onboardings.insertMany(data);
+          EOF
+
+      - name: Query Dummy Data
+        run: |
+          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db = db.getSiblingDB('onboardings');
+            const results = db.onboardings.find({ status: "FAILED" }).toArray();
+            print('Query Results:', results);
+          EOF
+
       - name: Shutdown MongoDB instance
         run: |
           mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
