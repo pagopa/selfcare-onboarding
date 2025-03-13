@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,16 +47,22 @@ public class InstitutionFunctions {
    * This HTTP-triggered function invokes an orchestration to set the status of institution and user to DELETED
    */
   @FunctionName("TriggerDeleteInstitutionAndUser")
-  public HttpResponseMessage deleteInstitution(
-    @HttpTrigger(name = "req", methods = {HttpMethod.POST, HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+  public HttpResponseMessage deleteInstitutionAndUserTrigger(
+    @HttpTrigger(name = "req", methods = {HttpMethod.POST}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
     @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
-    final ExecutionContext context) throws JsonProcessingException {
+
+    final ExecutionContext context) {
     context.getLogger().info("TriggerDeleteInstitutionAndUser processed a request");
 
-    UserInstitutionFilters filters = getUserInstitutionFilters(request);
-    String filtersInJson = objectMapper.writeValueAsString(filters);
+    Optional<String> filtersString = request.getBody();
+    if (filtersString.isEmpty()) {
+      return request
+              .createResponseBuilder(HttpStatus.BAD_REQUEST)
+              .body("Body can't be empty")
+              .build();
+    }
     DurableTaskClient client = durableContext.getClient();
-    String instanceId = client.scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", filtersInJson);
+    String instanceId = client.scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", filtersString);
     context.getLogger().info(() -> String.format("%s %s", CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
     return durableContext.createCheckStatusResponse(request, instanceId);

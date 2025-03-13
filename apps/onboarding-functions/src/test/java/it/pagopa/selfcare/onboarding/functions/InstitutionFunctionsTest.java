@@ -1,8 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RESEND_NOTIFICATIONS_ACTIVITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -18,16 +16,11 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
-import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
-import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.service.*;
 import jakarta.inject.Inject;
 import java.util.*;
 import java.util.logging.Logger;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
@@ -46,7 +39,7 @@ public class InstitutionFunctionsTest {
     @InjectMock
     UserService userService;
 
-    final String onboardinString = "{\"onboardingId\":\"onboardingId\"}";
+    final String institutionUserFilters = "{\"userId\":\"userId\",\"productId\":\"productId\",\"institutionId\":\"institutionId\"}";
 
     static ExecutionContext executionContext;
 
@@ -56,206 +49,58 @@ public class InstitutionFunctionsTest {
     }
 
     @Test
-    public void deleteInstitutionAndUserTrigger() {
-        // Setup
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-
-        final Optional<String> queryBody = Optional.of(onboardinString);
-        doReturn(queryBody).when(req).getBody();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        // Invoke
-        HttpResponseMessage responseMessage = function.sendNotification(req, context);
-
-        // Verify
-        Mockito.verify(notificationEventService, times(1))
-                .send(any(), any(), any());
-        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
-
-    }
-
-    @Test
-    public void resendNotificationNullOnboardingId() {
-        // Setup
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-
-        final Map<String, String> queryParams = new HashMap<>();
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        // Invoke
-        HttpResponseMessage responseMessage = function.resendNotification(req, context);
-        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
-
-    }
-
-    @Test
-    public void resendNotificationOnboardingNotFound() {
-        // Setup
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-
-        final Map<String, String> queryParams = new HashMap<>();
-        final String onboardingId = "onboardingId";
-        queryParams.put("onboardingId", onboardingId);
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(onboardingService.getOnboarding(onboardingId)).thenReturn(Optional.empty());
-
-        // Invoke
-        HttpResponseMessage responseMessage = function.resendNotification(req, context);
-        assertEquals(HttpStatus.NOT_FOUND.value(), responseMessage.getStatusCode());
-
-    }
-
-    @Test
-    public void sendNotificationTriggerError() {
-        // Setup
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final String malformedOnboarding = "{\"onboardingId\":\"onboardingId\"";
-        final Optional<String> queryBody = Optional.of(malformedOnboarding);
-        doReturn(queryBody).when(req).getBody();
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-        // Invoke
-        HttpResponseMessage responseMessage = function.sendNotification(req, context);
-        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
-
-    }
-
-    @Test
-    public void countOnboardingShouldReturnOkWhenEmptyList() {
-        // Given
-        final String from = "from";
-        final String to = "to";
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("productId", null);
-        queryParams.put("from", from);
-        queryParams.put("to", to);
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        when(onboardingService.countNotifications(null, from, to, context)).thenReturn(new ArrayList<>());
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        // When
-        HttpResponseMessage responseMessage = function.countNotifications(req, context);
-
-        // Then
-        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
-        verify(onboardingService, times(1)).countNotifications(null, from, to, context);
-    }
-
-
-    @Test
-    public void countOnboardingShouldReturnOkWithCorrectBodyWhenServiceReturnsData() {
-        // Given
-        final String productId = "productId";
-        final String from = "from";
-        final String to = "to";
-        @SuppressWarnings("unchecked") final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        final Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("productId", productId);
-        queryParams.put("from", from);
-        queryParams.put("to", to);
-        doReturn(queryParams).when(req).getQueryParameters();
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        List<NotificationCountResult> expectedResults = List.of(new NotificationCountResult("product1", 1L));
-        when(onboardingService.countNotifications(productId, from, to, context)).thenReturn(expectedResults);
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        // When
-        HttpResponseMessage responseMessage = function.countNotifications(req, context);
-
-        // Then
-        assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
-        assertEquals(expectedResults, responseMessage.getBody());
-        verify(onboardingService, times(1)).countNotifications(productId, from, to, context);
-    }
-
-    @Test
-    void resendNotification_shouldCallOrchestratorAndTerminate() throws JsonProcessingException {
+    void deleteInstitutionAndUser_validBody_returnsAccepted() {
+        // Mock HttpRequestMessage with valid body
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        doReturn(Optional.of(institutionUserFilters)).when(req).getBody();
 
-        final Map<String, String> queryParams = new HashMap<>();
-        final String filtersAsJson = "{\"productId\":\"prod-pagoPa\", \"status\":\"[COMPLETED]\"}";
-        queryParams.put("productId", "prod-pagoPa");
-        queryParams.put("status", "COMPLETED");
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        final Optional<String> queryBody = Optional.empty();
-        doReturn(queryBody).when(req).getBody();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
+        doAnswer(
+                (Answer<HttpResponseMessage.Builder>)
+                        invocation -> {
+                            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                                    .status(status);
+                        })
+                .when(req)
+                .createResponseBuilder(any(HttpStatus.class));
 
         final DurableClientContext durableContext = mock(DurableClientContext.class);
         final DurableTaskClient client = mock(DurableTaskClient.class);
-        final String scheduleNewOrchestrationInstance = "scheduleNewOrchestrationInstance";
+        final String instanceId = "instanceId123";
+
         doReturn(client).when(durableContext).getClient();
-        doReturn(scheduleNewOrchestrationInstance).when(client).scheduleNewOrchestrationInstance("NotificationsSender", filtersAsJson);
-        when(durableContext.createCheckStatusResponse(any(), any())).thenReturn(new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(HttpStatus.ACCEPTED).build());
+        doReturn(instanceId)
+                .when(client)
+                .scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", institutionUserFilters);
+        when(durableContext.createCheckStatusResponse(any(), any()))
+                .thenReturn(
+                        new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                                .status(HttpStatus.ACCEPTED)
+                                .build());
 
         // Invoke
-        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
+        HttpResponseMessage responseMessage =
+                function.deleteInstitutionAndUserTrigger(req, durableContext, executionContext);
 
         // Verify
         assertEquals(HttpStatus.ACCEPTED.value(), responseMessage.getStatusCode());
     }
 
     @Test
-    void resendNotification_shouldThrowBadRequestWhenFieldStatusIsNotAllowed() throws JsonProcessingException {
+    void deleteInstitutionAndUser_emptyBody_returnsBadRequest() {
+        // Mock HttpRequestMessage with empty body
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        doReturn(Optional.empty()).when(req).getBody();
 
-        final Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("productId", "prod-pagoPa");
-        queryParams.put("status", "TEST");
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
+        doAnswer(
+                (Answer<HttpResponseMessage.Builder>)
+                        invocation -> {
+                            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+                            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
+                                    .status(status);
+                        })
+                .when(req)
+                .createResponseBuilder(any(HttpStatus.class));
 
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -263,83 +108,50 @@ public class InstitutionFunctionsTest {
         final DurableClientContext durableContext = mock(DurableClientContext.class);
 
         // Invoke
-        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
+        HttpResponseMessage responseMessage =
+                function.deleteInstitutionAndUserTrigger(req, durableContext, context);
 
         // Verify
         assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
+        assertEquals("Body can't be empty", responseMessage.getBody());
     }
 
     @Test
-    void resendNotification_shouldThrowBadRequestWhenFieldsDateHaveWrongFormat() throws JsonProcessingException {
-        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-
-        final Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("productId", "prod-pagoPa");
-        queryParams.put("from", "TEST");
-        queryParams.put("to", "TEST");
-        doReturn(queryParams).when(req).getQueryParameters();
-
-        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
-            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
-        }).when(req).createResponseBuilder(any(HttpStatus.class));
-
-        final ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-
-        final DurableClientContext durableContext = mock(DurableClientContext.class);
-
-        // Invoke
-        HttpResponseMessage responseMessage = function.resendNotifications(req, durableContext, context);
-
-        // Verify
-        assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
-    }
-
-    @Test
-    void notificationsSenderOrchestrator_invokeActivity() throws JsonProcessingException {
+    void deleteInstitutionAndUser_invokeActivity() {
+        // given
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        String filtersString = "{\"productId\":\"prod-pagoPa\", \"status\":[\"COMPLETED\"]}";
-        when(orchestrationContext.getInput(String.class)).thenReturn(filtersString);
+        when(orchestrationContext.getInput(String.class)).thenReturn(institutionUserFilters);
+
         Task task = mock(Task.class);
-        when(orchestrationContext.getInstanceId()).thenReturn("instanceId");
-        String enrichedFiltersString = "{\"productId\":\"prod-pagoPa\",\"status\":[\"COMPLETED\"],\"notificationEventTraceId\":\"instanceId\"}";
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+        when(task.await()).thenReturn("false");
+        when(orchestrationContext.allOf(anyList())).thenReturn(task);
 
-        when(orchestrationContext.callActivity(RESEND_NOTIFICATIONS_ACTIVITY, enrichedFiltersString, String.class)).thenReturn(task);
-        when(task.await()).thenReturn(null);
-        function.notificationsSenderOrchestrator(orchestrationContext, executionContext);
+        // when
+        function.deleteInstitutionAndUser(orchestrationContext, executionContext);
 
-        Mockito.verify(orchestrationContext, times(1))
-                .callActivity(RESEND_NOTIFICATIONS_ACTIVITY, enrichedFiltersString, String.class);
+        // then
+        Mockito.verify(orchestrationContext, times(2)).callActivity(any(), any(), any(), any());
     }
 
     @Test
-    void resendNotificationsActivity_shouldResendNotificationsAndReturnNullFiltersIfThereArentMoreOnboardings() throws JsonProcessingException {
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":[\"COMPLETED\"]}";
+    void deleteInstitution() throws JsonProcessingException {
 
-        when(notificationEventResenderService.resendNotifications(any(), any())).thenReturn(null);
+        doNothing().when(institutionService).deleteByIdAndProductId(any(), any());
 
-        String nextFilter = function.resendNotificationsActivity(filtersString, context);
+        function.deleteInstitution(institutionUserFilters, executionContext);
 
-        ArgumentCaptor<ResendNotificationsFilters> filtersStringCaptor = ArgumentCaptor.forClass(ResendNotificationsFilters.class);
-        Mockito.verify(notificationEventResenderService, times(1))
-                .resendNotifications(filtersStringCaptor.capture(), any());
-        assertEquals("prod-pagopa", filtersStringCaptor.getValue().getProductId());
-        assertNull(nextFilter);
+        verify(institutionService, times(1)).deleteByIdAndProductId(any(), any());
     }
 
     @Test
-    void resendNotificationsActivity_failsParsingFilters() {
-        ExecutionContext context = mock(ExecutionContext.class);
-        doReturn(Logger.getGlobal()).when(context).getLogger();
-        String filtersString = "{\"productId\":\"prod-pagopa\", \"status\":\"[COMPLETED]\"}";
+    void deleteUser() throws JsonProcessingException {
 
+        doNothing().when(userService).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
 
-        Assertions.assertThrows(NotificationException.class, () -> function.resendNotificationsActivity(filtersString, context));
+        function.deleteUser(institutionUserFilters, executionContext);
 
-        Mockito.verifyNoInteractions(notificationEventResenderService);
+        verify(userService, times(1)).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
     }
 }
 
