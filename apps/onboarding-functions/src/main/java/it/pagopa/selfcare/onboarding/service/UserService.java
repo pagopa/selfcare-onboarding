@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class UserService {
 
-    private static final Logger log = LoggerFactory.getLogger(InstitutionService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @RestClient
     @Inject
