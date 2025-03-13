@@ -9,17 +9,17 @@ import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.AckPayloadRequest;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
+import it.pagopa.selfcare.onboarding.dto.UserInstitutionFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
-import org.apache.commons.lang3.StringUtils;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
+import org.apache.commons.lang3.StringUtils;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 public class Utils {
 
@@ -162,6 +162,18 @@ public class Utils {
         .taxCode(taxCode)
         .status(status)
         .build();
+  }
+
+  public static UserInstitutionFilters getUserInstitutionFilters(
+          HttpRequestMessage<Optional<String>> request) {
+    String userId = request.getQueryParameters().get("userId");
+    String institutionId = request.getQueryParameters().get("institutionId");
+    String productId = request.getQueryParameters().get("productId");
+    UserInstitutionFilters filters = new UserInstitutionFilters();
+    filters.setInstitutionId(institutionId);
+    filters.setUserId(userId);
+    filters.setProductId(productId);
+    return filters;
   }
 
   public static void checkResendNotificationsFilters(ResendNotificationsFilters filters) {
