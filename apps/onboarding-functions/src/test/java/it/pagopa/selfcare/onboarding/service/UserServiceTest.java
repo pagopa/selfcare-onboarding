@@ -13,33 +13,35 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.openapi.quarkus.user_json.api.UserApi;
 
 @QuarkusTest
-class InstitutionServiceTest {
+class UserServiceTest {
 
   @Inject
-  InstitutionService institutionService;
+  UserService userService;
   @RestClient @InjectMock
-  org.openapi.quarkus.core_json.api.InstitutionApi institutionApi;
+  UserApi userApi;
 
   private final String productId = "productId";
+  private final String userId = "userId";
   private final String institutionId = "institutionId";
 
   @Test
-  void deleteInstitution() {
+  void deleteUser() {
     Response response = new ServerResponse(null, 200, null);
-    when(institutionApi.deleteOnboardedInstitutionUsingDELETE(any(), any())).thenReturn(response);
-    institutionService.deleteByIdAndProductId(institutionId, productId);
+    when(userApi.deleteProducts(any(), any(), any())).thenReturn(response);
+    userService.deleteByIdAndInstitutionIdAndProductId("userId", institutionId, productId );
 
-    Mockito.verify(institutionApi, times(1))
-            .deleteOnboardedInstitutionUsingDELETE(any(), any());
+    Mockito.verify(userApi, times(1))
+            .deleteProducts(any(), any(), any());
   }
 
   @Test
-  void deleteInstitutionWithException() {
+  void deleteUserWithException() {
     Response response = new ServerResponse(null, 500, null);
-    when(institutionApi.deleteOnboardedInstitutionUsingDELETE(any(), any())).thenReturn(response);
-    assertThrows(RuntimeException.class, () -> institutionService.deleteByIdAndProductId(institutionId, productId));
+    when(userApi.deleteProducts(any(), any(), any())).thenReturn(response);
+    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(userId, institutionId, productId));
   }
 
 }
