@@ -9,7 +9,6 @@ import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.AckPayloadRequest;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.dto.UserInstitutionFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
@@ -162,18 +161,6 @@ public class Utils {
         .taxCode(taxCode)
         .status(status)
         .build();
-  }
-
-  public static UserInstitutionFilters getUserInstitutionFilters(
-          HttpRequestMessage<Optional<String>> request) {
-    String userId = request.getQueryParameters().get("userId");
-    String institutionId = request.getQueryParameters().get("institutionId");
-    String productId = request.getQueryParameters().get("productId");
-    UserInstitutionFilters filters = new UserInstitutionFilters();
-    filters.setInstitutionId(institutionId);
-    filters.setUserId(userId);
-    filters.setProductId(productId);
-    return filters;
   }
 
   public static void checkResendNotificationsFilters(ResendNotificationsFilters filters) {
