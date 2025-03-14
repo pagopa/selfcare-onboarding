@@ -1,19 +1,18 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
+
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
 
 public class PdfMapper {
 
@@ -174,6 +173,10 @@ public class PdfMapper {
       map.put("dataProtectionOfficerAddress", institution.getDataProtectionOfficer().getAddress());
       map.put("dataProtectionOfficerEmail", institution.getDataProtectionOfficer().getEmail());
       map.put("dataProtectionOfficerPec", institution.getDataProtectionOfficer().getPec());
+    }
+
+    if (onboarding.getBilling() != null) {
+      map.put(INSTITUTION_RECIPIENT_CODE, onboarding.getBilling().getRecipientCode());
     }
 
     /* set manager PEC */
