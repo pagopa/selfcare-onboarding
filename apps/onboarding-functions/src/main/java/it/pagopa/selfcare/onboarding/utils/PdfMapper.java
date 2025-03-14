@@ -178,9 +178,7 @@ public class PdfMapper {
       map.put("dataProtectionOfficerPec", institution.getDataProtectionOfficer().getPec());
     }
 
-    if (onboarding.getBilling() != null) {
-      map.put(INSTITUTION_RECIPIENT_CODE, onboarding.getBilling().getRecipientCode());
-    }
+    appendRecipientCode(map, onboarding.getBilling());
 
     /* set manager PEC */
     onboarding.getUsers().stream()
@@ -231,9 +229,7 @@ public class PdfMapper {
         "originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ? ORIGIN_ID_LABEL : "");
 
     addInstitutionRegisterLabelValue(institution, map);
-    if (onboarding.getBilling() != null) {
-      map.put(INSTITUTION_RECIPIENT_CODE, onboarding.getBilling().getRecipientCode());
-    }
+    appendRecipientCode(map, onboarding.getBilling());
 
     map.put(
         "GPSinstitutionName",
@@ -482,5 +478,11 @@ public class PdfMapper {
     return Optional.ofNullable(resourceOfString)
         .map(CertifiableFieldResourceOfstring::getValue)
         .orElse("");
+  }
+
+  private static void appendRecipientCode(Map<String, Object> map, Billing billing) {
+    if (billing != null) {
+      map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
+    }
   }
 }
