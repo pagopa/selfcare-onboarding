@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -10,6 +14,8 @@ import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.util.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,13 +28,6 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.io.File;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class ContractServiceDefaultTest {
@@ -566,6 +565,41 @@ class ContractServiceDefaultTest {
                         List.of(),
                         PRODUCT_NAME_EXAMPLE,
                         PDF_FORMAT_FILENAME);
+
+        // then
+        assertNotNull(result);
+        Mockito.verify(azureBlobClient, Mockito.times(1)).getFileAsText(contractFilepath);
+        Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
+        Mockito.verifyNoMoreInteractions(azureBlobClient);
+    }
+
+
+
+    @Test
+    void createContractTestcaseDashboardPsp() {
+        // given
+        String contractFilepath = "contract";
+        String contractHtml = "contract";
+
+        Onboarding onboarding = createOnboarding();
+        User userManager = onboarding.getUsers().get(0);
+        UserResource manager =
+            createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PSP);
+        onboarding.setProductId("prod-dashboard-psp");
+
+        Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+        Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+        // when
+        File result =
+            contractService.createContractPDF(
+                contractFilepath,
+                onboarding,
+                manager,
+                List.of(),
+                PRODUCT_NAME_EXAMPLE,
+                PDF_FORMAT_FILENAME);
 
         // then
         assertNotNull(result);
