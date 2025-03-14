@@ -1618,6 +1618,24 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
+    private static Uni<Long> updatOnboardingStatus(String id, OnboardingStatus status) {
+        Map<String, Object> queryParameter = Map.of("status", status.name());
+        Document query = QueryUtils.buildUpdateDocument(queryParameter);
+        return Onboarding.update(query)
+                .where("_id", id)
+                .onItem()
+                .transformToUni(
+                        updateItemCount -> {
+                            if (updateItemCount == 0) {
+                                return Uni.createFrom()
+                                        .failure(
+                                                new InvalidRequestException(
+                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, id)));
+                            }
+                            return Uni.createFrom().item(updateItemCount);
+                        });
+    }
+
     private Uni<InstitutionResponse> getInstitutionFromUserRequest(OnboardingUserRequest request) {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
@@ -2124,5 +2142,22 @@ public class OnboardingServiceDefault implements OnboardingService {
 
                             return Uni.createFrom().failure(ex);
                         });
+    }
+
+    @Override
+    public Uni<Long> deleteOnboarding(String onboardingId) {
+        return Onboarding.findById(onboardingId)
+                .onItem()
+                .transform(Onboarding.class::cast)
+                .onItem()
+                .transformToUni(id -> updatOnboardingStatus(onboardingId, OnboardingStatus.DELETED))
+                .onItem()
+                .transformToUni(
+                        onboarding ->
+                                onboardingOrchestrationEnabled
+                                        ? orchestrationApi
+                                        .apiStartOnboardingOrchestrationGet(onboardingId, "60")
+                                        .map(ignore -> onboarding)
+                                        : Uni.createFrom().item(onboarding));
     }
 }
