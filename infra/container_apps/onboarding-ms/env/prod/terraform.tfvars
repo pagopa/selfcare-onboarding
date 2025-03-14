@@ -1,7 +1,7 @@
-prefix    = "selc"
-env_short = "p"
-suffix_increment    = "-002"
-cae_name            = "cae-002"
+prefix           = "selc"
+env_short        = "p"
+suffix_increment = "-002"
+cae_name         = "cae-002"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -51,7 +51,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-interop-coll': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-dashboard-psp': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -72,6 +72,10 @@ app_settings = [
   {
     name  = "MS_USER_URL"
     value = "http://selc-p-user-ms-ca"
+  },
+  {
+    name  = "JWT_BEARER_TOKEN"
+    value = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
   }
 ]
 

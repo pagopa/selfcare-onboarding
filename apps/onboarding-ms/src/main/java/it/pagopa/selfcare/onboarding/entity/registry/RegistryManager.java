@@ -17,5 +17,7 @@ public interface RegistryManager<T> {
     Onboarding getOnboarding();
 
     RegistryManager<T> setResource(T registryResource);
+
+    Uni<Onboarding> validateInstitutionType(Product product);
 }
 

@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -10,17 +14,21 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -37,18 +45,9 @@ import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.*;
-import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -581,14 +580,19 @@ public class CompletionServiceDefaultTest {
 
     @Test
     void persistUsers() {
-
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
         createDummyUser(onboarding);
         onboarding.setDelegationId("delegationId");
 
         Response response = new ServerResponse(null, 200, null);
         when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
-
+        when(productService.getProduct(any())).thenReturn(product);
         completionServiceDefault.persistUsers(onboarding);
 
         Mockito.verify(userControllerApi, times(1))
@@ -596,12 +600,36 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUsers_skip() {
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(true);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        onboarding.setDelegationId("delegationId");
+
+        when(productService.getProduct(any())).thenReturn(product);
+        completionServiceDefault.persistUsers(onboarding);
+
+        Mockito.verifyNoInteractions(userControllerApi);
+    }
+
+    @Test
     void persistUsersWithException() {
         Onboarding onboarding = createOnboarding();
         createDummyUser(onboarding);
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(true);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
 
         Response response = new ServerResponse(null, 500, null);
         when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
 
         assertThrows(RuntimeException.class, () -> completionServiceDefault.persistUsers(onboarding));
 
@@ -858,233 +886,6 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnInfocamere() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        UserInstitutionResponse user2 = new UserInstitutionResponse();
-        user2.setUserId("user2");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1, user2));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-        UserResource userResource2 = new UserResource();
-        userResource2.setFiscalCode("taxCode2");
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
-
-        when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(new BusinessesResource());
-
-        Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
-                .thenReturn(responseOk);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
-                .thenReturn(responseOk);
-
-        completionServiceDefault.deleteOldPgManagers(onboarding);
-
-        verify(userControllerApi, times(2)).deleteProducts(eq("institution-id"), eq("productId"), any());
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldDeleteInactiveManagers_InvalidOrigin() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.IPA);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        UserInstitutionResponse user2 = new UserInstitutionResponse();
-        user2.setUserId("user2");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1, user2));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-        UserResource userResource2 = new UserResource();
-        userResource2.setFiscalCode("taxCode2");
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
-
-        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
-        legalVerificationResult.setVerificationResult(false);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
-
-        Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
-                .thenReturn(responseOk);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
-                .thenReturn(responseOk);
-
-        Assertions.assertThrows(GenericOnboardingException.class,
-                () -> completionServiceDefault.deleteOldPgManagers(onboarding),
-                "Origin not supported");
-
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldDeleteInactiveManagers_getStatusInfoNotSuccessfull() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.ADE);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        UserInstitutionResponse user2 = new UserInstitutionResponse();
-        user2.setUserId("user2");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1, user2));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-        UserResource userResource2 = new UserResource();
-        userResource2.setFiscalCode("taxCode2");
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
-
-        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
-        legalVerificationResult.setVerificationResult(false);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(500));
-
-        Response responseKo = new ServerResponse(null, 400, null);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
-                .thenReturn(responseKo);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
-                .thenReturn(responseKo);
-
-        Assertions.assertThrows(GenericOnboardingException.class,
-                () -> completionServiceDefault.deleteOldPgManagers(onboarding),
-                "Failed to delete user user1 from product productId in institution institution-id");
-
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnAde() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.ADE);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        UserInstitutionResponse user2 = new UserInstitutionResponse();
-        user2.setUserId("user2");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1, user2));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-        UserResource userResource2 = new UserResource();
-        userResource2.setFiscalCode("taxCode2");
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user2")).thenReturn(userResource2);
-
-        LegalVerificationResult legalVerificationResult = new LegalVerificationResult();
-        legalVerificationResult.setVerificationResult(false);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenReturn(legalVerificationResult);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode2"), any())).thenThrow(new WebApplicationException(400));
-
-        Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
-                .thenReturn(responseOk);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user2"))
-                .thenReturn(responseOk);
-
-        completionServiceDefault.deleteOldPgManagers(onboarding);
-
-        verify(userControllerApi, times(2)).deleteProducts(eq("institution-id"), eq("productId"), any());
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldDeleteInactiveManagers_OnAde_Error_isActiveManagerOnAdeRegistry() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.ADE);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-
-        Response responseOk = new ServerResponse(null, 204, null);
-        when(userControllerApi.deleteProducts("institution-id","productId", "user1"))
-                .thenReturn(responseOk);
-        when(nationalRegistriesApi.verifyLegalUsingGET(eq("taxCode1"), any())).thenThrow(new WebApplicationException(404));
-
-        Assertions.assertThrows(GenericOnboardingException.class,
-                () -> completionServiceDefault.deleteOldPgManagers(onboarding), "Error during verify legal HTTP 404 Not Found");
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldNotDeleteActiveManagers() {
-        // Shouldn't perform deletion, because user1 will be found on the registry.
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
-
-        UserInstitutionResponse user1 = new UserInstitutionResponse();
-        user1.setUserId("user1");
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(List.of(user1));
-
-        UserResource userResource1 = new UserResource();
-        userResource1.setFiscalCode("taxCode1");
-        when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, "user1")).thenReturn(userResource1);
-
-        BusinessesResource businessesResource = new BusinessesResource();
-        BusinessResource businessResource = new BusinessResource();
-        businessResource.setBusinessTaxId("institution-tax-code");
-        businessesResource.setBusinesses(List.of(businessResource));
-        when(infocamereApi.institutionsByLegalTaxIdUsingPOST(any())).thenReturn(businessesResource);
-
-        completionServiceDefault.deleteOldPgManagers(onboarding);
-
-        verify(userControllerApi, never()).deleteProducts(eq("institution-id"), eq("productId"), any());
-    }
-
-    @Test
-    void deleteOldPgManagers_shouldHandleEmptyManagersList() {
-        Onboarding onboarding = createOnboarding();
-        onboarding.getInstitution().setId("institution-id");
-        onboarding.getInstitution().setTaxCode("institution-tax-code");
-        onboarding.getInstitution().setOrigin(Origin.INFOCAMERE);
-
-        when(userInstitutionApi.retrieveUserInstitutions(
-                eq("institution-id"), any(), eq(List.of("productId")), eq(List.of("MANAGER")), eq(List.of("ACTIVE")), any()))
-                .thenReturn(Collections.emptyList());
-
-        completionServiceDefault.deleteOldPgManagers(onboarding);
-
-        verify(userControllerApi, never()).deleteProducts(any(), eq("institution-id"), eq("productId"));
-    }
-
-    @Test
     void retrieveAggregates() {
         Onboarding onboarding = createOnboarding();
         DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
@@ -1148,15 +949,6 @@ public class CompletionServiceDefaultTest {
         conctractTemplate.setContractTemplatePath("example");
         conctractTemplate.setContractTemplateVersion("version");
         institutionTemplate.put(Product.CONTRACT_TYPE_DEFAULT, conctractTemplate);
-        return institutionTemplate;
-    }
-
-    private static Map<String, ContractTemplate> createDummyContractTemplateUser() {
-        Map<String, ContractTemplate> institutionTemplate = new HashMap<>();
-        ContractTemplate conctractTemplate = new ContractTemplate();
-        conctractTemplate.setContractTemplatePath("example");
-        conctractTemplate.setContractTemplateVersion("version");
-        institutionTemplate.put("default", conctractTemplate);
         return institutionTemplate;
     }
 

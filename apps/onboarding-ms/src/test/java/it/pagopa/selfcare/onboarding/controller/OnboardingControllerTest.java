@@ -1,5 +1,19 @@
 package it.pagopa.selfcare.onboarding.controller;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -14,7 +28,25 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.BillingRequest;
+import it.pagopa.selfcare.onboarding.controller.request.DataProtectionOfficerRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionBaseRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.InstitutionPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.PaymentServiceProviderRequest;
+import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
@@ -22,27 +54,23 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(OnboardingController.class)
@@ -53,10 +81,8 @@ class OnboardingControllerTest {
     static final UserRequest userDTO;
     static final OnboardingPgRequest onboardingPgValid;
     static final OnboardingDefaultRequest onboardingBaseValid;
-
     static final InstitutionBaseRequest institution;
     static final InstitutionPspRequest institutionPsp;
-
     static final OnboardingUserPgRequest onboardingUserPgValid;
 
     @InjectMock
@@ -79,6 +105,8 @@ class OnboardingControllerTest {
         institution.setInstitutionType(InstitutionType.PT);
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("example@example.it");
+        institution.setOriginId("originId");
+        institution.setOrigin(Origin.IPA);
         onboardingBaseValid.setInstitution(institution);
 
         /* PSP */
@@ -87,6 +115,8 @@ class OnboardingControllerTest {
         onboardingPspValid.setUsers(List.of(userDTO));
 
         institutionPsp = new InstitutionPspRequest();
+        institutionPsp.setOrigin(Origin.SELC);
+        institutionPsp.setOriginId("originId");
         institutionPsp.setInstitutionType(InstitutionType.PT);
         institutionPsp.setTaxCode("taxCode");
         institutionPsp.setDigitalAddress("example@example.it");
@@ -604,6 +634,7 @@ class OnboardingControllerTest {
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("digital@address.it");
         institution.setOrigin(Origin.SELC);
+        institution.setOriginId("originId");
         institution.setInstitutionType(InstitutionType.PRV);
         onboardingDefaultRequest.setInstitution(institution);
         return onboardingDefaultRequest;
@@ -661,6 +692,7 @@ class OnboardingControllerTest {
         institution.setTaxCode("taxCode");
         institution.setDigitalAddress("digital@address.it");
         institution.setOrigin(Origin.SELC);
+        institution.setOriginId("originId");
         institution.setInstitutionType(InstitutionType.PSP);
         institution.setPaymentServiceProvider(new PaymentServiceProviderRequest());
         institution.setDataProtectionOfficer(new DataProtectionOfficerRequest());
@@ -734,7 +766,7 @@ class OnboardingControllerTest {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -746,7 +778,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -768,7 +800,7 @@ class OnboardingControllerTest {
 
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -780,7 +812,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -790,7 +822,7 @@ class OnboardingControllerTest {
         OnboardingImportPspRequest onboardingImportRequest = dummyOnboardingPspRequest();
         onboardingImportRequest.getContractImported().setActivatedAt(LocalDateTime.now());
 
-        Mockito.when(onboardingService.onboardingImport(any(), any(), any(), anyBoolean()))
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
 
         given()
@@ -802,7 +834,7 @@ class OnboardingControllerTest {
                 .statusCode(200);
 
         Mockito.verify(onboardingService, times(1))
-                .onboardingImport(any(), any(), any(), anyBoolean());
+                .onboardingImport(any(), any(), any());
     }
 
     @Test
@@ -825,6 +857,7 @@ class OnboardingControllerTest {
     @Test
     @TestSecurity(user = "userJwt")
     void getInstitutionOnboardings() {
+        // given
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
         onboardingResponses.add(onboardingResponse);
@@ -833,6 +866,7 @@ class OnboardingControllerTest {
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
 
+        // when
         given()
                 .when()
                 .queryParams(queryParameterMap)
@@ -840,8 +874,10 @@ class OnboardingControllerTest {
                 .then()
                 .statusCode(200);
 
+        // then
         verify(onboardingService, times(1))
                 .institutionOnboardings("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.PENDING);
+        assertNotNull(onboardingResponses);
     }
 
     @Test
@@ -1004,10 +1040,15 @@ class OnboardingControllerTest {
     }
 
     private static OnboardingResponse dummyOnboardingResponse() {
+        String str = "2025-01-09 11:36";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+
         OnboardingResponse onboarding = new OnboardingResponse();
         onboarding.setId("id");
         onboarding.setStatus("PENDING");
         onboarding.setProductId("prod-io");
+        onboarding.setUpdatedAt(dateTime);
         InstitutionResponse institutionResponse = new InstitutionResponse();
         institutionResponse.setTaxCode("taxCode");
         institutionResponse.setTaxCodeInvoicing("taxCodeInvoicing");
@@ -1060,6 +1101,8 @@ class OnboardingControllerTest {
         onboardingPspRequest.setContractImported(new OnboardingImportContract());
         InstitutionPspRequest institutionPspRequest = new InstitutionPspRequest();
         institutionPspRequest.setInstitutionType(InstitutionType.PSP);
+        institutionPspRequest.setOrigin(Origin.SELC);
+        institutionPspRequest.setOriginId("originId");
         institutionPspRequest.setDigitalAddress("address@gmail.com");
         PaymentServiceProviderRequest pspData = new PaymentServiceProviderRequest();
         pspData.setAbiCode("abiCode");
@@ -1205,6 +1248,69 @@ class OnboardingControllerTest {
         ArgumentCaptor<Onboarding> captor = ArgumentCaptor.forClass(Onboarding.class);
         Mockito.verify(onboardingService, times(1)).updateOnboarding(anyString(), captor.capture());
         assertEquals(captor.getValue().getBilling().getRecipientCode(), fakeRecipientCode);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_KO() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = new OnboardingAggregationImportRequest();
+
+        //when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationImportTest_OK() {
+        // given
+        OnboardingAggregationImportRequest onboardingImport = dummyOnboardingAggregationImportRequest();
+        OnboardingResponse response = dummyOnboardingResponse();
+
+        Mockito.when(onboardingService.onboardingAggregationImport(any(), any(), any(), any()))
+            .thenReturn(Uni.createFrom().item(response));
+
+        // when
+        given()
+            .when()
+            .body(onboardingImport)
+            .contentType(ContentType.JSON)
+            .post("/aggregation/import")
+            .then()
+            .statusCode(200);
+
+        // then
+        Mockito.verify(onboardingService, times(1))
+            .onboardingAggregationImport(any(), any(), any(), any());
+    }
+
+    private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
+        OnboardingAggregationImportRequest onboardingRequest = new OnboardingAggregationImportRequest();
+        onboardingRequest.setBilling(new BillingRequest());
+        InstitutionBaseRequest institutionBaseRequest = new InstitutionBaseRequest();
+        onboardingRequest.setProductId("productId");
+        onboardingRequest.setUsers(List.of(userDTO));
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setDigitalAddress("digital@address.it");
+        institutionBaseRequest.setOrigin(Origin.SELC);
+        institutionBaseRequest.setOriginId("originId");
+        institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
+        onboardingRequest.setInstitution(institutionBaseRequest);
+        onboardingRequest.setProductId("prod-io");
+        OnboardingImportContract importContract = new OnboardingImportContract();
+        importContract.setFilePath("/test/path");
+        String str = "2025-01-15 11:30";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
+        importContract.setCreatedAt(dateTime);
+        onboardingRequest.setOnboardingImportContract(importContract);
+        return onboardingRequest;
     }
 
 }

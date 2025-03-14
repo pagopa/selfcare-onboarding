@@ -1,9 +1,9 @@
 package it.pagopa.selfcare.onboarding.controller.response;
 
 import it.pagopa.selfcare.onboarding.controller.request.AdditionalInformationsDto;
-import lombok.Data;
-
+import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class OnboardingResponse {
@@ -19,5 +19,7 @@ public class OnboardingResponse {
     private AdditionalInformationsDto additionalInformations;
     private String userRequestUid;
     private Boolean isAggregator;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.common.PartyRole.ADMIN_EA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 
 @Mapper(componentModel = "cdi")
@@ -64,7 +65,7 @@ public interface OnboardingMapper {
         if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
             return aggregateInstitution.getUsers();
         }
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId())){
+        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();
@@ -72,7 +73,7 @@ public interface OnboardingMapper {
 
     @Named("mapAggregateUsers")
     default List<User> mapUsers(Onboarding onboarding) {
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId())){
+        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();

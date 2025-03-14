@@ -16,10 +16,10 @@ on:
       env:
         type: choice
         description: Environment
-        options: 
-        - dev
-        - uat
-        - prod
+        options:
+          - dev
+          - uat
+          - prod
 
 jobs:
 
@@ -64,10 +64,10 @@ jobs:
 
   promote_release:
     name: 'Promote prerelase release'
-    runs-on: ubuntu-20.04
-    needs: [release_prod]
+    runs-on: ubuntu-24.04
+    needs: [ release_prod ]
     steps:
-      - uses:  pagopa/selfcare-commons/github-actions-template/promote-release@main
+      - uses: pagopa/selfcare-commons/github-actions-template/promote-release@main
         with:
           github_path_token: ${{ secrets.GH_PAT_VARIABLES }}
           release_version: ${{ vars.CURRENT_UAT_VERSION }}

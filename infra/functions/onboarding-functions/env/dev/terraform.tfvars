@@ -22,7 +22,7 @@ function_always_on = false
 
 app_service_plan_info = {
   kind                         = "Linux"
-  sku_size                     = "P1v3"
+  sku_size                     = "B2"
   maximum_elastic_worker_count = 1
   worker_count                 = 1
   zone_balancing_enabled       = false
@@ -92,7 +92,7 @@ app_settings = {
   "EVENTHUB_SC_CONTRACTS_FD_SELFCARE_WO_KEY_LC"        = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/eventhub-selfcare-fd-external-interceptor-wo-key-lc/)"
   "FD_TOPIC_NAME"                                      = "Selfcare-FD",
   "SAP_ALLOWED_INSTITUTION_TYPE"                       = "PA,GSP,SA,AS,SCP",
-  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC"
+  "SAP_ALLOWED_ORIGINS"                                = "IPA,SELC,PDND_INFOCAMERE"
   "MINUTES_THRESHOLD_FOR_UPDATE_NOTIFICATION"          = "5"
   "BYPASS_CHECK_ORGANIZATION"                          = "false"
   "PROD_FD_URL"                                        = "https://fid00001fe.siachain.sv.sia.eu:30008"
@@ -105,8 +105,8 @@ app_settings = {
   "JWT_TOKEN_KID"                                      = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
-  "PAGOPA_SIGNATURE_SOURCE"                 = "disabled",
-  "NAMIRIAL_BASE_URL"                       = "http://10.1.154.4:8080",
+  "PAGOPA_SIGNATURE_SOURCE"                 = "namirial",
+  "NAMIRIAL_BASE_URL"                       = "https://selc-d-namirial-sws-ca.whitemoss-eb7ef327.westeurope.azurecontainerapps.io",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }

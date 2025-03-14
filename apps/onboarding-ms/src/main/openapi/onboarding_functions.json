@@ -483,7 +483,8 @@
           "FOR_APPROVE_PT",
           "FOR_APPROVE_GPU",
           "CONFIRMATION",
-          "IMPORT"
+          "IMPORT",
+          "IMPORT_AGGREGATION"
         ],
         "type": "string"
       },

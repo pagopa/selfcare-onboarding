@@ -10,7 +10,8 @@ public enum ProductId {
     PROD_INTEROP_COLL("prod-interop-coll"),
     PROD_IO_SIGN("prod-io-sign"),
     PROD_PAGOPA("prod-pagopa"),
-    PROD_IO_PREMIUM("prod-io-premium");
+    PROD_IO_PREMIUM("prod-io-premium"),
+    PROD_DASHBOARD_PSP("prod-dashboard-psp");
 
     private final String value;
 

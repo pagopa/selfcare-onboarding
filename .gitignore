@@ -50,3 +50,5 @@ override.tf.json
 *_override.tf.json
 
 **/node_modules/*
+
+.codegpt

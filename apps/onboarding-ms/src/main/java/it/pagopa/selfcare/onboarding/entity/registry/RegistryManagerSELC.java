@@ -7,6 +7,8 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 
+import java.util.Objects;
+
 public class RegistryManagerSELC extends BaseRegistryManager<Object> {
 
     public RegistryManagerSELC(Onboarding onboarding) {
@@ -25,7 +27,7 @@ public class RegistryManagerSELC extends BaseRegistryManager<Object> {
 
     @Override
     public Uni<Onboarding> customValidation(Product product) {
-        if (isWorkflowTypeAllowed(onboarding.getWorkflowType())) {
+        if (isWorkflowTypeAllowed(onboarding.getWorkflowType()) || Objects.nonNull(product.getParentId())) {
             return Uni.createFrom().item(onboarding);
         }
 
@@ -36,7 +38,9 @@ public class RegistryManagerSELC extends BaseRegistryManager<Object> {
         return workflowType == WorkflowType.FOR_APPROVE ||
                 workflowType == WorkflowType.IMPORT ||
                 workflowType == WorkflowType.FOR_APPROVE_PT ||
-                workflowType == WorkflowType.FOR_APPROVE_GPU;
+                workflowType == WorkflowType.FOR_APPROVE_GPU ||
+                workflowType == WorkflowType.CONFIRMATION ||
+                workflowType == WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR;
     }
 
     @Override

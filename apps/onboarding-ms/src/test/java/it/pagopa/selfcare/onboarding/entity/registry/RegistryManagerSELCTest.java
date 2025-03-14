@@ -50,7 +50,7 @@ class RegistryManagerSELCTest {
 
     @Test
     void customValidation_shouldThrowInvalidRequestException_whenWorkflowTypeNotAllowed() {
-        when(onboarding.getWorkflowType()).thenReturn(WorkflowType.CONFIRMATION);
+        when(onboarding.getWorkflowType()).thenReturn(WorkflowType.CONTRACT_REGISTRATION);
 
         Uni<Onboarding> result = registryManagerSELC.customValidation(mock(Product.class));
 

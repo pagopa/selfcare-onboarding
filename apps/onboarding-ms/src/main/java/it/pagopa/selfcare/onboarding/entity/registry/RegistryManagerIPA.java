@@ -31,12 +31,12 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
     @Override
     public IPAEntity retrieveInstitution() {
         super.originIdEC = onboarding.getInstitution().getOriginId();
-        InstitutionResource institutionResource =  super.institutionApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
-                    .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
-                    .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                            ? Uni.createFrom().failure(new ResourceNotFoundException(String.format("Institution with taxCode %s not found", onboarding.getInstitution().getTaxCode())))
-                            : Uni.createFrom().failure(ex))
-                    .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
+        InstitutionResource institutionResource = super.institutionApi.findInstitutionUsingGET(onboarding.getInstitution().getTaxCode(), null, null)
+                .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
+                .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format("Institution with taxCode %s not found", onboarding.getInstitution().getTaxCode())))
+                        : Uni.createFrom().failure(ex))
+                .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
         return IPAEntity.builder().institutionResource(institutionResource).build();
     }
 
@@ -47,6 +47,7 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
         }
         return Uni.createFrom().item(true);
     }
+
 
     private boolean originIPA(Onboarding onboarding, InstitutionResource institutionResource) {
         return onboarding.getInstitution().getDigitalAddress().equals(institutionResource.getDigitalAddress()) &&

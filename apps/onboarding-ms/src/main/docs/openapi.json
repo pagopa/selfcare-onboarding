@@ -16,6 +16,8 @@
   }, {
     "name" : "Document Controller"
   }, {
+    "name" : "Institution Controller"
+  }, {
     "name" : "Onboarding"
   }, {
     "name" : "Onboarding Controller"
@@ -246,7 +248,7 @@
         "tags" : [ "internal-v1" ],
         "summary" : "Retrieves the list of files on the azure storage on the given path",
         "description" : "Fetches a list of files associated with the specified path on the storage.",
-        "operationId" : "getFiles",
+        "operationId" : "getFilesFromPath",
         "parameters" : [ {
           "name" : "path",
           "in" : "path",
@@ -264,6 +266,47 @@
                   "type" : "array",
                   "items" : {
                     "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/institutions" : {
+      "post" : {
+        "tags" : [ "Institution Controller" ],
+        "summary" : "Retrieve list of institutions given ids in input.",
+        "description" : "Retrieve list of institutions given ids in input. If list in input is nullor empty, a bad request exception is thrown",
+        "operationId" : "getInstitutions",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GetInstitutionRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/InstitutionResponse"
                   }
                 }
               }
@@ -320,12 +363,27 @@
             "type" : "string"
           }
         }, {
+          "name" : "productIds",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
           "name" : "size",
           "in" : "query",
           "schema" : {
             "format" : "int32",
             "default" : "20",
             "type" : "integer"
+          }
+        }, {
+          "name" : "skipPagination",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean"
           }
         }, {
           "name" : "status",
@@ -347,6 +405,12 @@
           }
         }, {
           "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "userId",
           "in" : "query",
           "schema" : {
             "type" : "string"
@@ -422,6 +486,44 @@
             "application/json" : {
               "schema" : {
                 "$ref" : "#/components/schemas/OnboardingDefaultRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/aggregation/import" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Asynchronously import aggregated onboarding to COMPLETED status and create token",
+        "description" : "Perform a manual onboarding with aggregator, create token and set onboarding status to COMPLETED phase.",
+        "operationId" : "onboardingAggregationImport",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingAggregationImportRequest"
               }
             }
           }
@@ -608,7 +710,7 @@
     },
     "/v1/onboarding/institutionOnboardings" : {
       "get" : {
-        "tags" : [ "support", "Onboarding" ],
+        "tags" : [ "support", "internal-v1", "Onboarding" ],
         "summary" : "Get onboardings by institution taxCode, subunitCode, origin, or originId.",
         "description" : "Returns onboardings record by institution taxCode/subunitCode/origin/originId",
         "operationId" : "onboardingInstitutionUsingGET",
@@ -1605,6 +1707,43 @@
         } ]
       }
     },
+    "/v1/tokens/contract-report" : {
+      "get" : {
+        "tags" : [ "internal-v1" ],
+        "summary" : "Check if contract signed is a CADES file",
+        "description" : "Check if contract signed is a CADES file even if is not .p7m",
+        "operationId" : "reportContractSigned",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractSignedReport"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/tokens/contract-signed" : {
       "put" : {
         "tags" : [ "internal-v1" ],
@@ -1982,6 +2121,14 @@
           }
         }
       },
+      "ContractSignedReport" : {
+        "type" : "object",
+        "properties" : {
+          "cades" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "DataProtectionOfficerRequest" : {
         "type" : "object",
         "properties" : {
@@ -2050,8 +2197,21 @@
           }
         }
       },
+      "GetInstitutionRequest" : {
+        "required" : [ "institutionIds" ],
+        "type" : "object",
+        "properties" : {
+          "institutionIds" : {
+            "minItems" : 1,
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
       "InstitutionBaseRequest" : {
-        "required" : [ "institutionType", "digitalAddress" ],
+        "required" : [ "institutionType", "origin", "originId", "digitalAddress" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
@@ -2070,6 +2230,7 @@
             "$ref" : "#/components/schemas/Origin"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "city" : {
@@ -2192,7 +2353,7 @@
         "type" : "string"
       },
       "InstitutionPspRequest" : {
-        "required" : [ "institutionType", "digitalAddress", "paymentServiceProvider" ],
+        "required" : [ "institutionType", "origin", "originId", "digitalAddress", "paymentServiceProvider" ],
         "type" : "object",
         "properties" : {
           "institutionType" : {
@@ -2211,6 +2372,7 @@
             "$ref" : "#/components/schemas/Origin"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "city" : {
@@ -2355,6 +2517,53 @@
         "format" : "date-time",
         "type" : "string",
         "example" : "2022-03-10T12:15:50"
+      },
+      "OnboardingAggregationImportRequest" : {
+        "required" : [ "productId", "users", "institution" ],
+        "type" : "object",
+        "properties" : {
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "users" : {
+            "minItems" : 1,
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserRequest"
+            }
+          },
+          "aggregates" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AggregateInstitutionRequest"
+            }
+          },
+          "isAggregator" : {
+            "type" : "boolean"
+          },
+          "pricingPlan" : {
+            "type" : "string"
+          },
+          "signContract" : {
+            "type" : "boolean"
+          },
+          "institution" : {
+            "$ref" : "#/components/schemas/InstitutionBaseRequest"
+          },
+          "billing" : {
+            "$ref" : "#/components/schemas/BillingRequest"
+          },
+          "additionalInformations" : {
+            "$ref" : "#/components/schemas/AdditionalInformationsDto"
+          },
+          "gpuData" : {
+            "$ref" : "#/components/schemas/GPUData"
+          },
+          "onboardingImportContract" : {
+            "$ref" : "#/components/schemas/OnboardingImportContract"
+          }
+        }
       },
       "OnboardingDefaultRequest" : {
         "required" : [ "productId", "users", "institution" ],
@@ -2693,6 +2902,12 @@
           },
           "isAggregator" : {
             "type" : "boolean"
+          },
+          "createdAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
+          },
+          "updatedAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
           }
         }
       },
@@ -2727,7 +2942,7 @@
         }
       },
       "OnboardingUserRequest" : {
-        "required" : [ "productId", "users" ],
+        "required" : [ "productId", "origin", "originId", "users" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2741,9 +2956,11 @@
             "type" : "string"
           },
           "origin" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "originId" : {
+            "minLength" : 1,
             "type" : "string"
           },
           "taxCode" : {

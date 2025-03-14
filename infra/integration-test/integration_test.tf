@@ -26,5 +26,5 @@ resource "github_actions_environment_secret" "integration_environment" {
     {
       env       = local.env_url
       apimKeyPN = data.azurerm_key_vault_secret.apim_product_pn_sk.value
-    }))
+  }))
 }
