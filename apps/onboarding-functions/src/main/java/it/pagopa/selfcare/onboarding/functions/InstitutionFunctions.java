@@ -81,13 +81,13 @@ public class InstitutionFunctions {
     }
 
     ctx.callActivity(
-                    DELETE_USER_ACTIVITY_NAME,
+                    DELETE_INSTITUTION_ACTIVITY_NAME,
                     filtersString,
                     optionsRetry,
                     String.class)
             .await();
     ctx.callActivity(
-                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                    DELETE_USER_ACTIVITY_NAME,
                     filtersString,
                     optionsRetry,
                     String.class)

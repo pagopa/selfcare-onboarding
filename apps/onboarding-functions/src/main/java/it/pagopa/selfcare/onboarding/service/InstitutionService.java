@@ -18,12 +18,13 @@ public class InstitutionService {
 
     @RestClient 
     @Inject
-    InstitutionApi userInstitutionApi;
+    InstitutionApi institutionApi;
 
     public void deleteByIdAndProductId(String id, String productId) {
         log.debug("Deleting institution {} for product {}", id, productId);
-        try (Response response =  userInstitutionApi.deleteOnboardedInstitutionUsingDELETE(productId, id)) {
+        try (Response response =  institutionApi.deleteOnboardedInstitutionUsingDELETE(productId, id)) {
             if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                log.error("Error during institution deletion: {}", response);
                 throw new GenericOnboardingException("Impossible to delete institution with ID: " + id);
             }
         }
