@@ -7,9 +7,9 @@ on:
         type: choice
         description: Environment
         options:
-          - dev-pnpg
-          - uat-pnpg
-          - prod-pnpg
+          - dev
+          - uat
+          - prod
       release_version:
         type: string
         description: Hub-Sping-Login release version
@@ -64,7 +64,7 @@ jobs:
           tenant_id: ${{ vars.ARM_TENANTs_ID }}
           subscription_id: ${{ vars.ARM_SUBSCRIPTION_ID }}
           dir: ${{ env.dir }}
-          azure_environment: ${{ inputs.env }}
+          azure_environment: ${{ inputs.env }}-pnpg
         env:
           TF_VAR_image_tag: ${{ inputs.release_version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -125,7 +125,7 @@ jobs:
         shell: bash
         working-directory: ${{ env.dir }}
         run: |
-          bash ./terraform.sh init ${{ inputs.env }}
+          bash ./terraform.sh init ${{ inputs.env }}-pnpg
 
       - name: Terraform Apply
         shell: bash
