@@ -7,7 +7,7 @@ public class ActivityName {
   public static final String BUILD_CONTRACT_ACTIVITY_NAME = "BuildContract";
   public static final String BUILD_ATTACHMENT_ACTIVITY_NAME = "BuildAttachment";
   public static final String DELETE_USER_ACTIVITY_NAME = "DeleteUser";
-  public static final String DELETE_INSTITUTION_ACTIVITY_NAME = "DeleteInstitution";
+  public static final String DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME = "DeleteInstitution";
   public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT =
       "SendMailRegistrationForContract";
   public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY =

@@ -81,11 +81,12 @@ public class InstitutionFunctions {
     }
 
     ctx.callActivity(
-                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                    DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME,
                     filtersString,
                     optionsRetry,
                     String.class)
             .await();
+
     ctx.callActivity(
                     DELETE_USER_ACTIVITY_NAME,
                     filtersString,
@@ -97,7 +98,7 @@ public class InstitutionFunctions {
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
-  @FunctionName(DELETE_INSTITUTION_ACTIVITY_NAME)
+  @FunctionName(DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME)
   public void deleteInstitution(
           @DurableActivityTrigger(name = "filtersString") String filtersString,
           final ExecutionContext context) throws JsonProcessingException {
@@ -107,7 +108,7 @@ public class InstitutionFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_INSTITUTION_STRING,
-                                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                                    DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME,
                                     filtersString));
     UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
     institutionService.deleteByIdAndProductId(filters.getInstitutionId(), filters.getProductId());
@@ -124,7 +125,7 @@ public class InstitutionFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_INSTITUTION_STRING,
-                                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                                    DELETE_USER_ACTIVITY_NAME,
                                     filtersString));
     UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
     userService.deleteByIdAndInstitutionIdAndProductId(filters.getUserId(), filters.getInstitutionId(), filters.getProductId());
