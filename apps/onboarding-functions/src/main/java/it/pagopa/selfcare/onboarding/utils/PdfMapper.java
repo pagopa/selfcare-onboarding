@@ -481,7 +481,7 @@ public class PdfMapper {
   }
 
   private static void appendRecipientCode(Map<String, Object> map, Billing billing) {
-    if (billing != null) {
+    if (Objects.nonNull(billing)) {
       map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
     }
   }
