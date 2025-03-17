@@ -70,7 +70,7 @@ public class ContractServiceDefault implements ContractService {
     private static final String REGISTERED_OFFICE_ADDRESS = "Sede legale - Indirizzo";
     private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
     private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
-    public static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
+    private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
 
     private static final String[] CSV_HEADERS_IO = {
             INSTITUTION_DESCRIPTION_HEADER,
