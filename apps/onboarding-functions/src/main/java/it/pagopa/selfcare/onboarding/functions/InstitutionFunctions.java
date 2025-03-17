@@ -23,7 +23,7 @@ import java.util.logging.Level;
 
 public class InstitutionFunctions {
   private static final String FORMAT_LOGGER_INSTITUTION_STRING = "%s: %s";
-  private static final String CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new Delete Institution orchestration with instance ID = ";
+  private static final String CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new DeleteInstitutionAndUser orchestration with instance ID = ";
   private final InstitutionService institutionService;
   private final UserService userService;
   private final ObjectMapper objectMapper;

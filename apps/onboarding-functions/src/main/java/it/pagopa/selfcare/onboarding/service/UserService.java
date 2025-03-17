@@ -24,6 +24,7 @@ public class UserService {
         log.debug("Deleting user {} for institution {} and product {}", userId, institutionId, productId);
         try (Response response =  userApi.deleteProducts(institutionId, productId, userId)) {
             if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                log.error("Error during user deletion: {}", response);
                 throw new GenericOnboardingException("Impossible to delete user with ID: " + userId);
             }
         }
