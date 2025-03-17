@@ -80,6 +80,30 @@ class TokenServiceDefaultTest {
   }
 
   @Test
+  void retrieveContractSignedTest() {
+    // given
+    Token token = new Token();
+    token.setContractFilename("fileName");
+    token.setType(TokenType.INSTITUTION);
+    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+        .thenReturn(Uni.createFrom().item(token));
+
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+
+    // when
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, true)
+        .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    // then
+    RestResponse<File> actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
   void retrieveAttachment() {
     final String filename = "filename";
     Token token = new Token();
