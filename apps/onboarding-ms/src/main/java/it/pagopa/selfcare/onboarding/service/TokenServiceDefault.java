@@ -12,13 +12,11 @@ import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
-
 import org.bson.Document;
 import org.jboss.resteasy.reactive.RestResponse;
 
@@ -44,21 +42,30 @@ public class TokenServiceDefault implements TokenService {
       .list();
   }
 
-  @Override
-  public Uni<RestResponse<File>> retrieveContractNotSigned(String onboardingId) {
-    return Token.findById(onboardingId)
-      .map(Token.class::cast)
-      .onItem().transformToUni(token ->
-        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId, token.getContractFilename())))
-          .runSubscriptionOn(Executors.newSingleThreadExecutor())
-          .onItem().transform(contract -> {
-            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-            response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
-            return response.build();
-          }));
-  }
+    @Override
+    public Uni<RestResponse<File>> retrieveContract(String onboardingId, boolean isSigned) {
+         return Token.findById(onboardingId)
+            .map(Token.class::cast)
+            .onItem().transformToUni(token ->
+                Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(isSigned ? token.getContractSigned() : getContractNotSigned(onboardingId, token)))
+                    .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                    .onItem().transform(contract -> {
+                        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+                        response.header("Content-Disposition", "attachment;filename=" + getContractName(token, isSigned));
+                        return response.build();
+                    }));
+    }
 
-  @Override
+    private String getContractNotSigned(String onboardingId, Token token) {
+        return String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId,
+            token.getContractFilename());
+    }
+
+    private static String getContractName(Token token, boolean isSigned) {
+        return isSigned ? token.getContractSigned() : token.getContractFilename();
+    }
+
+    @Override
   public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
     return Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), attachmentName)
       .firstResult()

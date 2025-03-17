@@ -59,7 +59,7 @@ class TokenControllerTest {
   void getContract() {
     final String onboardingId = "onboardingId";
     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
-    when(tokenService.retrieveContractNotSigned(onboardingId))
+    when(tokenService.retrieveContract(onboardingId, false))
       .thenReturn(Uni.createFrom().item(response.build()));
 
     given()

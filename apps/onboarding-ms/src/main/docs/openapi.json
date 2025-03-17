@@ -1871,6 +1871,44 @@
           "SecurityScheme" : [ ]
         } ]
       }
+    },
+    "/v1/tokens/{onboardingId}/contract-signed" : {
+      "get" : {
+        "tags" : [ "Token Controller" ],
+        "summary" : "Retrieve contract signed for a given onboarding",
+        "description" : "Downloads the contract file associated with the specified onboarding ID.",
+        "operationId" : "getContractSigned",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
     }
   },
   "components" : {
