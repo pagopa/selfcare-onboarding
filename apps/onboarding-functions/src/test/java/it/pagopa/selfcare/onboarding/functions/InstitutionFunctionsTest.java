@@ -117,7 +117,7 @@ public class InstitutionFunctionsTest {
     }
 
     @Test
-    void deleteInstitutionAndUser_invokeActivity() {
+    void deleteInstitutionAndUser_invokeActivity() throws JsonProcessingException {
         // given
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
         when(orchestrationContext.getInput(String.class)).thenReturn(institutionUserFilters);

@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.Document;
@@ -27,7 +29,9 @@ public class QueryUtils {
 
         public static final String STATUS = "status";
         public static final String PRODUCT = "productId";
+        public static final String WORKFLOW_TYPE = "workflowType";
         public static final String INSTITUTION_TAX_CODE = "institution.taxCode";
+        public static final String INSTITUTION_ID = "institution.id";
         public static final String INSTITUTION_ORIGIN = "institution.origin";
         public static final String INSTITUTION_ORIGIN_ID = "institution.originId";
         public static final String INSTITUTION_SUBUNIT_CODE = "institution.subunitCode";
@@ -67,6 +71,15 @@ public class QueryUtils {
         getOptionalForNullableAndEmpty(originId).ifPresent(value -> queryParameterMap.put(INSTITUTION_ORIGIN_ID, value));
         Optional.ofNullable(status).ifPresent(value -> queryParameterMap.put(STATUS, value.name()));
         getOptionalForNullableAndEmpty(productId).ifPresent(value -> queryParameterMap.put(PRODUCT, value));
+        return queryParameterMap;
+    }
+
+    public static Map<String, String> createMapForOnboardingUsers(String institutionId, String productId) {
+        Map<String, String> queryParameterMap = new HashMap<>();
+        queryParameterMap.put(INSTITUTION_ID, institutionId);
+        queryParameterMap.put(PRODUCT, productId);
+        queryParameterMap.put(WORKFLOW_TYPE, WorkflowType.USERS.name());
+        queryParameterMap.put(STATUS, OnboardingStatus.COMPLETED.name());
         return queryParameterMap;
     }
 

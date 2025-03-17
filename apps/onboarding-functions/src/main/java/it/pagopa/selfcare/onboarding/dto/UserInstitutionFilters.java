@@ -32,4 +32,46 @@ public class UserInstitutionFilters {
     public void setInstitutionId(String institutionId) {
         this.institutionId = institutionId;
     }
+
+    @Override
+    public String toString() {
+        return "UserInstitutionFilters{" +
+                "userId='" + userId + '\'' +
+                ", productId='" + productId + '\'' +
+                ", institutionId='" + institutionId + '\'' +
+                '}';
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String userId;
+        private String productId;
+        private String institutionId;
+
+        public Builder userId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder productId(String productId) {
+            this.productId = productId;
+            return this;
+        }
+
+        public Builder institutionId(String institutionId) {
+            this.institutionId = institutionId;
+            return this;
+        }
+
+        public UserInstitutionFilters build() {
+            UserInstitutionFilters filters = new UserInstitutionFilters();
+            filters.setUserId(this.userId);
+            filters.setProductId(this.productId);
+            filters.setInstitutionId(this.institutionId);
+            return filters;
+        }
+    }
 }
