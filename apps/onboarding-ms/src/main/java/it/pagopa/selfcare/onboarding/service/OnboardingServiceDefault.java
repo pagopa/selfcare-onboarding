@@ -1618,7 +1618,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
-    private static Uni<Long> updatOnboardingStatus(String id, OnboardingStatus status) {
+    private static Uni<Long> updateOnboardingStatus(String id, OnboardingStatus status) {
         Map<String, Object> queryParameter = Map.of("status", status.name());
         Document query = QueryUtils.buildUpdateDocument(queryParameter);
         return Onboarding.update(query)
@@ -2144,13 +2144,20 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
+    /**
+     * Set status of onboarding to DELETED. After this, it invokes onboarding-fn
+     * to delete references of users and institution
+     *
+     * @param onboardingId the id of onboarding
+     * @return number of documents that have been updated
+     */
     @Override
     public Uni<Long> deleteOnboarding(String onboardingId) {
         return Onboarding.findById(onboardingId)
                 .onItem()
                 .transform(Onboarding.class::cast)
                 .onItem()
-                .transformToUni(id -> updatOnboardingStatus(onboardingId, OnboardingStatus.DELETED))
+                .transformToUni(id -> updateOnboardingStatus(onboardingId, OnboardingStatus.DELETED))
                 .onItem()
                 .transformToUni(
                         onboarding ->
