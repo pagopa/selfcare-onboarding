@@ -161,11 +161,11 @@ public class InstitutionFunctions {
   }
 
   private void processUserDeletions(TaskOrchestrationContext ctx, Onboarding onboarding, UserInstitutionFilters filters) throws JsonProcessingException {
-    logger.info("processUserDeletions START");
+
+    logger.info("processUserDeletions started with filters: {}", filters.toString());
+
     List<String> userIds = new java.util.ArrayList<>(onboarding.getUsers().stream().map(User::getId).toList());
     userIds.addAll(userService.findByInstitutionAndProduct(onboarding.getInstitution().getId(), onboarding.getProductId()));
-
-    logger.info("userIds: {}", userIds);
 
     for (String userId : userIds) {
       filters.setUserId(userId);
@@ -178,6 +178,9 @@ public class InstitutionFunctions {
                       String.class)
               .await();
     }
+
+    logger.debug("processUserDeletions completed");
+
   }
 
 }

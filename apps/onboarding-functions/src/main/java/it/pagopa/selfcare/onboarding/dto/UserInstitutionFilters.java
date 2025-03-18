@@ -47,14 +47,8 @@ public class UserInstitutionFilters {
     }
 
     public static class Builder {
-        private String userId;
         private String productId;
         private String institutionId;
-
-        public Builder userId(String userId) {
-            this.userId = userId;
-            return this;
-        }
 
         public Builder productId(String productId) {
             this.productId = productId;
@@ -68,7 +62,6 @@ public class UserInstitutionFilters {
 
         public UserInstitutionFilters build() {
             UserInstitutionFilters filters = new UserInstitutionFilters();
-            filters.setUserId(this.userId);
             filters.setProductId(this.productId);
             filters.setInstitutionId(this.institutionId);
             return filters;

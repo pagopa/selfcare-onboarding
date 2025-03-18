@@ -54,8 +54,6 @@ class UserServiceTest {
   @Test
   void findByInstitutionAndProduct() {
     // given
-    final String institutionId = "institutionId";
-    final String productId= "productId";
     Onboarding onboarding = new Onboarding();
     Institution institution = new Institution();
     institution.setId(institutionId);
@@ -78,9 +76,6 @@ class UserServiceTest {
   @Test
   void findByInstitutionAndProduct_NotEmptyList() {
     // given
-    final String institutionId = "institutionId";
-    final String productId= "productId";
-    final String userId = "userId";
     Onboarding onboarding = new Onboarding();
     Institution institution = new Institution();
     institution.setId(institutionId);
@@ -98,6 +93,21 @@ class UserServiceTest {
     assertFalse(onboardings.isEmpty());
     assertEquals(1, onboardings.size());
     assertEquals(userId, onboardings.get(0));
+
+    Mockito.verify(onboardingRepository, times(1))
+            .findByOnboardingUsers(institutionId, productId);
+
+  }
+
+  @Test
+  void findByInstitutionAndProduct_EmptyList() {
+    // when
+    when(onboardingRepository.findByOnboardingUsers(institutionId, productId))
+            .thenReturn(List.of());
+    // then
+    List<String> onboardings = userService.findByInstitutionAndProduct(institutionId, productId);
+    assertNotNull(onboardings);
+    assertTrue(onboardings.isEmpty());
 
     Mockito.verify(onboardingRepository, times(1))
             .findByOnboardingUsers(institutionId, productId);
