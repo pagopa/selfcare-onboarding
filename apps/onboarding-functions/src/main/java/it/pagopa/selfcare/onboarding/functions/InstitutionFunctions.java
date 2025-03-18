@@ -21,12 +21,16 @@ import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.*;
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InstitutionFunctions {
+  private static final Logger logger = LoggerFactory.getLogger(InstitutionFunctions.class.getName());
   private static final String FORMAT_LOGGER_INSTITUTION_STRING = "%s: %s";
   private static final String CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new DeleteInstitutionAndUser orchestration with instance ID = ";
   private final InstitutionService institutionService;
@@ -157,8 +161,11 @@ public class InstitutionFunctions {
   }
 
   private void processUserDeletions(TaskOrchestrationContext ctx, Onboarding onboarding, UserInstitutionFilters filters) throws JsonProcessingException {
-    var userIds = userService.findByInstitutionAndProduct(onboarding.getInstitution().getId(), onboarding.getProductId());
-    userIds.addAll(onboarding.getUsers().stream().map(User::getId).toList());
+    logger.info("processUserDeletions START");
+    List<String> userIds = new java.util.ArrayList<>(onboarding.getUsers().stream().map(User::getId).toList());
+    userIds.addAll(userService.findByInstitutionAndProduct(onboarding.getInstitution().getId(), onboarding.getProductId()));
+
+    logger.info("userIds: {}", userIds);
 
     for (String userId : userIds) {
       filters.setUserId(userId);
