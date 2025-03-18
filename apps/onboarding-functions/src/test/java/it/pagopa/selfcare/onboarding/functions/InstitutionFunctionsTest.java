@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.functions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -19,6 +20,7 @@ import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.*;
 import jakarta.inject.Inject;
 import java.util.*;
@@ -147,6 +149,25 @@ public class InstitutionFunctionsTest {
 
         // then
         Mockito.verify(orchestrationContext, times(2)).callActivity(any(), any(), any(), any());
+    }
+
+    @Test
+    void deleteInstitutionAndUser_error() {
+        // given
+        final String onboardingId = "onboardingId";
+        TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
+
+        Task task = mock(Task.class);
+        when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+        when(task.await()).thenReturn("false");
+        when(orchestrationContext.allOf(anyList())).thenReturn(task);
+        when(onboardingService.getOnboarding(onboardingId)).thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> function.deleteInstitutionAndUser(orchestrationContext, executionContext));
+
     }
 
     @Test
