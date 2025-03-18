@@ -3291,6 +3291,56 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+    @Test
+    void deleteOnboarding_statusIsPENDING() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void deleteOnboarding_workflowTypeUSERS() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.setWorkflowType(WorkflowType.USERS);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void testDeleteOnboardingStatusOK() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboarding(onboarding.getId(), 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(1L);
+    }
+
     private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {
         asserter.execute(() -> {
             PanacheMock.mock(Onboarding.class);
