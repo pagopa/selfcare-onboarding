@@ -2,16 +2,12 @@ package it.pagopa.selfcare.onboarding.repository;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepositoryBase;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.utils.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.bson.Document;
-
 
 @ApplicationScoped
 public class OnboardingRepository implements PanacheMongoRepositoryBase<Onboarding, String> {

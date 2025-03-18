@@ -148,13 +148,12 @@ public class InstitutionFunctions {
   }
 
   private Onboarding getOnboarding(String onboardingId) {
-    Onboarding onboarding = onboardingService
+    return onboardingService
             .getOnboarding(onboardingId)
             .orElseThrow(
                     () ->
                             new ResourceNotFoundException(
                                     String.format("Onboarding with id %s not found!", onboardingId)));
-    return onboarding;
   }
 
   private void processUserDeletions(TaskOrchestrationContext ctx, Onboarding onboarding, UserInstitutionFilters filters) throws JsonProcessingException {

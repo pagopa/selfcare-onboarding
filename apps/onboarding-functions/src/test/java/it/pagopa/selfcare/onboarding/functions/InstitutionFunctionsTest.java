@@ -16,6 +16,9 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.service.*;
 import jakarta.inject.Inject;
 import java.util.*;
@@ -37,6 +40,9 @@ public class InstitutionFunctionsTest {
     InstitutionService institutionService;
 
     @InjectMock
+    OnboardingService onboardingService;
+
+    @InjectMock
     UserService userService;
 
     final String institutionUserFilters = "{\"userId\":\"userId\",\"productId\":\"productId\",\"institutionId\":\"institutionId\"}";
@@ -49,20 +55,21 @@ public class InstitutionFunctionsTest {
     }
 
     @Test
-    void deleteInstitutionAndUser_validBody_returnsAccepted() {
-        // Mock HttpRequestMessage with valid body
+    void deleteInstitutionAndUser_validRequest_returnsAccepted() {
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        doReturn(Optional.of(institutionUserFilters)).when(req).getBody();
 
-        doAnswer(
-                (Answer<HttpResponseMessage.Builder>)
-                        invocation -> {
-                            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
-                                    .status(status);
-                        })
-                .when(req)
-                .createResponseBuilder(any(HttpStatus.class));
+        final Map<String, String> queryParams = new HashMap<>();
+        final String onboardingId = "onboardingId";
+        queryParams.put("onboardingId", onboardingId);
+        doReturn(queryParams).when(req).getQueryParameters();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
 
         final DurableClientContext durableContext = mock(DurableClientContext.class);
         final DurableTaskClient client = mock(DurableTaskClient.class);
@@ -71,7 +78,7 @@ public class InstitutionFunctionsTest {
         doReturn(client).when(durableContext).getClient();
         doReturn(instanceId)
                 .when(client)
-                .scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", institutionUserFilters);
+                .scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", onboardingId);
         when(durableContext.createCheckStatusResponse(any(), any()))
                 .thenReturn(
                         new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
@@ -87,20 +94,16 @@ public class InstitutionFunctionsTest {
     }
 
     @Test
-    void deleteInstitutionAndUser_emptyBody_returnsBadRequest() {
+    void deleteInstitutionAndUser_emptyRequest_returnsBadRequest() {
         // Mock HttpRequestMessage with empty body
         final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
-        doReturn(Optional.empty()).when(req).getBody();
+        final Map<String, String> queryParams = new HashMap<>();
+        doReturn(queryParams).when(req).getQueryParameters();
 
-        doAnswer(
-                (Answer<HttpResponseMessage.Builder>)
-                        invocation -> {
-                            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
-                            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock()
-                                    .status(status);
-                        })
-                .when(req)
-                .createResponseBuilder(any(HttpStatus.class));
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
 
         final ExecutionContext context = mock(ExecutionContext.class);
         doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -113,19 +116,31 @@ public class InstitutionFunctionsTest {
 
         // Verify
         assertEquals(HttpStatus.BAD_REQUEST.value(), responseMessage.getStatusCode());
-        assertEquals("Body can't be empty", responseMessage.getBody());
+        assertEquals("onboardingId can't be null or empty", responseMessage.getBody());
     }
 
     @Test
     void deleteInstitutionAndUser_invokeActivity() throws JsonProcessingException {
         // given
+        final String onboardingId = "onboardingId";
+        final String productId = "productId";
         TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
-        when(orchestrationContext.getInput(String.class)).thenReturn(institutionUserFilters);
+        when(orchestrationContext.getInput(String.class)).thenReturn(onboardingId);
 
         Task task = mock(Task.class);
         when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
         when(task.await()).thenReturn("false");
         when(orchestrationContext.allOf(anyList())).thenReturn(task);
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        Institution institution = new Institution();
+        institution.setId("institutionId");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId(productId);
+        User user = new User();
+        user.setId("userId");
+        onboarding.setUsers(List.of(user));
+        when(onboardingService.getOnboarding(onboardingId)).thenReturn(Optional.of(onboarding));
 
         // when
         function.deleteInstitutionAndUser(orchestrationContext, executionContext);
