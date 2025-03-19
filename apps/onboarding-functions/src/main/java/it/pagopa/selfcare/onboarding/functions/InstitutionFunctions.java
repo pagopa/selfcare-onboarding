@@ -74,7 +74,7 @@ public class InstitutionFunctions {
               .build();
     }
     DurableTaskClient client = durableContext.getClient();
-    String instanceId = client.scheduleNewOrchestrationInstance("DeleteInstitutionAndUser", onboardingId);
+    String instanceId = client.scheduleNewOrchestrationInstance("DeleteInstitutionAndUserOnboarding", onboardingId);
     context.getLogger().info(() -> String.format("%s %s", CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
 
     return durableContext.createCheckStatusResponse(request, instanceId);
@@ -83,7 +83,7 @@ public class InstitutionFunctions {
   /**
    * This function is the orchestrator that manages the deletion of user and institution
    */
-  @FunctionName("DeleteInstitutionAndUser")
+  @FunctionName("DeleteInstitutionAndUserOnboarding")
   public void deleteInstitutionAndUser(
     @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
     ExecutionContext functionContext) throws JsonProcessingException {
@@ -98,7 +98,7 @@ public class InstitutionFunctions {
     String filtersString = objectMapper.writeValueAsString(filters);
 
     ctx.callActivity(
-                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                    DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME,
                     filtersString,
                     optionsRetry,
                     String.class)
@@ -110,7 +110,7 @@ public class InstitutionFunctions {
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
-  @FunctionName(DELETE_INSTITUTION_ACTIVITY_NAME)
+  @FunctionName(DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME)
   public void deleteInstitution(
           @DurableActivityTrigger(name = "filtersString") String filtersString,
           final ExecutionContext context) throws JsonProcessingException {
@@ -120,14 +120,14 @@ public class InstitutionFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_INSTITUTION_STRING,
-                                    DELETE_INSTITUTION_ACTIVITY_NAME,
+                                    DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME,
                                     filtersString));
     UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
     institutionService.deleteByIdAndProductId(filters.getInstitutionId(), filters.getProductId());
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
-  @FunctionName(DELETE_USER_ACTIVITY_NAME)
+  @FunctionName(DELETE_USER_ONBOARDING_ACTIVITY_NAME)
   public void deleteUser(
           @DurableActivityTrigger(name = "filtersString") String filtersString,
           final ExecutionContext context) throws JsonProcessingException {
@@ -137,7 +137,7 @@ public class InstitutionFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_INSTITUTION_STRING,
-                                    DELETE_USER_ACTIVITY_NAME,
+                                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
                                     filtersString));
     UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
     userService.deleteByIdAndInstitutionIdAndProductId(filters.getUserId(), filters.getInstitutionId(), filters.getProductId());
@@ -172,7 +172,7 @@ public class InstitutionFunctions {
       var enrichedFilters = objectMapper.writeValueAsString(filters);
 
       ctx.callActivity(
-                      DELETE_USER_ACTIVITY_NAME,
+                      DELETE_USER_ONBOARDING_ACTIVITY_NAME,
                       enrichedFilters,
                       optionsRetry,
                       String.class)
