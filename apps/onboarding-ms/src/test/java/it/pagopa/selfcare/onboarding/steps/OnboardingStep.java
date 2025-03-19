@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -31,7 +30,6 @@ import it.pagopa.selfcare.onboarding.entity.User;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -132,11 +130,9 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @Given("I have an invalid request object with attributes")
-  public void givenInvalidRequest(DataTable dataTable) {
-    List<Map<String, String>> data = dataTable.asMaps(String.class, String.class);
-    Map<String, String> attributes = data.get(0);
-    OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-    request.setProductId(attributes.get("productId"));
+  public void givenInvalidRequest(String onboardingRequest) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
+    assertNotNull(request);
   }
 
   @Given("I have a request object")
@@ -166,25 +162,9 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   @When("I send a POST request to {string} with the request body")
   @TestSecurity(user = "testUser", roles = {"admin", "user"})
-  public void doCallApi(String url, DataTable dataTable) {
-    List<Map<String, String>> data = dataTable.asMaps(String.class, String.class);
-    Map<String, String> attributes = data.get(0);
-    OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-    request.setProductId(attributes.get("productId"));
-    validatableResponse =
-            given()
-                    .header("Authorization", "Bearer " + tokenTest)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
-                    .when()
-                    .post(url)
-                    .then();
-  }
-
-  @When("I send a valid POST request to {string} with the request body")
-  @TestSecurity(user = "testUser", roles = {"admin", "user"})
-  public void doCallApi(String url, String requestBody) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+  public void doCallApi(String url, String onboardingRequest) throws JsonProcessingException {
+    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
+    assertNotNull(request);
     validatableResponse =
             given()
                     .header("Authorization", "Bearer " + tokenTest)
@@ -267,4 +247,5 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
     return onboarding;
   }
+
 }
