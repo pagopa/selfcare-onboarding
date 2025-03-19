@@ -145,7 +145,7 @@ public class InstitutionFunctionsTest {
         when(onboardingService.getOnboarding(onboardingId)).thenReturn(Optional.of(onboarding));
 
         // when
-        function.deleteInstitutionAndUser(orchestrationContext, executionContext);
+        function.deleteInstitutionAndUserOnboarding(orchestrationContext, executionContext);
 
         // then
         Mockito.verify(orchestrationContext, times(2)).callActivity(any(), any(), any(), any());
@@ -166,7 +166,7 @@ public class InstitutionFunctionsTest {
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> function.deleteInstitutionAndUser(orchestrationContext, executionContext));
+                () -> function.deleteInstitutionAndUserOnboarding(orchestrationContext, executionContext));
 
     }
 
@@ -175,7 +175,7 @@ public class InstitutionFunctionsTest {
 
         doNothing().when(institutionService).deleteByIdAndProductId(any(), any());
 
-        function.deleteInstitution(institutionUserFilters, executionContext);
+        function.deleteInstitutionOnboarding(institutionUserFilters, executionContext);
 
         verify(institutionService, times(1)).deleteByIdAndProductId(any(), any());
     }
@@ -185,7 +185,7 @@ public class InstitutionFunctionsTest {
 
         doNothing().when(userService).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
 
-        function.deleteUser(institutionUserFilters, executionContext);
+        function.deleteUserOnboarding(institutionUserFilters, executionContext);
 
         verify(userService, times(1)).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
     }

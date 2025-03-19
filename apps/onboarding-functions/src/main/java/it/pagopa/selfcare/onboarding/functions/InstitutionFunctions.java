@@ -84,7 +84,7 @@ public class InstitutionFunctions {
    * This function is the orchestrator that manages the deletion of user and institution
    */
   @FunctionName("DeleteInstitutionAndUserOnboarding")
-  public void deleteInstitutionAndUser(
+  public void deleteInstitutionAndUserOnboarding(
     @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
     ExecutionContext functionContext) throws JsonProcessingException {
 
@@ -111,7 +111,7 @@ public class InstitutionFunctions {
 
   /** This is the activity function that gets invoked by the orchestrator function. */
   @FunctionName(DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME)
-  public void deleteInstitution(
+  public void deleteInstitutionOnboarding(
           @DurableActivityTrigger(name = "filtersString") String filtersString,
           final ExecutionContext context) throws JsonProcessingException {
     context
@@ -128,7 +128,7 @@ public class InstitutionFunctions {
 
   /** This is the activity function that gets invoked by the orchestrator function. */
   @FunctionName(DELETE_USER_ONBOARDING_ACTIVITY_NAME)
-  public void deleteUser(
+  public void deleteUserOnboarding(
           @DurableActivityTrigger(name = "filtersString") String filtersString,
           final ExecutionContext context) throws JsonProcessingException {
     context
