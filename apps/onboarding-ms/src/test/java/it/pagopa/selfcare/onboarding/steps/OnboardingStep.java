@@ -28,13 +28,11 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
-
+import jakarta.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -114,6 +112,12 @@ public class OnboardingStep extends CucumberQuarkusTest {
     assertEquals(statusCode, validatableResponse.extract().statusCode());
   }
 
+  @Then("the response should contain the text {string}")
+  public void verifyResponseText(String expectedText) {
+    String responseBody = validatableResponse.extract().body().asString();
+    assertTrue(responseBody.contains(expectedText), "Response does not contain expected text");
+  }
+
   @Given("I have an empty request object")
   public void givenEmptyRequst() {
     OnboardingDefaultRequest request = new OnboardingDefaultRequest();
@@ -151,11 +155,13 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @TestSecurity(user = "testUser", roles = {"admin", "user"})
   public void doCallApi(String url) {
     validatableResponse =
-            given()
-                    .header("Authorization", "Bearer " + tokenTest)
-                    .when()
-                    .post(url)
-                    .then();
+        given()
+            .header("Authorization", "Bearer " + tokenTest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(new OnboardingDefaultRequest())
+            .when()
+            .post(url)
+            .then();
   }
 
   @When("I send a POST request to {string} with the request body")
@@ -168,6 +174,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     validatableResponse =
             given()
                     .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .body(request)
                     .when()
                     .post(url)
