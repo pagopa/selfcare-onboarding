@@ -51,7 +51,7 @@ public class TokenServiceDefault implements TokenService {
                     .runSubscriptionOn(Executors.newSingleThreadExecutor())
                     .onItem().transform(contract -> {
                         RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-                        response.header("Content-Disposition", "attachment;filename=" + getContractName(token, isSigned));
+                        response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, isSigned));
                         return response.build();
                     }));
     }
@@ -61,10 +61,15 @@ public class TokenServiceDefault implements TokenService {
             token.getContractFilename());
     }
 
-    private static String getContractName(Token token, boolean isSigned) {
-        return isSigned ? token.getContractSigned() : token.getContractFilename();
+    private static String getCurrentContractName(Token token, boolean isSigned) {
+        return isSigned ? getContractSignedName(token) : token.getContractFilename();
     }
 
+    private static String getContractSignedName(Token token) {
+        File file = new File(token.getContractSigned());
+        return file.getName();
+    }
+    
     @Override
   public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
     return Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), attachmentName)

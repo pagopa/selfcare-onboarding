@@ -83,7 +83,7 @@ class TokenServiceDefaultTest {
   void retrieveContractSignedTest() {
     // given
     Token token = new Token();
-    token.setContractFilename("fileName");
+    token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.pdf");
     token.setType(TokenType.INSTITUTION);
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
