@@ -1281,6 +1281,37 @@
         "security" : [ {
           "SecurityScheme" : [ ]
         } ]
+      },
+      "delete" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Perform delete operation of an onboarding request",
+        "description" : "Perform delete operation of an onboarding request receiving onboarding id.Function change status to DELETED for an onboarding request. ",
+        "operationId" : "delete",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
       }
     },
     "/v1/onboarding/{onboardingId}/approve" : {
