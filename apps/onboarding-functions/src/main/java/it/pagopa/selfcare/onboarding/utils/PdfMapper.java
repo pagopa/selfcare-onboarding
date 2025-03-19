@@ -1,19 +1,18 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
+
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
 
 public class PdfMapper {
 
@@ -77,6 +76,9 @@ public class PdfMapper {
     map.put("managerName", getStringValue(manager.getName()));
     map.put("managerSurname", getStringValue(manager.getFamilyName()));
     map.put("originId", Optional.ofNullable(institution.getOriginId()).orElse(UNDERSCORE));
+    map.put("institutionCity", Optional.ofNullable(institution.getCity()).orElse("__"));
+    map.put("institutionCountry", Optional.ofNullable(institution.getCountry()).orElse("__"));
+    map.put("institutionCounty", Optional.ofNullable(institution.getCounty()).orElse("__"));
     map.put("institutionMail", institution.getDigitalAddress());
     map.put("managerTaxCode", manager.getFiscalCode());
     map.put("managerEmail", mailManager);
@@ -176,6 +178,8 @@ public class PdfMapper {
       map.put("dataProtectionOfficerPec", institution.getDataProtectionOfficer().getPec());
     }
 
+    appendRecipientCode(map, onboarding.getBilling());
+
     /* set manager PEC */
     onboarding.getUsers().stream()
         .filter(user -> validManager.getId().toString().equals(user.getId()))
@@ -225,9 +229,7 @@ public class PdfMapper {
         "originIdLabelValue", Origin.IPA.equals(institution.getOrigin()) ? ORIGIN_ID_LABEL : "");
 
     addInstitutionRegisterLabelValue(institution, map);
-    if (onboarding.getBilling() != null) {
-      map.put(INSTITUTION_RECIPIENT_CODE, onboarding.getBilling().getRecipientCode());
-    }
+    appendRecipientCode(map, onboarding.getBilling());
 
     map.put(
         "GPSinstitutionName",
@@ -476,5 +478,11 @@ public class PdfMapper {
     return Optional.ofNullable(resourceOfString)
         .map(CertifiableFieldResourceOfstring::getValue)
         .orElse("");
+  }
+
+  private static void appendRecipientCode(Map<String, Object> map, Billing billing) {
+    if (Objects.nonNull(billing)) {
+      map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
+    }
   }
 }

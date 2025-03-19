@@ -164,7 +164,7 @@ app_settings = [
   },
   {
     name  = "SPID_LOGS_STORAGE_CONTAINER_NAME"
-    value = "selc-p-logs-blob"
+    value = "selc-p-weu-pnpg-logs-blob"
   },
   {
     name  = "APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL"
