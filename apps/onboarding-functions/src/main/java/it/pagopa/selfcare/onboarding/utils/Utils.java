@@ -13,13 +13,12 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.FunctionOrchestratedException;
-import org.apache.commons.lang3.StringUtils;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
+import org.apache.commons.lang3.StringUtils;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 public class Utils {
 

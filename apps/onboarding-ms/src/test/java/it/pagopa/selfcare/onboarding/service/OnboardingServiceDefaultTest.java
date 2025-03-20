@@ -1,5 +1,18 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
+
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -42,6 +55,9 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -65,23 +81,6 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -2979,28 +2978,6 @@ class OnboardingServiceDefaultTest {
         assertFalse(checkResponse.isResponse());
     }
 
-    /*@Test
-    void testCheckManagerWithRemovedUser() {
-        OnboardingUserRequest request = createDummyUserRequest();
-        PanacheMock.mock(Onboarding.class);
-        Onboarding onboarding = createDummyOnboarding();
-        onboarding.getUsers().get(0).setRole(PartyRole.OPERATOR);
-        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find((Document) any(), any())).thenReturn(query);
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-        when(userRegistryApi.searchUsingPOST(any(), any()))
-                .thenReturn(Uni.createFrom().item(userResource));
-
-        UniAssertSubscriber<CheckManagerResponse> subscriber = onboardingService
-                .checkManager(request)
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertFailedWith(ResourceNotFoundException.class);
-    }*/
-
     @Test
     void testCheckManagerWithEmptyUserList() {
         final UUID uuid = UUID.randomUUID();
@@ -3289,6 +3266,72 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
+    }
+
+    @Test
+    void deleteOnboarding_statusIsPENDING() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void deleteOnboarding_workflowTypeUSERS() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.setWorkflowType(WorkflowType.USERS);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void testDeleteOnboardingStatusOK() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboarding(onboarding.getId(), 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(1L);
+    }
+
+    @Test
+    void testDeleteOnboardingNotFoundOrAlreadyDeleted() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+        mockUpdateOnboarding(onboarding.getId(), 0L);
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
     private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {

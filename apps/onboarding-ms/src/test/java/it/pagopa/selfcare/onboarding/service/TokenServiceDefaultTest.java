@@ -1,8 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.common.TokenType.INSTITUTION;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,23 +20,16 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.inject.Inject;
-
 import java.io.File;
 import java.util.*;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -80,9 +71,33 @@ class TokenServiceDefaultTest {
 
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContractNotSigned(onboardingId)
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, false)
       .subscribe().withSubscriber(UniAssertSubscriber.create());
 
+    RestResponse<File> actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
+  void retrieveContractSignedTest() {
+    // given
+    Token token = new Token();
+    token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.pdf");
+    token.setType(TokenType.INSTITUTION);
+    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+        .thenReturn(Uni.createFrom().item(token));
+
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+
+    // when
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, true)
+        .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
     assertNotNull(actual);
     assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());

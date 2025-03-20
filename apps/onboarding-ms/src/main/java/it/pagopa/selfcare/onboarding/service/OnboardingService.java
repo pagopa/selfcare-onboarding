@@ -63,6 +63,8 @@ public interface OnboardingService {
 
     Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject);
 
+    Uni<Long> deleteOnboarding(String onboardingId);
+
     Uni<OnboardingGet> onboardingPending(String onboardingId);
 
     Uni<List<OnboardingResponse>> institutionOnboardings(
