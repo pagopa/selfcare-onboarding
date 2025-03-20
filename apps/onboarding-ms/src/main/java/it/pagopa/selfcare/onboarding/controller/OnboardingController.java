@@ -599,9 +599,10 @@ public class OnboardingController {
     }
 
     @Operation(summary = "Perform delete operation of an onboarding request",
-            description = "Perform delete operation of an onboarding request receiving onboarding id." +
-                    "Function change status to DELETED for an onboarding request. ")
+            description = "Perform delete operation of an onboarding request receiving onboarding id," +
+                    "then invokes async process to set DELETED as status for institution and user onboardings.")
     @DELETE
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}")
     public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {

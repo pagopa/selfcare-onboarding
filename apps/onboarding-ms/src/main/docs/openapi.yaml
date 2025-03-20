@@ -926,10 +926,11 @@ paths:
       - SecurityScheme: []
     delete:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: Perform delete operation of an onboarding request
-      description: 'Perform delete operation of an onboarding request receiving onboarding
-        id.Function change status to DELETED for an onboarding request. '
+      description: "Perform delete operation of an onboarding request receiving onboarding\
+        \ id,then invokes async process to set DELETED as status for institution and\
+        \ user onboardings."
       operationId: delete
       parameters:
       - name: onboardingId
