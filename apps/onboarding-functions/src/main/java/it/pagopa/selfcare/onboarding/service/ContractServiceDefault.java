@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.StringSubstitutor;
@@ -310,7 +312,7 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding, baseUrl);
         // Customize data based on the product and institution type.
-        if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId)
+        if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
                 && InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
