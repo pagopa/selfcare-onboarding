@@ -30,7 +30,8 @@ public class IntegrationProfile implements QuarkusTestProfile {
                     .password("test")
                     .jwtHeader(buildJwtHeader())
                     .jwtPayload(buildJwtPayload())
-                    .build())));
+                    .build())),
+            "MS_PARTY_REGISTRY_URL", "https://selc-d-party-reg-proxy-ca.whitemoss-eb7ef327.westeurope.azurecontainerapps.io");
   }
 
   private String getPublicKey() {

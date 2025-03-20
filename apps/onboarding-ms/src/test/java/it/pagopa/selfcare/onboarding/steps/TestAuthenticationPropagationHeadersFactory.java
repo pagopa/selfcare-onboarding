@@ -1,0 +1,22 @@
+package it.pagopa.selfcare.onboarding.steps;
+
+import it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.ws.rs.core.MultivaluedMap;
+
+import java.util.List;
+
+@Alternative
+@Priority(1)
+@ApplicationScoped
+public class TestAuthenticationPropagationHeadersFactory extends AuthenticationPropagationHeadersFactory {
+    private static final String TEST_TOKEN = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imp3dF9hMjo3YTo0NjozYjoyYTo2MDo1Njo0MDo4ODphMDo1ZDphNDpmODowMToxZTozZSJ9.eyJmYW1pbHlfbmFtZSI6IlNhcnRvcmkiLCJmaXNjYWxfbnVtYmVyIjoiU1JUTkxNMDlUMDZHNjM1UyIsIm5hbWUiOiJBbnNlbG1vIiwic3BpZF9sZXZlbCI6Imh0dHBzOi8vd3d3LnNwaWQuZ292Lml0L1NwaWRMMiIsImZyb21fYWEiOmZhbHNlLCJ1aWQiOiI1MDk2ZTRjNi0yNWExLTQ1ZDUtOWJkZi0yZmI5NzRhN2MxYzgiLCJsZXZlbCI6IkwyIiwiaWF0IjoxNzQyNDY4ODU4LCJleHAiOjE3NDI1MDEyNTgsImF1ZCI6ImFwaS5kZXYuc2VsZmNhcmUucGFnb3BhLml0IiwiaXNzIjoiU1BJRCIsImp0aSI6Il8zOWExOTkxMDM3NmU2NmIzYzY4ZiJ9.IdmYO_0MamGx6-UIoMDI6w1MfCNvEivegebBc0m8ySyEXjxbdfEBHkcOJZO-tYvNbruO1XFnbcnpFqUxkDZFL27aGOuBhbIFIBDscCjEGB0cJnDGeOZkW7XP6oP_PI4pplwGK2jtFCezFzbbrr5JJfGYRWoe_Kv_PS-p-Bs1qntDaIqD_-cDyXEms1V4saKAQyPyj1aiKWCGl2RvekHSz_8EL9h_HC4nct4fR0na2INLH-priFSoMWF3tnCYc8kl-tckyQGkV167eerL-VZii3JWJzT0Kg2IzVI_OxHUn4h-sxQ3yg6yijcwQLRZT1k8_LYW5jIV44hz4Fz_fqUXQg";
+
+    @Override
+    public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
+        clientOutgoingHeaders.put("Authorization", List.of(TEST_TOKEN));
+        return clientOutgoingHeaders;
+    }
+}

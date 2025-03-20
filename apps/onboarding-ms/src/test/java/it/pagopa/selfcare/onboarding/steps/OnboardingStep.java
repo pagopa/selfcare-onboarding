@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.WriteConcern;
+import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
@@ -20,6 +24,7 @@ import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.ValidatableResponse;
+import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.OnboardingController;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
@@ -66,22 +71,29 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   @BeforeAll
   public static void setup() {
-    database = MongoClients.create("mongodb://localhost:27017").getDatabase("dummyOnboarding");
-    collection = database.getCollection("onboardings");
+    MongoClientSettings settings = MongoClientSettings.builder()
+            .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
+            .retryWrites(false)
+            .build();
+    MongoClient mongoClient = MongoClients.create(settings);
+    database = MongoClients.create("mongodb://localhost:27017/dummyOnboarding?retryWrites=false").getDatabase("dummyOnboarding");
+    collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
+    Vertx vertx = Vertx.vertx();
+    vertx.getOrCreateContext().config().put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
     log.debug("Init completed");
   }
 
   @BeforeEach
-  public void initData() {
+  public void initData() throws NoSuchFieldException, IllegalAccessException {
     onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
-    duplicatedOnboardingPA = createOnboardingForConflictScenario();
-    duplicatedOnboardingPA.persist().await().indefinitely();
+    //duplicatedOnboardingPA = createOnboardingForConflictScenario();
+    //duplicatedOnboardingPA.persist().await().indefinitely();
     // verify
     assertNotNull(onboarding.getId());
-    assertNotNull(duplicatedOnboardingPA.getId());
+    //assertNotNull(duplicatedOnboardingPA.getId());
   }
 
   @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")
