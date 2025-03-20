@@ -43,4 +43,23 @@ class OnboardingRepositoryTest {
         assertFalse(onboardings.isEmpty());
     }
 
+    @Test
+    void findByOnboardingUsers() {
+        final String institutionId = "institutionId";
+        final String productId = "productId";
+        PanacheQuery<Onboarding> panacheQuery = mock(PanacheQuery.class);
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId("id");
+        when(panacheQuery.stream()).thenReturn(Stream.of(onboarding));
+        Mockito.when(onboardingRepository.find(any()))
+                .thenReturn(panacheQuery);
+        Mockito.when(panacheQuery.list())
+                .thenReturn(List.of(onboarding));
+
+        // Instruct mockito to call real method that you are testing
+        Mockito.when(onboardingRepository.findByOnboardingUsers(institutionId, productId)).thenCallRealMethod();
+        List<Onboarding> onboardings = onboardingRepository.findByOnboardingUsers(institutionId, productId);
+        assertFalse(onboardings.isEmpty());
+    }
+
 }
