@@ -33,17 +33,7 @@ import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HEAD;
-import jakarta.ws.rs.InternalServerErrorException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -606,5 +596,19 @@ public class OnboardingController {
             .onItem().transformToUni(userId -> onboardingService
                 .onboardingAggregationImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
                     onboardingRequest.getOnboardingImportContract(), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+    }
+
+    @Operation(summary = "Perform delete operation of an onboarding request",
+            description = "Perform delete operation of an onboarding request receiving onboarding id, " +
+                    "then invokes async process to set DELETED as status for institution and user onboardings.")
+    @DELETE
+    @Tag(name = "internal-v1")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{onboardingId}")
+    public Uni<Response> deleteOnboarding(@PathParam(value = "onboardingId") String onboardingId) {
+        return onboardingService.deleteOnboarding(onboardingId)
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
     }
 }

@@ -5,6 +5,5 @@ import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import java.util.List;
 
 public interface InstitutionService {
-
     Multi<InstitutionResponse> getInstitutions(List<String> institutionIds);
 }
