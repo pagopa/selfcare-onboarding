@@ -605,7 +605,7 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{onboardingId}")
-    public Uni<Response> delete(@PathParam(value = "onboardingId") String onboardingId) {
+    public Uni<Response> deleteOnboarding(@PathParam(value = "onboardingId") String onboardingId) {
         return onboardingService.deleteOnboarding(onboardingId)
                 .map(ignore -> Response
                         .status(HttpStatus.SC_NO_CONTENT)
