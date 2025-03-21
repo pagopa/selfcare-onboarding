@@ -929,9 +929,9 @@ paths:
       - internal-v1
       summary: Perform delete operation of an onboarding request
       description: "Perform delete operation of an onboarding request receiving onboarding\
-        \ id,then invokes async process to set DELETED as status for institution and\
-        \ user onboardings."
-      operationId: delete
+        \ id, then invokes async process to set DELETED as status for institution\
+        \ and user onboardings."
+      operationId: deleteOnboarding
       parameters:
       - name: onboardingId
         in: path
