@@ -110,6 +110,62 @@ Feature: Onboarding collection
     Then the response status code should be 400
     And the response should contain the text "at least one user is required"
 
+  Scenario: Can't perform onboarding request with missing digitalAddress attribute
+    Given I have an invalid request object with attributes
+           """
+           {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                  "originId": "originId",
+                  "origin": "IVASS"
+               }
+           }
+           """
+    When I send a POST request to "/pa" with the request body
+           """
+           {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                  "originId": "originId",
+                  "origin": "IVASS"
+               }
+           }
+           """
+    Then the response status code should be 400
+    And the response should contain the text "digitalAddress is required"
+
   Scenario: Successfully store onboarding in status REQUEST
     Given I have a request object
            """
@@ -207,7 +263,7 @@ Feature: Onboarding collection
           """
     Then the response status code should be 200
 
-  Scenario: Can't perform onboarding for the same product,taxCode and workflowType
+  Scenario: Can't perform onboarding for the same product, taxCode and workflowType
     Given I have a valid request object
              """
              {
@@ -301,7 +357,7 @@ Feature: Onboarding collection
     Then the response status code should be 409
 
   Scenario: Can't perform onboarding request for invalid digitalAddress (different from IPA registry one)
-    Given I have a request object with wrong digitalAddress:
+    Given I have a request object
         """
          {
                "productId": "prod-io",
@@ -348,7 +404,7 @@ Feature: Onboarding collection
                }
            }
         """
-    When I send a POST request to "/onboarding/pa" with body:
+    When I send a POST request to "/pa" with the request body
       """
          {
                "productId": "prod-io",
@@ -398,7 +454,7 @@ Feature: Onboarding collection
     Then the response status code should be 400
 
   Scenario: Can't perform onboarding request for invalid recipient code (different from IPA registry one)
-    Given I have an invalid request object for wrong recipient code:
+    Given I have a request object
         """
           {
                          "productId": "prod-io",
@@ -445,7 +501,7 @@ Feature: Onboarding collection
                          }
           }
           """
-    When I send a POST request to "/onboarding/pa" with body:
+    When I send a POST request to "/pa" with the request body
         """
           {
                          "productId": "prod-io",
@@ -495,7 +551,7 @@ Feature: Onboarding collection
     Then the response status code should be 400
 
   Scenario: Successfully perform onboarding request for AOO
-    Given I have a request object for AOO:
+    Given I have a request object
         """
         {
                "productId": "prod-io",
@@ -544,7 +600,7 @@ Feature: Onboarding collection
                }
            }
         """
-    When I send a POST request for AOO to "/onboarding/pa" with body
+    When I send a POST request to "/pa" with the request body
       """
         {
                "productId": "prod-io",
@@ -596,7 +652,7 @@ Feature: Onboarding collection
     Then the response status code should be 200
 
   Scenario: Successfully perform onboarding request for UO
-    Given I have a request object for UO:
+    Given I have a request object
         """
         {
                "productId": "prod-io",
@@ -645,7 +701,7 @@ Feature: Onboarding collection
                }
            }
         """
-    When I send a POST request for UO to "/onboarding/pa" with body
+    When I send a POST request to "/pa" with the request body
       """
         {
                "productId": "prod-io",

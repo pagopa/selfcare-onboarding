@@ -71,11 +71,6 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   @BeforeAll
   public static void setup() {
-    MongoClientSettings settings = MongoClientSettings.builder()
-            .applyConnectionString(new ConnectionString("mongodb://localhost:27017"))
-            .retryWrites(false)
-            .build();
-    MongoClient mongoClient = MongoClients.create(settings);
     database = MongoClients.create("mongodb://localhost:27017/dummyOnboarding?retryWrites=false").getDatabase("dummyOnboarding");
     collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
@@ -89,11 +84,11 @@ public class OnboardingStep extends CucumberQuarkusTest {
   public void initData() throws NoSuchFieldException, IllegalAccessException {
     onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
-    //duplicatedOnboardingPA = createOnboardingForConflictScenario();
-    //duplicatedOnboardingPA.persist().await().indefinitely();
+    duplicatedOnboardingPA = createOnboardingForConflictScenario();
+    duplicatedOnboardingPA.persist().await().indefinitely();
     // verify
     assertNotNull(onboarding.getId());
-    //assertNotNull(duplicatedOnboardingPA.getId());
+    assertNotNull(duplicatedOnboardingPA.getId());
   }
 
   @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")
