@@ -548,7 +548,8 @@ Feature: Onboarding collection
                          }
           }
         """
-    Then the response status code should be 400
+    Then the response status code should be 404
+    And the response should contain the text "UO UFO5PP not found"
 
   Scenario: Successfully perform onboarding request for AOO
     Given I have a request object
