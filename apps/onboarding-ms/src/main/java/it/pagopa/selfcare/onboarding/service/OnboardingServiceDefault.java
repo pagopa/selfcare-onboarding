@@ -1,5 +1,13 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -44,6 +52,14 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -66,21 +82,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -200,7 +201,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setExpiringDate(
                 OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
-        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, true);
     }
@@ -247,7 +248,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingResponse> onboardingPgCompletion(
             Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
-        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboarding(
                 onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
@@ -259,7 +260,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
         onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
-        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
@@ -271,7 +272,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
         onboarding.setWorkflowType(WorkflowType.IMPORT_AGGREGATION);
-        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboardingForImport(
                 onboarding, userRequests, aggregates, contractImported);
@@ -287,7 +288,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             OnboardingImportContract contractImported) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
-        onboarding.setStatus(OnboardingStatus.PENDING);
+        onboarding.setStatus(PENDING);
         return fillUsersAndOnboardingForImport(
                 onboarding, userRequests, null, contractImported);
     }
@@ -1473,7 +1474,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return onboardingGet(onboardingId)
                 .flatMap(
                         onboardingGet ->
-                                OnboardingStatus.PENDING.name().equals(onboardingGet.getStatus())
+                                PENDING.name().equals(onboardingGet.getStatus())
                                         || OnboardingStatus.TOBEVALIDATED.name().equals(onboardingGet.getStatus())
                                         ? Uni.createFrom().item(onboardingGet)
                                         : Uni.createFrom()
@@ -1618,6 +1619,23 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
+    private static Uni<Long> updateOnboardingStatus(String id, Map<String, Object> queryParameter) {
+        Document query = QueryUtils.buildUpdateDocument(queryParameter);
+        return Onboarding.update(query)
+                .where("_id", id)
+                .onItem()
+                .transformToUni(
+                        updateItemCount -> {
+                            if (updateItemCount == 0) {
+                                return Uni.createFrom()
+                                        .failure(
+                                                new InvalidRequestException(
+                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, id)));
+                            }
+                            return Uni.createFrom().item(updateItemCount);
+                        });
+    }
+
     private Uni<InstitutionResponse> getInstitutionFromUserRequest(OnboardingUserRequest request) {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
@@ -1736,21 +1754,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         response.setResponse(false);
                                                         return Uni.createFrom().item(response);
                                                     }
-
-                                                    // If the list of onboardings filtered by manager's role is empty, the
-                                                    // response is 404
-                                                    /*if (onboardings.stream()
-                                                            .noneMatch(
-                                                                    onboarding ->
-                                                                            onboarding.getUsers().stream()
-                                                                                    .map(User::getRole)
-                                                                                    .toList()
-                                                                                    .contains(PartyRole.MANAGER))) {
-                                                        return Uni.createFrom()
-                                                                .failure(
-                                                                        new ResourceNotFoundException(
-                                                                                "No manager found for the data in input"));
-                                                    }*/
 
                                                     String institutionId = onboardings.get(0).getInstitution().getId();
                                                     return isUserActiveManager(
@@ -2124,5 +2127,40 @@ public class OnboardingServiceDefault implements OnboardingService {
 
                             return Uni.createFrom().failure(ex);
                         });
+    }
+
+    /**
+     * Set status of onboarding to DELETED. After this, it invokes onboarding-fn
+     * to delete references of users and institution
+     *
+     * @param onboardingId the id of onboarding
+     * @return number of documents that have been updated
+     */
+    @Override
+    public Uni<Long> deleteOnboarding(String onboardingId) {
+        return Onboarding.findById(onboardingId)
+                .onItem()
+                .transform(Onboarding.class::cast)
+                .onItem()
+                .transformToUni(
+                        onboardingGet ->
+                                PENDING.equals(onboardingGet.getStatus()) || USERS.equals(onboardingGet.getWorkflowType())
+                                        ? Uni.createFrom()
+                                        .failure(
+                                                new InvalidRequestException(
+                                                        String.format("Onboarding with id %s can't be deleted", onboardingId)))
+                                        : Uni.createFrom().item(onboardingGet))
+                .onItem()
+                .transformToUni(id -> {
+                    Map<String, Object> queryParameter = Map.of("status", OnboardingStatus.DELETED.name(),
+                                                                "updatedAt", LocalDateTime.now(),
+                                                                "closedAt", LocalDateTime.now());
+                    return updateOnboardingStatus(onboardingId, queryParameter);
+                })
+                .onItem()
+                .transformToUni(
+                        onboarding -> orchestrationApi
+                                        .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
+                                        .map(ignore -> onboarding));
     }
 }

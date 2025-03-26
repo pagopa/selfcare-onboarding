@@ -1290,6 +1290,50 @@ class OnboardingControllerTest {
             .onboardingAggregationImport(any(), any(), any(), any());
     }
 
+    @Test
+    @TestSecurity(user = "userJwt")
+    void deleteOnboardingOK() {
+
+        final String onboardingId = "actual-onboarding-id";
+        when(onboardingService.deleteOnboarding(onboardingId))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        given()
+                .when()
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .delete("/{onboardingId}")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .deleteOnboarding(expectedId.capture());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void deleteOnboardingNotFound() {
+
+        final String onboardingId = "actual-onboarding-id";
+        when(onboardingService.deleteOnboarding(onboardingId))
+                .thenThrow(InvalidRequestException.class);
+
+        given()
+                .when()
+                .contentType(ContentType.JSON)
+                .pathParam("onboardingId", onboardingId)
+                .delete("/{onboardingId}")
+                .then()
+                .statusCode(400);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(onboardingService, times(1))
+                .deleteOnboarding(expectedId.capture());
+        assertEquals(expectedId.getValue(), onboardingId);
+    }
+
     private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
         OnboardingAggregationImportRequest onboardingRequest = new OnboardingAggregationImportRequest();
         onboardingRequest.setBilling(new BillingRequest());

@@ -924,6 +924,31 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+    delete:
+      tags:
+      - internal-v1
+      summary: Perform delete operation of an onboarding request
+      description: "Perform delete operation of an onboarding request receiving onboarding\
+        \ id, then invokes async process to set DELETED as status for institution\
+        \ and user onboardings."
+      operationId: deleteOnboarding
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/{onboardingId}/approve:
     put:
       tags:
@@ -1351,6 +1376,34 @@ paths:
       description: Downloads the unsigned contract file associated with the specified
         onboarding ID.
       operationId: getContract
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                format: binary
+                type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/tokens/{onboardingId}/contract-signed:
+    get:
+      tags:
+      - Token Controller
+      summary: Retrieve contract signed for a given onboarding
+      description: Downloads the contract file associated with the specified onboarding
+        ID.
+      operationId: getContractSigned
       parameters:
       - name: onboardingId
         in: path
@@ -1983,7 +2036,6 @@ components:
       required:
       - institution
       - productId
-      - users
       - contractImported
       type: object
       properties:
@@ -1993,7 +2045,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"

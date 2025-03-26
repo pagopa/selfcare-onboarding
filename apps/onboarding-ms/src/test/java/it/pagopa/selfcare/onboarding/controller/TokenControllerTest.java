@@ -18,11 +18,9 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
-
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -59,7 +57,7 @@ class TokenControllerTest {
   void getContract() {
     final String onboardingId = "onboardingId";
     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
-    when(tokenService.retrieveContractNotSigned(onboardingId))
+    when(tokenService.retrieveContract(onboardingId, false))
       .thenReturn(Uni.createFrom().item(response.build()));
 
     given()
@@ -68,6 +66,25 @@ class TokenControllerTest {
       .get("/{onboardingId}/contract", onboardingId)
       .then()
       .statusCode(200);
+  }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void getContractSignedTest() {
+    // given
+    final String onboardingId = "onboardingId";
+    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
+
+    when(tokenService.retrieveContract(onboardingId, true))
+        .thenReturn(Uni.createFrom().item(response.build()));
+
+    // when
+    given()
+        .when()
+        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+        .get("/{onboardingId}/contract-signed", onboardingId)
+        .then()
+        .statusCode(200);
   }
 
   @Test

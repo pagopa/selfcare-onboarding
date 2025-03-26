@@ -19,4 +19,11 @@ public class OnboardingRepository implements PanacheMongoRepositoryBase<Onboardi
         Document query = QueryUtils.buildQuery(queryParameter);
         return find(query).list();
     }
+
+    public List<Onboarding> findByOnboardingUsers(String institutionId, String productId) {
+        final Map<String, String> queryParameter =
+                QueryUtils.createMapForOnboardingUsers(institutionId, productId);
+        Document query = QueryUtils.buildQuery(queryParameter);
+        return find(query).list();
+    }
 }
