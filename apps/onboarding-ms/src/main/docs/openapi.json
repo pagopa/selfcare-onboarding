@@ -2725,7 +2725,7 @@
         }
       },
       "OnboardingImportRequest" : {
-        "required" : [ "institution", "productId", "users", "contractImported" ],
+        "required" : [ "institution", "productId", "contractImported" ],
         "type" : "object",
         "properties" : {
           "institution" : {
@@ -2736,7 +2736,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
