@@ -10,20 +10,19 @@ import java.util.List;
 @Data
 public class OnboardingImportRequest {
 
-    @NotNull(message = "institutionData is required")
-    @Valid
-    private InstitutionImportRequest institution;
+  @NotNull(message = "institutionData is required")
+  @Valid
+  private InstitutionImportRequest institution;
 
-    @NotEmpty(message = "productId is required")
-    private String productId;
+  @NotEmpty(message = "productId is required")
+  private String productId;
 
-    @NotEmpty(message = "at least one user is required")
-    private List<UserRequest> users;
+  private List<UserRequest> users;
 
-    @NotNull
-    private OnboardingImportContract contractImported;
+  @NotNull
+  private OnboardingImportContract contractImported;
 
-    private BillingPaRequest billing;
+  private BillingPaRequest billing;
 
-    private boolean forceImport;
+  private boolean forceImport;
 }

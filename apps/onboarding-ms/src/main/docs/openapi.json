@@ -1283,10 +1283,10 @@
         } ]
       },
       "delete" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "internal-v1" ],
         "summary" : "Perform delete operation of an onboarding request",
-        "description" : "Perform delete operation of an onboarding request receiving onboarding id.Function change status to DELETED for an onboarding request. ",
-        "operationId" : "delete",
+        "description" : "Perform delete operation of an onboarding request receiving onboarding id, then invokes async process to set DELETED as status for institution and user onboardings.",
+        "operationId" : "deleteOnboarding",
         "parameters" : [ {
           "name" : "onboardingId",
           "in" : "path",
@@ -2794,7 +2794,7 @@
         }
       },
       "OnboardingImportRequest" : {
-        "required" : [ "institution", "productId", "users", "contractImported" ],
+        "required" : [ "institution", "productId", "contractImported" ],
         "type" : "object",
         "properties" : {
           "institution" : {
@@ -2805,7 +2805,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"

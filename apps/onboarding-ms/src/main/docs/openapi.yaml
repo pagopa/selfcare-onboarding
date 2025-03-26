@@ -926,11 +926,12 @@ paths:
       - SecurityScheme: []
     delete:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: Perform delete operation of an onboarding request
-      description: 'Perform delete operation of an onboarding request receiving onboarding
-        id.Function change status to DELETED for an onboarding request. '
-      operationId: delete
+      description: "Perform delete operation of an onboarding request receiving onboarding\
+        \ id, then invokes async process to set DELETED as status for institution\
+        \ and user onboardings."
+      operationId: deleteOnboarding
       parameters:
       - name: onboardingId
         in: path
@@ -2035,7 +2036,6 @@ components:
       required:
       - institution
       - productId
-      - users
       - contractImported
       type: object
       properties:
@@ -2045,7 +2045,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
