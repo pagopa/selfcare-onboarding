@@ -51,7 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
                 "json:target/cucumber-report/cucumber.json"
         })
 @TestHTTPEndpoint(OnboardingController.class)
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, initArgs = @ResourceArg(name = MongoTestResource.VERSION, value = "V5_0"))
 @TestProfile(IntegrationProfile.class)
 @Slf4j
 public class OnboardingStep extends CucumberQuarkusTest {
