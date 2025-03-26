@@ -2036,7 +2036,6 @@ components:
       required:
       - institution
       - productId
-      - users
       - contractImported
       type: object
       properties:
@@ -2046,7 +2045,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
