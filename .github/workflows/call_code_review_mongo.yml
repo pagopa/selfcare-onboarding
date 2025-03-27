@@ -79,7 +79,7 @@ jobs:
           servers: '[{"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
       - name: Build & Test
-        run: mvn clean verify
+        run: mvn clean verify -pl onboarding-ms -am
 
       - name: Insert Dummy Data
         run: |
