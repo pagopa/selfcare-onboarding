@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.WriteConcern;
-import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.cucumber.java.en.Given;
@@ -34,7 +32,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,8 +63,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   @BeforeAll
   static void setup() {
-    database = MongoClients.create("mongodb://localhost:28017/dummyOnboarding").getDatabase("dummyOnboarding");
-    collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
+    //database = MongoClients.create("mongodb://localhost:28017/dummyOnboarding").getDatabase("dummyOnboarding");
+    //collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     Vertx vertx = Vertx.vertx();
@@ -190,15 +187,17 @@ public class OnboardingStep extends CucumberQuarkusTest {
                     .then();
   }
 
+
   @AfterEach
   public void cleanDb() {
     onboarding.delete();
   }
-
+/*
   @AfterAll
   public static void cleanup() {
     database.drop();
   }
+  */
 
   // utils
   private static Onboarding createDummyOnboarding() {

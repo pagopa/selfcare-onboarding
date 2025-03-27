@@ -1,22 +1,32 @@
 package it.pagopa.selfcare.onboarding.steps;
 
+import io.quarkus.arc.profile.IfBuildProfile;
 import it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.util.List;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 @Alternative
 @Priority(1)
+@IfBuildProfile("test")
 @ApplicationScoped
-public class TestAuthenticationPropagationHeadersFactory extends AuthenticationPropagationHeadersFactory {
-    private static final String TEST_TOKEN = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Imp3dF9hMjo3YTo0NjozYjoyYTo2MDo1Njo0MDo4ODphMDo1ZDphNDpmODowMToxZTozZSJ9.eyJmYW1pbHlfbmFtZSI6IlNhcnRvcmkiLCJmaXNjYWxfbnVtYmVyIjoiU1JUTkxNMDlUMDZHNjM1UyIsIm5hbWUiOiJBbnNlbG1vIiwic3BpZF9sZXZlbCI6Imh0dHBzOi8vd3d3LnNwaWQuZ292Lml0L1NwaWRMMiIsImZyb21fYWEiOmZhbHNlLCJ1aWQiOiI1MDk2ZTRjNi0yNWExLTQ1ZDUtOWJkZi0yZmI5NzRhN2MxYzgiLCJsZXZlbCI6IkwyIiwiaWF0IjoxNzQyODAwOTAxLCJleHAiOjE3NDI4MzMzMDEsImF1ZCI6ImFwaS5kZXYuc2VsZmNhcmUucGFnb3BhLml0IiwiaXNzIjoiU1BJRCIsImp0aSI6Il9lMjAxMjc2MDdjZThkY2E5MjkyNCJ9.lm4GXHEbLwrXto41w8ecZSs7uO7z-z0UF8xzk-Br3ai252K9oftdhgQhsiHq-ThqfD6iO1bmsMjLRnGOmiyZJCdkQeEOSm9dnkhhFQH3OeUDBKxrgM44E22bA8e5IxJehQNS6WBCPtrEtoQzO8BSWEgsX4E9TMdurIOyrxAY-byiPhjl9YKg4U5-hVjgkkw0MHmeKH3rpxYtoBFHC_wE_2wVEPqtlUd9Apiq-6TIqWcyjRvdn7YNlYrkXaJQ71EAVxr2esBY69WeNzttIN2Tzc9JDbERWj0qQYRFgKiXOZpnKAGiqAOtz3CfIopCezPszMbrGatYCHdhnd21BB5VFw";
+public class TestAuthenticationPropagationHeadersFactory
+    extends AuthenticationPropagationHeadersFactory {
+  private final String BEARER_TOKEN;
 
-    @Override
-    public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
-        clientOutgoingHeaders.put("Authorization", List.of(TEST_TOKEN));
-        return clientOutgoingHeaders;
-    }
+  public TestAuthenticationPropagationHeadersFactory() {
+    super();
+    BEARER_TOKEN = ConfigProvider.getConfig().getValue("BEARER_TOKEN", String.class);
+  }
+
+  @Override
+  public MultivaluedMap<String, String> update(
+      MultivaluedMap<String, String> incomingHeaders,
+      MultivaluedMap<String, String> clientOutgoingHeaders) {
+    clientOutgoingHeaders.put("Authorization", List.of(BEARER_TOKEN));
+    return clientOutgoingHeaders;
+  }
 }
