@@ -28,7 +28,7 @@ jobs:
           MONGO_INITDB_ROOT_PASSWORD: admin
           MONGO_INITDB_DATABASE: dummyOnboarding
         ports:
-          - 27017:27017
+          - 28017:27017
         options: >-
           --health-cmd mongo
           --health-interval 10s
@@ -49,7 +49,7 @@ jobs:
 
       - name: Initalize MongoDB
         run: |
-          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
             db = db.getSiblingDB('dummyOnboarding');
             db.createUser({ user: 'APP-USERNAME', pwd: 'APP-PASSWORD', roles: [{ role: 'readWrite', db: 'dummyOnboarding' }] })
             db.createCollection('dummyOnboarding');
@@ -79,11 +79,11 @@ jobs:
           servers: '[{"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
       - name: Build & Test
-        run: mvn clean verify -DskipTests
+        run: mvn clean verify
 
       - name: Insert Dummy Data
         run: |
-          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('./integration-test/mongo/dummy_data.json', 'utf8'));
             db = db.getSiblingDB('dummyOnboarding');
@@ -92,7 +92,7 @@ jobs:
 
       - name: Query Dummy Data
         run: |
-          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
             db = db.getSiblingDB('dummyOnboarding');
             const results = db.dummyOnboarding.find({ status: "FAILED" }).toArray();
             print('Query Results:', results);
@@ -100,7 +100,7 @@ jobs:
 
       - name: Shutdown MongoDB instance
         run: |
-          mongosh --host localhost:27017 -u admin -p admin --authenticationDatabase admin <<EOF
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
             db.getSiblingDB('admin').shutdownServer();
           EOF
 
