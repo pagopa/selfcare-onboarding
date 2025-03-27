@@ -58,6 +58,11 @@ jobs:
       - name: Test
         run: |
           echo "Run your integration Tests"
+          
+      - name: Set missing library
+        run: |
+          wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
