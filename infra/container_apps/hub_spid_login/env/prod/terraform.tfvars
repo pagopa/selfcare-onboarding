@@ -1,7 +1,7 @@
-prefix    = "selc"
-env_short = "p"
-suffix_increment    = "-002"
-cae_name            = "cae-002"
+prefix           = "selc"
+env_short        = "p"
+suffix_increment = "-002"
+cae_name         = "cae-002"
 
 tags = {
   CreatedBy   = "Terraform"
@@ -102,7 +102,7 @@ app_settings = [
   },
   {
     name  = "COMPANY_EMAIL"
-    value = "pagopa@pec.governo.it"
+    value = "pagopaspa@pec.pagopa.it"
   },
   {
     name  = "COMPANY_FISCAL_CODE"

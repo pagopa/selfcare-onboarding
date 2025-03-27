@@ -18,7 +18,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
@@ -51,7 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
                 "json:target/cucumber-report/cucumber.json"
         })
 @TestHTTPEndpoint(OnboardingController.class)
-@QuarkusTestResource(value = MongoTestResource.class, initArgs = @ResourceArg(name = MongoTestResource.VERSION, value = "V5_0"))
+//@QuarkusTestResource(value = MongoTestResource.class, initArgs = @ResourceArg(name = MongoTestResource.VERSION, value = "V5_0"))
 @TestProfile(IntegrationProfile.class)
 @Slf4j
 public class OnboardingStep extends CucumberQuarkusTest {

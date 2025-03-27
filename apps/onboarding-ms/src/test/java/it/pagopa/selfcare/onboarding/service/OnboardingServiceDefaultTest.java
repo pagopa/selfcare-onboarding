@@ -1,25 +1,16 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
 import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
@@ -36,32 +27,14 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.Origin;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
-import it.pagopa.selfcare.onboarding.controller.response.BillingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.UserOnboardingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
-import it.pagopa.selfcare.onboarding.entity.AdditionalInformations;
-import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.controller.response.*;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -84,13 +57,7 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -106,22 +73,8 @@ import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.BusinessResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.InsuranceCompanyResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.LegalVerificationResult;
-import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
-import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
+import org.openapi.quarkus.party_registry_proxy_json.api.*;
+import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -212,6 +165,28 @@ class OnboardingServiceDefaultTest {
             .taxCode("taxCode")
             .role(PartyRole.MANAGER)
             .build();
+
+    static final UserRequest delegate1 = UserRequest.builder()
+            .name("name_delegate_1")
+            .surname("surname_delegate_2")
+            .taxCode("taxCode_delegate_3")
+            .role(PartyRole.DELEGATE)
+            .build();
+
+    static final UserRequest delegate2 = UserRequest.builder()
+            .name("name_delegate_2")
+            .surname("surname_delegate_2")
+            .taxCode("taxCode_delegate_2")
+            .role(PartyRole.DELEGATE)
+            .build();
+
+    static final UserRequest delegate3 = UserRequest.builder()
+            .name("name_delegate_3")
+            .surname("surname_delegate_3")
+            .taxCode("taxCode_delegate_3")
+            .role(PartyRole.DELEGATE)
+            .build();
+
 
     static final UserResource managerResource;
     static final UserResource managerResourceWk;
@@ -1328,7 +1303,10 @@ class OnboardingServiceDefaultTest {
 
         Product productResource = new Product();
         productResource.setId(productId);
-        productResource.setRoleMappings(Map.of(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE)));
+        Map<PartyRole, ProductRoleInfo> roleMappings = new HashMap<>();
+        roleMappings.put(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE));
+        roleMappings.put(delegate1.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_CODE));
+        productResource.setRoleMappings(roleMappings);
         productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
         productResource.setTitle("title");
         if (PROD_DASHBOARD_PSP.getValue().equals(productId)) {
@@ -2797,6 +2775,7 @@ class OnboardingServiceDefaultTest {
                 .thenAnswer(arg -> {
                     Onboarding onboarding = (Onboarding) arg.getArguments()[0];
                     onboarding.setId(UUID.randomUUID().toString());
+                    onboarding.setInstitution(((Onboarding) arg.getArguments()[0]).getInstitution());
                     return Uni.createFrom().nullItem();
                 }));
     }
@@ -2999,28 +2978,6 @@ class OnboardingServiceDefaultTest {
         assertFalse(checkResponse.isResponse());
     }
 
-    /*@Test
-    void testCheckManagerWithRemovedUser() {
-        OnboardingUserRequest request = createDummyUserRequest();
-        PanacheMock.mock(Onboarding.class);
-        Onboarding onboarding = createDummyOnboarding();
-        onboarding.getUsers().get(0).setRole(PartyRole.OPERATOR);
-        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
-        when(Onboarding.find((Document) any(), any())).thenReturn(query);
-        UserResource userResource = new UserResource();
-        userResource.setId(UUID.randomUUID());
-        when(userRegistryApi.searchUsingPOST(any(), any()))
-                .thenReturn(Uni.createFrom().item(userResource));
-
-        UniAssertSubscriber<CheckManagerResponse> subscriber = onboardingService
-                .checkManager(request)
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        subscriber.assertFailedWith(ResourceNotFoundException.class);
-    }*/
-
     @Test
     void testCheckManagerWithEmptyUserList() {
         final UUID uuid = UUID.randomUUID();
@@ -3213,9 +3170,10 @@ class OnboardingServiceDefaultTest {
         billing.setRecipientCode("recipientCode");
         request.setBilling(billing);
         List<UserRequest> users = List.of(manager);
-        request.setProductId(PROD_INTEROP.getValue());
+        request.setProductId(PROD_PN.getValue());
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setInstitutionType(PA);
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setImported(true);
         institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
@@ -3262,15 +3220,40 @@ class OnboardingServiceDefaultTest {
         List<AggregateInstitutionRequest> aggregates = new ArrayList<>();
         AggregateInstitutionRequest aggregateInstitutionRequest = new AggregateInstitutionRequest();
         aggregateInstitutionRequest.setTaxCode("taxCode");
-        aggregateInstitutionRequest.setUsers(users);
-        aggregates.add(aggregateInstitutionRequest);
+        aggregateInstitutionRequest.setUsers(List.of(delegate1));
 
-        AggregateInstitution aggregateInstitution = new AggregateInstitution();
-        aggregateInstitution.setTaxCode("taxCode");
-        aggregateInstitution.setUsers(List.of(User.builder().id("test")
-                .role(PartyRole.MANAGER)
-                .build()));
-        request.setAggregates(List.of(aggregateInstitution));
+        AggregateInstitutionRequest aggregateInstitutionRequest2 = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest2.setTaxCode("taxCode");
+        aggregateInstitutionRequest2.setSubunitCode("subunitCode");
+        aggregateInstitutionRequest2.setUsers(List.of(delegate2));
+
+        AggregateInstitutionRequest aggregateInstitutionRequest3 = new AggregateInstitutionRequest();
+        aggregateInstitutionRequest3.setTaxCode("taxCode2");
+        aggregateInstitutionRequest3.setUsers(List.of(delegate3));
+
+        aggregates.add(aggregateInstitutionRequest);
+        aggregates.add(aggregateInstitutionRequest2);
+        aggregates.add(aggregateInstitutionRequest3);
+
+        User user1 = new User("test1", PartyRole.DELEGATE, null, null);
+        User user2 = new User("test2", PartyRole.DELEGATE, null, null);
+        User user3 = new User("test3", PartyRole.DELEGATE, null, null);
+
+
+        AggregateInstitution aggregateInstitution1 = new AggregateInstitution();
+        aggregateInstitution1.setTaxCode("taxCode");
+        aggregateInstitution1.setUsers(List.of(user1));
+
+        AggregateInstitution aggregateInstitution2 = new AggregateInstitution();
+        aggregateInstitution2.setTaxCode("taxCode");
+        aggregateInstitution2.setSubunitCode("subunitCode");
+        aggregateInstitution2.setUsers(List.of(user2));
+
+        AggregateInstitution aggregateInstitution3 = new AggregateInstitution();
+        aggregateInstitution3.setTaxCode("taxCode2");
+        aggregateInstitution3.setUsers(List.of(user3));
+
+        request.setAggregates(List.of(aggregateInstitution1, aggregateInstitution2, aggregateInstitution3));
 
         // when
         asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates),
@@ -3283,6 +3266,72 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
+    }
+
+    @Test
+    void deleteOnboarding_statusIsPENDING() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void deleteOnboarding_workflowTypeUSERS() {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.setWorkflowType(WorkflowType.USERS);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void testDeleteOnboardingStatusOK() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockUpdateOnboarding(onboarding.getId(), 1L);
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertCompleted().assertItem(1L);
+    }
+
+    @Test
+    void testDeleteOnboardingNotFoundOrAlreadyDeleted() {
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboarding.getId()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+        mockUpdateOnboarding(onboarding.getId(), 0L);
+
+        UniAssertSubscriber<Long> subscriber = onboardingService
+                .deleteOnboarding(onboarding.getId())
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
     private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {

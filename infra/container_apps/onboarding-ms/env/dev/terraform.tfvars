@@ -51,7 +51,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-dashboard-psp': ['*'], 'prod-fd': ['*'], 'prod-fd-garantito': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
+    value = "{'prod-interop': ['*'], 'prod-pn': ['*'], 'prod-io': ['*'], 'prod-io-premium': ['*'], 'prod-pagopa': ['*'], 'prod-dashboard-psp': ['*'], 'prod-sendino': ['*'], 'prod-io-sign': ['*']}"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -74,7 +74,7 @@ app_settings = [
     value = "http://selc-d-user-ms-ca"
   },
   {
-    name  =  "JWT_BEARER_TOKEN"
+    name  = "JWT_BEARER_TOKEN"
     value = "@Microsoft.KeyVault(SecretUri=https://selc-d-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
   }
 ]

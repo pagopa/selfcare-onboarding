@@ -17,8 +17,24 @@ container_config = {
   memory = 1
 }
 
+container_app = {
+  min_replicas = 1
+  max_replicas = 1
+  scale_rules  = []
+  cpu          = 0.5
+  memory       = "1Gi"
+}
+
 environment_variables = {
   SPRINGDOC_API_DOCS_ENABLED = true
 }
 
-enable_sws = true
+app_settings = [
+  {
+    name  = "SPRINGDOC_API_DOCS_ENABLED",
+    value = true
+  }
+]
+
+enable_sws    = true
+enable_ca_sws = true

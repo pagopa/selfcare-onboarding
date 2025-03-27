@@ -39,7 +39,8 @@ public class RegistryManagerSELC extends BaseRegistryManager<Object> {
                 workflowType == WorkflowType.IMPORT ||
                 workflowType == WorkflowType.FOR_APPROVE_PT ||
                 workflowType == WorkflowType.FOR_APPROVE_GPU ||
-                workflowType == WorkflowType.CONFIRMATION;
+                workflowType == WorkflowType.CONFIRMATION ||
+                workflowType == WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR;
     }
 
     @Override

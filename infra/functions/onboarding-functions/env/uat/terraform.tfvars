@@ -97,11 +97,11 @@ app_settings = {
   "PROD_FD_URL"                                        = "https://fid00001fe.siachain.ti.sia.eu:30008"
   "FD_TOKEN_GRANT_TYPE"                                = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-grant-type/)"
   "FD_TOKEN_CLIENT_ID"                                 = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-id/)"
-  "FD_TOKEN_CLIENT_SECRET" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
+  "FD_TOKEN_CLIENT_SECRET"                             = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/prod-fd-client-secret/)"
 
 
   ##ARUBA SIGNATURE
-  "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
+  "PAGOPA_SIGNATURE_SOURCE"                        = "namirial",
   "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"      = "faPagoPa",
   "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"            = "dsign",
   "ARUBA_SIGN_SERVICE_IDENTITY_USER"               = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
@@ -114,10 +114,10 @@ app_settings = {
   "EMAIL_SERVICE_AVAILABLE"                        = "true",
   "JWT_TOKEN_ISSUER"                               = "SPID"
   "JWT_TOKEN_PRIVATE_KEY"                          = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-private-key/)"
-  "JWT_TOKEN_KID" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
+  "JWT_TOKEN_KID"                                  = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-kid/)"
 
   ##NAMIRIAL SIGNATURE
-  "NAMIRIAL_BASE_URL"                       = "http://10.1.154.4:8080",
+  "NAMIRIAL_BASE_URL"                       = "https://selc-u-namirial-sws-ca.mangopond-2a5d4d65.westeurope.azurecontainerapps.io",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
 }

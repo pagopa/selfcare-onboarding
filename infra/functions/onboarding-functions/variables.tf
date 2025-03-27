@@ -10,7 +10,7 @@ variable "prefix" {
   default     = "selc"
   validation {
     condition = (
-    length(var.prefix) <= 6
+      length(var.prefix) <= 6
     )
     error_message = "Max length is 6 chars."
   }
@@ -26,7 +26,7 @@ variable "env_short" {
   type        = string
   validation {
     condition = (
-    length(var.env_short) <= 1
+      length(var.env_short) <= 1
     )
     error_message = "Max length is 1 chars."
   }
@@ -46,7 +46,7 @@ variable "key_vault" {
 
 
 variable "cidr_subnet_selc_onboarding_fn" {
-  type = list(string)
+  type        = list(string)
   description = "Address prefixes subnet selc ca and functions"
   default     = null
 }
@@ -79,10 +79,10 @@ variable "app_service_plan_info" {
   type = object({
     kind = string
     # The kind of the App Service Plan to create. Possible values are Windows (also available as App), Linux, elastic (for Premium Consumption) and FunctionApp (for a Consumption Plan).
-    sku_size = string # Specifies the plan's instance size.
+    sku_size                     = string # Specifies the plan's instance size.
     maximum_elastic_worker_count = number
     # The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
-    worker_count = number # The number of Workers (instances) to be allocated.
+    worker_count           = number # The number of Workers (instances) to be allocated.
     zone_balancing_enabled = bool
     # Should the Service Plan balance across Availability Zones in the region. Changing this forces a new resource to be created.
   })

@@ -33,7 +33,7 @@ variable "tags" {
 
 
 variable "subscription" {
-  type    = string
+  type = string
 }
 
 

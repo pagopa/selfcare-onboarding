@@ -1,5 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -14,17 +20,6 @@ import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.text.StringSubstitutor;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jsoup.Jsoup;
-import org.jsoup.helper.W3CDom;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,11 +34,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jsoup.Jsoup;
+import org.jsoup.helper.W3CDom;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
@@ -71,8 +72,7 @@ public class ContractServiceDefault implements ContractService {
     private static final String REGISTERED_OFFICE_ADDRESS = "Sede legale - Indirizzo";
     private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
     private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
-
-
+    private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
 
     private static final String[] CSV_HEADERS_IO = {
             INSTITUTION_DESCRIPTION_HEADER,
@@ -295,7 +295,7 @@ public class ContractServiceDefault implements ContractService {
             List<UserResource> users)
             throws IOException {
         final String builder =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
                         + "_"
                         + UUID.randomUUID()
                         + "_contratto_interoperabilita.";
@@ -312,7 +312,7 @@ public class ContractServiceDefault implements ContractService {
         // Prepare common data for the contract document.
         Map<String, Object> data = setUpCommonData(manager, users, onboarding, baseUrl);
         // Customize data based on the product and institution type.
-        if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
+        if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
                 && InstitutionType.PSP == institution.getInstitutionType()) {
             setupPSPData(data, manager, onboarding);
         } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
@@ -339,7 +339,7 @@ public class ContractServiceDefault implements ContractService {
     private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
             throws IOException {
         final String builder =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
                         + "_"
                         + UUID.randomUUID()
                         + "_allegato_interoperabilita.";
@@ -461,7 +461,7 @@ public class ContractServiceDefault implements ContractService {
 
             StringBuilder stringBuilder =
                     new StringBuilder(
-                            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+                            LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS)));
             stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
             try {
                 Path path = Files.createTempFile(stringBuilder.toString(), ".png");

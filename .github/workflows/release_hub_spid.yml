@@ -6,10 +6,10 @@ on:
       env:
         type: choice
         description: Environment
-        options: 
-        - dev
-        - uat
-        - prod
+        options:
+          - dev
+          - uat
+          - prod
       release_version:
         type: string
         description: Hub-Sping-Login release version
@@ -27,7 +27,7 @@ jobs:
 
   tf_plan:
     name: 'Terraform Plan'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: ${{ inputs.env }}-ci
     permissions:
       id-token: write
@@ -79,8 +79,8 @@ jobs:
 
   release:
     name: 'Release'
-    runs-on: ubuntu-20.04
-    needs: [tf_plan]
+    runs-on: ubuntu-24.04
+    needs: [ tf_plan ]
     environment: ${{ inputs.env }}-cd
     permissions:
       id-token: write
@@ -109,7 +109,7 @@ jobs:
 
       - name: Retrieve Terraform Modules from Cache
         id: cache-terraform-modules
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4 # latest-version
         with:
           path: ${{ env.dir }}/.terraform
           key: terraform-${{ env.dir }}-${{ github.sha }}

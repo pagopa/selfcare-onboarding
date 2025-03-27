@@ -1,0 +1,109 @@
+name: Code Review Mongo Instance
+
+on:
+  push:
+    branches:
+      - main
+      - releases/*
+      - feature/code-review-mongo
+
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        description: Environment
+        options:
+          - dev
+          - uat
+
+jobs:
+  integration_test:
+    runs-on: ubuntu-24.04
+
+    services:
+      mongodb:
+        image: mongo:4.4.6
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: admin
+          MONGO_INITDB_DATABASE: dummyOnboarding
+        ports:
+          - 28017:27017
+        options: >-
+          --health-cmd mongo
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install mongosh
+        run: |
+          sudo apt-get install gnupg
+          wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+          mongosh --version
+
+      - name: Initalize MongoDB
+        run: |
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db = db.getSiblingDB('dummyOnboarding');
+            db.createUser({ user: 'APP-USERNAME', pwd: 'APP-PASSWORD', roles: [{ role: 'readWrite', db: 'dummyOnboarding' }] })
+            db.createCollection('dummyOnboarding');
+          EOF
+
+      - name: Test
+        run: |
+          echo "Run your integration Tests"
+          
+      - name: Set missing library
+        run: |
+          wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
+        with:
+          checkout-fetch-depth: 0
+          java-version: 17
+          java-distribution: 'temurin'
+          maven-version: '3.9.5'
+          cache-enabled: true
+
+      # Selfcare-onboarding
+      - uses: s4u/maven-settings-action@7802f6aec16c9098b4798ad1f1d8ac75198194bd # v3.0.0
+        with:
+          servers: '[{"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
+
+      - name: Build & Test
+        run: mvn clean verify -pl apps/onboarding-ms -am
+
+      - name: Insert Dummy Data
+        run: |
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./integration-test/mongo/dummy_data.json', 'utf8'));
+            db = db.getSiblingDB('dummyOnboarding');
+            db.dummyOnboarding.insertMany(data);
+          EOF
+
+      - name: Query Dummy Data
+        run: |
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db = db.getSiblingDB('dummyOnboarding');
+            const results = db.dummyOnboarding.find({ status: "FAILED" }).toArray();
+            print('Query Results:', results);
+          EOF
+
+      - name: Shutdown MongoDB instance
+        run: |
+          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
+            db.getSiblingDB('admin').shutdownServer();
+          EOF
+
+      - name: Remove MongoDB Data
+        run: |
+          sudo rm -rf /var/lib/mongodb
