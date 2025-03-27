@@ -6,10 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.WriteConcern;
-import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
@@ -20,7 +17,6 @@ import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.TestProfile;
-import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.ValidatableResponse;
 import io.vertx.core.Vertx;
@@ -69,8 +65,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @BeforeAll
-  public static void setup() {
-    database = MongoClients.create("mongodb://localhost:27017/dummyOnboarding?retryWrites=false").getDatabase("dummyOnboarding");
+  static void setup() {
+    database = MongoClients.create("mongodb://localhost:28017/dummyOnboarding").getDatabase("dummyOnboarding");
     collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
@@ -80,7 +76,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @BeforeEach
-  public void initData() throws NoSuchFieldException, IllegalAccessException {
+    void initData() {
     onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
     duplicatedOnboardingPA = createOnboardingForConflictScenario();
