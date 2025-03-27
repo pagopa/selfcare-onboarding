@@ -1,4 +1,4 @@
-name: Code Review Mongo Instance
+name: Code Review Integration Test
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
           - uat
 
 jobs:
-  integration_test:
+  setup_test:
     runs-on: ubuntu-24.04
 
     services:
@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install mongosh
+      - name: Install MongoDb instance
         run: |
           sudo apt-get install gnupg
           wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc
@@ -47,7 +47,7 @@ jobs:
           sudo apt-get install -y mongodb-mongosh
           mongosh --version
 
-      - name: Initalize MongoDB
+      - name: Initalize MongoDB instance
         run: |
           mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
             db = db.getSiblingDB('dummyOnboarding');
@@ -80,23 +80,6 @@ jobs:
 
       - name: Build & Test
         run: mvn clean verify -pl apps/onboarding-ms -am
-
-      - name: Insert Dummy Data
-        run: |
-          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync('./integration-test/mongo/dummy_data.json', 'utf8'));
-            db = db.getSiblingDB('dummyOnboarding');
-            db.dummyOnboarding.insertMany(data);
-          EOF
-
-      - name: Query Dummy Data
-        run: |
-          mongosh --host localhost:28017 -u admin -p admin --authenticationDatabase admin <<EOF
-            db = db.getSiblingDB('dummyOnboarding');
-            const results = db.dummyOnboarding.find({ status: "FAILED" }).toArray();
-            print('Query Results:', results);
-          EOF
 
       - name: Shutdown MongoDB instance
         run: |
