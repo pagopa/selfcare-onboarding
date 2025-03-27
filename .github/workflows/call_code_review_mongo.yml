@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - releases/*
-      - feature/code-review-mongo
+      - feature/SELC-6542
 
   workflow_dispatch:
     inputs:
