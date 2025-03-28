@@ -3,6 +3,8 @@ package it.pagopa.selfcare.onboarding.steps;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,10 +15,12 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.response.ValidatableResponse;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.OnboardingController;
@@ -32,9 +36,12 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
+import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 
 @CucumberOptions(
         features = "src/test/resources/features",
@@ -43,7 +50,6 @@ import org.junit.jupiter.api.BeforeEach;
                 "json:target/cucumber-report/cucumber.json"
         })
 @TestHTTPEndpoint(OnboardingController.class)
-//@QuarkusTestResource(value = MongoTestResource.class, initArgs = @ResourceArg(name = MongoTestResource.VERSION, value = "V5_0"))
 @TestProfile(IntegrationProfile.class)
 @Slf4j
 public class OnboardingStep extends CucumberQuarkusTest {
@@ -57,19 +63,22 @@ public class OnboardingStep extends CucumberQuarkusTest {
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
+  @InjectMock
+  @RestClient
+  OrchestrationApi orchestrationApi;
+
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
   }
 
   @BeforeAll
   static void setup() {
-    //database = MongoClients.create("mongodb://localhost:28017/dummyOnboarding").getDatabase("dummyOnboarding");
-    //collection = database.getCollection("onboardings").withWriteConcern(WriteConcern.ACKNOWLEDGED);
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     Vertx vertx = Vertx.vertx();
     vertx.getOrCreateContext().config().put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
     log.debug("Init completed");
+
   }
 
   @BeforeEach
@@ -81,6 +90,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
     // verify
     assertNotNull(onboarding.getId());
     assertNotNull(duplicatedOnboardingPA.getId());
+    when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+            .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
   }
 
   @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")
@@ -192,12 +203,6 @@ public class OnboardingStep extends CucumberQuarkusTest {
   public void cleanDb() {
     onboarding.delete();
   }
-/*
-  @AfterAll
-  public static void cleanup() {
-    database.drop();
-  }
-  */
 
   // utils
   private static Onboarding createDummyOnboarding() {

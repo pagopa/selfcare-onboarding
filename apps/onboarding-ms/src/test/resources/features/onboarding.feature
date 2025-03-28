@@ -286,8 +286,9 @@ Feature: Onboarding collection
                             ],
                                       "institution": {
                                           "institutionType": "PA",
-                                          "taxCode": "taxCode",
+                                          "taxCode": "00231830688",
                                           "origin": "IPA",
+                                          "originId": "c_l186",
                                           "city": "ROMA",
                                           "country": "IT",
                                           "county": "RM",
@@ -309,7 +310,7 @@ Feature: Onboarding collection
                                       }
              }
              """
-    When I send a duplicated POST request to "/onboarding/pa" with the request body
+    When I send a POST request to "/pa" with the request body
             """
              {
                    "productId": "prod-io",
@@ -331,8 +332,9 @@ Feature: Onboarding collection
                             ],
                                       "institution": {
                                           "institutionType": "PA",
-                                          "taxCode": "taxCode",
+                                          "taxCode": "00231830688",
                                           "origin": "IPA",
+                                          "originId": "c_l186",
                                           "city": "ROMA",
                                           "country": "IT",
                                           "county": "RM",
@@ -677,8 +679,8 @@ Feature: Onboarding collection
                    "institutionType": "PA",
                    "taxCode": "83001010616",
                    "origin": "IPA",
-                   "originId": "AL7RYI5",
-                   "subunitCode": "AL7RYI5",
+                   "originId": "UFO5LL",
+                   "subunitCode": "UFO5LL",
                    "subunitType": "UO",
                    "city": "Roccamonfina",
                    "country": "IT",
@@ -726,8 +728,8 @@ Feature: Onboarding collection
                    "institutionType": "PA",
                    "taxCode": "83001010616",
                    "origin": "IPA",
-                   "originId": "AL7RYI5",
-                   "subunitCode": "AL7RYI5",
+                   "originId": "UFO5LL",
+                   "subunitCode": "UFO5LL",
                    "subunitType": "UO",
                    "city": "Roccamonfina",
                    "country": "IT",
