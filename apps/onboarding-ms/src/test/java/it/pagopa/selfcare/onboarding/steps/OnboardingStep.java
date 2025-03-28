@@ -238,6 +238,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     Institution institution = new Institution();
     institution.setOrigin(Origin.IPA);
     institution.setOriginId("c_l186");
+    institution.setDescription("Comune di Tocco da Casauria");
     institution.setTaxCode("00231830688");
     institution.setInstitutionType(InstitutionType.PA);
     onboarding.setInstitution(institution);

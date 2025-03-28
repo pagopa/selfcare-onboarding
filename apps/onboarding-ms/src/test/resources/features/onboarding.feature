@@ -263,6 +263,104 @@ Feature: Onboarding collection
           """
     Then the response status code should be 200
 
+  Scenario: Can't perform onboarding with parent not completed
+    Given I have a request object
+          """
+          {
+               "productId": "prod-io-premium",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                   "institutionType": "PA",
+                   "taxCode": "83001010616",
+                   "origin": "IPA",
+                   "originId": "c_h423",
+                   "city": "Roccamonfina",
+                   "country": "IT",
+                   "county": "CE",
+                   "description": "Comune di Roccamonfina",
+                   "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                   "address": "Via Municipio N. 8",
+                   "zipCode": "81035",
+                   "geographicTaxonomies": [
+                       {
+                           "code": "ITA",
+                           "desc": "ITALIA"
+                       }
+                   ],
+                   "imported": false
+               },
+               "billing": {
+                   "vatNumber": "83001010616",
+                   "recipientCode": "UFO5LL",
+                   "publicServices": true
+               }
+           }
+          """
+    When  I send a POST request to "/pa" with the request body
+          """
+          {
+                         "productId": "prod-io-premium",
+                         "users": [
+                             {
+                                 "taxCode": "FRDSMN80A01F205Z",
+                                 "name": "Sigmund",
+                                 "surname": "Freud",
+                                 "email": "s.freud@test.email.it",
+                                 "role": "MANAGER"
+                             },
+                             {
+                                 "taxCode": "CLVTLI80A01F839V",
+                                 "name": "Italo",
+                                 "surname": "Calvino",
+                                 "email": "i.calvino@test.email.it",
+                                 "role": "DELEGATE"
+                             }
+                         ],
+                         "institution": {
+                             "institutionType": "PA",
+                             "taxCode": "83001010616",
+                             "origin": "IPA",
+                             "originId": "c_h423",
+                             "city": "Roccamonfina",
+                             "country": "IT",
+                             "county": "CE",
+                             "description": "Comune di Roccamonfina",
+                             "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                             "address": "Via Municipio N. 8",
+                             "zipCode": "81035",
+                             "geographicTaxonomies": [
+                                 {
+                                     "code": "ITA",
+                                     "desc": "ITALIA"
+                                 }
+                             ],
+                             "imported": false
+                         },
+                         "billing": {
+                             "vatNumber": "83001010616",
+                             "recipientCode": "UFO5LL",
+                             "publicServices": true
+                         }
+          }
+          """
+    Then the response status code should be 400
+    And the response should contain the text "Parent product prod-io not onboarded for institution having externalId 83001010616"
+
   Scenario: Can't perform onboarding for the same product, taxCode and workflowType
     Given I have a valid request object
              """
@@ -357,6 +455,106 @@ Feature: Onboarding collection
              }
              """
     Then the response status code should be 409
+
+  Scenario: Can't perform onboarding for prod-io-premium with not allowed pricingPlan
+    Given I have a valid request object
+             """
+             {
+                   "productId": "prod-io-premium",
+                   "pricingPlan": "c2",
+                   "users": [
+                            {
+                                 "taxCode": "FRDSMN80A01F205Z",
+                                 "name": "Sigmund",
+                                 "surname": "Freud",
+                                 "email": "s.freud@test.email.it",
+                                 "role": "MANAGER"
+                            },
+                            {
+                                 "taxCode": "CLVTLI80A01F839V",
+                                 "name": "Italo",
+                                 "surname": "Calvino",
+                                 "email": "i.calvino@test.email.it",
+                                 "role": "DELEGATE"
+                            }
+                            ],
+                                      "institution": {
+                                          "institutionType": "PA",
+                                          "taxCode": "00231830688",
+                                          "origin": "IPA",
+                                          "originId": "c_l186",
+                                          "description": "Comune di Tocco da Casauria",
+                                          "city": "Tocco Da Casauria",
+                                          "country": "IT",
+                                          "county": "PE",
+                                          "digitalAddress": "comune.toccodacasauria@pec.arc.it",
+                                          "address": "Largo Menna, 1",
+                                          "zipCode": "65028",
+                                          "geographicTaxonomies": [
+                                              {
+                                                  "code": "ITA",
+                                                  "desc": "ITALIA"
+                                              }
+                                          ],
+                                          "imported": false
+                                      },
+                                      "billing": {
+                                          "vatNumber": "80415740580",
+                                          "recipientCode": "UFD333",
+                                          "publicServices": true
+                                      }
+             }
+             """
+    When I send a POST request to "/pa" with the request body
+            """
+             {
+                   "productId": "prod-io-premium",
+                   "pricingPlan": "c2",
+                   "users": [
+                            {
+                                 "taxCode": "FRDSMN80A01F205Z",
+                                 "name": "Sigmund",
+                                 "surname": "Freud",
+                                 "email": "s.freud@test.email.it",
+                                 "role": "MANAGER"
+                            },
+                            {
+                                 "taxCode": "CLVTLI80A01F839V",
+                                 "name": "Italo",
+                                 "surname": "Calvino",
+                                 "email": "i.calvino@test.email.it",
+                                 "role": "DELEGATE"
+                            }
+                            ],
+                                      "institution": {
+                                          "institutionType": "PA",
+                                          "taxCode": "00231830688",
+                                          "origin": "IPA",
+                                          "originId": "c_l186",
+                                          "description": "Comune di Tocco da Casauria",
+                                          "city": "Tocco Da Casauria",
+                                          "country": "IT",
+                                          "county": "PE",
+                                          "digitalAddress": "comune.toccodacasauria@pec.arc.it",
+                                          "address": "Largo Menna, 1",
+                                          "zipCode": "65028",
+                                          "geographicTaxonomies": [
+                                              {
+                                                  "code": "ITA",
+                                                  "desc": "ITALIA"
+                                              }
+                                          ],
+                                          "imported": false
+                                      },
+                                      "billing": {
+                                          "vatNumber": "80415740580",
+                                          "recipientCode": "UFD333",
+                                          "publicServices": true
+                                      }
+             }
+             """
+    Then the response status code should be 400
+    And the response should contain the text "onboarding pricing plan for io-premium is not allowed"
 
   Scenario: Can't perform onboarding request for invalid digitalAddress (different from IPA registry one)
     Given I have a request object
