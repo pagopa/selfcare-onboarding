@@ -503,6 +503,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
                         : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
 
+        if (Objects.nonNull(product.getParentId())) {
+            setInstitutionId(onboarding, product.getParentId());
+        }
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(
                 () ->
@@ -537,6 +540,30 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .onItem()
                                                         .invoke(onboardingPersisted::setUsers)
                                                         .replaceWith(onboardingPersisted)));
+    }
+
+    private void setInstitutionId(Onboarding onboarding, String parentId) {
+        final String taxCode = onboarding.getInstitution().getTaxCode();
+        final String origin = onboarding.getInstitution().getOrigin().name();
+        final String originId = onboarding.getInstitution().getOriginId();
+        final String subunitCode = onboarding.getInstitution().getSubunitCode();
+        final String institutionType = onboarding.getInstitution().getInstitutionType().name();
+
+        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
+                .filter(item -> institutionType.equalsIgnoreCase(item.getInstitution().getInstitutionType().name()))
+                .collect().asList()
+                .await().indefinitely();
+
+        if (!onboardings.isEmpty()) {
+            onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
+        } else {
+            throw new ResourceNotFoundException(
+                    String.format(
+                            "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
+                            taxCode, origin, originId, parentId, subunitCode, institutionType
+                    )
+            );
+        }
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
@@ -914,7 +941,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(
                         aggregateInstitution ->
                                 Optional.ofNullable(aggregateInstitution.getSubunitCode()).equals(Optional.ofNullable(aggregate.getSubunitCode())) &&
-                                aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
+                                        aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
                 .findAny()
                 .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
     }
@@ -1670,14 +1697,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                             if (Objects.isNull(response.getInstitutions())
                                     || response.getInstitutions().size() > 1) {
                                 return Uni.createFrom()
-                                        .failure(
-                                                new ResourceNotFoundException(
+                                        .item(response.getInstitutions().stream()
+                                                .filter(institutionResponse ->
+                                                        institutionResponse.getInstitutionType().name().equals(request.getInstitutionType().name()))
+                                                .findFirst().orElseThrow(() -> new ResourceNotFoundException(
                                                         String.format(
                                                                 INSTITUTION_NOT_FOUND.getMessage(),
                                                                 request.getTaxCode(),
                                                                 request.getOrigin(),
                                                                 request.getOriginId(),
-                                                                request.getSubunitCode())));
+                                                                request.getSubunitCode()))));
                             }
                             return Uni.createFrom().item(response.getInstitutions().get(0));
                         });
