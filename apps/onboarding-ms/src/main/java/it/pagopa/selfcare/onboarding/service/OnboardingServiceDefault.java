@@ -52,6 +52,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -60,6 +61,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -311,7 +313,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product));
     }
-
 
     private Uni<Product> verifyExistingOnboarding(Onboarding onboarding, boolean isAggregatesIncrement) {
         return getProductByOnboarding(onboarding)
@@ -914,7 +915,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .filter(
                         aggregateInstitution ->
                                 Optional.ofNullable(aggregateInstitution.getSubunitCode()).equals(Optional.ofNullable(aggregate.getSubunitCode())) &&
-                                aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
+                                        aggregateInstitution.getTaxCode().equals(aggregate.getTaxCode()))
                 .findAny()
                 .ifPresent(aggregateInstitutionRequest -> aggregateInstitutionRequest.setUsers(users));
     }
@@ -1670,14 +1671,25 @@ public class OnboardingServiceDefault implements OnboardingService {
                             if (Objects.isNull(response.getInstitutions())
                                     || response.getInstitutions().size() > 1) {
                                 return Uni.createFrom()
-                                        .failure(
+                                        .item( /*
                                                 new ResourceNotFoundException(
                                                         String.format(
                                                                 INSTITUTION_NOT_FOUND.getMessage(),
                                                                 request.getTaxCode(),
                                                                 request.getOrigin(),
                                                                 request.getOriginId(),
-                                                                request.getSubunitCode())));
+                                                                request.getSubunitCode()))
+                                                                */
+                                                response.getInstitutions().stream()
+                                                        .filter(institutionResponse ->
+                                                                institutionResponse.getInstitutionType().name().equals(request.getInstitutionType().name()))
+                                                        .findFirst().orElseThrow(() -> new ResourceNotFoundException(
+                                                                String.format(
+                                                                        INSTITUTION_NOT_FOUND.getMessage(),
+                                                                        request.getTaxCode(),
+                                                                        request.getOrigin(),
+                                                                        request.getOriginId(),
+                                                                        request.getSubunitCode()))));
                             }
                             return Uni.createFrom().item(response.getInstitutions().get(0));
                         });
@@ -2153,14 +2165,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(id -> {
                     Map<String, Object> queryParameter = Map.of("status", OnboardingStatus.DELETED.name(),
-                                                                "updatedAt", LocalDateTime.now(),
-                                                                "closedAt", LocalDateTime.now());
+                            "updatedAt", LocalDateTime.now(),
+                            "closedAt", LocalDateTime.now());
                     return updateOnboardingStatus(onboardingId, queryParameter);
                 })
                 .onItem()
                 .transformToUni(
                         onboarding -> orchestrationApi
-                                        .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
-                                        .map(ignore -> onboarding));
+                                .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
+                                .map(ignore -> onboarding));
     }
 }

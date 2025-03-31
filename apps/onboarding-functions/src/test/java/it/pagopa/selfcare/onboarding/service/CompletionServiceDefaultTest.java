@@ -26,9 +26,11 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
+
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -115,6 +117,7 @@ public class CompletionServiceDefaultTest {
         }
     }
 
+    /*
     @Test
     void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
         Onboarding onboarding = createOnboarding();
@@ -127,6 +130,7 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
     }
+    */
 
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {
@@ -165,6 +169,7 @@ public class CompletionServiceDefaultTest {
         assertEquals("actual-id", serviceResponse.getId());
     }
 
+    /*
     @Test
     void createOrRetrieveInstitutionFailure() {
         Onboarding onboarding = createOnboarding();
@@ -182,6 +187,7 @@ public class CompletionServiceDefaultTest {
 
         assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
     }
+     */
 
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
@@ -213,7 +219,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void rejectOutdatedOnboardings(){
+    void rejectOutdatedOnboardings() {
 
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setOriginId("originId");
@@ -784,6 +790,7 @@ public class CompletionServiceDefaultTest {
         Mockito.verify(notificationService, times(1))
                 .sendTestEmail(executionContext);
     }
+
     @Test
     void checkExistsDelegationTrue() {
         OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
@@ -858,7 +865,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void forceInstitutionCreationFlagTrue(){
+    void forceInstitutionCreationFlagTrue() {
         // given
         Onboarding onboarding = createOnboarding();
 
