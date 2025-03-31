@@ -1707,6 +1707,43 @@
         } ]
       }
     },
+    "/v1/tokens/contract-digest" : {
+      "get" : {
+        "tags" : [ "internal-v1" ],
+        "summary" : "Get the digest of contract signed",
+        "description" : "Get the digest of contract signed",
+        "operationId" : "digestContractSigned",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ContractSignedDigest"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/tokens/contract-report" : {
       "get" : {
         "tags" : [ "internal-v1" ],
@@ -2118,6 +2155,14 @@
         "properties" : {
           "response" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "ContractSignedDigest" : {
+        "type" : "object",
+        "properties" : {
+          "digest" : {
+            "type" : "string"
           }
         }
       },
