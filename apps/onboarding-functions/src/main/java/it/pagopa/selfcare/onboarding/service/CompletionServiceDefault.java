@@ -49,7 +49,7 @@ import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
 @ApplicationScoped
-@SuppressWarnings({"java:S6813","java:S107"})
+@SuppressWarnings({"java:S6813", "java:S107"})
 public class CompletionServiceDefault implements CompletionService {
 
     @RestClient
@@ -105,7 +105,7 @@ public class CompletionServiceDefault implements CompletionService {
                                     OnboardingRepository onboardingRepository,
                                     TokenRepository tokenRepository,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
-                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist")boolean forceInstitutionCreation) {
+                                    @ConfigProperty(name = "onboarding-functions.force-institution-persist") boolean forceInstitutionCreation) {
         this.institutionMapper = institutionMapper;
         this.onboardingRepository = onboardingRepository;
         this.tokenRepository = tokenRepository;
@@ -120,6 +120,12 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
+
+        if (Objects.nonNull(onboarding.getInstitution()) &&
+                StringUtils.isNotBlank(onboarding.getInstitution().getId())) {
+            return onboarding.getInstitution().getId();
+        }
+
         InstitutionResponse institutionResponse = createOrRetrieveInstitution(onboarding);
 
         if (Objects.nonNull(institutionResponse)) {
@@ -141,8 +147,12 @@ public class CompletionServiceDefault implements CompletionService {
         Institution institution = onboarding.getInstitution();
         InstitutionsResponse institutionsResponse = getInstitutions(institution);
 
-        if (Objects.nonNull(institutionsResponse.getInstitutions()) && institutionsResponse.getInstitutions().size() > 1) {
-            throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
+        if (Objects.nonNull(institutionsResponse.getInstitutions())
+                && institutionsResponse.getInstitutions().size() > 1) {
+            return institutionsResponse.getInstitutions().stream()
+                    .filter(institutionResponse -> institutionResponse.getInstitutionType().equals(onboarding.getInstitution().getInstitutionType().name()))
+                    .findFirst()
+                    .orElse(createInstitution(institution));
         }
 
         return
@@ -165,7 +175,7 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
-        for (User user: onboarding.getUsers()) {
+        for (User user : onboarding.getUsers()) {
 
             if (!product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
                     .get(user.getRole()).isSkipUserCreation()) {
@@ -193,8 +203,7 @@ public class CompletionServiceDefault implements CompletionService {
         if (Objects.nonNull(onboarding.getAggregator())) {
             DelegationRequest delegationRequest = getDelegationRequest(onboarding);
             return delegationApi.createDelegationUsingPOST(delegationRequest).getId();
-        }
-        else {
+        } else {
             throw new GenericOnboardingException("Aggregator is null, impossible to create delegation");
         }
     }
@@ -282,7 +291,7 @@ public class CompletionServiceDefault implements CompletionService {
                 if (Objects.nonNull(delegationWithPaginationResponse) && !CollectionUtils.isEmpty(delegationWithPaginationResponse.getDelegations())) {
                     existsDelegation = delegationWithPaginationResponse.getDelegations().stream().anyMatch(delegation -> ACTIVE.equals(delegation.getStatus()));
                 }
-            }catch (WebApplicationException e) {
+            } catch (WebApplicationException e) {
                 throw new GenericOnboardingException(String.format("Error during retrieve delegation %s", e.getMessage()));
             }
         }
@@ -319,7 +328,7 @@ public class CompletionServiceDefault implements CompletionService {
             }
             return true;
         } catch (WebApplicationException e) {
-            if(e.getResponse().getStatus() == 404) {
+            if (e.getResponse().getStatus() == 404) {
                 return false;
             }
             throw new GenericOnboardingException(e.getMessage());
@@ -329,7 +338,7 @@ public class CompletionServiceDefault implements CompletionService {
     private InstitutionsResponse getInstitutions(Institution institution) {
         InstitutionsResponse institutionsResponse;
 
-        if(StringUtils.isNotBlank(institution.getTaxCode())) {
+        if (StringUtils.isNotBlank(institution.getTaxCode())) {
             institutionsResponse = institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), institution.getSubunitCode(), null, null);
         } else {
             String origin = Objects.nonNull(institution.getOrigin()) ? institution.getOrigin().getValue() : null;
@@ -345,25 +354,25 @@ public class CompletionServiceDefault implements CompletionService {
      */
     private InstitutionResponse createInstitution(Institution institution) {
 
-        if(InstitutionType.SA.equals(institution.getInstitutionType())
+        if (InstitutionType.SA.equals(institution.getInstitutionType())
                 && Origin.ANAC.equals(institution.getOrigin())) {
 
             return institutionApi.createInstitutionFromAnacUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if(InstitutionType.AS.equals(institution.getInstitutionType())
+        if (InstitutionType.AS.equals(institution.getInstitutionType())
                 && Origin.IVASS.equals(institution.getOrigin())) {
 
             return institutionApi.createInstitutionFromIvassUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if(InstitutionType.PG.equals(institution.getInstitutionType()) &&
+        if (InstitutionType.PG.equals(institution.getInstitutionType()) &&
                 (Origin.INFOCAMERE.equals(institution.getOrigin()) || Origin.ADE.equals(institution.getOrigin()))) {
 
             return institutionApi.createInstitutionFromInfocamereUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if(isInstitutionPresentOnIpa(institution)) {
+        if (isInstitutionPresentOnIpa(institution)) {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
@@ -371,11 +380,11 @@ public class CompletionServiceDefault implements CompletionService {
                     .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
                     .orElse(List.of()));
             fromIpaPost.setInstitutionType(InstitutionFromIpaPost.InstitutionTypeEnum.valueOf(institution.getInstitutionType().name()));
-            if(Objects.nonNull(institution.getSubunitType())) {
+            if (Objects.nonNull(institution.getSubunitType())) {
                 fromIpaPost.setSubunitCode(institution.getSubunitCode());
                 fromIpaPost.setSubunitType(InstitutionFromIpaPost.SubunitTypeEnum.valueOf(institution.getSubunitType().name()));
             }
-            return  institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
+            return institutionApi.createInstitutionFromIpaUsingPOST(fromIpaPost);
         }
 
         InstitutionRequest institutionRequest = institutionMapper.toInstitutionRequest(institution);
