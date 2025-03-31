@@ -24,6 +24,7 @@ import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.controller.response.ContractSignedDigest;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -186,8 +187,7 @@ class TokenServiceDefaultTest {
     Token token = new Token();
     token.setContractFilename("fileName");
     token.setType(TokenType.INSTITUTION);
-    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
-
+    
     PanacheMock.mock(Token.class);
     when(Token.findById(onboardingId))
       .thenReturn(Uni.createFrom().item(token));
@@ -200,6 +200,25 @@ class TokenServiceDefaultTest {
     ContractSignedReport actual = subscriber.awaitItem().getItem();
     assertNotNull(actual);
     //assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
+  void digestContractSignedTest_OK() {
+    Token token = new Token();
+    token.setContractFilename("fileName");
+    token.setType(TokenType.INSTITUTION);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+      .thenReturn(Uni.createFrom().item(token));
+
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+
+    UniAssertSubscriber<ContractSignedDigest> subscriber = tokenService.digestContractSigned(onboardingId)
+      .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    ContractSignedDigest actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
   }
 
   private Token createDummyToken() {

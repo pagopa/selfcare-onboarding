@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.controller;
 
 import io.quarkus.security.Authenticated;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.controller.response.ContractSignedDigest;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
@@ -100,4 +101,17 @@ public class TokenController {
   public Uni<ContractSignedReport> reportContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId) {
     return tokenService.reportContractSigned(onboardingId);
   }
+
+  @Operation(
+    summary = "Get the digest of contract signed",
+    description = "Get the digest of contract signed"
+  )
+  @GET
+  @Tag(name = "internal-v1")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/contract-digest")
+  public Uni<ContractSignedDigest> digestContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId) {
+    return tokenService.digestContractSigned(onboardingId);
+  }
 }
+

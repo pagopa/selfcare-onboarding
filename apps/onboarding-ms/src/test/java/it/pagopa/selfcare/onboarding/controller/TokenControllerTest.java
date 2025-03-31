@@ -13,6 +13,7 @@ import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.controller.response.ContractSignedDigest;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
@@ -172,5 +173,27 @@ class TokenControllerTest {
 
     // then
     Mockito.verify(tokenService, times(1)).reportContractSigned(anyString());
+  }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void digestContractSignedTest_OK() {
+    // given
+    final String onboardingId = "onboardingId";
+
+    Uni<ContractSignedDigest> response = Uni.createFrom().item(ContractSignedDigest.digest("123"));
+    when(tokenService.digestContractSigned(onboardingId)).thenReturn(response);
+
+    // when
+    given()
+      .when()
+      .queryParam("onboardingId", onboardingId)
+      .contentType(MediaType.APPLICATION_JSON)
+      .get("/contract-digest")
+      .then()
+      .statusCode(200);
+
+    // then
+    Mockito.verify(tokenService, times(1)).digestContractSigned(anyString());
   }
 }
