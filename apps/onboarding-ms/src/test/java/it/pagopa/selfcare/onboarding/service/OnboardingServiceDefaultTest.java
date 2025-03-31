@@ -1,18 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
-
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -55,11 +42,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
-
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -83,6 +65,23 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -2530,7 +2529,48 @@ class OnboardingServiceDefaultTest {
 
     }
 
-    /*
+    @Test
+    @RunOnVertxContext
+    void onboardingUsersWithInstitutions(UniAsserter asserter) {
+
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setUsers(users);
+        request.setInstitutionType(InstitutionType.PSP);
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
+        institutionResponse.setOrigin(Origin.IPA.name());
+        institutionResponse.setOriginId("originId");
+        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
+        InstitutionsResponse response = new InstitutionsResponse();
+        response.setInstitutions(List.of(institutionResponse, institutionResponse));
+        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(response)));
+
+        asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+        });
+
+    }
+
     @Test
     void onboardingUsersWithInstitutionNotFound() {
         OnboardingUserRequest request = new OnboardingUserRequest();
@@ -2539,10 +2579,12 @@ class OnboardingServiceDefaultTest {
         request.setSubunitCode("subunitCode");
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
+        request.setInstitutionType(PA);
 
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
         institutionResponse.setOrigin(Origin.IPA.name());
         institutionResponse.setOriginId("originId");
+        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
         when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null))
@@ -2555,7 +2597,6 @@ class OnboardingServiceDefaultTest {
                 .assertFailedWith(ResourceNotFoundException.class);
 
     }
-     */
 
     @Test
     void testInstitutionOnboardings() {
