@@ -26,9 +26,11 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.logging.Logger;
+
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -116,16 +118,58 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
+    void createInstitutionWithExistingInstitutionId() {
+        // given
         Onboarding onboarding = createOnboarding();
 
-        InstitutionsResponse response = new InstitutionsResponse();
-        response.setInstitutions(List.of(new InstitutionResponse(), new InstitutionResponse()));
-        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null))
-                .thenReturn(response);
+        Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
+        institution.setId("id");
+        institution.setInstitutionType(InstitutionType.PSP);
+        institution.setOrigin(Origin.SELC);
+        onboarding.setInstitution(institution);
 
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
+        // when
+        String result = completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        assertEquals(result, onboarding.getInstitution().getId());
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionIsNull() {
+        // given
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PSP);
+        institution.setOrigin(Origin.SELC);
+        onboarding.setInstitution(institution);
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(institutionsResponse);
+
+        when(institutionApi.createInstitutionUsingPOST(any()))
+                .thenReturn(institutionResponse);
+
+        WebApplicationException e = mock(WebApplicationException.class);
+        when(e.getResponse()).thenReturn(Response.status(404).build());
+
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenThrow(e);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(onboardingRepository.update("institution.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        // when
+        String result = completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+        verify(institutionApi, times(1)).createInstitutionUsingPOST(any());
+        assertEquals(result, institutionResponse.getId());
     }
 
     @Test
@@ -166,21 +210,27 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void createOrRetrieveInstitutionFailure() {
+    void createOrRetrieveInstitutions() {
         Onboarding onboarding = createOnboarding();
         Institution institution = new Institution();
         institution.setId("actual-id");
         institution.setTaxCode("123");
+        institution.setInstitutionType(InstitutionType.PSP);
         onboarding.setInstitution(institution);
 
         InstitutionsResponse response = new InstitutionsResponse();
         InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setInstitutionType(InstitutionType.PSP.name());
+        institutionResponse.setId("actual-id");
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
 
         when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
 
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
     }
 
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding) {
@@ -213,7 +263,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void rejectOutdatedOnboardings(){
+    void rejectOutdatedOnboardings() {
 
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setOriginId("originId");
@@ -784,6 +834,7 @@ public class CompletionServiceDefaultTest {
         Mockito.verify(notificationService, times(1))
                 .sendTestEmail(executionContext);
     }
+
     @Test
     void checkExistsDelegationTrue() {
         OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
@@ -858,7 +909,7 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
-    void forceInstitutionCreationFlagTrue(){
+    void forceInstitutionCreationFlagTrue() {
         // given
         Onboarding onboarding = createOnboarding();
 

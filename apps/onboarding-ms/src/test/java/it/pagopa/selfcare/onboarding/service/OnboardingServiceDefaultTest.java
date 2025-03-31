@@ -1376,12 +1376,18 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
 
-    Mockito.doAnswer(invocation -> Multi.createFrom().empty())
-        .doAnswer(invocation -> Multi.createFrom().items(new Onboarding()))
-        .when(query)
-        .stream();
+        Onboarding onboarding1 = new Onboarding();
+        Onboarding onboarding2 = new Onboarding();
+        onboarding2.setInstitution(institutionPspRequest);
+
+        Mockito.doAnswer(invocation -> Multi.createFrom().empty())
+                .doAnswer(invocation -> Multi.createFrom().items(onboarding1))
+                .doAnswer(invocation -> Multi.createFrom().items(onboarding2))
+                .when(query)
+                .stream();
 
         when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
 
         asserter.assertThat(
                 () -> onboardingService.onboarding(onboardingRequest, users, null),
@@ -1392,6 +1398,7 @@ class OnboardingServiceDefaultTest {
                     PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
                     PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
                     PanacheMock.verify(Onboarding.class, times(2)).find(any(Document.class));
+                    PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class), any(Document.class));
                     PanacheMock.verifyNoMoreInteractions(Onboarding.class);
                 });
     }
@@ -2536,10 +2543,12 @@ class OnboardingServiceDefaultTest {
         request.setSubunitCode("subunitCode");
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
+        request.setInstitutionType(PA);
 
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
         institutionResponse.setOrigin(Origin.IPA.name());
         institutionResponse.setOriginId("originId");
+        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
         when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null))
@@ -2550,6 +2559,48 @@ class OnboardingServiceDefaultTest {
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create())
                 .assertFailedWith(ResourceNotFoundException.class);
+
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingUsersWithInstitutions(UniAsserter asserter) {
+
+        OnboardingUserRequest request = new OnboardingUserRequest();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setUsers(users);
+        request.setInstitutionType(InstitutionType.PSP);
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+
+        Onboarding onboarding = createDummyOnboarding();
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find((Document) any(), any())).thenReturn(query);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
+        institutionResponse.setOrigin(Origin.IPA.name());
+        institutionResponse.setOriginId("originId");
+        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
+        InstitutionsResponse response = new InstitutionsResponse();
+        response.setInstitutions(List.of(institutionResponse, institutionResponse));
+        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(response)));
+
+        asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+        });
 
     }
 
