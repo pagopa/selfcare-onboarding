@@ -1678,25 +1678,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                             if (Objects.isNull(response.getInstitutions())
                                     || response.getInstitutions().size() > 1) {
                                 return Uni.createFrom()
-                                        .item( /*
-                                                new ResourceNotFoundException(
+                                        .item(response.getInstitutions().stream()
+                                                .filter(institutionResponse ->
+                                                        institutionResponse.getInstitutionType().name().equals(request.getInstitutionType().name()))
+                                                .findFirst().orElseThrow(() -> new ResourceNotFoundException(
                                                         String.format(
                                                                 INSTITUTION_NOT_FOUND.getMessage(),
                                                                 request.getTaxCode(),
                                                                 request.getOrigin(),
                                                                 request.getOriginId(),
-                                                                request.getSubunitCode()))
-                                                                */
-                                                response.getInstitutions().stream()
-                                                        .filter(institutionResponse ->
-                                                                institutionResponse.getInstitutionType().name().equals(request.getInstitutionType().name()))
-                                                        .findFirst().orElseThrow(() -> new ResourceNotFoundException(
-                                                                String.format(
-                                                                        INSTITUTION_NOT_FOUND.getMessage(),
-                                                                        request.getTaxCode(),
-                                                                        request.getOrigin(),
-                                                                        request.getOriginId(),
-                                                                        request.getSubunitCode()))));
+                                                                request.getSubunitCode()))));
                             }
                             return Uni.createFrom().item(response.getInstitutions().get(0));
                         });

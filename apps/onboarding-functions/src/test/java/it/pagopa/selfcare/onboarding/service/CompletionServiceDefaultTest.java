@@ -170,25 +170,29 @@ public class CompletionServiceDefaultTest {
         assertEquals("actual-id", serviceResponse.getId());
     }
 
-    /*
     @Test
-    void createOrRetrieveInstitutionFailure() {
+    void createOrRetrieveInstitutions() {
         Onboarding onboarding = createOnboarding();
         Institution institution = new Institution();
         institution.setId("actual-id");
         institution.setTaxCode("123");
+        institution.setInstitutionType(InstitutionType.PSP);
         onboarding.setInstitution(institution);
 
         InstitutionsResponse response = new InstitutionsResponse();
         InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setInstitutionType(InstitutionType.PSP.name());
+        institutionResponse.setId("actual-id");
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
 
         when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null))
                 .thenReturn(response);
 
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createOrRetrieveInstitution(onboarding));
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
     }
-     */
 
     void mockOnboardingUpdateAndExecuteCreateInstitution(Onboarding onboarding) {
         PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
