@@ -66,7 +66,7 @@ public class RegistryResourceFactory {
 
   private RegistryManager<?> getResourceFromInstitutionType(Onboarding onboarding) {
     if (GSP.equals(onboarding.getInstitution().getInstitutionType())) {
-      new RegistryManagerIPAGps(onboarding, uoApi);
+      return new RegistryManagerIPAGps(onboarding, uoApi, institutionApi);
     }
     return new RegistryManagerIPA(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
   }

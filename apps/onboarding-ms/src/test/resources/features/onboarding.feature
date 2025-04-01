@@ -556,6 +556,222 @@ Feature: Onboarding collection
     Then the response status code should be 400
     And the response should contain the text "onboarding pricing plan for io-premium is not allowed"
 
+  Scenario: Can't perform onboarding for GSP without additional information
+    Given I have a valid request object
+             """
+             {
+                "productId": "prod-pagopa",
+                "users": [
+                    {
+                        "taxCode": "FRDSMN80A01F205Z",
+                        "name": "Sigmund",
+                        "surname": "Freud",
+                        "email": "s.freud@test.email.it",
+                        "role": "MANAGER"
+                    },
+                    {
+                        "taxCode": "CLVTLI80A01F839V",
+                        "name": "Italo",
+                        "surname": "Calvino",
+                        "email": "i.calvino@test.email.it",
+                        "role": "DELEGATE"
+                    }
+                ],
+                "institution": {
+                    "institutionType": "GSP",
+                    "taxCode": "03309030652",
+                    "origin": "IPA",
+                    "originId": "5AMFGRN8",
+                    "description": "SALERNO SOLIDALE SPA",
+                    "city": "Salerno",
+                    "country": "IT",
+                    "county": "SA",
+                    "digitalAddress": "presidenza@pec.salernosolidale.it",
+                    "address": "Via GUIDO VESTUTI",
+                    "zipCode": "84133",
+                    "geographicTaxonomies": [
+                        {
+                            "code": "ITA",
+                            "desc": "ITALIA"
+                        }
+                    ],
+                    "imported": false
+                },
+                "billing": {
+                    "vatNumber": "03309030652",
+                    "recipientCode": "DNHAKT",
+                    "publicServices": true
+                }
+             }
+             """
+    When I send a POST request to "/pa" with the request body
+    """
+             {
+                "productId": "prod-pagopa",
+                "users": [
+                    {
+                        "taxCode": "FRDSMN80A01F205Z",
+                        "name": "Sigmund",
+                        "surname": "Freud",
+                        "email": "s.freud@test.email.it",
+                        "role": "MANAGER"
+                    },
+                    {
+                        "taxCode": "CLVTLI80A01F839V",
+                        "name": "Italo",
+                        "surname": "Calvino",
+                        "email": "i.calvino@test.email.it",
+                        "role": "DELEGATE"
+                    }
+                ],
+                "institution": {
+                    "institutionType": "GSP",
+                    "taxCode": "03309030652",
+                    "origin": "IPA",
+                    "originId": "5AMFGRN8",
+                    "description": "SALERNO SOLIDALE SPA",
+                    "city": "Salerno",
+                    "country": "IT",
+                    "county": "SA",
+                    "digitalAddress": "presidenza@pec.salernosolidale.it",
+                    "address": "Via GUIDO VESTUTI",
+                    "zipCode": "84133",
+                    "geographicTaxonomies": [
+                        {
+                            "code": "ITA",
+                            "desc": "ITALIA"
+                        }
+                    ],
+                    "imported": false
+                },
+                "billing": {
+                    "vatNumber": "03309030652",
+                    "recipientCode": "DNHAKT",
+                    "publicServices": true
+                }
+             }
+             """
+    Then the response status code should be 400
+    And the response should contain the text "Additional Information is required when institutionType is GSP and productId is pagopa"
+
+  Scenario: Can't perform onboarding for GSP without note field
+    Given I have a valid request object
+             """
+             {
+                   "productId": "prod-pagopa",
+                   "users": [
+                            {
+                                 "taxCode": "FRDSMN80A01F205Z",
+                                 "name": "Sigmund",
+                                 "surname": "Freud",
+                                 "email": "s.freud@test.email.it",
+                                 "role": "MANAGER"
+                            },
+                            {
+                                 "taxCode": "CLVTLI80A01F839V",
+                                 "name": "Italo",
+                                 "surname": "Calvino",
+                                 "email": "i.calvino@test.email.it",
+                                 "role": "DELEGATE"
+                            }
+                            ],
+                                      "institution": {
+                                          "institutionType": "GSP",
+                                          "taxCode": "03309030652",
+                                          "origin": "IPA",
+                                          "originId": "5AMFGRN8",
+                                          "description": "SALERNO SOLIDALE SPA",
+                                          "city": "Salerno",
+                                          "country": "IT",
+                                          "county": "SA",
+                                          "digitalAddress": "presidenza@pec.salernosolidale.it",
+                                          "address": "Via GUIDO VESTUTI",
+                                          "zipCode": "84133",
+                                          "geographicTaxonomies": [
+                                              {
+                                                  "code": "ITA",
+                                                  "desc": "ITALIA"
+                                              }
+                                          ],
+                                          "imported": false
+                                      },
+                                      "billing": {
+                                          "vatNumber": "03309030652",
+                                          "recipientCode": "DNHAKT",
+                                          "publicServices": true
+                                      },
+                                          "additionalInformations":{
+                                            "agentOfPublicService":false,
+                                            "agentOfPublicServiceNote":"",
+                                            "belongRegulatedMarket":false,
+                                            "regulatedMarketNote":"",
+                                            "establishedByRegulatoryProvision":false,
+                                            "establishedByRegulatoryProvisionNote":"",
+                                            "ipa":false,
+                                            "ipaCode":"5AMFGRN8"
+                                      }
+             }
+             """
+    When I send a POST request to "/pa" with the request body
+             """
+             {
+                   "productId": "prod-pagopa",
+                   "users": [
+                            {
+                                 "taxCode": "FRDSMN80A01F205Z",
+                                 "name": "Sigmund",
+                                 "surname": "Freud",
+                                 "email": "s.freud@test.email.it",
+                                 "role": "MANAGER"
+                            },
+                            {
+                                 "taxCode": "CLVTLI80A01F839V",
+                                 "name": "Italo",
+                                 "surname": "Calvino",
+                                 "email": "i.calvino@test.email.it",
+                                 "role": "DELEGATE"
+                            }
+                            ],
+                                      "institution": {
+                                          "institutionType": "GSP",
+                                          "taxCode": "03309030652",
+                                          "origin": "IPA",
+                                          "originId": "5AMFGRN8",
+                                          "description": "SALERNO SOLIDALE SPA",
+                                          "city": "Salerno",
+                                          "country": "IT",
+                                          "county": "SA",
+                                          "digitalAddress": "presidenza@pec.salernosolidale.it",
+                                          "address": "Via GUIDO VESTUTI",
+                                          "zipCode": "84133",
+                                          "geographicTaxonomies": [
+                                              {
+                                                  "code": "ITA",
+                                                  "desc": "ITALIA"
+                                              }
+                                          ],
+                                          "imported": false
+                                      },
+                                      "billing": {
+                                          "vatNumber": "03309030652",
+                                          "recipientCode": "DNHAKT",
+                                          "publicServices": true
+                                      },
+                                      "additionalInformations":{
+                                            "agentOfPublicService":false,
+                                            "agentOfPublicServiceNote":"",
+                                            "belongRegulatedMarket":false,
+                                            "regulatedMarketNote":"",
+                                            "establishedByRegulatoryProvision":false,
+                                            "establishedByRegulatoryProvisionNote":"",
+                                            "ipa":false,
+                                            "ipaCode":"5AMFGRN8"
+                                      }
+             }
+             """
+    Then the response status code should be 400
+    And the response should contain the text "Other Note is required when other boolean are false"
+
   Scenario: Can't perform onboarding request for invalid digitalAddress (different from IPA registry one)
     Given I have a request object
         """
