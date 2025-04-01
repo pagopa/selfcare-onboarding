@@ -1,9 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -26,9 +22,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -44,10 +37,20 @@ import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
+import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -883,6 +886,61 @@ public class CompletionServiceDefaultTest {
 
         // then
         verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+    }
+
+    @Test
+    void createInstitutionWithExistingInstitutionId() {
+        // given
+        Onboarding onboarding = createOnboarding();
+
+        Institution institution = new Institution();
+        institution.setTaxCode("taxCode");
+        institution.setId("id");
+        institution.setInstitutionType(InstitutionType.PSP);
+        institution.setOrigin(Origin.SELC);
+        onboarding.setInstitution(institution);
+
+        // when
+        String result = completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        assertEquals(result, onboarding.getInstitution().getId());
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void createInstitutionAndPersistInstitutionIsNull() {
+        // given
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PSP);
+        institution.setOrigin(Origin.SELC);
+        onboarding.setInstitution(institution);
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+        InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+                .thenReturn(institutionsResponse);
+
+        when(institutionApi.createInstitutionUsingPOST(any()))
+                .thenReturn(institutionResponse);
+
+        WebApplicationException e = mock(WebApplicationException.class);
+        when(e.getResponse()).thenReturn(Response.status(404).build());
+
+        when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenThrow(e);
+
+        PanacheUpdate panacheUpdateMock = mock(PanacheUpdate.class);
+        when(onboardingRepository.update("institution.id = ?1 and updatedAt = ?2 ", any(), any()))
+                .thenReturn(panacheUpdateMock);
+
+        // when
+        String result = completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding);
+
+        // then
+        verify(institutionApi, times(1)).getInstitutionsUsingGET(any(), any(), any(), any());
+        verify(institutionApi, times(1)).createInstitutionUsingPOST(any());
+        assertEquals(result, institutionResponse.getId());
     }
 
     @Test
