@@ -121,7 +121,8 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
 
-        if (Objects.nonNull(onboarding.getInstitution().getId())) {
+        if (Objects.nonNull(onboarding.getInstitution()) &&
+                StringUtils.isNotBlank(onboarding.getInstitution().getId())) {
             return onboarding.getInstitution().getId();
         }
 

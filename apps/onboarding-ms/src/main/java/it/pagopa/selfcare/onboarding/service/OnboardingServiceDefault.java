@@ -504,7 +504,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
 
         if (Objects.nonNull(product.getParentId())) {
-            setInstitutionId(onboarding);
+            setInstitutionId(onboarding, product.getParentId());
         }
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(
@@ -542,16 +542,15 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .replaceWith(onboardingPersisted)));
     }
 
-    private void setInstitutionId(Onboarding onboarding) {
+    private void setInstitutionId(Onboarding onboarding, String parentId) {
         final String taxCode = onboarding.getInstitution().getTaxCode();
         final String origin = onboarding.getInstitution().getOrigin().name();
         final String originId = onboarding.getInstitution().getOriginId();
-        final String productId = onboarding.getProductId();
         final String subunitCode = onboarding.getInstitution().getSubunitCode();
         final String institutionType = onboarding.getInstitution().getInstitutionType().name();
 
-        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId)
-                .filter(item -> institutionType.equals(item.getInstitution().getInstitutionType().name()))
+        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
+                .filter(item -> institutionType.equalsIgnoreCase(item.getInstitution().getInstitutionType().name()))
                 .collect().asList()
                 .await().indefinitely();
 
@@ -560,8 +559,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         } else {
             throw new ResourceNotFoundException(
                     String.format(
-                            "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found and institutionType %s",
-                            taxCode, origin, originId, productId, subunitCode, institutionType
+                            "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
+                            taxCode, origin, originId, parentId, subunitCode, institutionType
                     )
             );
         }
