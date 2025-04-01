@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.controller.response.ContractSignedDigest;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 
@@ -22,4 +23,6 @@ public interface TokenService {
   Uni<List<String>> getAttachments(String onboardingId);
 
   Uni<ContractSignedReport> reportContractSigned(String onboardingId);
+
+  Uni<ContractSignedDigest> digestContractSigned(String onboardingId);
 }

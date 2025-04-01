@@ -5,6 +5,7 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
@@ -235,4 +236,15 @@ public class SignatureServiceDefault implements SignatureService {
     return false;
   }
 
+  @Override
+  public String digest(File file) {
+    try {
+      DSSDocument document = new FileDocument(file);
+      return document.getDigest(DigestAlgorithm.SHA256);
+    } catch (InvalidRequestException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new InvalidRequestException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
+    }
+  }
 }

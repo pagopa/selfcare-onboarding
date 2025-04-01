@@ -5,6 +5,7 @@ import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
+import it.pagopa.selfcare.onboarding.controller.response.ContractSignedDigest;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
@@ -117,5 +118,17 @@ public class TokenServiceDefault implements TokenService {
             signatureService.verifySignature(contract);
             return ContractSignedReport.cades(true);
           })).onFailure().recoverWithUni(() -> Uni.createFrom().item(ContractSignedReport.cades(false)));
+  }
+
+  @Override
+  public Uni<ContractSignedDigest> digestContractSigned(String onboardingId) {
+    return Token.findById(onboardingId)
+      .map(Token.class::cast)
+      .onItem().transformToUni(token ->
+        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(token.getContractSigned()))
+          .runSubscriptionOn(Executors.newSingleThreadExecutor())
+          .onItem().transform(contract -> {
+            return ContractSignedDigest.digest(signatureService.digest(contract));
+          })).onFailure().recoverWithUni(() -> Uni.createFrom().item(ContractSignedDigest.digest("")));
   }
 }
