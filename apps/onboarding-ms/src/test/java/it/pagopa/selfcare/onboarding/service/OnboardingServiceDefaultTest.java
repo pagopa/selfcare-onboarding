@@ -1377,12 +1377,18 @@ class OnboardingServiceDefaultTest {
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
 
+        Onboarding onboarding1 = new Onboarding();
+        Onboarding onboarding2 = new Onboarding();
+        onboarding2.setInstitution(institutionPspRequest);
+
         Mockito.doAnswer(invocation -> Multi.createFrom().empty())
-                .doAnswer(invocation -> Multi.createFrom().items(new Onboarding()))
+                .doAnswer(invocation -> Multi.createFrom().items(onboarding1))
+                .doAnswer(invocation -> Multi.createFrom().items(onboarding2))
                 .when(query)
                 .stream();
 
         when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
 
         asserter.assertThat(
                 () -> onboardingService.onboarding(onboardingRequest, users, null),
@@ -1393,6 +1399,53 @@ class OnboardingServiceDefaultTest {
                     PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
                     PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
                     PanacheMock.verify(Onboarding.class, times(2)).find(any(Document.class));
+                    PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class), any(Document.class));
+                    PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+                });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingPsp_whenOnboardingsNotFound(UniAsserter asserter) {
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institutionPspRequest = new Institution();
+        institutionPspRequest.setOrigin(Origin.SELC);
+        institutionPspRequest.setInstitutionType(PSP);
+        institutionPspRequest.setTaxCode("taxCode");
+        onboardingRequest.setInstitution(institutionPspRequest);
+
+        mockPersistOnboarding(asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+
+        // mock verify allowed Map
+        asserter.execute(() -> when(onboardingValidationStrategy.validate(any(), anyString()))
+                .thenReturn(true));
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+
+        Onboarding onboarding1 = new Onboarding();
+
+        Mockito.doAnswer(invocation -> Multi.createFrom().empty())
+                .doAnswer(invocation -> Multi.createFrom().items(onboarding1))
+                .doAnswer(invocation -> Multi.createFrom().empty())
+                .when(query)
+                .stream();
+
+        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
+
+        asserter.assertFailedWith(
+                () -> onboardingService.onboarding(onboardingRequest, users, null),
+                ResourceNotFoundException.class);
+
+        asserter.execute(
+                () -> {
+                    PanacheMock.verify(Onboarding.class, times(2)).find(any(Document.class));
+                    PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class), any(Document.class));
                     PanacheMock.verifyNoMoreInteractions(Onboarding.class);
                 });
     }

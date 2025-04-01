@@ -503,6 +503,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
                         : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
 
+        if (Objects.nonNull(product.getParentId())) {
+            setInstitutionId(onboarding);
+        }
         /* I have to retrieve onboarding id for saving reference to pdv */
         return Panache.withTransaction(
                 () ->
@@ -537,6 +540,31 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .onItem()
                                                         .invoke(onboardingPersisted::setUsers)
                                                         .replaceWith(onboardingPersisted)));
+    }
+
+    private void setInstitutionId(Onboarding onboarding) {
+        final String taxCode = onboarding.getInstitution().getTaxCode();
+        final String origin = onboarding.getInstitution().getOrigin().name();
+        final String originId = onboarding.getInstitution().getOriginId();
+        final String productId = onboarding.getProductId();
+        final String subunitCode = onboarding.getInstitution().getSubunitCode();
+        final String institutionType = onboarding.getInstitution().getInstitutionType().name();
+
+        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId)
+                .filter(item -> institutionType.equals(item.getInstitution().getInstitutionType().name()))
+                .collect().asList()
+                .await().indefinitely();
+
+        if (!onboardings.isEmpty()) {
+            onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
+        } else {
+            throw new ResourceNotFoundException(
+                    String.format(
+                            "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found and institutionType %s",
+                            taxCode, origin, originId, productId, subunitCode, institutionType
+                    )
+            );
+        }
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
