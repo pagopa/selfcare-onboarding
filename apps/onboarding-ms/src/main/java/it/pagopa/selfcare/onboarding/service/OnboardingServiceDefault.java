@@ -1,5 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -44,6 +50,14 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -66,21 +80,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
@@ -484,85 +483,89 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .transform(onboardingMapper::toResponse));
     }
 
-    private Uni<Onboarding> persistOnboarding(
-            Onboarding onboarding,
-            List<UserRequest> userRequests,
-            Product product,
-            List<AggregateInstitutionRequest> aggregates) {
+  private Uni<Onboarding> persistOnboarding(
+      Onboarding onboarding,
+      List<UserRequest> userRequests,
+      Product product,
+      List<AggregateInstitutionRequest> aggregates) {
 
-        Log.infof(
-                "persist onboarding for: product %s, product parent %s",
-                product.getId(), product.getParentId());
+    Log.infof(
+        "persist onboarding for: product %s, product parent %s",
+        product.getId(), product.getParentId());
 
-        Map<PartyRole, ProductRoleInfo> roleMappings =
-                Objects.nonNull(product.getParent())
-                        ? product
-                        .getParent()
-                        .getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
-                        : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
+    Map<PartyRole, ProductRoleInfo> roleMappings =
+        Objects.nonNull(product.getParent())
+            ? product
+                .getParent()
+                .getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
+            : product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name());
 
-        if (Objects.nonNull(product.getParentId())) {
-            setInstitutionId(onboarding, product.getParentId());
-        }
-        /* I have to retrieve onboarding id for saving reference to pdv */
-        return Panache.withTransaction(
-                () ->
-                        Onboarding.persist(onboarding)
-                                .replaceWith(onboarding)
-                                .onItem()
-                                .transformToUni(
-                                        onboardingPersisted ->
-                                                validationRole(
-                                                        userRequests,
-                                                        validRoles(
-                                                                product,
-                                                                PHASE_ADDITION_ALLOWED.ONBOARDING,
-                                                                onboarding.getInstitution().getInstitutionType()))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore ->
-                                                                        validateUserAggregatesRoles(
-                                                                                aggregates,
-                                                                                validRoles(
-                                                                                        product,
-                                                                                        PHASE_ADDITION_ALLOWED.ONBOARDING,
-                                                                                        onboarding.getInstitution().getInstitutionType())))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore ->
-                                                                        retrieveAndSetUserAggregatesResources(
-                                                                                onboardingPersisted, product, aggregates))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore -> retrieveUserResources(userRequests, roleMappings))
-                                                        .onItem()
-                                                        .invoke(onboardingPersisted::setUsers)
-                                                        .replaceWith(onboardingPersisted)));
+    if (Objects.nonNull(product.getParentId())) {
+      setInstitutionId(onboarding, product.getParentId());
     }
+    /* I have to retrieve onboarding id for saving reference to pdv */
+    return Panache.withTransaction(
+        () ->
+            Onboarding.persist(onboarding)
+                .replaceWith(onboarding)
+                .onItem()
+                .transformToUni(
+                    onboardingPersisted ->
+                        validationRole(
+                                userRequests,
+                                validRoles(
+                                    product,
+                                    PHASE_ADDITION_ALLOWED.ONBOARDING,
+                                    onboarding.getInstitution().getInstitutionType()))
+                            .onItem()
+                            .transformToUni(
+                                ignore ->
+                                    validateUserAggregatesRoles(
+                                        aggregates,
+                                        validRoles(
+                                            product,
+                                            PHASE_ADDITION_ALLOWED.ONBOARDING,
+                                            onboarding.getInstitution().getInstitutionType())))
+                            .onItem()
+                            .transformToUni(
+                                ignore ->
+                                    retrieveAndSetUserAggregatesResources(
+                                        onboardingPersisted, product, aggregates))
+                            .onItem()
+                            .transformToUni(
+                                ignore -> retrieveUserResources(userRequests, roleMappings))
+                            .onItem()
+                            .invoke(onboardingPersisted::setUsers)
+                            .replaceWith(onboardingPersisted)));
+  }
 
-    private void setInstitutionId(Onboarding onboarding, String parentId) {
-        final String taxCode = onboarding.getInstitution().getTaxCode();
-        final String origin = onboarding.getInstitution().getOrigin().name();
-        final String originId = onboarding.getInstitution().getOriginId();
-        final String subunitCode = onboarding.getInstitution().getSubunitCode();
-        final String institutionType = onboarding.getInstitution().getInstitutionType().name();
+  private void setInstitutionId(Onboarding onboarding, String parentId) {
+    final String taxCode = onboarding.getInstitution().getTaxCode();
+    final String origin = onboarding.getInstitution().getOrigin().name();
+    final String originId = onboarding.getInstitution().getOriginId();
+    final String subunitCode = onboarding.getInstitution().getSubunitCode();
+    final String institutionType = onboarding.getInstitution().getInstitutionType().name();
 
-        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
-                .filter(item -> institutionType.equalsIgnoreCase(item.getInstitution().getInstitutionType().name()))
-                .collect().asList()
-                .await().indefinitely();
+    List<Onboarding> onboardings =
+        getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
+            .filter(
+                item ->
+                    institutionType.equalsIgnoreCase(
+                        item.getInstitution().getInstitutionType().name()))
+            .collect()
+            .asList()
+            .await()
+            .indefinitely();
 
-        if (!onboardings.isEmpty()) {
-            onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
-        } else {
-            throw new ResourceNotFoundException(
-                    String.format(
-                            "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
-                            taxCode, origin, originId, parentId, subunitCode, institutionType
-                    )
-            );
-        }
+    if (!onboardings.isEmpty()) {
+      onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
+    } else {
+      throw new ResourceNotFoundException(
+          String.format(
+              "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
+              taxCode, origin, originId, parentId, subunitCode, institutionType));
     }
+  }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
         final String taxCode = onboarding.getInstitution().getTaxCode();

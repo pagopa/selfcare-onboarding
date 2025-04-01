@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -22,6 +26,9 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Assertions;
@@ -43,14 +50,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.logging.Logger;
-
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 public class CompletionServiceDefaultTest {
@@ -117,21 +116,6 @@ public class CompletionServiceDefaultTest {
             return Map.of("onboarding-functions.persist-users.active", "true");
         }
     }
-
-    /*
-    @Test
-    void createInstitutionAndPersistInstitutionId_shouldThrowExceptionIfMoreInstitutions() {
-        Onboarding onboarding = createOnboarding();
-
-        InstitutionsResponse response = new InstitutionsResponse();
-        response.setInstitutions(List.of(new InstitutionResponse(), new InstitutionResponse()));
-        when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                onboarding.getInstitution().getSubunitCode(), null, null))
-                .thenReturn(response);
-
-        assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.createInstitutionAndPersistInstitutionId(onboarding));
-    }
-    */
 
     @Test
     void createInstitutionAndPersistInstitutionId_foundInstitution() {

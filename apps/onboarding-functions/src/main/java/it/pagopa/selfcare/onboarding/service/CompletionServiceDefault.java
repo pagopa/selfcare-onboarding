@@ -1,5 +1,11 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
+import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
+
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -20,6 +26,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -33,20 +46,6 @@ import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
-import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
-import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
 @ApplicationScoped
 @SuppressWarnings({"java:S6813", "java:S107"})
@@ -118,25 +117,28 @@ public class CompletionServiceDefault implements CompletionService {
         this.forceInstitutionCreation = forceInstitutionCreation;
     }
 
-    @Override
-    public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
+  @Override
+  public String createInstitutionAndPersistInstitutionId(Onboarding onboarding) {
 
-        if (Objects.nonNull(onboarding.getInstitution()) &&
-                StringUtils.isNotBlank(onboarding.getInstitution().getId())) {
-            return onboarding.getInstitution().getId();
-        }
-
-        InstitutionResponse institutionResponse = createOrRetrieveInstitution(onboarding);
-
-        if (Objects.nonNull(institutionResponse)) {
-            onboardingRepository
-                    .update("institution.id = ?1 and updatedAt = ?2 ", institutionResponse.getId(), LocalDateTime.now())
-                    .where("_id", onboarding.getId());
-            return institutionResponse.getId();
-        }
-
-        throw new GenericOnboardingException("Error when create institutions!");
+    if (Objects.nonNull(onboarding.getInstitution())
+        && StringUtils.isNotBlank(onboarding.getInstitution().getId())) {
+      return onboarding.getInstitution().getId();
     }
+
+    InstitutionResponse institutionResponse = createOrRetrieveInstitution(onboarding);
+
+    if (Objects.nonNull(institutionResponse)) {
+      onboardingRepository
+          .update(
+              "institution.id = ?1 and updatedAt = ?2 ",
+              institutionResponse.getId(),
+              LocalDateTime.now())
+          .where("_id", onboarding.getId());
+      return institutionResponse.getId();
+    }
+
+    throw new GenericOnboardingException("Error when create institutions!");
+  }
 
     public InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
         if (forceInstitutionCreation) {
