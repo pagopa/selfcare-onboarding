@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.steps;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRole;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Alternative
 @Priority(1)
 @ApplicationScoped
+@TestProfile(IntegrationProfile.class)
 public class MockProductService implements ProductService {
 
     private static final String PUBLIC_ENDPOINT = "https://raw.githubusercontent.com/pagopa/selfcare-infra-private/refs/heads/main/products/env/dev/products.json";

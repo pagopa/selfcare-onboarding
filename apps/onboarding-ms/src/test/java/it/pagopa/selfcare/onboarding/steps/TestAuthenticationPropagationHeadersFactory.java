@@ -1,6 +1,6 @@
 package it.pagopa.selfcare.onboarding.steps;
 
-import io.quarkus.arc.profile.IfBuildProfile;
+import io.quarkus.test.junit.TestProfile;
 import it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,8 +11,8 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 @Alternative
 @Priority(1)
-@IfBuildProfile("test")
 @ApplicationScoped
+@TestProfile(IntegrationProfile.class)
 public class TestAuthenticationPropagationHeadersFactory
     extends AuthenticationPropagationHeadersFactory {
   private final String BEARER_TOKEN;
