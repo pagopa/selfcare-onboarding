@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.steps;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,8 +9,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.reactivestreams.client.MongoCollection;
-import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -34,7 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.Document;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.AfterEach;
@@ -54,8 +52,6 @@ import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse
 @Slf4j
 public class OnboardingStep extends CucumberQuarkusTest {
 
-  private static MongoDatabase database;
-  private static MongoCollection<Document> collection;
   private ValidatableResponse validatableResponse;
   private Onboarding onboarding;
   private Onboarding duplicatedOnboardingPA;
@@ -196,6 +192,18 @@ public class OnboardingStep extends CucumberQuarkusTest {
                     .when()
                     .post(url)
                     .then();
+  }
+
+  @Then("the response body should not be empty")
+  public void theResponseBodyShouldNotBeEmpty() {
+    String responseBody =validatableResponse.extract().body().asString();
+    assertThat(responseBody).isNotEmpty();
+  }
+
+  @Then("the response should have field {string} with value {string}")
+  public void theResponseShouldHaveFieldWithValue(String fieldName, String expectedValue) {
+    String actualValue = validatableResponse.extract().jsonPath().getString(fieldName);
+    assertThat(actualValue).isEqualTo(expectedValue);
   }
 
 

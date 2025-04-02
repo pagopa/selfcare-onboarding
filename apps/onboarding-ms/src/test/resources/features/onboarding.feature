@@ -263,6 +263,8 @@ Feature: Onboarding collection
           }
           """
     Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
 
   Scenario: Can't perform onboarding with parent not completed
     Given I have a request object
@@ -1068,6 +1070,8 @@ Feature: Onboarding collection
            }
         """
     Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
 
   Scenario: Successfully perform onboarding request for UO
     Given I have a request object
@@ -1169,3 +1173,5 @@ Feature: Onboarding collection
            }
         """
     Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
