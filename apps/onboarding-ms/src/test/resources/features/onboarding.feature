@@ -1175,3 +1175,207 @@ Feature: Onboarding collection
     Then the response status code should be 200
     And the response body should not be empty
     And the response should have field "status" with value "REQUEST"
+
+  Scenario: Can't perform onboarding request for UO with invalid recipientCode
+    Given I have a request object
+        """
+        {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                   "institutionType": "PA",
+                   "taxCode": "83001010616",
+                   "origin": "IPA",
+                   "originId": "UF9UPF",
+                   "subunitCode": "UF9UPF",
+                   "subunitType": "UO",
+                   "city": "Roccamonfina",
+                   "country": "IT",
+                   "county": "CE",
+                   "description": "Comune di Roccamonfina",
+                   "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                   "address": "Via Municipio N. 8",
+                   "zipCode": "81035",
+                   "geographicTaxonomies": [
+                       {
+                           "code": "ITA",
+                           "desc": "ITALIA"
+                       }
+                   ],
+                   "imported": false
+               },
+               "billing": {
+                   "vatNumber": "83001010616",
+                   "recipientCode": "UFO5LL",
+                   "publicServices": true
+               }
+           }
+        """
+    When I send a POST request to "/pa" with the request body
+      """
+        {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                   "institutionType": "PA",
+                   "taxCode": "83001010616",
+                   "origin": "IPA",
+                   "originId": "UF9UPF",
+                   "subunitCode": "UF9UPF",
+                   "subunitType": "UO",
+                   "city": "Roccamonfina",
+                   "country": "IT",
+                   "county": "CE",
+                   "description": "Comune di Roccamonfina",
+                   "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                   "address": "Via Municipio N. 8",
+                   "zipCode": "81035",
+                   "geographicTaxonomies": [
+                       {
+                           "code": "ITA",
+                           "desc": "ITALIA"
+                       }
+                   ],
+                   "imported": false
+               },
+               "billing": {
+                   "vatNumber": "83001010616",
+                   "recipientCode": "UFO5LL",
+                   "publicServices": true
+               }
+           }
+        """
+    Then the response status code should be 400
+    And the response should contain the text "Recipient code not linked to any institution"
+
+  Scenario: Can't perform onboarding request for UO with denied billing
+    Given I have a request object
+        """
+        {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                   "institutionType": "PA",
+                   "taxCode": "83001010616",
+                   "origin": "IPA",
+                   "originId": "RSRFHL",
+                   "subunitCode": "RSRFHL",
+                   "subunitType": "UO",
+                   "city": "Roccamonfina",
+                   "country": "IT",
+                   "county": "CE",
+                   "description": "Comune di Roccamonfina",
+                   "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                   "address": "Via Municipio N. 8",
+                   "zipCode": "81035",
+                   "geographicTaxonomies": [
+                       {
+                           "code": "ITA",
+                           "desc": "ITALIA"
+                       }
+                   ],
+                   "imported": false
+               },
+               "billing": {
+                   "vatNumber": "83001010616",
+                   "recipientCode": "RSRFHL",
+                   "publicServices": true
+               }
+           }
+        """
+    When I send a POST request to "/pa" with the request body
+      """
+       {
+               "productId": "prod-io",
+               "users": [
+                   {
+                       "taxCode": "FRDSMN80A01F205Z",
+                       "name": "Sigmund",
+                       "surname": "Freud",
+                       "email": "s.freud@test.email.it",
+                       "role": "MANAGER"
+                   },
+                   {
+                       "taxCode": "CLVTLI80A01F839V",
+                       "name": "Italo",
+                       "surname": "Calvino",
+                       "email": "i.calvino@test.email.it",
+                       "role": "DELEGATE"
+                   }
+               ],
+               "institution": {
+                   "institutionType": "PA",
+                   "taxCode": "83001010616",
+                   "origin": "IPA",
+                   "originId": "RSRFHL",
+                   "subunitCode": "RSRFHL",
+                   "subunitType": "UO",
+                   "city": "Roccamonfina",
+                   "country": "IT",
+                   "county": "CE",
+                   "description": "Comune di Roccamonfina",
+                   "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+                   "address": "Via Municipio N. 8",
+                   "zipCode": "81035",
+                   "geographicTaxonomies": [
+                       {
+                           "code": "ITA",
+                           "desc": "ITALIA"
+                       }
+                   ],
+                   "imported": false
+               },
+               "billing": {
+                   "vatNumber": "83001010616",
+                   "recipientCode": "RSRFHL",
+                   "publicServices": true
+               }
+           }
+        """
+    Then the response status code should be 400
+    And the response should contain the text "Recipient code linked to an institution with invoicing service not active"
