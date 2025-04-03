@@ -28,6 +28,7 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
@@ -63,6 +64,9 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @RestClient
   OrchestrationApi orchestrationApi;
 
+  @Inject
+  ScenarioContext context;
+
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
   }
@@ -88,6 +92,26 @@ public class OnboardingStep extends CucumberQuarkusTest {
     assertNotNull(duplicatedOnboardingPA.getId());
     when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
             .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+  }
+
+  @Given("I have a request object named {string}")
+  public void iHaveRequestObjectNamed(String name) {
+    context.storeRequestBody(name);
+  }
+
+  @When("I send a POST request to {string} with the request named {string}")
+  public void iSendPostRequestWithNamedRequest(String url, String requestName) throws JsonProcessingException {
+    String requestBody = context.getRequestBody(requestName);
+    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+    assertNotNull(request);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
   }
 
   @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")

@@ -13,11 +13,11 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @Priority(1)
 @ApplicationScoped
 @TestProfile(IntegrationProfile.class)
-public class TestAuthenticationPropagationHeadersFactory
+public class IntegrationAuthenticationHeadersFactory
     extends AuthenticationPropagationHeadersFactory {
   private final String BEARER_TOKEN;
 
-  public TestAuthenticationPropagationHeadersFactory() {
+  public IntegrationAuthenticationHeadersFactory() {
     super();
     BEARER_TOKEN = ConfigProvider.getConfig().getValue("BEARER_TOKEN", String.class);
   }

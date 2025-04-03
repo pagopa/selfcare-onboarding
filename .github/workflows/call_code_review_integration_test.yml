@@ -79,7 +79,7 @@ jobs:
           servers: '[{"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
       - name: Build & Test
-        run: mvn clean verify -pl apps/onboarding-ms -am -DskipTests -Dcucumber.options="--tags @onboarding"
+        run: mvn clean verify -pl apps/onboarding-ms -am -DskipTests -Dcucumber.options="--tags @cucumberOnboarding"
 
       - name: Shutdown MongoDB instance
         run: |

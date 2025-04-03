@@ -20,21 +20,22 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+
+import jakarta.ws.rs.core.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 
 @Alternative
 @Priority(1)
 @ApplicationScoped
 @TestProfile(IntegrationProfile.class)
-public class MockProductService implements ProductService {
+@Slf4j
+public class IntegrationProductService implements ProductService {
 
     private static final String PUBLIC_ENDPOINT = "https://raw.githubusercontent.com/pagopa/selfcare-infra-private/refs/heads/main/products/env/dev/products.json";
     private boolean initialized = false;
-
     private List<Product> products;
     private final CountDownLatch initLatch = new CountDownLatch(1);
 
-    // Metodo pubblico per forzare l'inizializzazione in modo bloccante
     public void initializeBlocking() {
         if (!initialized) {
             loadProductsFromHttp();
@@ -43,16 +44,11 @@ public class MockProductService implements ProductService {
         }
     }
 
-    // Metodo per attendere l'inizializzazione
-    public void awaitInitialization() throws InterruptedException {
-        initLatch.await(20, TimeUnit.SECONDS); // Timeout di 30 secondi
-    }
-
     private void loadProductsFromHttp() {
         try {
             String githubToken = System.getenv("GITHUB_TOKEN");
             if (githubToken == null || githubToken.isEmpty()) {
-               // LOG.warn("GITHUB_TOKEN non trovato nelle variabili d'ambiente");
+                log.warn("GITHUB_TOKEN non trovato nelle variabili d'ambiente");
                 products = getFallbackProducts();
                 return;
             }
@@ -62,8 +58,8 @@ public class MockProductService implements ProductService {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(PUBLIC_ENDPOINT))
-                    .header("Accept", "application/json")
-                    .header("Authorization", "token " + githubToken)
+                    .header(HttpHeaders.ACCEPT, "application/json")
+                    .header(HttpHeaders.AUTHORIZATION, "token " + githubToken)
                     .GET()
                     .build();
 
@@ -74,7 +70,6 @@ public class MockProductService implements ProductService {
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.registerModule(new JavaTimeModule());
 
-                // Configura la serializzazione delle date come timestamp ISO-8601
                 mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
                 products = mapper.readValue(jsonResponse,
                         mapper.getTypeFactory().constructCollectionType(List.class, Product.class));
