@@ -55,10 +55,6 @@ jobs:
             db.createCollection('dummyOnboarding');
           EOF
 
-      - name: Test
-        run: |
-          echo "Run your integration Tests"
-          
       - name: Set missing library
         run: |
           wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
@@ -78,8 +74,16 @@ jobs:
         with:
           servers: '[{"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
-      - name: Build & Test
-        run: mvn clean verify -pl apps/onboarding-ms -am -DskipTests -Dcucumber.options="--tags @cucumberOnboarding"
+      - name: Build & Run Cucumber Tests
+        run: |
+          # Compila il progetto
+          mvn clean compile -pl apps/onboarding-ms -am
+          
+          # Esegui solo i test Cucumber
+          mvn verify -pl apps/onboarding-ms -am -Dtest=none -DfailIfNoTests=false -Dcucumber.filter.tags="@cucumberOnboarding"
+        env:
+          QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
+          QUARKUS_MONGODB_DATABASE: dummyOnboarding
 
       - name: Shutdown MongoDB instance
         run: |
