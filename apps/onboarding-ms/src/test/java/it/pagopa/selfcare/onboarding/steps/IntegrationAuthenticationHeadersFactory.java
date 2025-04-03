@@ -15,18 +15,12 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @TestProfile(IntegrationProfile.class)
 public class IntegrationAuthenticationHeadersFactory
     extends AuthenticationPropagationHeadersFactory {
-  private final String BEARER_TOKEN;
-
-  public IntegrationAuthenticationHeadersFactory() {
-    super();
-    BEARER_TOKEN = ConfigProvider.getConfig().getValue("BEARER_TOKEN", String.class);
-  }
 
   @Override
   public MultivaluedMap<String, String> update(
       MultivaluedMap<String, String> incomingHeaders,
       MultivaluedMap<String, String> clientOutgoingHeaders) {
-    clientOutgoingHeaders.put("Authorization", List.of(BEARER_TOKEN));
+    clientOutgoingHeaders.put("Authorization", List.of(ConfigProvider.getConfig().getValue("BEARER_TOKEN", String.class)));
     return clientOutgoingHeaders;
   }
 }
