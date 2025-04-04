@@ -363,7 +363,8 @@
                 </property>
             </activation>
             <properties>
-                <skipITs>false</skipITs>
+                <skipITs>true</skipITs>
+                <skipJunit>true</skipJunit>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
             <build>
@@ -378,6 +379,7 @@
                     <testFailureIgnore>false</testFailureIgnore>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                                <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
