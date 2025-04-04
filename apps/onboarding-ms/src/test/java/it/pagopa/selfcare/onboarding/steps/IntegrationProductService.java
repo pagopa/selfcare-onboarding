@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.ConfigProvider;
 
 @Alternative
 @Priority(1)
@@ -48,16 +47,12 @@ public class IntegrationProductService implements ProductService {
         try {
             String githubToken = System.getenv("GITHUB_TOKEN");
 
-            log.info("PRESENZA TOKEN: {}", githubToken.trim().isEmpty());
-
             if (githubToken == null || githubToken.isEmpty()) {
                 log.warn("GITHUB_TOKEN non trovato nelle variabili d'ambiente");
                 products = getFallbackProducts();
                 return;
             }
-
-
-
+            
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
                     .build();
@@ -83,6 +78,7 @@ public class IntegrationProductService implements ProductService {
                 products = getFallbackProducts();
             }
         } catch (Exception e) {
+            log.error("Exception into loadProductsFromHttp ", e);
             products = getFallbackProducts();
         }
     }
