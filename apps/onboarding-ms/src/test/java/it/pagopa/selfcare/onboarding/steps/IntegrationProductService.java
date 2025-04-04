@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.steps;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -13,10 +14,15 @@ import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.ws.rs.core.HttpHeaders;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +91,26 @@ public class IntegrationProductService implements ProductService {
     }
 
     private List<Product> getFallbackProducts() {
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            URL resourceDirectory = classLoader.getResource("integration_data/products.json");
+
+            if (resourceDirectory == null) {
+                return List.of();
+            }
+
+            File jsonFile = new File(resourceDirectory.toURI());
+            String content = Files.readString(jsonFile.toPath());
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+
+            mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+      return mapper.readValue(content, new TypeReference<>() {});
+
+        } catch (IOException | URISyntaxException e) {
+            System.err.println("Errore nel caricamento dei template JSON: " + e.getMessage());
+            e.printStackTrace();
+        }
         return List.of();
     }
 
