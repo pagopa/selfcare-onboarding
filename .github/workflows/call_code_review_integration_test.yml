@@ -79,6 +79,8 @@ jobs:
           mvn clean compile -pl apps/onboarding-ms -am
           mvn test -Dcucumber.filter.tags="@cucumberOnboarding"
         env:
+          QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
+          QUARKUS_MONGODB_DATABASE: dummyOnboarding
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Shutdown MongoDB instance
