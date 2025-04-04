@@ -99,9 +99,9 @@ public class OnboardingStep extends CucumberQuarkusTest {
     context.storeRequestBody(name);
   }
 
-  @When("I send a POST request to {string} with the request named {string}")
-  public void iSendPostRequestWithNamedRequest(String url, String requestName) throws JsonProcessingException {
-    String requestBody = context.getRequestBody(requestName);
+  @When("I send a POST request to {string} with this request")
+  public void iSendPostRequestWithNamedRequest(String url) throws JsonProcessingException {
+    String requestBody = context.getCurrentRequestBody();
     OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
     assertNotNull(request);
     validatableResponse =
@@ -157,24 +157,6 @@ public class OnboardingStep extends CucumberQuarkusTest {
         fail("Impossibile accedere all'attributo " + field.getName());
       }
     });
-  }
-
-  @Given("I have an invalid request object with attributes")
-  public void givenInvalidRequest(String onboardingRequest) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
-    assertNotNull(request);
-  }
-
-  @Given("I have a request object")
-  public void givenValidObject(String onboardingRequest) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
-    assertNotNull(request);
-  }
-
-  @Given("I have a valid request object")
-  public void givenDuplicatedOnboardingPA(String onboardingRequest) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
-    assertNotNull(request);
   }
 
   @When("I send a POST request to {string} with empty body")

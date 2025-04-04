@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.steps;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,10 +17,6 @@ public class ScenarioContext {
     public void storeRequestBody(String key) {
         requestBodies.put(key, paResources.getJsonTemplate(key));
         currentKey = key;
-    }
-
-    public String getRequestBody(String key) {
-        return requestBodies.get(key);
     }
 
     public String getCurrentRequestBody() {
