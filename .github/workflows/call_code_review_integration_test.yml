@@ -76,8 +76,7 @@ jobs:
 
       - name: Build & Run Cucumber Tests
         run: |
-          mvn clean compile -pl apps/onboarding-ms -am
-          mvn test -Dcucumber.filter.tags="@cucumberOnboarding"
+          mvn clean compile -pl apps/onboarding-ms -am test -DskipJunit=true
         env:
           QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
           QUARKUS_MONGODB_DATABASE: dummyOnboarding
