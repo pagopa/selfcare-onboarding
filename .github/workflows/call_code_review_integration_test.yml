@@ -75,7 +75,7 @@ jobs:
         id: keyvault-step
 
       - name: Set BEARER_TOKEN environment variable
-        run: echo "BEARER_TOKEN=${{ steps.keyvault-step.outputs.jwt-bearer-token-functions }}" >> $GITHUB_ENV
+        run: echo "BEARER_TOKEN=Bearer ${{ steps.keyvault-step.outputs.jwt_bearer_token_functions }}" >> $GITHUB_ENV
 
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4 # v1.11.0
@@ -98,7 +98,7 @@ jobs:
           QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
           QUARKUS_MONGODB_DATABASE: dummyOnboarding
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BEARER_TOKEN: $BEARER_TOKEN
+          BEARER_TOKEN: ${{ env.BEARER_TOKEN }}
 
       - name: Shutdown MongoDB instance
         run: |
