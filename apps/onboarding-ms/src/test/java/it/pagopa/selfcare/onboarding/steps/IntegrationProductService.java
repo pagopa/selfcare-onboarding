@@ -46,12 +46,18 @@ public class IntegrationProductService implements ProductService {
 
     private void loadProductsFromHttp() {
         try {
-            String githubToken = ConfigProvider.getConfig().getValue("github.token.session", String.class);
+            String githubToken = System.getenv("GITHUB_TOKEN");
+
+            log.info("PRESENZA TOKEN: {}", githubToken.trim().isEmpty());
+
             if (githubToken == null || githubToken.isEmpty()) {
                 log.warn("GITHUB_TOKEN non trovato nelle variabili d'ambiente");
                 products = getFallbackProducts();
                 return;
             }
+
+
+
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofSeconds(10))
                     .build();
