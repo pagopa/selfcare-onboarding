@@ -12,6 +12,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,9 +21,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
-import jakarta.ws.rs.core.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 @Alternative
 @Priority(1)
@@ -46,7 +46,7 @@ public class IntegrationProductService implements ProductService {
 
     private void loadProductsFromHttp() {
         try {
-            String githubToken = System.getenv("GITHUB_TOKEN");
+            String githubToken = ConfigProvider.getConfig().getValue("github.token.session", String.class);
             if (githubToken == null || githubToken.isEmpty()) {
                 log.warn("GITHUB_TOKEN non trovato nelle variabili d'ambiente");
                 products = getFallbackProducts();
