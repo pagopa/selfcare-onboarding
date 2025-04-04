@@ -81,6 +81,7 @@ Feature: Onboarding collection
     Given I have a request object named "invalid_proxy_pec_request"
     When I send a POST request to "/pa" with this request
     Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
 
   Scenario: Can't perform onboarding request for invalid recipient code (different from IPA registry one)
     Given I have a request object named "invalid_proxy_recipient_code_request"

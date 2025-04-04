@@ -76,11 +76,8 @@ jobs:
 
       - name: Build & Run Cucumber Tests
         run: |
-          # Compila il progetto
           mvn clean compile -pl apps/onboarding-ms -am
-          
-          # Esegui solo i test Cucumber con il plugin failsafe
-          mvn failsafe:integration-test -pl apps/onboarding-ms -am -DfailIfNoTests=false -Dcucumber.filter.tags="@cucumberOnboarding"
+          mvn failsafe:integration-test -pl apps/onboarding-ms -am -DfailIfNoTests=false -Dcucumber.filter.tags="@cucumberOnboarding" -Dcucumber.features=src/main/test/java/steps
         env:
           QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
           QUARKUS_MONGODB_DATABASE: dummyOnboarding
