@@ -185,6 +185,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
+
         onboarding.setExpiringDate(
                 OffsetDateTime.now().plusDays(onboardingExpireDate).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));

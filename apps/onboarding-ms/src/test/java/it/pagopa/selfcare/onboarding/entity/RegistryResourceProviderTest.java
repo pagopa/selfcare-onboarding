@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.entity.registry.*;
 import jakarta.inject.Inject;
@@ -55,6 +56,14 @@ class RegistryResourceProviderTest {
     void getRegistryIPA() {
         RegistryManager<?> registryManager = registryResourceProvider.create(createOnboarding(Origin.IPA), MANAGER_TAX_CODE);
         assertTrue(registryManager instanceof RegistryManagerIPA);
+    }
+
+    @Test
+    void getRegistryIPAGps() {
+        Onboarding onboarding = createOnboarding(Origin.IPA);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        RegistryManager<?> registryManager = registryResourceProvider.create(onboarding, MANAGER_TAX_CODE);
+        assertTrue(registryManager instanceof RegistryManagerIPAGps);
     }
 
     @Test

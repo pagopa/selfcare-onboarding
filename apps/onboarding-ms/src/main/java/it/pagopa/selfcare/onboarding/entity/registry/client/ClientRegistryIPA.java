@@ -57,7 +57,7 @@ public abstract class ClientRegistryIPA extends BaseRegistryManager<IPAEntity> {
         return IPAEntity.builder().uoResource(uoResource).build();
     }
 
-    private void enrichOnboardingData(UOResource uoResource) {
+    protected void enrichOnboardingData(UOResource uoResource) {
         onboarding.getInstitution().setParentDescription(uoResource.getDenominazioneEnte());
         onboarding.getInstitution().setIstatCode(uoResource.getCodiceComuneISTAT());
     }
