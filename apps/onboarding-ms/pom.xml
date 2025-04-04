@@ -345,9 +345,9 @@
                 <version>${surefire-plugin.version}</version>
                 <configuration>
                     <includes>
-                        <include>**/OnboardingStep*.java</include>
+                        <include>**/*Step*.java</include>
                     </includes>
-                    <testFailureIgnore>true</testFailureIgnore>
+                    <testFailureIgnore>false</testFailureIgnore>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemPropertyVariables>
