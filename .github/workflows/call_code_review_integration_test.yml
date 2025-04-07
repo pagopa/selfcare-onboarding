@@ -81,7 +81,7 @@ jobs:
           QUARKUS_MONGODB_CONNECTION_STRING: mongodb://APP-USERNAME:APP-PASSWORD@localhost:28017/dummyOnboarding
           QUARKUS_MONGODB_DATABASE: dummyOnboarding
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BEARER_TOKEN: ${{ env.BEARER_TOKEN }}
+          BEARER_TOKEN: ${{ secrets.INTEGRATION_BEARER_TOKEN }}
 
       - name: Shutdown MongoDB instance
         run: |
