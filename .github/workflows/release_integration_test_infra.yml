@@ -1,4 +1,4 @@
-name: Deploy functions infra
+name: Infra integration test
 
 on:
   push:

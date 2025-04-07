@@ -125,7 +125,6 @@ public class OnboardingController {
                 .onItem().transformToUni(userId -> onboardingService
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
-
     @Operation(
             summary = "Aggregated onboarding for PA institutions, saves user data, creates contracts, and sends emails.",
             description = "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in addition to default request" +

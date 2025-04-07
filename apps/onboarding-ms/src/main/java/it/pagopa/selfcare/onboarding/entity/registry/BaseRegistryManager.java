@@ -2,12 +2,9 @@ package it.pagopa.selfcare.onboarding.entity.registry;
 
 
 import io.smallrye.mutiny.Uni;
-import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
-
 import java.util.Objects;
 
 public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
@@ -58,11 +55,4 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
         return Uni.createFrom().item(onboarding);
     }
 
-    protected String getManagerIdFromOnboarding() {
-        return onboarding.getUsers().stream()
-                .filter(user -> user.getRole().equals(PartyRole.MANAGER))
-                .map(User::getId)
-                .findFirst()
-                .orElse(null);
-    }
 }
