@@ -36,6 +36,6 @@ resource "github_actions_environment_secret" "integration_environment" {
 resource "github_actions_environment_secret" "integration_bearer_token" {
   repository  = data.github_repository.repo.name
   environment = github_repository_environment.repo_environment.environment
-  secret_name = "integration_environment${local.pnpg_suffix}"
+  secret_name = "integration_bearer_token{local.pnpg_suffix}"
   plaintext_value = data.azurerm_key_vault_secret.integration_bearer_token.value
 }
