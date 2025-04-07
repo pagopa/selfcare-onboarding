@@ -568,6 +568,7 @@ public class OnboardingController {
     )
     @GET
     @Tag(name = "billing-portal")
+    @Tag(name = "Onboarding Controller")
     @Path("/checkRecipientCode")
     public Uni<RecipientCodeStatus> checkRecipientCode(@QueryParam("recipientCode") String recipientCode,
                                                        @QueryParam("originId") String originId) {

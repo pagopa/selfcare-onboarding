@@ -453,6 +453,7 @@ paths:
     get:
       tags:
       - billing-portal
+      - Onboarding Controller
       summary: Validate recipientCode.
       description: check if recipientCode is valid or not
       operationId: checkRecipientCode
