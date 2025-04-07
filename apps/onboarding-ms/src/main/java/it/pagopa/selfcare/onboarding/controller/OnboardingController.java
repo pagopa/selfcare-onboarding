@@ -567,6 +567,7 @@ public class OnboardingController {
             extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
+    @Tag(name = "billing-portal")
     @Path("/checkRecipientCode")
     public Uni<RecipientCodeStatus> checkRecipientCode(@QueryParam("recipientCode") String recipientCode,
                                                        @QueryParam("originId") String originId) {
