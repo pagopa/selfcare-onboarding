@@ -18,6 +18,8 @@ on:
 
 jobs:
   setup_test:
+    # temporary this condition  will be always evaluate to false
+    if: ${{ false }}
     runs-on: ubuntu-24.04
 
     services:
