@@ -46,6 +46,8 @@ jobs:
           -Dsonar.pullrequest.key=${{ inputs.pr_number }}
           -Dsonar.pullrequest.branch=${{ inputs.source_branch }}
           -Dsonar.pullrequest.base=refs/remotes/origin/${{ inputs.target_branch }}
+          -Dquarkus.test.exclude-pattern="**/steps/**/*.java,**/*IT.java,**/cucumber/**/*.java"
+          -Dmaven.test.excludes="**/steps/**/*.java,**/*IT.java,**/cucumber/**/*.java"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

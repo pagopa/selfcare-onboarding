@@ -125,7 +125,6 @@ public class OnboardingController {
                 .onItem().transformToUni(userId -> onboardingService
                         .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
-
     @Operation(
             summary = "Aggregated onboarding for PA institutions, saves user data, creates contracts, and sends emails.",
             description = "Perform onboarding aggregation request for PA institution type, it require billing.recipientCode in addition to default request" +
@@ -567,6 +566,8 @@ public class OnboardingController {
             extensions = @Extension(name = "x-legacy-api", value = "true")
     )
     @GET
+    @Tag(name = "billing-portal")
+    @Tag(name = "Onboarding Controller")
     @Path("/checkRecipientCode")
     public Uni<RecipientCodeStatus> checkRecipientCode(@QueryParam("recipientCode") String recipientCode,
                                                        @QueryParam("originId") String originId) {
