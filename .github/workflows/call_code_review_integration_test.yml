@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - releases/*
+      - fix/SELC-6542
 
   workflow_dispatch:
     inputs:
@@ -17,8 +18,6 @@ on:
 
 jobs:
   setup_test:
-    # temporary this condition  will be always evaluate to false
-    if: ${{ false }}
     runs-on: ubuntu-24.04
 
     services:
