@@ -6,11 +6,11 @@
 
 ## Code owner for the applications
 
-/apps/** @pagopa/selfcare-contributors
-/libs/** @pagopa/selfcare-contributors
-/test-coverage/** @pagopa/selfcare-contributors
+/apps/** @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
+/libs/** @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
+/test-coverage/** @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
 
-.dockerignore @pagopa/selfcare-contributors
-docker-compose.yml @pagopa/selfcare-contributors
-*.xml @pagopa/selfcare-contributors
-*.md @pagopa/selfcare-contributors
+.dockerignore @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
+docker-compose.yml @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
+*.xml @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
+*.md @pagopa/selfcare-contributors @GiampieroFerrara @pierpaolodidato89
