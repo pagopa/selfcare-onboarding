@@ -22,6 +22,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 public class RegistryManagerIPAUo extends ClientRegistryIPA {
@@ -57,7 +58,15 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     @Override
     public Uni<Boolean> isValid() {
+        if (!originIPA(onboarding, registryResource.getUoResource())) {
+            return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
+        }
         return Uni.createFrom().item(true);
+    }
+
+    private boolean originIPA(Onboarding onboarding, UOResource uoResource) {
+        return onboarding.getInstitution().getDigitalAddress().equalsIgnoreCase(uoResource.getMail1()) &&
+                onboarding.getInstitution().getDescription().equalsIgnoreCase(uoResource.getDescrizioneUo());
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {

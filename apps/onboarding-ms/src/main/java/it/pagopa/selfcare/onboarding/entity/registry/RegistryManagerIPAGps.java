@@ -12,7 +12,6 @@ import jakarta.ws.rs.WebApplicationException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
@@ -35,28 +34,33 @@ public class RegistryManagerIPAGps extends RegistryManagerIPAUo {
         return IPAEntity.builder().institutionResource(institutionResource).build();
     }
 
-  @Override
-  public Uni<Onboarding> customValidation(Product product) {
-    return super.customValidation(product)
-        .onItem()
-        .transformToUni(
-            onboarding -> {
-              if (PROD_PAGOPA.getValue().equals(onboarding.getProductId())
-                  && Objects.isNull(onboarding.getAdditionalInformations())) {
-                return Uni.createFrom()
-                    .failure(
-                        new InvalidRequestException(
-                            BaseRegistryManager.ADDITIONAL_INFORMATION_REQUIRED));
-              } else if (PROD_PAGOPA.getValue().equals(onboarding.getProductId())
-                  && !onboarding.getAdditionalInformations().isIpa()
-                  && !onboarding.getAdditionalInformations().isBelongRegulatedMarket()
-                  && !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision()
-                  && !onboarding.getAdditionalInformations().isAgentOfPublicService()
-                  && Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())) {
-                return Uni.createFrom()
-                    .failure(new InvalidRequestException(BaseRegistryManager.OTHER_NOTE_REQUIRED));
-              }
-              return Uni.createFrom().item(onboarding);
-            });
-        }
+    @Override
+    public Uni<Onboarding> customValidation(Product product) {
+        return super.customValidation(product)
+                .onItem()
+                .transformToUni(
+                        onboarding -> {
+                            if (PROD_PAGOPA.getValue().equals(onboarding.getProductId())
+                                    && Objects.isNull(onboarding.getAdditionalInformations())) {
+                                return Uni.createFrom()
+                                        .failure(
+                                                new InvalidRequestException(
+                                                        BaseRegistryManager.ADDITIONAL_INFORMATION_REQUIRED));
+                            } else if (PROD_PAGOPA.getValue().equals(onboarding.getProductId())
+                                    && !onboarding.getAdditionalInformations().isIpa()
+                                    && !onboarding.getAdditionalInformations().isBelongRegulatedMarket()
+                                    && !onboarding.getAdditionalInformations().isEstablishedByRegulatoryProvision()
+                                    && !onboarding.getAdditionalInformations().isAgentOfPublicService()
+                                    && Objects.isNull(onboarding.getAdditionalInformations().getOtherNote())) {
+                                return Uni.createFrom()
+                                        .failure(new InvalidRequestException(BaseRegistryManager.OTHER_NOTE_REQUIRED));
+                            }
+                            return Uni.createFrom().item(onboarding);
+                        });
+    }
+
+    @Override
+    public Uni<Boolean> isValid() {
+        return Uni.createFrom().item(true);
+    }
 }

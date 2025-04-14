@@ -369,12 +369,38 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
                 .onItem()
+                .transformToUni(ignored -> validateAggregates(aggregates, userRequests))
+                .onItem()
                 .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
                         orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
+    }
+
+    /**
+     * This method validates aggregates data, checking for each of them if information
+     * from proxy registry match incoming data of the request.
+     */
+    private Uni<Void> validateAggregates(List<AggregateInstitutionRequest> aggregates, List<UserRequest> userRequests) {
+        if (aggregates == null) {
+            return Uni.createFrom().voidItem();
+        }
+        return Multi.createFrom().iterable(aggregates)
+                .onItem().transformToUniAndMerge(aggregate ->
+                        Uni.createFrom().item(registryResourceFactory.create(buildOnboardingFromAggregate(aggregate), getManagerTaxCode(userRequests)))
+                                .onItem()
+                                .invoke(aggregateRegistryManager -> aggregateRegistryManager.setResource(aggregateRegistryManager.retrieveInstitution()))
+                                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                                .onItem()
+                                .transformToUni(aggregateRegistryManager -> aggregateRegistryManager.isValid()
+                                        .onFailure().recoverWithUni(failure -> Uni.createFrom().failure(failure))
+                                )
+                                .replaceWithVoid()
+                )
+                .collect().asList()
+                .replaceWithVoid();
     }
 
     /**
@@ -2192,5 +2218,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                         onboarding -> orchestrationApi
                                         .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
                                         .map(ignore -> onboarding));
+    }
+
+    private Onboarding buildOnboardingFromAggregate(AggregateInstitutionRequest aggregate) {
+        Onboarding onboarding = new Onboarding();
+        onboarding.setInstitution(institutionMapper.toEntity(aggregate));
+        return onboarding;
     }
 }
