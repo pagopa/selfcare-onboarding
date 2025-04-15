@@ -387,20 +387,20 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (aggregates == null) {
             return Uni.createFrom().voidItem();
         }
-        return Multi.createFrom().iterable(aggregates)
-                .onItem().transformToUniAndMerge(aggregate ->
-                        Uni.createFrom().item(registryResourceFactory.create(buildOnboardingFromAggregate(aggregate), getManagerTaxCode(userRequests)))
-                                .onItem()
-                                .invoke(aggregateRegistryManager -> aggregateRegistryManager.setResource(aggregateRegistryManager.retrieveInstitution()))
-                                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                                .onItem()
-                                .transformToUni(aggregateRegistryManager -> aggregateRegistryManager.isValid()
-                                        .onFailure().recoverWithUni(failure -> Uni.createFrom().failure(failure))
-                                )
-                                .replaceWithVoid()
-                )
-                .collect().asList()
-                .replaceWithVoid();
+        List<Uni<Void>> validationUnis = aggregates.stream()
+                .map(aggregate -> Uni.createFrom()
+                        .item(registryResourceFactory.create(buildOnboardingFromAggregate(aggregate), getManagerTaxCode(userRequests)))
+                        .onItem()
+                        .invoke(aggregateRegistryManager -> aggregateRegistryManager.setResource(aggregateRegistryManager.retrieveInstitution()))
+                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                        .onItem()
+                        .transformToUni(aggregateRegistryManager -> aggregateRegistryManager.isValid()
+                                .onFailure().recoverWithUni(failure -> Uni.createFrom().failure(failure))
+                        )
+                        .replaceWithVoid())
+                .collect(Collectors.toList());
+
+        return Uni.combine().all().unis(validationUnis).discardItems();
     }
 
     /**
