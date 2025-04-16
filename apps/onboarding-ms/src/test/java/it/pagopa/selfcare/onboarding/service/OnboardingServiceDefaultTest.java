@@ -532,11 +532,12 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.AOO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionBaseRequest.setDescription("TEST");
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
         mockVerifyAllowedMap(request.getInstitution().getTaxCode(), request.getProductId(), asserter);
-
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
@@ -547,6 +548,8 @@ class OnboardingServiceDefaultTest {
 
         AOOResource aooResource = new AOOResource();
         aooResource.setDenominazioneEnte("TEST");
+        aooResource.setDenominazioneAoo("TEST");
+        aooResource.setMail1(DIGITAL_ADDRESS_FIELD);
         asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(aooResource)));
 
@@ -642,6 +645,8 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
         institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionBaseRequest.setDescription("TEST");
         request.setInstitution(institutionBaseRequest);
 
         mockPersistOnboarding(asserter);
@@ -656,6 +661,8 @@ class OnboardingServiceDefaultTest {
 
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
+        uoResource.setMail1(DIGITAL_ADDRESS_FIELD);
+        uoResource.setDescrizioneUo("TEST");
         asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
 
@@ -681,6 +688,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setTaxCode("taxCode");
         institutionBaseRequest.setSubunitType(InstitutionPaSubunitType.UO);
         institutionBaseRequest.setSubunitCode("SubunitCode");
+        institutionBaseRequest.setDigitalAddress("mail@pec.it");
         request.setInstitution(institutionBaseRequest);
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
@@ -692,6 +700,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
         uoResource.setCodiceFiscaleEnte("taxCode");
+        uoResource.setMail1("mail@pec.it");
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(new InstitutionResource()));
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
@@ -1505,8 +1514,11 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        uoResource.setMail1(DIGITAL_ADDRESS_FIELD);
+        uoResource.setDescrizioneUo(DESCRIPTION_FIELD);
         when(uoApi.findByUnicodeUsingGET1(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
+
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         institutionResource.setDescription(DESCRIPTION_FIELD);
