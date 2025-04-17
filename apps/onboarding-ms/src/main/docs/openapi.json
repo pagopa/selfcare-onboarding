@@ -2027,16 +2027,7 @@
           "origin" : {
             "type" : "string"
           },
-          "taxCodePT" : {
-            "type" : "string"
-          },
           "iban" : {
-            "type" : "string"
-          },
-          "service" : {
-            "type" : "string"
-          },
-          "syncAsyncMode" : {
             "type" : "string"
           },
           "rowNumber" : {
@@ -2103,16 +2094,7 @@
           "county" : {
             "type" : "string"
           },
-          "taxCodePT" : {
-            "type" : "string"
-          },
           "iban" : {
-            "type" : "string"
-          },
-          "service" : {
-            "type" : "string"
-          },
-          "syncAsyncMode" : {
             "type" : "string"
           }
         }

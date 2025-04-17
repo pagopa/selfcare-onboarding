@@ -1483,13 +1483,7 @@ components:
           type: string
         origin:
           type: string
-        taxCodePT:
-          type: string
         iban:
-          type: string
-        service:
-          type: string
-        syncAsyncMode:
           type: string
         rowNumber:
           format: int32
@@ -1536,13 +1530,7 @@ components:
           type: string
         county:
           type: string
-        taxCodePT:
-          type: string
         iban:
-          type: string
-        service:
-          type: string
-        syncAsyncMode:
           type: string
     AggregateUser:
       type: object

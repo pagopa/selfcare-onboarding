@@ -94,10 +94,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
     public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
-    public static final String ERROR_TAXCODE_PT = "Codice Fiscale Partner Tecnologico è obbligatorio";
     public static final String ERROR_IBAN = "IBAN è obbligatorio";
-    public static final String ERROR_SERVICE = "Servizio è obbligatorio";
-    public static final String ERROR_SYNC_ASYNC_MODE = "Modalità Sincrona/Asincrona è obbligatorio";
     public static final String ERROR_CODICE_SDI = "Codice SDI è obbligatorio";
     private static final String ERROR_ADMIN_NAME_MISMATCH = "Nome non corretto o diverso dal Codice Fiscale";
     private static final String ERROR_ADMIN_SURNAME_MISMATCH = "Cognome non corretto o diverso dal Codice Fiscale";
@@ -349,14 +346,8 @@ public class AggregatesServiceDefault implements AggregatesService {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
         } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
-        } else if (StringUtils.isEmpty(csvAggregate.getTaxCodePT())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_PT));
         } else if (StringUtils.isEmpty(csvAggregate.getIban())) {
             return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN));
-        } else if (StringUtils.isEmpty(csvAggregate.getService())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SERVICE));
-        } else if (StringUtils.isEmpty(csvAggregate.getSyncAsyncMode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SYNC_ASYNC_MODE));
         }
         return Uni.createFrom().voidItem();
     }

@@ -25,9 +25,6 @@ public class AggregateInstitution {
     private String digitalAddress;
     private String city;
     private String county;
-    private String taxCodePT;
     private String iban;
-    private String service;
-    private String syncAsyncMode;
 
 }
