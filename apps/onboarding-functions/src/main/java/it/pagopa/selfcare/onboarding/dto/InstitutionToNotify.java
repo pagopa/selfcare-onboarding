@@ -28,8 +28,6 @@ public class InstitutionToNotify {
     private RootParent rootParent;
     private String supportEmail;
 
-    private Boolean testInstitution;
-
     public InstitutionType getInstitutionType() {
         return institutionType;
     }
@@ -190,11 +188,4 @@ public class InstitutionToNotify {
         this.supportEmail = supportEmail;
     }
 
-    public Boolean getTestInstitution() {
-        return testInstitution;
-    }
-
-    public void setTestInstitution(Boolean testInstitution) {
-        this.testInstitution = testInstitution;
-    }
 }
