@@ -138,7 +138,6 @@ public class BaseNotificationBuilder implements NotificationBuilder {
             toNotify.setSubUnitType(institution.getSubunitType());
             toNotify.setSubUnitCode(institution.getSubunitCode());
         }
-        toNotify.setTestInstitution(Boolean.TRUE.equals(institution.getIsTest()));
         RootParent rootParent = new RootParent();
         if (Objects.nonNull(institution.getRootParent())) {
             rootParent.setId(institution.getRootParent().getId());
