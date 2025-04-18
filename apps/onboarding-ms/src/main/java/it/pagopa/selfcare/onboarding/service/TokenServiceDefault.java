@@ -12,11 +12,13 @@ import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+
 import org.bson.Document;
 import org.jboss.resteasy.reactive.RestResponse;
 
@@ -42,35 +44,46 @@ public class TokenServiceDefault implements TokenService {
       .list();
   }
 
-    @Override
-    public Uni<RestResponse<File>> retrieveContract(String onboardingId, boolean isSigned) {
-         return Token.findById(onboardingId)
-            .map(Token.class::cast)
-            .onItem().transformToUni(token ->
-                Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(isSigned ? token.getContractSigned() : getContractNotSigned(onboardingId, token)))
-                    .runSubscriptionOn(Executors.newSingleThreadExecutor())
-                    .onItem().transform(contract -> {
-                        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-                        response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, isSigned));
-                        return response.build();
-                    }));
-    }
+  @Override
+  public Uni<RestResponse<File>> retrieveContract(String onboardingId, boolean isSigned) {
+    return Token.findById(onboardingId)
+      .map(Token.class::cast)
+      .onItem().transformToUni(token ->
+        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(isSigned ? token.getContractSigned() : getContractNotSigned(onboardingId, token)))
+          .runSubscriptionOn(Executors.newSingleThreadExecutor())
+          .onItem().transform(contract -> {
+            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+            response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, isSigned));
+            return response.build();
+          }));
+  }
 
-    private String getContractNotSigned(String onboardingId, Token token) {
-        return String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId,
-            token.getContractFilename());
-    }
+  @Override
+  public Uni<RestResponse<File>> retrievSignedFile(Token token) {
+    return Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
+      .runSubscriptionOn(Executors.newSingleThreadExecutor())
+      .onItem().transform(contract -> {
+        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+        response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, true));
+        return response.build();
+      });
+  }
 
-    private static String getCurrentContractName(Token token, boolean isSigned) {
-        return isSigned ? getContractSignedName(token) : token.getContractFilename();
-    }
+  private String getContractNotSigned(String onboardingId, Token token) {
+    return String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId,
+      token.getContractFilename());
+  }
 
-    private static String getContractSignedName(Token token) {
-        File file = new File(token.getContractSigned());
-        return file.getName();
-    }
-    
-    @Override
+  private static String getCurrentContractName(Token token, boolean isSigned) {
+    return isSigned ? getContractSignedName(token) : token.getContractFilename();
+  }
+
+  private static String getContractSignedName(Token token) {
+    File file = new File(token.getContractSigned());
+    return file.getName();
+  }
+
+  @Override
   public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
     return Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), attachmentName)
       .firstResult()
