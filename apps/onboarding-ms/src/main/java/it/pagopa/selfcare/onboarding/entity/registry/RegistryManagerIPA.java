@@ -43,15 +43,18 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
     @Override
     public Uni<Boolean> isValid() {
         if (!originIPA(onboarding, registryResource.getInstitutionResource())) {
-            return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
+            return Uni.createFrom().failure(new InvalidRequestException(
+                    String.format("Field digitalAddress or description are not valid for institution with taxCode=%s",
+                            onboarding.getInstitution().getTaxCode())
+            ));
         }
         return Uni.createFrom().item(true);
     }
 
 
     private boolean originIPA(Onboarding onboarding, InstitutionResource institutionResource) {
-        return onboarding.getInstitution().getDigitalAddress().equals(institutionResource.getDigitalAddress()) &&
-                onboarding.getInstitution().getDescription().equals(institutionResource.getDescription());
+        return onboarding.getInstitution().getDigitalAddress().equalsIgnoreCase(institutionResource.getDigitalAddress()) &&
+                onboarding.getInstitution().getDescription().equalsIgnoreCase(institutionResource.getDescription());
     }
 
     @Override

@@ -1,11 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
-
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -21,6 +15,17 @@ import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import it.pagopa.selfcare.onboarding.utils.PdfBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.text.StringSubstitutor;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jsoup.Jsoup;
+import org.jsoup.helper.W3CDom;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.user_registry_json.model.UserResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,17 +40,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.text.StringSubstitutor;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jsoup.Jsoup;
-import org.jsoup.helper.W3CDom;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
@@ -96,11 +95,7 @@ public class ContractServiceDefault implements ContractService {
             REGISTERED_OFFICE_ADDRESS,
             REGISTERED_OFFICE_CITY,
             REGISTERED_OFFICE_COUNTY,
-            "Ragione Sociale Partener Tecnologico",
-            "Codice Fiscale Partner Tecnologico",
-            "IBAN",
-            "Servizio",
-            "Modalità Sincrona/Asincrona"
+            "IBAN"
     };
 
     private static final String[] CSV_HEADERS_SEND = {
@@ -155,11 +150,7 @@ public class ContractServiceDefault implements ContractService {
                             institution.getAddress(),
                             institution.getCity(),
                             institution.getCounty(),
-                            institution.getDescriptionPT(),
-                            institution.getTaxCodePT(),
-                            institution.getIban(),
-                            institution.getService(),
-                            institution.getSyncAsyncMode());
+                            institution.getIban());
 
     public static Function<AggregateInstitution, List<Object>> sendMapper(UserResource userInfo, User user) {
         return institution -> Arrays.asList(

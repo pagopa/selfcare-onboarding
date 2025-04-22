@@ -1,9 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -14,8 +10,6 @@ import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.util.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +22,13 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class ContractServiceDefaultTest {
@@ -145,11 +146,7 @@ class ContractServiceDefaultTest {
         aggregateInstitution.setCity(String.format("city%s", number));
         aggregateInstitution.setCounty(String.format("county%s", number));
         aggregateInstitution.setDigitalAddress(String.format("pec%s", number));
-        aggregateInstitution.setTaxCodePT(String.format("taxCodePT%s", number));
-        aggregateInstitution.setDescriptionPT(String.format("descriptionPT%s", number));
         aggregateInstitution.setIban(String.format("iban%s", number));
-        aggregateInstitution.setService(String.format("service%s", number));
-        aggregateInstitution.setSyncAsyncMode(String.format("mode%s", number));
         return aggregateInstitution;
     }
 

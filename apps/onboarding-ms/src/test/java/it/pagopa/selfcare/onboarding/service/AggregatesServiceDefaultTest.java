@@ -170,7 +170,7 @@ class AggregatesServiceDefaultTest {
 
         Assertions.assertEquals(1, resp.getItem().getAggregates().size());
         Assertions.assertEquals(verifiyAggregateResponse.getAggregates().get(0), resp.getItem().getAggregates().get(0));
-        Assertions.assertEquals(8, resp.getItem().getErrors().size());
+        Assertions.assertEquals(5, resp.getItem().getErrors().size());
         Assertions.assertEquals(verifiyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
     }
@@ -318,24 +318,18 @@ class AggregatesServiceDefaultTest {
         aggregate.setOriginId(null);
         aggregate.setOrigin("IPA");
         aggregate.setOriginId("test");
-        aggregate.setService("XXXXXXX");
         aggregate.setIban("IT60 X054 2811 1010 0000 0123 456");
-        aggregate.setSyncAsyncMode("Sincrona");
-        aggregate.setTaxCodePT("98765432101");
         aggregate.setRowNumber(1);
 
         verifyAggregateResponse.setAggregates(List.of(aggregate));
 
         RowError error0 = new RowError(2, null, "Il Codice Fiscale è obbligatorio");
         RowError error1 = new RowError(3, "12345678901", "La Partita IVA è obbligatoria");
-        RowError error2 = new RowError(4, "12345678901", "Codice Fiscale Partner Tecnologico è obbligatorio");
-        RowError error3 = new RowError(5, "12345678901", "IBAN è obbligatorio");
-        RowError error4 = new RowError(6, "12345678901", "Servizio è obbligatorio");
-        RowError error5 = new RowError(7, "12345678901", "Modalità Sincrona/Asincrona è obbligatorio");
-        RowError error6 = new RowError(8, "12345901", "Il Codice Fiscale non è valido");
-        RowError error7 = new RowError(9, "12345678901", "La Partita IVA non è valida");
+        RowError error3 = new RowError(4, "12345678901", "IBAN è obbligatorio");
+        RowError error6 = new RowError(5, "12345901", "Il Codice Fiscale non è valido");
+        RowError error7 = new RowError(6, "12345678901", "La Partita IVA non è valida");
 
-        verifyAggregateResponse.setErrors(List.of(error0, error1, error2, error3, error4, error5, error6, error7));
+        verifyAggregateResponse.setErrors(List.of(error0, error1, error3, error6, error7));
         return verifyAggregateResponse;
     }
 

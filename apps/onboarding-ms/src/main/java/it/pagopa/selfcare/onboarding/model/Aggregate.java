@@ -23,10 +23,7 @@ public class Aggregate {
     private String zipCode;
     private String originId;
     private String origin;
-    private String taxCodePT;
     private String iban;
-    private String service;
-    private String syncAsyncMode;
 
     @JsonIgnoreProperties
     private Integer rowNumber;

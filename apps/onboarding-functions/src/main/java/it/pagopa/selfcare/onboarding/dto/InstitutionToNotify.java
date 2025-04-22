@@ -187,4 +187,5 @@ public class InstitutionToNotify {
     public void setSupportEmail(String supportEmail) {
         this.supportEmail = supportEmail;
     }
+
 }

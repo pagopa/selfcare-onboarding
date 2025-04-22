@@ -915,6 +915,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "description": "productId",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "enableSubunits",
+            "in": "query",
+            "description": "enableSubunits",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -2165,13 +2185,34 @@
             "description": "No Content"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2359,6 +2400,7 @@
               "enum": [
                 "AS",
                 "CON",
+                "GPU",
                 "GSP",
                 "PA",
                 "PG",
@@ -2367,8 +2409,7 @@
                 "PT",
                 "REC",
                 "SA",
-                "SCP",
-                "GPU"
+                "SCP"
               ]
             }
           }
@@ -3325,6 +3366,7 @@
             "enum": [
               "AS",
               "CON",
+              "GPU",
               "GSP",
               "PA",
               "PG",
@@ -3333,8 +3375,7 @@
               "PT",
               "REC",
               "SA",
-              "SCP",
-              "GPU"
+              "SCP"
             ]
           },
           "subunitCode": {
@@ -3610,6 +3651,7 @@
             "enum": [
               "AS",
               "CON",
+              "GPU",
               "GSP",
               "PA",
               "PG",
@@ -3618,8 +3660,7 @@
               "PT",
               "REC",
               "SA",
-              "SCP",
-              "GPU"
+              "SCP"
             ]
           },
           "onboarding": {
@@ -3722,6 +3763,9 @@
           },
           "institutionType": {
             "type": "string"
+          },
+          "isTest": {
+            "type": "boolean"
           },
           "istatCode": {
             "type": "string"
@@ -3837,6 +3881,7 @@
             "enum": [
               "AS",
               "CON",
+              "GPU",
               "GSP",
               "PA",
               "PG",
@@ -3845,8 +3890,7 @@
               "PT",
               "REC",
               "SA",
-              "SCP",
-              "GPU"
+              "SCP"
             ]
           },
           "ivassCode": {
@@ -3935,6 +3979,9 @@
               "SUSPENDED",
               "TOBEVALIDATED"
             ]
+          },
+          "tokenId": {
+            "type": "string"
           },
           "updatedAt": {
             "type": "string",
@@ -4253,6 +4300,7 @@
           "role": {
             "type": "string",
             "enum": [
+              "ADMIN_EA",
               "DELEGATE",
               "MANAGER",
               "OPERATOR",
