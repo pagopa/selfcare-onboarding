@@ -13,16 +13,7 @@ public class CsvAggregatePagoPa implements Csv {
     private String vatNumber;
 
     @CsvBindByPosition(position = 2)
-    private String taxCodePT;
-
-    @CsvBindByPosition(position = 3)
     private String iban;
-
-    @CsvBindByPosition(position = 4)
-    private String service;
-
-    @CsvBindByPosition(position = 5)
-    private String syncAsyncMode;
 
     private Integer rowNumber;
 

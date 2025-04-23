@@ -739,9 +739,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(
             Institution institution, String productId, String productParentId) {
         if (Objects.nonNull(productParentId)) {
-            return checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId)
+            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId)
                     .onItem().transformToUni(ignored ->
-                            checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productParentId)
+                            checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productParentId)
                                     .onItem().transformToUni(result -> Uni.createFrom().failure(
                                             new InvalidRequestException(
                                                     String.format(PARENT_PRODUCT_NOT_ONBOARDED.getMessage(),
@@ -752,7 +752,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     .recoverWithNull().replaceWith(Uni.createFrom().item(true))
                     );
         } else {
-            return checkIfAlreadyOnboardingAndValidateAllowedMap(institution, productId);
+            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId);
         }
     }
 
@@ -760,19 +760,19 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding, String productId, String productParentId) {
         return (Objects.nonNull(productParentId)
                 // If product has parent, I must verify if onboarding is present for parent and child
-                ? checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productParentId)
+                ? checkIfOnboardingNotExistAndValidateAllowedProductList(onboarding, productParentId)
                 .onFailure(ResourceConflictException.class)
                 .recoverWithUni(
-                        ignore -> checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId))
+                        ignore -> checkIfOnboardingNotExistAndValidateAllowedProductList(onboarding, productId))
                 // If product is a root, I must only verify if onboarding for root
-                : checkIfOnboardingNotExistAndValidateAllowedMap(onboarding, productId));
+                : checkIfOnboardingNotExistAndValidateAllowedProductList(onboarding, productId));
     }
 
-    private Uni<Boolean> validateAllowedMap(String taxCode, String subunitCode, String productId) {
+    private Uni<Boolean> validateAllowedProductList(String taxCode, String subunitCode, String productId) {
         LOG.infof(
                 "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
                 taxCode, subunitCode, productId);
-        if (!onboardingValidationStrategy.validate(productId, taxCode)) {
+        if (!onboardingValidationStrategy.validate(productId)) {
             return Uni.createFrom()
                     .failure(
                             new OnboardingNotAllowedException(
@@ -782,9 +782,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Uni.createFrom().item(Boolean.TRUE);
     }
 
-    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedMap(
+    private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
             Institution institution, String productId) {
-        return validateAllowedMap(institution.getTaxCode(), institution.getSubunitCode(), productId)
+        return validateAllowedProductList(institution.getTaxCode(), institution.getSubunitCode(), productId)
                 .flatMap(
                         ignored -> {
                             String origin =
@@ -811,9 +811,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
-    private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedMap(
+    private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedProductList(
             Onboarding onboarding, String productId) {
-        return validateAllowedMap(
+        return validateAllowedProductList(
                 onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getSubunitCode(),
                 productId)
