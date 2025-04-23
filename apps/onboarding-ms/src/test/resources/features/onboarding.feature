@@ -116,7 +116,7 @@ Feature: Onboarding collection
     And the response should contain the text "Recipient code linked to an institution with invoicing service not active"
 
   Scenario: Successfully store onboarding in status REQUEST
-    Given I have a request object named "success_gsp_not_ipa_request"
+    Given I have a request object named "success_gsp_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
     And the response body should not be empty
@@ -124,7 +124,7 @@ Feature: Onboarding collection
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
   Scenario: Can't perform onboarding request for GSP not IPA with Invalid workflow type
-    Given I have a request object named "invalid_request_gsp_not_ipa"
+    Given I have a request object named "invalid_gsp_selc_request"
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response body should not be empty
