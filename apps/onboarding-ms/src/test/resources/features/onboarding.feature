@@ -145,3 +145,31 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Successfully store onboarding for SA in status REQUEST
+    Given I have a request object named "success_sa_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
+
+  Scenario: Can't perform onboarding request for SA with invalid originId
+    Given I have a request object named "invalid_origin_sa_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Insurance A113P not found"
+
+  Scenario: Can't perform onboarding request for SA with invalid digitalAddress
+    Given I have a request object named "invalid_sa_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Successfully store onboarding for foreing SA in status REQUEST
+    Given I have a request object named "success_foreign_sa_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
