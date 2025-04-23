@@ -43,11 +43,11 @@ import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 
 @CucumberOptions(
-        features = "src/test/resources/features",
-        plugin = {
-                "html:target/cucumber-report/cucumber.html",
-                "json:target/cucumber-report/cucumber.json"
-        })
+    features = "src/test/resources/features",
+    plugin = {
+      "html:target/cucumber-report/cucumber.html",
+      "json:target/cucumber-report/cucumber.json"
+    })
 @TestHTTPEndpoint(OnboardingController.class)
 @TestProfile(IntegrationProfile.class)
 @Slf4j
@@ -60,12 +60,9 @@ public class OnboardingStep extends CucumberQuarkusTest {
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
-  @InjectMock
-  @RestClient
-  OrchestrationApi orchestrationApi;
+  @InjectMock @RestClient OrchestrationApi orchestrationApi;
 
-  @Inject
-  ScenarioContext context;
+  @Inject ScenarioContext context;
 
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
@@ -76,13 +73,15 @@ public class OnboardingStep extends CucumberQuarkusTest {
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     Vertx vertx = Vertx.vertx();
-    vertx.getOrCreateContext().config().put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
+    vertx
+        .getOrCreateContext()
+        .config()
+        .put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
     log.debug("Init completed");
-
   }
 
   @BeforeEach
-    void initData() {
+  void initData() {
     onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
     duplicatedOnboardingPA = createOnboardingForConflictScenario();
@@ -91,7 +90,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     assertNotNull(onboarding.getId());
     assertNotNull(duplicatedOnboardingPA.getId());
     when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
-            .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+        .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
   }
 
   @Given("I have a request object named {string}")
@@ -102,19 +101,21 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @When("I send a POST request to {string} with this request")
   public void iSendPostRequestWithNamedRequest(String url) throws JsonProcessingException {
     String requestBody = context.getCurrentRequestBody();
-    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+    OnboardingDefaultRequest request =
+        objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
     assertNotNull(request);
     validatableResponse =
-            given()
-                    .header("Authorization", "Bearer " + tokenTest)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
-                    .when()
-                    .post(url)
-                    .then();
+        given()
+            .header("Authorization", "Bearer " + tokenTest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .when()
+            .post(url)
+            .then();
   }
 
-  @Given("I have an onboarding record with onboardingId {string} the current recipient code is {string}")
+  @Given(
+      "I have an onboarding record with onboardingId {string} the current recipient code is {string}")
   public void givenDataCheck(String onboardingId, String recipientCode) {
     assertNotNull(onboardingId);
     assertNotNull(recipientCode);
@@ -123,16 +124,13 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @When("I send a PUT request to {string} with {string} and {string}")
   public void doCallApi(String url, String onboardingId, String recipientCode) {
     validatableResponse =
-            given()
-                    .header(
-                            "Authorization",
-                            "Bearer "
-                                    + tokenTest)
-                    .pathParam("onboardingId", onboardingId)
-                    .queryParam("recipientCode", recipientCode)
-                    .when()
-                    .put(url)
-                    .then();
+        given()
+            .header("Authorization", "Bearer " + tokenTest)
+            .pathParam("onboardingId", onboardingId)
+            .queryParam("recipientCode", recipientCode)
+            .when()
+            .put(url)
+            .then();
   }
 
   @Then("the response status code should be {int}")
@@ -149,18 +147,24 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @Given("I have an empty request object")
   public void givenEmptyRequst() {
     OnboardingDefaultRequest request = new OnboardingDefaultRequest();
-    Arrays.stream(request.getClass().getDeclaredFields()).forEach(field -> {
-      field.setAccessible(true);
-      try {
-        assertNull(field.get(request), "L'attributo " + field.getName() + " dovrebbe essere nullo");
-      } catch (IllegalAccessException e) {
-        fail("Impossibile accedere all'attributo " + field.getName());
-      }
-    });
+    Arrays.stream(request.getClass().getDeclaredFields())
+        .forEach(
+            field -> {
+              field.setAccessible(true);
+              try {
+                assertNull(
+                    field.get(request),
+                    "L'attributo " + field.getName() + " dovrebbe essere nullo");
+              } catch (IllegalAccessException e) {
+                fail("Impossibile accedere all'attributo " + field.getName());
+              }
+            });
   }
 
   @When("I send a POST request to {string} with empty body")
-  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  @TestSecurity(
+      user = "testUser",
+      roles = {"admin", "user"})
   public void doCallApi(String url) {
     validatableResponse =
         given()
@@ -173,36 +177,43 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @When("I send a POST request to {string} with the request body")
-  @TestSecurity(user = "testUser", roles = {"admin", "user"})
+  @TestSecurity(
+      user = "testUser",
+      roles = {"admin", "user"})
   public void doCallApi(String url, String onboardingRequest) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
+    OnboardingDefaultRequest request =
+        objectMapper.readValue(onboardingRequest, OnboardingDefaultRequest.class);
     assertNotNull(request);
     validatableResponse =
-            given()
-                    .header("Authorization", "Bearer " + tokenTest)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
-                    .when()
-                    .post(url)
-                    .then();
+        given()
+            .header("Authorization", "Bearer " + tokenTest)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .when()
+            .post(url)
+            .then();
   }
 
   @When("I send a duplicated POST request to {string} with the request body")
-  @TestSecurity(user = "testUser", roles = {"admin", "user"})
-  public void doCallApiForConflictScenario(String url, String requestBody) throws JsonProcessingException {
-    OnboardingDefaultRequest request = objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
+  @TestSecurity(
+      user = "testUser",
+      roles = {"admin", "user"})
+  public void doCallApiForConflictScenario(String url, String requestBody)
+      throws JsonProcessingException {
+    OnboardingDefaultRequest request =
+        objectMapper.readValue(requestBody, OnboardingDefaultRequest.class);
     validatableResponse =
-            given()
-                    .header("Authorization", "Bearer " + tokenTest)
-                    .body(request)
-                    .when()
-                    .post(url)
-                    .then();
+        given()
+            .header("Authorization", "Bearer " + tokenTest)
+            .body(request)
+            .when()
+            .post(url)
+            .then();
   }
 
   @Then("the response body should not be empty")
   public void theResponseBodyShouldNotBeEmpty() {
-    String responseBody =validatableResponse.extract().body().asString();
+    String responseBody = validatableResponse.extract().body().asString();
     assertThat(responseBody).isNotEmpty();
   }
 
@@ -211,7 +222,6 @@ public class OnboardingStep extends CucumberQuarkusTest {
     String actualValue = validatableResponse.extract().jsonPath().getString(fieldName);
     assertThat(actualValue).isEqualTo(expectedValue);
   }
-
 
   @AfterEach
   public void cleanDb() {
@@ -268,5 +278,4 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
     return onboarding;
   }
-
 }
