@@ -107,13 +107,13 @@ Feature: Onboarding collection
     Given I have a request object named "invalid_recipient_code_uo_request"
     When I send a POST request to "/pa" with this request
     Then the response status code should be 400
-    And the response should contain the text "Recipient code not linked to any institution"
+    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=UF9UPF"
 
   Scenario: Can't perform onboarding request for UO with denied billing
     Given I have a request object named "invalid_billing_uo_request"
     When I send a POST request to "/pa" with this request
     Then the response status code should be 400
-    And the response should contain the text "Recipient code linked to an institution with invoicing service not active"
+    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
 
   Scenario: Successfully store onboarding in status REQUEST
     Given I have a request object named "success_gsp_request"
