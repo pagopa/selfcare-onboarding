@@ -107,16 +107,16 @@ Feature: Onboarding collection
     Given I have a request object named "invalid_recipient_code_uo_request"
     When I send a POST request to "/pa" with this request
     Then the response status code should be 400
-    And the response should contain the text "Recipient code not linked to any institution"
+    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=UF9UPF"
 
   Scenario: Can't perform onboarding request for UO with denied billing
     Given I have a request object named "invalid_billing_uo_request"
     When I send a POST request to "/pa" with this request
     Then the response status code should be 400
-    And the response should contain the text "Recipient code linked to an institution with invoicing service not active"
+    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
 
   Scenario: Successfully store onboarding in status REQUEST
-    Given I have a request object named "success_gsp_not_ipa_request"
+    Given I have a request object named "success_gsp_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
     And the response body should not be empty
@@ -124,7 +124,7 @@ Feature: Onboarding collection
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
   Scenario: Can't perform onboarding request for GSP not IPA with Invalid workflow type
-    Given I have a request object named "invalid_request_gsp_not_ipa"
+    Given I have a request object named "invalid_gsp_selc_request"
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response body should not be empty
@@ -132,6 +132,14 @@ Feature: Onboarding collection
 
   Scenario: Successfully store onboarding in status REQUEST
     Given I have a request object named "success_con_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Successfully store onboarding in status REQUEST
+    Given I have a request object named "success_prv_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
     And the response body should not be empty
