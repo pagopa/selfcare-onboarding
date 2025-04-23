@@ -139,6 +139,14 @@ Feature: Onboarding collection
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
   Scenario: Successfully store onboarding in status REQUEST
+    Given I have a request object named "success_rec_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Successfully store onboarding in status REQUEST
     Given I have a request object named "success_prv_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
@@ -147,9 +155,50 @@ Feature: Onboarding collection
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
   Scenario: Successfully store onboarding in status REQUEST
-    Given I have a request object named "success_rec_request"
-    When I send a POST request to "" with this request
+    Given I have a request object named "success_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
     Then the response status code should be 200
     And the response body should not be empty
-    And the response should have field "status" with value "REQUEST"
-    And the response should have field "workflowType" with value "FOR_APPROVE"
+    And the response should have field "status" with value "PENDING"
+
+  Scenario: Can't perform onboarding request for PG cause institution is not into registry
+    Given I have a request object named "institution_not_into_registry_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "Institution with taxCode 27937810870 is not into registry"
+
+  Scenario: Can't perform onboarding request for PG with invalid institution request
+    Given I have a request object named "invalid_tax_code_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "taxCode is required"
+
+  Scenario: Can't perform onboarding request for PG with invalid institution request
+    Given I have a request object named "invalid_user_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "at least one user is required"
+
+  Scenario: Can't perform onboarding request for PG with invalid institution request
+    Given I have a request object named "invalid_product_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "productId is required"
+
+  Scenario: Can't perform onboarding request for PG with invalid institution request
+    Given I have a request object named "invalid_origin_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "non deve essere null"
+
+  Scenario: Can't perform onboarding request for PG with invalid institution request
+    Given I have a request object named "invalid_digital_address_pg_request"
+    When I send a POST request for PNPG to "/pg/completion" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "non deve essere null"
