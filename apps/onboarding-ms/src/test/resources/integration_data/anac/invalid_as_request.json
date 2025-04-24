@@ -17,15 +17,15 @@
     }
   ],
   "institution": {
-    "institutionType": "SA",
-    "taxCode": "00320160237",
-    "origin": "IVASS",
-    "originId": "A113C",
-    "description": "GENERTEL S.P.A.",
+    "institutionType": "AS",
+    "taxCode": "02130120765",
+    "origin": "ANAC",
+    "originId": "02130120765",
+    "description": "Appconsulting srl",
     "city": "Milano",
     "country": "IT",
     "county": "SA",
-    "digitalAddress": "legaleeee.compliance@pec.genertel.it",
+    "digitalAddress": "appconsultingsrl@pec1223.it",
     "address": "VIA MACHIAVELLI, 4  34132 TRIESTE",
     "zipCode": "80046",
     "geographicTaxonomies": [
@@ -37,7 +37,7 @@
     "imported": false
   },
   "billing": {
-    "vatNumber": "00320160237",
+    "vatNumber": "02130120765",
     "publicServices": true
   }
 }

@@ -6,7 +6,7 @@ public enum CustomError {
 
     ROLES_NOT_ADMITTED_ERROR("0034","Roles %s are not admitted for this operation"),
     AOO_NOT_FOUND("0000","AOO  %s not found"),
-    STATION_NOT_FOUND("0000","Station  %s not found"),
+    STATION_NOT_FOUND("0000","Station %s not found"),
     INSURANCE_NOT_FOUND("0000","Insurance %s not found"),
     UO_NOT_FOUND("0000","UO %s not found"),
     ONBOARDING_INFO_FILTERS_ERROR("0052", "Invalid filters parameters to retrieve onboarding info"),
