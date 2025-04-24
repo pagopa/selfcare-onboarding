@@ -1,4 +1,4 @@
-@cucumberOnboarding
+@Onboarding
 Feature: Onboarding collection
 
   Scenario: Successfully update recipient code by onboarding id
@@ -251,3 +251,11 @@ Feature: Onboarding collection
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Successfully store onboarding for GPU in status REQUEST
+    Given I have a request object named "success_gpu_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE_GPU"
