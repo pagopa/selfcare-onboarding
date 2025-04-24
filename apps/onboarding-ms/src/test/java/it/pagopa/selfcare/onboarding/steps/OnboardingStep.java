@@ -44,12 +44,13 @@ import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 
 @CucumberOptions(
-    features = "src/test/resources/features/onboarding.feature",
+    features = "src/test/resources/features",
     glue = {"it.pagopa.selfcare.onboarding"},
     plugin = {
       "html:target/cucumber-report/cucumber.html",
       "json:target/cucumber-report/cucumber.json"
-    })
+    },
+    tags = "@Onboarding")
 @TestHTTPEndpoint(OnboardingController.class)
 @TestProfile(IntegrationProfile.class)
 @Slf4j
