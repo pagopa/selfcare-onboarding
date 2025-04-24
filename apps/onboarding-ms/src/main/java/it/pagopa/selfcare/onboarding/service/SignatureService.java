@@ -7,4 +7,6 @@ public interface SignatureService {
   void verifySignature(File file, String checksum, List<String> usersTaxCode);
 
   void verifySignature(File file);
+
+  File extractFile(File contract);
 }

@@ -14,8 +14,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+
 import java.io.File;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -63,14 +65,14 @@ public class TokenController {
   }
 
   @Operation(
-      summary = "Retrieve contract signed for a given onboarding",
-      description = "Downloads the contract file associated with the specified onboarding ID."
+    summary = "Retrieve contract signed for a given onboarding",
+    description = "Downloads the contract file associated with the specified onboarding ID."
   )
   @GET
   @Produces(MediaType.APPLICATION_OCTET_STREAM)
   @Path("/{onboardingId}/contract-signed")
   public Uni<RestResponse<File>> getContractSigned(@PathParam(value = "onboardingId") String onboardingId) {
-    return tokenService.retrieveContract(onboardingId, Boolean.TRUE);
+    return tokenService.retrieveSignedFile(onboardingId);
   }
 
   @Operation(

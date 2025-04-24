@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
@@ -12,16 +10,23 @@ import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.bson.Document;
+import org.jboss.resteasy.reactive.RestResponse;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
-import org.bson.Document;
-import org.jboss.resteasy.reactive.RestResponse;
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 
+@Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
   @Inject
@@ -59,14 +64,37 @@ public class TokenServiceDefault implements TokenService {
   }
 
   @Override
-  public Uni<RestResponse<File>> retrievSignedFile(Token token) {
-    return Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
-      .runSubscriptionOn(Executors.newSingleThreadExecutor())
-      .onItem().transform(contract -> {
-        RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-        response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, true));
-        return response.build();
-      });
+  public Uni<RestResponse<File>> retrieveSignedFile(String onboardingId) {
+    return Token.findById(onboardingId)
+      .map(Token.class::cast)
+      .onItem().transformToUni(token -> Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
+        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .onItem().transform(contract -> {
+          if (token.getContractSigned().endsWith(".pdf")) {
+            isPdfValid(contract);
+          } else {
+            isP7mValid(contract, signatureService);
+            File original = signatureService.extractFile(contract);
+            isPdfValid(original);
+          }
+          RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+          response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, true));
+          return response.build();
+        }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
+  }
+
+  public static void isP7mValid(File contract, SignatureService signatureService) {
+    signatureService.verifySignature(contract);
+  }
+
+  public static void isPdfValid(File contract) {
+    try (PDDocument document = Loader.loadPDF(contract)) {
+      document.getNumberOfPages();
+      PDFTextStripper stripper = new PDFTextStripper();
+      stripper.getText(document);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private String getContractNotSigned(String onboardingId, Token token) {
