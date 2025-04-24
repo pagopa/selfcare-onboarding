@@ -44,17 +44,6 @@
     "recipientCode": "UFO5LL",
     "publicServices": true
   },
-  "additionalInformations": {
-    "agentOfPublicService": false,
-    "agentOfPublicServiceNote": "",
-    "belongRegulatedMarket": true,
-    "regulatedMarketNote": "",
-    "establishedByRegulatoryProvision": false,
-    "establishedByRegulatoryProvisionNote": "",
-    "ipa": false,
-    "ipaCode": "",
-    "otherNote": "pippo"
-  },
   "gpuData": {
     "businessRegisterNumber": "test",
     "legalRegisterNumber": "46568",
@@ -67,4 +56,3 @@
     "institutionCourtMeasures": true
   }
 }
-
