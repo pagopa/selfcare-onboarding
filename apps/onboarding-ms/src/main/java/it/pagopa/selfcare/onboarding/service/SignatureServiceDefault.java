@@ -247,22 +247,17 @@ public class SignatureServiceDefault implements SignatureService {
 
       List<AdvancedSignature> signatures = validator.getSignatures();
       if (signatures.isEmpty()) {
-        System.err.println("Nessuna firma trovata nel documento");
-        return null;
+        throw new InvalidRequestException(SIGNATURE_NOT_FOUND.getMessage(), SIGNATURE_NOT_FOUND.getCode());
       }
 
       List<DSSDocument> originalDocuments = validator.getOriginalDocuments(signatures.get(0).getId());
       if (originalDocuments.isEmpty()) {
-        System.err.println("Nessun documento originale trovato nella firma");
-        return null;
+        throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
       }
 
       return originalDocuments.get(0);
-
     } catch (Exception e) {
-      System.err.println("Errore nell'estrazione del documento dal file P7M: " + e.getMessage());
-      e.printStackTrace();
-      return null;
+      throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
     }
   }
 
