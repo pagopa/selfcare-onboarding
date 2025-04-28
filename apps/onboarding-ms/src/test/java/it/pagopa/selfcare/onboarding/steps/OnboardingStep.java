@@ -253,7 +253,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @AfterAll
-  static void destroyDatabase(){
+  static void destroyDatabase() {
     mongoDatabase.drop();
   }
 
