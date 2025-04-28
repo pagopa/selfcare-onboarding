@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mongodb.client.MongoDatabase;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -25,11 +26,10 @@ import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.OnboardingController;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Arrays;
@@ -60,6 +60,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
   private Onboarding onboarding;
+  private Token token;
   private Onboarding duplicatedOnboardingPA;
   private static ObjectMapper objectMapper;
   private static String tokenTest;
@@ -79,6 +80,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
   static void setup() {
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
     Vertx vertx = Vertx.vertx();
     vertx
         .getOrCreateContext()
@@ -95,6 +97,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
     onboarding.persist().await().indefinitely();
     duplicatedOnboardingPA = createOnboardingForConflictScenario();
     duplicatedOnboardingPA.persist().await().indefinitely();
+    token = createDummyToken();
+    token.persist().await().indefinitely();
     // verify
     assertNotNull(onboarding.getId());
     assertNotNull(duplicatedOnboardingPA.getId());
@@ -136,6 +140,36 @@ public class OnboardingStep extends CucumberQuarkusTest {
             .when()
             .post(url)
             .then();
+  }
+
+  @When("I send a POST request for PSP to {string} with this request")
+  public void iSendPostRequestWithNamedRequestForPsp(String url) throws JsonProcessingException {
+    String requestBody = context.getCurrentRequestBody();
+    OnboardingPspRequest request = objectMapper.readValue(requestBody, OnboardingPspRequest.class);
+    assertNotNull(request);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
+  }
+
+  @When("I send a POST request for import PSP to {string} with this request")
+  public void iSendPostRequestWithNamedRequestForImportPsp(String url) throws JsonProcessingException {
+    String requestBody = context.getCurrentRequestBody();
+    OnboardingImportPspRequest request = objectMapper.readValue(requestBody, OnboardingImportPspRequest.class);
+    assertNotNull(request);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
   }
 
   @Given(
@@ -306,5 +340,13 @@ public class OnboardingStep extends CucumberQuarkusTest {
     onboarding.setUsers(List.of(user));
 
     return onboarding;
+  }
+
+  private static Token createDummyToken() {
+    Token token = new Token();
+    token.setId(UUID.fromString("89ad7142-24bb-48ad-8504-9c9231137e85").toString());
+    token.setProductId("prod-pagopa");
+
+    return token;
   }
 }
