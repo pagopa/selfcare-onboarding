@@ -319,7 +319,7 @@ class TokenServiceDefaultTest {
 
   @Test
   @RunOnVertxContext
-  void completeWithoutSignatureValidation(UniAsserter asserter) {
+  void reportContractSignedTest(UniAsserter asserter) {
     Token token = createDummyToken();
     asserter.execute(() -> PanacheMock.mock(Token.class));
     asserter.execute(() -> when(Token.findByIdOptional(any()))
@@ -327,10 +327,7 @@ class TokenServiceDefaultTest {
 
     mockFindToken(asserter, token.getId());
 
-    //Mock contract signature fail
-    asserter.execute(() -> doNothing()
-      .when(signatureService)
-      .verifySignature(any()));
+    when(signatureService.verifySignature(any())).thenReturn(true);
 
     asserter.assertThat(() -> tokenService.reportContractSigned(token.getId()),
       Assertions::assertNotNull);
