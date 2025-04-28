@@ -1,4 +1,4 @@
-@cucumberOnboarding
+@Onboarding
 Feature: Onboarding collection
 
   Scenario: Successfully update recipient code by onboarding id
