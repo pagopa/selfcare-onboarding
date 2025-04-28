@@ -613,10 +613,24 @@ class SignatureServiceDefaultTest {
   }
 
   @Test
+  void extractOriginalDocumentErrorTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    assertThrows(InvalidRequestException.class, () -> SignatureServiceDefault.extractOriginalDocument(new File(resourcePath)));
+  }
+
+  @Test
   void extractFileTest() {
     ClassLoader classLoader = getClass().getClassLoader();
     String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
     assertDoesNotThrow(() -> signatureService.extractFile(new File(resourcePath)));
+  }
+
+  @Test
+  void extractFileErrorTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    assertThrows(InvalidRequestException.class, () -> signatureService.extractFile(new File(resourcePath)));
   }
 }
 
