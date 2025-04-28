@@ -1,5 +1,5 @@
 {
-  "productId": "prod-interop",
+  "productId": "prod-io",
   "users": [
     {
       "taxCode": "FRDSMN80A01F205Z",
@@ -17,17 +17,19 @@
     }
   ],
   "institution": {
-    "institutionType": "SA",
-    "taxCode": "00320160237",
-    "origin": "IVASS",
-    "originId": "A113P",
-    "description": "GENERTEL S.P.A.",
-    "city": "Milano",
+    "institutionType": "PT",
+    "taxCode": "83001010616",
+    "origin": "SELC",
+    "originId": "AL7RYI5",
+    "subunitCode": "AL7RYI5",
+    "subunitType": "AOO",
+    "city": "Roccamonfina",
     "country": "IT",
-    "county": "SA",
-    "digitalAddress": "legale.compliance@pec.genertel.it",
-    "address": "VIA MACHIAVELLI, 4  34132 TRIESTE",
-    "zipCode": "80046",
+    "county": "CE",
+    "description": "Comune di Roccamonfina",
+    "digitalAddress": "protocollo.roccamonfina@asmepec.it",
+    "address": "Via Municipio N. 8",
+    "zipCode": "81035",
     "geographicTaxonomies": [
       {
         "code": "ITA",
@@ -37,7 +39,8 @@
     "imported": false
   },
   "billing": {
-    "vatNumber": "00320160237",
+    "vatNumber": "83001010616",
+    "recipientCode": "UFO5LL",
     "publicServices": true
   }
 }

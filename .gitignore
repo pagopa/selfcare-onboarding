@@ -52,3 +52,6 @@ override.tf.json
 **/node_modules/*
 
 .codegpt
+
+# EXCLUDE FOLDER CONFIGs
+.run/**

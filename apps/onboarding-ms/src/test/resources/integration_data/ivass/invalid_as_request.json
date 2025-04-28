@@ -17,7 +17,7 @@
     }
   ],
   "institution": {
-    "institutionType": "SA",
+    "institutionType": "AS",
     "taxCode": "00320160237",
     "origin": "IVASS",
     "originId": "A113C",
@@ -25,7 +25,7 @@
     "city": "Milano",
     "country": "IT",
     "county": "SA",
-    "digitalAddress": "legale.compliance@pec.genertel.it",
+    "digitalAddress": "legaleeee.compliance@pec.genertel.it",
     "address": "VIA MACHIAVELLI, 4  34132 TRIESTE",
     "zipCode": "80046",
     "geographicTaxonomies": [

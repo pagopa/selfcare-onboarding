@@ -17,19 +17,27 @@
     }
   ],
   "institution": {
-    "institutionType": "AS",
-    "taxCode": "96418440580",
-    "origin": "IVASS",
-    "originId": "40944",
-    "description": "GENERALI LUXEMBOURG S.A.",
-    "digitalAddress": "generalilux@legalmail.it",
-    "address": "Strass lux",
+    "institutionType": "SA",
+    "taxCode": "02130120765",
+    "origin": "ANAC",
+    "originId": "02130120765",
+    "description": "Appconsulting srl",
+    "city": "Milano",
+    "country": "IT",
+    "county": "SA",
+    "digitalAddress": "appconsultingsrl@pec1223.it",
+    "address": "VIA MACHIAVELLI, 4  34132 TRIESTE",
+    "zipCode": "80046",
     "geographicTaxonomies": [
       {
-        "code": "LU",
-        "desc": "lux"
+        "code": "ITA",
+        "desc": "ITALIA"
       }
     ],
     "imported": false
+  },
+  "billing": {
+    "vatNumber": "02130120765",
+    "publicServices": true
   }
 }
