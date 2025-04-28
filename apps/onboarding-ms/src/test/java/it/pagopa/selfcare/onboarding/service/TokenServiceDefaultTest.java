@@ -25,11 +25,12 @@ import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.util.*;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.util.*;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -89,13 +90,96 @@ class TokenServiceDefaultTest {
 
     PanacheMock.mock(Token.class);
     when(Token.findById(onboardingId))
-        .thenReturn(Uni.createFrom().item(token));
+      .thenReturn(Uni.createFrom().item(token));
 
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
     // when
     UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, true)
-        .subscribe().withSubscriber(UniAssertSubscriber.create());
+      .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    // then
+    RestResponse<File> actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
+  void retrieveContractSignedKOTest() {
+    // given
+    Token token = new Token();
+    token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.p7m");
+    token.setType(TokenType.INSTITUTION);
+    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+      .thenReturn(Uni.createFrom().item(token));
+
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+
+    when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
+
+    // when
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
+      .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    // then
+    RestResponse<File> actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
+    assertEquals(RestResponse.Status.NOT_FOUND.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
+  void retrieveContractSignedPdfOKTest() {
+    // given
+    Token token = new Token();
+    token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.pdf");
+    token.setType(TokenType.INSTITUTION);
+    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+      .thenReturn(Uni.createFrom().item(token));
+
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
+
+    when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
+
+    // when
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
+      .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    // then
+    RestResponse<File> actual = subscriber.awaitItem().getItem();
+    assertNotNull(actual);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+  }
+
+  @Test
+  void retrieveContractSignedP7mOKTest() {
+    // given
+    Token token = new Token();
+    token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.p7m");
+    token.setType(TokenType.INSTITUTION);
+    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+
+    PanacheMock.mock(Token.class);
+    when(Token.findById(onboardingId))
+      .thenReturn(Uni.createFrom().item(token));
+
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
+    when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
+
+    String resourceExtractedPath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
+    when(signatureService.extractFile(any())).thenReturn(new File(resourceExtractedPath));
+
+    // when
+    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
+      .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
@@ -235,7 +319,7 @@ class TokenServiceDefaultTest {
 
   @Test
   @RunOnVertxContext
-  void completeWithoutSignatureValidation(UniAsserter asserter) {
+  void reportContractSignedTest(UniAsserter asserter) {
     Token token = createDummyToken();
     asserter.execute(() -> PanacheMock.mock(Token.class));
     asserter.execute(() -> when(Token.findByIdOptional(any()))
@@ -243,10 +327,7 @@ class TokenServiceDefaultTest {
 
     mockFindToken(asserter, token.getId());
 
-    //Mock contract signature fail
-    asserter.execute(() -> doNothing()
-      .when(signatureService)
-      .verifySignature(any()));
+    when(signatureService.verifySignature(any())).thenReturn(true);
 
     asserter.assertThat(() -> tokenService.reportContractSigned(token.getId()),
       Assertions::assertNotNull);
