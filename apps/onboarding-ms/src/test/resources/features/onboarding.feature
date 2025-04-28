@@ -212,8 +212,8 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
 
-  Scenario: Can't perform onboarding request for SA with invalid originId
-    Given I have a request object named "invalid_origin_sa_request"
+  Scenario: Can't perform onboarding request for AS with invalid originId
+    Given I have a request object named "invalid_origin_as_request"
     When I send a POST request to "" with this request
     Then the response status code should be 404
     And the response should contain the text "Insurance A113P not found"
@@ -240,8 +240,8 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
 
-  Scenario: Can't perform onboarding request for AS with invalid originId
-    Given I have a request object named "invalid_origin_as_request"
+  Scenario: Can't perform onboarding request for SA with invalid originId
+    Given I have a request object named "invalid_origin_sa_request"
     When I send a POST request to "" with this request
     Then the response status code should be 404
     And the response should contain the text "Station 02130120745 not found"
@@ -282,3 +282,36 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should have field "status" with value "PENDING"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+
+  Scenario: Successfully store onboarding for PSP in status REQUEST
+    Given I have a request object named "success_psp_request"
+    When I send a POST request for PSP to "/psp" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Can't perform onboarding request for PSP with missing pspData
+    Given I have a request object named "invalid_psp_request"
+    When I send a POST request for PSP to "/psp" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field 'pspData' is required for PSP institution onboarding"
+
+  Scenario: Can't perform onboarding prod-dashboard-psp with parent not completed
+    Given I have a request object named "invalid_child_dashboard_psp_request"
+    When I send a POST request for PSP to "/psp" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Parent product prod-pagopa not onboarded for institution having externalId 12312312341"
+
+  Scenario: Can't perform onboarding import PSP with missing contract data
+    Given I have a request object named "invalid_import_psp_request"
+    When I send a POST request for import PSP to "/psp/import" with this request
+    Then the response status code should be 400
+
+  Scenario: Successfully store onboarding for import PSP in status REQUEST
+    Given I have a request object named "success_import_psp_request"
+    When I send a POST request for import PSP to "/psp/import" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "PENDING"
+    And the response should have field "workflowType" with value "IMPORT"
