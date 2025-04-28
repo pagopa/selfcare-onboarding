@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.MongoDatabase;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -37,6 +38,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +69,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   @Inject ScenarioContext context;
 
+  static MongoDatabase mongoDatabase;
+
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
   }
@@ -80,6 +84,8 @@ public class OnboardingStep extends CucumberQuarkusTest {
         .getOrCreateContext()
         .config()
         .put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
+
+    mongoDatabase = IntegrationProfile.getMongoClientConnection();
     log.debug("Init completed");
   }
 
@@ -242,8 +248,13 @@ public class OnboardingStep extends CucumberQuarkusTest {
   }
 
   @AfterEach
-  public void cleanDb() {
+  void cleanDb() {
     onboarding.delete();
+  }
+
+  @AfterAll
+  static void destroyDatabase() {
+    mongoDatabase.drop();
   }
 
   // utils

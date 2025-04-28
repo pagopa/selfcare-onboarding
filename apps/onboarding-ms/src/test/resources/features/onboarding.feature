@@ -282,3 +282,17 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should have field "status" with value "PENDING"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+
+  Scenario: Successfully store onboarding for PT in status REQUEST
+    Given I have a request object named "success_pt_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE_PT"
+
+  Scenario: Can't perform onboarding request for PT with product not delegable
+    Given I have a request object named "invalid_pt_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Institution with external id '83001010616' is not allowed to onboard 'prod-io' product because it is not delegable"

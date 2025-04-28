@@ -6,7 +6,9 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import java.util.Objects;
+import lombok.Data;
 
+@Data
 public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
 
     protected static final String ADDITIONAL_INFORMATION_REQUIRED = "Additional Information is required when institutionType is GSP and productId is pagopa";
@@ -26,14 +28,6 @@ public abstract class BaseRegistryManager<T> implements RegistryManager<T> {
 
     protected BaseRegistryManager(Onboarding onboarding) {
         this.onboarding = onboarding;
-    }
-
-    public void setOnboarding(Onboarding onboarding) {
-        this.onboarding = onboarding;
-    }
-
-    public Onboarding getOnboarding() {
-        return onboarding;
     }
 
     public RegistryManager<T> setResource(T registryResource) {
