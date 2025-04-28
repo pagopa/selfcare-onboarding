@@ -1,4 +1,4 @@
-@cucumberOnboarding
+@Onboarding
 Feature: Onboarding collection
 
   Scenario: Successfully update recipient code by onboarding id
@@ -154,7 +154,7 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
-  Scenario: Successfully store onboarding in status REQUEST
+  Scenario: Successfully store onboarding in status PENDING
     Given I have a request object named "success_pg_request"
     When I send a POST request for PNPG to "/pg/completion" with this request
     Then the response status code should be 200
@@ -204,35 +204,7 @@ Feature: Onboarding collection
     And the response should contain the text "non deve essere null"
 
 
-  Scenario: Successfully store onboarding for AS in status REQUEST
-    Given I have a request object named "success_as_request"
-    When I send a POST request to "" with this request
-    Then the response status code should be 200
-    And the response body should not be empty
-    And the response should have field "status" with value "REQUEST"
-    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
-
-  Scenario: Can't perform onboarding request for AS with invalid originId
-    Given I have a request object named "invalid_origin_as_request"
-    When I send a POST request to "" with this request
-    Then the response status code should be 404
-    And the response should contain the text "Insurance A113P not found"
-
-  Scenario: Can't perform onboarding request for AS with invalid digitalAddress
-    Given I have a request object named "invalid_as_request"
-    When I send a POST request to "" with this request
-    Then the response status code should be 400
-    And the response should contain the text "Field digitalAddress or description are not valid"
-
-  Scenario: Successfully store onboarding for foreing AS in status REQUEST
-    Given I have a request object named "success_foreign_as_request"
-    When I send a POST request to "" with this request
-    Then the response status code should be 200
-    And the response body should not be empty
-    And the response should have field "status" with value "REQUEST"
-    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
-
-  Scenario: Successfully store onboarding for foreing SA in status REQUEST
+  Scenario: Successfully store onboarding for SA in status REQUEST
     Given I have a request object named "success_sa_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
@@ -244,10 +216,69 @@ Feature: Onboarding collection
     Given I have a request object named "invalid_origin_sa_request"
     When I send a POST request to "" with this request
     Then the response status code should be 404
-    And the response should contain the text "Station 02130120745 not found"
+    And the response should contain the text "Insurance A113P not found"
 
   Scenario: Can't perform onboarding request for SA with invalid digitalAddress
     Given I have a request object named "invalid_sa_request"
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Successfully store onboarding for foreing SA in status REQUEST
+    Given I have a request object named "success_foreign_sa_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
+
+  Scenario: Successfully store onboarding for foreing AS in status REQUEST
+    Given I have a request object named "success_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
+
+  Scenario: Can't perform onboarding request for AS with invalid originId
+    Given I have a request object named "invalid_origin_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Station 02130120745 not found"
+
+  Scenario: Can't perform onboarding request for AS with invalid digitalAddress
+    Given I have a request object named "invalid_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Successfully store onboarding for GPU in status REQUEST
+    Given I have a request object named "success_gpu_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE_GPU"
+
+  Scenario: Can't perform onboarding request for UO Aggregate
+    Given I have a request object named "invalid_aggregate_pa_request"
+    When I send a POST request to "/pa/aggregation" with this request
+    Then the response status code should be 400
+    And the response body should not be empty
+    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
+
+  Scenario: Successfully store onboarding in status REQUEST
+    Given I have a request object named "success_aggregation_pa_request"
+    When I send a POST request to "/pa/aggregation" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+
+  Scenario: Successfully store onboarding in status PENDING
+    Given I have a request object named "success_aggregation_gpu_request"
+    When I send a POST request to "/aggregation/completion" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "PENDING"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
