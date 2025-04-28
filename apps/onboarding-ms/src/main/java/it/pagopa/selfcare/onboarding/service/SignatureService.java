@@ -6,7 +6,7 @@ import java.util.List;
 public interface SignatureService {
   void verifySignature(File file, String checksum, List<String> usersTaxCode);
 
-  void verifySignature(File file);
+  boolean verifySignature(File file);
 
   File extractFile(File contract);
 }

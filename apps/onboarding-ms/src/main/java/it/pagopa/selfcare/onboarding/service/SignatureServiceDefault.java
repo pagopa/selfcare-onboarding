@@ -171,7 +171,7 @@ public class SignatureServiceDefault implements SignatureService {
   }
 
   @Override
-  public void verifySignature(File file) {
+  public boolean verifySignature(File file) {
     try {
       byte[] byteData = Files.readAllBytes(file.toPath());
 
@@ -182,8 +182,7 @@ public class SignatureServiceDefault implements SignatureService {
 
       verifySignatureForm(validator);
       checkSignature(reports);
-    } catch (InvalidRequestException e) {
-      throw e;
+      return true;
     } catch (Exception e) {
       throw new InvalidRequestException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
     }
