@@ -232,6 +232,34 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
 
+  Scenario: Successfully store onboarding for foreing AS in status REQUEST
+    Given I have a request object named "success_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
+
+  Scenario: Can't perform onboarding request for AS with invalid originId
+    Given I have a request object named "invalid_origin_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Station 02130120745 not found"
+
+  Scenario: Can't perform onboarding request for AS with invalid digitalAddress
+    Given I have a request object named "invalid_as_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Successfully store onboarding for GPU in status REQUEST
+    Given I have a request object named "success_gpu_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE_GPU"
+
   Scenario: Can't perform onboarding request for UO Aggregate
     Given I have a request object named "invalid_aggregate_pa_request"
     When I send a POST request to "/pa/aggregation" with this request
