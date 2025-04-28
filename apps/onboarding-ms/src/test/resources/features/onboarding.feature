@@ -282,3 +282,11 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should have field "status" with value "PENDING"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+    
+  Scenario: Successfully store onboarding for PT in status REQUEST
+    Given I have a request object named "success_pt_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE_PT"
