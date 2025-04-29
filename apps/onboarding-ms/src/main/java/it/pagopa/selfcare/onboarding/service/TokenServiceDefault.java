@@ -30,6 +30,8 @@ import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_
 @Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
+  public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+  public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
   @Inject
   SignatureService signatureService;
 
@@ -59,7 +61,7 @@ public class TokenServiceDefault implements TokenService {
           .runSubscriptionOn(Executors.newSingleThreadExecutor())
           .onItem().transform(contract -> {
             RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-            response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, isSigned));
+            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, isSigned));
             return response.build();
           }));
   }
@@ -79,7 +81,7 @@ public class TokenServiceDefault implements TokenService {
             isPdfValid(original);
           }
           RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-          response.header("Content-Disposition", "attachment;filename=" + getCurrentContractName(token, true));
+          response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, true));
           return response.build();
         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
   }
@@ -122,7 +124,7 @@ public class TokenServiceDefault implements TokenService {
           .runSubscriptionOn(Executors.newSingleThreadExecutor())
           .onItem().transform(contract -> {
             RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-            response.header("Content-Disposition", "attachment;filename=" + token.getContractFilename());
+            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename());
             return response.build();
           }));
   }
