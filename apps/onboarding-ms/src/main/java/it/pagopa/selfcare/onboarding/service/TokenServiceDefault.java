@@ -94,7 +94,6 @@ public class TokenServiceDefault implements TokenService {
       PDFTextStripper stripper = new PDFTextStripper();
       stripper.getText(document);
     } catch (IOException e) {
-
       throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
     }
   }
