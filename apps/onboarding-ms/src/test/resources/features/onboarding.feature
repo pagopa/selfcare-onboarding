@@ -362,3 +362,23 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "USERS"
     And there is a document for onboardings with origin "IPA" originId "c_l186" and workflowType "USERS"
+
+  Scenario: Successfully store onboarding for SCP in status REQUEST
+    Given I have a request object named "success_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Can't perform onboarding request for SCP when data into PDND are not equals what we expected
+    Given I have a request object named "invalid_case1_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Can't perform onboarding request for SCP when taxcode are not into PDND
+    Given I have a request object named "invalid_case2_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Institution 153763712211 not found in the registry"
