@@ -5,9 +5,11 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.Indication;
 import eu.europa.esig.dss.enumerations.SignatureForm;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
+import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.validation.AdvancedSignature;
@@ -17,6 +19,7 @@ import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.validationreport.jaxb.SignatureValidationReportType;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -168,7 +171,7 @@ public class SignatureServiceDefault implements SignatureService {
   }
 
   @Override
-  public void verifySignature(File file) {
+  public boolean verifySignature(File file) {
     try {
       byte[] byteData = Files.readAllBytes(file.toPath());
 
@@ -179,8 +182,7 @@ public class SignatureServiceDefault implements SignatureService {
 
       verifySignatureForm(validator);
       checkSignature(reports);
-    } catch (InvalidRequestException e) {
-      throw e;
+      return true;
     } catch (Exception e) {
       throw new InvalidRequestException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
     }
@@ -235,4 +237,43 @@ public class SignatureServiceDefault implements SignatureService {
     return false;
   }
 
+  public static DSSDocument extractOriginalDocument(File contract) {
+    try {
+      DSSDocument signedDocument = new FileDocument(contract);
+
+      SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(signedDocument);
+      validator.setCertificateVerifier(new CommonCertificateVerifier());
+
+      List<AdvancedSignature> signatures = validator.getSignatures();
+      if (signatures.isEmpty()) {
+        throw new InvalidRequestException(SIGNATURE_NOT_FOUND.getMessage(), SIGNATURE_NOT_FOUND.getCode());
+      }
+
+      List<DSSDocument> originalDocuments = validator.getOriginalDocuments(signatures.get(0).getId());
+      if (originalDocuments.isEmpty()) {
+        throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+      }
+
+      return originalDocuments.get(0);
+    } catch (Exception e) {
+      throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+    }
+  }
+
+  @Override
+  public File extractFile(File contract) {
+    DSSDocument originalContract = extractOriginalDocument(contract);
+    if (originalContract == null) {
+      throw new ResourceNotFoundException(INVALID_DOCUMENT_SIGNATURE.getMessage(), INVALID_SIGNATURE_TAX_CODE.getCode());
+    }
+
+    try {
+      String filePath = contract.getAbsolutePath();
+      File destination = new File(filePath + ".pdf");
+      DSSUtils.saveToFile(DSSUtils.toByteArray(originalContract.openStream()), destination);
+      return destination;
+    } catch (Exception e) {
+      throw new ResourceNotFoundException(INVALID_DOCUMENT_SIGNATURE.getMessage(), INVALID_SIGNATURE_TAX_CODE.getCode());
+    }
+  }
 }

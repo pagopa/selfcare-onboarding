@@ -26,12 +26,14 @@ import org.apache.batik.anim.dom.SVG12OMDocument;
 import org.apache.batik.dom.GenericDocumentType;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.INVALID_DOCUMENT_SIGNATURE;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.TAX_CODE_NOT_FOUND_IN_SIGNATURE;
@@ -584,7 +586,51 @@ class SignatureServiceDefaultTest {
         assertThrows(InvalidRequestException.class, () -> signatureService.verifyManagerTaxCode(reports, new ArrayList<>()),
                 TAX_CODE_NOT_FOUND_IN_SIGNATURE.getMessage());
 
-        verify(reports).getDiagnosticData();
-    }
+    verify(reports).getDiagnosticData();
+  }
+
+  @Test
+  void isP7mValidOKTest() {
+    // given
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
+    assertDoesNotThrow(() -> signatureService.verifySignature(new File(resourcePath)));
+  }
+
+  @Test
+  void isP7mValidKOTest() {
+    // given
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    assertThrows(InvalidRequestException.class, () -> signatureService.verifySignature(new File(resourcePath)));
+  }
+
+  @Test
+  void extractOriginalDocumentTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
+    assertDoesNotThrow(() -> SignatureServiceDefault.extractOriginalDocument(new File(resourcePath)));
+  }
+
+  @Test
+  void extractOriginalDocumentErrorTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    assertThrows(InvalidRequestException.class, () -> SignatureServiceDefault.extractOriginalDocument(new File(resourcePath)));
+  }
+
+  @Test
+  void extractFileTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
+    assertDoesNotThrow(() -> signatureService.extractFile(new File(resourcePath)));
+  }
+
+  @Test
+  void extractFileErrorTest() {
+    ClassLoader classLoader = getClass().getClassLoader();
+    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    assertThrows(InvalidRequestException.class, () -> signatureService.extractFile(new File(resourcePath)));
+  }
 }
 

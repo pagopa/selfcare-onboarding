@@ -2649,5 +2649,69 @@
     "title": "Piattaforma Unitaria",
     "urlBO": "https://dev.p4pa.pagopa.it/piattaformaunitaria/auth-callback#<IdentityToken>",
     "urlPublic": "https://www.pagopa.it"
+  },
+  {
+    "alias": "prod-pn-pg",
+    "createdAt": "2023-01-27T12:08:39.244Z",
+    "createdBy": "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+    "depictImageUrl": "https://selcpweupnpgcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "description": "SEND - Notifiche Digitali",
+    "enabled": true,
+    "id": "prod-pn-pg",
+    "identityTokenAudience": "imprese.notifichedigitali.it",
+    "institutionContractMappings": {
+      "default": {
+        "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
+        "contractTemplateVersion": "1.0.0"
+      }
+    },
+    "logo": "https://selcpweupnpgcheckoutsa.z6.web.core.windows.net/resources/products/prod-pn/logo.png",
+    "logoBgColor": "#0B3EE3",
+    "roleMappings": {
+      "MANAGER": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": [
+          "onboarding"
+        ],
+        "roles": [
+          {
+            "code": "pg-admin",
+            "description": "Stipula il contratto e identifica gli amministratori",
+            "label": "Amministratore"
+          }
+        ]
+      },
+      "OPERATOR": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": [
+          "dashboard"
+        ],
+        "roles": [
+          {
+            "code": "pg-operator",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Gestore Notifiche"
+          }
+        ]
+      },
+      "SUB_DELEGATE": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": [
+          "dashboard"
+        ],
+        "roles": [
+          {
+            "code": "pg-admin",
+            "description": "Ha tutti i permessi e gestisce gli utenti",
+            "label": "Amministratore"
+          }
+        ]
+      }
+    },
+    "status": "ACTIVE",
+    "title": "SEND",
+    "urlBO": "https://portale-pg.dev.pn.pagopa.it/#selfCareToken=<IdentityToken>&lang=<lang>",
+    "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/piattaforma-notifiche-digitali",
+    "userContractMappings": {}
   }
 ]

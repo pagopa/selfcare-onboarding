@@ -1,24 +1,27 @@
 package it.pagopa.selfcare.azurestorage;
 
 import com.azure.storage.blob.models.BlobProperties;
+
 import java.io.File;
 import java.util.List;
 
 public interface AzureBlobClient {
 
-    byte[] getFile(String filePath);
+  File retrieveFile(String filePath);
 
-    String getFileAsText(String filePath);
+  byte[] getFile(String filePath);
 
-    File getFileAsPdf(String contractTemplate);
+  String getFileAsText(String filePath);
 
-    String uploadFile(String path, String filename, byte[] data);
+  File getFileAsPdf(String contractTemplate);
 
-    void removeFile(String fileName);
+  String uploadFile(String path, String filename, byte[] data);
 
-    BlobProperties getProperties(String filePath);
+  void removeFile(String fileName);
 
-    List<String> getFiles();
+  BlobProperties getProperties(String filePath);
 
-    List<String> getFiles(String path);
+  List<String> getFiles();
+
+  List<String> getFiles(String path);
 }

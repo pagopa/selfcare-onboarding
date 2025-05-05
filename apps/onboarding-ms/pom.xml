@@ -24,7 +24,7 @@
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.1.2</surefire-plugin.version>
         <quarkus-openapi-generator.version>2.4.1</quarkus-openapi-generator.version>
-        <commons-sdk-version>0.6.9</commons-sdk-version>
+        <commons-sdk-version>0.6.10</commons-sdk-version>
         <quarkus-cucumber-version>1.3.0</quarkus-cucumber-version>
     </properties>
     <dependencyManagement>
@@ -270,6 +270,11 @@
             <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.4</version>
+        </dependency>
 
     </dependencies>
     <build>
@@ -369,22 +374,22 @@
             </properties>
             <build>
                 <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Step*.java</include>
-                    </includes>
-                    <testFailureIgnore>false</testFailureIgnore>
-                    <systemPropertyVariables>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Step*.java</include>
+                            </includes>
+                            <testFailureIgnore>false</testFailureIgnore>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <maven.home>${maven.home}</maven.home>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

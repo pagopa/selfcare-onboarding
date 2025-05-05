@@ -26,7 +26,7 @@ public abstract class ClientRegistryANAC extends BaseRegistryManager<StationReso
         return client.searchByTaxCodeUsingGET1(onboarding.getInstitution().getTaxCode())
                 .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
-                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(STATION_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))
+                        ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(STATION_NOT_FOUND.getMessage(), onboarding.getInstitution().getTaxCode())))
                         : Uni.createFrom().failure(ex))
                 .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
     }

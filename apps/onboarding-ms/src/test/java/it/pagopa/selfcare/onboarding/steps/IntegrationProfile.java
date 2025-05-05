@@ -1,5 +1,9 @@
 package it.pagopa.selfcare.onboarding.steps;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import it.pagopa.selfcare.onboarding.util.JwtData;
 import it.pagopa.selfcare.onboarding.util.JwtUtils;
@@ -12,6 +16,7 @@ import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 @Slf4j
 @NoArgsConstructor
@@ -67,4 +72,11 @@ public class IntegrationProfile implements QuarkusTestProfile {
     return jwtPayload;
   }
 
+  public static MongoDatabase getMongoClientConnection() {
+    ConnectionString connectionString =
+        new ConnectionString(
+            ConfigProvider.getConfig().getValue("quarkus.mongodb.connection-string", String.class));
+    MongoClient mongoClient = MongoClients.create(connectionString);
+    return mongoClient.getDatabase("dummyOnboarding");
+  }
 }
