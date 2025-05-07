@@ -329,3 +329,56 @@ Feature: Onboarding collection
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "Institution with external id '83001010616' is not allowed to onboard 'prod-io' product because it is not delegable"
+
+  Scenario: Can't perform onboarding users request with missing product
+    Given I have a request object named "invalid_empty_product_request"
+    When I send a POST request for user to "/users" with this request
+    Then the response status code should be 400
+    And the response should contain the text "productId is required"
+
+  Scenario: Can't perform onboarding users request with missing origin
+    Given I have a request object named "invalid_empty_origin_request"
+    When I send a POST request for user to "/users" with this request
+    Then the response status code should be 400
+    And the response should contain the text "origin is required"
+
+  Scenario: Can't perform user request for not existing institution
+    Given I have a request object named "invalid_user_request"
+    When I send a POST request for user to "/users" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Institution with taxCode 83001010616 origin IPA originId c_h423 subunitCode null not found"
+
+  Scenario: Can't perform user request for not existing onboarding
+    Given I have a request object named "invalid_missing_onboarding_request"
+    When I send a POST request for user to "/users" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Onboarding for taxCode 00095990644, origin IPA, originId c_a489, productId prod-io, subunitCode null not found"
+
+  Scenario: Successfully store onboarding user in status REQUEST
+    Given I have a request object named "success_user_request"
+    When I send a POST request for user to "/users" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "USERS"
+    And there is a document for onboardings with origin "IPA" originId "c_l186" and workflowType "USERS"
+
+  Scenario: Successfully store onboarding for SCP in status REQUEST
+    Given I have a request object named "success_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "FOR_APPROVE"
+
+  Scenario: Can't perform onboarding request for SCP when data into PDND are not equals what we expected
+    Given I have a request object named "invalid_case1_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Field digitalAddress or description are not valid"
+
+  Scenario: Can't perform onboarding request for SCP when taxcode are not into PDND
+    Given I have a request object named "invalid_case2_scp_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 404
+    And the response should contain the text "Institution 153763712211 not found in the registry"

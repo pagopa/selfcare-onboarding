@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Indexes;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -25,13 +26,12 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.OnboardingController;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -39,9 +39,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.openapi.quarkus.core_json.api.InstitutionApi;
+import org.openapi.quarkus.core_json.model.GeoTaxonomies;
+import org.openapi.quarkus.core_json.model.InstitutionResponse;
+import org.openapi.quarkus.core_json.model.InstitutionsResponse;
+import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 
@@ -59,14 +63,12 @@ import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse
 public class OnboardingStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
-  private Onboarding onboarding;
-  private Token token;
-  private Onboarding duplicatedOnboardingPA;
   private static ObjectMapper objectMapper;
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
   @InjectMock @RestClient OrchestrationApi orchestrationApi;
+  @InjectMock @RestClient InstitutionApi institutionApi;
 
   @Inject ScenarioContext context;
 
@@ -86,24 +88,30 @@ public class OnboardingStep extends CucumberQuarkusTest {
         .getOrCreateContext()
         .config()
         .put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
-
-    mongoDatabase = IntegrationProfile.getMongoClientConnection();
+    initDb();
     log.debug("Init completed");
   }
 
   @BeforeEach
-  void initData() {
-    onboarding = createDummyOnboarding();
+  void init() {
+    when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+    mockMSCoreResponses();
+  }
+
+  private static void initDb() {
+    mongoDatabase = IntegrationProfile.getMongoClientConnection();
+    Onboarding onboarding = createDummyOnboarding();
     onboarding.persist().await().indefinitely();
-    duplicatedOnboardingPA = createOnboardingForConflictScenario();
+    Onboarding duplicatedOnboardingPA = createOnboardingForConflictScenario();
     duplicatedOnboardingPA.persist().await().indefinitely();
-    token = createDummyToken();
+    Token token = createDummyToken();
     token.persist().await().indefinitely();
     // verify
     assertNotNull(onboarding.getId());
     assertNotNull(duplicatedOnboardingPA.getId());
-    when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
-        .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
+    mongoDatabase.getCollection("onboardings")
+            .createIndex(Indexes.ascending("createdAt"));
   }
 
   @Given("I have a request object named {string}")
@@ -140,6 +148,21 @@ public class OnboardingStep extends CucumberQuarkusTest {
             .when()
             .post(url)
             .then();
+  }
+
+  @When("I send a POST request for user to {string} with this request")
+  public void iSendPostRequestWithNamedRequestForUser(String url) throws JsonProcessingException {
+    String requestBody = context.getCurrentRequestBody();
+    OnboardingUserRequest request = objectMapper.readValue(requestBody, OnboardingUserRequest.class);
+    assertNotNull(request);
+    validatableResponse =
+            given()
+                    .header("Authorization", "Bearer " + tokenTest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .when()
+                    .post(url)
+                    .then();
   }
 
   @When("I send a POST request for PSP to {string} with this request")
@@ -199,6 +222,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
   @Then("the response should contain the text {string}")
   public void verifyResponseText(String expectedText) {
     String responseBody = validatableResponse.extract().body().asString();
+    System.out.println(responseBody);
     assertTrue(responseBody.contains(expectedText), "Response does not contain expected text");
   }
 
@@ -281,9 +305,12 @@ public class OnboardingStep extends CucumberQuarkusTest {
     assertThat(actualValue).isEqualTo(expectedValue);
   }
 
-  @AfterEach
-  void cleanDb() {
-    onboarding.delete();
+  @Then("there is a document for onboardings with origin {string} originId {string} and workflowType {string}")
+  public void theResponseShouldHaveFieldWithValue(String origin, String originId, String worfklowType) {
+    var onboardings = Onboarding.find("workflowType = ?1 and institution.origin = ?2 and institution.originId = ?3",
+            worfklowType, origin, originId).list()
+            .await().indefinitely();
+    assertFalse(onboardings.isEmpty());
   }
 
   @AfterAll
@@ -296,6 +323,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     Onboarding onboarding = new Onboarding();
     onboarding.setId(UUID.fromString("89ad7142-24bb-48ad-8504-9c9231137e85").toString());
     onboarding.setProductId("prod-pagopa");
+    onboarding.setCreatedAt(LocalDateTime.now());
 
     Institution institution = new Institution();
     institution.setTaxCode("taxCode");
@@ -320,6 +348,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     onboarding.setId(UUID.randomUUID().toString());
     onboarding.setProductId("prod-io");
     onboarding.setStatus(OnboardingStatus.COMPLETED);
+    onboarding.setCreatedAt(LocalDateTime.now());
     onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
     Institution institution = new Institution();
@@ -346,7 +375,45 @@ public class OnboardingStep extends CucumberQuarkusTest {
     Token token = new Token();
     token.setId(UUID.fromString("89ad7142-24bb-48ad-8504-9c9231137e85").toString());
     token.setProductId("prod-pagopa");
-
+    token.setCreatedAt(LocalDateTime.now());
     return token;
+  }
+
+  private void mockMSCoreResponses() {
+    InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+    institutionsResponse.setInstitutions(List.of());
+    when(institutionApi.getInstitutionsUsingGET("83001010616", null, null, null))
+            .thenReturn(Uni.createFrom().item(institutionsResponse));
+    when(institutionApi.getInstitutionsUsingGET("00095990644", null, null, null))
+            .thenReturn(Uni.createFrom().item(mockInstitutionsResponse("00095990644", "c_a489")));
+    when(institutionApi.getInstitutionsUsingGET("00231830688", null, null, null))
+            .thenReturn(Uni.createFrom().item(mockInstitutionsResponse("00231830688", "c_l186")));
+  }
+
+  private static InstitutionsResponse mockInstitutionsResponse(String taxCode, String ipaCode) {
+    InstitutionsResponse institutionsResponse = new InstitutionsResponse();
+    InstitutionResponse institutionResponse = new InstitutionResponse();
+    institutionResponse.setId(UUID.randomUUID().toString());
+    institutionResponse.setCity("Napoli");
+    institutionResponse.setCounty("NA");
+    institutionResponse.setCountry("IT");
+    institutionResponse.setCreatedAt(OffsetDateTime.now());
+    institutionResponse.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+    institutionResponse.setDescription("Comune di Atripalda");
+    institutionResponse.setOrigin(Origin.IPA.name());
+    institutionResponse.setOriginId(ipaCode);
+    institutionResponse.setAddress("p. Municipio 1");
+    institutionResponse.setDigitalAddress("comune.atripalda@legalmail.it");
+    institutionResponse.setExternalId(taxCode);
+    institutionResponse.setTaxCode(taxCode);
+    OnboardedProductResponse onboardedProductResponse = new OnboardedProductResponse();
+    onboardedProductResponse.setProductId("prod-io");
+    institutionResponse.setOnboarding(List.of(onboardedProductResponse));
+    GeoTaxonomies geoTaxonomies = new GeoTaxonomies();
+    geoTaxonomies.setCode("ITA");
+    geoTaxonomies.setDesc("ITALIA");
+    institutionResponse.setGeographicTaxonomies(List.of(geoTaxonomies));
+    institutionsResponse.setInstitutions(List.of(institutionResponse));
+    return institutionsResponse;
   }
 }

@@ -81,7 +81,7 @@ public class IntegrationProductService implements ProductService {
                 products = mapper.readValue(jsonResponse,
                         mapper.getTypeFactory().constructCollectionType(List.class, Product.class));
             } else {
-                log.error("Get status code: {}", response.statusCode());
+                log.error("Get status code for Product.json: {}", response.statusCode());
                 products = getFallbackProducts();
             }
         } catch (Exception e) {
