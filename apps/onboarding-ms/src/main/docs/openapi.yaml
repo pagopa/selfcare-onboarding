@@ -2319,6 +2319,10 @@ components:
       - USER
       - ATTACHMENT
       type: string
+    UUID:
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+      type: string
     UserOnboardingResponse:
       type: object
       properties:
@@ -2343,6 +2347,8 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/PartyRole"
+        id:
+          $ref: "#/components/schemas/UUID"
     UserResponse:
       type: object
       properties:
