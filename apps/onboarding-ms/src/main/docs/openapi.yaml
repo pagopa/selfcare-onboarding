@@ -435,7 +435,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OnboardingUserRequest"
+              $ref: "#/components/schemas/CheckManagerRequest"
       responses:
         "200":
           description: OK
@@ -1574,6 +1574,34 @@ components:
           type: string
         publicServices:
           type: boolean
+    CheckManagerRequest:
+      required:
+      - productId
+      - origin
+      - originId
+      - userId
+      type: object
+      properties:
+        productId:
+          minLength: 1
+          type: string
+        institutionType:
+          $ref: "#/components/schemas/InstitutionType"
+        subunitCode:
+          type: string
+        origin:
+          minLength: 1
+          type: string
+        originId:
+          minLength: 1
+          type: string
+        taxCode:
+          type: string
+        userId:
+          minLength: 1
+          type: string
+          allOf:
+          - $ref: "#/components/schemas/UUID"
     CheckManagerResponse:
       type: object
       properties:
@@ -2347,8 +2375,6 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/PartyRole"
-        id:
-          $ref: "#/components/schemas/UUID"
     UserResponse:
       type: object
       properties:

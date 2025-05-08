@@ -1777,15 +1777,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<CheckManagerResponse> checkManager(CheckManagerRequest checkManagerRequest) {
         CheckManagerResponse response = new CheckManagerResponse();
-
         UUID userId = checkManagerRequest.getUserId();
-   //             onboardingUserRequest.getUsers().stream()
-   //                     .filter(user -> PartyRole.MANAGER == user.getRole())
-   //                     .map(UserRequest::getId)
-   //                     .findFirst()
-   //                     .orElseThrow(
-   //                             () -> new InvalidRequestException("At least one user should have role MANAGER"));
-
         return findOnboardingsByFilters(checkManagerRequest)
                                         .flatMap(
                                                 onboardings -> {
@@ -1821,7 +1813,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     /**
      * Retrieves the onboarding record by the given filters.
      *
-     * @param onboardingUserRequest OnboardingUserRequest
+     * @param checkManagerRequest CheckManagerRequest
      * @return a Uni with the list of onboardings
      * @throws ResourceNotFoundException if the onboarding record is not found
      */
