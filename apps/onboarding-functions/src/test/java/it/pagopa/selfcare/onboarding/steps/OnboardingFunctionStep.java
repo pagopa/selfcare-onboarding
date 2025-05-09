@@ -25,6 +25,8 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.hamcrest.Matcher;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+@EqualsAndHashCode(callSuper = true)
 @CucumberOptions(
     features = "src/test/resources/features",
     glue = {"it.pagopa.selfcare.onboarding"},
@@ -42,12 +45,14 @@ import org.junit.jupiter.api.BeforeEach;
     tags = "@Onboarding")
 @TestProfile(IntegrationFunctionProfile.class)
 @Slf4j
+@Data
 public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
   private static ObjectMapper objectMapper;
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
+  private String onboardingId;
 
   static MongoDatabase mongoDatabase;
 
@@ -99,11 +104,13 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @When("I send a GET request with onboardingId {string}")
   public void sendPostRequest(String onboardingId) {
+    setOnboardingId(onboardingId);
+
     response =
         given()
             .log()
             .all()
-            .queryParam("onboardingId", onboardingId)
+            .queryParam("onboardingId", getOnboardingId())
             .when()
             .get()
             .then()
