@@ -87,7 +87,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     mongoDatabase = IntegrationFunctionProfile.getMongoClientConnection();
     Onboarding onboarding = createDummyOnboarding();
     storeIntoMongo(onboarding, "onboardings");
-    Onboarding duplicatedOnboardingPA = createOnboardingForConflictScenario();
+    Onboarding duplicatedOnboardingPA = createOnboardingContractRegistration();
     storeIntoMongo(duplicatedOnboardingPA, "onboardings");
     Token token = createDummyToken();
     storeIntoMongo(token, "tokens");
@@ -156,11 +156,11 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     return onboarding;
   }
 
-  private static Onboarding createOnboardingForConflictScenario() {
+  private static Onboarding createOnboardingContractRegistration() {
     Onboarding onboarding = new Onboarding();
-    onboarding.setId(UUID.randomUUID().toString());
+    onboarding.setId(UUID.fromString("89ad7142-24bb-48ad-8504-9c9232137e85").toString());
     onboarding.setProductId("prod-io");
-    onboarding.setStatus(OnboardingStatus.COMPLETED);
+    onboarding.setStatus(OnboardingStatus.REQUEST);
     onboarding.setCreatedAt(LocalDateTime.now());
     onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
 
