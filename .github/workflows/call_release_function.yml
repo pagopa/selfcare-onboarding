@@ -67,13 +67,16 @@ jobs:
           env=${{ inputs.environment }}
           echo "env_short=${env:0:1}" >> $GITHUB_OUTPUT
 
-      - name: Upload to blob storage
+      - name: Upload to blob storage openapi.json
         uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
         if: ${{ inputs.upload_openapi_enabled }}
         with:
           inlineScript: |
             az storage blob upload --auth-mode key -f  apps/onboarding-functions/src/main/openapi/openapi.json --account-name selc${{ steps.extract_env_short.outputs.env_short }}checkoutsa  -c selc-openapi -n pagopa/selfcare-onboarding-functions/openapi.json --overwrite
-          
 
-          
-
+      - name: Upload to blob storage openapi.json
+        uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
+        if: ${{ inputs.upload_openapi_enabled }}
+        with:
+          inlineScript: |
+            az storage blob upload --auth-mode key -f  apps/onboarding-functions/src/main/openapi/openapi.json --account-name selc${{ steps.extract_env_short.outputs.env_short }}checkoutsa  -c selc-openapi -n pagopa/selfcare-onboarding-functions/openapi-apim-function.json --overwrite
