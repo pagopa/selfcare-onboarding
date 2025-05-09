@@ -1598,10 +1598,7 @@ components:
         taxCode:
           type: string
         userId:
-          minLength: 1
-          type: string
-          allOf:
-          - $ref: "#/components/schemas/UUID"
+          $ref: "#/components/schemas/UUID"
     CheckManagerResponse:
       type: object
       properties:

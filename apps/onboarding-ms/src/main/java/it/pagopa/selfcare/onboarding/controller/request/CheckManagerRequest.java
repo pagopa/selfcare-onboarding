@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.controller.request;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.UUID;
@@ -24,8 +25,7 @@ public class CheckManagerRequest {
 
     private String taxCode;
 
-    @NotEmpty(message = "userId is required")
+    @NotNull(message = "userId is required")
     private UUID userId;
-
 
 }
