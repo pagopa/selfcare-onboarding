@@ -569,28 +569,29 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         .replaceWith(onboardingPersisted)));
     }
 
-    private void setInstitutionId(Onboarding onboarding, String parentId) {
+    private Uni<Onboarding> setInstitutionId(Onboarding onboarding, String parentId) {
         final String taxCode = onboarding.getInstitution().getTaxCode();
         final String origin = onboarding.getInstitution().getOrigin().name();
         final String originId = onboarding.getInstitution().getOriginId();
         final String subunitCode = onboarding.getInstitution().getSubunitCode();
         final String institutionType = onboarding.getInstitution().getInstitutionType().name();
 
-        List<Onboarding> onboardings = getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
+        return getOnboardingByFilters(taxCode, subunitCode, origin, originId, parentId)
                 .filter(item -> institutionType.equalsIgnoreCase(item.getInstitution().getInstitutionType().name()))
                 .collect().asList()
-                .await().indefinitely();
-
-        if (!onboardings.isEmpty()) {
-            onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
-        } else {
-            throw new ResourceNotFoundException(
-                    String.format(
-                            "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
-                            taxCode, origin, originId, parentId, subunitCode, institutionType
-                    )
-            );
-        }
+                .onItem().transformToUni(onboardings -> {
+                    if (!onboardings.isEmpty()) {
+                        onboarding.getInstitution().setId(onboardings.get(0).getInstitution().getId());
+                    } else {
+                        throw new ResourceNotFoundException(
+                                String.format(
+                                        "Onboarding for taxCode %s, origin %s, originId %s, parentId %s, subunitCode %s not found and institutionType %s",
+                                        taxCode, origin, originId, parentId, subunitCode, institutionType
+                                )
+                        );
+                    }
+                    return Uni.createFrom().item(onboarding);
+                });
     }
 
     private Uni<Onboarding> addReferencedOnboardingId(Onboarding onboarding) {
