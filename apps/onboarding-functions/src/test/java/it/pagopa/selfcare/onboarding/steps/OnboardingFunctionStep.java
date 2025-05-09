@@ -1,6 +1,9 @@
 package it.pagopa.selfcare.onboarding.steps;
 
+import static io.restassured.RestAssured.given;
 import static it.pagopa.selfcare.onboarding.steps.IntegrationFunctionProfile.storeIntoMongo;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,14 +15,11 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
-import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import java.time.LocalDateTime;
@@ -27,13 +27,10 @@ import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.hamcrest.Matchers;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.slf4j.Logger;
+import org.junit.jupiter.api.BeforeEach;
 
 @CucumberOptions(
     features = "src/test/resources/features",
@@ -52,13 +49,10 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   private static String tokenTest;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
-  @InjectMock @RestClient InstitutionApi institutionApi;
-  
   static MongoDatabase mongoDatabase;
 
   private RequestSpecification request;
   private Response response;
-  private String functionUrl;
 
   public static void main(String[] args) {
     runMain(OnboardingFunctionStep.class, args);
@@ -69,62 +63,71 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
-    Vertx vertx = Vertx.vertx();
-    vertx
-        .getOrCreateContext()
-        .config()
-        .put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
 
     initDb();
 
-    //RestAssured.port = ConfigProvider.getConfig().getValue("quarkus.http.test-port", Integer.class);
-    //RestAssured.baseURI = "http://localhost";
-
     log.debug("Init completed");
+  }
+
+  @BeforeEach
+  void resetRestAssured() {
+    RestAssured.reset();
   }
 
   private static void initDb() {
     mongoDatabase = IntegrationFunctionProfile.getMongoClientConnection();
     Onboarding onboarding = createDummyOnboarding();
     storeIntoMongo(onboarding, "onboardings");
+
     Onboarding duplicatedOnboardingPA = createOnboardingForConflictScenario();
     storeIntoMongo(duplicatedOnboardingPA, "onboardings");
+
     Token token = createDummyToken();
     storeIntoMongo(token, "tokens");
 
     // verify
     assertNotNull(onboarding.getId());
     assertNotNull(duplicatedOnboardingPA.getId());
-    mongoDatabase.getCollection("onboardings")
-            .createIndex(Indexes.ascending("createdAt"));
+    mongoDatabase.getCollection("onboardings").createIndex(Indexes.ascending("createdAt"));
   }
 
-  @Given("una Azure Function Quarkus configurata per gestire richieste HTTP")
-  public void setupAzureFunction() {
-    request = RestAssured.given()
-        .contentType("application/json");
-
-    functionUrl = "http://localhost:7071/api/StartOnboardingOrchestration";
+  @Given("Preparing the invocation of {string} HTTP call")
+  public void setupCall(String functionName) {
+    RestAssured.baseURI = "http://localhost:9090";
+    RestAssured.basePath = String.format("/api/%s", functionName);
   }
 
-  @When("invio una richiesta POST con payload {string}")
-  public void sendPostRequest(String payload) {
-    response = request
-        .body(payload)
-        .when()
-        .post(functionUrl);
+  @When("I send a GET request with onboardingId {string}")
+  public void sendPostRequest(String onboardingId) {
+    response =
+        given()
+            .log()
+            .all()
+            .queryParam("onboardingId", onboardingId)
+            .when()
+            .get()
+            .then()
+            .log()
+            .all()
+            .extract()
+            .response();
   }
 
-  @Then("la risposta dovrebbe avere status code {int}")
+  @Then("the response should have status code {int}")
   public void verifyStatusCode(int expectedStatusCode) {
-    Assertions.assertEquals(expectedStatusCode, response.getStatusCode(),
-        "Status code non corrispondente");
+    assertEquals(expectedStatusCode, response.getStatusCode(), "Status code non corrispondente");
   }
 
-  @Then("la risposta dovrebbe contenere {string}")
+  @Then("the answer should contain {string}")
   public void verifyResponseBody(String expectedResponse) {
-   response.then().body(Matchers.containsString(expectedResponse));
+    List<String> expectedValue = List.of(expectedResponse.split(","));
+
+    response
+        .then()
+        .assertThat()
+        .body("$", allOf(expectedValue.stream().map(key -> hasKey(key)).toArray(Matcher[]::new)));
   }
+
 
   @AfterAll
   static void destroyDatabase() {
