@@ -2965,15 +2965,6 @@ class OnboardingServiceDefaultTest {
         assertFalse(checkResponse.isResponse());
     }
 
-    private static OnboardingUserRequest createDummyUserRequest() {
-        OnboardingUserRequest request = new OnboardingUserRequest();
-        UserRequest user = new UserRequest();
-        user.setTaxCode("taxCode");
-        user.setRole(PartyRole.MANAGER);
-        request.setUsers(List.of(user));
-        return request;
-    }
-
     private static CheckManagerRequest createDummyCheckManagerRequest() {
         CheckManagerRequest request = new CheckManagerRequest();
         UUID userId = UUID.randomUUID();
