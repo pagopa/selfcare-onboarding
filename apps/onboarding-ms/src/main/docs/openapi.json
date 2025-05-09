@@ -2190,7 +2190,11 @@
             "type" : "string"
           },
           "userId" : {
-            "$ref" : "#/components/schemas/UUID"
+            "description" : "User UUID",
+            "type" : "string",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/UUID"
+            } ]
           }
         }
       },

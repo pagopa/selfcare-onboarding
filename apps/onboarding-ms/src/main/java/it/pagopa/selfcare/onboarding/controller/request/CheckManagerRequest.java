@@ -4,6 +4,8 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.util.UUID;
 
@@ -25,7 +27,8 @@ public class CheckManagerRequest {
 
     private String taxCode;
 
-    @NotNull(message = "userId is required")
+    @Schema(type = SchemaType.STRING, format = "uuid", description = "User UUID")
+    @NotNull
     private UUID userId;
 
 }
