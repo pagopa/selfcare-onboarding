@@ -171,7 +171,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     boolean conditionMet = waitForCondition(() -> {
       Optional<Onboarding> optional = onboardingRepository.findByIdOptional(onboardingId);
       return optional.isPresent() && expectedStatus.equals(optional.get().getStatus().name());
-    }, 30, TimeUnit.SECONDS);
+    }, timeout, TimeUnit.SECONDS);
     assertTrue(conditionMet, "Onboarding status not updated to " + expectedStatus + " within the timeout period");
   }
 
