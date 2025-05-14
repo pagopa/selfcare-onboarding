@@ -50,7 +50,6 @@ import org.openapi.quarkus.core_json.api.InstitutionApi;
 public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
-  private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
   @InjectMock @RestClient InstitutionApi institutionApi;
 
