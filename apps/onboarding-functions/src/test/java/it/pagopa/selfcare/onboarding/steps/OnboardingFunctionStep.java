@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Indexes;
 import io.cucumber.java.en.Given;
@@ -15,7 +13,6 @@ import io.cucumber.java.en.When;
 import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
 import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -24,27 +21,21 @@ import io.restassured.specification.RequestSpecification;
 import io.vertx.core.Vertx;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
+import jakarta.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
-import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.slf4j.Logger;
 
 @CucumberOptions(
         features = "src/test/resources/features",
@@ -59,7 +50,6 @@ import org.slf4j.Logger;
 public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
-  private static ObjectMapper objectMapper;
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
 
   @InjectMock @RestClient InstitutionApi institutionApi;
@@ -82,8 +72,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @BeforeAll
   static void setup() {
-    String tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
-    objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
     Vertx vertx = Vertx.vertx();
     vertx
@@ -133,7 +122,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     }
     response = request
             .when()
-            .get(functionUrl);
+            .get(endpoint);
   }
 
   private void setOnboardingId(Map<String, String> params) {
@@ -255,14 +244,6 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     onboarding.setUsers(List.of(user));
 
     return onboarding;
-  }
-
-  private static Token createDummyToken() {
-    Token token = new Token();
-    token.setId(UUID.fromString("89ad7142-24bb-48ad-8504-9c9231137e85").toString());
-    token.setProductId("prod-pagopa");
-    token.setCreatedAt(LocalDateTime.now());
-    return token;
   }
 
 }
