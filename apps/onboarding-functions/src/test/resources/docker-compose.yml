@@ -51,7 +51,7 @@ services:
     ports:
       - '8081:8081'
     env_file:
-      - testinstituionenv
+      - testinstitutionenv
     networks:
       - develop-network
     depends_on:
