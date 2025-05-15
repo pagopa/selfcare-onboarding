@@ -2,8 +2,7 @@ package it.pagopa.selfcare.onboarding.steps;
 
 import static io.restassured.RestAssured.given;
 import static it.pagopa.selfcare.onboarding.steps.IntegrationFunctionProfile.storeIntoMongo;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +14,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.quarkiverse.cucumber.CucumberOptions;
 import io.quarkiverse.cucumber.CucumberQuarkusTest;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -25,6 +25,8 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import it.pagopa.selfcare.onboarding.service.CompletionService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
 
 @EqualsAndHashCode(callSuper = true)
 @CucumberOptions(
@@ -59,6 +62,9 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   private RequestSpecification request;
   private Response response;
 
+  @InjectMock
+  CompletionService completionService;
+
   public static void main(String[] args) {
     runMain(OnboardingFunctionStep.class, args);
   }
@@ -68,9 +74,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
-
     initDb();
-
     log.debug("Init completed");
   }
 

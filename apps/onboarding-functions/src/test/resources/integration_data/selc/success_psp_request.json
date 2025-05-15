@@ -1,0 +1,25 @@
+{
+  "id": "89ad7142-24bb-48ad-8502-9c9232137e85",
+  "billing": {
+    "publicServices": false,
+    "recipientCode": "A1B2C3"
+  },
+  "createdAt": "2025-05-13T12:37:49.054Z",
+  "institution": {
+    "imported": false,
+    "institutionType": "PSP",
+    "taxCode": "10293847565"
+  },
+  "productId": "prod-pagopa",
+  "status": "REQUEST",
+  "users": [
+    {
+      "id": "actual-user-id",
+      "role": "MANAGER"
+    }
+  ],
+  "workflowType": "FOR_APPROVE",
+  "workflowInstanceId": "9acdc78f-26c3-4352-ad13-24bd01857edf",
+  "updatedAt": "2025-05-13T12:38:17.000Z",
+  "userRequestUid": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8"
+}
