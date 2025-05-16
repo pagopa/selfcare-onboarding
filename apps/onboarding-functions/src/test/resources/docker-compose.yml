@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   mongo-db:
-    image: mongo:latest@sha256:1cb283500219e8fc0b61b328ea5a199a395a753d88b17351c58874fb425223cb
+    image: mongo@sha256:1cb283500219e8fc0b61b328ea5a199a395a753d88b17351c58874fb425223cb
     ports:
       - "27017:27017"
     networks:
@@ -10,7 +10,7 @@ services:
       - "./db:/docker-entrypoint-initdb.d"
 
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
+    image: mcr.microsoft.com/azure-storage/azurite@sha256:0a47e12e3693483cef5c71f35468b91d751611f172d2f97414e9c69113b106d9
     container_name: "azurite"
     ports:
       - "10010:10010"
@@ -31,7 +31,7 @@ services:
     depends_on:
       - azurite
     volumes:
-      - "./blobStorageInit/initAzurite.sh:/initAzurite.sh"
+      - "./blobStorageInit/init_azurite.sh:/init_azurite.sh"
       - "./blobStorageInit/products.json:/workspace/products.json"
     environment:
       - SELFCARE_INFRA_PRIVATE_ENV=dev
@@ -74,7 +74,7 @@ services:
       - "./mock:/config"
 
   fake-smtp:
-    image: reachfive/fake-smtp-server
+    image: reachfive/fake-smtp-server@sha256:4b6d2f1e24481527de1429f88db18a377252a5e9e95bc083fa3d77e402cdadc8
     ports:
       - "1025:1025"
       - "8025:1080"
