@@ -2165,7 +2165,7 @@
         }
       },
       "CheckManagerRequest" : {
-        "required" : [ "productId", "origin", "originId", "userId" ],
+        "required" : [ "productId", "userId" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2179,11 +2179,9 @@
             "type" : "string"
           },
           "origin" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "originId" : {
-            "minLength" : 1,
             "type" : "string"
           },
           "taxCode" : {

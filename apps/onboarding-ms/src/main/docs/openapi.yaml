@@ -1577,8 +1577,6 @@ components:
     CheckManagerRequest:
       required:
       - productId
-      - origin
-      - originId
       - userId
       type: object
       properties:
@@ -1590,10 +1588,8 @@ components:
         subunitCode:
           type: string
         origin:
-          minLength: 1
           type: string
         originId:
-          minLength: 1
           type: string
         taxCode:
           type: string
