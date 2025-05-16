@@ -7,7 +7,7 @@
   "createdAt": "2025-05-13T12:37:49.054Z",
   "institution": {
     "imported": false,
-    "institutionType": "PSP",
+    "institutionType": "GPU",
     "subunitCode": "subunitCode",
     "taxCode": "taxCode"
   },
@@ -15,7 +15,7 @@
   "status": "REQUEST",
   "users": [
     {
-      "id": "actual-user-id",
+      "id": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b",
       "role": "MANAGER"
     }
   ],
