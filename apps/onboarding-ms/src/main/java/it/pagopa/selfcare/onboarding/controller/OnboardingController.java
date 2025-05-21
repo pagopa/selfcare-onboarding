@@ -9,15 +9,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
-import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -520,8 +512,8 @@ public class OnboardingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
-    public Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest) {
-        return onboardingService.checkManager(onboardingUserRequest);
+    public Uni<CheckManagerResponse> checkManager(CheckManagerRequest checkManagerRequest) {
+        return onboardingService.checkManager(checkManagerRequest);
     }
 
     @Operation(
