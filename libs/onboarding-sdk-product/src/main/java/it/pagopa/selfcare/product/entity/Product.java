@@ -38,9 +38,9 @@ public class Product {
     private List<String> consumers;
     private Map<String, ContractTemplate> institutionContractMappings;
     private Map<String, ContractTemplate> institutionAggregatorContractMappings;
-
     private Map<String, ContractTemplate> userContractMappings;
     private Map<String, ContractTemplate> userAggregatorContractMappings;
+    private Map<String, Map<String, EmailTemplate>> emailTemplates;
 
     public String getId() {
         return id;
@@ -338,6 +338,18 @@ public class Product {
         this.alias = alias;
     }
 
+    public Map<PartyRole, ProductRoleInfo> getRoleMappings() {
+        return roleMappings;
+    }
+
+    public Map<String, Map<String, EmailTemplate>> getEmailTemplates() {
+        return emailTemplates;
+    }
+
+    public void setEmailTemplates(Map<String, Map<String, EmailTemplate>> emailTemplates) {
+        this.emailTemplates = emailTemplates;
+    }
+
     /**
      * This method returns contractStorage associate with a specific InstitutionType. In case none
      * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
@@ -410,4 +422,35 @@ public class Product {
         }
         return contractTemplate;
     }
+
+    /**
+     * This method returns EmailTemplate associate with a specific InstitutionType and workflowType for emailTemplates.
+     * In case none InstitutionType and none workflowType exist on mapping, it returns empty object.
+     *
+     * @param institutionType InstitutionType
+     * @param institutionType workflowType
+     * @return EmailTemplate
+     */
+    public EmailTemplate getEmailTemplate(String institutionType, String workflowType) {
+        if (getEmailTemplates() == null || institutionType == null || workflowType == null) {
+            return new EmailTemplate();
+        }
+
+        Map<String, Map<String, EmailTemplate>> templates = getEmailTemplates();
+
+        Map<String, EmailTemplate> workflowMap = templates.get(institutionType);
+        if (workflowMap != null && workflowMap.containsKey(workflowType)) {
+            return workflowMap.get(workflowType);
+        }
+
+        // Fallback on CONTRACT_TYPE_DEFAULT
+        Map<String, EmailTemplate> defaultWorkflowMap = templates.get(CONTRACT_TYPE_DEFAULT);
+        if (defaultWorkflowMap != null && defaultWorkflowMap.containsKey(workflowType)) {
+            return defaultWorkflowMap.get(workflowType);
+        }
+
+        return null;
+    }
+
+
 }

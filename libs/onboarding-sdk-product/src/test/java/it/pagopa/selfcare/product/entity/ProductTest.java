@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -257,7 +260,7 @@ public class ProductTest {
       product = objectMapper.readValue(new File("src/test/resources/product.json"), Product.class);
 
       FileInputStream fis = new FileInputStream("src/test/resources/product.json");
-      String data = IOUtils.toString(fis, "UTF-8");
+      String data = IOUtils.toString(fis, StandardCharsets.UTF_8);
 
       jsonNode = objectMapper.readTree(data);
 
@@ -331,5 +334,77 @@ public class ProductTest {
     assertEquals(ContractTemplate.class, result.getClass());
     assertNull(result.getContractTemplatePath());
     assertNull(result.getContractTemplateVersion());
+  }
+
+  @Test
+  void testGetEmailTemplate_WithValidInstitutionAndWorkflowType() {
+    // Setup
+    Product product = new Product();
+    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    EmailTemplate emailTemplate = new EmailTemplate();
+    emailTemplate.setPath("path");
+    emailTemplate.setStatus(OnboardingStatus.PENDING);
+    mappings.put("validType", Map.of("workflowType", emailTemplate));
+    product.setEmailTemplates(mappings);
+
+    // Execute
+    EmailTemplate result = product.getEmailTemplate("validType", "workflowType");
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(mappings.get("validType").get("workflowType"), result);
+  }
+
+  @Test
+  void testGetEmailTemplate_WithDefault() {
+    // Setup
+    Product product = new Product();
+    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    EmailTemplate emailTemplate = new EmailTemplate();
+    emailTemplate.setPath("path");
+    emailTemplate.setStatus(OnboardingStatus.PENDING);
+    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), emailTemplate));
+    product.setEmailTemplates(mappings);
+
+    // Execute
+    EmailTemplate result = product.getEmailTemplate("unknownType", WorkflowType.CONTRACT_REGISTRATION.name());
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(mappings.get("default").get(WorkflowType.CONTRACT_REGISTRATION.name()), result);
+  }
+
+  @Test
+  void testGetEmailTemplate_NoMappings() {
+    // Setup
+    Product product = new Product();
+    product.setEmailTemplates(null);
+
+    // Execute
+    EmailTemplate result = product.getEmailTemplate("anyType", "anyType");
+
+    // Verify
+    assertNotNull(result);
+    assertEquals(EmailTemplate.class, result.getClass());
+    assertNull(result.getPath());
+    assertNull(result.getVersion());
+  }
+
+  @Test
+  void testGetEmailTemplate_WithNoBothKeys() {
+    // Setup
+    Product product = new Product();
+    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    EmailTemplate emailTemplate = new EmailTemplate();
+    emailTemplate.setPath("path");
+    emailTemplate.setStatus(OnboardingStatus.PENDING);
+    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), emailTemplate));
+    product.setEmailTemplates(mappings);
+
+    // Execute
+    EmailTemplate result = product.getEmailTemplate("unknownType", "test");
+
+    // Verify
+    assertNull(result);
   }
 }
