@@ -340,15 +340,15 @@ public class ProductTest {
   void testGetEmailTemplate_WithValidInstitutionAndWorkflowType() {
     // Setup
     Product product = new Product();
-    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    Map<String, Map<String, List<EmailTemplate>>> mappings = new HashMap<>();
     EmailTemplate emailTemplate = new EmailTemplate();
     emailTemplate.setPath("path");
     emailTemplate.setStatus(OnboardingStatus.PENDING);
-    mappings.put("validType", Map.of("workflowType", emailTemplate));
+    mappings.put("validType", Map.of("workflowType", List.of(emailTemplate)));
     product.setEmailTemplates(mappings);
 
     // Execute
-    EmailTemplate result = product.getEmailTemplate("validType", "workflowType");
+    List<EmailTemplate> result = product.getEmailTemplate("validType", "workflowType");
 
     // Verify
     assertNotNull(result);
@@ -359,15 +359,15 @@ public class ProductTest {
   void testGetEmailTemplate_WithDefault() {
     // Setup
     Product product = new Product();
-    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    Map<String, Map<String, List<EmailTemplate>>> mappings = new HashMap<>();
     EmailTemplate emailTemplate = new EmailTemplate();
     emailTemplate.setPath("path");
     emailTemplate.setStatus(OnboardingStatus.PENDING);
-    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), emailTemplate));
+    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), List.of(emailTemplate)));
     product.setEmailTemplates(mappings);
 
     // Execute
-    EmailTemplate result = product.getEmailTemplate("unknownType", WorkflowType.CONTRACT_REGISTRATION.name());
+    List<EmailTemplate> result = product.getEmailTemplate("unknownType", WorkflowType.CONTRACT_REGISTRATION.name());
 
     // Verify
     assertNotNull(result);
@@ -381,30 +381,29 @@ public class ProductTest {
     product.setEmailTemplates(null);
 
     // Execute
-    EmailTemplate result = product.getEmailTemplate("anyType", "anyType");
+    List<EmailTemplate> result = product.getEmailTemplate("anyType", "anyType");
 
     // Verify
     assertNotNull(result);
-    assertEquals(EmailTemplate.class, result.getClass());
-    assertNull(result.getPath());
-    assertNull(result.getVersion());
+    assertTrue(result.isEmpty());
   }
 
   @Test
   void testGetEmailTemplate_WithNoBothKeys() {
     // Setup
     Product product = new Product();
-    Map<String, Map<String, EmailTemplate>> mappings = new HashMap<>();
+    Map<String, Map<String, List<EmailTemplate>>> mappings = new HashMap<>();
     EmailTemplate emailTemplate = new EmailTemplate();
     emailTemplate.setPath("path");
     emailTemplate.setStatus(OnboardingStatus.PENDING);
-    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), emailTemplate));
+    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), List.of(emailTemplate)));
     product.setEmailTemplates(mappings);
 
     // Execute
-    EmailTemplate result = product.getEmailTemplate("unknownType", "test");
+    List<EmailTemplate> result = product.getEmailTemplate("unknownType", "test");
 
     // Verify
-    assertNull(result);
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
   }
 }
