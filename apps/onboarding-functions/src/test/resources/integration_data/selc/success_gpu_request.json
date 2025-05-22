@@ -8,15 +8,16 @@
   "institution": {
     "imported": false,
     "institutionType": "GPU",
-    "subunitCode": "subunitCode",
-    "taxCode": "taxCode"
+    "taxCode": "13234472819"
   },
   "productId": "prod-pagopa",
   "status": "REQUEST",
   "users": [
     {
       "id": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b",
-      "role": "MANAGER"
+      "role": "MANAGER",
+      "userMailUuid": "ID_MAIL#a6de7b93-bc56-4187-be5c-9234cef98bed",
+      "productRole": "admin"
     }
   ],
   "workflowType": "FOR_APPROVE_GPU",
