@@ -52,7 +52,7 @@ services:
   institution-ms:
     image: ghcr.io/pagopa/selfcare-institution-ms:sha-a1572ab
     ports:
-      - "8081:8080"
+      - "8082:8080"
     networks:
       - develop-network
     env_file:
