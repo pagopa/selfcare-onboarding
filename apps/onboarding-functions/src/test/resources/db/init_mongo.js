@@ -10,6 +10,11 @@ db.tokens.insertOne({
 
 db = db.getSiblingDB("selcMsCore");
 
+db = db.getSiblingDB("selcUser");
+
+db.userInstitutions.insertOne({
+  createdAt: new Date(),
+});
 
 const institutionObject = {
   "_id": "0c7bcbdb-40f8-41d8-98e7-5952177820c0",
