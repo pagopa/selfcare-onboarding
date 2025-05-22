@@ -349,7 +349,7 @@ public class ProductTest {
     product.setEmailTemplates(mappings);
 
     // Execute
-    Optional<EmailTemplate> result = product.getEmailTemplate("validType", "workflowType", status);
+    Optional<EmailTemplate> result = product.getEmailTemplate("validType", "workflowType", status.name());
 
     // Verify
     assertNotNull(result);
@@ -372,7 +372,7 @@ public class ProductTest {
     product.setEmailTemplates(mappings);
 
     // Execute
-    var result = product.getEmailTemplate("unknownType", workflowType.name(), status);
+    var result = product.getEmailTemplate("unknownType", workflowType.name(), status.name());
 
     // Verify
     assertNotNull(result);
@@ -386,7 +386,7 @@ public class ProductTest {
     product.setEmailTemplates(null);
 
     // Execute
-    var result = product.getEmailTemplate("anyType", "anyType", OnboardingStatus.DELETED);
+    var result = product.getEmailTemplate("anyType", "anyType", OnboardingStatus.DELETED.name());
 
     // Verify
     assertNotNull(result);
@@ -406,7 +406,7 @@ public class ProductTest {
     product.setEmailTemplates(mappings);
 
     // Execute
-    var result = product.getEmailTemplate("unknownType", "test", status);
+    var result = product.getEmailTemplate("unknownType", "test", status.name());
 
     // Verify
     assertNotNull(result);
