@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.product.entity;
 
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import java.time.Instant;
 import java.util.*;
@@ -432,7 +431,7 @@ public class Product {
      * @param status status
      * @return EmailTemplate
      */
-    public Optional<EmailTemplate> getEmailTemplate(String institutionType, String workflowType, OnboardingStatus status) {
+    public Optional<EmailTemplate> getEmailTemplate(String institutionType, String workflowType, String status) {
         if (getEmailTemplates() == null || institutionType == null || workflowType == null) {
             return Optional.empty();
         }
@@ -443,7 +442,7 @@ public class Product {
         if (workflowMap != null && workflowMap.containsKey(workflowType)) {
             return workflowMap.get(workflowType)
                     .stream()
-                    .filter(emailTemplate -> emailTemplate.getStatus().equals(status))
+                    .filter(emailTemplate -> emailTemplate.getStatus().name().equals(status))
                     .findFirst();
         }
 
@@ -452,7 +451,7 @@ public class Product {
         if (defaultWorkflowMap != null && defaultWorkflowMap.containsKey(workflowType)) {
             return defaultWorkflowMap.get(workflowType)
                     .stream()
-                    .filter(emailTemplate -> emailTemplate.getStatus().equals(status))
+                    .filter(emailTemplate -> emailTemplate.getStatus().name().equals(status))
                     .findFirst();
         }
 
