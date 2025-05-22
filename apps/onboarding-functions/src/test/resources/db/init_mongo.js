@@ -38,9 +38,9 @@ const institutionObject = {
   ],
   "rea": "REA-13",
   "imported": false,
-  "createdAt": new Date("2024-12-19T17:06:09.236676631Z"),
+  "createdAt": "2024-12-19T17:06:09.236676631Z",
   "delegation": false,
-  "updatedAt": new Date("2024-12-19T17:06:09.604853761Z"),
+  "updatedAt": "2024-12-19T17:06:09.604853761Z",
   "onboarding": [
     {
       "productId": "prod-pagopa",
@@ -51,9 +51,9 @@ const institutionObject = {
         "recipientCode": "123334",
         "publicServices": false
       },
-      "createdAt": new Date("2024-12-19T17:06:09.578122497Z"),
+      "createdAt": "2024-12-19T17:06:09.578122497Z",
     }
   ]
 };
 
-db.institutions.insertOne(institutionObject);
+db.Institution.insertOne(institutionObject);
