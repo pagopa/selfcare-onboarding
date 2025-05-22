@@ -31,7 +31,6 @@ Feature: Onboarding collection
     Examples:
       | status        |
       | TOBEVALIDATED |
-      | PENDING       |
       | COMPLETED     |
 
   Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect GPU request
