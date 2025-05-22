@@ -60,7 +60,7 @@
     },
     "httpResponseTemplate": {
       "templateType": "VELOCITY",
-      "template": "{\"statusCode\":200,\"body\":{\"id\":\"6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b\",\"name\":{\"certification\":\"SPID\",\"value\":\"Tizio\"},\"familyName\":{\"certification\":\"SPID\",\"value\":\"Caio\"},\"email\":{\"certification\":\"SPID\",\"value\":\"prova@test.it\"},\"workContacts\":{\"ID_MAIL#123123-55555-efaz-12312-apclacpela\":{\"email\":{\"certification\":\"NONE\",\"value\":\"123123-55555-efaz-12312-apclacpela@test.it\"}},\"ID_CONTACTS#8840aa32-a2ab-434b-8b8a-11281163352e\":{\"email\":{\"certification\":\"NONE\",\"value\":\"8840aa32-a2ab-434b-8b8a-11281163352e@test.it\"},\"mobilePhone\":{\"certification\":\"NONE\",\"value\":\"12311111111\"}}}}}"
+      "template": "{\"statusCode\":200,\"body\":{\"id\":\"6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b\",\"name\":{\"certification\":\"SPID\",\"value\":\"Tizio\"},\"familyName\":{\"certification\":\"SPID\",\"value\":\"Caio\"},\"email\":{\"certification\":\"SPID\",\"value\":\"prova@test.it\"},\"workContacts\":{\"ID_MAIL#a6de7b93-bc56-4187-be5c-9234cef98bed\":{\"email\":{\"certification\":\"NONE\",\"value\":\"123123-55555-efaz-12312-apclacpela@test.it\"}},\"ID_CONTACTS#8840aa32-a2ab-434b-8b8a-11281163352e\":{\"email\":{\"certification\":\"NONE\",\"value\":\"8840aa32-a2ab-434b-8b8a-11281163352e@test.it\"},\"mobilePhone\":{\"certification\":\"NONE\",\"value\":\"12311111111\"}}}}}"
     }
   },
   {
