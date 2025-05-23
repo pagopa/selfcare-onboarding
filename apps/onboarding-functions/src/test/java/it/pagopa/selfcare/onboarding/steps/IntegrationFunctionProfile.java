@@ -1,13 +1,10 @@
 package it.pagopa.selfcare.onboarding.steps;
 
-import static it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep.mongoDatabase;
-
 import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import it.pagopa.selfcare.onboarding.utils.JwtData;
 import it.pagopa.selfcare.onboarding.utils.JwtUtils;
@@ -19,12 +16,10 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 @Slf4j
+@QuarkusTest
 public class IntegrationFunctionProfile implements QuarkusTestProfile {
 
   @Override
@@ -84,20 +79,4 @@ public class IntegrationFunctionProfile implements QuarkusTestProfile {
     MongoClient mongoClient = MongoClients.create(connectionString);
     return mongoClient.getDatabase("dummyOnboarding");
   }
-
-  public static <T> void storeIntoMongo(T input, String collectionName) {
-
-    CodecRegistry pojoCodecRegistry =
-        CodecRegistries.fromRegistries(
-            MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-
-    MongoCollection<T> collection =
-        mongoDatabase
-            .getCollection(collectionName, (Class<T>) input.getClass())
-            .withCodecRegistry(pojoCodecRegistry);
-
-    collection.insertOne(input);
-  }
-
 }

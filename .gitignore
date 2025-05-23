@@ -55,3 +55,6 @@ override.tf.json
 
 # EXCLUDE FOLDER CONFIGs
 .run/**
+
+# EXCLUDE FILES AZURITE
+apps/onboarding-functions/src/test/resources/storagedata/**
