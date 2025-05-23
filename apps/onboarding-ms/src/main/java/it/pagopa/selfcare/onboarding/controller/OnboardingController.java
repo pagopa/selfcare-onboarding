@@ -194,19 +194,20 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
-    @Operation(
-            summary = "Import PA onboarding with token creation and complete to COMPLETED.",
-            description = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase."
-    )
-    @POST
-    @Path("/pa/import")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
-        return readUserIdFromToken(ctx)
-                .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
-    }
+  @Operation(
+    summary = "Import PA onboarding with token creation and complete to COMPLETED.",
+    description = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase."
+  )
+  @POST
+  @Path("/pa/import")
+  @Tag(name = "internal-v1")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
+    return readUserIdFromToken(ctx)
+      .onItem().transformToUni(userId -> onboardingService
+        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
+  }
 
     @Operation(
             summary = "Import PSP onboarding with token creation and complete to COMPLETED.",
