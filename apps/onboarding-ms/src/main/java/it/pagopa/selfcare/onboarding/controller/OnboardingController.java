@@ -201,6 +201,7 @@ public class OnboardingController {
   @POST
   @Path("/pa/import")
   @Tag(name = "internal-v1")
+  @Tag(name = "Onboarding Controller")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
