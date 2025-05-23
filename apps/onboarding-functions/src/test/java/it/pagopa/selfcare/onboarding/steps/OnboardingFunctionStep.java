@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -20,6 +21,7 @@ import io.restassured.specification.RequestSpecification;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,6 +30,8 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @EqualsAndHashCode(callSuper = true)
 @CucumberOptions(
@@ -41,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 @TestProfile(IntegrationFunctionProfile.class)
 @Slf4j
 @Data
+@TestInstance(Lifecycle.PER_CLASS)
 public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   private ValidatableResponse validatableResponse;
@@ -49,7 +54,9 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
   private String onboardingId;
 
-  static MongoDatabase mongoDatabase;
+  static MongoClient mongoClient;
+  static MongoDatabase onboardingDatabase;
+  static MongoDatabase institutionDatabase;
 
   private RequestSpecification request;
   private Response response;
@@ -64,7 +71,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   }
 
   @BeforeAll
-  static void setup() {
+  void setup() {
     initDb();
     log.debug("Init completed");
   }
@@ -74,23 +81,19 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     RestAssured.reset();
   }
 
-  private static void initDb() {
-    mongoDatabase = IntegrationFunctionProfile.getMongoClientConnection();
+  private void initDb() {
+    mongoClient = IntegrationFunctionProfile.getMongoClientConnection();
+    onboardingDatabase = IntegrationFunctionProfile.getOnboardingConnection(mongoClient);
+    institutionDatabase = IntegrationFunctionProfile.getInstitutionConnection(mongoClient);
 
-    // Onboarding onboarding = IntegrationObjectUtils.createDummyOnboarding();
-    // storeIntoMongo(onboarding, "onboardings");
+    Map<String, Institution> institutionTemplateMap =
+        integrationOnboardingResources.getInstitutionTemplateMap();
 
-    // Onboarding duplicatedOnboardingPA =
-    // IntegrationObjectUtils.createOnboardingForConflictScenario();
-    // storeIntoMongo(duplicatedOnboardingPA, "onboardings");
-
-    // Token token = IntegrationObjectUtils.createDummyToken();
-    // integrationOperationUtils.storeIntoMongo(token);
-
-    // verify
-    // assertNotNull(onboarding.getId());
-    // assertNotNull(duplicatedOnboardingPA.getId());
-    // mongoDatabase.getCollection("onboardings").createIndex(Indexes.ascending("createdAt"));
+    institutionTemplateMap.forEach(
+        (key, institution) -> {
+          log.info("Persist {}", key);
+          integrationOperationUtils.persistInstitution(institutionDatabase, institution);
+        });
   }
 
   @Given("Preparing the invocation of {string} HTTP call with onboardingId {string}")
@@ -101,7 +104,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     onboarding = integrationOperationUtils.findIntoMongoOnboarding(onboardingId);
 
     if (Objects.isNull(onboarding)) {
-      onboarding = integrationOnboardingResources.getJsonTemplate(onboardingId);
+      onboarding = integrationOnboardingResources.getOnboardingJsonTemplate(onboardingId);
       integrationOperationUtils.persistIntoMongo(onboarding);
     }
 
@@ -116,7 +119,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
             .log()
             .all()
             .queryParam("onboardingId", getOnboardingId())
-            // .queryParam("timeout", 35000)
+            // .queryParam("timeout", 55000)
             .when()
             .get()
             .then()
@@ -143,14 +146,15 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Then("there is a document for onboarding with status {string}")
   public void theResponseShouldHaveFieldWithValue(String status) throws InterruptedException {
-    Thread.sleep(10000);
+    Thread.sleep(35000);
     onboarding = integrationOperationUtils.findIntoMongoOnboarding(getOnboardingId());
     assertTrue(Objects.nonNull(onboarding));
     assertEquals(status, onboarding.getStatus().name());
   }
 
   @AfterAll
-  static void destroyDatabase() {
-    mongoDatabase.drop();
+  void destroyDatabase() {
+    onboardingDatabase.drop();
+    institutionDatabase.drop();
   }
 }
