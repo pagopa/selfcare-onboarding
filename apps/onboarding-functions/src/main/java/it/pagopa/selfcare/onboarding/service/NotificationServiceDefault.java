@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.product.entity.Product;
@@ -152,8 +153,14 @@ public class NotificationServiceDefault implements NotificationService {
 
     @Override
     public void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow) {
+        String templatePath;
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
 
-        String templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
+        if (product.getEmailTemplate(institutionType.name(), onboarding.getWorkflowType().name(), onboarding.getStatus().name()).isPresent()) {
+            templatePath = product.getEmailTemplate(institutionType.name(), onboarding.getWorkflowType().name(), onboarding.getStatus().name()).get().getPath();
+        } else {
+            templatePath = onboardingWorkflow.getEmailCompletionPath(templatePathConfig);
+        }
 
         Map<String, String> mailParameter = new HashMap<>();
         mailParameter.put(templatePlaceholdersConfig.businessName(), institutionName);
@@ -162,7 +169,6 @@ public class NotificationServiceDefault implements NotificationService {
 
         sendMailWithFile(destinationMails, templatePath, mailParameter, product.getTitle(), retrieveFileMetadataPagopaLogo());
     }
-
 
 
     @Override
@@ -188,20 +194,24 @@ public class NotificationServiceDefault implements NotificationService {
     private FileMailData retrieveFileMetadataPagopaLogo() {
         FileMailData fileMailData = null;
         Optional<File> optFileLogo = contractService.getLogoFile();
-        if(optFileLogo.isPresent()) {
+        if (optFileLogo.isPresent()) {
             fileMailData = new FileMailData();
             fileMailData.contentType = "image/png";
             fileMailData.data = optFileLogo.map(File::toPath)
                     .map(path -> {
-                        try { return Files.readAllBytes(path); }
-                        catch (IOException e) { throw new GenericOnboardingException(e.getMessage());}})
+                        try {
+                            return Files.readAllBytes(path);
+                        } catch (IOException e) {
+                            throw new GenericOnboardingException(e.getMessage());
+                        }
+                    })
                     .orElse(null);
             fileMailData.name = PAGOPA_LOGO_FILENAME;
         }
         return fileMailData;
     }
 
-    private void sendMailWithFile(List<String> destinationMail, String templateName,  Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {
+    private void sendMailWithFile(List<String> destinationMail, String templateName, Map<String, String> mailParameters, String prefixSubject, FileMailData fileMailData) {
         try {
 
             // Dev mode send mail to test digital address
@@ -220,7 +230,7 @@ public class NotificationServiceDefault implements NotificationService {
                     .withHtml(destination, subject, html)
                     .setFrom(senderMail);
 
-            if(Objects.nonNull(fileMailData)) {
+            if (Objects.nonNull(fileMailData)) {
                 mail.addAttachment(fileMailData.name, fileMailData.data, fileMailData.contentType);
             }
 

@@ -7,9 +7,12 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.product.entity.EmailTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +27,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 
 @QuarkusTest
@@ -159,6 +161,8 @@ class NotificationServiceDefaultTest {
         institution.setInstitutionType(InstitutionType.PT);
         Onboarding onboarding = new Onboarding();
         onboarding.setInstitution(institution);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        onboarding.setStatus(OnboardingStatus.PENDING);
         OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, OnboardingWorkflowType.INSTITUTION.name());
 
         notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA, onboardingWorkflow);
@@ -170,6 +174,56 @@ class NotificationServiceDefaultTest {
         Mockito.verify(mailer, Mockito.times(1))
                 .send(mailArgumentCaptor.capture());
         assertEquals(destination, mailArgumentCaptor.getValue().getTo().get(0));
+    }
+
+    @Test
+    void sendCompletedEmailRecoveringTemplateFromProduct() {
+        // Arrange
+        final String mailTemplate = "{\"subject\":\"example\",\"body\":\"example\"}";
+        final String institutionName = "institutionName";
+        final String destination = "test@test.it";
+
+        // Mock EmailTemplate
+        EmailTemplate emailTemplate = new EmailTemplate();
+        emailTemplate.setPath(mailTemplate);
+
+        // Mock Product
+        Product product = Mockito.mock(Product.class);
+        Mockito.when(product.getTitle()).thenReturn("productName");
+        Mockito.when(product.getEmailTemplate(
+                eq(InstitutionType.PA.name()),
+                eq(WorkflowType.IMPORT.name()),
+                eq(OnboardingStatus.PENDING.name()))
+        ).thenReturn(Optional.of(emailTemplate));
+
+        // Mock file
+        final File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("application.properties")).getFile());
+        Mockito.when(contractService.getLogoFile()).thenReturn(Optional.of(file));
+
+        // Mock mail template loading
+        Mockito.when(azureBlobClient.getFileAsText(anyString())).thenReturn(mailTemplate);
+        Mockito.doNothing().when(mailer).send(any());
+
+        // Mock onboarding workflow
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        Onboarding onboarding = new Onboarding();
+        onboarding.setInstitution(institution);
+        onboarding.setWorkflowType(WorkflowType.IMPORT);
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution(onboarding, OnboardingWorkflowType.INSTITUTION.name());
+
+        // Act
+        notificationService.sendCompletedEmail(institutionName, List.of(destination), product, InstitutionType.PA, onboardingWorkflow);
+
+        // Assert
+        Mockito.verify(azureBlobClient, Mockito.times(1)).getFileAsText(any());
+
+        ArgumentCaptor<Mail> mailArgumentCaptor = ArgumentCaptor.forClass(Mail.class);
+        Mockito.verify(mailer, Mockito.times(1)).send(mailArgumentCaptor.capture());
+
+        Mail capturedMail = mailArgumentCaptor.getValue();
+        assertEquals(destination, capturedMail.getTo().get(0));
     }
 
     @Test
