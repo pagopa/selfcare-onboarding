@@ -163,8 +163,12 @@ public interface WorkflowExecutor {
         ctx.allOf(parallelTasks).await();
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
+    default Optional<OnboardingStatus> handleOnboardingCompletionActivityWithOptionalMail(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
         createInstitutionAndOnboarding(ctx, onboarding);
+        if(Boolean.TRUE.equals(onboarding.getSendMailForImport())) {
+            ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
+        }
         return Optional.of(COMPLETED);
     }
 

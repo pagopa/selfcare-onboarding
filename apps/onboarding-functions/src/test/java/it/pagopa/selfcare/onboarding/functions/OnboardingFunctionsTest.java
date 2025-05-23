@@ -555,6 +555,31 @@ class OnboardingFunctionsTest {
   }
 
   @Test
+  void onboardingsOrchestratorImportWithSendCompletionMail() {
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId("onboardingId");
+    onboarding.setStatus(OnboardingStatus.PENDING);
+    onboarding.setWorkflowType(WorkflowType.IMPORT);
+    onboarding.setSendMailForImport(Boolean.TRUE);
+    onboarding.setInstitution(new Institution());
+
+    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+
+    function.onboardingsOrchestrator(orchestrationContext, executionContext);
+
+    ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
+    verify(orchestrationContext, times(4))
+            .callActivity(captorActivity.capture(), any(), any(), any());
+    assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
+    assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
+    assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(3));
+
+    verify(service, times(1))
+            .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
+  }
+
+  @Test
   void onboardingsOrchestratorNewAdmin() {
     Onboarding onboarding = new Onboarding();
     onboarding.setId("onboardingId");
@@ -1240,7 +1265,7 @@ class OnboardingFunctionsTest {
     // then
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> captorActivitySubOrchestrator = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(3))
+    verify(orchestrationContext, times(4))
         .callActivity(captorActivity.capture(), any(), any(), any());
     verify(orchestrationContext, times(1))
         .callSubOrchestrator(captorActivitySubOrchestrator.capture(), any(), any());
@@ -1249,6 +1274,7 @@ class OnboardingFunctionsTest {
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
     assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
     assertEquals(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, captorActivitySubOrchestrator.getAllValues().get(0));
+    assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(3));
 
   }
 

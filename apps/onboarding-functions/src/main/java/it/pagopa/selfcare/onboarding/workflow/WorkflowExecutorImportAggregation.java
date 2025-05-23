@@ -1,6 +1,8 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.INSTITUTION;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ public record WorkflowExecutorImportAggregation(ObjectMapper objectMapper, TaskO
 
         createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper());
 
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 

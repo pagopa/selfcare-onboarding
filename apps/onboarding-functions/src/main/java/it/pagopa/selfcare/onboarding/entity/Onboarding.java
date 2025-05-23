@@ -36,6 +36,15 @@ public class Onboarding  {
     private Boolean isAggregator;
     private Aggregator aggregator;
     private String delegationId;
+    private Boolean sendMailForImport;
+
+    public Boolean getSendMailForImport() {
+        return sendMailForImport;
+    }
+
+    public void setSendMailForImport(Boolean sendMailForImport) {
+        this.sendMailForImport = sendMailForImport;
+    }
 
     //This field is used in case of workflowType USER
     private String previousManagerId;
@@ -234,6 +243,7 @@ public class Onboarding  {
                 ", aggregator=" + aggregator +
                 ", aggregates=" + aggregates +
                 ", isAggregator='" + isAggregator + '\'' +
+                ", sendMailForImport='" + sendMailForImport + '\'' +
                 '}';
     }
 }
