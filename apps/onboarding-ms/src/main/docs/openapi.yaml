@@ -2067,6 +2067,8 @@ components:
           $ref: "#/components/schemas/BillingPaRequest"
         forceImport:
           type: boolean
+        sendMailForImport:
+          type: boolean
     OnboardingPaRequest:
       required:
       - productId

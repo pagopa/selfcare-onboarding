@@ -2832,6 +2832,9 @@
           },
           "forceImport" : {
             "type" : "boolean"
+          },
+          "sendMailForImport" : {
+            "type" : "boolean"
           }
         }
       },
