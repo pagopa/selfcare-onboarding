@@ -72,11 +72,18 @@ public class IntegrationFunctionProfile implements QuarkusTestProfile {
     return jwtPayload;
   }
 
-  public static MongoDatabase getMongoClientConnection() {
+  public static MongoClient getMongoClientConnection() {
     ConnectionString connectionString =
         new ConnectionString(
             ConfigProvider.getConfig().getValue("quarkus.mongodb.connection-string", String.class));
-    MongoClient mongoClient = MongoClients.create(connectionString);
-    return mongoClient.getDatabase("dummyOnboarding");
+    return MongoClients.create(connectionString);
+  }
+
+  public static MongoDatabase getOnboardingConnection(MongoClient mongoClient) {
+    return mongoClient.getDatabase("selcOnboarding");
+  }
+
+  public static MongoDatabase getInstitutionConnection(MongoClient mongoClient) {
+    return mongoClient.getDatabase("selcMsCore");
   }
 }
