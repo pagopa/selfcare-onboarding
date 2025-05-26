@@ -39,6 +39,54 @@
         "fl": ["fiscalCode,familyName,name"]
       },
       "pathParameters": {
+        "id": ["ec7ca4d5-c537-462a-8c06-e102e0c21c44"]
+      }
+    },
+    "httpResponseTemplate": {
+      "templateType": "VELOCITY",
+      "template": "{\"statusCode\":200,\"body\":{\"id\":\"ec7ca4d5-c537-462a-8c06-e102e0c21c44\",\"fiscalCode\":\"CLVTLI80A01F839V\",\"name\":{\"certification\":\"SPID\",\"value\":\"Tizio\"},\"familyName\":{\"certification\":\"SPID\",\"value\":\"Caio\"},\"email\":{\"certification\":\"SPID\",\"value\":\"prova@test.it\"},\"workContacts\":{\"ID_MAIL#49e16aa5-bc28-40c7-9844-6886e4647e21\":{\"email\":{\"certification\":\"NONE\",\"value\":\"123123-55555-efaz-12312-apclacpela@test.it\"}},\"ID_CONTACTS#8840aa32-a2ab-434b-8b8a-11281163352e\":{\"email\":{\"certification\":\"NONE\",\"value\":\"8840aa32-a2ab-434b-8b8a-11281163352e@test.it\"},\"mobilePhone\":{\"certification\":\"NONE\",\"value\":\"12311111111\"}}}}}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/user-registry-mock/v1/users/{id}",
+      "queryStringParameters": {
+        "fl": ["fiscalCode,familyName,name,workContacts"]
+      },
+      "pathParameters": {
+        "id": ["ec7ca4d5-c537-462a-8c06-e102e0c21c44"]
+      }
+    },
+    "httpResponseTemplate": {
+      "templateType": "VELOCITY",
+      "template": "{\"statusCode\":200,\"body\":{\"id\":\"ec7ca4d5-c537-462a-8c06-e102e0c21c44\",\"fiscalCode\":\"CLVTLI80A01F839V\",\"name\":{\"certification\":\"SPID\",\"value\":\"Tizio\"},\"familyName\":{\"certification\":\"SPID\",\"value\":\"Caio\"},\"email\":{\"certification\":\"SPID\",\"value\":\"prova@test.it\"},\"workContacts\":{\"ID_MAIL#49e16aa5-bc28-40c7-9844-6886e4647e21\":{\"email\":{\"certification\":\"NONE\",\"value\":\"123123-55555-efaz-12312-apclacpela@test.it\"}},\"ID_CONTACTS#8840aa32-a2ab-434b-8b8a-11281163352e\":{\"email\":{\"certification\":\"NONE\",\"value\":\"8840aa32-a2ab-434b-8b8a-11281163352e@test.it\"},\"mobilePhone\":{\"certification\":\"NONE\",\"value\":\"12311111111\"}}}}}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/user-registry-mock/v1/users/{id}",
+      "queryStringParameters": {
+        "fl": ["name,familyName,email,workContacts"]
+      },
+      "pathParameters": {
+        "id": ["ec7ca4d5-c537-462a-8c06-e102e0c21c44"]
+      }
+    },
+    "httpResponseTemplate": {
+      "templateType": "VELOCITY",
+      "template": "{\"statusCode\":200,\"body\":{\"id\":\"ec7ca4d5-c537-462a-8c06-e102e0c21c44\",\"fiscalCode\":\"CLVTLI80A01F839V\",\"name\":{\"certification\":\"SPID\",\"value\":\"Tizio\"},\"familyName\":{\"certification\":\"SPID\",\"value\":\"Caio\"},\"email\":{\"certification\":\"SPID\",\"value\":\"prova@test.it\"},\"workContacts\":{\"ID_MAIL#49e16aa5-bc28-40c7-9844-6886e4647e21\":{\"email\":{\"certification\":\"NONE\",\"value\":\"123123-55555-efaz-12312-apclacpela@test.it\"}},\"ID_CONTACTS#8840aa32-a2ab-434b-8b8a-11281163352e\":{\"email\":{\"certification\":\"NONE\",\"value\":\"8840aa32-a2ab-434b-8b8a-11281163352e@test.it\"},\"mobilePhone\":{\"certification\":\"NONE\",\"value\":\"12311111111\"}}}}}"
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/user-registry-mock/v1/users/{id}",
+      "queryStringParameters": {
+        "fl": ["fiscalCode,familyName,name"]
+      },
+      "pathParameters": {
         "id": ["6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b"]
       }
     },
