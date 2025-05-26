@@ -63,6 +63,47 @@
     "imported": false
   },
   {
+    "origin": "IPA",
+    "originId": "c_l186",
+    "description": "Comune di Tocco da Casauria",
+    "institutionType": "PA",
+    "digitalAddress": "www.comune.toccodacasauria.pe.it",
+    "address": "Via Municipio, 13",
+    "zipCode": "65028",
+    "taxCode": "00231830688",
+    "city": "Pescara",
+    "county": "PE",
+    "country": "IT",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "imported": false
+  },
+  {
+    "origin": "SELC",
+    "originId": "10293847565",
+    "description": "Test FOR_APPROVE",
+    "institutionType": "PSP",
+    "digitalAddress": "test@test.it",
+    "address": "via Napoli 4",
+    "zipCode": "23124",
+    "taxCode": "10293847565",
+    "city": "Napoli",
+    "county": "NA",
+    "country": "IT",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "rea": "REA-16",
+    "imported": false
+  },
+  {
     "_id": "0ba32016-2dfa-4dd8-a063-969592456d79",
     "origin": "SELC",
     "originId": "13234472822",
