@@ -1,5 +1,5 @@
 {
-  "id": "89ad7142-24bb-48ad-8502-9c9232137e85",
+  "id": "89ad7142-24bb-48ad-8502-9c9232137e95",
   "billing": {
     "publicServices": false,
     "recipientCode": "A1B2C3"
@@ -8,18 +8,21 @@
   "institution": {
     "imported": false,
     "institutionType": "PSP",
-    "taxCode": "10293847565"
+    "taxCode": "10293847565",
+    "digitalAddress": "test@test.it"
   },
   "productId": "prod-pagopa",
   "status": "REQUEST",
   "users": [
     {
-      "id": "actual-user-id",
-      "role": "MANAGER"
+      "id": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b",
+      "role": "MANAGER",
+      "userMailUuid": "ID_MAIL#a6de7b93-bc56-4187-be5c-9234cef98bed",
+      "productRole": "admin"
     }
   ],
   "workflowType": "FOR_APPROVE",
   "workflowInstanceId": "9acdc78f-26c3-4352-ad13-24bd01857edf",
   "updatedAt": "2025-05-13T12:38:17.000Z",
-  "userRequestUid": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8"
+  "userRequestUid": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b"
 }

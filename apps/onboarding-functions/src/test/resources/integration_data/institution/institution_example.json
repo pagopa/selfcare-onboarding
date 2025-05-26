@@ -61,5 +61,25 @@
     ],
     "rea": "REA-13",
     "imported": false
+  },
+  {
+    "origin": "IPA",
+    "originId": "c_l186",
+    "description": "Comune di Tocco da Casauria",
+    "institutionType": "PA",
+    "digitalAddress": "www.comune.toccodacasauria.pe.it",
+    "address": "Via Municipio, 13",
+    "zipCode": "65028",
+    "taxCode": "00231830688",
+    "city": "Pescara",
+    "county": "PE",
+    "country": "IT",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "imported": false
   }
 ]
