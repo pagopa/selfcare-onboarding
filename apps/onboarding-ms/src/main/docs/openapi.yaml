@@ -644,6 +644,7 @@ paths:
   /v1/onboarding/pa/import:
     post:
       tags:
+      - Onboarding Controller
       - internal-v1
       summary: Import PA onboarding with token creation and complete to COMPLETED.
       description: Perform onboarding as /onboarding/pa but create token and completing
@@ -2066,6 +2067,8 @@ components:
         billing:
           $ref: "#/components/schemas/BillingPaRequest"
         forceImport:
+          type: boolean
+        sendMailForImport:
           type: boolean
     OnboardingPaRequest:
       required:

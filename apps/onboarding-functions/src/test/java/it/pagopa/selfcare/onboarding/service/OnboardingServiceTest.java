@@ -494,8 +494,8 @@ class OnboardingServiceTest {
             "",
             product.getTitle(),
             "description",
-            "default",
-            "default");
+            "contracts/template/mail/onboarding-request/1.0.1.json",
+            "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=");
   }
 
   @Test

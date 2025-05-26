@@ -200,6 +200,7 @@ public class OnboardingController {
   )
   @POST
   @Path("/pa/import")
+  @Tag(name = "Onboarding Controller")
   @Tag(name = "internal-v1")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)

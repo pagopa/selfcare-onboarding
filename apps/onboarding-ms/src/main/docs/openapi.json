@@ -888,7 +888,7 @@
     },
     "/v1/onboarding/pa/import" : {
       "post" : {
-        "tags" : [ "internal-v1" ],
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
         "summary" : "Import PA onboarding with token creation and complete to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPaImport",
@@ -2831,6 +2831,9 @@
             "$ref" : "#/components/schemas/BillingPaRequest"
           },
           "forceImport" : {
+            "type" : "boolean"
+          },
+          "sendMailForImport" : {
             "type" : "boolean"
           }
         }
