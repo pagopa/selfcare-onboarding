@@ -81,5 +81,26 @@
       }
     ],
     "imported": false
+  },
+  {
+    "origin": "SELC",
+    "originId": "10293847565",
+    "description": "Test FOR_APPROVE",
+    "institutionType": "PSP",
+    "digitalAddress": "test@test.it",
+    "address": "via Napoli 4",
+    "zipCode": "23124",
+    "taxCode": "10293847565",
+    "city": "Napoli",
+    "county": "NA",
+    "country": "IT",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "rea": "REA-16",
+    "imported": false
   }
 ]
