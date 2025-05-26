@@ -599,7 +599,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/OnboardingUserRequest"
+                "$ref" : "#/components/schemas/CheckManagerRequest"
               }
             }
           }
@@ -888,7 +888,7 @@
     },
     "/v1/onboarding/pa/import" : {
       "post" : {
-        "tags" : [ "Onboarding Controller" ],
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
         "summary" : "Import PA onboarding with token creation and complete to COMPLETED.",
         "description" : "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingPaImport",
@@ -2164,6 +2164,38 @@
           }
         }
       },
+      "CheckManagerRequest" : {
+        "required" : [ "productId", "userId" ],
+        "type" : "object",
+        "properties" : {
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "institutionType" : {
+            "$ref" : "#/components/schemas/InstitutionType"
+          },
+          "subunitCode" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "type" : "string"
+          },
+          "originId" : {
+            "type" : "string"
+          },
+          "taxCode" : {
+            "type" : "string"
+          },
+          "userId" : {
+            "description" : "User UUID",
+            "type" : "string",
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/UUID"
+            } ]
+          }
+        }
+      },
       "CheckManagerResponse" : {
         "type" : "object",
         "properties" : {
@@ -2800,6 +2832,9 @@
           },
           "forceImport" : {
             "type" : "boolean"
+          },
+          "sendMailForImport" : {
+            "type" : "boolean"
           }
         }
       },
@@ -3136,6 +3171,11 @@
       },
       "TokenType" : {
         "enum" : [ "INSTITUTION", "LEGALS", "USER", "ATTACHMENT" ],
+        "type" : "string"
+      },
+      "UUID" : {
+        "format" : "uuid",
+        "pattern" : "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}",
         "type" : "string"
       },
       "UserOnboardingResponse" : {

@@ -1,33 +1,25 @@
 package it.pagopa.selfcare.onboarding.steps;
 
-import static com.mongodb.client.model.Filters.eq;
-import static it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep.mongoDatabase;
-
 import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.utils.JwtData;
 import it.pagopa.selfcare.onboarding.utils.JwtUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 @Slf4j
+@QuarkusTest
 public class IntegrationFunctionProfile implements QuarkusTestProfile {
 
   @Override
@@ -80,46 +72,18 @@ public class IntegrationFunctionProfile implements QuarkusTestProfile {
     return jwtPayload;
   }
 
-  public static MongoDatabase getMongoClientConnection() {
+  public static MongoClient getMongoClientConnection() {
     ConnectionString connectionString =
         new ConnectionString(
             ConfigProvider.getConfig().getValue("quarkus.mongodb.connection-string", String.class));
-    MongoClient mongoClient = MongoClients.create(connectionString);
-    return mongoClient.getDatabase("dummyOnboarding");
+    return MongoClients.create(connectionString);
   }
 
-  public static <T> void storeIntoMongo(T input, String collectionName) {
-
-    CodecRegistry pojoCodecRegistry = getCodecRegistry();
-
-    MongoCollection<T> collection =
-        mongoDatabase
-            .getCollection(collectionName, (Class<T>) input.getClass())
-            .withCodecRegistry(pojoCodecRegistry);
-
-    collection.insertOne(input);
+  public static MongoDatabase getOnboardingConnection(MongoClient mongoClient) {
+    return mongoClient.getDatabase("selcOnboarding");
   }
 
-  public static Onboarding findIntoMongoOnboarding(String collectionName, String id) {
-
-    CodecRegistry pojoCodecRegistry = getCodecRegistry();
-
-    MongoCollection<Onboarding> collection =
-        mongoDatabase
-            .getCollection(collectionName, Onboarding.class)
-            .withCodecRegistry(pojoCodecRegistry);
-
-    ArrayList<Onboarding> items =
-        collection.find(eq("_id", id), Onboarding.class).into(new ArrayList<Onboarding>());
-
-    return items.get(0);
-  }
-
-  private static CodecRegistry getCodecRegistry() {
-    CodecRegistry pojoCodecRegistry =
-        CodecRegistries.fromRegistries(
-            MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
-    return pojoCodecRegistry;
+  public static MongoDatabase getInstitutionConnection(MongoClient mongoClient) {
+    return mongoClient.getDatabase("selcMsCore");
   }
 }

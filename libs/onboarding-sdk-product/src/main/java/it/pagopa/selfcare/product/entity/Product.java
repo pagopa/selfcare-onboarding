@@ -1,10 +1,9 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.Instant;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class Product {
 
@@ -38,9 +37,9 @@ public class Product {
     private List<String> consumers;
     private Map<String, ContractTemplate> institutionContractMappings;
     private Map<String, ContractTemplate> institutionAggregatorContractMappings;
-
     private Map<String, ContractTemplate> userContractMappings;
     private Map<String, ContractTemplate> userAggregatorContractMappings;
+    private Map<String, Map<String, List<EmailTemplate>>> emailTemplates;
 
     public String getId() {
         return id;
@@ -338,6 +337,18 @@ public class Product {
         this.alias = alias;
     }
 
+    public Map<PartyRole, ProductRoleInfo> getRoleMappings() {
+        return roleMappings;
+    }
+
+    public Map<String, Map<String, List<EmailTemplate>>> getEmailTemplates() {
+        return emailTemplates;
+    }
+
+    public void setEmailTemplates(Map<String, Map<String, List<EmailTemplate>>> emailTemplates) {
+        this.emailTemplates = emailTemplates;
+    }
+
     /**
      * This method returns contractStorage associate with a specific InstitutionType. In case none
      * InstitutionType exists on contractMapping, it returns a valid ContractTemplate.
@@ -410,4 +421,42 @@ public class Product {
         }
         return contractTemplate;
     }
+
+    /**
+     * This method returns EmailTemplate associate with a specific InstitutionType and workflowType for emailTemplates.
+     * In case none InstitutionType and none workflowType exist on mapping, it returns empty object.
+     *
+     * @param institutionType InstitutionType
+     * @param workflowType workflowType
+     * @param status status
+     * @return EmailTemplate
+     */
+    public Optional<EmailTemplate> getEmailTemplate(String institutionType, String workflowType, String status) {
+        if (getEmailTemplates() == null || institutionType == null || workflowType == null) {
+            return Optional.empty();
+        }
+
+        Map<String, Map<String, List<EmailTemplate>>> templates = getEmailTemplates();
+
+        Map<String, List<EmailTemplate>> workflowMap = templates.get(institutionType);
+        if (workflowMap != null && workflowMap.containsKey(workflowType)) {
+            return workflowMap.get(workflowType)
+                    .stream()
+                    .filter(emailTemplate -> emailTemplate.getStatus().name().equals(status))
+                    .findFirst();
+        }
+
+        // Fallback on CONTRACT_TYPE_DEFAULT
+        Map<String, List<EmailTemplate>> defaultWorkflowMap = templates.get(CONTRACT_TYPE_DEFAULT);
+        if (defaultWorkflowMap != null && defaultWorkflowMap.containsKey(workflowType)) {
+            return defaultWorkflowMap.get(workflowType)
+                    .stream()
+                    .filter(emailTemplate -> emailTemplate.getStatus().name().equals(status))
+                    .findFirst();
+        }
+
+        return Optional.empty();
+    }
+
+
 }

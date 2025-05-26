@@ -1,28 +1,28 @@
-version: '3.8'
+version: "3.8"
 services:
-  mongodb:
-    image: mongo:latest@sha256:1cb283500219e8fc0b61b328ea5a199a395a753d88b17351c58874fb425223cb
-    environment:
-      - CERT_FILE=${CERT_FILE:-/etc/ssl/certs/ca-certificates.crt}
+  mongo-db:
+    image: mongo@sha256:1cb283500219e8fc0b61b328ea5a199a395a753d88b17351c58874fb425223cb
     ports:
-      - '27017:27017'
+      - "27017:27017"
+    networks:
+      - develop-network
     volumes:
       - "./db:/docker-entrypoint-initdb.d"
-    networks:
-      - develop-network
 
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
+    image: mcr.microsoft.com/azure-storage/azurite@sha256:0a47e12e3693483cef5c71f35468b91d751611f172d2f97414e9c69113b106d9
+    container_name: "azurite"
     ports:
-      - "10000:10000"  # Blob
-      - "10001:10001"  # Queue
-      - "10002:10002"  # Table
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --inMemoryPersistence"
-    environment:
-      - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
-      - CERT_FILE=${CERT_FILE:-/etc/ssl/certs/cacert.pem}
+      - "10010:10010"
+      - "10011:10011"
+      - "10012:10012"
     networks:
       - develop-network
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --blobPort 10010 --queuePort 10011 --tablePort 10012 --location /workspace --debug /workspace/debug.log"
+    environment:
+      - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
+    volumes:
+      - ./storagedata:/workspace
 
   azure-cli:
     build:
@@ -30,57 +30,60 @@ services:
       dockerfile: "Dockerfile-azure-cli"
     depends_on:
       - azurite
-    networks:
-      - develop-network
     volumes:
-      - "./blobStorageInit/initAzurite.sh:/initAzurite.sh"
+      - "./blobStorageInit/init_azurite.sh:/init_azurite.sh"
       - "./blobStorageInit/products.json:/workspace/products.json"
     environment:
       - SELFCARE_INFRA_PRIVATE_ENV=dev
-      - GITHUB_TOKEN=hp_9ARSN4Twp96iJnm1Bxm6ODNveVMoHW3VH5oG
+    networks:
+      - develop-network
 
-  mockserver:
+  user-ms:
+    image: ghcr.io/pagopa/selfcare-user-ms:sha-f3cd392
+    ports:
+      - "8087:8080"
+    env_file:
+      - test-user-ms.env
+    networks:
+      - develop-network
+    depends_on:
+      - mongo-db
+      - mock-server
+      - azure-cli
+
+  institution-ms:
+    image: ghcr.io/pagopa/selfcare-institution-ms:sha-a1572ab
+    ports:
+      - "8082:8080"
+    networks:
+      - develop-network
+    env_file:
+      - test-institution-ms.env
+    depends_on:
+      - mongo-db
+      - mock-server
+      - azure-cli
+
+  mock-server:
     image: mockserver/mockserver@sha256:adec675a93253dcd503cda331dbc8c88383c1c79ceb2370ec9766ad3f010d255
     ports:
-      - '1080:1080'
+      - "1080:1080"
+    networks:
+      - develop-network
     environment:
       - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/*.json
       - MOCKSERVER_ENABLE_CORS_FOR_API="true"
       - MOCKSERVER_ENABLE_CORS_FOR_ALL_RESPONSES="true"
     volumes:
       - "./mock:/config"
-    networks:
-      - develop-network
 
   fake-smtp:
-    image: reachfive/fake-smtp-server
+    image: reachfive/fake-smtp-server@sha256:4b6d2f1e24481527de1429f88db18a377252a5e9e95bc083fa3d77e402cdadc8
     ports:
-      - "1025:1025"  # SMTP Server
-      - "8025:1080"  # Web UI
+      - "1025:1025"
+      - "8025:1080"
     networks:
       - develop-network
-
-  userms:
-    image: ghcr.io/pagopa/selfcare-user-ms:sha-f3cd392
-    ports:
-      - '8080:8080'
-    env_file:
-      - testuserenv
-    networks:
-      - develop-network
-    depends_on:
-      - mongodb
-
-  institutionms:
-    image: ghcr.io/pagopa/selfcare-institution-ms:sha-a1572ab
-    ports:
-      - '8081:8080'
-    env_file:
-      - testinstitutionenv
-    networks:
-      - develop-network
-    depends_on:
-      - mongodb
 
 networks:
   develop-network:

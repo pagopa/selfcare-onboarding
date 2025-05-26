@@ -43,4 +43,6 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
 
     private String referenceOnboardingId;
     private String previousManagerId;
+
+    private Boolean sendMailForImport;
 }

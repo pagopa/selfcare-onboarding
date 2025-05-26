@@ -19,10 +19,7 @@ import io.smallrye.mutiny.unchecked.Unchecked;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.AggregateInstitutionRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
-import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -1779,34 +1776,20 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    public Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest) {
+    public Uni<CheckManagerResponse> checkManager(CheckManagerRequest checkManagerRequest) {
         CheckManagerResponse response = new CheckManagerResponse();
-
-        String taxCodeManager =
-                onboardingUserRequest.getUsers().stream()
-                        .filter(user -> PartyRole.MANAGER == user.getRole())
-                        .map(UserRequest::getTaxCode)
-                        .findFirst()
-                        .orElseThrow(
-                                () -> new InvalidRequestException("At least one user should have role MANAGER"));
-
-        return userRegistryApi
-                .searchUsingPOST(USERS_FIELD_LIST, new UserSearchDto().fiscalCode(taxCodeManager))
-                .onItem()
-                .transform(UserResource::getId)
-                .flatMap(
-                        uuid ->
-                                findOnboardingsByFilters(onboardingUserRequest)
+        UUID userId = checkManagerRequest.getUserId();
+        return findOnboardingsByFilters(checkManagerRequest)
                                         .flatMap(
                                                 onboardings -> {
                                                     if (CollectionUtils.isEmpty(onboardings)) {
                                                         LOG.debugf(
                                                                 "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
-                                                                onboardingUserRequest.getTaxCode(),
-                                                                onboardingUserRequest.getOrigin(),
-                                                                onboardingUserRequest.getOriginId(),
-                                                                onboardingUserRequest.getProductId(),
-                                                                onboardingUserRequest.getSubunitCode());
+                                                                checkManagerRequest.getTaxCode(),
+                                                                checkManagerRequest.getOrigin(),
+                                                                checkManagerRequest.getOriginId(),
+                                                                checkManagerRequest.getProductId(),
+                                                                checkManagerRequest.getSubunitCode());
 
                                                         response.setResponse(false);
                                                         return Uni.createFrom().item(response);
@@ -1815,47 +1798,34 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                     String institutionId = onboardings.get(0).getInstitution().getId();
                                                     return isUserActiveManager(
                                                             institutionId,
-                                                            onboardingUserRequest.getProductId(),
-                                                            String.valueOf(uuid))
+                                                            checkManagerRequest.getProductId(),
+                                                            String.valueOf(userId))
                                                             .map(
                                                                     isActiveManager -> {
                                                                         LOG.debugf(
                                                                                 "User with uuid %s is active manager: %s",
-                                                                                uuid, isActiveManager);
+                                                                                userId, isActiveManager);
                                                                         response.setResponse(isActiveManager);
                                                                         return response;
                                                                     });
-                                                }))
-                .onFailure()
-                .recoverWithUni(
-                        ex -> {
-                            if (ex instanceof WebApplicationException
-                                    && ((WebApplicationException) ex).getResponse().getStatus() == 404) {
-                                LOG.debugf("User not found on user-registry", taxCodeManager);
-                                response.setResponse(false);
-                                return Uni.createFrom().item(response);
-                            }
-
-                            // If the exception raised is for a different status code, let it propagate
-                            return Uni.createFrom().failure(ex);
-                        });
+                                                });
     }
 
     /**
      * Retrieves the onboarding record by the given filters.
      *
-     * @param onboardingUserRequest OnboardingUserRequest
+     * @param checkManagerRequest CheckManagerRequest
      * @return a Uni with the list of onboardings
      * @throws ResourceNotFoundException if the onboarding record is not found
      */
     private Uni<List<Onboarding>> findOnboardingsByFilters(
-            OnboardingUserRequest onboardingUserRequest) {
+            CheckManagerRequest checkManagerRequest) {
         return getOnboardingByFilters(
-                onboardingUserRequest.getTaxCode(),
-                onboardingUserRequest.getSubunitCode(),
-                onboardingUserRequest.getOrigin(),
-                onboardingUserRequest.getOriginId(),
-                onboardingUserRequest.getProductId())
+                checkManagerRequest.getTaxCode(),
+                checkManagerRequest.getSubunitCode(),
+                checkManagerRequest.getOrigin(),
+                checkManagerRequest.getOriginId(),
+                checkManagerRequest.getProductId())
                 .collect()
                 .asList();
     }

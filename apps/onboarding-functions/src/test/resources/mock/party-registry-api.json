@@ -83,7 +83,7 @@
     },
     "httpResponse": {
       "statusCode": 200,
-      "body":"{\"country\":\"100\",\"enabled\":true,\"code\":\"038008\",\"desc\":\"FERRARA - COMUNE\",\"istat_code\":\"038008\",\"province_id\":\"038\",\"province_abbreviation\":\"FE\",\"region_id\":\"08\",\"country_abbreviation\":\"IT\"}",
+      "body": "{\"country\":\"100\",\"enabled\":true,\"code\":\"038008\",\"desc\":\"FERRARA - COMUNE\",\"istat_code\":\"038008\",\"province_id\":\"038\",\"province_abbreviation\":\"FE\",\"region_id\":\"08\",\"country_abbreviation\":\"IT\"}",
       "headers": {
         "Content-Type": "application/json"
       }
