@@ -116,3 +116,22 @@ Feature: Onboarding collection
     Then the response should have status code 202
     And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
     And there is a document for onboarding with status "FAILED"
+
+  Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for USERS_EA request
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e94"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "<status>"
+
+    Examples:
+      | status    |
+      | PENDING   |
+      | COMPLETED |
+
+  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect PSP request
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e95"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "FAILED"
