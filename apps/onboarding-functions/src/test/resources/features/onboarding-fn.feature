@@ -135,3 +135,17 @@ Feature: Onboarding collection
     Then the response should have status code 202
     And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
     And there is a document for onboarding with status "FAILED"
+
+  Scenario: Verify correct invocation of the StartOnboardingOrchestration for workflow IMPORT request
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i99"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "COMPLETED"
+
+  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow IMPORT request
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i100"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "FAILED"
