@@ -1899,7 +1899,6 @@ components:
     OnboardingAggregationImportRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -1907,7 +1906,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -1934,7 +1932,6 @@ components:
     OnboardingDefaultRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -1942,7 +1939,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -2073,7 +2069,6 @@ components:
     OnboardingPaRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -2081,7 +2076,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -2131,7 +2125,6 @@ components:
     OnboardingPspRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -2139,7 +2132,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
