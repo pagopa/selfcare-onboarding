@@ -79,11 +79,15 @@ public class IntegrationFunctionProfile implements QuarkusTestProfile {
     return MongoClients.create(connectionString);
   }
 
-  public static MongoDatabase getOnboardingConnection(MongoClient mongoClient) {
+  public static MongoDatabase getOnboardingDatabase(MongoClient mongoClient) {
     return mongoClient.getDatabase("selcOnboarding");
   }
 
-  public static MongoDatabase getInstitutionConnection(MongoClient mongoClient) {
+  public static MongoDatabase getInstitutionDatabase(MongoClient mongoClient) {
     return mongoClient.getDatabase("selcMsCore");
+  }
+
+  public static MongoDatabase getUserDatabase(MongoClient mongoClient) {
+    return mongoClient.getDatabase("selcUser");
   }
 }

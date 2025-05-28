@@ -54,9 +54,10 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
   private String onboardingId;
 
-  static MongoClient mongoClient;
-  static MongoDatabase onboardingDatabase;
-  static MongoDatabase institutionDatabase;
+  MongoClient mongoClient;
+  MongoDatabase onboardingDatabase;
+  MongoDatabase institutionDatabase;
+  MongoDatabase userDatabase;
 
   private RequestSpecification request;
   private Response response;
@@ -83,8 +84,9 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   private void initDb() {
     mongoClient = IntegrationFunctionProfile.getMongoClientConnection();
-    onboardingDatabase = IntegrationFunctionProfile.getOnboardingConnection(mongoClient);
-    institutionDatabase = IntegrationFunctionProfile.getInstitutionConnection(mongoClient);
+    onboardingDatabase = IntegrationFunctionProfile.getOnboardingDatabase(mongoClient);
+    institutionDatabase = IntegrationFunctionProfile.getInstitutionDatabase(mongoClient);
+    userDatabase = IntegrationFunctionProfile.getUserDatabase(mongoClient);
 
     Map<String, Institution> institutionTemplateMap =
         integrationOnboardingResources.getInstitutionTemplateMap();
@@ -156,5 +158,6 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   void destroyDatabase() {
     onboardingDatabase.drop();
     institutionDatabase.drop();
+    userDatabase.drop();
   }
 }
