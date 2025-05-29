@@ -9,7 +9,7 @@
     "description": "Techpartner 23-02",
     "digitalAddress": "pec@pectest.com",
     "geographicTaxonomies": [],
-    "id": "c2808e95-59a7-44fb-a6df-64faf4ff3ed2",
+    "id": "c2808e95-59a7-44fb-a6df-64faf4ff3ed3",
     "imported": false,
     "institutionType": "PT",
     "origin": "INFOCAMERE",
@@ -22,7 +22,7 @@
     {
       "id": "ec7ca4d5-c537-462a-8c06-e102e0c21c44",
       "role": "MANAGER",
-      "userMailUuid": "ID_MAIL#49e16aa5-bc28-40c7-9844-6886e4647e21"
+      "userMailUuid": "ID_MAIL#49e16aa5-bc28-40c7-9844-6886e4647e22"
     }
   ],
   "workflowType": "USERS_PG"
