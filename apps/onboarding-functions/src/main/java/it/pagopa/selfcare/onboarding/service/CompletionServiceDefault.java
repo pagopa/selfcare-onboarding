@@ -283,6 +283,8 @@ public class CompletionServiceDefault implements CompletionService {
 
         if (Objects.nonNull(input) && Objects.nonNull(input.getInstitution()) && Objects.nonNull(input.getAggregate())) {
             try {
+                setAggregatorInstitutionId(input);
+
                 DelegationWithPaginationResponse delegationWithPaginationResponse = delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null,
                         input.getAggregate().getTaxCode(), null, null, null);
                 if (Objects.nonNull(delegationWithPaginationResponse) && !CollectionUtils.isEmpty(delegationWithPaginationResponse.getDelegations())) {
@@ -293,6 +295,20 @@ public class CompletionServiceDefault implements CompletionService {
             }
         }
         return existsDelegation ? "true" : "false";
+    }
+
+    private void setAggregatorInstitutionId(OnboardingAggregateOrchestratorInput input) {
+        if(Objects.isNull(input.getInstitution().getId())) {
+            Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
+                    null, input.getInstitution().getOrigin().getValue(),
+                    input.getInstitution().getOriginId(), input.getProductId()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"));
+            input.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+            Onboarding onboarding = onboardingRepository.findById(input.getId());
+            onboarding.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+            onboardingRepository.persistOrUpdate(onboarding);
+        }
     }
 
     private static DelegationRequest getDelegationRequest(Onboarding onboarding) {

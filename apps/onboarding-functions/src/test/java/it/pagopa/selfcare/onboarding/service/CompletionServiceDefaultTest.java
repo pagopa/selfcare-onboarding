@@ -891,6 +891,59 @@ public class CompletionServiceDefaultTest {
         assertFalse(Boolean.parseBoolean(result));
     }
 
+    @Test
+    void checkExistsDelegationFalseWithNullInstitutionId() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        Institution aggregator = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+        input.setInstitution(aggregator);
+        Onboarding onboardingAggregator = new Onboarding();
+
+        input.getInstitution().setOrigin(Origin.IPA);
+        input.getInstitution().setOriginId("originId");
+        input.getInstitution().setTaxCode("taxCode");
+        onboardingAggregator.setInstitution(aggregator);
+        input.setProductId("prod-io");
+
+        List<Onboarding> onboardingList = new ArrayList<>();
+        onboardingList.add(onboardingAggregator);
+
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(onboardingList);
+        when(onboardingRepository.findById(any())).thenReturn(onboardingAggregator);
+        doNothing().when(onboardingRepository).persistOrUpdate(any(Onboarding.class));
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        delegationWithPaginationResponse.setDelegations(Collections.emptyList());
+        when(delegationApi.getDelegationsUsingGET1(null, aggregator.getId(), null, null, aggregator.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertFalse(Boolean.parseBoolean(result));
+    }
+
+    @Test
+    void checkExistsDelegationFalseOnboardingNotFound() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        Institution aggregator = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+        input.setInstitution(aggregator);
+
+        input.getInstitution().setOrigin(Origin.IPA);
+        input.getInstitution().setOriginId("originId");
+        input.getInstitution().setTaxCode("taxCode");
+        input.setProductId("prod-io");
+
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(List.of());
+
+        Assertions.assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.existsDelegation(input));
+
+    }
+
     @Nested
     @TestProfile(CompletionServiceDefaultTest.ForceCreationProfile.class)
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
