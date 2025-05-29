@@ -2602,7 +2602,7 @@
         "example" : "2022-03-10T12:15:50"
       },
       "OnboardingAggregationImportRequest" : {
-        "required" : [ "productId", "users", "institution" ],
+        "required" : [ "productId", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2610,7 +2610,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
@@ -2649,7 +2648,7 @@
         }
       },
       "OnboardingDefaultRequest" : {
-        "required" : [ "productId", "users", "institution" ],
+        "required" : [ "productId", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2657,7 +2656,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
@@ -2839,7 +2837,7 @@
         }
       },
       "OnboardingPaRequest" : {
-        "required" : [ "productId", "users", "institution" ],
+        "required" : [ "productId", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2847,7 +2845,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
@@ -2912,7 +2909,7 @@
         }
       },
       "OnboardingPspRequest" : {
-        "required" : [ "productId", "users", "institution" ],
+        "required" : [ "productId", "institution" ],
         "type" : "object",
         "properties" : {
           "productId" : {
@@ -2920,7 +2917,6 @@
             "type" : "string"
           },
           "users" : {
-            "minItems" : 1,
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/UserRequest"
