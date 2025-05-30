@@ -265,6 +265,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+        setAggregatorInstitutionId(onboardingAggregateOrchestratorInput);
         Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
         onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
         onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
@@ -298,7 +299,7 @@ public class CompletionServiceDefault implements CompletionService {
     }
 
     private void setAggregatorInstitutionId(OnboardingAggregateOrchestratorInput input) {
-        if(Objects.isNull(input.getInstitution().getId())) {
+        if (Objects.isNull(input.getInstitution().getId())) {
             Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
                     null, input.getInstitution().getOrigin().getValue(),
                     input.getInstitution().getOriginId(), input.getProductId()).stream()
