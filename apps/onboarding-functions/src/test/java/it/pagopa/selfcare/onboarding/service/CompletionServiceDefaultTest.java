@@ -739,6 +739,31 @@ public class CompletionServiceDefaultTest {
         assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
     }
 
+    @Test
+    void testCreateAggregateOnboardingRequestWithoutInstitutionId() {
+        // Given
+        OnboardingAggregateOrchestratorInput input = createSampleOnboardingInput();
+        input.getInstitution().setId(null);
+        Onboarding onboardingToUpdate = createSampleOnboarding();
+        Institution aggregator = new Institution();
+        Onboarding onboardingAggregator = new Onboarding();
+        onboardingAggregator.setInstitution(aggregator);
+        List<Onboarding> onboardingList = new ArrayList<>();
+        onboardingList.add(onboardingAggregator);
+
+        // When
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(onboardingList);
+        when(onboardingRepository.findById(any())).thenReturn(onboardingAggregator);
+        doNothing().when(onboardingRepository).persistOrUpdate(any(Onboarding.class));
+        String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        assertNotEquals(onboardingToUpdate.getId(), onboardingId);
+        assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
+    }
+
     public static OnboardingAggregateOrchestratorInput createSampleOnboardingInput() {
         OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
 
