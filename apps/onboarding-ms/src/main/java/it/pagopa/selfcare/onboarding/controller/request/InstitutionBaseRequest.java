@@ -29,6 +29,7 @@ public class InstitutionBaseRequest {
     private String digitalAddress;
     private String address;
     private String zipCode;
+    private String istatCode;
 
     private List<GeographicTaxonomyDto> geographicTaxonomies;
 
