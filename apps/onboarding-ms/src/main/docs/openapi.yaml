@@ -1699,6 +1699,8 @@ components:
           type: string
         zipCode:
           type: string
+        istatCode:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -1803,6 +1805,8 @@ components:
         address:
           type: string
         zipCode:
+          type: string
+        istatCode:
           type: string
         geographicTaxonomies:
           type: array
