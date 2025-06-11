@@ -311,7 +311,7 @@ public class CompletionServiceDefault implements CompletionService {
                                     input.getProductId())
                             .stream()
                             .findFirst()
-                            .map(o -> o.getInstitution().getId())
+                            .map(onboardingAggregator -> onboardingAggregator.getInstitution().getId())
                             .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"))
             );
         }
