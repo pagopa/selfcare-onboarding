@@ -525,7 +525,8 @@
           "CONFIRMATION_AGGREGATE",
           "INCREMENT_REGISTRATION_AGGREGATOR",
           "USERS_PG",
-          "USERS_EA"
+          "USERS_EA",
+          "CONFIRMATION_AGGREGATOR"
         ],
         "type": "string"
       },

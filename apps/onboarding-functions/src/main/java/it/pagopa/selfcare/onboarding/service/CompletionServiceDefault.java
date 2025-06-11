@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
@@ -36,10 +38,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
@@ -86,6 +85,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     private final InstitutionMapper institutionMapper;
     private final OnboardingRepository onboardingRepository;
+    private final ObjectMapper objectMapper;
     private final TokenRepository tokenRepository;
     private final UserMapper userMapper;
     private final ProductMapper productMapper;
@@ -102,12 +102,13 @@ public class CompletionServiceDefault implements CompletionService {
                                     UserMapper userMapper,
                                     ProductMapper productMapper,
                                     InstitutionMapper institutionMapper,
-                                    OnboardingRepository onboardingRepository,
+                                    OnboardingRepository onboardingRepository, ObjectMapper objectMapper,
                                     TokenRepository tokenRepository,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
                                     @ConfigProperty(name = "onboarding-functions.force-institution-persist") boolean forceInstitutionCreation) {
         this.institutionMapper = institutionMapper;
         this.onboardingRepository = onboardingRepository;
+        this.objectMapper = objectMapper;
         this.tokenRepository = tokenRepository;
         this.productService = productService;
         this.notificationService = notificationService;
@@ -298,6 +299,38 @@ public class CompletionServiceDefault implements CompletionService {
         return existsDelegation ? "true" : "false";
     }
 
+    @Override
+    public String verifyOnboardingAggregate(OnboardingAggregateOrchestratorInput input) {
+        if (Objects.isNull(input.getInstitution().getId())) {
+            Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
+                            null, input.getInstitution().getOrigin().getValue(),
+                            input.getInstitution().getOriginId(), input.getProductId()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"));
+            input.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+        }
+
+        if (Objects.isNull(input.getAggregate().getId())) {
+            onboardingRepository.findByFilters(
+                            input.getAggregate().getTaxCode(),
+                            input.getAggregate().getSubunitCode(),
+                            input.getAggregate().getOrigin().getValue(),
+                            input.getAggregate().getOriginId(),
+                            input.getProductId())
+                    .stream()
+                    .findFirst()
+                    .ifPresent(onboardingAggregate ->
+                            input.getAggregate().setId(onboardingAggregate.getInstitution().getId())
+                    );
+        }
+        Onboarding onboardingAggregate = onboardingMapper.mapToOnboarding(input);
+        try {
+            return objectMapper.writeValueAsString(onboardingAggregate);
+        } catch (JsonProcessingException e) {
+            throw new GenericOnboardingException(e.getMessage());
+        }
+    }
+
     private void setAggregatorInstitutionId(OnboardingAggregateOrchestratorInput input) {
         if (Objects.isNull(input.getInstitution().getId())) {
             Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
@@ -431,4 +464,5 @@ public class CompletionServiceDefault implements CompletionService {
         DelegationWithPaginationResponse delegations = delegationApi.getDelegationsUsingGET1(null, institutionId, productId, null, null, null, null, null);
         return delegations.getDelegations();
     }
+
 }

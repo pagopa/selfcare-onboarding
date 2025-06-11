@@ -16,7 +16,17 @@ import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
-public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
+public class WorkflowExecutorContractRegistrationAggregator implements WorkflowExecutor {
+
+    private final ObjectMapper objectMapper;
+    private final TaskOptions optionsRetry;
+    protected final OnboardingMapper onboardingMapper;
+
+    public WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) {
+        this.objectMapper = objectMapper;
+        this.optionsRetry = optionsRetry;
+        this.onboardingMapper = onboardingMapper;
+    }
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -40,13 +50,23 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
 
         createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper);
 
-        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
+        //ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
     @Override
     public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
         return new OnboardingWorkflowAggregator(onboarding, AGGREGATOR.name());
+    }
+
+    @Override
+    public ObjectMapper objectMapper() {
+        return objectMapper;
+    }
+
+    @Override
+    public TaskOptions optionsRetry() {
+        return optionsRetry;
     }
 
 

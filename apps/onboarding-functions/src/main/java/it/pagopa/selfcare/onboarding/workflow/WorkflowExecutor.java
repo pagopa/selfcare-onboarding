@@ -1,18 +1,7 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.REJECT_OUTDATED_ONBOARDINGS;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingAggregateString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
@@ -151,15 +140,29 @@ public interface WorkflowExecutor {
         return Optional.of(COMPLETED);
     }
 
-    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
+    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper) {
         List<Task<String>> parallelTasks = new ArrayList<>();
 
         for (AggregateInstitution aggregate : onboarding.getAggregates()) {
             OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
             final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
-        }
 
+            String onboardingAggregateWithInstitutionIdString = ctx.callActivity(VERIFY_ONBOARDING_AGGREGATE_ACTIVITY, onboardingAggregateString, String.class).await();
+            Onboarding onboardingAggregateWithInstitutionId = readOnboardingValue(objectMapper(), onboardingAggregateWithInstitutionIdString);
+
+            if (Objects.nonNull(onboardingAggregateWithInstitutionId.getInstitution().getId())) {
+                boolean existsDelegation =
+                        Boolean.parseBoolean(
+                                ctx.callActivity(
+                                                EXISTS_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionId, String.class)
+                                        .await());
+                if (!existsDelegation) {
+                    ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionIdString, String.class).await();
+                }
+            } else {
+                parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
+            }
+        }
         ctx.allOf(parallelTasks).await();
     }
 
