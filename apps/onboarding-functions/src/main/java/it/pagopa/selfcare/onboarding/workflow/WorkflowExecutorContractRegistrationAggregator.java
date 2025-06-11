@@ -50,7 +50,7 @@ public class WorkflowExecutorContractRegistrationAggregator implements WorkflowE
 
         createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper);
 
-        //ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
+        ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 
