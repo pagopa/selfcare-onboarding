@@ -302,12 +302,18 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public String verifyOnboardingAggregate(OnboardingAggregateOrchestratorInput input) {
         if (Objects.isNull(input.getInstitution().getId())) {
-            Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
-                            null, input.getInstitution().getOrigin().getValue(),
-                            input.getInstitution().getOriginId(), input.getProductId()).stream()
-                    .findFirst()
-                    .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"));
-            input.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+            input.getInstitution().setId(
+                    onboardingRepository.findByFilters(
+                                    input.getInstitution().getTaxCode(),
+                                    null,
+                                    input.getInstitution().getOrigin().getValue(),
+                                    input.getInstitution().getOriginId(),
+                                    input.getProductId())
+                            .stream()
+                            .findFirst()
+                            .map(o -> o.getInstitution().getId())
+                            .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"))
+            );
         }
 
         if (Objects.isNull(input.getAggregate().getId())) {
