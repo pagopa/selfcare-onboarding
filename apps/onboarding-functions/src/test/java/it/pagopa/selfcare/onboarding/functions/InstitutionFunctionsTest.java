@@ -148,7 +148,7 @@ public class InstitutionFunctionsTest {
         function.deleteInstitutionAndUserOnboarding(orchestrationContext, executionContext);
 
         // then
-        Mockito.verify(orchestrationContext, times(1)).callActivity(any(), any(), any(), any());
+        Mockito.verify(orchestrationContext, times(2)).callActivity(any(), any(), any(), any());
     }
 
     @Test
@@ -178,6 +178,16 @@ public class InstitutionFunctionsTest {
         function.deleteInstitutionOnboarding(institutionUserFilters, executionContext);
 
         verify(institutionService, times(1)).deleteByIdAndProductId(any(), any());
+    }
+
+    @Test
+    void deleteUser() throws JsonProcessingException {
+
+        doNothing().when(userService).deleteByIdAndInstitutionIdAndProductId(any(), any());
+
+        function.deleteUserOnboarding(institutionUserFilters, executionContext);
+
+        verify(userService, times(1)).deleteByIdAndInstitutionIdAndProductId(any(), any());
     }
 
 }
