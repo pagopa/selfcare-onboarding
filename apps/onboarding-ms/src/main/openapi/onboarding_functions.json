@@ -521,7 +521,9 @@
           "FOR_APPROVE_GPU",
           "CONFIRMATION",
           "IMPORT",
-          "IMPORT_AGGREGATION"
+          "IMPORT_AGGREGATION",
+          "CONFIRMATION_AGGREGATOR",
+          "CONTRACT_REGISTRATION_AGGREGATOR"
         ],
         "type": "string"
       },
