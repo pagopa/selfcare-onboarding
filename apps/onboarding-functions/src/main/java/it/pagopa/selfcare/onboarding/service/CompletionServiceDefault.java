@@ -140,7 +140,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     public InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
         if (forceInstitutionCreation) {
-            //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
+            //When onboarding a pg institution this condition ensures that the institution's information are persisted correctly
             return createInstitution(onboarding.getInstitution());
         }
 
