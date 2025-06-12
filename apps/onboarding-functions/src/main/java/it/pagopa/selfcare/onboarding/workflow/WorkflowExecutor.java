@@ -157,7 +157,11 @@ public interface WorkflowExecutor {
                                                 EXISTS_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionId, String.class)
                                         .await());
                 if (!existsDelegation) {
-                    ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionIdString, String.class).await();
+                    String delegationId = ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionIdString, String.class).await();
+                    onboardingAggregateWithInstitutionId.setDelegationId(delegationId);
+
+                    final String onboardingWithDelegationIdString = getOnboardingString(objectMapper(), onboardingAggregateWithInstitutionId);
+                    ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithDelegationIdString, String.class).await();
                 }
             } else {
                 parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));

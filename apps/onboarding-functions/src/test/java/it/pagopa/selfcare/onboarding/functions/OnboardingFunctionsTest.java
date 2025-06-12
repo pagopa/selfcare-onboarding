@@ -271,6 +271,9 @@ class OnboardingFunctionsTest {
     Task<String> createDelegationTask = mockTaskWithValue("delegation-created");
     when(orchestrationContext.callActivity(eq(CREATE_DELEGATION_ACTIVITY), any(), eq(String.class)))
             .thenReturn(createDelegationTask);
+    Task<String> createUserTask = mockTaskWithValue("user-created");
+    when(orchestrationContext.callActivity(eq(CREATE_USERS_ACTIVITY), any(), eq(String.class)))
+            .thenReturn(createUserTask);
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
