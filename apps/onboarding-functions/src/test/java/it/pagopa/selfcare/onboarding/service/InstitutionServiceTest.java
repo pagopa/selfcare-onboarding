@@ -47,4 +47,10 @@ class InstitutionServiceTest {
     assertThrows(RuntimeException.class, () -> institutionService.deleteByIdAndProductId(institutionId, productId));
   }
 
+  @Test
+  void deleteInstitutionWithNullResponse() {
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(null);
+    assertThrows(RuntimeException.class, () -> institutionService.deleteByIdAndProductId(institutionId, productId));
+  }
+
 }

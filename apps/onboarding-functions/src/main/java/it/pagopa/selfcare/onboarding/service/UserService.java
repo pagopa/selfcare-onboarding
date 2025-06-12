@@ -9,13 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_json.api.UserApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class UserService {
-
-    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @RestClient
     @Inject

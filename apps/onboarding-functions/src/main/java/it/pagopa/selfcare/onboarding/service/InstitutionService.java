@@ -23,7 +23,7 @@ public class InstitutionService {
     public void deleteByIdAndProductId(String id, String productId) {
         log.debug("Deleting institution {} for product {}", id, productId);
         DeletedUserCountResponse response =  institutionApi.deleteUserInstitutionProductUsers(id, productId);
-        if (Objects.nonNull(response) && response.getDeletedUserCount() < 1) {
+        if (Objects.isNull(response) || (Objects.nonNull(response) && response.getDeletedUserCount() < 1)) {
             log.error("Error during institution deletion: {}", response);
             throw new GenericOnboardingException("Impossible to delete institution with ID: " + id);
         }
