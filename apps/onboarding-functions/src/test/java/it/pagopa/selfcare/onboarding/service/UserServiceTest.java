@@ -1,8 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,7 +15,8 @@ import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openapi.quarkus.user_json.api.UserApi;
+import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.DeletedUserCountResponse;
 
 @QuarkusTest
 class UserServiceTest {
@@ -24,7 +25,7 @@ class UserServiceTest {
   UserService userService;
 
   @RestClient @InjectMock
-  UserApi userApi;
+  InstitutionApi institutionApi;
 
   @InjectMock
   OnboardingRepository onboardingRepository;
@@ -93,6 +94,43 @@ class UserServiceTest {
 
     Mockito.verify(onboardingRepository, times(1))
             .findByOnboardingUsers(institutionId, productId);
+
+  }
+
+  @Test
+  void deleteByIdAndInstitutionIdAndProductId() {
+    // when
+    DeletedUserCountResponse response = new DeletedUserCountResponse();
+    response.setInstitutionId(institutionId);
+    response.setProductId(productId);
+    response.setDeletedUserCount(1L);
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(response);
+
+    userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId);
+
+    Mockito.verify(institutionApi, times(1)).deleteUserInstitutionProductUsers(any(), any());
+
+  }
+
+  @Test
+  void deleteUserWithException() {
+    // when
+    DeletedUserCountResponse response = new DeletedUserCountResponse();
+    response.setInstitutionId(institutionId);
+    response.setProductId(productId);
+    response.setDeletedUserCount(0L);
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(response);
+
+    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
+
+  }
+
+  @Test
+  void deleteUserWithNullResponse() {
+    // when
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(null);
+
+    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
 
   }
 

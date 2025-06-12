@@ -1,15 +1,15 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.user_json.api.InstitutionApi;
-import org.openapi.quarkus.user_json.model.DeletedUserCountResponse;
+import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 @ApplicationScoped
 public class InstitutionService {
@@ -22,10 +22,11 @@ public class InstitutionService {
 
     public void deleteByIdAndProductId(String id, String productId) {
         log.debug("Deleting institution {} for product {}", id, productId);
-        DeletedUserCountResponse response =  institutionApi.deleteUserInstitutionProductUsers(id, productId);
-        if (Objects.isNull(response) || (Objects.nonNull(response) && response.getDeletedUserCount() < 1)) {
-            log.error("Error during institution deletion: {}", response);
-            throw new GenericOnboardingException("Impossible to delete institution with ID: " + id);
+        try (Response response =  institutionApi.deleteOnboardedInstitutionUsingDELETE(productId, id)) {
+            if (!SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                log.error("Error during institution deletion: {}", response);
+                throw new GenericOnboardingException("Impossible to delete institution with ID: " + id);
+            }
         }
     }
 }

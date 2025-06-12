@@ -24,21 +24,27 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class InstitutionFunctions {
+  private static final Logger logger = LoggerFactory.getLogger(InstitutionFunctions.class.getName());
   private static final String FORMAT_LOGGER_INSTITUTION_STRING = "%s: %s";
   private static final String CREATED_DELETE_INSTITUTION_ORCHESTRATION_WITH_INSTANCE_ID_MSG = "Created new DeleteInstitutionAndUser orchestration with instance ID = ";
   private final InstitutionService institutionService;
+  private final UserService userService;
   private final OnboardingService onboardingService;
   private final ObjectMapper objectMapper;
   private final TaskOptions optionsRetry;
 
   public InstitutionFunctions(ObjectMapper objectMapper,
+                              UserService userService,
                               InstitutionService institutionService,
                               OnboardingService onboardingService,
                               RetryPolicyConfig retryPolicyConfig) {
     this.objectMapper = objectMapper;
     this.institutionService = institutionService;
+    this.userService = userService;
     this.onboardingService = onboardingService;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
@@ -52,10 +58,10 @@ public class InstitutionFunctions {
    */
   @FunctionName("TriggerDeleteInstitutionAndUser")
   public HttpResponseMessage deleteInstitutionAndUserTrigger(
-    @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-    @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
+          @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+          @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
 
-    final ExecutionContext context) {
+          final ExecutionContext context) {
     context.getLogger().info("TriggerDeleteInstitutionAndUser processed a request");
 
     final String onboardingId = request.getQueryParameters().get("onboardingId");
@@ -77,12 +83,12 @@ public class InstitutionFunctions {
    */
   @FunctionName("DeleteInstitutionAndUserOnboarding")
   public void deleteInstitutionAndUserOnboarding(
-    @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
-    ExecutionContext functionContext) throws JsonProcessingException {
+          @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+          ExecutionContext functionContext) throws JsonProcessingException {
 
     String onboardingId = ctx.getInput(String.class);
     if (functionContext.getLogger().isLoggable(Level.INFO)) {
-      functionContext.getLogger().info("DeleteInstitutionAndUserOnboarding orchestration started with input: " + onboardingId);
+      functionContext.getLogger().info("DeleteInstitutionAndUser orchestration started with input: " + onboardingId);
     }
 
     Onboarding onboarding = getOnboarding(onboardingId);
@@ -96,7 +102,9 @@ public class InstitutionFunctions {
                     String.class)
             .await();
 
-    functionContext.getLogger().info("DeleteInstitutionAndUserOnboarding orchestration completed");
+    processUserDeletions(ctx, filters);
+
+    functionContext.getLogger().info("DeleteInstitutionAndUser orchestration completed");
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
@@ -116,6 +124,23 @@ public class InstitutionFunctions {
     institutionService.deleteByIdAndProductId(filters.getInstitutionId(), filters.getProductId());
   }
 
+  /** This is the activity function that gets invoked by the orchestrator function. */
+  @FunctionName(DELETE_USER_ONBOARDING_ACTIVITY_NAME)
+  public void deleteUserOnboarding(
+          @DurableActivityTrigger(name = "filtersString") String filtersString,
+          final ExecutionContext context) throws JsonProcessingException {
+    context
+            .getLogger()
+            .info(
+                    () ->
+                            String.format(
+                                    FORMAT_LOGGER_INSTITUTION_STRING,
+                                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
+                                    filtersString));
+    UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
+    userService.deleteByIdAndInstitutionIdAndProductId(filters.getInstitutionId(), filters.getProductId());
+  }
+
   private static UserInstitutionFilters getUserInstitutionFilters(Onboarding onboarding) {
     return UserInstitutionFilters
             .builder()
@@ -131,6 +156,22 @@ public class InstitutionFunctions {
                     () ->
                             new ResourceNotFoundException(
                                     String.format("Onboarding with id %s not found!", onboardingId)));
+  }
+
+  private void processUserDeletions(TaskOrchestrationContext ctx, UserInstitutionFilters filters) throws JsonProcessingException {
+
+    logger.info("processUserDeletions started with filters: {}", filters);
+    var enrichedFilters = objectMapper.writeValueAsString(filters);
+
+    ctx.callActivity(
+                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
+                    enrichedFilters,
+                    optionsRetry,
+                    String.class)
+            .await();
+
+    logger.debug("processUserDeletions completed");
+
   }
 
 }
