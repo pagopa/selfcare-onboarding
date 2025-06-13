@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -10,6 +8,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 @ApplicationScoped
 public class InstitutionService {

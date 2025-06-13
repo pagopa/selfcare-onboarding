@@ -141,6 +141,22 @@ public class InstitutionFunctions {
     userService.deleteByIdAndInstitutionIdAndProductId(filters.getInstitutionId(), filters.getProductId());
   }
 
+  private void processUserDeletions(TaskOrchestrationContext ctx, UserInstitutionFilters filters) throws JsonProcessingException {
+
+    logger.info("processUserDeletions started with filters: {}", filters);
+    var enrichedFilters = objectMapper.writeValueAsString(filters);
+
+    ctx.callActivity(
+                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
+                    enrichedFilters,
+                    optionsRetry,
+                    String.class)
+            .await();
+
+    logger.debug("processUserDeletions completed");
+
+  }
+
   private static UserInstitutionFilters getUserInstitutionFilters(Onboarding onboarding) {
     return UserInstitutionFilters
             .builder()
@@ -156,22 +172,6 @@ public class InstitutionFunctions {
                     () ->
                             new ResourceNotFoundException(
                                     String.format("Onboarding with id %s not found!", onboardingId)));
-  }
-
-  private void processUserDeletions(TaskOrchestrationContext ctx, UserInstitutionFilters filters) throws JsonProcessingException {
-
-    logger.info("processUserDeletions started with filters: {}", filters);
-    var enrichedFilters = objectMapper.writeValueAsString(filters);
-
-    ctx.callActivity(
-                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
-                    enrichedFilters,
-                    optionsRetry,
-                    String.class)
-            .await();
-
-    logger.debug("processUserDeletions completed");
-
   }
 
 }
