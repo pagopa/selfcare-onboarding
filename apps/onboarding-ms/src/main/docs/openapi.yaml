@@ -346,10 +346,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Asynchronously complete aggregated onboarding to COMPLETED status.
-      description: Perform onboarding aggregation as /onboarding but completing the
-        onboarding request to COMPLETED phase. The operation will be performed async
-        due to the possible amount of time the process could take.
+      summary: Asynchronously complete aggregated onboarding to PENDING status.
+      description: Perform onboarding aggregation as /onboarding to PENDING phase.
+        The operation will be performed async due to the possible amount of time the
+        process could take.
       operationId: onboardingAggregationCompletion
       requestBody:
         content:
@@ -410,6 +410,33 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/OnboardingPaRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/onboarding/aggregation/psp/completion:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: Asynchronously complete aggregated PSP onboarding to PENDING status.
+      description: Perform onboarding aggregation as /onboarding to PENDING phase.
+        The operation will be performed async due to the possible amount of time the
+        process could take.
+      operationId: onboardingAggregationPspCompletion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingPspRequest"
       responses:
         "200":
           description: OK
