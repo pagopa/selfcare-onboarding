@@ -183,11 +183,12 @@ public class InstitutionFunctionsTest {
     @Test
     void deleteUser() throws JsonProcessingException {
 
-        doNothing().when(userService).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
+        doNothing().when(userService).deleteByIdAndInstitutionIdAndProductId(any(), any());
 
         function.deleteUserOnboarding(institutionUserFilters, executionContext);
 
-        verify(userService, times(1)).deleteByIdAndInstitutionIdAndProductId(any(), any(), any());
+        verify(userService, times(1)).deleteByIdAndInstitutionIdAndProductId(any(), any());
     }
+
 }
 
