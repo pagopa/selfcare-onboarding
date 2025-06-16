@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <commons-sdk-version>0.7.1</commons-sdk-version>
+        <commons-sdk-version>0.8.0</commons-sdk-version>
     </properties>
 
     <dependencies>
