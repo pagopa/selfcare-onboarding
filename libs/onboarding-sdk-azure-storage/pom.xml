@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <azure-storage-blob-version>12.30.0</azure-storage-blob-version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
-    <netty.version>4.2.0.Final</netty.version>
+    <netty-bom.version>4.1.118.Final</netty-bom.version>
   </properties>
 
 
@@ -25,7 +25,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>${netty.version}</version>
+        <version>${netty-bom.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
