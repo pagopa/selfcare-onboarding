@@ -2,8 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -12,44 +11,27 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.resteasy.core.ServerResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.openapi.quarkus.user_json.api.UserApi;
+import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.DeletedUserCountResponse;
 
 @QuarkusTest
 class UserServiceTest {
 
   @Inject
   UserService userService;
+
   @RestClient @InjectMock
-  UserApi userApi;
+  InstitutionApi institutionApi;
+
   @InjectMock
   OnboardingRepository onboardingRepository;
 
   private final String productId = "productId";
-  private final String userId = "userId";
   private final String institutionId = "institutionId";
-
-  @Test
-  void deleteUser() {
-    Response response = new ServerResponse(null, 200, null);
-    when(userApi.deleteProducts(any(), any(), any())).thenReturn(response);
-    userService.deleteByIdAndInstitutionIdAndProductId("userId", institutionId, productId );
-
-    Mockito.verify(userApi, times(1))
-            .deleteProducts(any(), any(), any());
-  }
-
-  @Test
-  void deleteUserWithException() {
-    Response response = new ServerResponse(null, 500, null);
-    when(userApi.deleteProducts(any(), any(), any())).thenReturn(response);
-    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(userId, institutionId, productId));
-  }
 
   @Test
   void findByInstitutionAndProduct() {
@@ -82,6 +64,7 @@ class UserServiceTest {
     onboarding.setInstitution(institution);
     onboarding.setProductId(productId);
     User user = new User();
+    String userId = "userId";
     user.setId(userId);
     onboarding.setUsers(List.of(user));
     // when
@@ -111,6 +94,43 @@ class UserServiceTest {
 
     Mockito.verify(onboardingRepository, times(1))
             .findByOnboardingUsers(institutionId, productId);
+
+  }
+
+  @Test
+  void deleteByIdAndInstitutionIdAndProductId() {
+    // when
+    DeletedUserCountResponse response = new DeletedUserCountResponse();
+    response.setInstitutionId(institutionId);
+    response.setProductId(productId);
+    response.setDeletedUserCount(1L);
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(response);
+
+    userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId);
+
+    Mockito.verify(institutionApi, times(1)).deleteUserInstitutionProductUsers(any(), any());
+
+  }
+
+  @Test
+  void deleteUserWithException() {
+    // when
+    DeletedUserCountResponse response = new DeletedUserCountResponse();
+    response.setInstitutionId(institutionId);
+    response.setProductId(productId);
+    response.setDeletedUserCount(0L);
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(response);
+
+    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
+
+  }
+
+  @Test
+  void deleteUserWithNullResponse() {
+    // when
+    when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(null);
+
+    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
 
   }
 

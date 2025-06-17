@@ -122,6 +122,84 @@
         } ]
       }
     },
+    "/institutions/{institutionId}/products/{productId}/users" : {
+      "delete" : {
+        "tags" : [ "Institution" ],
+        "summary" : "Logically delete all the users associated with a product of an institution",
+        "description" : "Set the status of all the users associated with a product of an institution to DELETED",
+        "operationId" : "deleteUserInstitutionProductUsers",
+        "parameters" : [ {
+          "name" : "institutionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeletedUserCountResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/institutions/{institutionId}" : {
       "put" : {
         "tags" : [ "Institution" ],
@@ -1945,6 +2023,21 @@
         "properties" : {
           "email" : {
             "$ref" : "#/components/schemas/CertifiableFieldResponseString"
+          }
+        }
+      },
+      "DeletedUserCountResponse" : {
+        "type" : "object",
+        "properties" : {
+          "institutionId" : {
+            "type" : "string"
+          },
+          "productId" : {
+            "type" : "string"
+          },
+          "deletedUserCount" : {
+            "format" : "int64",
+            "type" : "integer"
           }
         }
       }

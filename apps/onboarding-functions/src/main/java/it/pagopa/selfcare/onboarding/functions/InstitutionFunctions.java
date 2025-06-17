@@ -17,11 +17,9 @@ import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.dto.UserInstitutionFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.*;
 import java.time.Duration;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -60,10 +58,10 @@ public class InstitutionFunctions {
    */
   @FunctionName("TriggerDeleteInstitutionAndUser")
   public HttpResponseMessage deleteInstitutionAndUserTrigger(
-    @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
-    @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
+          @HttpTrigger(name = "req", methods = {HttpMethod.GET}, authLevel = AuthorizationLevel.FUNCTION) HttpRequestMessage<Optional<String>> request,
+          @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
 
-    final ExecutionContext context) {
+          final ExecutionContext context) {
     context.getLogger().info("TriggerDeleteInstitutionAndUser processed a request");
 
     final String onboardingId = request.getQueryParameters().get("onboardingId");
@@ -85,8 +83,8 @@ public class InstitutionFunctions {
    */
   @FunctionName("DeleteInstitutionAndUserOnboarding")
   public void deleteInstitutionAndUserOnboarding(
-    @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
-    ExecutionContext functionContext) throws JsonProcessingException {
+          @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+          ExecutionContext functionContext) throws JsonProcessingException {
 
     String onboardingId = ctx.getInput(String.class);
     if (functionContext.getLogger().isLoggable(Level.INFO)) {
@@ -104,7 +102,7 @@ public class InstitutionFunctions {
                     String.class)
             .await();
 
-    processUserDeletions(ctx, onboarding, filters);
+    processUserDeletions(ctx, filters);
 
     functionContext.getLogger().info("DeleteInstitutionAndUser orchestration completed");
   }
@@ -140,7 +138,23 @@ public class InstitutionFunctions {
                                     DELETE_USER_ONBOARDING_ACTIVITY_NAME,
                                     filtersString));
     UserInstitutionFilters filters = objectMapper.readValue(filtersString, UserInstitutionFilters.class);
-    userService.deleteByIdAndInstitutionIdAndProductId(filters.getUserId(), filters.getInstitutionId(), filters.getProductId());
+    userService.deleteByIdAndInstitutionIdAndProductId(filters.getInstitutionId(), filters.getProductId());
+  }
+
+  private void processUserDeletions(TaskOrchestrationContext ctx, UserInstitutionFilters filters) throws JsonProcessingException {
+
+    logger.info("processUserDeletions started with filters: {}", filters);
+    var enrichedFilters = objectMapper.writeValueAsString(filters);
+
+    ctx.callActivity(
+                    DELETE_USER_ONBOARDING_ACTIVITY_NAME,
+                    enrichedFilters,
+                    optionsRetry,
+                    String.class)
+            .await();
+
+    logger.debug("processUserDeletions completed");
+
   }
 
   private static UserInstitutionFilters getUserInstitutionFilters(Onboarding onboarding) {
@@ -158,29 +172,6 @@ public class InstitutionFunctions {
                     () ->
                             new ResourceNotFoundException(
                                     String.format("Onboarding with id %s not found!", onboardingId)));
-  }
-
-  private void processUserDeletions(TaskOrchestrationContext ctx, Onboarding onboarding, UserInstitutionFilters filters) throws JsonProcessingException {
-
-    logger.info("processUserDeletions started with filters: {}", filters);
-
-    List<String> userIds = new java.util.ArrayList<>(onboarding.getUsers().stream().map(User::getId).toList());
-    userIds.addAll(userService.findByInstitutionAndProduct(onboarding.getInstitution().getId(), onboarding.getProductId()));
-
-    for (String userId : userIds) {
-      filters.setUserId(userId);
-      var enrichedFilters = objectMapper.writeValueAsString(filters);
-
-      ctx.callActivity(
-                      DELETE_USER_ONBOARDING_ACTIVITY_NAME,
-                      enrichedFilters,
-                      optionsRetry,
-                      String.class)
-              .await();
-    }
-
-    logger.debug("processUserDeletions completed");
-
   }
 
 }

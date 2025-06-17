@@ -56,9 +56,11 @@ public interface OnboardingMapper {
         if (Objects.nonNull(institution)) {
             aggregate.setOrigin(institution.getOrigin());
             aggregate.setInstitutionType(institution.getInstitutionType());
+            aggregate.setCountry(institution.getCountry());
         }
         return aggregate;
     }
+
 
     @Named("mapAggregateUsers")
     default List<User> mapAggregateUsers(Onboarding onboarding, AggregateInstitution aggregateInstitution) {
