@@ -382,3 +382,11 @@ Feature: Onboarding collection
     When I send a POST request to "" with this request
     Then the response status code should be 404
     And the response should contain the text "Institution 153763712211 not found in the registry"
+
+  Scenario: Successfully store onboarding for import PRV in status REQUEST
+    Given I have a request object named "success_import_prv_request"
+    When I send a POST request for import PSP to "/import" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "PENDING"
+    And the response should have field "workflowType" with value "IMPORT"
