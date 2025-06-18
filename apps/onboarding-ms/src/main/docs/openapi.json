@@ -478,8 +478,8 @@
     "/v1/onboarding/aggregation/completion" : {
       "post" : {
         "tags" : [ "Onboarding Controller" ],
-        "summary" : "Asynchronously complete aggregated onboarding to COMPLETED status.",
-        "description" : "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take.",
+        "summary" : "Asynchronously complete aggregated onboarding to PENDING status.",
+        "description" : "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take.",
         "operationId" : "onboardingAggregationCompletion",
         "requestBody" : {
           "content" : {
@@ -562,6 +562,44 @@
             "application/json" : {
               "schema" : {
                 "$ref" : "#/components/schemas/OnboardingPaRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/aggregation/psp/completion" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller" ],
+        "summary" : "Asynchronously complete aggregated PSP onboarding to PENDING status.",
+        "description" : "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take.",
+        "operationId" : "onboardingAggregationPspCompletion",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingPspRequest"
               }
             }
           }
@@ -676,6 +714,44 @@
         "summary" : "Complete onboarding request and set status to COMPLETED.",
         "description" : "Perform onboarding as /onboarding but completing the onboarding request to COMPLETED phase.",
         "operationId" : "onboardingCompletion",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingDefaultRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/v1/onboarding/import" : {
+      "post" : {
+        "tags" : [ "Onboarding Controller", "internal-v1" ],
+        "summary" : "Import onboarding (not PA and PSP) with token creation and complete to COMPLETED.",
+        "description" : "Perform onboarding (not PA and PSP) but create token and completing the request to COMPLETED phase.",
+        "operationId" : "onboardingImport",
         "requestBody" : {
           "content" : {
             "application/json" : {

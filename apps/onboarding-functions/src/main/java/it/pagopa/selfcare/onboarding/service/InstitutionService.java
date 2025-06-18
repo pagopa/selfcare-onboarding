@@ -16,7 +16,7 @@ public class InstitutionService {
 
     private static final Logger log = LoggerFactory.getLogger(InstitutionService.class);
 
-    @RestClient 
+    @RestClient
     @Inject
     InstitutionApi institutionApi;
 

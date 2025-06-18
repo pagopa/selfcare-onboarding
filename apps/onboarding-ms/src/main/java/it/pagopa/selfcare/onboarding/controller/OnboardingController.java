@@ -211,6 +211,22 @@ public class OnboardingController {
   }
 
     @Operation(
+            summary = "Import onboarding (not PA and PSP) with token creation and complete to COMPLETED.",
+            description = "Perform onboarding (not PA and PSP) but create token and completing the request to COMPLETED phase."
+    )
+    @POST
+    @Path("/import")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingImport(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+    }
+
+    @Operation(
             summary = "Import PSP onboarding with token creation and complete to COMPLETED.",
             description = "Perform onboarding as /onboarding/psp but create token and completing the onboarding request to COMPLETED phase."
     )
@@ -519,14 +535,28 @@ public class OnboardingController {
     }
 
     @Operation(
-            summary = "Asynchronously complete aggregated onboarding to COMPLETED status.",
-            description = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take."
+            summary = "Asynchronously complete aggregated onboarding to PENDING status.",
+            description = "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take."
     )
     @Path("/aggregation/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingAggregationCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+    }
+
+    @Operation(
+            summary = "Asynchronously complete aggregated PSP onboarding to PENDING status.",
+            description = "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take."
+    )
+    @Path("/aggregation/psp/completion")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingAggregationPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));

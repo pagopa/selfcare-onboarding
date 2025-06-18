@@ -257,8 +257,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
-        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
-        onboarding.setStatus(PENDING);
+        onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATOR);
+        onboarding.setStatus(OnboardingStatus.REQUEST);
 
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
     }
@@ -1747,10 +1747,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         token.setOnboardingId(onboarding.getId());
         token.setContractTemplate(contractTemplate.getContractTemplatePath());
         token.setContractVersion(contractTemplate.getContractTemplateVersion());
-        token.setContractSigned(contractImported.getFilePath());
-        token.setContractFilename(contractImported.getFileName());
-        token.setCreatedAt(contractImported.getCreatedAt());
-        token.setUpdatedAt(contractImported.getCreatedAt());
+        if (Objects.nonNull(contractImported)) {
+            token.setContractSigned(contractImported.getFilePath());
+            token.setContractFilename(contractImported.getFileName());
+            token.setCreatedAt(contractImported.getCreatedAt());
+            token.setUpdatedAt(contractImported.getCreatedAt());
+        }
         token.setProductId(onboarding.getProductId());
         token.setType(TokenType.INSTITUTION);
         return token;

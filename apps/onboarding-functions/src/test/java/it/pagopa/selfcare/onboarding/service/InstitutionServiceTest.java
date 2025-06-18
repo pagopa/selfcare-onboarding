@@ -19,6 +19,7 @@ class InstitutionServiceTest {
 
   @Inject
   InstitutionService institutionService;
+
   @RestClient @InjectMock
   org.openapi.quarkus.core_json.api.InstitutionApi institutionApi;
 

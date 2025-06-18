@@ -744,7 +744,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingImport() {
+    void onboardingImportPA() {
 
         OnboardingImportRequest onboardingImportRequest = dummyOnboardingImport();
 
@@ -756,6 +756,28 @@ class OnboardingControllerTest {
                 .body(onboardingImportRequest)
                 .contentType(ContentType.JSON)
                 .post("/pa/import")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingImport(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingImport() {
+
+        OnboardingDefaultRequest onboardingImportRequest = dummyOnboardingDefaultRequest();
+        onboardingImportRequest.getInstitution().setInstitutionType(InstitutionType.PRV);
+
+        Mockito.when(onboardingService.onboardingImport(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingImportRequest)
+                .contentType(ContentType.JSON)
+                .post("/import")
                 .then()
                 .statusCode(200);
 
@@ -1177,7 +1199,7 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
-    void onboardingAggregationComplete() {
+    void onboardingAggregationCompletion() {
 
         Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
@@ -1187,6 +1209,25 @@ class OnboardingControllerTest {
                 .body(onboardingBaseValid)
                 .contentType(ContentType.JSON)
                 .post("/aggregation/completion")
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1))
+                .onboardingAggregationCompletion(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingAggregationPspCompletion() {
+
+        Mockito.when(onboardingService.onboardingAggregationCompletion(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        given()
+                .when()
+                .body(onboardingPspValid)
+                .contentType(ContentType.JSON)
+                .post("/aggregation/psp/completion")
                 .then()
                 .statusCode(200);
 
