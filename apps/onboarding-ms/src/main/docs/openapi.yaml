@@ -534,6 +534,34 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/import:
+    post:
+      tags:
+      - Onboarding Controller
+      - internal-v1
+      summary: Import onboarding (not PA and PSP) with token creation and complete
+        to COMPLETED.
+      description: Perform onboarding (not PA and PSP) but create token and completing
+        the request to COMPLETED phase.
+      operationId: onboardingImport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/institutionOnboardings:
     get:
       tags:
