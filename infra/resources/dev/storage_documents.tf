@@ -42,7 +42,7 @@ module "storage_documents" {
 
   tags = local.tags
 
-  cidr_subnet_contract_storage = azurerm_subnet.documents_snet.address_prefixes
+  cidr_subnet_contract_storage = [azurerm_subnet.documents_snet.id]
   key_vault_id = data.azurerm_key_vault.key_vault.id
 
   project = local.prefix
