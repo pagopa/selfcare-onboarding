@@ -20,6 +20,7 @@ public class Institution {
     private String city;
     private String country;
     private String county;
+    private String istatCode;
     private String description;
     private String digitalAddress;
     private String address;
@@ -239,6 +240,14 @@ public class Institution {
 
     public void setGpuData(GPUData gpuData) {
         this.gpuData = gpuData;
+    }
+
+    public String getIstatCode() {
+        return istatCode;
+    }
+
+    public void setIstatCode(String istatCode) {
+        this.istatCode = istatCode;
     }
 
     @Override
