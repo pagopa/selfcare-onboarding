@@ -32,7 +32,7 @@ variable "app_name" {
 }
 
 variable "cidr_subnet_contract_storage" {
-  type = list(string)
+  type        = list(string)
   description = "Documents storage address space."
 }
 
@@ -46,7 +46,7 @@ variable "env_short" {
   type        = string
   validation {
     condition = (
-    length(var.env_short) <= 1
+      length(var.env_short) <= 1
     )
     error_message = "Max length is 1 chars."
   }
@@ -74,7 +74,7 @@ variable "prefix" {
   default     = "selc"
   validation {
     condition = (
-    length(var.prefix) <= 6
+      length(var.prefix) <= 6
     )
     error_message = "Max length is 6 chars."
   }

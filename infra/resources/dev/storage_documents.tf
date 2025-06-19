@@ -15,7 +15,7 @@ resource "azurerm_subnet" "documents_snet" {
   name                 = "${local.naming_config}-subnet"
   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
   resource_group_name  = data.azurerm_virtual_network.vnet_selc.resource_group_name
-  address_prefixes = ["10.50.246.0/24"]
+  address_prefixes     = ["10.50.246.0/24"]
 }
 
 resource "azurerm_user_assigned_identity" "documents_identity" {
@@ -39,9 +39,16 @@ module "storage_documents" {
 
   resource_group_name = azurerm_resource_group.documents_sa_rg
 
-  subnet_pep_id                        = azurerm_subnet.documents_snet.id
+  subnet_pep_id = azurerm_subnet.documents_snet.id
 
   tags = local.tags
+
+  cidr_subnet_contract_storage = []
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+
+  project = local.prefix
+  storageName = "${local.prefix}${local.env_short}${local.naming_config}sa"
+  subscription = data.azurerm_subscription.current.id
 }
 
 /*module "storage_documents" {
