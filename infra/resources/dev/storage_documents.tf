@@ -34,12 +34,12 @@ module "storage_documents" {
   app_name        = local.prefix
   instance_number = "01"
 
+  virtual_network_name           = data.azurerm_virtual_network.vnet_selc.resource_group_name
+  virtual_network_resource_group = data.azurerm_virtual_network.vnet_selc.name
+
   resource_group_name = azurerm_resource_group.documents_sa_rg
 
   subnet_pep_id                        = azurerm_subnet.documents_snet.id
-  private_dns_zone_resource_group_name = data.azurerm_virtual_network.vnet_selc.resource_group_name
-
-  key_vault_id = data.azurerm_key_vault.key_vault.id
 
   tags = local.tags
 }

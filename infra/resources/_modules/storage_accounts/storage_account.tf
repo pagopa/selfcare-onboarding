@@ -14,4 +14,6 @@ module "storage_account" {
     queue = true
     table = true
   }
+
+  virtual_network = local.virtual_network
 }
