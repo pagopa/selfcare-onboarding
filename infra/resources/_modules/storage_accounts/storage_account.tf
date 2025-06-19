@@ -15,5 +15,6 @@ module "storage_account" {
     table = true
   }
 
-  virtual_network = local.virtual_network
+  private_dns_zone_resource_group_name = var.private_dns_zone_resource_group_name
+  network_rules = local.virtual_network
 }

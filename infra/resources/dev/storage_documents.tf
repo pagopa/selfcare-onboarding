@@ -1,18 +1,17 @@
-data "azurerm_subnet" "documents_sa_pep" {
-  name = provider::dx::resource_name(merge(local.naming_config, { domain = null, name = "pep", resource_type = "subnet" }))
-
-  virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
-  resource_group_name  = data.azurerm_virtual_network.vnet_selc.resource_group_name
-}
+# data "azurerm_subnet" "documents_sa_pep" {
+#   name = "${local.project}-${local.naming_config}-snet"
+#   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
+#   resource_group_name  = data.azurerm_virtual_network.vnet_selc.resource_group_name
+# }
 
 resource "azurerm_resource_group" "documents_sa_rg" {
   name = "${local.project}-${local.naming_config}-storage-rg"
   //provider::dx::resource_name(merge(local.naming_config, { resource_type = "resource_group" }))
-  location = var.location
+  location = local.location
 }
 
 resource "azurerm_subnet" "documents_snet" {
-  name                 = "${local.naming_config}-subnet"
+  name                 = "${local.project}-${local.naming_config}-snet"
   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
   resource_group_name  = data.azurerm_virtual_network.vnet_selc.resource_group_name
   address_prefixes     = ["10.50.246.0/24"]
@@ -21,7 +20,7 @@ resource "azurerm_subnet" "documents_snet" {
 resource "azurerm_user_assigned_identity" "documents_identity" {
   name                = "${local.naming_config}-identity"
   resource_group_name = azurerm_resource_group.documents_sa_rg.name
-  location            = var.location
+  location            = local.location
 }
 
 module "storage_documents" {
@@ -37,7 +36,7 @@ module "storage_documents" {
   virtual_network_name           = data.azurerm_virtual_network.vnet_selc.resource_group_name
   virtual_network_resource_group = data.azurerm_virtual_network.vnet_selc.name
 
-  resource_group_name = azurerm_resource_group.documents_sa_rg
+  resource_group_name = azurerm_resource_group.documents_sa_rg.name
 
   subnet_pep_id = azurerm_subnet.documents_snet.id
 
@@ -49,6 +48,9 @@ module "storage_documents" {
   project = local.prefix
   storageName = "${local.prefix}${local.env_short}${local.naming_config}sa"
   subscription = data.azurerm_subscription.current.id
+
+  private_dns_zone_resource_group_name = data.azurerm_virtual_network.vnet_selc.resource_group_name
+
 }
 
 /*module "storage_documents" {
@@ -94,17 +96,18 @@ module "storage_documents" {
   tags = var.tags
 }
 */
-module "storage_documents_role_assignments_ms" {
-  source  = "pagopa-dx/azure-role-assignments/azurerm"
-  version = "~>1.0"
-
-  principal_id = data.azurerm_container_app.container_app_onboarding_ms
-
-  storage_blob = [
-    {
-      storage_account_name = module.storage_documents.name
-      resource_group_name  = azurerm_resource_group.documents_sa_rg
-      role                 = "writer"
-    }
-  ]
-}
+# module "storage_documents_role_assignments_ms" {
+#   source  = "pagopa-dx/azure-role-assignments/azurerm"
+#   version = "~>1.0"
+#
+#   principal_id = data.azurerm_linux_function_app.onboarding_fn.id
+#
+#   subscription_id = data.azurerm_subscription.current.id
+#   storage_blob = [
+#     {
+#       storage_account_name = module.storage_documents.name
+#       resource_group_name  = azurerm_resource_group.documents_sa_rg
+#       role                 = "writer"
+#     }
+#   ]
+# }
