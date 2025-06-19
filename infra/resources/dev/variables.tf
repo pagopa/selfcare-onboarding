@@ -24,6 +24,8 @@ locals {
   ca_resource_group_name   = "${local.project}-container-app${var.suffix_increment}-rg"
   naming_config            = "documents"
   resource_group_name_vnet = "${var.project}-vnet-rg"
+
+  cidr_subnet_contract_storage = ["10.1.136.0/24"]
 }
 
 variable "app_name" {
