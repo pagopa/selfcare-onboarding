@@ -15,10 +15,3 @@ module "storage_account" {
     table = true
   }
 }
-
-resource "azurerm_key_vault_secret" "st_connection_string" {
-  name         = "${var.storageName}StorageConnectionString"
-  value        = module.storage_account.primary_connection_string
-  key_vault_id = var.key_vault_id
-  content_type = "connection string"
-}
