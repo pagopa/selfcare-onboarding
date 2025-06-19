@@ -14,7 +14,7 @@ resource "azurerm_subnet" "documents_snet" {
   name                 = "${local.project}-${local.naming_config}-snet"
   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
   resource_group_name  = data.azurerm_virtual_network.vnet_selc.resource_group_name
-  address_prefixes     = ["10.50.246.0/24"]
+  address_prefixes     = local.cidr_subnet_contract_storage
 }
 
 resource "azurerm_user_assigned_identity" "documents_identity" {
@@ -33,8 +33,8 @@ module "storage_documents" {
   app_name        = local.prefix
   instance_number = "01"
 
-  virtual_network_name           = data.azurerm_virtual_network.vnet_selc.resource_group_name
-  virtual_network_resource_group = data.azurerm_virtual_network.vnet_selc.name
+  virtual_network_name           = data.azurerm_virtual_network.vnet_selc.name
+  virtual_network_resource_group = data.azurerm_virtual_network.vnet_selc.resource_group_name
 
   resource_group_name = azurerm_resource_group.documents_sa_rg.name
 
@@ -42,7 +42,7 @@ module "storage_documents" {
 
   tags = local.tags
 
-  cidr_subnet_contract_storage = local.cidr_subnet_contract_storage
+  cidr_subnet_contract_storage = azurerm_subnet.documents_snet.address_prefixes
   key_vault_id = data.azurerm_key_vault.key_vault.id
 
   project = local.prefix
