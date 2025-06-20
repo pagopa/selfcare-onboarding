@@ -2,11 +2,11 @@ module "storage_account" {
   source  = "pagopa-dx/azure-storage-account/azurerm"
   version = "~>1.0"
 
-  subnet_pep_id       = var.subnet_pep_id
+  subnet_pep_id       = azurerm_subnet.documents_snet.id
   tags                = var.tags
   tier                = "l"
   environment         = local.environment
-  resource_group_name = var.resource_group_name
+  resource_group_name = azurerm_resource_group.documents_sa_rg.name
 
   subservices_enabled = {
     blob  = true
@@ -16,7 +16,12 @@ module "storage_account" {
   }
 
   private_dns_zone_resource_group_name = var.private_dns_zone_resource_group_name
-  network_rules = local.virtual_network
+  network_rules = {
+    "bypass": [],
+    "default_action": "Deny",
+    "ip_rules": [],
+    "virtual_network_subnet_ids": [azurerm_subnet.documents_snet.id]
+  }
 
   blob_features = var.blob_features
 }
