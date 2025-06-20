@@ -3014,6 +3014,9 @@
           },
           "taxId": {
             "type": "string"
+          },
+          "istatCode": {
+            "type": "string"
           }
         }
       },
@@ -3607,6 +3610,9 @@
           "description": {
             "type": "string"
           },
+          "istatCode": {
+            "type": "string"
+          },
           "digitalAddress": {
             "type": "string"
           },
@@ -4195,6 +4201,9 @@
             "type": "string"
           },
           "taxCode": {
+            "type": "string"
+          },
+          "istatCode": {
             "type": "string"
           }
         }
