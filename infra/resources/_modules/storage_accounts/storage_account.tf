@@ -6,7 +6,7 @@ module "storage_account" {
   tags                = var.tags
   tier                = "l"
   environment         = local.environment
-  resource_group_name = azurerm_resource_group.documents_sa_rg.name
+  resource_group_name = var.resource_group_name
 
   subservices_enabled = {
     blob  = true
@@ -58,4 +58,12 @@ resource "azurerm_storage_management_policy" "lifecycle" {
       }
     }
   }
+}
+
+resource "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
+  name         = "documents-storage-connection-string"
+  value        = module.storage_account.primary_connection_string
+  content_type = "text/plain"
+
+  key_vault_id = data.azurerm_key_vault.key_vault.id
 }
