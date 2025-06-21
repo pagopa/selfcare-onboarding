@@ -45,7 +45,7 @@ public class TokenFunctions {
     EntityFilter entityFilter = objectMapper.readValue(filtersString, EntityFilter.class);
     Optional<Token> token = onboardingService.getToken(entityFilter.getValue());
     token.ifPresent(t -> {
-      Token newToken = contractService.deleteContract(entityFilter.getValue(), t);
+      Token newToken = contractService.deleteContract(t);
       onboardingService.updateTokenContractSigned(newToken);
     });
     functionContext.getLogger().info("DeleteInstitutionAndUser orchestration completed");

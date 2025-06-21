@@ -33,5 +33,5 @@ public interface ContractService {
 
   void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow);
 
-  Token deleteContract(String onboardingId, Token token);
+  Token deleteContract(Token token);
 }

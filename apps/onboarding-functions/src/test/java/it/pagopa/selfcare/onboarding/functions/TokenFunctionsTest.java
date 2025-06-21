@@ -49,7 +49,7 @@ public class TokenFunctionsTest {
     tokenDeleted.setContractSigned("parties/deleted/123/file.pdf");
 
     when(onboardingService.getToken(anyString())).thenReturn(Optional.of(tokenOriginal));
-    when(contractService.deleteContract(any(), any())).thenReturn(tokenDeleted);
+    when(contractService.deleteContract(any())).thenReturn(tokenDeleted);
     doNothing().when(onboardingService).updateTokenContractSigned(any());
 
     EntityFilter entity = EntityFilter.builder().value("123").build();
