@@ -248,7 +248,7 @@ public class ContractServiceDefault implements ContractService {
   @Override
   public Token deleteContract(String onboardingId, Token token) {
     String contractFileName = Objects.requireNonNullElse(token.getContractSigned(), "");
-    log.info("START - deleteContract {} fileName: {}", onboardingId, contractFileName);
+    log.info("START - deleteContract {} fileName: {}", token.getOnboardingId(), contractFileName);
 
     try {
       // First retrieve file
