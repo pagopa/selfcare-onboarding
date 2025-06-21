@@ -17,6 +17,8 @@ public interface AzureBlobClient {
 
   String uploadFile(String path, String filename, byte[] data);
 
+  String uploadFilePath(String filePath, byte[] data);
+
   void removeFile(String fileName);
 
   BlobProperties getProperties(String filePath);

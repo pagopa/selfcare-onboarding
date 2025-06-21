@@ -158,6 +158,23 @@ public class AzureBlobClientDefault implements AzureBlobClient {
   }
 
   @Override
+  public String uploadFilePath(String filePath, byte[] data) {
+    log.debug("START - uploadFile for path: {}", filePath);
+    log.debug("uploadContract fileName = {}", filePath);
+    try {
+      final BlobContainerClient blobContainer = blobClient.getBlobContainerClient(containerName);
+      final BlobClient blob = blobContainer.getBlobClient(filePath);
+      blob.upload(BinaryData.fromBytes(data), true);
+      log.info("Uploaded {}", filePath);
+      return filePath;
+    } catch (BlobStorageException e) {
+      log.error(String.format(SelfcareAzureStorageError.ERROR_DURING_UPLOAD_FILE.getMessage(), filePath), e);
+      throw new SelfcareAzureStorageException(String.format(SelfcareAzureStorageError.ERROR_DURING_UPLOAD_FILE.getMessage(), filePath),
+        SelfcareAzureStorageError.ERROR_DURING_UPLOAD_FILE.getCode());
+    }
+  }
+
+  @Override
   public void removeFile(String fileName) {
     log.debug("START - delete file for fileName: {}", fileName);
 
