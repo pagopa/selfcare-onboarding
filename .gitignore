@@ -61,4 +61,3 @@ apps/onboarding-functions/src/test/resources/storagedata/**
 /docker-compose.fn.yml
 /Dockerfile
 /apps/onboarding-functions/src/test/resources/azurite-data/*
-/apps/onboarding-functions/src/test/resources/azurite-data/*
