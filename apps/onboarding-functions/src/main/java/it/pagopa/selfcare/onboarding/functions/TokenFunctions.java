@@ -48,6 +48,8 @@ public class TokenFunctions {
       Token newToken = contractService.deleteContract(t);
       onboardingService.updateTokenContractSigned(newToken);
     });
-    functionContext.getLogger().info("DeleteInstitutionAndUser orchestration completed");
+    functionContext
+      .getLogger()
+      .info(() -> String.format(FORMAT_LOGGER_INSTITUTION_STRING, DELETE_TOKEN_CONTRACT_ACTIVITY_NAME, "complete"));
   }
 }

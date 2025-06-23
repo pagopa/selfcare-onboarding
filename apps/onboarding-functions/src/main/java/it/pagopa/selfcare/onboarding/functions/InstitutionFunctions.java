@@ -164,7 +164,7 @@ public class InstitutionFunctions {
   }
 
   private void processDocumentsDeletions(TaskOrchestrationContext ctx, String onboardingId) throws JsonProcessingException {
-    logger.info("processUserDeletions started with id: {}", onboardingId);
+    logger.info("processDocumentsDeletions started with id: {}", onboardingId);
     EntityFilter entityFilter = EntityFilter.builder().value(onboardingId).build();
     var enrichedFilters = objectMapper.writeValueAsString(entityFilter);
 
@@ -175,7 +175,7 @@ public class InstitutionFunctions {
         String.class)
       .await();
 
-    logger.debug("processUserDeletions completed");
+    logger.debug("processDocumentsDeletions completed");
   }
 
   private static UserInstitutionFilters getUserInstitutionFilters(Onboarding onboarding) {
