@@ -202,4 +202,13 @@ public interface WorkflowExecutor {
         }
     }
 
+    default void sendMailForUserActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow, OnboardingMapper onboardingMapper) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        onboarding.getUsers().forEach(user -> {
+            Onboarding onboardingWithSingleUser = onboardingMapper.mapToOnboardingWithSingleUser(onboardingWorkflow.getOnboarding(), user);
+            onboardingWorkflow.setOnboarding(onboardingWithSingleUser);
+            ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
+        });
+    }
+
 }
