@@ -205,17 +205,17 @@ public class OnboardingFunctions {
 
       switch (onboarding.getWorkflowType()) {
         case CONTRACT_REGISTRATION ->
-            workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry);
+            workflowExecutor = new WorkflowExecutorContractRegistration(objectMapper, optionsRetry, onboardingMapper);
         case CONTRACT_REGISTRATION_AGGREGATOR ->
             workflowExecutor =
                 new WorkflowExecutorContractRegistrationAggregator(
                     objectMapper, optionsRetry, onboardingMapper);
         case FOR_APPROVE ->
-            workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry);
+            workflowExecutor = new WorkflowExecutorForApprove(objectMapper, optionsRetry, onboardingMapper);
         case FOR_APPROVE_PT ->
             workflowExecutor = new WorkflowExecutorForApprovePt(objectMapper, optionsRetry);
         case FOR_APPROVE_GPU ->
-            workflowExecutor = new WorkflowExecutorForApproveGpu(objectMapper, optionsRetry);
+            workflowExecutor = new WorkflowExecutorForApproveGpu(objectMapper, optionsRetry, onboardingMapper);
         case CONFIRMATION ->
             workflowExecutor = new WorkflowExecutorConfirmation(objectMapper, optionsRetry);
         case CONFIRMATION_AGGREGATE ->
@@ -451,6 +451,23 @@ public class OnboardingFunctions {
                     SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY,
                     onboardingString));
     service.sendMailRegistration(readOnboardingValue(objectMapper, onboardingString));
+  }
+
+  /** This is the activity function that gets invoked by the orchestrator function. */
+  @FunctionName(SEND_MAIL_REGISTRATION_FOR_USER)
+  public void sendMailRegistrationForUser(
+          @DurableActivityTrigger(name = "onboardingString") String onboardingString,
+          final ExecutionContext context) {
+    context
+            .getLogger()
+            .info(
+                    () ->
+                            String.format(
+                                    FORMAT_LOGGER_ONBOARDING_STRING,
+                                    SEND_MAIL_REGISTRATION_FOR_USER,
+                                    onboardingString));
+    service.sendMailRegistrationForUser(
+            readOnboardingValue(objectMapper, onboardingString));
   }
 
   @FunctionName(SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY)

@@ -211,6 +211,22 @@ public class OnboardingController {
   }
 
     @Operation(
+            summary = "Import onboarding (not PA and PSP) with token creation and complete to COMPLETED.",
+            description = "Perform onboarding (not PA and PSP) but create token and completing the request to COMPLETED phase."
+    )
+    @POST
+    @Path("/import")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingImport(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+    }
+
+    @Operation(
             summary = "Import PSP onboarding with token creation and complete to COMPLETED.",
             description = "Perform onboarding as /onboarding/psp but create token and completing the onboarding request to COMPLETED phase."
     )
