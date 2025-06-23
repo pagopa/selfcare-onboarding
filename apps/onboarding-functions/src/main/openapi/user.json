@@ -122,6 +122,192 @@
         } ]
       }
     },
+    "/institutions/{institutionId}" : {
+      "put" : {
+        "tags" : [ "Institution" ],
+        "summary" : "Update institution's description across all userInstitution records",
+        "description" : "Modifies the description field in all occurrences of `userInstitution` entities associated with a given institutionId. This ensures that the institution's descriptive information is consistently updated across all related user records.",
+        "operationId" : "updateInstitutionDescription",
+        "parameters" : [ {
+          "name" : "institutionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateDescriptionDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/institutions/{institutionId}/product/{productId}/check-user" : {
+      "post" : {
+        "tags" : [ "Institution" ],
+        "summary" : "Verify if a user is already onboarded on an institution and product given its fiscal code",
+        "description" : "Verify if a user is already onboarded on an institution and product given its fiscal code",
+        "operationId" : "checkUserUsingPOST",
+        "parameters" : [ {
+          "name" : "institutionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SearchUserDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "boolean"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/institutions/{institutionId}/products/{productId}/created-at" : {
+      "put" : {
+        "tags" : [ "Institution" ],
+        "summary" : "Update user's onboarded product creation date",
+        "description" : "Updates the `createdAt` timestamp for a user's onboarded product based on the provided institutionId, productId, and list of userIds. This is useful for tracking when a user was onboarded to a specific product within an institution.",
+        "operationId" : "updateUserProductCreatedAt",
+        "parameters" : [ {
+          "name" : "institutionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "createdAt",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/OffsetDateTime"
+          }
+        }, {
+          "name" : "userIds",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/institutions/{institutionId}/products/{productId}/users" : {
       "delete" : {
         "tags" : [ "Institution" ],
@@ -200,54 +386,12 @@
         } ]
       }
     },
-    "/institutions/{institutionId}" : {
-      "put" : {
+    "/institutions/{institutionId}/products/{productId}/users/count" : {
+      "get" : {
         "tags" : [ "Institution" ],
-        "summary" : "Update institution's description across all userInstitution records",
-        "description" : "Modifies the description field in all occurrences of `userInstitution` entities associated with a given institutionId. This ensures that the institution's descriptive information is consistently updated across all related user records.",
-        "operationId" : "updateInstitutionDescription",
-        "parameters" : [ {
-          "name" : "institutionId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UpdateDescriptionDto"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : { }
-            }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
-          }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ ]
-        } ]
-      }
-    },
-    "/institutions/{institutionId}/products/{productId}/created-at" : {
-      "put" : {
-        "tags" : [ "Institution" ],
-        "summary" : "Update user's onboarded product creation date",
-        "description" : "Updates the `createdAt` timestamp for a user's onboarded product based on the provided institutionId, productId, and list of userIds. This is useful for tracking when a user was onboarded to a specific product within an institution.",
-        "operationId" : "updateUserProductCreatedAt",
+        "summary" : "Get the number of users for a certain product of an institution with a certain role and status",
+        "description" : "Count the number of users associated with a specific product of an institution, with an optional filter by roles and status. If no filter is specified count users with any role in status ACTIVE",
+        "operationId" : "getUsersCount",
         "parameters" : [ {
           "name" : "institutionId",
           "in" : "path",
@@ -263,16 +407,17 @@
             "type" : "string"
           }
         }, {
-          "name" : "createdAt",
+          "name" : "roles",
           "in" : "query",
-          "required" : true,
           "schema" : {
-            "$ref" : "#/components/schemas/OffsetDateTime"
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }, {
-          "name" : "userIds",
+          "name" : "status",
           "in" : "query",
-          "required" : true,
           "schema" : {
             "type" : "array",
             "items" : {
@@ -284,7 +429,11 @@
           "200" : {
             "description" : "OK",
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsersCountResponse"
+                }
+              }
             }
           },
           "401" : {
@@ -1410,13 +1559,101 @@
         },
         "responses" : {
           "200" : {
-            "description" : "The user is already a manager for the specified product.",
+            "description" : "The user is already onboarded for the specified product.",
             "content" : {
               "application/json" : { }
             }
           },
           "201" : {
             "description" : "The user has been created or updated with a new role."
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/users/{userId}/send-mail-otp" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Send an email with OTP",
+        "description" : "The sendEmailOtp function is used to send email containing a One Time Password for account verification",
+        "operationId" : "sendEmailOtp",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendEmailOtpDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Email send accepted!"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
+    "/users/{userId}/send-mail-request" : {
+      "post" : {
+        "tags" : [ "User" ],
+        "summary" : "Sends an email notification to a user when the institution receives an onboarding request.",
+        "description" : "Sends an email notification to a user when the institution receives an onboarding request.",
+        "operationId" : "sendMailRequest",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SendMailDto"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created"
           },
           "401" : {
             "description" : "Not Authorized"
@@ -1495,6 +1732,21 @@
           },
           "hasToSendEmail" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "DeletedUserCountResponse" : {
+        "type" : "object",
+        "properties" : {
+          "institutionId" : {
+            "type" : "string"
+          },
+          "productId" : {
+            "type" : "string"
+          },
+          "deletedUserCount" : {
+            "format" : "int64",
+            "type" : "integer"
           }
         }
       },
@@ -1591,6 +1843,10 @@
           }
         }
       },
+      "PartyRole" : {
+        "enum" : [ "MANAGER", "DELEGATE", "SUB_DELEGATE", "OPERATOR", "ADMIN_EA" ],
+        "type" : "string"
+      },
       "PermissionTypeEnum" : {
         "enum" : [ "ADMIN", "ANY" ],
         "type" : "string"
@@ -1684,6 +1940,41 @@
           }
         }
       },
+      "SendEmailOtpDto" : {
+        "required" : [ "otp", "institutionalEmail" ],
+        "type" : "object",
+        "properties" : {
+          "otp" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "institutionalEmail" : {
+            "minLength" : 1,
+            "type" : "string"
+          }
+        }
+      },
+      "SendMailDto" : {
+        "required" : [ "userMailUuid", "institutionName", "productId", "role" ],
+        "type" : "object",
+        "properties" : {
+          "userMailUuid" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "institutionName" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "productId" : {
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "role" : {
+            "$ref" : "#/components/schemas/PartyRole"
+          }
+        }
+      },
       "UpdateDescriptionDto" : {
         "required" : [ "institutionDescription" ],
         "type" : "object",
@@ -1698,7 +1989,6 @@
         }
       },
       "UpdateUserRequest" : {
-        "required" : [ "email" ],
         "type" : "object",
         "properties" : {
           "name" : {
@@ -1708,6 +1998,10 @@
             "type" : "string"
           },
           "email" : {
+            "type" : "string"
+          },
+          "mobilePhone" : {
+            "pattern" : "^\\+?[0-9]{7,15}$",
             "type" : "string"
           }
         }
@@ -1789,6 +2083,9 @@
             "$ref" : "#/components/schemas/CertifiableFieldResponseString"
           },
           "email" : {
+            "$ref" : "#/components/schemas/CertifiableFieldResponseString"
+          },
+          "mobilePhone" : {
             "$ref" : "#/components/schemas/CertifiableFieldResponseString"
           },
           "workContacts" : {
@@ -1966,6 +2263,9 @@
           "email" : {
             "type" : "string"
           },
+          "mobilePhone" : {
+            "type" : "string"
+          },
           "workContacts" : {
             "type" : "object",
             "additionalProperties" : {
@@ -1989,6 +2289,9 @@
           "email" : {
             "type" : "string"
           },
+          "mobilePhone" : {
+            "type" : "string"
+          },
           "role" : {
             "description" : "Available values: MANAGER, DELEGATE, SUB_DELEGATE, OPERATOR, ADMIN_EA",
             "type" : "string"
@@ -2004,6 +2307,33 @@
           },
           "relationshipStatus" : {
             "$ref" : "#/components/schemas/OnboardedProductState"
+          }
+        }
+      },
+      "UsersCountResponse" : {
+        "type" : "object",
+        "properties" : {
+          "institutionId" : {
+            "type" : "string"
+          },
+          "productId" : {
+            "type" : "string"
+          },
+          "roles" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PartyRole"
+            }
+          },
+          "status" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/OnboardedProductState"
+            }
+          },
+          "count" : {
+            "format" : "int64",
+            "type" : "integer"
           }
         }
       },
@@ -2023,21 +2353,6 @@
         "properties" : {
           "email" : {
             "$ref" : "#/components/schemas/CertifiableFieldResponseString"
-          }
-        }
-      },
-      "DeletedUserCountResponse" : {
-        "type" : "object",
-        "properties" : {
-          "institutionId" : {
-            "type" : "string"
-          },
-          "productId" : {
-            "type" : "string"
-          },
-          "deletedUserCount" : {
-            "format" : "int64",
-            "type" : "integer"
           }
         }
       }

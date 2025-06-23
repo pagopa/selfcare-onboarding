@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.GenericError;
@@ -39,6 +40,7 @@ import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.SendMailDto;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -60,6 +62,8 @@ public class OnboardingService {
 
   @RestClient @Inject UserApi userRegistryApi;
   @RestClient @Inject InstitutionApi userInstitutionApi;
+  @RestClient @Inject
+  org.openapi.quarkus.user_json.api.UserApi userApi;
   @Inject NotificationService notificationService;
   private final ContractService contractService;
   private final ProductService productService;
@@ -67,6 +71,7 @@ public class OnboardingService {
   private final TokenRepository tokenRepository;
   private final MailTemplatePathConfig mailTemplatePathConfig;
   private final MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+  private final UserMapper userMapper;
 
   public OnboardingService(
           ProductService productService,
@@ -75,7 +80,7 @@ public class OnboardingService {
           MailTemplatePathConfig mailTemplatePathConfig,
           MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig,
           TokenRepository tokenRepository,
-          NotificationService notificationService) {
+          NotificationService notificationService, UserMapper userMapper) {
     this.contractService = contractService;
     this.repository = repository;
     this.tokenRepository = tokenRepository;
@@ -83,6 +88,7 @@ public class OnboardingService {
     this.notificationService = notificationService;
     this.mailTemplatePathConfig = mailTemplatePathConfig;
     this.mailTemplatePlaceholdersConfig = mailTemplatePlaceholdersConfig;
+      this.userMapper = userMapper;
   }
 
   public Optional<Onboarding> getOnboarding(String onboardingId) {
@@ -231,6 +237,22 @@ public class OnboardingService {
             sendMailInput.userRequestName,
             sendMailInput.userRequestSurname,
             sendMailInput.product.getTitle());
+  }
+
+  public void sendMailRegistrationForUser(Onboarding onboarding) {
+
+   User user = onboarding.getUsers().get(0);
+   SendMailDto sendMailDto = new SendMailDto();
+   sendMailDto.setInstitutionName(onboarding.getInstitution().getDescription());
+   sendMailDto.setProductId(onboarding.getProductId());
+   sendMailDto.setRole(userMapper.toUserPartyRole(user.getRole()));
+   sendMailDto.setUserMailUuid(user.getUserMailUuid());
+
+   try {
+     userApi.sendMailRequest(user.getId(), sendMailDto);
+   } catch (Exception e) {
+     log.error("Impossible to send mail to user");
+   }
   }
 
   public void sendMailRegistrationForContract(OnboardingWorkflow onboardingWorkflow) {

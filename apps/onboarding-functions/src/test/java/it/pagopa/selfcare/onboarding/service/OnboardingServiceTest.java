@@ -33,6 +33,7 @@ import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
@@ -44,10 +45,12 @@ import java.io.File;
 import java.util.*;
 import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.SendMailDto;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
@@ -61,9 +64,13 @@ class OnboardingServiceTest {
   @InjectMock TokenRepository tokenRepository;
   @RestClient @InjectMock UserApi userRegistryApi;
   @RestClient @InjectMock InstitutionApi userInstitutionApi;
+  @RestClient @InjectMock
+  org.openapi.quarkus.user_json.api.UserApi userApi;
   @InjectMock NotificationService notificationService;
   @InjectMock ContractService contractService;
   @InjectMock ProductService productService;
+  @InjectMock
+  UserMapper userMapper;
 
   @Inject OnboardingService onboardingService;
 
@@ -426,6 +433,64 @@ class OnboardingServiceTest {
         .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString());
     verifyNoMoreInteractions(notificationService);
   }
+
+  @Test
+  void testSendMailRegistrationForUser_Success() {
+    // Arrange
+    Onboarding onboarding = new Onboarding();
+    Institution institution = new Institution();
+    institution.setDescription("Test Institution");
+    onboarding.setInstitution(institution);
+    onboarding.setProductId("prod-123");
+
+    User user = new User();
+    user.setId("user-1");
+    user.setRole(PartyRole.MANAGER);
+    user.setUserMailUuid("uuid-123");
+    onboarding.setUsers(List.of(user));
+
+    SendMailDto expectedDto = new SendMailDto();
+    expectedDto.setInstitutionName("Test Institution");
+    expectedDto.setProductId("prod-123");
+    expectedDto.setRole(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+    expectedDto.setUserMailUuid("uuid-123");
+
+    Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+
+    // Act
+    onboardingService.sendMailRegistrationForUser(onboarding);
+
+    // Assert
+    Mockito.verify(userApi).sendMailRequest(any(),
+            Mockito.argThat(dto ->
+                    dto.getInstitutionName().equals(expectedDto.getInstitutionName()) &&
+                            dto.getProductId().equals(expectedDto.getProductId()) &&
+                            dto.getRole().equals(expectedDto.getRole()) &&
+                            dto.getUserMailUuid().equals(expectedDto.getUserMailUuid())
+            )
+    );
+  }
+
+  @Test
+  void testSendMailRegistrationForUser_Exception() {
+  Onboarding onboarding = new Onboarding();
+  Institution institution = new Institution();
+  institution.setDescription("Test Institution");
+  onboarding.setInstitution(institution);
+  onboarding.setProductId("prod-123");
+  User user = new User();
+  user.setId("user-1");
+  user.setRole(PartyRole.MANAGER);
+  user.setUserMailUuid("uuid-123");
+  onboarding.setUsers(List.of(user));
+  Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+  Mockito.doThrow(new RuntimeException("Email failure"))
+          .when(userApi).sendMailRequest(Mockito.any(), Mockito.any());
+
+  Assertions.assertDoesNotThrow(() -> onboardingService.sendMailRegistrationForUser(onboarding));
+
+  Mockito.verify(userApi).sendMailRequest(Mockito.any(), Mockito.any());
+}
 
   @Test
   void sendMailRegistrationWithContractAggregator() {

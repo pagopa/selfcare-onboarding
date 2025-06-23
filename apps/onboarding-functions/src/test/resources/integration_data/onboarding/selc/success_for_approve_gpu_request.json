@@ -9,7 +9,8 @@
     "imported": false,
     "institutionType": "GPU",
     "taxCode": "13234472819",
-    "digitalAddress": "test@test.it"
+    "digitalAddress": "test@test.it",
+    "description" : "GPU di Test"
   },
   "productId": "prod-pagopa",
   "status": "REQUEST",
