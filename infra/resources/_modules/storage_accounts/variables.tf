@@ -1,10 +1,3 @@
-locals {
-  project                  = "selc-${var.env_short}"
-  ca_resource_group_name   = "${local.project}-container-app${var.suffix_increment}-rg"
-  naming_config            = "documents"
-  resource_group_name_vnet = "${local.project}-vnet-rg"
-}
-
 variable "app_name" {
   type        = string
   description = "App name"
