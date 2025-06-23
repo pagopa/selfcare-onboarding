@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapi.quarkus.user_json.model.AddUserRoleDto;
+import org.openapi.quarkus.user_json.model.PartyRole;
 
 @Mapper(componentModel = "cdi")
 public interface UserMapper {
@@ -14,7 +15,7 @@ public interface UserMapper {
     @Mapping(target = "product", source = ".")
     AddUserRoleDto toUserRole(Onboarding onboarding);
 
-
+    PartyRole toUserPartyRole(it.pagopa.selfcare.onboarding.common.PartyRole partyRole);
 
 
 }

@@ -7,6 +7,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 
 import java.util.Optional;
 
@@ -19,10 +20,12 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
 
     private final ObjectMapper objectMapper;
     private final TaskOptions optionsRetry;
+    private final OnboardingMapper onboardingMapper;
 
-    public WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions optionsRetry) {
+    public WorkflowExecutorForApprove(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) {
         this.objectMapper = objectMapper;
         this.optionsRetry = optionsRetry;
+        this.onboardingMapper = onboardingMapper;
     }
 
     @Override
@@ -38,6 +41,7 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString, optionsRetry, String.class).await();
+        sendMailForUserActivity(ctx, onboardingWorkflow, onboardingMapper);
         return Optional.of(OnboardingStatus.PENDING);
     }
 
