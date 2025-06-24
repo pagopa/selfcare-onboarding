@@ -2,7 +2,6 @@ package it.pagopa.selfcare.onboarding.service;
 
 
 import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -49,7 +48,6 @@ public class UserService {
         DeletedUserCountResponse response =  institutionApi.deleteUserInstitutionProductUsers(institutionId, productId);
         if (Objects.isNull(response) || response.getDeletedUserCount() < 1L) {
             log.error("Error during user deletion: {}", response);
-            throw new GenericOnboardingException("Impossible to delete user for institution: " + institutionId + " and product: " + productId);
         }
     }
 }
