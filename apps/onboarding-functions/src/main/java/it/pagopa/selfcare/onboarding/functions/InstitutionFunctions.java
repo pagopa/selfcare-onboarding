@@ -98,8 +98,8 @@ public class InstitutionFunctions {
     UserInstitutionFilters filters = getUserInstitutionFilters(onboarding);
     String filtersString = objectMapper.writeValueAsString(filters);
 
-    processOnboardingDeletions(ctx, filtersString);
     processDocumentsDeletions(ctx, onboarding.getId());
+    processOnboardingDeletions(ctx, filtersString);
     processUserDeletions(ctx, filters);
 
     functionContext.getLogger().info("DeleteInstitutionAndUser orchestration completed");

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.annotation.FunctionName;
+import com.microsoft.durabletask.azurefunctions.DurableActivityTrigger;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.dto.EntityFilter;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -35,7 +36,7 @@ public class TokenFunctions {
    */
   @FunctionName(DELETE_TOKEN_CONTRACT_ACTIVITY_NAME)
   public void deleteContract(
-    @DurableOrchestrationTrigger(name = "filtersString") String filtersString,
+    @DurableActivityTrigger(name = "filtersString") String filtersString,
     final ExecutionContext context) throws JsonProcessingException {
 
     context
