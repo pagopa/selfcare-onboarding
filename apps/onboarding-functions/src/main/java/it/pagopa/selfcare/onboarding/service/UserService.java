@@ -38,7 +38,7 @@ public class UserService {
         return onboardings.stream()
                 .flatMap(onboarding -> onboarding.getUsers().stream())
                 .map(User::getId)
-                .collect(Collectors.toSet()) // Usa un Set per evitare duplicati
+                .collect(Collectors.toSet())
                 .stream()
                 .toList();
     }
