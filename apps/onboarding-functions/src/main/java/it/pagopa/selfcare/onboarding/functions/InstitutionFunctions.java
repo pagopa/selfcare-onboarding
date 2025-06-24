@@ -166,7 +166,7 @@ public class InstitutionFunctions {
   private void processDocumentsDeletions(TaskOrchestrationContext ctx, String onboardingId) throws JsonProcessingException {
     logger.info("processDocumentsDeletions started with id: {}", onboardingId);
     EntityFilter entityFilter = EntityFilter.builder().value(onboardingId).build();
-    var enrichedFilters = objectMapper.writeValueAsString(entityFilter);
+    String enrichedFilters = objectMapper.writeValueAsString(entityFilter);
 
     ctx.callActivity(
         DELETE_TOKEN_CONTRACT_ACTIVITY_NAME,

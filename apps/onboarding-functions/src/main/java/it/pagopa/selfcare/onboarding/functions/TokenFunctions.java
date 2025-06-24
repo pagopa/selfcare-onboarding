@@ -36,9 +36,9 @@ public class TokenFunctions {
   @FunctionName(DELETE_TOKEN_CONTRACT_ACTIVITY_NAME)
   public void deleteContract(
     @DurableOrchestrationTrigger(name = "filtersString") String filtersString,
-    ExecutionContext functionContext) throws JsonProcessingException {
+    final ExecutionContext context) throws JsonProcessingException {
 
-    functionContext
+    context
       .getLogger()
       .info(() -> String.format(FORMAT_LOGGER_INSTITUTION_STRING, DELETE_TOKEN_CONTRACT_ACTIVITY_NAME, filtersString));
 
@@ -48,7 +48,7 @@ public class TokenFunctions {
       Token newToken = contractService.deleteContract(t);
       onboardingService.updateTokenContractSigned(newToken);
     });
-    functionContext
+    context
       .getLogger()
       .info(() -> String.format(FORMAT_LOGGER_INSTITUTION_STRING, DELETE_TOKEN_CONTRACT_ACTIVITY_NAME, "complete"));
   }
