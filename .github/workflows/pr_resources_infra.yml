@@ -1,4 +1,4 @@
-name: Code Review functions infra
+name: Code Review resources infra
 
 on:
   workflow_dispatch:
