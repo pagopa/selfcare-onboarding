@@ -8,15 +8,16 @@ public class ActivityName {
   public static final String BUILD_ATTACHMENT_ACTIVITY_NAME = "BuildAttachment";
   public static final String DELETE_USER_ONBOARDING_ACTIVITY_NAME = "DeleteUserOnboarding";
   public static final String DELETE_INSTITUTION_ONBOARDING_ACTIVITY_NAME = "DeleteInstitutionOnboarding";
+  public static final String DELETE_TOKEN_CONTRACT_ACTIVITY_NAME = "DeleteTokenContract";
   public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT =
-      "SendMailRegistrationForContract";
+    "SendMailRegistrationForContract";
   public static final String SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY =
-      "SendMailRegistrationForContractWhenApprove";
+    "SendMailRegistrationForContractWhenApprove";
   public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY =
-      "SendMailRegistrationRequest";
+    "SendMailRegistrationRequest";
   public static final String SEND_MAIL_REGISTRATION_FOR_USER = "SendMailRegistrationForUser";
   public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY =
-      "SendMailRegistrationApprove";
+    "SendMailRegistrationApprove";
   public static final String SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY = "SendMailOnboardingApprove";
   public static final String CREATE_INSTITUTION_ACTIVITY = "CreateInstitution";
   public static final String CREATE_ONBOARDING_ACTIVITY = "CreateOnboarding";
@@ -27,7 +28,7 @@ public class ActivityName {
   public static final String CREATE_USERS_ACTIVITY = "CreateUsers";
   public static final String SEND_ONBOARDING_NOTIFICATION = "SendOnboardingNotification";
   public static final String CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY =
-      "CreateAggregateOnboardingRequest";
+    "CreateAggregateOnboardingRequest";
   public static final String CREATE_DELEGATION_ACTIVITY = "CreateDelegation";
   public static final String ONBOARDINGS_AGGREGATE_ORCHESTRATOR = "OnboardingsAggregate";
   public static final String RESEND_NOTIFICATIONS_ACTIVITY = "ResendNotificationsActivity";
@@ -37,5 +38,6 @@ public class ActivityName {
   public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
   public static final String BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY = "BuildAttachmentAndSaveTokens";
 
-  private ActivityName() {}
+  private ActivityName() {
+  }
 }
