@@ -151,14 +151,14 @@ public class InstitutionFunctions {
   private void processUserDeletions(TaskOrchestrationContext ctx, UserInstitutionFilters filters) throws JsonProcessingException {
 
     logger.info("processUserDeletions started with filters: {}", filters);
-    var enrichedFilters = objectMapper.writeValueAsString(filters);
+    var filtersString = objectMapper.writeValueAsString(filters);
 
     ctx.callActivity(
-        DELETE_USER_ONBOARDING_ACTIVITY_NAME,
-        enrichedFilters,
-        optionsRetry,
-        String.class)
-      .await();
+          DELETE_USER_ONBOARDING_ACTIVITY_NAME,
+          filtersString,
+          optionsRetry,
+          String.class)
+         .await();
 
     logger.debug("processUserDeletions completed");
   }
