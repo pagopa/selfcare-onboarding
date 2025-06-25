@@ -85,6 +85,6 @@ secrets_names = {
   "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
   "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"
   "BLOB-STORAGE-PRODUCT-CONNECTION-STRING"  = "blob-storage-product-connection-string"
-  "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "blob-storage-contract-connection-string"
+  "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "documents-storage-connection-string"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
 }
