@@ -26,7 +26,7 @@ jobs:
     secrets: inherit
     with:
       environment: dev
-      dir: ./infra/resources
+      dir: ./infra/resources/dev
 
   code_review_uat:
     uses: ./.github/workflows/call_code_review_resources_infra.yml
@@ -34,7 +34,7 @@ jobs:
     secrets: inherit
     with:
       environment: uat
-      dir: ./infra/resources
+      dir: ./infra/resources/uat
 
   code_review_prod:
     uses: ./.github/workflows/call_code_review_resources_infra.yml
@@ -42,4 +42,4 @@ jobs:
     secrets: inherit
     with:
       environment: prod
-      dir: ./infra/resources
+      dir: ./infra/resources/prod
