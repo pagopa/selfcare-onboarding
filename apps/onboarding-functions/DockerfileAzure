@@ -1,0 +1,54 @@
+# Fase 1: Build dell'applicazione Quarkus
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+# Copia il sorgente dell'applicazione
+WORKDIR /app
+# RUN file="$(ls -1 /tmp/dir)" && echo $file
+# RUN echo $(ls -1)
+
+# Builda l'applicazione Quarkus, creando un pacchetto uber-jar
+# Vengono saltati i test per velocizzare la build del container
+# RUN mvn package -Dquarkus.package.type=uber-jar -DskipTests
+
+
+FROM mcr.microsoft.com/azure-functions/java:4-java17 AS runtime
+WORKDIR /opt
+
+# Installa tools utili per debug
+RUN apt-get update && apt-get install -y \
+    curl \
+    netcat-openbsd \
+    maven \
+    openjdk-17-jdk openjdk-17-jre \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Crea directory per logs
+RUN mkdir -p /opt/logs
+WORKDIR /home/site/wwwroot
+# Copia il JAR dalla stage di build
+COPY target/onboarding-functions-1.0.0-SNAPSHOT.jar /home/site/wwwroot/app.jar
+
+# Espone le porte
+EXPOSE 8080 5005
+
+# Variabili d'ambiente
+ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+ENV SERVER_PORT=8080
+
+# # Health check
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+#     CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Comando di avvio
+# ENTRYPOINT ["sh", "-c", "tail -f /dev/null"]
+#
+# # Stage per development
+# FROM runtime AS development
+# ENV JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005 -Xms256m -Xmx512m"
+# COPY --from=build /app/target/*.jar app.jar
+#
+# # Stage per production
+# FROM runtime AS production
+# ENV JAVA_OPTS="-Xms1024m -Xmx2048m -XX:+UseG1GC"
+# COPY --from=build /app/target/*.jar app.jar
