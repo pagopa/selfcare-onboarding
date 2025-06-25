@@ -10,6 +10,9 @@ import it.pagopa.selfcare.onboarding.dto.EntityFilter;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.openapi.quarkus.openapi_onboarding_json.api.InternalV1Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +26,10 @@ public class TokenFunctions {
   private final OnboardingService onboardingService;
   private final ContractService contractService;
   private final ObjectMapper objectMapper;
+
+  @RestClient
+  @Inject
+  InternalV1Api internalV1Api;
 
   public TokenFunctions(ObjectMapper objectMapper, OnboardingService onboardingService, ContractService contractService) {
     this.objectMapper = objectMapper;
@@ -46,8 +53,7 @@ public class TokenFunctions {
     EntityFilter entityFilter = objectMapper.readValue(filtersString, EntityFilter.class);
     Optional<Token> token = onboardingService.getToken(entityFilter.getValue());
     token.ifPresent(t -> {
-      Token newToken = contractService.deleteContract(t);
-      onboardingService.updateTokenContractSigned(newToken);
+      internalV1Api.removeDocument(entityFilter.getValue());
     });
     context
       .getLogger()

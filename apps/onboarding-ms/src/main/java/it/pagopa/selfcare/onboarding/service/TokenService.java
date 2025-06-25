@@ -24,4 +24,6 @@ public interface TokenService {
   Uni<List<String>> getAttachments(String onboardingId);
 
   Uni<ContractSignedReport> reportContractSigned(String onboardingId);
+
+  Uni<RestResponse<Long>> deleteContract(String onboardingId);
 }

@@ -1392,6 +1392,33 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/tokens/{id}:
+    delete:
+      tags:
+      - internal-v1
+      summary: Delete the document from tokenId
+      description: Delete the document from tokenId.
+      operationId: removeDocument
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                format: int64
+                type: integer
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/tokens/{onboardingId}/attachment:
     get:
       tags:

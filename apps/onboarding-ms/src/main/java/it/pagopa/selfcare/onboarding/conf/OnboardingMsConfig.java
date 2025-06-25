@@ -32,6 +32,9 @@ public class OnboardingMsConfig {
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-aggregates")
     String aggregatesPath;
 
+    @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts-deleted")
+    String deletedPath;
+
     void onStart(@Observes StartupEvent ev) {
         log.info(String.format("Database %s is starting...", Onboarding.mongoDatabase().getName()));
     }

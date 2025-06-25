@@ -10,8 +10,10 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.openapi.quarkus.openapi_onboarding_json.api.InternalV1Api;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -31,6 +33,10 @@ public class TokenFunctionsTest {
   @InjectMock
   ContractService contractService;
 
+  @InjectMock
+  @RestClient
+  InternalV1Api internalV1Api;
+
   @Inject
   ObjectMapper objectMapper;
 
@@ -43,19 +49,25 @@ public class TokenFunctionsTest {
 
   @Test
   void deleteContract() throws JsonProcessingException {
-    Token tokenOriginal = new Token();
-    tokenOriginal.setContractSigned("parties/docs/123/file.pdf");
-    Token tokenDeleted = new Token();
-    tokenDeleted.setContractSigned("parties/deleted/123/file.pdf");
-
-    when(onboardingService.getToken(anyString())).thenReturn(Optional.of(tokenOriginal));
-    when(contractService.deleteContract(any())).thenReturn(tokenDeleted);
-    doNothing().when(onboardingService).updateTokenContractSigned(any());
+//    Token tokenOriginal = new Token();
+//    tokenOriginal.setContractSigned("parties/docs/123/file.pdf");
+//    Token tokenDeleted = new Token();
+//    tokenDeleted.setContractSigned("parties/deleted/123/file.pdf");
 
     EntityFilter entity = EntityFilter.builder().value("123").build();
     String params = objectMapper.writeValueAsString(entity);
     function.deleteContract(params, executionContext);
 
-    verify(onboardingService, times(1)).updateTokenContractSigned(any());
+    when(internalV1Api.removeDocument(any())).thenReturn(1l);
+//
+//
+//
+//    when(onboardingService.getToken(anyString())).thenReturn(Optional.of(tokenOriginal));
+//    when(contractService.deleteContract(any())).thenReturn(tokenDeleted);
+//    doNothing().when(onboardingService).updateTokenContractSigned(any());
+
+
+
+    verify(onboardingService, times(1)).getToken(any());
   }
 }

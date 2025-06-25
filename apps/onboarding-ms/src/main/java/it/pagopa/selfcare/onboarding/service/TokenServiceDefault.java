@@ -15,16 +15,20 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.bson.Document;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageError.ERROR_DURING_UPLOAD_FILE;
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.DOCUMENT_VALIDATION_FAIL;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
 
 @Slf4j
@@ -173,5 +177,28 @@ public class TokenServiceDefault implements TokenService {
             signatureService.verifySignature(contract);
             return ContractSignedReport.cades(true);
           })).onFailure().recoverWithUni(() -> Uni.createFrom().item(ContractSignedReport.cades(false)));
+  }
+
+  @Override
+  public Uni<RestResponse<Long>> deleteContract(String onboardingId) {
+    return Token.findById(onboardingId)
+      .map(Token.class::cast)
+      .onItem().transformToUni(token -> Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
+        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .onItem().transform(contract -> {
+          String deletedFileName = token.getContractSigned().replace(onboardingMsConfig.getContractPath(), onboardingMsConfig.getDeletedPath());
+          // Upload to deleted file storage
+          try {
+            azureBlobClient.uploadFilePath(deletedFileName, Files.readAllBytes(contract.toPath()));
+          } catch (IOException e) {
+            throw new InvalidRequestException(ERROR_DURING_UPLOAD_FILE.getMessage(), ERROR_DURING_UPLOAD_FILE.getCode());
+          }
+          // Remove contract from original path
+          azureBlobClient.removeFile(token.getContractSigned());
+          // set new file path
+          updateContractSigned(onboardingId, deletedFileName);
+          RestResponse.ResponseBuilder<Long> response = RestResponse.ResponseBuilder.ok(1L, MediaType.APPLICATION_OCTET_STREAM);
+          return response.build();
+        }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<Long>notFound().build())));
   }
 }

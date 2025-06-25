@@ -7,15 +7,11 @@ import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
 import java.io.File;
+import java.util.Base64;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -110,5 +106,17 @@ public class TokenController {
   @Path("/contract-report")
   public Uni<ContractSignedReport> reportContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId) {
     return tokenService.reportContractSigned(onboardingId);
+  }
+
+  @Operation(
+    summary = "Delete the document from tokenId",
+    description = "Delete the document from tokenId."
+  )
+  @DELETE
+  @Tag(name = "internal-v1")
+  @Path("/{id}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Uni<RestResponse<Long>> removeDocument(@PathParam(value = "id") String id) {
+    return tokenService.deleteContract(id);
   }
 }
