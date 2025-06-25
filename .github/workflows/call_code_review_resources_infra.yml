@@ -29,7 +29,7 @@ jobs:
     name: Prod - Code Review
     secrets: inherit
     with:
-      environment: ${{ inputs.tf_environment }}
+      environment: ${{ inputs.environment }}
       base_path: ${{ inputs.dir }}
       use_private_agent: true
 
