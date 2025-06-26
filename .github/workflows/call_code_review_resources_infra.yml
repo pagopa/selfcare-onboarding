@@ -56,9 +56,10 @@ jobs:
           subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Set Terraform Version
+        working-directory: ${{ inputs.dir }}
         id: set-terraform-version
         run: |
-          echo "terraform_version=$(cat infra/resources/.terraform-version)" >> $GITHUB_OUTPUT
+          echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
 
       - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
         name: Setup Terraform
