@@ -59,6 +59,7 @@ jobs:
         working-directory: ${{ inputs.dir }}
         id: set-terraform-version
         run: |
+          cd ..
           echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
           ls -la
 
