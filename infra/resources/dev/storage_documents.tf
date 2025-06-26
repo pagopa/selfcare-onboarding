@@ -61,3 +61,29 @@ resource "azurerm_user_assigned_identity" "documents_identity" {
   resource_group_name = azurerm_resource_group.documents_sa_rg.name
   location            = local.location
 }
+
+data "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
+  name         = "documents-storage-connection-string"
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+}
+
+data "local_file" "resources_logo" {
+  filename = "${path.module}/logo.png"
+}
+
+resource "null_resource" "upload_resources_default_product_logo" {
+  triggers = {
+    "changes-in-config" : md5(data.local_file.resources_logo.content)
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+              az storage blob upload --container '${local.prefix}-${local.env_short}-${local.naming_config}-blob' \
+                --connection-string '${data.azurerm_key_vault_secret.selc_documents_storage_connection_string.value}' \
+                --file ${data.local_file.resources_logo.filename} \
+                --overwrite true \
+                --name resources/logo.png
+          EOT
+  }
+}
+
