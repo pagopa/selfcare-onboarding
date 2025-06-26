@@ -2,8 +2,7 @@ locals {
   prefix           = "sc"
   env_short        = "d"
   location         = "westeurope"
-  suffix_increment = "-002"
-  cae_name         = "cae-002"
+  # suffix_increment = "-002"
 
   function_name    = "${local.project}-onboarding-fn"
 
@@ -21,7 +20,6 @@ locals {
   key_vault_name                = "selc-d-kv"
 
   project                  = "selc-${local.env_short}"
-  ca_resource_group_name   = "${local.project}-container-app${local.suffix_increment}-rg"
   naming_config            = "documents"
   resource_group_name_vnet = "${local.project}-vnet-rg"
 

@@ -16,14 +16,11 @@ module "storage_documents" {
 
   resource_group_name  = azurerm_resource_group.documents_sa_rg.name
   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
-  # virtual_network_resource_group = data.azurerm_virtual_network.vnet_selc.resource_group_name
 
   tags = local.tags
   cidr_subnet_contract_storage = local.cidr_subnet_document_storage
 
   project = local.prefix
-  # storageName = "${local.prefix}${local.env_short}${local.naming_config}sa"
-  # subscription = data.azurerm_subscription.current.id
 
   private_dns_zone_resource_group_name = data.azurerm_virtual_network.vnet_selc.resource_group_name
 
