@@ -17,7 +17,7 @@ module "storage_documents" {
   resource_group_name  = azurerm_resource_group.documents_sa_rg.name
   virtual_network_name = data.azurerm_virtual_network.vnet_selc.name
 
-  tags = local.tags
+  tags                         = local.tags
   cidr_subnet_contract_storage = local.cidr_subnet_document_storage
 
   project = local.prefix
@@ -41,19 +41,19 @@ module "storage_documents" {
   }
 
   base_blob_tier_to_cool_after_days_since_modification_greater_than = 30
-  base_blob_tier_to_cold_after_days_since_creation_greater_than = 90
-  base_blobdelete_after_days_since_modification_greater_than = 3651
+  base_blob_tier_to_cold_after_days_since_creation_greater_than     = 90
+  base_blobdelete_after_days_since_modification_greater_than        = 3651
 
   # snapshot_change_tier_to_archive_after_days_since_creation    = 30
   snapshot_change_tier_to_cool_after_days_since_creation = 90
-  snapshot_delete_after_days_since_creation_greater_than          = 180
+  snapshot_delete_after_days_since_creation_greater_than = 180
 
   # version_change_tier_to_archive_after_days_since_creation    = 30
   version_change_tier_to_cool_after_days_since_creation = 90
-  version_delete_after_days_since_creation          = 180
+  version_delete_after_days_since_creation              = 180
 
   key_vault_resource_group_name = local.key_vault_resource_group_name
-  key_vault_name = local.key_vault_name
+  key_vault_name                = local.key_vault_name
 }
 
 resource "azurerm_user_assigned_identity" "documents_identity" {

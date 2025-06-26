@@ -17,10 +17,10 @@ module "storage_account" {
 
   private_dns_zone_resource_group_name = var.private_dns_zone_resource_group_name
   network_rules = {
-    "bypass": [],
-    "default_action": "Deny",
-    "ip_rules": [],
-    "virtual_network_subnet_ids": [azurerm_subnet.documents_snet.id]
+    "bypass" : [],
+    "default_action" : "Deny",
+    "ip_rules" : [],
+    "virtual_network_subnet_ids" : [azurerm_subnet.documents_snet.id]
   }
 
   blob_features = var.blob_features
@@ -37,24 +37,24 @@ resource "azurerm_storage_management_policy" "lifecycle" {
 
     filters {
       prefix_match = ["parties/deleted"]
-      blob_types = ["blockBlob"]
+      blob_types   = ["blockBlob"]
     }
 
     actions {
       base_blob {
         tier_to_cool_after_days_since_modification_greater_than = var.base_blob_tier_to_cool_after_days_since_modification_greater_than
-        tier_to_cold_after_days_since_creation_greater_than = var.base_blob_tier_to_cold_after_days_since_creation_greater_than
-        delete_after_days_since_modification_greater_than = var.base_blobdelete_after_days_since_modification_greater_than
+        tier_to_cold_after_days_since_creation_greater_than     = var.base_blob_tier_to_cold_after_days_since_creation_greater_than
+        delete_after_days_since_modification_greater_than       = var.base_blobdelete_after_days_since_modification_greater_than
       }
 
       snapshot {
         change_tier_to_cool_after_days_since_creation = var.snapshot_change_tier_to_cool_after_days_since_creation
-        delete_after_days_since_creation_greater_than          = var.snapshot_delete_after_days_since_creation_greater_than
+        delete_after_days_since_creation_greater_than = var.snapshot_delete_after_days_since_creation_greater_than
       }
 
       version {
         change_tier_to_cool_after_days_since_creation = var.version_change_tier_to_cool_after_days_since_creation
-        delete_after_days_since_creation          = var.version_delete_after_days_since_creation
+        delete_after_days_since_creation              = var.version_delete_after_days_since_creation
       }
     }
   }

@@ -5,16 +5,16 @@ variable "app_name" {
 
 variable "blob_features" {
   type = object({
-    restore_policy_days = optional(number, 0)
+    restore_policy_days   = optional(number, 0)
     delete_retention_days = optional(number, 0)
-    last_access_time = optional(bool, false)
-    versioning = optional(bool, false)
+    last_access_time      = optional(bool, false)
+    versioning            = optional(bool, false)
     change_feed = optional(object({
-      enabled = optional(bool, false)
+      enabled           = optional(bool, false)
       retention_in_days = optional(number, 0)
     }), { enabled = false })
     immutability_policy = optional(object({
-      enabled = optional(bool, false)
+      enabled                       = optional(bool, false)
       allow_protected_append_writes = optional(bool, false)
       period_since_creation_in_days = optional(number, 730)
     }), { enabled = false })
@@ -25,8 +25,8 @@ variable "blob_features" {
     delete_retention_days = 0
     last_access_time      = false
     versioning            = false
-    change_feed = { enabled = false, retention_in_days = 0 }
-    immutability_policy = { enabled = false }
+    change_feed           = { enabled = false, retention_in_days = 0 }
+    immutability_policy   = { enabled = false }
   }
 
   validation {
@@ -99,7 +99,7 @@ variable "prefix" {
 }
 
 variable "private_dns_zone_resource_group_name" {
-  type = string
+  type        = string
   description = "he name of the resource group holding private DNS zone to use for private endpoints. Default is Virtual Network resource group"
 }
 

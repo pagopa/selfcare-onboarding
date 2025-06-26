@@ -1,10 +1,10 @@
 locals {
-  prefix           = "sc"
-  env_short        = "d"
-  location         = "westeurope"
+  prefix    = "sc"
+  env_short = "d"
+  location  = "westeurope"
   # suffix_increment = "-002"
 
-  function_name    = "${local.project}-onboarding-fn"
+  function_name = "${local.project}-onboarding-fn"
 
   tags = {
     CreatedBy   = "Terraform"
