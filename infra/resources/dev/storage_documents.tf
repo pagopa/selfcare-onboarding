@@ -68,10 +68,10 @@ data "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
 }
 
 data "local_file" "resources_logo" {
-  filename = "${path.module}/logo.png"
+  filename = "${path.module}/../logo.png"
 }
 
-resource "null_resource" "upload_resources_default_product_logo" {
+resource "null_resource" "upload_resources_logo" {
   triggers = {
     "changes-in-config" : md5(data.local_file.resources_logo.content)
   }
