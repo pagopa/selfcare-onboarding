@@ -44,7 +44,7 @@ app_settings = {
   "MONGODB_CONNECTION_URI"                             = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/mongodb-connection-string/)",
   "USER_REGISTRY_API_KEY"                              = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/user-registry-api-key/)",
   "BLOB_STORAGE_CONN_STRING_PRODUCT"                   = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/web-storage-blob-connection-string/)",
-  "STORAGE_CONTAINER_CONTRACT"                         = "selc-p-contracts-blob",
+  "STORAGE_CONTAINER_CONTRACT"                         = "sc-p-documents-blob",
   "STORAGE_CONTAINER_PRODUCT"                          = "selc-p-product",
   "BLOB_STORAGE_CONN_STRING_CONTRACT"                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/contracts-storage-blob-connection-string/)",
   "MAIL_DESTINATION_TEST"                              = "false",
