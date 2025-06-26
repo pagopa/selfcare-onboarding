@@ -41,6 +41,8 @@ jobs:
       id-token: write
       contents: read
     outputs:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version }}
 
     steps:
