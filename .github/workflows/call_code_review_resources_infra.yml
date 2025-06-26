@@ -67,6 +67,9 @@ jobs:
         with:
           terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version }}
 
+      - name: Terraform Init
+        run: terraform init
+
       - name: Terraform Plan
         working-directory: ${{ inputs.dir }}
         run: terraform plan
