@@ -61,7 +61,6 @@ jobs:
         run: |
           cd ..
           echo "terraform_version=$(cat .terraform-version)" >> $GITHUB_OUTPUT
-          ls -la
 
       - uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
         name: Setup Terraform
@@ -72,4 +71,5 @@ jobs:
         working-directory: ${{ inputs.dir }}
         shell: bash
         run: |
-          bash terraform plan
+         ls -la
+         bash terraform plan
