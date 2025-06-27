@@ -67,9 +67,6 @@ public class AggregatesServiceDefault implements AggregatesService {
     @Inject
     CsvService csvService;
 
-    @Inject
-    Utils utils;
-
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ExpiringMap<String, GeographicTaxonomyFromIstatCode> expiringMap;
@@ -378,8 +375,8 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     private Uni<Void> checkAdminTaxCode(CsvAggregateSend csvAggregate) {
 
-        String expectedSurnamePart = utils.extractSurnamePart(csvAggregate.getAdminAggregateSurname());
-        String expectedNamePart = utils.extractNamePart(csvAggregate.getAdminAggregateName());
+        String expectedSurnamePart = Utils.extractSurnamePart(csvAggregate.getAdminAggregateSurname());
+        String expectedNamePart = Utils.extractNamePart(csvAggregate.getAdminAggregateName());
 
         String taxCode = csvAggregate.getAdminAggregateTaxCode();
         String taxCodeSurnamePart = taxCode.substring(0, 3).toUpperCase();

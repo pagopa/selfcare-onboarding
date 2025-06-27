@@ -41,6 +41,8 @@ jobs:
       id-token: write
       contents: read
     outputs:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       terraform_version: ${{ steps.set-terraform-version.outputs.terraform_version }}
 
     steps:
@@ -55,6 +57,13 @@ jobs:
           do
             printf "%s\n" $i >> $GITHUB_ENV
           done
+
+      - name: Azure Login
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Set Terraform Version
         working-directory: ${{ inputs.dir }}

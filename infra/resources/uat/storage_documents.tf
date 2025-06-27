@@ -40,17 +40,17 @@ module "storage_documents" {
     }
   }
 
-  base_blob_tier_to_cool_after_days_since_modification_greater_than = 1
-  base_blob_tier_to_cold_after_days_since_creation_greater_than     = 2
-  base_blobdelete_after_days_since_modification_greater_than        = 3
+  base_blob_tier_to_cool_after_days_since_modification_greater_than = 30
+  base_blob_tier_to_cold_after_days_since_creation_greater_than     = 90
+  base_blobdelete_after_days_since_modification_greater_than        = 3651
 
   # snapshot_change_tier_to_archive_after_days_since_creation    = 30
-  snapshot_change_tier_to_cool_after_days_since_creation = 1
-  snapshot_delete_after_days_since_creation_greater_than = 2
+  snapshot_change_tier_to_cool_after_days_since_creation = 90
+  snapshot_delete_after_days_since_creation_greater_than = 180
 
   # version_change_tier_to_archive_after_days_since_creation    = 30
-  version_change_tier_to_cool_after_days_since_creation = 1
-  version_delete_after_days_since_creation              = 2
+  version_change_tier_to_cool_after_days_since_creation = 90
+  version_delete_after_days_since_creation              = 180
 
   key_vault_resource_group_name = local.key_vault_resource_group_name
   key_vault_name                = local.key_vault_name
@@ -65,6 +65,7 @@ resource "azurerm_user_assigned_identity" "documents_identity" {
 data "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
   name         = "documents-storage-connection-string"
   key_vault_id = data.azurerm_key_vault.key_vault.id
+  depends_on = [module.storage_documents]
 }
 
 data "local_file" "resources_logo" {
@@ -79,7 +80,7 @@ resource "null_resource" "upload_resources_logo" {
   provisioner "local-exec" {
     command = <<EOT
               az storage blob upload --container '${local.prefix}-${local.env_short}-${local.naming_config}-blob' \
-                --connection-string '${data.azurerm_key_vault_secret.selc_documents_storage_connection_string.value}' \
+                --connection-string '${local.selc_documents_storage_connection_string}' \
                 --file ${data.local_file.resources_logo.filename} \
                 --overwrite true \
                 --name resources/logo.png
