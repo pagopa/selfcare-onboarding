@@ -12,13 +12,13 @@ tags = {
 }
 
 container_app = {
-  min_replicas = 1
-  max_replicas = 5
+  min_replicas = 0
+  max_replicas = 0
   scale_rules = [
     {
       custom = {
         metadata = {
-          "desiredReplicas" = "3"
+          "desiredReplicas" = "0"
           "start"           = "0 8 * * MON-FRI"
           "end"             = "0 19 * * MON-FRI"
           "timezone"        = "Europe/Rome"
