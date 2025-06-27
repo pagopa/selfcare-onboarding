@@ -1,4 +1,4 @@
-name: Infra Resources
+name: Infra integration test
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
       - releases/*
     paths:
-      - './infra/integration-test/**'
+      - './infra/resources/**'
 
   workflow_dispatch:
     inputs:
@@ -21,28 +21,28 @@ on:
 jobs:
 
   release_dev:
-    uses: ./.github/workflows/call_release_infra.yml
-    name: '[Dev] Functions Infra Release'
+    uses: ./.github/workflows/call_release_resources_infra.yml
+    name: '[Dev] Functions Resources Infra Release'
     if: ${{ (startsWith(github.ref_name, 'releases/') != true && inputs.env == null) || inputs.env == 'dev' }}
     secrets: inherit
     with:
       environment: dev
-      dir: ./infra/integration-test
+      dir: ./infra/resources/dev
 
   release_uat:
-    uses: ./.github/workflows/call_release_infra.yml
-    name: '[UAT] Functions Infra Release'
+    uses: ./.github/workflows/call_release_resources_infra.yml
+    name: '[UAT] Functions Resources Infra Release'
     if: ${{ (startsWith(github.ref_name, 'releases/') == true && inputs.env == null) || inputs.env == 'uat' }}
     secrets: inherit
     with:
       environment: uat
-      dir: ./infra/integration-test
+      dir: ./infra/resources/uat
 
   release_prod:
-    uses: ./.github/workflows/call_release_infra.yml
-    name: '[Prod] Functions Infra Release'
+    uses: ./.github/workflows/call_release_resources_infra.yml
+    name: '[Prod] Functions Resources Infra Release'
     if: ${{ inputs.env == 'prod' }}
     secrets: inherit
     with:
       environment: prod
-      dir: ./infra/integration-test
+      dir: ./infra/resources/prod

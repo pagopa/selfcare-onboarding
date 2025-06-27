@@ -121,7 +121,10 @@ class UserServiceTest {
     response.setDeletedUserCount(0L);
     when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(response);
 
-    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
+    userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId);
+
+    Mockito.verify(institutionApi, times(1)).deleteUserInstitutionProductUsers(any(), any());
+
 
   }
 
@@ -130,7 +133,10 @@ class UserServiceTest {
     // when
     when(institutionApi.deleteUserInstitutionProductUsers(any(), any())).thenReturn(null);
 
-    assertThrows(RuntimeException.class, () -> userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId));
+    userService.deleteByIdAndInstitutionIdAndProductId(institutionId, productId);
+
+    Mockito.verify(institutionApi, times(1)).deleteUserInstitutionProductUsers(any(), any());
+
 
   }
 

@@ -1,0 +1,24 @@
+FROM debian:bookworm-slim
+
+#Update & upgrade
+RUN apt-get update && apt-get upgrade -y
+
+#Install needed packages
+RUN apt-get install -y --no-install-recommends gnupg openjdk-17-jdk fontconfig openjdk-17-jre apt-transport-https wget curl screen htop nano vim sudo procps lsb-release maven
+
+# #Keyring & repo config
+# RUN wget -O /usr/share/keyrings/jenkins-keyring.asc  https://pkg.jenkins.io/debian/jenkins.io-2023.key
+# RUN echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" https://pkg.jenkins.io/debian binary/ | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+RUN sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+RUN sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/debian/$(lsb_release -rs 2>/dev/null | cut -d'.' -f 1)/prod $(lsb_release -cs 2>/dev/null) main" > /etc/apt/sources.list.d/dotnetdev.list'
+RUN sudo apt-get update
+RUN sudo apt-get install azure-functions-core-tools-4
+
+# Install Jenkins
+# RUN apt update
+# && apt install jenkins -y
+
+EXPOSE 8080 5005
