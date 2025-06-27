@@ -33,15 +33,15 @@ import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
-import it.pagopa.selfcare.onboarding.util.InstitutionUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
-import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
@@ -144,6 +144,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     OnboardingMapper onboardingMapper;
+
+    @Inject
+    TokenMapper tokenMapper;
 
     @Inject
     InstitutionMapper institutionMapper;
@@ -497,7 +500,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         Panache.withTransaction(
                                                                 () ->
                                                                         Token.persist(
-                                                                                getToken(onboardingPersisted, product, contractImported))))
+                                                                                tokenMapper.toModel(onboardingPersisted, product, contractImported))))
                                         /* Update onboarding data with users and start orchestration */
                                         .onItem()
                                         .transformToUni(
@@ -1339,11 +1342,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     private String uploadFileToAzure(Token token, String onboardingId, FormItem formItem)
             throws OnboardingNotAllowedException {
         final String path = String.format("%s%s", pathContracts, onboardingId);
-        final String signedContractExtension = getFileExtension(formItem.getFileName());
+        final String signedContractExtension = Utils.getFileExtension(formItem.getFileName());
         final String persistedContractFileName =
                 Optional.ofNullable(token.getContractFilename()).orElse(onboardingId);
         final String signedContractFileName =
-                replaceFileExtension(persistedContractFileName, signedContractExtension);
+                Utils.replaceFileExtension(persistedContractFileName, signedContractExtension);
         final String filename = String.format("signed_%s", signedContractFileName);
 
         try {
@@ -1360,32 +1363,6 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Token.update("contractSigned", filepath)
                 .where("_id", token.getId())
                 .replaceWith(filepath);
-    }
-
-
-    private String getFileExtension(String name) {
-        String[] parts = name.split("\\.");
-        String ext = "";
-
-        if (parts.length == 2) {
-            return parts[1];
-        }
-
-        if (parts.length > 2) {
-            // join all parts except the first one
-            ext = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
-        }
-
-        return ext;
-    }
-
-    private String replaceFileExtension(String originalFilename, String newExtension) {
-        int lastIndexOf = originalFilename.lastIndexOf(".");
-        if (lastIndexOf == -1) {
-            return originalFilename + newExtension;
-        } else {
-            return originalFilename.substring(0, lastIndexOf) + "." + newExtension;
-        }
     }
 
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
@@ -1735,27 +1712,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                             }
                             return Uni.createFrom().item(response.getInstitutions().get(0));
                         });
-    }
-
-    private Token getToken(
-            Onboarding onboarding, Product product, OnboardingImportContract contractImported) {
-        ContractTemplate contractTemplate =
-                product.getInstitutionContractTemplate(
-                        InstitutionUtils.getCurrentInstitutionType(onboarding));
-        var token = new Token();
-        token.setId(onboarding.getId());
-        token.setOnboardingId(onboarding.getId());
-        token.setContractTemplate(contractTemplate.getContractTemplatePath());
-        token.setContractVersion(contractTemplate.getContractTemplateVersion());
-        if (Objects.nonNull(contractImported)) {
-            token.setContractSigned(contractImported.getFilePath());
-            token.setContractFilename(contractImported.getFileName());
-            token.setCreatedAt(contractImported.getCreatedAt());
-            token.setUpdatedAt(contractImported.getCreatedAt());
-        }
-        token.setProductId(onboarding.getProductId());
-        token.setType(TokenType.INSTITUTION);
-        return token;
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.jboss.resteasy.reactive.server.core.multipart.FormData;
 import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.function.BinaryOperator;
 
@@ -60,5 +61,29 @@ public class Utils {
         return sb.toString();
     }
 
+    public static String getFileExtension(String name) {
+        String[] parts = name.split("\\.");
+        String ext = "";
+
+        if (parts.length == 2) {
+            return parts[1];
+        }
+
+        if (parts.length > 2) {
+            // join all parts except the first one
+            ext = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
+        }
+
+        return ext;
+    }
+
+    public static String replaceFileExtension(String originalFilename, String newExtension) {
+        int lastIndexOf = originalFilename.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return originalFilename + newExtension;
+        } else {
+            return originalFilename.substring(0, lastIndexOf) + "." + newExtension;
+        }
+    }
 
 }
