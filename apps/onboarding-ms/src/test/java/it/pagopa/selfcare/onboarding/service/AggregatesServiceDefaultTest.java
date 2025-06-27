@@ -1,5 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static org.mockito.Mockito.*;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -14,9 +16,10 @@ import it.pagopa.selfcare.onboarding.model.AggregateUser;
 import it.pagopa.selfcare.onboarding.model.RowError;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
-import it.pagopa.selfcare.onboarding.util.Utils;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.io.File;
+import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
@@ -30,12 +33,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
-
-import java.io.File;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-
 
 @QuarkusTest
 @TestProfile(OnboardingTestProfile.class)
@@ -68,9 +65,6 @@ class AggregatesServiceDefaultTest {
 
     @InjectMock
     AzureBlobClient azureBlobClient;
-
-    @Inject
-    Utils utils;
 
     @Test
     @RunOnVertxContext

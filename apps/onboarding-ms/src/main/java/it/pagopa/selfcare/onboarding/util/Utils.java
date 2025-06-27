@@ -25,14 +25,14 @@ public class Utils {
         return FormItem.builder().file(file).fileName(deck.getFirst().getFileName()).build();
     }
 
-    public String extractSurnamePart(String surname) {
+    public static String extractSurnamePart(String surname) {
         String consonants = surname.replaceAll("[AEIOUaeiou]", "");
         String vowels = surname.replaceAll("[^AEIOUaeiou]", "");
         String part = (consonants + vowels).toUpperCase();
         return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
     }
 
-    public String extractNamePart(String name) {
+    public static String extractNamePart(String name) {
         String consonants = name.replaceAll("[AEIOUaeiou]", "");
         String vowels = name.replaceAll("[^AEIOUaeiou]", "");
         if (consonants.length() > 3) {
@@ -42,7 +42,7 @@ public class Utils {
         return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
     }
 
-    private String padWithX(String input) {
+    private static String padWithX(String input) {
         StringBuilder sb = new StringBuilder(input);
         while (sb.length() < 3) {
             sb.append("X");
