@@ -3,10 +3,8 @@ package it.pagopa.selfcare.onboarding.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
 public class UtilsTest {
 
   @Test
@@ -28,6 +26,13 @@ public class UtilsTest {
     final var filename = "index/test/test.pdf";
     var extension = Utils.getFileExtension(filename);
     assertEquals("pdf", extension);
+  }
+
+  @Test
+  void replaceExtension() {
+    final var filename = "index/test/test.pdf";
+    var extension = Utils.replaceFileExtension(filename, "p7m");
+    assertEquals("index/test/test.p7m", extension);
   }
 
 }
