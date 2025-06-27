@@ -24,4 +24,9 @@ locals {
   resource_group_name_vnet = "${local.project}-vnet-rg"
 
   cidr_subnet_contract_storage = ["10.1.136.0/24"]
+
+  selc_documents_storage_connection_string = try(
+    data.azurerm_key_vault_secret.selc_documents_storage_connection_string.value,
+    ""
+  )
 }
