@@ -65,6 +65,7 @@ resource "azurerm_user_assigned_identity" "documents_identity" {
 data "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
   name         = "documents-storage-connection-string"
   key_vault_id = data.azurerm_key_vault.key_vault.id
+  depends_on = [module.storage_documents]
 }
 
 data "local_file" "resources_logo" {
@@ -79,7 +80,7 @@ resource "null_resource" "upload_resources_logo" {
   provisioner "local-exec" {
     command = <<EOT
               az storage blob upload --container '${local.prefix}-${local.env_short}-${local.naming_config}-blob' \
-                --connection-string '${data.azurerm_key_vault_secret.selc_documents_storage_connection_string.value}' \
+                --connection-string '${local.selc_documents_storage_connection_string}' \
                 --file ${data.local_file.resources_logo.filename} \
                 --overwrite true \
                 --name resources/logo.png
