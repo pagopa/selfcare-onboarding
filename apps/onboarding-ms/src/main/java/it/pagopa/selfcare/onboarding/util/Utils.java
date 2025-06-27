@@ -3,17 +3,12 @@ package it.pagopa.selfcare.onboarding.util;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.FormItem;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.apache.commons.lang3.StringUtils;
-import org.jboss.resteasy.reactive.server.core.multipart.FormData;
-import org.jboss.resteasy.reactive.server.multipart.FormValue;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.function.BinaryOperator;
+import org.jboss.resteasy.reactive.server.core.multipart.FormData;
+import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
-@ApplicationScoped
 public class Utils {
     private static final String DEFAULT_CONTRACT_FORM_DATA_NAME = "contract";
 
@@ -29,12 +24,6 @@ public class Utils {
 
         return FormItem.builder().file(file).fileName(deck.getFirst().getFileName()).build();
     }
-
-    public static final BinaryOperator<String> CONTRACT_FILENAME_FUNC =
-            (filename, productName) ->
-                    String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+", "_")));
-
-
 
     public String extractSurnamePart(String surname) {
         String consonants = surname.replaceAll("[AEIOUaeiou]", "");
