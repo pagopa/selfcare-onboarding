@@ -2,10 +2,25 @@ package it.pagopa.selfcare.onboarding.util;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import java.io.File;
+import org.jboss.resteasy.reactive.server.core.multipart.FormData;
 import org.junit.jupiter.api.Test;
 
 public class UtilsTest {
+
+  @Test
+  void retrieveContractFromFormData() {
+    File file = new File("test.pdf");
+    FormData formData = new FormData(2);
+    formData.add("contract", "test");
+    formData.add("contract", file.getName());
+
+    assertThrows(InvalidRequestException.class,
+            () -> Utils.retrieveContractFromFormData(formData, file));
+  }
 
   @Test
   void getFileExtension() {

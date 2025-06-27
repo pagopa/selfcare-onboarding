@@ -15,6 +15,13 @@ public class Utils {
     private Utils() {
     }
 
+    public static String extractSurnamePart(String surname) {
+        String consonants = surname.replaceAll("[AEIOUaeiou]", "");
+        String vowels = surname.replaceAll("[^AEIOUaeiou]", "");
+        String part = (consonants + vowels).toUpperCase();
+        return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
+    }
+
     public static FormItem retrieveContractFromFormData(FormData formData, File file) {
         Deque<FormValue> deck = formData.get(DEFAULT_CONTRACT_FORM_DATA_NAME);
         if (deck.size() > 1) {
@@ -23,13 +30,6 @@ public class Utils {
         }
 
         return FormItem.builder().file(file).fileName(deck.getFirst().getFileName()).build();
-    }
-
-    public static String extractSurnamePart(String surname) {
-        String consonants = surname.replaceAll("[AEIOUaeiou]", "");
-        String vowels = surname.replaceAll("[^AEIOUaeiou]", "");
-        String part = (consonants + vowels).toUpperCase();
-        return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
     }
 
     public static String extractNamePart(String name) {
