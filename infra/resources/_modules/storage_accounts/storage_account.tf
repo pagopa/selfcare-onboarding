@@ -67,3 +67,11 @@ resource "azurerm_key_vault_secret" "selc_documents_storage_connection_string" {
 
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
+
+
+resource "azurerm_management_lock" "selc_documents_storage_management_lock" {
+  name       = module.storage_account.name
+  scope      = module.storage_account.id
+  lock_level = "CanNotDelete"
+  notes      = "This items can't be deleted in this subscription!"
+}

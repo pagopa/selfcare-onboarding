@@ -16,8 +16,8 @@ locals {
 
   cidr_subnet_document_storage = ["10.1.136.0/24"]
 
-  key_vault_resource_group_name = "selc-u-sec-rg"
-  key_vault_name                = "selc-u-kv"
+  key_vault_resource_group_name = "selc-${local.env_short}-sec-rg"
+  key_vault_name                = "selc-${local.env_short}-kv"
 
   project                  = "selc-${local.env_short}"
   naming_config            = "documents"
