@@ -1,4 +1,4 @@
-w# storage_accounts
+# storage_accounts
 
 <!-- BEGIN_TF_DOCS -->
 
