@@ -44,7 +44,7 @@ resource "azurerm_storage_management_policy" "lifecycle" {
       base_blob {
         tier_to_cool_after_days_since_modification_greater_than = var.base_blob_tier_to_cool_after_days_since_modification_greater_than
         tier_to_cold_after_days_since_creation_greater_than     = var.base_blob_tier_to_cold_after_days_since_creation_greater_than
-        delete_after_days_since_modification_greater_than       = var.base_blobdelete_after_days_since_modification_greater_than
+        delete_after_days_since_creation_greater_than           = var.base_delete_after_days_since_creation_greater_than
       }
 
       snapshot {

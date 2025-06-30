@@ -136,7 +136,7 @@ variable "base_blob_tier_to_cold_after_days_since_creation_greater_than" {
   type = number
 }
 
-variable "base_blobdelete_after_days_since_modification_greater_than" {
+variable "base_delete_after_days_since_creation_greater_than" {
   type = number
 }
 

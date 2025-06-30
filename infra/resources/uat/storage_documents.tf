@@ -42,7 +42,7 @@ module "storage_documents" {
 
   base_blob_tier_to_cool_after_days_since_modification_greater_than = 30
   base_blob_tier_to_cold_after_days_since_creation_greater_than     = 90
-  base_blobdelete_after_days_since_modification_greater_than        = 3651
+  base_delete_after_days_since_creation_greater_than                = 3651
 
   # snapshot_change_tier_to_archive_after_days_since_creation    = 30
   snapshot_change_tier_to_cool_after_days_since_creation = 90
