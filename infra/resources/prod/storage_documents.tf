@@ -30,13 +30,13 @@ module "storage_documents" {
       allow_protected_append_writes = false
       period_since_creation_in_days = 1
     }
-    restore_policy_days   = 1 # Cannot enable both immutability_policy and restore_policy
-    delete_retention_days = 14
+    restore_policy_days   = 0
+    delete_retention_days = 0
     versioning            = true
     last_access_time      = true
     change_feed = {
-      enabled           = true
-      retention_in_days = 1
+      enabled           = false
+      retention_in_days = 0
     }
   }
 

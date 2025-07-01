@@ -30,27 +30,27 @@ module "storage_documents" {
       allow_protected_append_writes = false
       period_since_creation_in_days = 1
     }
-    restore_policy_days   = 1 # Cannot enable both immutability_policy and restore_policy
-    delete_retention_days = 14
+    restore_policy_days   = 0 # Cannot enable both immutability_policy and restore_policy
+    delete_retention_days = 0
     versioning            = true
     last_access_time      = true
     change_feed = {
-      enabled           = true
-      retention_in_days = 1
+      enabled           = false
+      retention_in_days = 0
     }
   }
 
   base_blob_tier_to_cool_after_days_since_modification_greater_than = 1
-  base_blob_tier_to_cold_after_days_since_creation_greater_than     = 2
-  base_delete_after_days_since_creation_greater_than                = 3
+  base_blob_tier_to_cold_after_days_since_creation_greater_than     = 1
+  base_delete_after_days_since_creation_greater_than                = 1
 
   # snapshot_change_tier_to_archive_after_days_since_creation    = 30
   snapshot_change_tier_to_cool_after_days_since_creation = 1
-  snapshot_delete_after_days_since_creation_greater_than = 2
+  snapshot_delete_after_days_since_creation_greater_than = 1
 
   # version_change_tier_to_archive_after_days_since_creation    = 30
   version_change_tier_to_cool_after_days_since_creation = 1
-  version_delete_after_days_since_creation              = 2
+  version_delete_after_days_since_creation              = 1
 
   key_vault_resource_group_name = local.key_vault_resource_group_name
   key_vault_name                = local.key_vault_name
