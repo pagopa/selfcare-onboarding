@@ -139,8 +139,8 @@ public class SignatureServiceDefault implements SignatureService {
       for (AdvancedSignature a : advancedSignatures) {
 
         List<DSSDocument> dssDocuments = validator.getOriginalDocuments(a.getId());
-        if (!dssDocuments.stream().map(dssDocument -> dssDocument.getDigest(DigestAlgorithm.SHA256))
-          .collect(Collectors.toList()).contains(checksum)) {
+        if (!dssDocuments.stream().map(dssDocument -> dssDocument.getDigest(DigestAlgorithm.SHA256).getBase64Value())
+          .toList().contains(checksum)) {
           throw new InvalidRequestException(INVALID_CONTRACT_DIGEST.getMessage(), INVALID_CONTRACT_DIGEST.getCode());
         }
       }
