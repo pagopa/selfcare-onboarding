@@ -1,6 +1,6 @@
 locals {
   prefix    = "sc"
-  env_short = "d"
+  env_short = "u"
   location  = "westeurope"
   # suffix_increment = "-002"
 
@@ -8,7 +8,7 @@ locals {
 
   tags = {
     CreatedBy   = "Terraform"
-    Environment = "Dev"
+    Environment = "UAT"
     Owner       = "SelfCare"
     Source      = "https://github.com/pagopa/selfcare-onboarding"
     CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
