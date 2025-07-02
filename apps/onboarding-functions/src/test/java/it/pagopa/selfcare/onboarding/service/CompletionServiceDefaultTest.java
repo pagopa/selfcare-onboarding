@@ -512,6 +512,9 @@ public class CompletionServiceDefaultTest {
     @Test
     void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setOrigin(Origin.SELC);
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
 
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
@@ -538,6 +541,9 @@ public class CompletionServiceDefaultTest {
     @Test
     void persistOnboarding() {
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setOrigin(Origin.SELC);
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
         onboarding.setActivatedAt(LocalDateTime.now());
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
