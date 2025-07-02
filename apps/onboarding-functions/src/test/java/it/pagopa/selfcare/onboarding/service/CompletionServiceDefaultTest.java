@@ -64,7 +64,6 @@ public class CompletionServiceDefaultTest {
     @InjectMock
     ProductService productService;
 
-
     @RestClient
     @InjectMock
     InstitutionApi institutionApi;
@@ -746,8 +745,8 @@ public class CompletionServiceDefaultTest {
         // When
         String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
 
         assertNotEquals(onboardingToUpdate.getId(), onboardingId);
         assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
@@ -771,8 +770,8 @@ public class CompletionServiceDefaultTest {
         doNothing().when(onboardingRepository).persistOrUpdate(any(Onboarding.class));
         String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
 
         assertNotEquals(onboardingToUpdate.getId(), onboardingId);
         assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
