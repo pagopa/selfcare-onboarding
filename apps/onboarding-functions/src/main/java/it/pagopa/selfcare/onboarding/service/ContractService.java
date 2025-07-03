@@ -33,5 +33,5 @@ public interface ContractService {
 
   void uploadAggregatesCsv(OnboardingWorkflow onboardingWorkflow);
 
-  Token deleteContract(Token token);
+  String deleteContract(String filename, boolean absolutePath);
 }

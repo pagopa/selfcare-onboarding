@@ -369,9 +369,9 @@ public class OnboardingService {
     return sendMailInput;
   }
 
-  public void updateTokenContractSigned(Token token) {
+  public void updateTokenContractFiles(Token token) {
     tokenRepository
-      .update("contractSigned = ?1 and updatedAt = ?2", token.getContractSigned(), LocalDateTime.now())
+      .update("contractSigned = ?1 and contractFilename = ?2 and updatedAt = ?3", token.getContractSigned(), token.getContractFilename(), LocalDateTime.now())
       .where("_id", token.getId());
   }
 

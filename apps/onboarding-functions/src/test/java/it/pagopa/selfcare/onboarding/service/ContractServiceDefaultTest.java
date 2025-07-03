@@ -649,12 +649,12 @@ class ContractServiceDefaultTest {
     doNothing().when(azureBlobClient).removeFile(eq(originalContractPath));
 
     // when
-    Token deletedToken = contractService.deleteContract(token);
+    String deletedContractSigned = contractService.deleteContract(token.getContractSigned(), true);
 
     // then
-    assertNotNull(deletedToken);
-    assertEquals(expectedDeletedPath, deletedToken.getContractSigned());
-    assertTrue(deletedToken.getContractSigned().startsWith("parties/deleted"));
+    assertNotNull(deletedContractSigned);
+    assertEquals(expectedDeletedPath, deletedContractSigned);
+    assertTrue(deletedContractSigned.startsWith("parties/deleted"));
 
     InOrder inOrder = inOrder(azureBlobClient);
     inOrder.verify(azureBlobClient).retrieveFile(eq(originalContractPath));

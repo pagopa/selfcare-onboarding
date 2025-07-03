@@ -11,7 +11,6 @@ import it.pagopa.selfcare.onboarding.service.ContractService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -49,13 +48,13 @@ public class TokenFunctionsTest {
     tokenDeleted.setContractSigned("parties/deleted/123/file.pdf");
 
     when(onboardingService.getToken(anyString())).thenReturn(Optional.of(tokenOriginal));
-    when(contractService.deleteContract(any())).thenReturn(tokenDeleted);
-    doNothing().when(onboardingService).updateTokenContractSigned(any());
+    when(contractService.deleteContract(any(), anyBoolean())).thenReturn(tokenDeleted.getContractFilename());
+    doNothing().when(onboardingService).updateTokenContractFiles(any());
 
     EntityFilter entity = EntityFilter.builder().value("123").build();
     String params = objectMapper.writeValueAsString(entity);
     function.deleteContract(params, executionContext);
 
-    verify(onboardingService, times(1)).updateTokenContractSigned(any());
+    verify(onboardingService, times(1)).updateTokenContractFiles(any());
   }
 }
