@@ -232,6 +232,9 @@ public class CompletionServiceDefault implements CompletionService {
             onboardingRequest.billing(billingRequest);
         }
 
+        onboardingRequest.setOrigin(onboarding.getInstitution().getOrigin().name());
+        onboardingRequest.setOriginId(onboarding.getInstitution().getOriginId());
+        onboardingRequest.setInstitutionType(InstitutionOnboardingRequest.InstitutionTypeEnum.valueOf(onboarding.getInstitution().getInstitutionType().name()));
         onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
         //If contract exists we send the path of the contract
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
