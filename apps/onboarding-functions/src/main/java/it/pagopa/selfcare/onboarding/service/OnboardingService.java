@@ -255,6 +255,7 @@ public class OnboardingService {
    sendMailDto.setProductId(onboarding.getProductId());
    sendMailDto.setRole(userMapper.toUserPartyRole(user.getRole()));
    sendMailDto.setUserMailUuid(user.getUserMailUuid());
+   sendMailDto.userRequestUid(onboarding.getUserRequestUid());
 
    try {
      userApi.sendMailRequest(user.getId(), sendMailDto);
