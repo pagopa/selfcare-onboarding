@@ -18,7 +18,6 @@ import java.util.Optional;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.DELETE_TOKEN_CONTRACT_ACTIVITY_NAME;
 
 public class TokenFunctions {
-  private static final Logger logger = LoggerFactory.getLogger(InstitutionFunctions.class.getName());
   private static final String FORMAT_LOGGER_INSTITUTION_STRING = "%s: %s";
   private final OnboardingService onboardingService;
   private final ContractService contractService;
