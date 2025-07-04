@@ -32,7 +32,7 @@ module "storage_documents" {
     }
     restore_policy_days   = 0
     delete_retention_days = 0
-    versioning            = true
+    versioning            = false
     last_access_time      = true
     change_feed = {
       enabled           = false

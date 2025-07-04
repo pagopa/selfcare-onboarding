@@ -246,25 +246,24 @@ public class ContractServiceDefault implements ContractService {
   }
 
   @Override
-  public Token deleteContract(Token token) {
-    String contractFileName = Objects.requireNonNullElse(token.getContractSigned(), "");
-    log.info("START - deleteContract {} fileName: {}", token.getOnboardingId(), contractFileName);
+  public String deleteContract(String fileName, boolean absolutePath) {
+    String filePath = absolutePath ? fileName :  azureStorageConfig.contractPath() + fileName;
+    log.info("START - deleteContract fileName: {}", filePath);
 
     try {
       // First retrieve file
-      File temporaryFile = azureBlobClient.retrieveFile(contractFileName);
-      String deletedFileName = contractFileName.replace(azureStorageConfig.contractPath(), azureStorageConfig.deletedPath());
+      File temporaryFile = azureBlobClient.retrieveFile(filePath);
+      String deletedFileName = filePath.replace(azureStorageConfig.contractPath(), azureStorageConfig.deletedPath());
       // Upload to deleted file storage
       azureBlobClient.uploadFilePath(deletedFileName, Files.readAllBytes(temporaryFile.toPath()));
       // Remove contract from original path
-      azureBlobClient.removeFile(contractFileName);
+      azureBlobClient.removeFile(filePath);
       // set new file path
-      token.setContractSigned(deletedFileName);
-      return token;
+      return deletedFileName;
     } catch (IOException e) {
-      throw new GenericOnboardingException(
-        String.format("Can not remove contract file, message: %s", e.getMessage()));
+      log.error("START - deleteContract error: {}", String.format("Can not remove contract file, message: %s", e.getMessage()));
     }
+    return filePath;
   }
 
   public File createAttachmentPDF(
