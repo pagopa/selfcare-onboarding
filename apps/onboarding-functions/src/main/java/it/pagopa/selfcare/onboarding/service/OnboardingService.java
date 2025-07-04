@@ -370,9 +370,16 @@ public class OnboardingService {
   }
 
   public void updateTokenContractFiles(Token token) {
-    tokenRepository
-      .update("contractSigned = ?1 and contractFilename = ?2 and updatedAt = ?3", token.getContractSigned(), token.getContractFilename(), LocalDateTime.now())
-      .where("_id", token.getId());
+    Map<String, Object> params = new HashMap<>();
+    params.put("contractSigned", token.getContractSigned());
+    params.put("contractFilename", token.getContractFilename());
+    params.put("updatedAt", LocalDateTime.now());
+    params.put("tokenId", token.getId());
+
+    tokenRepository.update(
+      "contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt where _id = :tokenId",
+      params
+    );
   }
 
   public void updateOnboardingStatus(String onboardingId, OnboardingStatus status) {
