@@ -369,17 +369,18 @@ public class OnboardingService {
     return sendMailInput;
   }
 
-  public void updateTokenContractFiles(Token token) {
-    Map<String, Object> params = new HashMap<>();
-    params.put("contractSigned", token.getContractSigned());
-    params.put("contractFilename", token.getContractFilename());
-    params.put("updatedAt", LocalDateTime.now());
-    params.put("tokenId", token.getId());
+  public long updateTokenContractFiles(Token token) {
+    Map<String, Object> paramsUpdate = new HashMap<>();
+    paramsUpdate.put("contractSigned", token.getContractSigned());
+    paramsUpdate.put("contractFilename", token.getContractFilename());
+    paramsUpdate.put("updatedAt", LocalDateTime.now());
 
-    tokenRepository.update(
-      "contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt where _id = :tokenId",
-      params
-    );
+    Map<String, Object> paramsWhere = new HashMap<>();
+    paramsWhere.put("tokenId", token.getId());
+
+    return tokenRepository
+      .update ("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt", paramsUpdate)
+      .where("_id = :tokenId", paramsWhere);
   }
 
   public void updateOnboardingStatus(String onboardingId, OnboardingStatus status) {
