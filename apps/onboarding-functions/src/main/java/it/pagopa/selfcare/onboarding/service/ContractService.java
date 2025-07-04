@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-import it.pagopa.selfcare.onboarding.entity.Token;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 
 public interface ContractService {
