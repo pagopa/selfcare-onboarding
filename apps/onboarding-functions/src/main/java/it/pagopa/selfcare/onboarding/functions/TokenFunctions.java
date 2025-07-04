@@ -46,7 +46,7 @@ public class TokenFunctions {
     Optional<Token> token = onboardingService.getToken(entityFilter.getValue());
     token.ifPresent(t -> {
       t.setContractSigned(contractService.deleteContract(Objects.requireNonNullElse(t.getContractSigned(), ""), true));
-      t.setContractFilename(contractService.deleteContract(Objects.requireNonNullElse(t.getContractFilename(), ""), false));
+      t.setContractFilename(contractService.deleteContract(t.getOnboardingId() + "/" + Objects.requireNonNullElse(t.getContractFilename(), ""), false));
       onboardingService.updateTokenContractFiles(t);
     });
     context
