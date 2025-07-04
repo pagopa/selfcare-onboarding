@@ -5,6 +5,7 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.mongodb.panache.PanacheQuery;
+import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.*;
@@ -829,8 +830,14 @@ class OnboardingServiceTest {
     token.setContractSigned(contractSigned);
     token.setContractFilename(contractFilename);
 
-    // When
-    onboardingService.updateTokenContractFiles(token);
+    PanacheUpdate panacheUpdate = mock(PanacheUpdate.class);
+    when(tokenRepository.update(anyString(), any(Map.class)))
+      .thenReturn(panacheUpdate);
+    when(panacheUpdate.where(anyString(), any(Map.class)))
+      .thenReturn(1L);
+    long result = onboardingService.updateTokenContractFiles(token);
+
+    assertEquals(1L, result);
 
     // Then
     ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
@@ -840,14 +847,25 @@ class OnboardingServiceTest {
 
     String capturedQuery = queryCaptor.getValue();
     Map<String, Object> capturedParams = paramsCaptor.getValue();
-    assertThat(capturedQuery, equalTo("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt where _id = :tokenId"));
+    assertThat(capturedQuery, equalTo("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt"));
     assertThat(capturedParams, Matchers.hasKey("contractSigned"));
     assertThat(capturedParams, Matchers.hasValue(contractSigned));
     assertThat(capturedParams, Matchers.hasKey("contractFilename"));
     assertThat(capturedParams, Matchers.hasValue(contractFilename));
-    assertThat(capturedParams, Matchers.hasKey("tokenId"));
-    assertThat(capturedParams, Matchers.hasValue(token.getId()));
     assertThat(capturedParams, Matchers.hasKey("updatedAt"));
+
+    // Verifica chiamata al where
+    ArgumentCaptor<String> whereQueryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Map<String, Object>> whereParamsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    verify(panacheUpdate).where(whereQueryCaptor.capture(), whereParamsCaptor.capture());
+
+    String capturedWhereQuery = whereQueryCaptor.getValue();
+    Map<String, Object> capturedWhereParams = whereParamsCaptor.getValue();
+
+    assertThat(capturedWhereQuery, equalTo("_id = :tokenId"));
+    assertThat(capturedWhereParams, Matchers.hasValue(token.getId()));
+    assertThat(capturedWhereParams, Matchers.hasKey("tokenId"));
   }
 
 }

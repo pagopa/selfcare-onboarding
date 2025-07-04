@@ -49,7 +49,7 @@ public class TokenFunctionsTest {
 
     when(onboardingService.getToken(anyString())).thenReturn(Optional.of(tokenOriginal));
     when(contractService.deleteContract(any(), anyBoolean())).thenReturn(tokenDeleted.getContractFilename());
-    doNothing().when(onboardingService).updateTokenContractFiles(any());
+    when(onboardingService.updateTokenContractFiles(any())).thenReturn(1L);
 
     EntityFilter entity = EntityFilter.builder().value("123").build();
     String params = objectMapper.writeValueAsString(entity);
