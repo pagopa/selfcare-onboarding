@@ -255,6 +255,7 @@ public class OnboardingService {
    sendMailDto.setProductId(onboarding.getProductId());
    sendMailDto.setRole(userMapper.toUserPartyRole(user.getRole()));
    sendMailDto.setUserMailUuid(user.getUserMailUuid());
+   sendMailDto.userRequestUid(onboarding.getUserRequestUid());
 
    try {
      userApi.sendMailRequest(user.getId(), sendMailDto);
@@ -368,10 +369,18 @@ public class OnboardingService {
     return sendMailInput;
   }
 
-  public void updateTokenContractSigned(Token token) {
-    tokenRepository
-      .update("contractSigned = ?1 and updatedAt = ?2", token.getContractSigned(), LocalDateTime.now())
-      .where("_id", token.getId());
+  public long updateTokenContractFiles(Token token) {
+    Map<String, Object> paramsUpdate = new HashMap<>();
+    paramsUpdate.put("contractSigned", token.getContractSigned());
+    paramsUpdate.put("contractFilename", token.getContractFilename());
+    paramsUpdate.put("updatedAt", LocalDateTime.now());
+
+    Map<String, Object> paramsWhere = new HashMap<>();
+    paramsWhere.put("tokenId", token.getId());
+
+    return tokenRepository
+      .update ("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt", paramsUpdate)
+      .where("_id = :tokenId", paramsWhere);
   }
 
   public void updateOnboardingStatus(String onboardingId, OnboardingStatus status) {

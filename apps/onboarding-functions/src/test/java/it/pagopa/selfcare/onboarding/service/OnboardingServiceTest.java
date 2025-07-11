@@ -1,37 +1,17 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.mongodb.panache.PanacheQuery;
+import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -41,10 +21,8 @@ import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.util.*;
-import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +34,18 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -828,6 +818,54 @@ class OnboardingServiceTest {
     Token token = new Token();
     token.setId(UUID.randomUUID().toString());
     return token;
+  }
+
+  @Test
+  void testUpdateTokenContractFiles() {
+    // Given
+    String contractSigned = "parties/docs/token1/doc.7m";
+    String contractFilename = "contract.pdf";
+    Token token = new Token();
+    token.setId("token1");
+    token.setContractSigned(contractSigned);
+    token.setContractFilename(contractFilename);
+
+    PanacheUpdate panacheUpdate = mock(PanacheUpdate.class);
+    when(tokenRepository.update(anyString(), any(Map.class)))
+      .thenReturn(panacheUpdate);
+    when(panacheUpdate.where(anyString(), any(Map.class)))
+      .thenReturn(1L);
+    long result = onboardingService.updateTokenContractFiles(token);
+
+    assertEquals(1L, result);
+
+    // Then
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    Mockito.verify(tokenRepository).update(queryCaptor.capture(), paramsCaptor.capture());
+
+    String capturedQuery = queryCaptor.getValue();
+    Map<String, Object> capturedParams = paramsCaptor.getValue();
+    assertThat(capturedQuery, equalTo("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt"));
+    assertThat(capturedParams, Matchers.hasKey("contractSigned"));
+    assertThat(capturedParams, Matchers.hasValue(contractSigned));
+    assertThat(capturedParams, Matchers.hasKey("contractFilename"));
+    assertThat(capturedParams, Matchers.hasValue(contractFilename));
+    assertThat(capturedParams, Matchers.hasKey("updatedAt"));
+
+    // Verifica chiamata al where
+    ArgumentCaptor<String> whereQueryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Map<String, Object>> whereParamsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    verify(panacheUpdate).where(whereQueryCaptor.capture(), whereParamsCaptor.capture());
+
+    String capturedWhereQuery = whereQueryCaptor.getValue();
+    Map<String, Object> capturedWhereParams = whereParamsCaptor.getValue();
+
+    assertThat(capturedWhereQuery, equalTo("_id = :tokenId"));
+    assertThat(capturedWhereParams, Matchers.hasValue(token.getId()));
+    assertThat(capturedWhereParams, Matchers.hasKey("tokenId"));
   }
 
 }
