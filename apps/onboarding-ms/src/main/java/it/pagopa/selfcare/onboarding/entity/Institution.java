@@ -43,4 +43,5 @@ public class Institution {
     private GPUData gpuData;
 
     private String parentDescription;
+    private List<String> atecoCodes;
 }
