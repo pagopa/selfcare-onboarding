@@ -42,4 +42,7 @@ public class InstitutionBaseRequest {
 
     /* when onboarding is imported (es. from IO)*/
     private boolean imported;
+
+    /* when onboarding is for PRV prod-idpay-merchant */
+    private List<String> atecoCodes;
 }

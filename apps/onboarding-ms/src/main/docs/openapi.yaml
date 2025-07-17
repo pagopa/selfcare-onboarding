@@ -1772,6 +1772,10 @@ components:
           type: string
         imported:
           type: boolean
+        atecoCodes:
+          type: array
+          items:
+            type: string
     InstitutionImportRequest:
       required:
       - taxCode
@@ -1879,6 +1883,10 @@ components:
           type: string
         imported:
           type: boolean
+        atecoCodes:
+          type: array
+          items:
+            type: string
         paymentServiceProvider:
           $ref: "#/components/schemas/PaymentServiceProviderRequest"
         dataProtectionOfficer:
