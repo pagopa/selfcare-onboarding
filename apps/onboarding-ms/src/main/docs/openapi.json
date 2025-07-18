@@ -2683,6 +2683,12 @@
           },
           "dataProtectionOfficer" : {
             "$ref" : "#/components/schemas/DataProtectionOfficerRequest"
+          },
+          "atecoCodes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
