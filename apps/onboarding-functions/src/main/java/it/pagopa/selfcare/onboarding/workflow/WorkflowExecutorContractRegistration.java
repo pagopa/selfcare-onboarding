@@ -24,6 +24,7 @@ public record WorkflowExecutorContractRegistration(ObjectMapper objectMapper, Ta
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString, optionsRetry, String.class).await();
         sendMailForUserActivity(ctx, onboardingWorkflow, onboardingMapper);
+        saveVisuraActivity(ctx, onboardingWorkflow.getOnboarding());
         return Optional.of(OnboardingStatus.PENDING);
     }
 

@@ -132,6 +132,53 @@
         } ]
       }
     },
+    "/visura-infocamere-pdnd/institutions/{taxCode}/document" : {
+      "get" : {
+        "tags" : [ "pdnd-visura-info-camere-controller" ],
+        "summary" : "Get institution by institution taxCode",
+        "description" : "Get the company represented by taxCode of the institution passed as a parameter",
+        "operationId" : "institutionVisuraDocumentByTaxCodeUsingGET",
+        "parameters" : [ {
+          "name" : "taxCode",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/xml" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string",
+                    "format" : "byte"
+                  }
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Not Found"
+          },
+          "500" : {
+            "description" : "Internal Server Error"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
     "/aoo/{codiceUniAoo}" : {
       "get" : {
         "tags" : [ "aoo" ],
