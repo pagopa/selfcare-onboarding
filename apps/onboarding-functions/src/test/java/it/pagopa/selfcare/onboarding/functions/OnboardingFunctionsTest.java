@@ -208,8 +208,8 @@ class OnboardingFunctionsTest {
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
-    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(3));
-    assertEquals(SAVE_VISURA_FOR_MERCHANT, captorActivity.getAllValues().get(4));
+    assertEquals(SAVE_VISURA_FOR_MERCHANT, captorActivity.getAllValues().get(3));
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(4));
 
     verify(service, times(1)).updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
   }
