@@ -1756,6 +1756,8 @@ components:
           type: string
         istatCode:
           type: string
+        legalForm:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -1866,6 +1868,8 @@ components:
         zipCode:
           type: string
         istatCode:
+          type: string
+        legalForm:
           type: string
         geographicTaxonomies:
           type: array

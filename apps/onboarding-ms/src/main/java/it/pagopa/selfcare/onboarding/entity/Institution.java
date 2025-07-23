@@ -26,6 +26,7 @@ public class Institution {
     private String digitalAddress;
     private String address;
     private String zipCode;
+    private String legalForm;
 
     private List<GeographicTaxonomy> geographicTaxonomies;
 
