@@ -7,9 +7,11 @@ import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
@@ -30,17 +32,16 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
-
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
+import org.openapi.quarkus.party_registry_proxy_json.api.PdndVisuraInfoCamereControllerApi;
 import org.openapi.quarkus.user_json.api.InstitutionApi;
 import org.openapi.quarkus.user_json.model.SendMailDto;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
@@ -66,6 +67,8 @@ public class OnboardingService {
   @RestClient @Inject InstitutionApi userInstitutionApi;
   @RestClient @Inject
   org.openapi.quarkus.user_json.api.UserApi userApi;
+  @RestClient @Inject
+  PdndVisuraInfoCamereControllerApi pndnInfocamereApi;
   @Inject NotificationService notificationService;
   private final ContractService contractService;
   private final ProductService productService;
@@ -73,7 +76,9 @@ public class OnboardingService {
   private final TokenRepository tokenRepository;
   private final MailTemplatePathConfig mailTemplatePathConfig;
   private final MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig;
+  private final AzureBlobClient azureBlobClient;
   private final UserMapper userMapper;
+  private final AzureStorageConfig azureStorageConfig;
 
   public OnboardingService(
           ProductService productService,
@@ -82,7 +87,10 @@ public class OnboardingService {
           MailTemplatePathConfig mailTemplatePathConfig,
           MailTemplatePlaceholdersConfig mailTemplatePlaceholdersConfig,
           TokenRepository tokenRepository,
-          NotificationService notificationService, UserMapper userMapper) {
+          NotificationService notificationService,
+          UserMapper userMapper,
+          AzureBlobClient azureBlobClient,
+          AzureStorageConfig azureStorageConfig) {
     this.contractService = contractService;
     this.repository = repository;
     this.tokenRepository = tokenRepository;
@@ -90,7 +98,9 @@ public class OnboardingService {
     this.notificationService = notificationService;
     this.mailTemplatePathConfig = mailTemplatePathConfig;
     this.mailTemplatePlaceholdersConfig = mailTemplatePlaceholdersConfig;
-      this.userMapper = userMapper;
+    this.userMapper = userMapper;
+    this.azureBlobClient = azureBlobClient;
+    this.azureStorageConfig = azureStorageConfig;
   }
 
   public Optional<Onboarding> getOnboarding(String onboardingId) {
@@ -262,6 +272,18 @@ public class OnboardingService {
    } catch (Exception e) {
      log.error("Impossible to send mail to user");
    }
+  }
+
+  public void saveVisuraForMerchant(Onboarding onboarding) {
+    var taxCode = onboarding.getInstitution().getTaxCode();
+    try {
+      var bytes = pndnInfocamereApi.institutionVisuraDocumentByTaxCodeUsingGET(taxCode);
+      final String filename = String.format("VISURA_%s.xml", taxCode);
+      final String path = String.format("%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/visura");
+      azureBlobClient.uploadFile(path, filename, bytes);
+    } catch (Exception e) {
+      log.error("Impossible to store visura document for institution with taxCode: {}. Error: {}", taxCode, e.getMessage(), e);
+    }
   }
 
   public void sendMailRegistrationForContract(OnboardingWorkflow onboardingWorkflow) {
