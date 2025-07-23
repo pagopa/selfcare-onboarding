@@ -1013,6 +1013,17 @@ class OnboardingFunctionsTest {
   }
 
   @Test
+  void saveVisuraForMerchant() {
+
+    when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+    doNothing().when(service).saveVisuraForMerchant(any());
+
+    function.saveVisuraForMerchant(onboardingStringBase, executionContext);
+
+    verify(service, times(1)).saveVisuraForMerchant(any());
+  }
+
+  @Test
   void sendMailRegistrationApprove() {
 
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());

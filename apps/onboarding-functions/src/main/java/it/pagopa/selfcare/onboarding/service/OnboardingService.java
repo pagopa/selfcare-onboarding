@@ -278,6 +278,7 @@ public class OnboardingService {
     var taxCode = onboarding.getInstitution().getTaxCode();
     try {
       var bytes = pndnInfocamereApi.institutionVisuraDocumentByTaxCodeUsingGET(taxCode);
+      log.info("Document", bytes);
       final String filename = String.format("VISURA_%s.xml", taxCode);
       final String path = String.format("%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/visura");
       azureBlobClient.uploadFile(path, filename, bytes.get(0));
