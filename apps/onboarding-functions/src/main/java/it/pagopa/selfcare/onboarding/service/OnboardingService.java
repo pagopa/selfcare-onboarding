@@ -33,6 +33,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -277,10 +278,10 @@ public class OnboardingService {
   public void saveVisuraForMerchant(Onboarding onboarding) {
     var taxCode = onboarding.getInstitution().getTaxCode();
     try {
-      var bytes = pndnInfocamereApi.institutionVisuraDocumentByTaxCodeUsingGET(taxCode);
+      var file = pndnInfocamereApi.institutionVisuraDocumentByTaxCodeUsingGET(taxCode);
       final String filename = String.format("VISURA_%s.xml", taxCode);
       final String path = String.format("%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/visura");
-      azureBlobClient.uploadFile(path, filename, bytes);
+      azureBlobClient.uploadFile(path, filename, Files.readAllBytes(file.toPath()));
     } catch (Exception e) {
       log.error("Impossible to store visura document for institution with taxCode: {}. Error: {}", taxCode, e.getMessage(), e);
     }

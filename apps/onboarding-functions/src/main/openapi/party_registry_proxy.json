@@ -148,12 +148,12 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "OK",
+            "description" : "Binary file",
             "content" : {
-              "application/xml": {
-                "schema": {
-                  "type": "string",
-                  "format": "byte"
+              "application/octet-stream" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
                 }
               }
             }

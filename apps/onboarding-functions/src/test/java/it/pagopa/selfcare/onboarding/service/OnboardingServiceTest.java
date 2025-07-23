@@ -481,7 +481,9 @@ class OnboardingServiceTest {
     user.setUserMailUuid("uuid-123");
     onboarding.setUsers(List.of(user));
 
-    Mockito.when(pdndVisuraInfoCamereControllerApi.institutionVisuraDocumentByTaxCodeUsingGET(any())).thenReturn("test".getBytes(StandardCharsets.UTF_8));
+    Mockito.when(
+            pdndVisuraInfoCamereControllerApi.institutionVisuraDocumentByTaxCodeUsingGET(any()))
+        .thenReturn(new File("test"));
     Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn("test");
     // Act
     onboardingService.saveVisuraForMerchant(onboarding);
