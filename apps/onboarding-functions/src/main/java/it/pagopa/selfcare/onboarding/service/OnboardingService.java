@@ -285,7 +285,7 @@ public class OnboardingService {
       log.info("path", path);
       azureBlobClient.uploadFile(path, filename, bytes.get(0));
     } catch (Exception e) {
-      log.error("Impossible to store visura document for institution with taxCode: " + taxCode);
+      log.error("Impossible to store visura document for institution with taxCode: {}. Error: {}", taxCode, e.getMessage(), e);
     }
   }
 

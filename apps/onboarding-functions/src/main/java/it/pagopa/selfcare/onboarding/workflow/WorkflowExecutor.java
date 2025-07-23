@@ -81,7 +81,7 @@ public interface WorkflowExecutor {
         if (Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = new ArrayList<>();
-            onboarding.getTestEnvProductIds().stream()
+            onboarding.getTestEnvProductIds()
                     .forEach(testEnvProductId -> {
                         final String onboardingStringWithTestEnvProductId = onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString);
                         parallelTasks.add(ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class));
