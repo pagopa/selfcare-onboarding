@@ -280,7 +280,9 @@ public class OnboardingService {
       var bytes = pndnInfocamereApi.institutionVisuraDocumentByTaxCodeUsingGET(taxCode);
       log.info("Document", bytes);
       final String filename = String.format("VISURA_%s.xml", taxCode);
+      log.info("Filename", filename);
       final String path = String.format("%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/visura");
+      log.info("path", path);
       azureBlobClient.uploadFile(path, filename, bytes.get(0));
     } catch (Exception e) {
       log.error("Impossible to store visura document for institution with taxCode: " + taxCode);
