@@ -150,13 +150,10 @@
           "200" : {
             "description" : "OK",
             "content" : {
-              "application/xml" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "type" : "string",
-                    "format" : "byte"
-                  }
+              "application/xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
                 }
               }
             }
