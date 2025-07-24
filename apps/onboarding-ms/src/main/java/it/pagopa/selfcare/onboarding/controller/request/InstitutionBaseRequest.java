@@ -30,6 +30,7 @@ public class InstitutionBaseRequest {
     private String address;
     private String zipCode;
     private String istatCode;
+    private String legalForm;
 
     private List<GeographicTaxonomyDto> geographicTaxonomies;
 
