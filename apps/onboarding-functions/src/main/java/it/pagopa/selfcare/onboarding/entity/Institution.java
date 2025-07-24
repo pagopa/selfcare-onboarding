@@ -41,6 +41,7 @@ public class Institution {
     private DataProtectionOfficer dataProtectionOfficer;
     private GPUData gpuData;
     private String parentDescription;
+    private List<String> atecoCodes;
 
     public InstitutionType getInstitutionType() {
         return institutionType;
@@ -248,6 +249,14 @@ public class Institution {
 
     public void setIstatCode(String istatCode) {
         this.istatCode = istatCode;
+    }
+
+    public List<String> getAtecoCodes() {
+        return atecoCodes;
+    }
+
+    public void setAtecoCodes(List<String> atecoCodes) {
+        this.atecoCodes = atecoCodes;
     }
 
     @Override
