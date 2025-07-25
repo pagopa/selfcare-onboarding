@@ -4,17 +4,17 @@
     <parent>
         <groupId>it.pagopa.selfcare</groupId>
         <artifactId>onboarding-sdk-pom</artifactId>
-        <version>0.7.2</version>
+        <version>0.7.3</version>
         <relativePath>../onboarding-sdk-pom</relativePath>
     </parent>
     <artifactId>onboarding-sdk-product</artifactId>
     <name>onboarding-sdk-product</name>
-    <version>0.7.2</version>
+    <version>0.7.3</version>
 
     <properties>
         <jackson.version>2.15.2</jackson.version>
         <onboarding-sdk.version>0.2.2</onboarding-sdk.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
     </properties>
 
     <dependencies>

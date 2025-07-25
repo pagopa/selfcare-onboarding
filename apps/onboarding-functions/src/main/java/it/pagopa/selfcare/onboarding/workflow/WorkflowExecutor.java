@@ -81,7 +81,7 @@ public interface WorkflowExecutor {
         if (Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = new ArrayList<>();
-            onboarding.getTestEnvProductIds().stream()
+            onboarding.getTestEnvProductIds()
                     .forEach(testEnvProductId -> {
                         final String onboardingStringWithTestEnvProductId = onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString);
                         parallelTasks.add(ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class));
@@ -209,6 +209,13 @@ public interface WorkflowExecutor {
             onboardingWorkflow.setOnboarding(onboardingWithSingleUser);
             ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
         });
+    }
+
+    default void saveVisuraActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        List<String> atecoCodes = onboarding.getInstitution().getAtecoCodes();
+        if (Objects.nonNull(atecoCodes) && !atecoCodes.isEmpty()) {
+            ctx.callActivity(SAVE_VISURA_FOR_MERCHANT, getOnboardingString(objectMapper(), onboarding), optionsRetry(), String.class).await();
+        }
     }
 
 }

@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.controller;
 
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
-
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
@@ -30,9 +28,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -41,6 +36,12 @@ import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
 
 @Authenticated
 @Path("/v1/onboarding")
