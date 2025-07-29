@@ -6,9 +6,6 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - releases/*
     paths:
       - "apps/onboarding-fn/**"
   workflow_dispatch:
