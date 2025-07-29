@@ -6,11 +6,11 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - feature/SELC-7413
     #paths:
     #  - "apps/onboarding-fn/**"
-  workflow_dispatch:
+  push:
+    branches:
+      - feature/SELC-7413
 
 jobs:
   integration_tests_fn:
