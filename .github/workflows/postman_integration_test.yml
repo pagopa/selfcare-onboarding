@@ -1,4 +1,4 @@
-name: Integration test
+name: Postman - Integration test
 
 on:
   push:
@@ -16,14 +16,11 @@ on:
           - uat
 
 jobs:
-
   test_dev:
     uses: ./.github/workflows/call_integration_test.yml
-    name: '[Dev] Integration test'
+    name: "[Dev] Integration test"
     if: ${{ (startsWith(github.ref_name, 'releases/') != true && inputs.env == null) || inputs.env == 'dev' }}
     secrets: inherit
     with:
       environment: dev
       short_env: d
-
-
