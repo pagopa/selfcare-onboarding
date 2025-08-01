@@ -30,6 +30,8 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -48,6 +50,7 @@ import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
+import org.testcontainers.containers.ComposeContainer;
 
 @CucumberOptions(
     features = "src/test/resources/features",
@@ -74,12 +77,14 @@ public class OnboardingStep extends CucumberQuarkusTest {
 
   static MongoDatabase mongoDatabase;
 
+  static ComposeContainer composeContainer;
+
   public static void main(String[] args) {
     runMain(OnboardingStep.class, args);
   }
 
   @BeforeAll
-  static void setup() {
+  static void setup() throws IOException, InterruptedException {
     tokenTest = ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class);
     objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
@@ -88,6 +93,17 @@ public class OnboardingStep extends CucumberQuarkusTest {
         .getOrCreateContext()
         .config()
         .put("quarkus.vertx.event-loop-blocked-check-interval", 5000);
+
+    log.info("Starting test containers...");
+
+    composeContainer = new ComposeContainer(new File("docker-compose.yml"))
+            .withLocalCompose(true);
+           // .waitingFor("azure-cli", Wait.forLogMessage(".*BLOBSTORAGE INITIALIZED.*\\n", 1));
+    composeContainer.start();
+    Runtime.getRuntime().addShutdownHook(new Thread(composeContainer::stop));
+
+    log.info("Test containers started successfully");
+
     initDb();
     log.debug("Init completed");
   }

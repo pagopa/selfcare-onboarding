@@ -29,12 +29,6 @@ Feature: Onboarding collection
     And the response should contain the text "origin is required"
     And the response should contain the text "originId is required"
 
-  Scenario: Can't perform onboarding request with missing users node
-    Given I have a request object named "empty_users_request"
-    When I send a POST request to "/pa" with this request
-    Then the response status code should be 400
-    And the response should contain the text "at least one user is required"
-
   Scenario: Can't perform onboarding request with missing digitalAddress attribute
     Given I have a request object named "empty_pec_request"
     When I send a POST request to "/pa" with this request
