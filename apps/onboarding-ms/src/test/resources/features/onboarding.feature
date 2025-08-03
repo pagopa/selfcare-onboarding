@@ -219,7 +219,7 @@ Feature: Onboarding collection
     And the response should contain the text "Field digitalAddress or description are not valid"
 
   Scenario: Successfully store onboarding for foreing SA in status REQUEST
-    Given I have a request object named "success_foreign_sa_request"
+    Given I have a request object named "success_foreign_as_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
     And the response body should not be empty
@@ -379,7 +379,7 @@ Feature: Onboarding collection
 
   Scenario: Successfully store onboarding for import PRV in status REQUEST
     Given I have a request object named "success_import_prv_request"
-    When I send a POST request for import PSP to "/import" with this request
+    When I send a POST request for import PRV to "/import" with this request
     Then the response status code should be 200
     And the response body should not be empty
     And the response should have field "status" with value "PENDING"

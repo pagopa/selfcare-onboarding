@@ -20,6 +20,60 @@
   {
     "httpRequest": {
       "method": "GET",
+      "path": "/party-registry-mock/stations/{taxId}",
+      "pathParameters": {
+        "taxId": [
+          "02130120765"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n      \"id\": \"02130120765\",\n      \"taxCode\": \"02130120765\",\n      \"description\": \"Appconsulting srl\",\n      \"digitalAddress\": \"appconsultingsrl@pec.it\",\n      \"anacEngaged\": false,\n      \"anacEnabled\": false,\n      \"origin\": \"ANAC\"\n    }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/party-registry-mock/insurance-companies/{id}",
+      "pathParameters": {
+        "id": [
+          "A113C"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"id\": \"A113C\", \"originId\": \"A113C\", \"taxCode\": \"00320160237\", \"description\": \"GENERTEL S.P.A.\", \"digitalAddress\": \"legale.compliance@pec.genertel.it\", \"registerType\": \"Sezione I - imprese di assicurazione con sede legale in Italia\", \"address\": \"VIA MAROCCHESA, 14  31021 MOGLIANO VENETO\", \"origin\": \"IVASS\"}",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/party-registry-mock/insurance-companies/{id}",
+      "pathParameters": {
+        "id": [
+          "40944"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"id\": \"40944\", \"originId\": \"40944\", \"taxCode\": \"96418440580\", \"description\": \"GENERALI LUXEMBOURG S.A.\", \"digitalAddress\": \"generalilux@legalmail.it\", \"registerType\": \"Sezione I - imprese di assicurazione con sede legale in Italia\", \"address\": \"VIA MAROCCHESA, 14  31021 MOGLIANO VENETO\", \"origin\": \"IVASS\"}",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
       "path": "/party-registry-mock/insurance-companies/{id}",
       "pathParameters": {
         "id": [
@@ -102,6 +156,42 @@
     "httpResponse": {
       "statusCode": 200,
       "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"PRVTNT80A41H401T\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"01501320442\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/party-registry-mock/info-camere/institutions",
+      "body": {
+        "filter": {
+          "legalTaxId": "27937810870"
+        }
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"27937810870\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"01501320442\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/party-registry-mock/institutions/{taxCode}",
+      "pathParameters": {
+        "taxCode": [
+          "00136380805"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n        \"id\": \"00136380805\",\n        \"originId\": \"WZVWRR\",\n        \"taxCode\": \"00136380805\",\n        \"category\": \"L6\",\n        \"description\": \"Ufficio per la transizione al Digitale\",\n        \"digitalAddress\": \"\"protocollo@pec.reggiocal.it\",\n        \"address\": \"p. Municipale, 2\",\n        \"zipCode\": \"44121\",\n        \"origin\": \"IPA\",\n        \"istatCode\": \"038008\"\n      }",
       "headers": {
         "Content-Type": "application/json"
       }
@@ -249,6 +339,24 @@
     "httpResponse": {
       "statusCode": 200,
       "body": "{\n        \"id\": \"UFD333\",\n        \"codiceIpa\": \"c_l186\",\n        \"denominazioneEnte\": \"Comune di Tocco da Casauria\",\n        \"codiceFiscaleEnte\": \"00231830688\",\n        \"codiceFiscaleSfe\": \"00231830688\",\n        \"codiceUniUo\": \"UFD333\",\n        \"codiceUniAoo\": \"A46A529\",\n        \"descrizioneUo\": \"SERVIZIO BILANCIO CONTABILITA' E PERSONALE\",\n        \"mail1\": \"personale@cert.comune.fe.it\",\n        \"origin\": \"IPA\",\n        \"dataIstituzione\": \"2016-07-19\",\n        \"nomeResponsabile\": \"Mario\",\n        \"cognomeResponsabile\": \"Rossi\",\n        \"mailResponsabile\": \"mario.rossi@test.com\",\n        \"codiceComuneISTAT\": \"038008\",\n        \"codiceCatastaleComune\": \"D548\",\n        \"CAP\": \"44121\",\n        \"indirizzo\": \"Via del Podesta 2\",\n        \"tipoMail1\": \"Pec\",\n        \"dataAggiornamento\": \"2024-10-29\"\n      }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/party-registry-mock/uo/{code}",
+      "pathParameters": {
+        "code": [
+          "RSRFHL"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n        \"id\": \"RSRFHL\",\n        \"codiceIpa\": \"c_h423\",\n        \"denominazioneEnte\": \"Ufficio centrale di fatturazione\",\n        \"codiceFiscaleEnte\": \"83001010616\",\n        \"codiceFiscaleSfe\": \"83001010616\",\n        \"codiceUniUo\": \"RSRFHL\",\n        \"codiceUniAoo\": \"A46A529\",\n        \"descrizioneUo\": \"Ufficio centrale di fatturazione\",\n        \"mail1\": \"protocollo.roccamonfina@asmepec.it \",\n        \"origin\": \"IPA\",\n        \"dataIstituzione\": \"2016-07-19\",\n        \"nomeResponsabile\": \"Mario\",\n        \"cognomeResponsabile\": \"Rossi\",\n        \"mailResponsabile\": \"mario.rossi@test.com\",\n        \"codiceComuneISTAT\": \"038008\",\n        \"codiceCatastaleComune\": \"D548\",\n        \"CAP\": \"44121\",\n        \"indirizzo\": \"Via del Podesta 2\",\n        \"tipoMail1\": \"Pec\",\n        \"dataAggiornamento\": \"2024-10-29\"\n      }",
       "headers": {
         "Content-Type": "application/json"
       }
