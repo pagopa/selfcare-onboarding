@@ -37,10 +37,4 @@ COPY resources/fn/host.json ./apps/onboarding-functions/host.json
 RUN mvn -pl apps/onboarding-functions -am clean install -DskipTests
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
-#CMD ["quarkus", "run", "-Dquarkus.http.port=8090"]
-CMD ["quarkus", "run"]
-
-#FROM eclipse-temurin:17-jre
-#WORKDIR /app
-#COPY --from=build /app/selfcare-onboarding/apps/onboarding-functions/target/onboarding-functions-1.0.0-SNAPSHOT.jar ./onboarding-functions-1.0.0-SNAPSHOT.jar
-#CMD ["java", "-jar", "./onboarding-functions-1.0.0-SNAPSHOT.jar"]
+CMD ["quarkus", "run", "-DenableDebug", "-DskipTests", "-Dquarkus.http.test-port=8090", "-Dquarkus.profile=test"]
