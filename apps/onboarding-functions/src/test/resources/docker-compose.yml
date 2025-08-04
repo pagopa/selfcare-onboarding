@@ -19,7 +19,7 @@ services:
       - "10012:10012"
     networks:
       - develop-network
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --blobPort 10010 --queuePort 10011 --tablePort 10012 --location /workspace --debug /workspace/debug.log"
+    command: "azurite --loose --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --blobPort 10010 --queuePort 10011 --tablePort 10012 --location /workspace --debug /workspace/debug.log"
     environment:
       - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
     volumes:
