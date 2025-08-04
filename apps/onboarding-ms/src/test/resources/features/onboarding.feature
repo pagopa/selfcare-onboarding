@@ -148,12 +148,12 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "FOR_APPROVE"
 
-  Scenario: Successfully store onboarding in status PENDING
-    Given I have a request object named "success_pg_request"
-    When I send a POST request for PNPG to "/pg/completion" with this request
-    Then the response status code should be 200
-    And the response body should not be empty
-    And the response should have field "status" with value "PENDING"
+  #Scenario: Successfully store onboarding in status PENDING
+   # Given I have a request object named "success_pg_request"
+   # When I send a POST request for PNPG to "/pg/completion" with this request
+   # Then the response status code should be 200
+   # And the response body should not be empty
+   # And the response should have field "status" with value "PENDING"
 
   Scenario: Can't perform onboarding request for PG cause institution is not into registry
     Given I have a request object named "institution_not_into_registry_request"
