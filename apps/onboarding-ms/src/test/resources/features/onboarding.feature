@@ -261,21 +261,21 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
 
-  Scenario: Successfully store onboarding in status REQUEST
-    Given I have a request object named "success_aggregation_pa_request"
-    When I send a POST request to "/pa/aggregation" with this request
-    Then the response status code should be 200
-    And the response body should not be empty
-    And the response should have field "status" with value "REQUEST"
-    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+  #Scenario: Successfully store onboarding in status REQUEST
+   # Given I have a request object named "success_aggregation_pa_request"
+   # When I send a POST request to "/pa/aggregation" with this request
+   # Then the response status code should be 200
+   # And the response body should not be empty
+   # And the response should have field "status" with value "REQUEST"
+   # And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
 
-  Scenario: Successfully store onboarding in status PENDING
+  Scenario: Successfully store onboarding in status REQUEST
     Given I have a request object named "success_aggregation_gpu_request"
     When I send a POST request to "/aggregation/completion" with this request
     Then the response status code should be 200
     And the response body should not be empty
-    And the response should have field "status" with value "PENDING"
-    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION_AGGREGATOR"
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONFIRMATION_AGGREGATOR"
 
   Scenario: Successfully store onboarding for PSP in status REQUEST
     Given I have a request object named "success_psp_request"

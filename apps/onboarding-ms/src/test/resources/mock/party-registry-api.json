@@ -149,6 +149,24 @@
       "path": "/party-registry-mock/info-camere/institutions",
       "body": {
         "filter": {
+          "legalTaxId": "FRDSMN80A01F205Z"
+        }
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"FRDSMN80A01F205Z\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"01501320442\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/party-registry-mock/info-camere/institutions",
+      "body": {
+        "filter": {
           "legalTaxId": "PRVTNT80A41H401T"
         }
       }
@@ -167,13 +185,31 @@
       "path": "/party-registry-mock/info-camere/institutions",
       "body": {
         "filter": {
-          "legalTaxId": "27937810870"
+          "legalTaxId": "PRVTNT80A41H401T"
         }
       }
     },
     "httpResponse": {
       "statusCode": 200,
-      "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"27937810870\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"01501320442\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
+      "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"PRVTNT80A41H401T\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"01501320442\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/party-registry-mock/info-camere/institutions",
+      "body": {
+        "filter": {
+          "legalTaxId": "CTNMCP80A01H501M"
+        }
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n      \"requestDateTime\": \"2025-02-26T13:56:49.844205884Z\",\n      \"legalTaxId\": \"CTNMCP80A01H501M\",\n      \"businesses\": [\n        {\"businessName\": \"test0\", \"businessTaxId\": \"27937810870\"},\n        {\"businessName\": \"test1\", \"businessTaxId\": \"01501320442\"}\n      ]\n    }",
       "headers": {
         "Content-Type": "application/json"
       }
@@ -411,6 +447,24 @@
     "httpResponse": {
       "statusCode": 200,
       "body": "{\n        \"id\": \"A46A529\",\n        \"codiceIpa\": \"c_d548\",\n        \"denominazioneEnte\": \"Comune di Ferrara\",\n        \"codiceFiscaleEnte\": \"00297110389\",\n        \"codiceUniAoo\": \"A46A529\",\n        \"denominazioneAoo\": \"PROTOCOLLO GENERALE\",\n        \"dataIstituzione\": \"2012-06-13\",\n        \"nomeResponsabile\": \"Mario\",\n        \"cognomeResponsabile\": \"Rossi\",\n        \"mailResponsabile\": \"mario.rossi@test.com\",\n        \"telefonoResponsabile\": \"123456789\",\n        \"codiceComuneISTAT\": \"038008\",\n        \"codiceCatastaleComune\": \"D548\",\n        \"CAP\": \"44121\",\n        \"indirizzo\": \"Piazza Del Municipio, 2\",\n        \"telefono\": \"123456789\",\n        \"dataAggiornamento\": \"2024-10-29\",\n        \"codAoo\": \"PG\",\n        \"origin\": \"IPA\",\n        \"tipoMail1\": \"Pec\",\n        \"mail1\": \"comune.ferrara@cert.comune.fe.it\"\n      }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
+      "path": "/party-registry-mock/infocamere-pdnd/institution/{code}",
+      "pathParameters": {
+        "code": [
+          "15376371009"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\"businessTaxId\":\"15376371009\",\"businessName\":\"PAGOPA S.P.A.\",\"legalNature\":\"SP\",\"legalNatureDescription\":\"SOCIETA' PER AZIONI\",\"cciaa\":\"RM\",\"nRea\":\"1586302\",\"businessStatus\":\"Registrata\",\"city\":\"ROMA\",\"county\":\"RM\",\"zipCode\":\"00187\",\"address\":\"PIAZZA COLONNA 370\",\"digitalAddress\":\"PAGOPASPA@PEC.PAGOPA.IT\"}",
       "headers": {
         "Content-Type": "application/json"
       }
