@@ -314,7 +314,7 @@ class OnboardingServiceTest {
                                     getClass().getClassLoader().getResource("application.properties"))
                             .getFile());
     DSSDocument document = new FileDocument(contract);
-    String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
+    String digestExpected = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     Product productExpected = createDummyProduct();
     when(contractService.retrieveContractNotSigned(onboardingWorkflow, productExpected.getTitle()))
@@ -354,7 +354,7 @@ class OnboardingServiceTest {
                                     getClass().getClassLoader().getResource("application.properties"))
                             .getFile());
     DSSDocument document = new FileDocument(contract);
-    String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
+    String digestExpected = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     Product productExpected = createDummyProduct();
     when(contractService.retrieveAttachment(onboardingAttachment, productExpected.getTitle()))
