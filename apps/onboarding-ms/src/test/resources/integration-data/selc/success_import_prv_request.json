@@ -1,32 +1,23 @@
 {
-  "productId": "prod-pagopa",
+  "productId": "prod-registro-beni",
   "users": [
     {
       "taxCode": "FRDSMN80A01F205Z",
       "name": "Sigmund",
       "surname": "Freud",
       "email": "s.freud@test.email.it",
-      "role": "MANAGER"
-    },
-    {
-      "taxCode": "CLVTLI80A01F839V",
-      "name": "Italo",
-      "surname": "Calvino",
-      "email": "i.calvino@test.email.it",
-      "role": "DELEGATE"
+      "role": "OPERATOR"
     }
   ],
   "institution": {
     "institutionType": "PRV",
     "taxCode": "83001010616",
-    "origin": "IPA",
-    "originId": "AL7RYI5",
-    "subunitCode": "AL7RYI5",
-    "subunitType": "AOO",
+    "origin": "SELC",
+    "originId": "83001010616",
     "city": "Roccamonfina",
     "country": "IT",
     "county": "CE",
-    "description": "Comune di Roccamonfina",
+    "description": "Produttore Registro beni",
     "digitalAddress": "protocollo.roccamonfina@asmepec.it",
     "address": "Via Municipio N. 8",
     "zipCode": "81035",
