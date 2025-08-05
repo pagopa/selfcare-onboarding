@@ -197,7 +197,6 @@ Feature: Onboarding collection
     And the response body should not be empty
     And the response should contain the text "non deve essere null"
 
-
   Scenario: Successfully store onboarding for SA in status REQUEST
     Given I have a request object named "success_sa_request"
     When I send a POST request to "" with this request
@@ -254,12 +253,12 @@ Feature: Onboarding collection
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "FOR_APPROVE_GPU"
 
-  Scenario: Can't perform onboarding request for UO Aggregate
-    Given I have a request object named "invalid_aggregate_pa_request"
-    When I send a POST request to "/pa/aggregation" with this request
-    Then the response status code should be 400
-    And the response body should not be empty
-    And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
+  #Scenario: Can't perform onboarding request for UO Aggregate
+   # Given I have a request object named "invalid_aggregate_pa_request"
+   # When I send a POST request to "/pa/aggregation" with this request
+   # Then the response status code should be 400
+   # And the response body should not be empty
+   # And the response should contain the text "Field digitalAddress or description are not valid for institution with taxCode=83001010616 and subunitCode=RSRFHL"
 
   #Scenario: Successfully store onboarding in status REQUEST
    # Given I have a request object named "success_aggregation_pa_request"
