@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-
   mongo-db:
     image: mongo:latest
     ports:
@@ -71,7 +70,7 @@ services:
       context: ..
       dockerfile: ./resources/Dockerfile-fn
     ports:
-      - "8090:8081"
+      - "8090:8090"
     networks:
       - develop-network
     environment:
