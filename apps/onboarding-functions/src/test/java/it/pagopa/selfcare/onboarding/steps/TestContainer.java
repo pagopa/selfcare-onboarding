@@ -18,15 +18,14 @@ public class TestContainer {
         File config;
 
         try {
-            URL resource = getClass().getClassLoader().getResource("src/test/resources/docker-compose.yml");
-            if (resource == null) {
-                throw new IllegalArgumentException("File of docker-compose not found!");
-            } else {
-                config = new File(resource.toURI());
-            }
+//            URL resource = getClass().getClassLoader().getResource("src/test/resources/docker-compose.yml");
+//            if (resource == null) {
+//                throw new IllegalArgumentException("File of docker-compose not found!");
+//            } else {
+//                config = new File(resource.toURI());
+//            }
 
-            composeContainer = new ComposeContainer(config).withLocalCompose(true);
-                   /*
+            composeContainer = new ComposeContainer(new File("src/test/resources/docker-compose.yml")).withLocalCompose(true)
                     .withExposedService("mongo-db", 27017, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
                     .withExposedService("azurite", 10010, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
                     .withExposedService("azurite", 10011, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
@@ -34,7 +33,7 @@ public class TestContainer {
                     .withExposedService("mock-server", 1080, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
                     .withExposedService("onboarding-fn", 8090,Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
 
-                    */
+
             composeContainer.start();
             Runtime.getRuntime().addShutdownHook(new Thread(composeContainer::stop));
         } catch (Exception e) {
