@@ -45,7 +45,7 @@ public class IntegrationProductService implements ProductService {
     private void getProducts() {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
-            URL resourceDirectory = classLoader.getResource("integration_data/products.json");
+            URL resourceDirectory = classLoader.getResource("integration-data/products.json");
 
             File jsonFile = new File(resourceDirectory.toURI());
             String content = Files.readString(jsonFile.toPath());
