@@ -67,12 +67,15 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Inject IntegrationOperationUtils integrationOperationUtils;
 
+  @Inject TestContainer testContainer;
+
   public static void main(String[] args) {
     runMain(OnboardingFunctionStep.class, args);
   }
 
   @BeforeAll
   void setup() {
+    testContainer.setupServices();
     initDb();
     log.debug("Init completed");
   }

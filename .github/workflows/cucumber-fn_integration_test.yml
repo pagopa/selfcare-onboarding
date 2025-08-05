@@ -43,3 +43,8 @@ jobs:
         shell: bash
         run: mvn clean install
         working-directory: apps/onboarding-functions
+
+      - name: Run Integration Tests
+        working-directory: apps/onboarding-functions
+        run: mvn test -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep -Dsurefire.failIfNoSpecifiedTests=false
+        shell: bash
