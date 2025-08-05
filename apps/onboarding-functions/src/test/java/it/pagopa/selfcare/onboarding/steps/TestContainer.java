@@ -18,7 +18,7 @@ public class TestContainer {
         File config;
 
         try {
-            URL resource = getClass().getClassLoader().getResource("docker-compose.yml");
+            URL resource = getClass().getClassLoader().getResource("src/test/resources/docker-compose.yml");
             if (resource == null) {
                 throw new IllegalArgumentException("File of docker-compose not found!");
             } else {
