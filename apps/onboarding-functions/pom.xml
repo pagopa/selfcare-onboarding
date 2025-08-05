@@ -41,6 +41,8 @@
                 <groupId>eu.europa.ec.joinup.sd-dss</groupId>
                 <artifactId>dss-bom</artifactId>
                 <version>6.2</version>
+                <type>pom</type>
+                <scope>import</scope>
 			</dependency>
 			<dependency>
                 <groupId>org.testcontainers</groupId>
