@@ -4,7 +4,7 @@ services:
     image: mongo:6
     command: ["--replSet", "rs0"]
     ports:
-      - "27017:27017"
+      - "28017:27017"
     networks:
       - develop-network
     volumes:
