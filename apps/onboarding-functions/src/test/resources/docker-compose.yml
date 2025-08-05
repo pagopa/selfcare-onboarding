@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   mongo-db:
-    image: mongo:6
+    image: mongo:latest
     ports:
       - "27017:27017"
     networks:
@@ -100,3 +100,4 @@ services:
 networks:
   develop-network:
     name: selfcare-develop-network
+    driver: bridge

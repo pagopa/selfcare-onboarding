@@ -33,8 +33,12 @@ WORKDIR /app/selfcare-onboarding
 COPY resources/fn/application.properties ./apps/onboarding-functions/src/main/resources/application.properties
 COPY resources/fn/local.settings.json ./apps/onboarding-functions/local.settings.json
 COPY resources/fn/host.json ./apps/onboarding-functions/host.json
+COPY resources/fn/entrypoint.sh ./apps/onboarding-functions/entrypoint.sh
 
 RUN mvn -pl apps/onboarding-functions -am clean install -DskipTests
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
-CMD ["quarkus", "run", "-DenableDebug", "-DskipTests", "-Dquarkus.http.test-port=8090", "-Dquarkus.profile=test"]
+RUN chmod +x entrypoint.sh
+
+#CMD ["quarkus", "run", "-DenableDebug", "-DskipTests", "-Dquarkus.http.test-port=8090", "-DdebugPort=6006"]
+CMD ["./entrypoint.sh"]
