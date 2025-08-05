@@ -415,6 +415,23 @@ public class ContractServiceDefault implements ContractService {
   private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
     log.debug("Getting PDF for HTML template...");
     String html = StringSubstitutor.replace(contractTemplate, data);
+    PdfRendererBuilder builder = getPdfRendererBuilder();
+    var doc = Jsoup.parse(html, "UTF-8");
+    var dom = W3CDom.convert(doc);
+    builder.withW3cDocument(dom, null);
+    builder.useSVGDrawer(new BatikSVGDrawer());
+
+    try (FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
+      builder.toStream(fileOutputStream);
+      builder.run();
+    } catch (IOException e) {
+      throw new GenericOnboardingException(e.getMessage());
+    }
+
+    log.debug("PDF stream properly retrieved");
+  }
+
+  private static PdfRendererBuilder getPdfRendererBuilder() {
     PdfRendererBuilder builder = new PdfRendererBuilder();
     builder.useFastMode();
     builder.useProtocolsStreamImplementation(
@@ -430,19 +447,7 @@ public class ContractServiceDefault implements ContractService {
         }
       },
       "classpath");
-    var doc = Jsoup.parse(html, "UTF-8");
-    var dom = W3CDom.convert(doc);
-    builder.withW3cDocument(dom, null);
-    builder.useSVGDrawer(new BatikSVGDrawer());
-
-    try (FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-      builder.toStream(fileOutputStream);
-      builder.run();
-    } catch (IOException e) {
-      throw new GenericOnboardingException(e.getMessage());
-    }
-
-    log.debug("PDF stream properly retrieved");
+    return builder;
   }
 
   @Override

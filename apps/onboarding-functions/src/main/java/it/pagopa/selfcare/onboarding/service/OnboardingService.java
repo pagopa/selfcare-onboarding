@@ -167,7 +167,7 @@ public class OnboardingService {
     File contract =
       contractService.retrieveContractNotSigned(onboardingWorkflow, product.getTitle());
     DSSDocument document = new FileDocument(contract);
-    String digest = document.getDigest(DigestAlgorithm.SHA256);
+    String digest = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     saveToken(onboardingWorkflow, product, digest);
   }
@@ -180,7 +180,7 @@ public class OnboardingService {
 
     File contract = contractService.retrieveAttachment(onboardingAttachment, product.getTitle());
     DSSDocument document = new FileDocument(contract);
-    String digest = document.getDigest(DigestAlgorithm.SHA256);
+    String digest = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     saveTokenAttachment(onboardingAttachment, product, digest);
   }
