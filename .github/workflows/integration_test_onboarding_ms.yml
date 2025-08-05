@@ -24,12 +24,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
         with:
-          java-version: "17"
-          distribution: "temurin"
-          cache: maven
+            checkout-fetch-depth: 0
+            java-version: 17
+            java-distribution: 'temurin'
+            maven-version: '3.9.5'
+            cache-enabled: true
 
       # Selfcare-onboarding
       - uses: s4u/maven-settings-action@7802f6aec16c9098b4798ad1f1d8ac75198194bd # v3.0.0
