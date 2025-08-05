@@ -4,9 +4,6 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - feature/SELC-7429
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
