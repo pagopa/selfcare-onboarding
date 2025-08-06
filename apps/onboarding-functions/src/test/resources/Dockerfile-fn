@@ -20,9 +20,7 @@ RUN apt-get update && apt-get install -y libicu70
 WORKDIR /usr/src/app
 
 RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
-
-#ENV AzureWebJobsScriptRoot=/usr/src/app \
-#  AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 WORKDIR /app
 
@@ -36,9 +34,8 @@ COPY resources/fn/host.json ./apps/onboarding-functions/host.json
 COPY resources/fn/entrypoint.sh ./apps/onboarding-functions/entrypoint.sh
 
 RUN mvn -pl apps/onboarding-functions -am clean install -DskipTests
+
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
 RUN chmod +x entrypoint.sh
-
-#CMD ["quarkus", "run", "-DenableDebug", "-DskipTests", "-Dquarkus.http.test-port=8090", "-DdebugPort=6006"]
 CMD ["./entrypoint.sh"]

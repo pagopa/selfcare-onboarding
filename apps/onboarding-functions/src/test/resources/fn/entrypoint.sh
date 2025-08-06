@@ -1,1 +1,2 @@
-mvn compile package quarkus:run -DenableDebug -DskipTests -DdebugPort=6006 -Dquarkus.http.test-port=8090
+curl mongo-db:2701
+mvn compile package quarkus:run -Ddebug -DskipTests

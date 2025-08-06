@@ -6,24 +6,26 @@ services:
     ports:
       - "27017:27017"
     networks:
-      - develop-network
+      - developer-network
+    #command: ["--replSet", "rs0"]
     volumes:
       - "./db:/docker-entrypoint-initdb.d"
+    #  - ./db/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite@sha256:0a47e12e3693483cef5c71f35468b91d751611f172d2f97414e9c69113b106d9
     ports:
-      - "10010:10010"
-      - "10011:10011"
-      - "10012:10012"
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
     networks:
-      - develop-network
-    command: "azurite --loose --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --blobPort 10010 --queuePort 10011 --tablePort 10012 --location /workspace --debug /workspace/debug.log"
+      - developer-network
     environment:
       - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /workspace --debug /workspace/debug.log"
     volumes:
       - ./storagedata:/workspace
-
+      
   azure-cli:
     build:
       context: "."
@@ -36,7 +38,7 @@ services:
     environment:
       - SELFCARE_INFRA_PRIVATE_ENV=dev
     networks:
-      - develop-network
+      - developer-network
 
   #  user-ms:
   #    image: ghcr.io/pagopa/selfcare-user-ms:latest
@@ -45,7 +47,7 @@ services:
   #    env_file:
   #      - test-user-ms.env
   #    networks:
-  #      - develop-network
+  #      - developer-network
   #    depends_on:
   #      - mongo-db
   #      - mock-server
@@ -56,7 +58,7 @@ services:
   #    ports:
   #      - "8082:8080"
   #    networks:
-  #      - develop-network
+  #      - developer-network
   #    env_file:
   #      - test-institution-ms.env
   #    depends_on:
@@ -70,18 +72,46 @@ services:
       context: ..
       dockerfile: ./resources/Dockerfile-fn
     ports:
-      - "8090:8090"
+      - "8090:8081"
+      - "5005:5005"
     networks:
-      - develop-network
+      - developer-network
     environment:
-        - AzureWebJobsScriptRoot=/usr/src/app
+      - QUARKUS_LOG_LEVEL=TRACE
+      - QUARKUS_LOG_MIN_LEVEL=TRACE
+      - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+    depends_on:
+      - mongo-db
+      - azure-cli
+      - azurite
+
+
+  onboarding-fn2:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: ./resources/Dockerfile-fn2
+    ports:
+      - "7071:80"
+    networks:
+      - developer-network
+    environment:
+      - QUARKUS_LOG_LEVEL=TRACE
+      - QUARKUS_LOG_MIN_LEVEL=TRACE
+      - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
+      - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://mongo-db:27017
+      - QUARKUS_MONGODB_DATABASE=selcOnboarding
+    command: func start
+    depends_on:
+      - azure-cli
 
   mock-server:
     image: mockserver/mockserver@sha256:adec675a93253dcd503cda331dbc8c88383c1c79ceb2370ec9766ad3f010d255
     ports:
       - "1080:1080"
     networks:
-      - develop-network
+      - developer-network
     environment:
       - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/*.json
       - MOCKSERVER_ENABLE_CORS_FOR_API="true"
@@ -95,9 +125,8 @@ services:
 #      - "1025:1025"
 #      - "8025:1080"
 #    networks:
-#      - develop-network
+#      - developer-network
 
 networks:
-  develop-network:
-    name: selfcare-develop-network
+  developer-network:
     driver: bridge

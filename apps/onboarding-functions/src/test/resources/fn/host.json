@@ -20,5 +20,9 @@
       "hubName": "JavaTestHub",
       "maxConcurrentActivityFunctions": 10
     }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 4.8.1)"
   }
 }
