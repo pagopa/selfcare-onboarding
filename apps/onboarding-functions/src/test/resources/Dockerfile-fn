@@ -4,11 +4,11 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 ENV QUARKUS_CLI_VERSION=3.10.0 \
     NODE_VERSION=18.x
-    
+
 RUN apt-get update && \
     apt-get install -y curl unzip git && \
     curl -L https://github.com/quarkusio/quarkus/releases/download/${QUARKUS_CLI_VERSION}/quarkus-cli-${QUARKUS_CLI_VERSION}.tar.gz \
-      | tar -xz -C /opt && \
+    | tar -xz -C /opt && \
     ln -s /opt/quarkus-cli-${QUARKUS_CLI_VERSION}/bin/quarkus /usr/local/bin/quarkus && \
     rm -rf /var/lib/apt/lists/*
 
