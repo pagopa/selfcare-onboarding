@@ -32,7 +32,20 @@ jobs:
         working-directory: apps/onboarding-functions
         run: |
           docker compose -f src/test/resources/docker-compose.yml pull
-          docker compose -f src/test/resources/docker-compose.yml up
+          docker compose -f src/test/resources/docker-compose.yml up -d
+
+      - name: Wait for onboarding-fn service
+        run: |
+          for i in {1..60}; do
+          if nc -z localhost 8090; then
+           echo "onboarding-fn is ready"
+           exit 0
+          fi
+          echo "Waiting for onboarding-fn ($i)..."
+          sleep 1
+          done
+          echo "Timeout waiting for onboarding-fn"
+          exit 1
 
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
