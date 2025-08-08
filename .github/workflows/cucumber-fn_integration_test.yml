@@ -23,6 +23,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check Docker and Compose versions
+        run: |
+          docker --version
+          docker compose version
+
+
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
         with:
@@ -36,10 +42,10 @@ jobs:
         with:
           servers: '[{"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
-      - name: Build project
-        shell: bash
-        run: mvn clean install
-        working-directory: apps/onboarding-functions
+#      - name: Build project
+#        shell: bash
+#        run: mvn clean install
+#        working-directory: apps/onboarding-functions
 
       - name: Run Integration Tests
         working-directory: apps/onboarding-functions

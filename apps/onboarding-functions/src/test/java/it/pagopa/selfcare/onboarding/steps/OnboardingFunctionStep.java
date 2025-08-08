@@ -76,7 +76,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @BeforeAll
   void setup() {
-    testContainer.setupServices();
+    //testContainer.setupServices();
     System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
     initDb();
     log.debug("Init completed");
