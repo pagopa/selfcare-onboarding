@@ -1,1 +1,1 @@
-mvn clean compile package quarkus:run -Ddebug -DskipTests
+mvn compile package quarkus:run -Ddebug -DskipTests
