@@ -67,9 +67,8 @@ jobs:
 
       - name: Run Integration Tests
         working-directory: apps/onboarding-functions
-        run: mvn test -Dexec.mainClass=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep -Dsurefire.failIfNoSpecifiedTests=false
+        run: mvn test -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep -Dsurefire.failIfNoSpecifiedTests=false
         shell: bash
-
 
       - name: Tear-down Docker
         working-directory: apps/onboarding-functions

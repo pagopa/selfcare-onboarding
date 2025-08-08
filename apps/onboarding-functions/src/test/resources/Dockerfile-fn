@@ -34,7 +34,7 @@ COPY resources/fn/local.settings.json ./local.settings.json
 COPY resources/fn/host.json ./host.json
 COPY resources/fn/entrypoint.sh ./entrypoint.sh
 
-#RUN mvn -pl apps/onboarding-functions -am clean install -DskipTests
+RUN mvn -pl apps/onboarding-functions -am clean install -DskipTests
 
 RUN chmod +x entrypoint.sh
 CMD ["./entrypoint.sh"]
