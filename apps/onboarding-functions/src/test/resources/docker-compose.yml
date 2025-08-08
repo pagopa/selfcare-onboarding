@@ -55,7 +55,7 @@ services:
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
-      - "./home/runner/.m2:./root/.m2"
+      - "~/.m2:~/.m2"
     # depends_on:
     #   - mongo-db
     #   - azurite
