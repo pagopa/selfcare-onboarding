@@ -3,16 +3,8 @@
   "functionTimeout": "00:01:00",
   "logging": {
     "logLevel": {
-      "default": "Information",
-      "Host.Results": "Information",
-      "Host.Aggregator": "Information",
-      "Function": "Debug",
-      "DurableTask.AzureStorage": "Information",
-      "DurableTask.Core": "Information",
-      "Azure.Storage.Blobs": "Debug",
-      "Azure.Core": "Debug",
-      "Microsoft.Azure.WebJobs": "Debug",
-      "Microsoft.Azure.WebJobs.Extensions.Http": "Debug"
+      "DurableTask.AzureStorage": "Warning",
+      "DurableTask.Core": "Warning"
     }
   },
   "extensions": {
