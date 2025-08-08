@@ -54,12 +54,14 @@ services:
       - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    depends_on:
-      - mongo-db
-      - azurite
-      - mock-server
-      - institution-ms
-      - user-ms
+    volumes:
+      - ~/.m2:~/.m2
+    # depends_on:
+    #   - mongo-db
+    #   - azurite
+    #   - mock-server
+    #   - institution-ms
+    #   - user-ms
 
   # onboarding-fn2:
   #   platform: linux/amd64
