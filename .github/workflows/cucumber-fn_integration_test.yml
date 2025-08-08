@@ -5,7 +5,7 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     #paths:
     #  - "apps/onboarding-fn/**"
   push:
@@ -60,10 +60,10 @@ jobs:
         with:
           servers: '[{"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
 
-#      - name: Build project
-#        shell: bash
-#        run: mvn clean install
-#        working-directory: apps/onboarding-functions
+      #      - name: Build project
+      #        shell: bash
+      #        run: mvn clean install
+      #        working-directory: apps/onboarding-functions
 
       - name: Run Integration Tests
         working-directory: apps/onboarding-functions

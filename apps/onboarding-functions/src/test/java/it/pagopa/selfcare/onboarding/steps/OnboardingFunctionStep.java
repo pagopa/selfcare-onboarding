@@ -161,8 +161,9 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @AfterAll
   void destroyDatabase() {
-    onboardingDatabase.drop();
-    institutionDatabase.drop();
-    userDatabase.drop();
+//    onboardingDatabase.drop();
+//    institutionDatabase.drop();
+//    userDatabase.drop();
+    log.info("Test terminated!");
   }
 }
