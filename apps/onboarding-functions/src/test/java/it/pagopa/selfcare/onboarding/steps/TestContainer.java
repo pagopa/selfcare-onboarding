@@ -8,36 +8,41 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import java.io.File;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @ApplicationScoped
 public class TestContainer {
 
+    private static final Duration TIMEOUT = Duration.ofSeconds(60);
+
     void setupServices() {
-        ComposeContainer composeContainer;
-        File config;
+        ComposeContainer compose = new ComposeContainer(new File("src/test/resources/docker-compose.yml"))
+                .withLocalCompose(true);
 
-        try {
-//            URL resource = getClass().getClassLoader().getResource("src/test/resources/docker-compose.yml");
-//            if (resource == null) {
-//                throw new IllegalArgumentException("File of docker-compose not found!");
-//            } else {
-//                config = new File(resource.toURI());
-//            }
+        List<ServicePort> services = Arrays.asList(
+                new ServicePort("mongo-db", 27017),
+                new ServicePort("azurite", 1000),
+                new ServicePort("azurite", 10001),
+                new ServicePort("azurite", 10002),
+                new ServicePort("mock-server", 1080),
+                new ServicePort("institution-ms", 8082),
+                new ServicePort("user-ms", 8087),
+                new ServicePort("onboarding-fn", 8090)
+        );
 
-            composeContainer = new ComposeContainer(new File("src/test/resources/docker-compose.yml")).withLocalCompose(true)
-                    .withExposedService("mongo-db", 27017, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
-                    .withExposedService("azurite", 10010, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
-                    .withExposedService("azurite", 10011, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
-                    .withExposedService("azurite", 10012, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
-                    .withExposedService("mock-server", 1080, Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)))
-                    .withExposedService("onboarding-fn", 8090,Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
+        services.forEach(sp ->
+                compose.withExposedService(
+                        sp.name(),
+                        sp.port(),
+                        Wait.forListeningPort()//.withStartupTimeout(TIMEOUT)
+                )
+        );
 
+        compose.start();
+    }
 
-            composeContainer.start();
-            Runtime.getRuntime().addShutdownHook(new Thread(composeContainer::stop));
-        } catch (Exception e) {
-            log.error("Exception", e);
-        }
+    private record ServicePort(String name, int port) {
     }
 }

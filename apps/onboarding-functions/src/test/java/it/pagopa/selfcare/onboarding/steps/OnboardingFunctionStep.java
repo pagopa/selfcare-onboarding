@@ -26,6 +26,7 @@ import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -76,6 +77,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
   @BeforeAll
   void setup() {
     testContainer.setupServices();
+    System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
     initDb();
     log.debug("Init completed");
   }
