@@ -26,6 +26,7 @@ import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,12 +68,16 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Inject IntegrationOperationUtils integrationOperationUtils;
 
+  @Inject TestContainer testContainer;
+
   public static void main(String[] args) {
     runMain(OnboardingFunctionStep.class, args);
   }
 
   @BeforeAll
   void setup() {
+    //testContainer.setupServices();
+    System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
     initDb();
     log.debug("Init completed");
   }
@@ -156,8 +161,9 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @AfterAll
   void destroyDatabase() {
-    onboardingDatabase.drop();
-    institutionDatabase.drop();
-    userDatabase.drop();
+//    onboardingDatabase.drop();
+//    institutionDatabase.drop();
+//    userDatabase.drop();
+    log.info("Test terminated!");
   }
 }
