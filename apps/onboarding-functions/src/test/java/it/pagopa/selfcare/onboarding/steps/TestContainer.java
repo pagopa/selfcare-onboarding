@@ -21,7 +21,7 @@ public class TestContainer {
                 .withLocalCompose(true)
                 .waitingFor("azure-cli", Wait.forLogMessage(".*BLOBSTORAGE INITIALIZED.*\\n", 1));
 
-        List<ServicePort> services = Arrays.asList(
+        List<ServicePort> services = List.of(
                 new ServicePort("mongo-db", 27017),
                 new ServicePort("azurite", 1000),
                 new ServicePort("azurite", 10001),
@@ -59,8 +59,8 @@ public class TestContainer {
         String host = compose.getServiceHost(serviceName, port);
         Integer mappedPort = compose.getServicePort(serviceName, port);
 
-        int maxRetries = 30;
-        int retryDelayMillis = 1000;
+        int maxRetries = 500;
+        int retryDelayMillis = 60000;
 
         for (int i = 0; i < maxRetries; i++) {
             try (Socket socket = new Socket()) {

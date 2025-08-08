@@ -45,7 +45,7 @@ services:
       dockerfile: ./resources/Dockerfile-fn
     ports:
       - "8090:8081"
-      - "5005:5005"
+      #- "5005:5005"
     networks:
       - developer-network
     environment:
