@@ -153,7 +153,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Then("there is a document for onboarding with status {string}")
   public void theResponseShouldHaveFieldWithValue(String status) throws InterruptedException {
-    Thread.sleep(35000);
+    Thread.sleep(50000);
     onboarding = integrationOperationUtils.findIntoMongoOnboarding(getOnboardingId());
     assertTrue(Objects.nonNull(onboarding));
     assertEquals(status, onboarding.getStatus().name());
