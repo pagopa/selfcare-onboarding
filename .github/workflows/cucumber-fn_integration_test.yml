@@ -23,14 +23,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f
-        with:
-          servers: >
-            [
-              {"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
-              {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
-            ]
-
       - name: Setup Maven Action
         uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
         with:
@@ -39,6 +31,15 @@ jobs:
           java-distribution: "temurin"
           maven-version: "3.9.5"
           cache-enabled: true
+
+      - name: "Setup Maven settings"
+      - uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f
+        with:
+          servers: >
+            [
+              {"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
+              {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
+            ]
 
       - name: Check Docker and Compose versions
         run: |
@@ -51,21 +52,37 @@ jobs:
           docker compose -f src/test/resources/docker-compose.yml pull
           docker compose -f src/test/resources/docker-compose.yml up -d
 
-      - name: Wait for onboarding-fn service
+      - name: Wait for startup-services
         run: |
-          for i in {1..60}; do
-          if nc -z localhost 8090; then
-           echo "onboarding-fn is ready"
-           exit 0
-          fi
-          echo "Waiting for onboarding-fn ($i)..."
-          sleep 1
+          SERVICES=(
+            "localhost:27017"   # mongo-db
+            "localhost:10000"   # azurite (blob)
+            "localhost:8087"    # user-ms
+            "localhost:8082"    # institution-ms
+            "localhost:1080"    # mock-server
+                        "localhost:8090"    # onboarding-fn
+          )
+
+          for service in "${SERVICES[@]}"; do
+            host=$(echo $service | cut -d: -f1)
+            port=$(echo $service | cut -d: -f2)
+
+            echo "Waiting for $host:$port ..."
+            for i in {1..60}; do
+              if nc -z $host $port; then
+                echo "$host:$port is ready"
+                break
+              fi
+              echo "Waiting for $host:$port ($i)..."
+              sleep 1
+            done
+
+            if ! nc -z $host $port; then
+              echo "Timeout waiting for $host:$port"
+              exit 1
+            fi
           done
-          echo "Timeout waiting for onboarding-fn"
-          exit 1
 
-
-      
       #      - name: Build project
       #        shell: bash
       #        run: mvn clean install
