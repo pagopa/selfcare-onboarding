@@ -53,14 +53,15 @@ jobs:
           docker compose -f src/test/resources/docker-compose.yml up -d
 
       - name: Wait for startup-services
+        shell: bash
         run: |
           SERVICES=(
-            "localhost:27017"   # mongo-db
-            "localhost:10000"   # azurite (blob)
-            "localhost:8087"    # user-ms
-            "localhost:8082"    # institution-ms
-            "localhost:1080"    # mock-server
-                        "localhost:8090"    # onboarding-fn
+            "localhost:27017"   #mongo-db
+            "localhost:10000"   #azurite
+            "localhost:8087"    #user-ms
+            "localhost:8082"    #institution-ms
+            "localhost:1080"    #mock-server
+            "localhost:8090"    #onboarding-fn
           )
 
           for service in "${SERVICES[@]}"; do
@@ -68,7 +69,7 @@ jobs:
             port=$(echo $service | cut -d: -f2)
 
             echo "Waiting for $host:$port ..."
-            for i in {1..60}; do
+            for i in $(seq 1 60); do
               if nc -z $host $port; then
                 echo "$host:$port is ready"
                 break
