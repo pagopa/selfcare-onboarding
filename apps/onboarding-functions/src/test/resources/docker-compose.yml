@@ -48,6 +48,8 @@ services:
       #- "5005:5005"
     networks:
       - developer-network
+    env_file:
+      - test-integration-function.env
     environment:
       - QUARKUS_LOG_LEVEL=TRACE
       - QUARKUS_LOG_MIN_LEVEL=TRACE
