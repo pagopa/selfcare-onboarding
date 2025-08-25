@@ -1,10 +1,5 @@
 package it.pagopa.selfcare.onboarding.steps;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasKey;
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
@@ -18,21 +13,28 @@ import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.inject.Inject;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EqualsAndHashCode(callSuper = true)
 @CucumberOptions(
@@ -68,16 +70,13 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Inject IntegrationOperationUtils integrationOperationUtils;
 
-  @Inject TestContainer testContainer;
-
   public static void main(String[] args) {
     runMain(OnboardingFunctionStep.class, args);
   }
 
   @BeforeAll
   void setup() {
-    //testContainer.setupServices();
-    System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
+    //System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
     initDb();
     log.debug("Init completed");
   }
