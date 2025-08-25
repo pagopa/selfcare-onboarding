@@ -102,6 +102,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
+    private static final String INTEGRATION_PROFILE = "integrationProfile";
+
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -534,8 +536,9 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (Objects.nonNull(product.getParentId())) {
             setInstitutionId(onboarding, product.getParentId());
         }
-        /* I have to retrieve onboarding id for saving reference to pdv */
-        if ("integrationProfile".equals(activeProfile)) {
+
+        // This condition has been added in order to avoid transaction for cucumber tests(not clustered mongo does not support transactions)
+        if (INTEGRATION_PROFILE.equals(activeProfile)) {
             return storeAndValidateOnboarding(onboarding, userRequests, product, aggregates, roleMappings);
         }
         return Panache.withTransaction(() ->
