@@ -29,8 +29,8 @@ public class IntegrationOnboardingResources {
 
   @PostConstruct
   public void init() {
-    loadOnboardingsJsonTemplatesFromDirectory("integration_data/onboarding");
-    loadInstitutionJsonTemplatesFromDirectory("integration_data/institution");
+    loadOnboardingsJsonTemplatesFromDirectory("integration-data/onboarding");
+    loadInstitutionJsonTemplatesFromDirectory("integration-data/institution");
   }
 
   private void loadOnboardingsJsonTemplatesFromDirectory(String directoryPath) {

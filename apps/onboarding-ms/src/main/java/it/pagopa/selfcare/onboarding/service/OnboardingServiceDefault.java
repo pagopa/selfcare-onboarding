@@ -1,5 +1,13 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -41,6 +49,14 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -64,23 +80,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
-
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
 
@@ -103,6 +102,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
+    private static final String INTEGRATION_PROFILE = "integrationProfile";
+
     @RestClient
     @Inject
     UserApi userRegistryApi;
@@ -180,6 +181,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
     String pathContracts;
+
+    @ConfigProperty(name = "quarkus.profile")
+    String activeProfile;
 
     @Override
     public Uni<OnboardingResponse> onboarding(
@@ -498,10 +502,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .onItem()
                                         .call(
                                                 onboardingPersisted ->
-                                                        Panache.withTransaction(
-                                                                () ->
-                                                                        Token.persist(
-                                                                                tokenMapper.toModel(onboardingPersisted, product, contractImported))))
+                                                        Token.persist(
+                                                                tokenMapper.toModel(onboardingPersisted, product, contractImported)))
                                         /* Update onboarding data with users and start orchestration */
                                         .onItem()
                                         .transformToUni(
@@ -534,40 +536,48 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (Objects.nonNull(product.getParentId())) {
             setInstitutionId(onboarding, product.getParentId());
         }
-        /* I have to retrieve onboarding id for saving reference to pdv */
-        return Panache.withTransaction(
-                () ->
-                        Onboarding.persist(onboarding)
-                                .replaceWith(onboarding)
-                                .onItem()
-                                .transformToUni(
-                                        onboardingPersisted ->
-                                                validationRole(
-                                                        userRequests,
-                                                        validRoles(
-                                                                product,
-                                                                PHASE_ADDITION_ALLOWED.ONBOARDING,
-                                                                onboarding.getInstitution().getInstitutionType()))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore ->
-                                                                        validateUserAggregatesRoles(
-                                                                                aggregates,
-                                                                                validRoles(
-                                                                                        product,
-                                                                                        PHASE_ADDITION_ALLOWED.ONBOARDING,
-                                                                                        onboarding.getInstitution().getInstitutionType())))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore ->
-                                                                        retrieveAndSetUserAggregatesResources(
-                                                                                onboardingPersisted, product, aggregates))
-                                                        .onItem()
-                                                        .transformToUni(
-                                                                ignore -> retrieveUserResources(userRequests, roleMappings))
-                                                        .onItem()
-                                                        .invoke(onboardingPersisted::setUsers)
-                                                        .replaceWith(onboardingPersisted)));
+
+        // This condition has been added in order to avoid transaction for cucumber tests(not clustered mongo does not support transactions)
+        if (INTEGRATION_PROFILE.equals(activeProfile)) {
+            return storeAndValidateOnboarding(onboarding, userRequests, product, aggregates, roleMappings);
+        }
+        return Panache.withTransaction(() ->
+                storeAndValidateOnboarding(onboarding, userRequests, product, aggregates, roleMappings));
+    }
+
+    private Uni<Onboarding> storeAndValidateOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product,
+                                                       List<AggregateInstitutionRequest> aggregates, Map<PartyRole, ProductRoleInfo> roleMappings) {
+        return Onboarding.persist(onboarding)
+                .replaceWith(onboarding)
+                .onItem()
+                .transformToUni(
+                        onboardingPersisted ->
+                                validationRole(
+                                        userRequests,
+                                        validRoles(
+                                                product,
+                                                PHASE_ADDITION_ALLOWED.ONBOARDING,
+                                                onboarding.getInstitution().getInstitutionType()))
+                                        .onItem()
+                                        .transformToUni(
+                                                ignore ->
+                                                        validateUserAggregatesRoles(
+                                                                aggregates,
+                                                                validRoles(
+                                                                        product,
+                                                                        PHASE_ADDITION_ALLOWED.ONBOARDING,
+                                                                        onboarding.getInstitution().getInstitutionType())))
+                                        .onItem()
+                                        .transformToUni(
+                                                ignore ->
+                                                        retrieveAndSetUserAggregatesResources(
+                                                                onboardingPersisted, product, aggregates))
+                                        .onItem()
+                                        .transformToUni(
+                                                ignore -> retrieveUserResources(userRequests, roleMappings))
+                                        .onItem()
+                                        .invoke(onboardingPersisted::setUsers)
+                                        .replaceWith(onboardingPersisted));
     }
 
     private Uni<Onboarding> setInstitutionId(Onboarding onboarding, String parentId) {
@@ -1698,20 +1708,37 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         response -> {
                             if (Objects.isNull(response.getInstitutions())
-                                    || response.getInstitutions().size() > 1) {
+                                    || response.getInstitutions().isEmpty()) {
+                                throw new ResourceNotFoundException(
+                                        String.format(
+                                                INSTITUTION_NOT_FOUND.getMessage(),
+                                                request.getTaxCode(),
+                                                request.getOrigin(),
+                                                request.getOriginId(),
+                                                request.getSubunitCode()));
+                            } else if (response.getInstitutions().size() > 1) {
                                 return Uni.createFrom()
-                                        .item(response.getInstitutions().stream()
-                                                .filter(institutionResponse ->
-                                                        institutionResponse.getInstitutionType().name().equals(request.getInstitutionType().name()))
-                                                .findFirst().orElseThrow(() -> new ResourceNotFoundException(
-                                                        String.format(
-                                                                INSTITUTION_NOT_FOUND.getMessage(),
-                                                                request.getTaxCode(),
-                                                                request.getOrigin(),
-                                                                request.getOriginId(),
-                                                                request.getSubunitCode()))));
+                                        .item(
+                                                response.getInstitutions().stream()
+                                                        .filter(
+                                                                institutionResponse ->
+                                                                        institutionResponse
+                                                                                .getInstitutionType()
+                                                                                .name()
+                                                                                .equals(request.getInstitutionType().name()))
+                                                        .findFirst()
+                                                        .orElseThrow(
+                                                                () ->
+                                                                        new ResourceNotFoundException(
+                                                                                String.format(
+                                                                                        INSTITUTION_NOT_FOUND.getMessage(),
+                                                                                        request.getTaxCode(),
+                                                                                        request.getOrigin(),
+                                                                                        request.getOriginId(),
+                                                                                        request.getSubunitCode()))));
+                            } else {
+                                return Uni.createFrom().item(response.getInstitutions().get(0));
                             }
-                            return Uni.createFrom().item(response.getInstitutions().get(0));
                         });
     }
 
@@ -1739,35 +1766,35 @@ public class OnboardingServiceDefault implements OnboardingService {
         CheckManagerResponse response = new CheckManagerResponse();
         UUID userId = checkManagerRequest.getUserId();
         return findOnboardingsByFilters(checkManagerRequest)
-                                        .flatMap(
-                                                onboardings -> {
-                                                    if (CollectionUtils.isEmpty(onboardings)) {
-                                                        LOG.debugf(
-                                                                "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
-                                                                checkManagerRequest.getTaxCode(),
-                                                                checkManagerRequest.getOrigin(),
-                                                                checkManagerRequest.getOriginId(),
-                                                                checkManagerRequest.getProductId(),
-                                                                checkManagerRequest.getSubunitCode());
+                .flatMap(
+                        onboardings -> {
+                            if (CollectionUtils.isEmpty(onboardings)) {
+                                LOG.debugf(
+                                        "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
+                                        checkManagerRequest.getTaxCode(),
+                                        checkManagerRequest.getOrigin(),
+                                        checkManagerRequest.getOriginId(),
+                                        checkManagerRequest.getProductId(),
+                                        checkManagerRequest.getSubunitCode());
 
-                                                        response.setResponse(false);
-                                                        return Uni.createFrom().item(response);
-                                                    }
+                                response.setResponse(false);
+                                return Uni.createFrom().item(response);
+                            }
 
-                                                    String institutionId = onboardings.get(0).getInstitution().getId();
-                                                    return isUserActiveManager(
-                                                            institutionId,
-                                                            checkManagerRequest.getProductId(),
-                                                            String.valueOf(userId))
-                                                            .map(
-                                                                    isActiveManager -> {
-                                                                        LOG.debugf(
-                                                                                "User with uuid %s is active manager: %s",
-                                                                                userId, isActiveManager);
-                                                                        response.setResponse(isActiveManager);
-                                                                        return response;
-                                                                    });
-                                                });
+                            String institutionId = onboardings.get(0).getInstitution().getId();
+                            return isUserActiveManager(
+                                    institutionId,
+                                    checkManagerRequest.getProductId(),
+                                    String.valueOf(userId))
+                                    .map(
+                                            isActiveManager -> {
+                                                LOG.debugf(
+                                                        "User with uuid %s is active manager: %s",
+                                                        userId, isActiveManager);
+                                                response.setResponse(isActiveManager);
+                                                return response;
+                                            });
+                        });
     }
 
     /**
@@ -2139,15 +2166,15 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(id -> {
                     Map<String, Object> queryParameter = Map.of("status", OnboardingStatus.DELETED.name(),
-                                                                "updatedAt", LocalDateTime.now(),
-                                                                "closedAt", LocalDateTime.now());
+                            "updatedAt", LocalDateTime.now(),
+                            "closedAt", LocalDateTime.now());
                     return updateOnboardingStatus(onboardingId, queryParameter);
                 })
                 .onItem()
                 .transformToUni(
                         onboarding -> orchestrationApi
-                                        .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
-                                        .map(ignore -> onboarding));
+                                .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
+                                .map(ignore -> onboarding));
     }
 
     private Onboarding buildOnboardingFromAggregate(AggregateInstitutionRequest aggregate) {
