@@ -104,7 +104,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
   @Given("Preparing the invocation of {string} HTTP call with onboardingId {string}")
   public void setupCall(String functionName, String onboardingId) {
-    RestAssured.baseURI = "http://localhost:8090";
+    RestAssured.baseURI = "http://onboarding-fn:8081";
     RestAssured.basePath = String.format("/api/%s", functionName);
 
     onboarding = integrationOperationUtils.findIntoMongoOnboarding(onboardingId);
