@@ -20,9 +20,10 @@ services:
       - developer-network
     environment:
       - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /workspace --debug /workspace/debug.log"
-    volumes:
-      - ./storagedata:/workspace
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --inMemoryPersistence"
+    #command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /workspace --debug /workspace/debug.log"
+    #volumes:
+    #  - ./storagedata:/workspace
 
   azure-cli:
     build:
