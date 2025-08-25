@@ -29,8 +29,8 @@ public class IntegrationOnboardingResources {
 
   @PostConstruct
   public void init() {
-    loadOnboardingsJsonTemplatesFromDirectory("integration-data/onboarding");
-    loadInstitutionJsonTemplatesFromDirectory("integration-data/institution");
+    loadOnboardingsJsonTemplatesFromDirectory("integration_data/onboarding");
+    loadInstitutionJsonTemplatesFromDirectory("integration_data/institution");
   }
 
   private void loadOnboardingsJsonTemplatesFromDirectory(String directoryPath) {
@@ -39,7 +39,7 @@ public class IntegrationOnboardingResources {
       URL resourceDirectory = classLoader.getResource(directoryPath);
 
       if (resourceDirectory == null) {
-        System.err.println("Directory delle risorse non trovata: " + directoryPath);
+        log.error("Directory delle risorse non trovata: {}", directoryPath);
         return;
       }
 
@@ -89,7 +89,7 @@ public class IntegrationOnboardingResources {
       URL resourceDirectory = classLoader.getResource(directoryPath);
 
       if (resourceDirectory == null) {
-        System.err.println("Directory delle risorse non trovata: " + directoryPath);
+        log.error("Directory delle risorse non trovata: {}", directoryPath);
         return;
       }
 
