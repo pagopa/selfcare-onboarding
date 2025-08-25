@@ -89,7 +89,7 @@ services:
     platform: linux/amd64
     image: ghcr.io/pagopa/selfcare-user-ms:latest
     ports:
-      - "8087:8080"
+      - "8087:8087"
     env_file:
       - test-user-ms.env
     networks:
