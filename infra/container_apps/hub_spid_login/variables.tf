@@ -52,7 +52,7 @@ variable "container_app" {
 
 variable "image_tag" {
   type        = string
-  default     = "5.5.1-RELEASE"
+  default     = "5.5.3-RELEASE"
   description = "Image tag to use for the container"
 }
 

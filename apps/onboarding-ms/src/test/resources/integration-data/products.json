@@ -2713,5 +2713,47 @@
     "urlBO": "https://portale-pg.dev.pn.pagopa.it/#selfCareToken=<IdentityToken>&lang=<lang>",
     "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/piattaforma-notifiche-digitali",
     "userContractMappings": {}
+  },
+  {
+    "alias": "prod-registro-beni",
+    "consumers": [
+      "Standard"
+    ],
+    "createdAt": "2025-05-27T09:05:50.091934Z",
+    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "description": "Crea e gestisce il registro dei beni per il bonus elettrodomestici",
+    "enabled": true,
+    "id": "prod-registro-beni",
+    "identityTokenAudience": "idpay.register.welfare.pagopa.it",
+    "institutionContractMappings": {
+      "default": {
+        "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
+        "contractTemplateVersion": "1.0.0",
+        "attachments": []
+      }
+    },
+    "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-registro-beni/logo.svg",
+    "logoBgColor": "#0B3EE3",
+    "modifiedAt": "2025-05-27T09:05:50.091934Z",
+    "modifiedBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
+    "roleMappings": {
+      "OPERATOR": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": [
+          "onboarding"
+        ],
+        "roles": [
+          {
+            "code": "operatore_beni",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          }
+        ]
+      }
+    },
+    "status": "ACTIVE",
+    "title": "Registro dei beni",
+    "urlBO": "https://registrodeibeni.dev.cstar.pagopa.it/registro-dei-beni/auth#token=<IdentityToken>",
+    "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/centro-stella-pagamenti-elettronici"
   }
 ]
