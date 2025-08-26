@@ -5,12 +5,18 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
       - "apps/onboarding-fn/**"
+    
 
 jobs:
-  integration_tests_fn:
+  integration_tests_fn_job:
     name: "Integration Tests (onboarding-fn)"
     runs-on: ubuntu-24.04
 
