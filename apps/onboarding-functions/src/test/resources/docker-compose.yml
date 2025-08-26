@@ -56,7 +56,6 @@ services:
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
       - "~/.m2:~/.m2"
-      - ../../../onboarding-functions:/app/selfcare-onboarding/apps/onboarding-functions
 
   user-ms:
     platform: linux/amd64

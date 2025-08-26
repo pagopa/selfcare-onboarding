@@ -28,6 +28,9 @@ ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console_
 #WORKDIR /app/selfcare-onboarding/libs
 #RUN mvn clean install -DskipTests
 
+WORKDIR /app
+COPY ../../../onboarding-functions /app/selfcare-onboarding/apps/onboarding-functions
+
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
 COPY resources/fn/application.properties ./src/main/resources/application.properties
