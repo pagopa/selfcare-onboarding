@@ -31,6 +31,8 @@ ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console_
 WORKDIR /app
 COPY ../ /app/selfcare-onboarding/apps/onboarding-functions
 
+RUN ls -l /app/selfcare-onboarding/apps/onboarding-functions
+
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
 COPY resources/fn/application.properties ./src/main/resources/application.properties
