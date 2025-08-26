@@ -10,7 +10,9 @@
     "institutionType": "PA",
     "taxCode": "00231830688",
     "description": "Comune di Tocco da Casauria",
-    "digitalAddress": "www.comune.toccodacasauria.pe.it"
+    "digitalAddress": "www.comune.toccodacasauria.pe.it",
+    "origin": "IPA",
+    "originId": "c_fx00"
   },
   "productId": "prod-io",
   "status": "REQUEST",
