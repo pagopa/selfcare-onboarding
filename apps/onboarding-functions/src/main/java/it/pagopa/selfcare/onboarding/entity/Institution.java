@@ -42,6 +42,7 @@ public class Institution {
     private GPUData gpuData;
     private String parentDescription;
     private List<String> atecoCodes;
+    private String legalForm;
 
     public InstitutionType getInstitutionType() {
         return institutionType;
@@ -257,6 +258,14 @@ public class Institution {
 
     public void setAtecoCodes(List<String> atecoCodes) {
         this.atecoCodes = atecoCodes;
+    }
+
+    public String getLegalForm() {
+        return legalForm;
+    }
+
+    public void setLegalForm(String legalForm) {
+        this.legalForm = legalForm;
     }
 
     @Override

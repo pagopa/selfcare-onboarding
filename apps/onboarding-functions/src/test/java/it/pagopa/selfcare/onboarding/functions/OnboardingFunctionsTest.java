@@ -196,6 +196,7 @@ class OnboardingFunctionsTest {
     Institution institution = new Institution();
     institution.setTaxCode("taxCode");
     institution.setAtecoCodes(List.of("21.1.1"));
+    institution.setLegalForm("srl");
     onboarding.setInstitution(institution);
 
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
