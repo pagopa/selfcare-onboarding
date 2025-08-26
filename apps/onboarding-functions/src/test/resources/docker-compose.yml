@@ -55,7 +55,7 @@ services:
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
-      - "~/.m2:/root/.m2"
+      - "~/.m2/settings.xml:/root/.m2/settings.xml"
 
   user-ms:
     platform: linux/amd64
