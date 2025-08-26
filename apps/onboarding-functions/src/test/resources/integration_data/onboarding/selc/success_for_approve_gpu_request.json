@@ -10,7 +10,9 @@
     "institutionType": "GPU",
     "taxCode": "13234472819",
     "digitalAddress": "test@test.it",
-    "description" : "GPU di Test"
+    "description" : "GPU di Test",
+    "origin": "SELC",
+    "originId": "13234472819"
   },
   "productId": "prod-pagopa",
   "status": "REQUEST",

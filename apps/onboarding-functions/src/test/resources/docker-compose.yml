@@ -1,28 +1,26 @@
 version: "3.8"
+
 services:
   mongo-db:
-    image: mongo@sha256:1cb283500219e8fc0b61b328ea5a199a395a753d88b17351c58874fb425223cb
+    image: mongo:latest
     ports:
       - "27017:27017"
     networks:
-      - develop-network
+      - developer-network
     volumes:
       - "./db:/docker-entrypoint-initdb.d"
 
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite@sha256:0a47e12e3693483cef5c71f35468b91d751611f172d2f97414e9c69113b106d9
-    container_name: "azurite"
+    image: mcr.microsoft.com/azure-storage/azurite:latest
     ports:
-      - "10010:10010"
-      - "10011:10011"
-      - "10012:10012"
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
     networks:
-      - develop-network
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --blobPort 10010 --queuePort 10011 --tablePort 10012 --location /workspace --debug /workspace/debug.log"
+      - developer-network
     environment:
       - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
-    volumes:
-      - ./storagedata:/workspace
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --inMemoryPersistence"
 
   azure-cli:
     build:
@@ -36,40 +34,64 @@ services:
     environment:
       - SELFCARE_INFRA_PRIVATE_ENV=dev
     networks:
-      - develop-network
+      - developer-network
+
+  onboarding-fn:
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: ./resources/Dockerfile-fn
+    ports:
+      - "8090:8081"
+      #- "5005:5005"
+    networks:
+      - developer-network
+    env_file:
+      - test-integration-function.env
+    environment:
+      # - QUARKUS_LOG_LEVEL=TRACE
+      # - QUARKUS_LOG_MIN_LEVEL=TRACE
+      # - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+      # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    #volumes:
+    #  - "~/.m2:~/.m2"
 
   user-ms:
-    image: ghcr.io/pagopa/selfcare-user-ms:sha-f3cd392
+    platform: linux/amd64
+    image: ghcr.io/pagopa/selfcare-user-ms:latest
     ports:
-      - "8087:8080"
+      - "8087:8087"
     env_file:
       - test-user-ms.env
     networks:
-      - develop-network
+      - developer-network
     depends_on:
       - mongo-db
       - mock-server
       - azure-cli
 
   institution-ms:
-    image: ghcr.io/pagopa/selfcare-institution-ms:sha-a1572ab
+    platform: linux/amd64
+    image: ghcr.io/pagopa/selfcare-institution-ms:latest
     ports:
-      - "8082:8080"
+      - "8082:8082"
     networks:
-      - develop-network
+      - developer-network
     env_file:
       - test-institution-ms.env
     depends_on:
       - mongo-db
       - mock-server
-      - azure-cli
+      - azurite
 
   mock-server:
+    platform: linux/amd64
     image: mockserver/mockserver@sha256:adec675a93253dcd503cda331dbc8c88383c1c79ceb2370ec9766ad3f010d255
     ports:
       - "1080:1080"
     networks:
-      - develop-network
+      - developer-network
     environment:
       - MOCKSERVER_INITIALIZATION_JSON_PATH=/config/*.json
       - MOCKSERVER_ENABLE_CORS_FOR_API="true"
@@ -77,14 +99,14 @@ services:
     volumes:
       - "./mock:/config"
 
-  fake-smtp:
-    image: reachfive/fake-smtp-server@sha256:4b6d2f1e24481527de1429f88db18a377252a5e9e95bc083fa3d77e402cdadc8
-    ports:
-      - "1025:1025"
-      - "8025:1080"
-    networks:
-      - develop-network
+#  fake-smtp:
+#    image: reachfive/fake-smtp-server@sha256:4b6d2f1e24481527de1429f88db18a377252a5e9e95bc083fa3d77e402cdadc8
+#    ports:
+#      - "1025:1025"
+#      - "8025:1080"
+#    networks:
+#      - developer-network
 
 networks:
-  develop-network:
+  developer-network:
     name: selfcare-develop-network

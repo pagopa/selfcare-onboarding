@@ -1,0 +1,1 @@
+mvn clean compile package quarkus:run -Dquarkus.profile=integration-function -Ddebug -DskipTests

@@ -1,0 +1,119 @@
+name: "Integration Tests (onboarding-fn)"
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "apps/onboarding-fn/**"
+
+jobs:
+  integration_tests_fn:
+    name: "Integration Tests (onboarding-fn)"
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          fetch-depth: 0
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@fa2c7e4517ed008b1f73e7e0195a9eecf5582cd4
+        with:
+          checkout-fetch-depth: 0
+          java-version: 17
+          java-distribution: "temurin"
+          maven-version: "3.9.5"
+          cache-enabled: false
+
+      - name: Add custom Maven settings
+        uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f
+        with:
+          servers: >
+            [
+              {"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
+              {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
+            ]
+
+      - name: Check Docker and Compose versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Docker system prune
+        run: |
+          docker compose down -v --remove-orphans || true
+          docker system prune -af || true
+
+      - name: Startup services
+        working-directory: apps/onboarding-functions
+        run: |
+          docker compose -f src/test/resources/docker-compose.yml pull
+          docker compose -f src/test/resources/docker-compose.yml up -d
+
+      - name: Wait for startup-services
+        shell: bash
+        run: |
+          SERVICES=(
+            "localhost:27017"   #mongo-db
+            "localhost:10000"   #azurite
+            "localhost:8087"    #user-ms
+            "localhost:8082"    #institution-ms
+            "localhost:1080"    #mock-server
+            "localhost:8090"    #onboarding-fn
+          )
+
+          for service in "${SERVICES[@]}"; do
+            host=$(echo $service | cut -d: -f1)
+            port=$(echo $service | cut -d: -f2)
+
+            echo "Waiting for $host:$port ..."
+            for i in $(seq 1 60); do
+              if nc -z $host $port; then
+                echo "$host:$port is ready"
+                break
+              fi
+              echo "Waiting for $host:$port ($i)..."
+              sleep 1
+            done
+
+            if ! nc -z $host $port; then
+              echo "Timeout waiting for $host:$port"
+              exit 1
+            fi
+          done
+
+      - name: Run Integration Tests
+        shell: bash
+        working-directory: apps/onboarding-functions
+        run: |
+          mvn clean test \
+              -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep \
+              -Dsurefire.parallel=none \
+              -Dsurefire.threadCount=1 \
+              -Dsurefire.failIfNoSpecifiedTests=false
+
+      - name: Collect service logs
+        if: always()
+        working-directory: apps/onboarding-functions
+        run: |
+          mkdir -p docker-logs
+          for s in $(docker compose -f src/test/resources/docker-compose.yml ps --services); do
+            docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log || true
+          done
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: apps/onboarding-functions/docker-logs
+          retention-days: 1
+
+      - name: Tear-down Docker
+        if: always()
+        working-directory: apps/onboarding-functions
+        run: docker compose -f src/test/resources/docker-compose.yml down -v --remove-orphans
