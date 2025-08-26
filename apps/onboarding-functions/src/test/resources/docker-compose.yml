@@ -49,11 +49,11 @@ services:
     env_file:
       - test-integration-function.env
     environment:
-      - QUARKUS_LOG_LEVEL=TRACE
-      - QUARKUS_LOG_MIN_LEVEL=TRACE
-      - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
+      # - QUARKUS_LOG_LEVEL=TRACE
+      # - QUARKUS_LOG_MIN_LEVEL=TRACE
+      # - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-      #- JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     #volumes:
     #  - "~/.m2:~/.m2"
 

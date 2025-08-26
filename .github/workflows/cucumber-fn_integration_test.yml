@@ -6,11 +6,11 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    #paths:
-    #  - "apps/onboarding-fn/**"
+    paths:
+      - "apps/onboarding-fn/**"
   push:
     branches:
-      - feature/SELC-7413
+      - feature/SELC-7430
 
 jobs:
   integration_tests_fn:
@@ -32,7 +32,7 @@ jobs:
           maven-version: "3.9.5"
           cache-enabled: false
 
-      - name: "Setup Maven settings"
+      - name: Add custom Maven settings
         uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f
         with:
           servers: >
@@ -45,6 +45,11 @@ jobs:
         run: |
           docker --version
           docker compose version
+
+      - name: Docker system prune
+        run: |
+          docker compose down -v --remove-orphans || true
+          docker system prune -af || true
 
       - name: Startup services
         working-directory: apps/onboarding-functions
@@ -85,11 +90,33 @@ jobs:
           done
 
       - name: Run Integration Tests
-        working-directory: apps/onboarding-functions
-        run: mvn test -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep -Dsurefire.failIfNoSpecifiedTests=false
         shell: bash
+        working-directory: apps/onboarding-functions
+        run: |
+          mvn clean test \
+            -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep \
+            -Dsurefire.parallel=none \
+            -Dsurefire.threadCount=1 \
+            -Dsurefire.failIfNoSpecifiedTests=false
+
+      - name: Collect service logs
+        if: always()
+        working-directory: apps/onboarding-functions
+        run: |
+          mkdir -p docker-logs
+          for s in $(docker compose -f src/test/resources/docker-compose.yml ps --services); do
+            docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log || true
+          done
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: apps/onboarding-functions/docker-logs
+          retention-days: 7
 
       - name: Tear-down Docker
-        working-directory: apps/onboarding-functions
         if: always()
-        run: docker compose -f src/test/resources/docker-compose.yml down --volumes --remove-orphans
+        working-directory: apps/onboarding-functions
+        run: docker compose -f src/test/resources/docker-compose.yml down -v --remove-orphans
