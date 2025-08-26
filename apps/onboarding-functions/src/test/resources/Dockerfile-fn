@@ -22,13 +22,13 @@ WORKDIR /usr/src/app
 RUN npm i -g azure-functions-core-tools@4 --unsafe-perm true
 ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-WORKDIR /app
+#WORKDIR /app
 
-RUN git clone https://github.com/pagopa/selfcare-onboarding.git
+#RUN git clone https://github.com/pagopa/selfcare-onboarding.git
 
-WORKDIR /app/selfcare-onboarding/libs
+#WORKDIR /app/selfcare-onboarding/libs
 
-RUN mvn clean install -DskipTests
+#RUN mvn clean install -DskipTests
 
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 

@@ -54,8 +54,9 @@ services:
       # - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    #volumes:
-    #  - "~/.m2:~/.m2"
+    volumes:
+      - "~/.m2:~/.m2"
+      - ../../../selfcare-onboarding:/app/selfcare-onboarding
 
   user-ms:
     platform: linux/amd64
