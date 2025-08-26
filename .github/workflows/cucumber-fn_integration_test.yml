@@ -13,7 +13,8 @@ on:
       - ready_for_review
     paths:
       - "apps/onboarding-fn/**"
-    
+    branches:
+      - "feature/build-on-current-branch"
 
 jobs:
   integration_tests_fn_job:
