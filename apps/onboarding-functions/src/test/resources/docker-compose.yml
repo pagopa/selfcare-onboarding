@@ -21,9 +21,6 @@ services:
     environment:
       - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCD9I1QhZT4gRjAAHEDPazjFIwtg==
     command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --inMemoryPersistence"
-    #command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /workspace --debug /workspace/debug.log"
-    #volumes:
-    #  - ./storagedata:/workspace
 
   azure-cli:
     build:
@@ -59,31 +56,6 @@ services:
       #- JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     #volumes:
     #  - "~/.m2:~/.m2"
-    # depends_on:
-    #   - mongo-db
-    #   - azurite
-    #   - mock-server
-    #   - institution-ms
-    #   - user-ms
-
-  # onboarding-fn2:
-  #   platform: linux/amd64
-  #   build:
-  #     context: ..
-  #     dockerfile: ./resources/Dockerfile-fn2
-  #   ports:
-  #     - "7071:80"
-  #   networks:
-  #     - developer-network
-  #   environment:
-  #     - QUARKUS_LOG_LEVEL=TRACE
-  #     - QUARKUS_LOG_MIN_LEVEL=TRACE
-  #     - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
-  #     - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://mongo-db:27017
-  #     - QUARKUS_MONGODB_DATABASE=selcOnboarding
-  #   command: func start
-  #   depends_on:
-  #     - azure-cli
 
   user-ms:
     platform: linux/amd64

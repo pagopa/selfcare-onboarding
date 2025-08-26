@@ -30,7 +30,7 @@ jobs:
           java-version: 17
           java-distribution: "temurin"
           maven-version: "3.9.5"
-          cache-enabled: true
+          cache-enabled: false
 
       - name: "Setup Maven settings"
         uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f
@@ -83,17 +83,6 @@ jobs:
               exit 1
             fi
           done
-
-      - name: Stream Docker logs in a background process
-        working-directory: apps/onboarding-functions
-        run: |
-          docker compose -f src/test/resources/docker-compose.yml logs -f --tail=0 > docker-compose-logs.txt &
-          echo $! > docker-logs.pid
-
-      #      - name: Build project
-      #        shell: bash
-      #        run: mvn clean install
-      #        working-directory: apps/onboarding-functions
 
       - name: Run Integration Tests
         working-directory: apps/onboarding-functions

@@ -38,131 +38,132 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EqualsAndHashCode(callSuper = true)
 @CucumberOptions(
-    features = "src/test/resources/features",
-    glue = {"it.pagopa.selfcare.onboarding"},
-    plugin = {
-      "html:target/cucumber-report/cucumber.html",
-      "json:target/cucumber-report/cucumber.json"
-    },
-    tags = "@Onboarding")
+        features = "src/test/resources/features",
+        glue = {"it.pagopa.selfcare.onboarding"},
+        plugin = {
+                "html:target/cucumber-report/cucumber.html",
+                "json:target/cucumber-report/cucumber.json"
+        },
+        tags = "@Onboarding")
 @TestProfile(IntegrationFunctionProfile.class)
 @Slf4j
 @Data
 @TestInstance(Lifecycle.PER_CLASS)
 public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
-  private ValidatableResponse validatableResponse;
-  private static ObjectMapper objectMapper;
-  private static String tokenTest;
-  private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
-  private String onboardingId;
+    private ValidatableResponse validatableResponse;
+    private static ObjectMapper objectMapper;
+    private static String tokenTest;
+    private static final String JWT_BEARER_TOKEN_ENV = "custom.jwt-token-test";
+    private String onboardingId;
 
-  MongoClient mongoClient;
-  MongoDatabase onboardingDatabase;
-  MongoDatabase institutionDatabase;
-  MongoDatabase userDatabase;
+    MongoClient mongoClient;
+    MongoDatabase onboardingDatabase;
+    MongoDatabase institutionDatabase;
+    MongoDatabase userDatabase;
 
-  private RequestSpecification request;
-  private Response response;
-  private Onboarding onboarding;
+    private RequestSpecification request;
+    private Response response;
+    private Onboarding onboarding;
 
-  @Inject IntegrationOnboardingResources integrationOnboardingResources;
+    @Inject
+    IntegrationOnboardingResources integrationOnboardingResources;
 
-  @Inject IntegrationOperationUtils integrationOperationUtils;
+    @Inject
+    IntegrationOperationUtils integrationOperationUtils;
 
-  public static void main(String[] args) {
-    runMain(OnboardingFunctionStep.class, args);
-  }
-
-  @BeforeAll
-  void setup() {
-    //System.setProperty("JWT_BEARER_TOKEN", ConfigProvider.getConfig().getValue(JWT_BEARER_TOKEN_ENV, String.class));
-    initDb();
-    log.debug("Init completed");
-  }
-
-  @BeforeEach
-  void resetRestAssured() {
-    RestAssured.reset();
-  }
-
-  private void initDb() {
-    mongoClient = IntegrationFunctionProfile.getMongoClientConnection();
-    onboardingDatabase = IntegrationFunctionProfile.getOnboardingDatabase(mongoClient);
-    institutionDatabase = IntegrationFunctionProfile.getInstitutionDatabase(mongoClient);
-    userDatabase = IntegrationFunctionProfile.getUserDatabase(mongoClient);
-
-    Map<String, Institution> institutionTemplateMap =
-        integrationOnboardingResources.getInstitutionTemplateMap();
-
-    institutionTemplateMap.forEach(
-        (key, institution) -> {
-          log.info("Persist {}", key);
-          integrationOperationUtils.persistInstitution(institutionDatabase, institution);
-        });
-  }
-
-  @Given("Preparing the invocation of {string} HTTP call with onboardingId {string}")
-  public void setupCall(String functionName, String onboardingId) {
-    RestAssured.baseURI = "http://localhost:8090";
-    RestAssured.basePath = String.format("/api/%s", functionName);
-
-    onboarding = integrationOperationUtils.findIntoMongoOnboarding(onboardingId);
-
-    if (Objects.isNull(onboarding)) {
-      onboarding = integrationOnboardingResources.getOnboardingJsonTemplate(onboardingId);
-      integrationOperationUtils.persistIntoMongo(onboarding);
+    public static void main(String[] args) {
+        runMain(OnboardingFunctionStep.class, args);
     }
 
-    setOnboardingId(onboarding.getId());
-  }
+    @BeforeAll
+    void setup() {
+        initDb();
+        log.debug("Init completed");
+    }
 
-  @When("I send a GET request with given onboardingId")
-  public void sendPostRequest() {
+    @BeforeEach
+    void resetRestAssured() {
+        RestAssured.reset();
+    }
 
-    response =
-        given()
-            .log()
-            .all()
-            .queryParam("onboardingId", getOnboardingId())
-            // .queryParam("timeout", 55000)
-            .when()
-            .get()
-            .then()
-            .log()
-            .all()
-            .extract()
-            .response();
-  }
+    private void initDb() {
+        mongoClient = IntegrationFunctionProfile.getMongoClientConnection();
+        onboardingDatabase = IntegrationFunctionProfile.getOnboardingDatabase(mongoClient);
+        institutionDatabase = IntegrationFunctionProfile.getInstitutionDatabase(mongoClient);
+        userDatabase = IntegrationFunctionProfile.getUserDatabase(mongoClient);
 
-  @Then("the response should have status code {int}")
-  public void verifyStatusCode(int expectedStatusCode) {
-    assertEquals(expectedStatusCode, response.getStatusCode(), "Status code non corrispondente");
-  }
+        Map<String, Institution> institutionTemplateMap =
+                integrationOnboardingResources.getInstitutionTemplateMap();
 
-  @Then("the answer should contain {string}")
-  public void verifyResponseBody(String expectedResponse) {
-    List<String> expectedValue = List.of(expectedResponse.split(","));
+        institutionTemplateMap.forEach(
+                (key, institution) -> {
+                    log.info("Persist {}", key);
+                    integrationOperationUtils.persistInstitution(institutionDatabase, institution);
+                });
+    }
 
-    response
-        .then()
-        .assertThat()
-        .body("$", allOf(expectedValue.stream().map(key -> hasKey(key)).toArray(Matcher[]::new)));
-  }
+    @Given("Preparing the invocation of {string} HTTP call with onboardingId {string}")
+    public void setupCall(String functionName, String onboardingId) {
+        RestAssured.baseURI = "http://localhost:8090";
+        RestAssured.basePath = String.format("/api/%s", functionName);
 
-  @Then("there is a document for onboarding with status {string}")
-  public void theResponseShouldHaveFieldWithValue(String status) throws InterruptedException {
-    Thread.sleep(50000);
-    onboarding = integrationOperationUtils.findIntoMongoOnboarding(getOnboardingId());
-    assertTrue(Objects.nonNull(onboarding));
-    assertEquals(status, onboarding.getStatus().name());
-  }
+        onboarding = integrationOperationUtils.findIntoMongoOnboarding(onboardingId);
 
-  @AfterAll
-  void destroyDatabase() {
-//    onboardingDatabase.drop();
-//    institutionDatabase.drop();
-//    userDatabase.drop();
-    log.info("Test terminated!");
-  }
+        if (Objects.isNull(onboarding)) {
+            onboarding = integrationOnboardingResources.getOnboardingJsonTemplate(onboardingId);
+            integrationOperationUtils.persistIntoMongo(onboarding);
+        }
+
+        setOnboardingId(onboarding.getId());
+    }
+
+    @When("I send a GET request with given onboardingId")
+    public void sendPostRequest() {
+
+        response =
+                given()
+                        .log()
+                        .all()
+                        .queryParam("onboardingId", getOnboardingId())
+                        // .queryParam("timeout", 55000)
+                        .when()
+                        .get()
+                        .then()
+                        .log()
+                        .all()
+                        .extract()
+                        .response();
+    }
+
+    @Then("the response should have status code {int}")
+    public void verifyStatusCode(int expectedStatusCode) {
+        assertEquals(expectedStatusCode, response.getStatusCode(), "Status code non corrispondente");
+    }
+
+    @Then("the answer should contain {string}")
+    public void verifyResponseBody(String expectedResponse) {
+        List<String> expectedValue = List.of(expectedResponse.split(","));
+
+        response
+                .then()
+                .assertThat()
+                .body("$", allOf(expectedValue.stream().map(key -> hasKey(key)).toArray(Matcher[]::new)));
+    }
+
+    @Then("there is a document for onboarding with status {string}")
+    public void theResponseShouldHaveFieldWithValue(String status) throws InterruptedException {
+        Thread.sleep(50000);
+        onboarding = integrationOperationUtils.findIntoMongoOnboarding(getOnboardingId());
+        assertTrue(Objects.nonNull(onboarding));
+        assertEquals(status, onboarding.getStatus().name());
+    }
+
+    @AfterAll
+    void destroyDatabase() {
+        onboardingDatabase.drop();
+        institutionDatabase.drop();
+        userDatabase.drop();
+        log.info("Test terminated!");
+    }
 }
