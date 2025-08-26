@@ -11,8 +11,8 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-    paths:
-      - "apps/onboarding-fn/**"
+    #paths:
+    #  - "apps/onboarding-fn/**"
     branches:
       - "feature/build-on-current-branch"
 
