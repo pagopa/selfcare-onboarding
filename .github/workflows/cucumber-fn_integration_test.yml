@@ -94,10 +94,12 @@ jobs:
         working-directory: apps/onboarding-functions
         run: |
           mvn clean test \
-            -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep \
-            -Dsurefire.parallel=none \
-            -Dsurefire.threadCount=1 \
-            -Dsurefire.failIfNoSpecifiedTests=false
+              -B \
+              -q \
+              -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep \
+              -Dsurefire.parallel=none \
+              -Dsurefire.threadCount=1 \
+              -Dsurefire.failIfNoSpecifiedTests=false
 
       - name: Collect service logs
         if: always()
