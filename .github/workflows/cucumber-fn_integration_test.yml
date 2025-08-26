@@ -84,6 +84,12 @@ jobs:
             fi
           done
 
+      - name: Stream Docker logs in a background process
+        working-directory: apps/onboarding-functions
+        run: |
+          docker compose -f src/test/resources/docker-compose.yml logs -f --tail=0 > docker-compose-logs.txt &
+          echo $! > docker-logs.pid
+
       #      - name: Build project
       #        shell: bash
       #        run: mvn clean install
