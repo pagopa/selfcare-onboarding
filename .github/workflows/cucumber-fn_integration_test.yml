@@ -6,8 +6,9 @@ permissions:
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
-    #paths:
-    #  - "apps/onboarding-fn/**"
+    paths:
+      - "apps/onboarding-fn/**"
+  workflow_dispatch:
 
 jobs:
   integration_tests_fn_job:
