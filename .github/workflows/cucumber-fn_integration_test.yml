@@ -6,8 +6,8 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "apps/onboarding-fn/**"
+   # paths:
+   #   - "apps/onboarding-fn/**"
     branch:
       - "feature/SELC-7576"
 
