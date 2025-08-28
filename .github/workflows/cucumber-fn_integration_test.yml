@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "apps/onboarding-fn/**"
+    branch:
+      - "feature/SELC-7576"
 
 jobs:
   integration_tests_fn:
