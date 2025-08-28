@@ -52,6 +52,8 @@ jobs:
 
       - name: Startup services
         working-directory: apps/onboarding-functions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker compose -f src/test/resources/docker-compose.yml pull
           docker compose -f src/test/resources/docker-compose.yml up -d

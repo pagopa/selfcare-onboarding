@@ -27,7 +27,7 @@ services:
       context: "."
       dockerfile: "Dockerfile-azure-cli"
     args:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     depends_on:
       - azurite
     volumes:
