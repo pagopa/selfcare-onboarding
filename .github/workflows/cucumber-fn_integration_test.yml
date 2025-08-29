@@ -17,6 +17,14 @@ on:
         default: "false"
         type: boolean
 
+  workflow_dispatch:
+    inputs:
+      enable-logs:
+        description: "Enable container logs"
+        required: false
+        default: "false"
+        type: boolean
+
 jobs:
   integration_tests_fn_job:
     name: "Integration Tests (onboarding-fn)"
