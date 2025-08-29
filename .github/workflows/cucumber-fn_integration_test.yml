@@ -53,7 +53,7 @@ jobs:
       - name: Clone infra-private
         uses: actions/checkout@v4
         with:
-          repository: "pagopa/selfcare-infra-private"
+          repository: "pagopa/selfcare-infra-private.git"
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: "main"
           # Relative path under $GITHUB_WORKSPACE to place the repository
