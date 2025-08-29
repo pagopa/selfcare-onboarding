@@ -77,8 +77,8 @@ jobs:
               --auth-mode key \
               --account-name selcdcheckoutsa \
               --container-name selc-d-product \
-              --name product.json \
-              --file apps/onboarding-functions/src/test/resources/blobStorageInit/products.json
+              --name products.json \
+              --file apps/onboarding-functions/src/test/resources/blobStorageInit/products.json \
               --overwrite
 
       - name: Startup services
