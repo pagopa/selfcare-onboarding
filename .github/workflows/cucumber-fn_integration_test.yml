@@ -21,6 +21,9 @@ jobs:
   integration_tests_fn_job:
     name: "Integration Tests (onboarding-fn)"
     runs-on: ubuntu-24.04
+    secrets: inherit
+    environment:
+      name: dev-cd
 
     steps:
       - name: Checkout
