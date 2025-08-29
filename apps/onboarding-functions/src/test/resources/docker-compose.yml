@@ -40,8 +40,8 @@ services:
   onboarding-fn:
     platform: linux/amd64
     build:
-      context: ..
-      dockerfile: ./resources/Dockerfile-fn
+      context: ../../../../../..
+      dockerfile: ./selfcare-onboarding/apps/onboarding-functions/src/test/resources/Dockerfile-fn
     ports:
       - "8090:8081"
       #- "5005:5005"
@@ -55,8 +55,8 @@ services:
       # - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    #volumes:
-    #  - "~/.m2:~/.m2"
+    volumes:
+      - "~/.m2/settings.xml:/root/.m2/settings.xml"
 
   user-ms:
     platform: linux/amd64
