@@ -55,6 +55,7 @@ jobs:
         with:
           repository: "pagopa/selfcare-infra-private"
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: "main"
           # Relative path under $GITHUB_WORKSPACE to place the repository
           #path: ''
 
