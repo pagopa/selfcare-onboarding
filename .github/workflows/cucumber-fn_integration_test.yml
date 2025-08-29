@@ -50,6 +50,10 @@ jobs:
           docker compose down -v --remove-orphans || true
           docker system prune -af || true
 
+      - name: Clone infra-private from shell
+        shell: bash
+        run: "git clone https://${{ secrets.GH_PAT_VARIABLES }}:@github.com/pagopa/selfcare-infra-private.git"
+
       - name: Clone infra-private
         uses: actions/checkout@v4
         with:
