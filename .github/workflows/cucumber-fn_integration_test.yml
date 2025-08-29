@@ -69,6 +69,18 @@ jobs:
           tenant-id: ${{ vars.ARM_TENANT_ID }}
           subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
+      - name: Download config from blob-storage
+        uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
+        with:
+          inlineScript: |
+            az storage blob download \
+              --auth-mode key \
+              --account-name selcdcheckoutsa \
+              --container-name selc-d-product \
+              --name product.json \
+              --file apps/onboarding-functions/src/test/resources/blobStorageInit/products.json
+              --overwrite
+
       - name: Startup services
         working-directory: apps/onboarding-functions
         run: |
