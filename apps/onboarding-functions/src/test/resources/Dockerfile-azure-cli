@@ -1,16 +1,8 @@
-FROM ubuntu:22.04 AS git-stage
-
-RUN apt-get update && apt-get install -y git curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+FROM alpine/git@sha256:640423d9fc3945812fbe2aa147ca9d37ae2e0adc0cc1fa0bc9941dcfac2a34c4 AS git-stage
 
 WORKDIR /repo
-
 RUN git clone https://github.com/pagopa/selfcare-infra.git
-
-RUN --mount=type=secret,id=gh_token \
-    GITHUB_PAT=$(cat /run/secrets/gh_token) && \
-    git clone https://x-access-token:${GITHUB_PAT}@github.com/pagopa/selfcare-infra-private.git
-
+#RUN git clone https://x-access-token:${GITHUB_PAT}@github.com/pagopa/selfcare-infra-private.git
 
 FROM mcr.microsoft.com/azure-cli@sha256:5ecf42d8362e25717b35c994aa714ed399be7b4e6f6c2df2ba3591b717598f76
 COPY --from=git-stage /repo/selfcare-infra/src/core/resources /workspace/resources/resources

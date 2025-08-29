@@ -26,8 +26,6 @@ services:
     build:
       context: "."
       dockerfile: "Dockerfile-azure-cli"
-      secrets:
-        - gh_token
     depends_on:
       - azurite
     volumes:
@@ -111,7 +109,3 @@ services:
 networks:
   developer-network:
     name: selfcare-develop-network
-
-secrets:
-  gh_token:
-    environment: GITHUB_TOKEN
