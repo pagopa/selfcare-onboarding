@@ -50,6 +50,18 @@ jobs:
           docker compose down -v --remove-orphans || true
           docker system prune -af || true
 
+      - name: Clone infra-private
+        uses: actions/checkout@v4
+        with:
+          repository: "pagopa/selfcare-infra-private"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Relative path under $GITHUB_WORKSPACE to place the repository
+          #path: ''
+
+      - name: List infra-private
+        shell: bash
+        run: ls -l ./selfcare-infra-private
+
       - name: Startup services
         working-directory: apps/onboarding-functions
         env:
