@@ -7,10 +7,8 @@ permissions:
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
-    #paths:
-    #  - "apps/onboarding-fn/**"
-    branch:
-      - "feature/SELC-7576"  
+    paths:
+      - "apps/onboarding-fn/**"
   workflow_dispatch:
     inputs:
       enable-logs:
@@ -87,7 +85,7 @@ jobs:
         working-directory: apps/onboarding-functions
         run: |
           ls -la src/test/resources/blobStorageInit
-          test -f src/test/resources/blobStorageInit/products.json && echo "products.json found" || (echo "products.json missing" && exit 1)     
+          test -f src/test/resources/blobStorageInit/products.json && echo "products.json found" || (echo "products.json missing" && exit 1)
 
       - name: Startup services
         working-directory: apps/onboarding-functions
@@ -138,7 +136,7 @@ jobs:
               -Dsurefire.failIfNoSpecifiedTests=false
 
       - name: Collect service logs
-        if: always()
+        if: ${{ always() && inputs.enable-logs == 'false' }}
         working-directory: apps/onboarding-functions
         run: |
           mkdir -p docker-logs
@@ -147,7 +145,7 @@ jobs:
           done
 
       - name: Upload logs
-        if: always()
+        if: ${{ always() && inputs.enable-logs == 'false' }}
         uses: actions/upload-artifact@v4
         with:
           name: docker-logs
