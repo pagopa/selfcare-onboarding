@@ -70,8 +70,8 @@ jobs:
           subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Download config from blob-storage
-        working-directory: apps/onboarding-functions
         uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
+        working-directory: apps/onboarding-functions
         with:
           inlineScript: |
             az storage blob download \
