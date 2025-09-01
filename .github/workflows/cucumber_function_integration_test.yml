@@ -70,6 +70,7 @@ jobs:
           subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
       - name: Download config from blob-storage
+        working-directory: apps/onboarding-functions
         uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
         with:
           inlineScript: |
@@ -78,8 +79,14 @@ jobs:
               --account-name selcdcheckoutsa \
               --container-name selc-d-product \
               --name products.json \
-              --file apps/onboarding-functions/src/test/resources/blobStorageInit/products.json \
+              --file src/test/resources/blobStorageInit/products.json \
               --overwrite
+
+      - name: Verify exist config file
+        working-directory: apps/onboarding-functions
+        run: |
+          ls -la src/test/resources/blobStorageInit
+          test -f src/test/resources/blobStorageInit/products.json && echo "products.json found" || (echo "products.json missing" && exit 1)     
 
       - name: Startup services
         working-directory: apps/onboarding-functions
