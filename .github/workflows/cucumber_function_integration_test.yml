@@ -7,8 +7,8 @@ permissions:
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
-    paths:
-      - "apps/onboarding-fn/**"
+    #paths:
+    #  - "apps/onboarding-fn/**"
     branch:
       - "feature/SELC-7576"  
   workflow_dispatch:
