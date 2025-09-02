@@ -21,6 +21,10 @@ jobs:
   integration_tests_fn_job:
     name: "Integration Tests (onboarding-fn)"
     runs-on: ubuntu-24.04
+    environment: dev-ci
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -55,6 +59,31 @@ jobs:
         run: |
           docker compose down -v --remove-orphans || true
           docker system prune -af || true
+
+      - name: Azure Login
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ vars.ARM_TENANT_ID }}
+          subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
+
+      - name: Download config from blob-storage
+        uses: azure/CLI@965c8d7571d2231a54e321ddd07f7b10317f34d9 # v2
+        with:
+          inlineScript: |
+            az storage blob download \
+              --auth-mode key \
+              --account-name selcdcheckoutsa \
+              --container-name selc-d-product \
+              --name products.json \
+              --file ./apps/onboarding-functions/src/test/resources/blobStorageInit/products.json \
+              --overwrite
+
+      - name: Verify exist config file
+        working-directory: apps/onboarding-functions
+        run: |
+          ls -la src/test/resources/blobStorageInit
+          test -f src/test/resources/blobStorageInit/products.json && echo "products.json found" || (echo "products.json missing" && exit 1)
 
       - name: Startup services
         working-directory: apps/onboarding-functions
@@ -105,7 +134,7 @@ jobs:
               -Dsurefire.failIfNoSpecifiedTests=false
 
       - name: Collect service logs
-        if: ${{ always() && inputs.collect-logs == 'true' }}
+        if: ${{ always() && inputs.enable-logs == 'true' }}
         working-directory: apps/onboarding-functions
         run: |
           mkdir -p docker-logs
@@ -114,7 +143,7 @@ jobs:
           done
 
       - name: Upload logs
-        if: ${{ always() && inputs.collect-logs == 'true' }}
+        if: ${{ always() && inputs.enable-logs == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: docker-logs
