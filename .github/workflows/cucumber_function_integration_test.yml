@@ -6,9 +6,9 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
+    types: [ opened, edited, synchronize, reopened, ready_for_review ]
     paths:
-      - "apps/onboarding-fn/**"
+      - "apps/onboarding-functions/**"
   workflow_dispatch:
     inputs:
       enable-logs:
@@ -154,3 +154,9 @@ jobs:
         if: always()
         working-directory: apps/onboarding-functions
         run: docker compose -f src/test/resources/docker-compose.yml down -v --remove-orphans
+
+      - name: Azure Logout
+        id: az_logout
+        if: always()
+        run: |
+          az logout
