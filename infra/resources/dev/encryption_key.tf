@@ -1,7 +1,6 @@
 resource "random_password" "encryption_key" {
   length           = 32
   special          = false
-  override_characters = ""
 
   keepers = {
     version = 1
