@@ -386,13 +386,13 @@ Feature: Onboarding collection
 
   Scenario: Can't perform onboarding users request with valid iban
     Given I have a request object named "success_iban_prv_request"
-    When I send a POST request for user to "" with this request
+    When I send a POST request to "" with this request
     Then the response status code should be 200
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
 
   Scenario: Can't perform onboarding users request with invalid iban
     Given I have a request object named "invalid_iban_prv_request"
-    When I send a POST request for user to "" with this request
+    When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "IBAN is not in an Italian format or is not 27 characters long"
