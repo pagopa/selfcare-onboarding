@@ -2,11 +2,18 @@
   "productId": "prod-idpay-merchant",
   "users": [
     {
-      "taxCode": "GRSGNT71A62C950S",
-      "name": "Gianantonio",
-      "surname": "Grassi",
-      "email": "g.grassi@test.it",
+      "taxCode": "FRDSMN80A01F205Z",
+      "name": "Sigmund",
+      "surname": "Freud",
+      "email": "s.freud@test.email.it",
       "role": "MANAGER"
+    },
+    {
+      "taxCode": "CLVTLI80A01F839V",
+      "name": "Italo",
+      "surname": "Calvino",
+      "email": "i.calvino@test.email.it",
+      "role": "DELEGATE"
     }
   ],
   "institution": {
