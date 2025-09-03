@@ -2838,6 +2838,9 @@
           "expiringDate" : {
             "$ref" : "#/components/schemas/LocalDateTime"
           },
+          "activatedAt" : {
+            "$ref" : "#/components/schemas/LocalDateTime"
+          },
           "status" : {
             "type" : "string"
           },
