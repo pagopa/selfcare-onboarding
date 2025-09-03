@@ -11,7 +11,10 @@ public enum ProductId {
     PROD_IO_SIGN("prod-io-sign"),
     PROD_PAGOPA("prod-pagopa"),
     PROD_IO_PREMIUM("prod-io-premium"),
-    PROD_DASHBOARD_PSP("prod-dashboard-psp");
+    PROD_DASHBOARD_PSP("prod-dashboard-psp"),
+    PROD_REGISTRO_BENI("prod-registro-beni"),
+    PROD_IDPAY_MERCHANT("prod-idpay-merchant"),
+    PROD_IDPAY_GI("prod-idpay-gi");
 
     private final String value;
 
