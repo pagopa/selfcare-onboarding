@@ -1,4 +1,4 @@
-name: "Integration Tests (onboarding-fn)"
+name: "Integration Tests (onboarding-functions)"
 
 permissions:
   contents: read
@@ -6,7 +6,7 @@ permissions:
 
 on:
   pull_request:
-    types: [ opened, edited, synchronize, reopened, ready_for_review ]
+    types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
       - "apps/onboarding-functions/**"
   workflow_dispatch:
@@ -18,8 +18,8 @@ on:
         type: boolean
 
 jobs:
-  integration_tests_fn_job:
-    name: "Integration Tests (onboarding-fn)"
+  integration_tests_functions_job:
+    name: "Integration Tests (onboarding-functions)"
     runs-on: ubuntu-24.04
     environment: dev-ci
     permissions:
@@ -100,7 +100,7 @@ jobs:
             "localhost:8087"    #user-ms
             "localhost:8082"    #institution-ms
             "localhost:1080"    #mock-server
-            "localhost:8090"    #onboarding-fn
+            "localhost:8090"    #onboarding-functions
           )
 
           for service in "${SERVICES[@]}"; do
@@ -124,6 +124,7 @@ jobs:
           done
 
       - name: Run Integration Tests
+        id: test-step
         shell: bash
         working-directory: apps/onboarding-functions
         run: |
@@ -132,6 +133,14 @@ jobs:
               -Dsurefire.parallel=none \
               -Dsurefire.threadCount=1 \
               -Dsurefire.failIfNoSpecifiedTests=false
+
+      - name: Upload Test Results
+        working-directory: apps/onboarding-functions
+        if: always() && (steps.test-step.conclusion == 'success' || steps.test-step.conclusion == 'failure')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cucumber-report
+          path: target/cucumber-report/cucumber.html
 
       - name: Collect service logs
         if: ${{ always() && inputs.enable-logs == 'true' }}
