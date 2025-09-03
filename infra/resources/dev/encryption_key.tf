@@ -5,7 +5,7 @@ resource "random_password" "encryption_key" {
 }
 
 resource "azurerm_key_vault_secret" "encryption_key_secret" {
-  name         = "backend-encryption-key"
+  name         = "onboarding-data-encryption-key"
   value        = random_password.encryption_key.result
   content_type = "text/plain"
 
