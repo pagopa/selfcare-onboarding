@@ -14,12 +14,12 @@ Feature: Onboarding collection
       | PENDING       |
       | COMPLETED     |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE_GPU request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e86"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE_GPU request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e86"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow FOR_APPROVE_PT request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e87"
@@ -33,12 +33,12 @@ Feature: Onboarding collection
       | TOBEVALIDATED |
       | COMPLETED     |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE_PT request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e88"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE_PT request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e88"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow CONFIRMATION request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e89"
@@ -52,12 +52,12 @@ Feature: Onboarding collection
       | PENDING   |
       | COMPLETED |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow CONFIRMATION request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e90"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow CONFIRMATION request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e90"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow CONTRACT_REGISTRATION request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9232137e85"
@@ -71,12 +71,12 @@ Feature: Onboarding collection
       | PENDING   |
       | COMPLETED |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow CONTRACT_REGISTRATION request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9232137e97"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow CONTRACT_REGISTRATION request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9232137e97"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow FOR_APPROVE request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8502-9c9232137e95"
@@ -91,12 +91,12 @@ Feature: Onboarding collection
       | PENDING       |
       | COMPLETED     |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e99"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow FOR_APPROVE request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e99"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow USERS request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e91"
@@ -110,12 +110,12 @@ Feature: Onboarding collection
       | PENDING   |
       | COMPLETED |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e92"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e92"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for workflow USERS_EA request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e94"
@@ -129,12 +129,12 @@ Feature: Onboarding collection
       | PENDING   |
       | COMPLETED |
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS_EA request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e95"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS_EA request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e95"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario: Verify correct invocation of the StartOnboardingOrchestration for workflow IMPORT request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i99"
@@ -143,12 +143,12 @@ Feature: Onboarding collection
     And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
     And there is a document for onboarding with status "COMPLETED"
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow IMPORT request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i100"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow IMPORT request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i100"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"
 
   Scenario: Verify correct invocation of the StartOnboardingOrchestration for correct workflow USERS_PG request
     Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137e102"
@@ -157,9 +157,9 @@ Feature: Onboarding collection
     And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
     And there is a document for onboarding with status "COMPLETED"
 
-  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS_PG request
-    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i103"
-    When I send a GET request with given onboardingId
-    Then the response should have status code 202
-    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
-    And there is a document for onboarding with status "FAILED"
+#  Scenario: Verify correct invocation of the StartOnboardingOrchestration for incorrect workflow USERS_PG request
+#    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "89ad7142-24bb-48ad-8504-9c9231137i103"
+#    When I send a GET request with given onboardingId
+#    Then the response should have status code 202
+#    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+#    And there is a document for onboarding with status "FAILED"

@@ -3623,6 +3623,9 @@
           "istatCode": {
             "type": "string"
           },
+          "legalForm" : {
+            "type" : "string"
+          },
           "digitalAddress": {
             "type": "string"
           },
@@ -3764,6 +3767,9 @@
           },
           "istatCode": {
             "type": "string"
+          },
+          "legalForm" : {
+            "type" : "string"
           },
           "logo": {
             "type": "string"
