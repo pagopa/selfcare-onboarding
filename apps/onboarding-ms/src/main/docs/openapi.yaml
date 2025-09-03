@@ -2002,6 +2002,8 @@ components:
           $ref: "#/components/schemas/AdditionalInformationsDto"
         gpuData:
           $ref: "#/components/schemas/GPUData"
+        payment:
+          $ref: "#/components/schemas/Payment"
         onboardingImportContract:
           $ref: "#/components/schemas/OnboardingImportContract"
     OnboardingDefaultRequest:
@@ -2035,6 +2037,8 @@ components:
           $ref: "#/components/schemas/AdditionalInformationsDto"
         gpuData:
           $ref: "#/components/schemas/GPUData"
+        payment:
+          $ref: "#/components/schemas/Payment"
     OnboardingGet:
       type: object
       properties:
@@ -2337,6 +2341,14 @@ components:
       - OPERATOR
       - ADMIN_EA
       type: string
+    Payment:
+      type: object
+      properties:
+        iban:
+          pattern: "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$"
+          type: string
+        holder:
+          type: string
     PaymentServiceProviderRequest:
       type: object
       properties:

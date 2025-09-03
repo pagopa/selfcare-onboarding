@@ -1,0 +1,42 @@
+{
+  "productId": "prod-idpay-merchant",
+  "users": [
+    {
+      "taxCode": "GRSGNT71A62C950S",
+      "name": "Gianantonio",
+      "surname": "Grassi",
+      "email": "g.grassi@test.it",
+      "role": "MANAGER"
+    }
+  ],
+  "institution": {
+    "institutionType": "PRV",
+    "taxCode": "83001070842",
+    "taxCodeInvoicing": "83001070842",
+    "origin": "PDND_INFOCAMERE",
+    "city": "Caltabellotta",
+    "originId": "83001070842",
+    "country": "IT",
+    "county": "AG",
+    "description": "Comune di Caltabellotta",
+    "digitalAddress": "comunecaltabellotta@pec.it",
+    "address": "Via Monte Grappa,5",
+    "zipCode": "92010",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "imported": false
+  },
+  "billing": {
+    "vatNumber": "83001070842",
+    "recipientCode": "UFR0DM",
+    "publicServices": true
+  },
+  "payment": {
+    "iban": "IT60X0542811101000000123456",
+    "holder": "Antonello Golfini"
+  }
+}
