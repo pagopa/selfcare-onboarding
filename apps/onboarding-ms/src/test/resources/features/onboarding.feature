@@ -388,6 +388,7 @@ Feature: Onboarding collection
     Given I have a request object named "success_iban_prv_request"
     When I send a POST request to "" with this request
     Then the response status code should be 200
+    And the response body should not be empty
     And the response should have field "status" with value "REQUEST"
     And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"
 
