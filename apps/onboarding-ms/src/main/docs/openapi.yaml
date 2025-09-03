@@ -2064,6 +2064,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         expiringDate:
           $ref: "#/components/schemas/LocalDateTime"
+        activatedAt:
+          $ref: "#/components/schemas/LocalDateTime"
         status:
           type: string
         userRequestUid:
