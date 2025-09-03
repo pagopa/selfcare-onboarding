@@ -20,6 +20,7 @@ public class OnboardingGet {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime expiringDate;
+    private LocalDateTime activatedAt;
     private String status;
     private String userRequestUid;
     private String reasonForReject;
