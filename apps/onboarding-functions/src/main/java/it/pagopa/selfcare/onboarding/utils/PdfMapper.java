@@ -485,4 +485,10 @@ public class PdfMapper {
       map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
     }
   }
+
+  public static void setupPaymentData(Map<String, Object> data, Payment payment) {
+    data.put("holder", payment.getHolder());
+    data.put("holder-iban", payment.getIban());
+  }
+
 }
