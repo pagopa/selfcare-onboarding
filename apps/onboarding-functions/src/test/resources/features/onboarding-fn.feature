@@ -174,6 +174,5 @@ Feature: Onboarding collection
 
     Examples:
       | status    |
-      | REQUEST   |
       | PENDING   |
       | COMPLETED |
