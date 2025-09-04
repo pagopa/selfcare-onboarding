@@ -33,10 +33,7 @@ import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
@@ -48,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -1355,6 +1353,88 @@ class OnboardingControllerTest {
         verify(onboardingService, times(1))
                 .deleteOnboarding(expectedId.capture());
         assertEquals(expectedId.getValue(), onboardingId);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingWithValidItalianIban() {
+        // given
+        OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
+        req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
+        req.getInstitution().setInstitutionType(InstitutionType.PRV);
+        Payment payment =  new Payment();
+        payment.setIban("IT60X0542811101000000123456");
+        payment.setHolder("Mario Rossi");
+        req.setPayment(payment);
+
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        // when/then
+        given()
+                .when()
+                .body(req)
+                .contentType(ContentType.JSON)
+                .post()
+                .then()
+                .statusCode(200);
+
+        Mockito.verify(onboardingService, times(1)).onboarding(any(), any(), any());
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingWithInvalidItalianIban() {
+        // given
+        OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
+        req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
+        req.getInstitution().setInstitutionType(InstitutionType.PRV);
+        Payment payment =  new Payment();
+        payment.setIban("FR1420041010050500013M02606");
+        payment.setHolder("Mario Rossi");
+        req.setPayment(payment);
+
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        // when / then
+        given()
+                .when()
+                .body(req)
+                .contentType(ContentType.JSON)
+                .post()
+                .then()
+                .statusCode(400);
+
+        Mockito.verifyNoInteractions(onboardingService);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void onboardingWithInvalidIbanLength() {
+
+        // given
+        OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
+        req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
+        req.getInstitution().setInstitutionType(InstitutionType.PRV);
+        Payment payment =  new Payment();
+        payment.setIban("IT60X054281110100000012345");
+        payment.setHolder("Mario Rossi");
+        req.setPayment(payment);
+
+        Mockito.when(onboardingService.onboarding(any(), any(), any()))
+                .thenReturn(Uni.createFrom().item(new OnboardingResponse()));
+
+        // when / then
+        given()
+                .when()
+                .body(req)
+                .contentType(ContentType.JSON)
+                .post()
+                .then()
+                .statusCode(400);
+
+        Mockito.verifyNoInteractions(onboardingService);
     }
 
     private OnboardingAggregationImportRequest dummyOnboardingAggregationImportRequest() {
