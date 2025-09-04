@@ -327,9 +327,15 @@ public class ContractServiceDefault implements ContractService {
     if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
       && InstitutionType.PSP == institution.getInstitutionType()) {
       setupPSPData(data, manager, onboarding);
-    } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
-      && InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType()) {
+    } else if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_IDPAY_MERCHANT.getValue().equalsIgnoreCase(productId))
+      && (InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType())) {
       setupPRVData(data, onboarding, users);
+
+      Payment payment = onboarding.getPayment();
+      if (Objects.nonNull(payment)) {
+        setupPaymentData(data, payment);
+      }
+
     } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
       && InstitutionType.PSP != institution.getInstitutionType()
       && InstitutionType.PT != institution.getInstitutionType()) {
