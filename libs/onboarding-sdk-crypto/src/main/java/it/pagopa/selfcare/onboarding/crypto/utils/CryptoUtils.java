@@ -34,8 +34,6 @@ public class CryptoUtils {
 
     }
 
-
-
     public static byte[] getDigest(InputStream is) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
