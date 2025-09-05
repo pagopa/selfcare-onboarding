@@ -42,10 +42,12 @@ public class DataEncryptionUtils {
             int ivLen = iv.length;
             int ctLen = ct.length;
 
-            if (ct.length > (Integer.MAX_VALUE - iv.length)) {
+            if (ctLen > Integer.MAX_VALUE - ivLen) {
                 throw new IllegalArgumentException("Input too large for encryption.");
             }
-            byte[] out = new byte[ivLen + ctLen];
+
+            int totalLen = ivLen + ctLen;
+            byte[] out = new byte[totalLen];
             return Base64.getEncoder().encodeToString(out);
         } catch (Exception e) {
             throw new RuntimeException(e);
