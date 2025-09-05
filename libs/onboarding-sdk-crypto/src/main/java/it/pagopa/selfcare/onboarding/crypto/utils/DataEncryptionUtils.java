@@ -39,9 +39,13 @@ public class DataEncryptionUtils {
             cipher.init(Cipher.ENCRYPT_MODE, getKey(key), new GCMParameterSpec(128, iv));
             byte[] ct = cipher.doFinal(plain.getBytes());
 
-            byte[] out = new byte[iv.length + ct.length];
-            System.arraycopy(iv, 0, out, 0, iv.length);
-            System.arraycopy(ct, 0, out, iv.length, ct.length);
+            int ivLen = iv.length;
+            int ctLen = ct.length;
+
+            if (ivLen > Integer.MAX_VALUE - ctLen) {
+                throw new IllegalArgumentException("Output array size too large");
+            }
+            byte[] out = new byte[ivLen + ctLen];
             return Base64.getEncoder().encodeToString(out);
         } catch (Exception e) {
             throw new RuntimeException(e);
