@@ -42,8 +42,8 @@ public class DataEncryptionUtils {
             int ivLen = iv.length;
             int ctLen = ct.length;
 
-            if (ivLen > Integer.MAX_VALUE - ctLen) {
-                throw new IllegalArgumentException("Output array size too large");
+            if (ct.length > (Integer.MAX_VALUE - iv.length)) {
+                throw new IllegalArgumentException("Input too large for encryption.");
             }
             byte[] out = new byte[ivLen + ctLen];
             return Base64.getEncoder().encodeToString(out);
