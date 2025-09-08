@@ -29,7 +29,7 @@ public class DataEncryptionUtils {
         return decrypt(cipherText, defaultKey);
     }
 
-    public static String encrypt(String key, String plain) {
+    public static String encrypt(String plain, String key) {
         if (plain == null) return null;
         try {
             byte[] iv = new byte[12];
@@ -37,24 +37,20 @@ public class DataEncryptionUtils {
 
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, getKey(key), new GCMParameterSpec(128, iv));
-            byte[] ct = cipher.doFinal(plain.getBytes());
+            byte[] ct = cipher.doFinal(plain.getBytes(StandardCharsets.UTF_8));
 
-            int ivLen = iv.length;
-            int ctLen = ct.length;
+            // concateno IV + ciphertext
+            byte[] out = new byte[iv.length + ct.length];
+            System.arraycopy(iv, 0, out, 0, iv.length);
+            System.arraycopy(ct, 0, out, iv.length, ct.length);
 
-            if (ctLen > Integer.MAX_VALUE - ivLen) {
-                throw new IllegalArgumentException("Input too large for encryption.");
-            }
-
-            int totalLen = ivLen + ctLen;
-            byte[] out = new byte[totalLen];
             return Base64.getEncoder().encodeToString(out);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Encryption failed", e);
         }
     }
 
-    public static String decrypt(String key, String cipherText) {
+    public static String decrypt(String cipherText, String key) {
         if (cipherText == null) return null;
         try {
             byte[] ivct = Base64.getDecoder().decode(cipherText);
@@ -64,9 +60,9 @@ public class DataEncryptionUtils {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, getKey(key), new GCMParameterSpec(128, iv));
             byte[] pt = cipher.doFinal(ct);
-            return new String(pt);
+            return new String(pt, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Decryption failed", e);
         }
     }
 }
