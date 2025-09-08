@@ -15,7 +15,9 @@ public class Payment {
     private String holder;
 
     public String retrieveEncryptedHolder() {
-        return holder != null ? DataEncryptionUtils.decrypt(holder) : null;
+        return Optional.ofNullable(holder)
+                .map(DataEncryptionUtils::decrypt)
+                .orElse("");
     }
 
     public void setHolder(String holder) {
@@ -25,7 +27,9 @@ public class Payment {
     }
 
     public String retrieveEncryptedIban() {
-        return iban != null ? DataEncryptionUtils.decrypt(iban) : null;
+        return Optional.ofNullable(iban)
+                .map(DataEncryptionUtils::decrypt)
+                .orElse("");
     }
 
     public void setIban(String iban) {
