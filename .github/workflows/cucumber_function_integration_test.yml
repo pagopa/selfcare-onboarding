@@ -10,12 +10,6 @@ on:
     paths:
       - "apps/onboarding-functions/**"
   workflow_dispatch:
-    inputs:
-      enable-logs:
-        description: "Enable container logs"
-        required: false
-        default: "false"
-        type: boolean
 
 jobs:
   integration_tests_functions_job:
@@ -142,7 +136,7 @@ jobs:
           path: apps/onboarding-functions/target/cucumber-report/cucumber.html
 
       - name: Collect service logs
-        if: ${{ github.event.inputs.enable-logs == 'true' }}
+        if: always()
         working-directory: apps/onboarding-functions
         run: |
           mkdir -p docker-logs
@@ -150,11 +144,8 @@ jobs:
             docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log || true
           done
 
-      - name: Verify enable-logs
-        run: echo "Status ${{ github.event.inputs.enable-logs }}"
-
       - name: Upload logs
-        if: ${{ github.event.inputs.enable-logs == 'true' }}
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: docker-logs
