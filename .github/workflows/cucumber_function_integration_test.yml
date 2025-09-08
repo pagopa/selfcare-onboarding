@@ -150,6 +150,9 @@ jobs:
             docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log || true
           done
 
+      - name: Verify enable-logs
+        run: echo "Status ${{ github.event.inputs.enable-logs }}"
+
       - name: Upload logs
         if: ${{ github.event.inputs.enable-logs == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
