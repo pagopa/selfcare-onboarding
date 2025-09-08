@@ -9,5 +9,4 @@ public class Payment {
 
     private String holder;
     private String iban;
-
 }
