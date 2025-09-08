@@ -2749,7 +2749,7 @@
             "$ref" : "#/components/schemas/GPUData"
           },
           "payment" : {
-            "$ref" : "#/components/schemas/Payment"
+            "$ref" : "#/components/schemas/PaymentRequestDto"
           },
           "onboardingImportContract" : {
             "$ref" : "#/components/schemas/OnboardingImportContract"
@@ -2798,7 +2798,7 @@
             "$ref" : "#/components/schemas/GPUData"
           },
           "payment" : {
-            "$ref" : "#/components/schemas/Payment"
+            "$ref" : "#/components/schemas/PaymentRequestDto"
           }
         }
       },
@@ -3179,7 +3179,7 @@
         "enum" : [ "MANAGER", "DELEGATE", "SUB_DELEGATE", "OPERATOR", "ADMIN_EA" ],
         "type" : "string"
       },
-      "Payment" : {
+      "PaymentRequestDto" : {
         "type" : "object",
         "properties" : {
           "iban" : {
