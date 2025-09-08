@@ -42,11 +42,12 @@ public class DataEncryptionUtils {
             int ivLen = iv.length;
             int ctLen = ct.length;
 
-            if (ctLen > Integer.MAX_VALUE - ivLen) {
+            long totalLen = (long) ivLen + (long) ctLen;
+            if (totalLen > Integer.MAX_VALUE) {
                 throw new IllegalArgumentException("Input too large for encryption.");
             }
 
-            byte[] out = new byte[ivLen + ctLen];
+            byte[] out = new byte[(int) totalLen];
             System.arraycopy(iv, 0, out, 0, ivLen);
             System.arraycopy(ct, 0, out, ivLen, ctLen);
 
