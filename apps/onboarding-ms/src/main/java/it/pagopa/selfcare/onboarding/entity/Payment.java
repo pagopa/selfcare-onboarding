@@ -2,21 +2,19 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.crypto.utils.DataEncryptionUtils;
 import jakarta.validation.constraints.Pattern;
-import org.bson.codecs.pojo.annotations.BsonProperty;
-
 import java.util.Optional;
+import lombok.Data;
 
+@Data
 public class Payment {
 
     @Pattern(regexp = "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$",
             message = "IBAN is not in an Italian format or is not 27 characters long")
-    @BsonProperty("iban")
     private String iban;
 
-    @BsonProperty("holder")
     private String holder;
 
-    public String getHolder() {
+    public String retrieveEncryptedHolder() {
         return holder != null ? DataEncryptionUtils.decrypt(holder) : null;
     }
 
@@ -26,7 +24,7 @@ public class Payment {
                 .orElse("");
     }
 
-    public String getIban() {
+    public String retrieveEncryptedIban() {
         return iban != null ? DataEncryptionUtils.decrypt(iban) : null;
     }
 
