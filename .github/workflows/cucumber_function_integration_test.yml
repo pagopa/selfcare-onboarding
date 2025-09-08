@@ -9,6 +9,8 @@ on:
     types: [opened, edited, synchronize, reopened, ready_for_review]
     paths:
       - "apps/onboarding-functions/**"
+    branches:
+      - feature/SELC-7588
   workflow_dispatch:
     inputs:
       enable-logs:
@@ -142,7 +144,6 @@ jobs:
           path: apps/onboarding-functions/target/cucumber-report/cucumber.html
 
       - name: Collect service logs
-        if: ${{ github.event.inputs.enable-logs == 'true' }}
         working-directory: apps/onboarding-functions
         run: |
           mkdir -p docker-logs
@@ -154,7 +155,6 @@ jobs:
         run: echo "Status ${{ github.event.inputs.enable-logs }}"
 
       - name: Upload logs
-        if: ${{ github.event.inputs.enable-logs == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: docker-logs
