@@ -1,7 +1,6 @@
 package it.pagopa.selfcare.onboarding.controller.request;
 
 import it.pagopa.selfcare.onboarding.entity.GPUData;
-import it.pagopa.selfcare.onboarding.entity.Payment;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -21,5 +20,5 @@ public class OnboardingDefaultRequest extends OnboardingBaseRequest {
     @Valid
     private GPUData gpuData;
     @Valid
-    private Payment payment;
+    private PaymentRequestDto payment;
 }
