@@ -58,6 +58,7 @@ public class Onboarding {
                 ", signContract=" + signContract +
                 ", expiringDate=" + expiringDate +
                 ", status=" + status +
+                ", payment=" + payment +
                 ", userRequestUid='" + userRequestUid + '\'' +
                 ", workflowInstanceId='" + workflowInstanceId + '\'' +
                 ", activatedAt=" + activatedAt +

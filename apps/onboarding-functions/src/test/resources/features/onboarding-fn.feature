@@ -163,3 +163,16 @@ Feature: Onboarding collection
 #    Then the response should have status code 202
 #    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
 #    And there is a document for onboarding with status "FAILED"
+
+
+  Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow CONTRACT_REGISTRATION request
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "190e3ca4-8de4-4f90-ad2c-51b112531bb6"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "<status>"
+
+    Examples:
+      | status    |
+      | PENDING   |
+      | COMPLETED |

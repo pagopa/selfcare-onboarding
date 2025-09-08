@@ -104,7 +104,7 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
     }
 
     @Given("Preparing the invocation of {string} HTTP call with onboardingId {string}")
-    public void setupCall(String functionName, String onboardingId) {
+    public void setupCall(String functionName, String onboardingId) throws IllegalStateException {
         RestAssured.baseURI = "http://localhost:8090";
         RestAssured.basePath = String.format("/api/%s", functionName);
 
@@ -112,9 +112,13 @@ public class OnboardingFunctionStep extends CucumberQuarkusTest {
 
         if (Objects.isNull(onboarding)) {
             onboarding = integrationOnboardingResources.getOnboardingJsonTemplate(onboardingId);
-            integrationOperationUtils.persistIntoMongo(onboarding);
-        }
 
+            if (!Objects.isNull(onboarding)) {
+                integrationOperationUtils.persistIntoMongo(onboarding);
+            } else {
+                throw new IllegalStateException("Errore nel caricamento del json di test per " + onboardingId);
+            }
+        }
         setOnboardingId(onboarding.getId());
     }
 

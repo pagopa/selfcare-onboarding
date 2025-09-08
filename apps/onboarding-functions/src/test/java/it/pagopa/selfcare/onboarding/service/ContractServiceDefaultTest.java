@@ -677,7 +677,11 @@ class ContractServiceDefaultTest {
     onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
     onboarding.setProductId("prod-idpay-merchant");
 
-    onboarding.setPayment(Payment.builder().holder("prova nome").iban("IT12Z0300203280366182987462").build());
+    Payment payment = new Payment();
+    payment.setHolder("test");
+    payment.setIban("IT12Z0300203280366182987462");
+
+    onboarding.setPayment(payment);
 
     Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
     Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
