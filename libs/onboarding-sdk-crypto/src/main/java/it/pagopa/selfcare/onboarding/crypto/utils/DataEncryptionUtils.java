@@ -39,10 +39,16 @@ public class DataEncryptionUtils {
             cipher.init(Cipher.ENCRYPT_MODE, getKey(key), new GCMParameterSpec(128, iv));
             byte[] ct = cipher.doFinal(plain.getBytes(StandardCharsets.UTF_8));
 
-            // concateno IV + ciphertext
-            byte[] out = new byte[iv.length + ct.length];
-            System.arraycopy(iv, 0, out, 0, iv.length);
-            System.arraycopy(ct, 0, out, iv.length, ct.length);
+            int ivLen = iv.length;
+            int ctLen = ct.length;
+
+            if (ctLen > Integer.MAX_VALUE - ivLen) {
+                throw new IllegalArgumentException("Input too large for encryption.");
+            }
+
+            byte[] out = new byte[ivLen + ctLen];
+            System.arraycopy(iv, 0, out, 0, ivLen);
+            System.arraycopy(ct, 0, out, ivLen, ctLen);
 
             return Base64.getEncoder().encodeToString(out);
         } catch (Exception e) {
