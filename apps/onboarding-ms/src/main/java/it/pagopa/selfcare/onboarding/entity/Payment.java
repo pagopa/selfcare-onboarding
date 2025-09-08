@@ -2,14 +2,18 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import it.pagopa.selfcare.onboarding.crypto.utils.DataEncryptionUtils;
 import jakarta.validation.constraints.Pattern;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+
 import java.util.Optional;
 
 public class Payment {
 
     @Pattern(regexp = "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$",
             message = "IBAN is not in an Italian format or is not 27 characters long")
+    @BsonProperty("iban")
     private String iban;
 
+    @BsonProperty("holder")
     private String holder;
 
     public String getHolder() {
