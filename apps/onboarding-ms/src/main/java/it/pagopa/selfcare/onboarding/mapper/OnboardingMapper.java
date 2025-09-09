@@ -14,9 +14,7 @@ import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
 import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
-import it.pagopa.selfcare.onboarding.controller.response.PaymentResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Payment;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.Aggregate;
 import it.pagopa.selfcare.onboarding.model.AggregateUser;
@@ -93,17 +91,6 @@ public interface OnboardingMapper {
     @Mapping(target = "payment.holder", expression = "java(payment.retrieveEncryptedHolder())")
     @Mapping(target = "payment.iban", expression = "java(payment.retrieveEncryptedIban())")
     OnboardingGet toGetResponse(Onboarding model);
-
-    @Named("toPaymentResponse")
-    default PaymentResponse toPaymentResponse(Payment payment) {
-        if (Objects.nonNull(payment)) {
-            PaymentResponse paymentResponse = new PaymentResponse();
-            paymentResponse.setIban(payment.retrieveEncryptedIban());
-            paymentResponse.setHolder(payment.retrieveEncryptedHolder());
-            return paymentResponse;
-        }
-        return null;
-    }
 
     @Named("toUpperCase")
     default String toUpperCase(String recipientCode) {
