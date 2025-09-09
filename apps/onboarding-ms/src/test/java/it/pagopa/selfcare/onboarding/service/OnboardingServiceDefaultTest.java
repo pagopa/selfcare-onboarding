@@ -341,12 +341,10 @@ class OnboardingServiceDefaultTest {
         Uni<OnboardingResponse> response = onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest));
 
         // Confronta con AssertJ ignorando `createdAt`
-        asserter.execute(() -> response.subscribe().with(actualResponse -> {
-            assertThat(actualResponse)
-                    .usingRecursiveComparison()
-                    .ignoringFields("createdAt")
-                    .isEqualTo(onboardingResponse);
-        }));
+        asserter.execute(() -> response.subscribe().with(actualResponse -> assertThat(actualResponse)
+                .usingRecursiveComparison()
+                .ignoringFields("createdAt")
+                .isEqualTo(onboardingResponse)));
     }
 
     private static OnboardingResponse getOnboardingResponse() {
@@ -1941,6 +1939,42 @@ class OnboardingServiceDefaultTest {
 
         subscriber.assertCompleted().assertItem(getResponse);
     }
+
+    @Test
+    void testOnboardingGetWithPaymentNode() {
+        Onboarding onboarding = createDummyOnboarding();
+        Payment payment = new Payment();
+        payment.setEncryptedHolder("holder");
+        payment.setEncryptedIban("iban");
+        onboarding.setPayment(payment);
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
+        when(Onboarding.find(any(Document.class), eq(null))).thenReturn(query);
+        when(query.list()).thenReturn(Uni.createFrom().item(List.of(onboarding)));
+        when(query.count()).thenReturn(Uni.createFrom().item(1L));
+
+        OnboardingGetFilters filters = OnboardingGetFilters.builder()
+                .taxCode("taxCode")
+                .subunitCode("subunitCode")
+                .from("2023-12-01")
+                .to("2023-12-31")
+                .productIds(List.of("prod-io"))
+                .status("ACTIVE")
+                .skipPagination(true)
+                .build();
+        UniAssertSubscriber<OnboardingGetResponse> subscriber = onboardingService
+                .onboardingGet(filters)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        var response = subscriber.assertCompleted().getItem();
+        assertNotNull(response);
+        assertNotNull(response.getItems());
+        assertNotNull(response.getItems().get(0));
+        assertEquals(response.getItems().get(0).getPayment().getIban(), "iban");
+    }
+
 
     private OnboardingGetResponse getOnboardingGetResponse(Onboarding onboarding) {
         OnboardingGet onboardingGet = onboardingMapper.toGetResponse(onboarding);

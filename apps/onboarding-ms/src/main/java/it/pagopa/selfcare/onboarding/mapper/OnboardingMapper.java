@@ -104,8 +104,8 @@ public interface OnboardingMapper {
     default PaymentResponse toPaymentResponse(Payment payment) {
         if (Objects.nonNull(payment)) {
             PaymentResponse response = new PaymentResponse();
-            payment.setHolder(payment.retrieveEncryptedHolder());
-            payment.setEncryptedIban(payment.retrieveEncryptedIban());
+            response.setHolder(payment.retrieveEncryptedHolder());
+            response.setIban(payment.retrieveEncryptedIban());
             return response;
         }
         return null;
