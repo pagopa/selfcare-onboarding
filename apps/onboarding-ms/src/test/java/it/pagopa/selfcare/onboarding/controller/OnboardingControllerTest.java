@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -1362,7 +1361,7 @@ class OnboardingControllerTest {
         OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
         req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
         req.getInstitution().setInstitutionType(InstitutionType.PRV);
-        Payment payment =  new Payment();
+        PaymentRequestDto payment =  new PaymentRequestDto();
         payment.setIban("IT60X0542811101000000123456");
         payment.setHolder("Mario Rossi");
         req.setPayment(payment);
@@ -1389,7 +1388,7 @@ class OnboardingControllerTest {
         OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
         req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
         req.getInstitution().setInstitutionType(InstitutionType.PRV);
-        Payment payment =  new Payment();
+        PaymentRequestDto payment =  new PaymentRequestDto();
         payment.setIban("FR1420041010050500013M02606");
         payment.setHolder("Mario Rossi");
         req.setPayment(payment);
@@ -1417,7 +1416,7 @@ class OnboardingControllerTest {
         OnboardingDefaultRequest req = dummyOnboardingDefaultRequest();
         req.getInstitution().setOrigin(Origin.PDND_INFOCAMERE);
         req.getInstitution().setInstitutionType(InstitutionType.PRV);
-        Payment payment =  new Payment();
+        PaymentRequestDto payment =  new PaymentRequestDto();
         payment.setIban("IT60X054281110100000012345");
         payment.setHolder("Mario Rossi");
         req.setPayment(payment);
