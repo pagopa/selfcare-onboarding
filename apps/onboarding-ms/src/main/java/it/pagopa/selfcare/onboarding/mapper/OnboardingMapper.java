@@ -159,7 +159,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateSendList.stream()
                 .map(this::csvToAggregateSend)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
@@ -168,7 +168,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateAppIoList.stream()
                 .map(this::csvToAggregateAppIo)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {
