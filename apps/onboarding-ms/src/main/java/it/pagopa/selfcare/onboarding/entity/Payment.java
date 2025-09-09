@@ -16,7 +16,7 @@ public class Payment {
                 .orElse("");
     }
 
-    public void setHolder(String holder) {
+    public void setEncryptedHolder(String holder) {
         this.holder = Optional.ofNullable(holder)
                 .map(DataEncryptionUtils::encrypt)
                 .orElse("");
@@ -28,7 +28,7 @@ public class Payment {
                 .orElse("");
     }
 
-    public void setIban(String iban) {
+    public void setEncryptedIban(String iban) {
         this.iban = Optional.ofNullable(iban)
                 .map(DataEncryptionUtils::encrypt)
                 .orElse("");
