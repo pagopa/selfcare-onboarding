@@ -18,7 +18,7 @@ public class DataEncryptionConfig {
 
     @PostConstruct
     void init() {
-        log.info("Adding key from kv size: {} is-empty-string: {}", key.length(), StringUtils.isNotBlank(key));
+        log.info("Adding key from kv size: {} is-empty-string: {}", key.length(), StringUtils.isBlank(key));
         DataEncryptionUtils.setDefaultKey(key);
     }
 }
