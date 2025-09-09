@@ -90,7 +90,8 @@ public interface OnboardingMapper {
 
     OnboardingResponse toResponse(Onboarding model);
 
-    @Mapping(target = "payment", source = "payment", qualifiedByName = "toPaymentResponse")
+    @Mapping(target = "payment.holder", expression = "java(payment.retrieveEncryptedHolder())")
+    @Mapping(target = "payment.iban", expression = "java(payment.retrieveEncryptedIban())")
     OnboardingGet toGetResponse(Onboarding model);
 
     @Named("toPaymentResponse")
