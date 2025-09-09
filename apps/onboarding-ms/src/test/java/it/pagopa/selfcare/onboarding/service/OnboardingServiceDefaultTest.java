@@ -1944,8 +1944,8 @@ class OnboardingServiceDefaultTest {
     void testOnboardingGetWithPaymentNode() {
         Onboarding onboarding = createDummyOnboarding();
         Payment payment = new Payment();
-        payment.setEncryptedHolder("holder");
-        payment.setEncryptedIban("iban");
+        payment.encryptedHolder("holder");
+        payment.encryptedIban("iban");
         onboarding.setPayment(payment);
         ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
         PanacheMock.mock(Onboarding.class);

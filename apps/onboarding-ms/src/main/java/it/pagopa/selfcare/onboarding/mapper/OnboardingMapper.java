@@ -93,8 +93,8 @@ public interface OnboardingMapper {
     default Payment toPaymentModel(PaymentRequestDto requestDto) {
         if (Objects.nonNull(requestDto)) {
             Payment payment = new Payment();
-            payment.setEncryptedHolder(requestDto.getHolder());
-            payment.setEncryptedIban(requestDto.getIban());
+            payment.encryptedHolder(requestDto.getHolder());
+            payment.encryptedIban(requestDto.getIban());
             return payment;
         }
         return null;
