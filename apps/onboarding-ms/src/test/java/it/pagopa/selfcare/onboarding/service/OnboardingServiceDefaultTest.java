@@ -3322,6 +3322,58 @@ class OnboardingServiceDefaultTest {
         subscriber.assertFailedWith(InvalidRequestException.class);
     }
 
+    @Test
+    void retrieveOnboardingByInstitutionId_shouldReturnMappedObject_whenOnboardingExists() {
+        // Arrange
+        String institutionId = "inst-001";
+        String productId = "prod-abc";
+
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setId(institutionId);
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.setProductId(productId);
+        onboarding.setInstitution(institution); // usa un costruttore/dummy appropriato
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+        when(Onboarding.find(anyString(), (Object) any())).thenReturn(query);
+        when(query.firstResult()).thenReturn(Uni.createFrom().item(onboarding));
+
+        // Act
+        OnboardingGet result = onboardingService
+                .retrieveOnboardingByInstitutionId(institutionId, productId)
+                .await().indefinitely();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(productId, result.getProductId()); // verifica sui campi, non equals()
+        assertEquals(institutionId, result.getInstitution().getId());
+    }
+
+    @Test
+    void retrieveOnboardingByInstitutionId_shouldThrowNotFound_whenNoResult() {
+        
+        String institutionId = "inst-404";
+        String productId = "prod-404";
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = mock(ReactivePanacheQuery.class);
+
+        when(Onboarding.find(anyString(), (Object) any())).thenReturn(query);
+        when(query.firstResult()).thenReturn(Uni.createFrom().nullItem());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
+                onboardingService
+                        .retrieveOnboardingByInstitutionId(institutionId, productId)
+                        .await().indefinitely()
+        );
+
+        assertTrue(exception.getMessage().contains("institutionId=" + institutionId));
+        assertTrue(exception.getMessage().contains("productId=" + productId));
+    }
+
+
     private void mockFindOnboarding(UniAsserter asserter, Onboarding onboarding) {
         asserter.execute(() -> {
             PanacheMock.mock(Onboarding.class);
