@@ -120,5 +120,8 @@ app_settings = {
   ##NAMIRIAL SIGNATURE
   "NAMIRIAL_BASE_URL"                       = "https://selc-p-namirial-sws-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
-  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/namirial-sign-service-psw/)"
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/namirial-sign-service-psw/)",
+
+  ##ENCRYPTION PUB Key
+  "ONBOARDING_DATA_ENCRIPTION_KEY" = "onboarding-data-encryption-key"
 }
