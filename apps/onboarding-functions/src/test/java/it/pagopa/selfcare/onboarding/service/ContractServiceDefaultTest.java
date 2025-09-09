@@ -10,6 +10,7 @@ import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
@@ -665,9 +667,9 @@ class ContractServiceDefaultTest {
   }
 
   @Test
-  void createContractIdPayMerchant() {
+  void createContractIdPayMerchant() throws IOException {
     // given
-    String contractFilepath = "contract";
+    String contractFilepath = getDummyTemplate();
     String contractHtml = "contract";
 
     Onboarding onboarding = createOnboarding();
@@ -683,7 +685,7 @@ class ContractServiceDefaultTest {
 
     onboarding.setPayment(payment);
 
-    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractFilepath);
     Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
 
     // when
@@ -701,7 +703,14 @@ class ContractServiceDefaultTest {
     Mockito.verify(azureBlobClient, Mockito.times(1)).getFileAsText(contractFilepath);
     Mockito.verify(azureBlobClient, Mockito.times(1)).uploadFile(any(), any(), any());
     Mockito.verifyNoMoreInteractions(azureBlobClient);
+    Files.deleteIfExists(result.toPath());
   }
 
+  String getDummyTemplate() throws IOException {
+
+    FileInputStream fis = new FileInputStream("src/test/resources/fn/dummy-accordo_di_adesione.html");
+    return IOUtils.toString(fis, "UTF-8");
+
+  }
 
 }
