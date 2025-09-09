@@ -1952,6 +1952,8 @@ components:
           type: array
           items:
             type: string
+        legalForm:
+          type: string
     InstitutionType:
       enum:
       - PA
@@ -2058,6 +2060,8 @@ components:
           type: string
         billing:
           $ref: "#/components/schemas/BillingResponse"
+        payment:
+          $ref: "#/components/schemas/PaymentResponse"
         signContract:
           type: boolean
         additionalInformations:
@@ -2346,6 +2350,13 @@ components:
       properties:
         iban:
           pattern: "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$"
+          type: string
+        holder:
+          type: string
+    PaymentResponse:
+      type: object
+      properties:
+        iban:
           type: string
         holder:
           type: string
