@@ -8,6 +8,7 @@ import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
+import it.pagopa.selfcare.onboarding.crypto.utils.DataEncryptionUtils;
 import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import org.apache.commons.io.IOUtils;
@@ -680,8 +681,9 @@ class ContractServiceDefaultTest {
     onboarding.setProductId("prod-idpay-merchant");
 
     Payment payment = new Payment();
-    payment.setHolder("test");
-    payment.setIban("IT12Z0300203280366182987462");
+
+    payment.setHolder(DataEncryptionUtils.encrypt("test"));
+    payment.setIban(DataEncryptionUtils.encrypt("IT12Z0300203280366182987462"));
 
     onboarding.setPayment(payment);
 

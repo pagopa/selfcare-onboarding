@@ -11,18 +11,6 @@ public class Payment {
     private String holder;
     private String iban;
 
-    public void setHolder(String holder) {
-        this.holder = Optional.ofNullable(holder)
-                .map(DataEncryptionUtils::encrypt)
-                .orElse("");
-    }
-
-    public void setIban(String iban) {
-        this.iban = Optional.ofNullable(iban)
-                .map(DataEncryptionUtils::encrypt)
-                .orElse("");
-    }
-
     public String retrieveEncryptedHolder() {
         return Optional.ofNullable(holder)
                 .map(DataEncryptionUtils::decrypt)
