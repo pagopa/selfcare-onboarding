@@ -63,7 +63,7 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
-        if (Stream.of(WorkflowType.IMPORT, WorkflowType.IMPORT_AGGREGATION).noneMatch(onboarding.getWorkflowType()::equals)) {
+        if (Objects.isNull(onboarding.getActivatedAt())) {
             ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         }
 
