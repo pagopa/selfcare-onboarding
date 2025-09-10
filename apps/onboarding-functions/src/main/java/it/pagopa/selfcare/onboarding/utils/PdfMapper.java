@@ -487,8 +487,8 @@ public class PdfMapper {
   }
 
   public static void setupPaymentData(Map<String, Object> data, Payment payment) {
-    data.put("holder", payment.getHolder());
-    data.put("holder-iban", payment.getIban());
+    data.put("holder", payment.retrieveEncryptedHolder());
+    data.put("holder-iban", payment.retrieveEncryptedIban());
   }
 
 }

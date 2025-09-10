@@ -35,6 +35,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -1457,6 +1458,56 @@ class OnboardingControllerTest {
         importContract.setCreatedAt(dateTime);
         onboardingRequest.setOnboardingImportContract(importContract);
         return onboardingRequest;
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingProduct_whenFound_shouldReturnOk() {
+
+        OnboardingGet onboarding = dummyOnboardingGet();
+        String productId = "productId";
+        String institutionId = "institutionId";
+        onboarding.setId("onboarding-123");
+        onboarding.setProductId(productId);
+
+        when(onboardingService.retrieveOnboardingByInstitutionId(institutionId, productId))
+                // ...deve restituire un Uni contenente il nostro oggetto di test.
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        given()
+                .pathParam("institutionId", institutionId)
+                .queryParam("productId", productId)
+                .when()
+                .get("/institutions/{institutionId}")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON);
+    }
+
+    /**
+     * Test per il caso di fallimento (404 Not Found)
+     * Verifica che quando il service non trova l'onboarding, l'API risponda con 404.
+     */
+    @Test
+    @TestSecurity(user = "userJwt")
+    void getOnboardingProduct_whenNotFound_shouldReturnNotFound() {
+
+        String productId = "productId";
+        String institutionId = "institutionId";
+        String errorMessage = String.format("Onboarding not found for institution %s and product %s",
+                institutionId, productId);
+
+
+        when(onboardingService.retrieveOnboardingByInstitutionId(institutionId, productId))
+                .thenReturn(Uni.createFrom().failure(new ResourceNotFoundException(errorMessage)));
+
+        given()
+                .pathParam("institutionId", institutionId)
+                .queryParam("productId", productId)
+                .when()
+                .get("/institutions/{institutionId}")
+                .then()
+                .statusCode(404);
     }
 
 }
