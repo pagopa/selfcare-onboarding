@@ -2,19 +2,12 @@ package it.pagopa.selfcare.onboarding.mapper;
 
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingSaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
+import it.pagopa.selfcare.onboarding.controller.response.PaymentResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.Payment;
 import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.model.Aggregate;
 import it.pagopa.selfcare.onboarding.model.AggregateUser;
@@ -27,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -47,6 +39,7 @@ public interface OnboardingMapper {
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
     @Mapping(target = "institution.gpuData", source = "gpuData")
     @Mapping(target = "institution", source = "institution")
+    @Mapping(target = "payment",  source = "payment", qualifiedByName = "toPaymentModel")
     Onboarding toEntity(OnboardingDefaultRequest request);
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
     @Mapping(target = "billing.recipientCode", source = "billing.recipientCode", qualifiedByName = "toUpperCase")
@@ -88,11 +81,34 @@ public interface OnboardingMapper {
 
     OnboardingResponse toResponse(Onboarding model);
 
+    @Mapping(target = "payment",  source = "payment", qualifiedByName = "toPaymentResponse")
     OnboardingGet toGetResponse(Onboarding model);
 
     @Named("toUpperCase")
     default String toUpperCase(String recipientCode) {
         return Objects.nonNull(recipientCode) ? recipientCode.toUpperCase() : null;
+    }
+
+    @Named("toPaymentModel")
+    default Payment toPaymentModel(PaymentRequestDto requestDto) {
+        if (Objects.nonNull(requestDto)) {
+            Payment payment = new Payment();
+            payment.encryptedHolder(requestDto.getHolder());
+            payment.encryptedIban(requestDto.getIban());
+            return payment;
+        }
+        return null;
+    }
+
+    @Named("toPaymentResponse")
+    default PaymentResponse toPaymentResponse(Payment payment) {
+        if (Objects.nonNull(payment)) {
+            PaymentResponse response = new PaymentResponse();
+            response.setHolder(payment.retrieveEncryptedHolder());
+            response.setIban(payment.retrieveEncryptedIban());
+            return response;
+        }
+        return null;
     }
 
     @Named("getActivatedAt")
@@ -157,7 +173,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateSendList.stream()
                 .map(this::csvToAggregateSend)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<Aggregate> mapCsvAppIoAggregatesToAggregates(List<CsvAggregateAppIo> csvAggregateAppIoList) {
@@ -166,7 +182,7 @@ public interface OnboardingMapper {
         }
         return csvAggregateAppIoList.stream()
                 .map(this::csvToAggregateAppIo)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default List<AggregateUser> mapUsers(CsvAggregateSend csvAggregateSend) {

@@ -637,4 +637,19 @@ public class OnboardingController {
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
+
+    @Operation(
+            summary = "Get onboarding COMPLETED by institutionId and productId.",
+            description = "Retrieve an onboarding record given institutionId and productId"
+    )
+    @GET
+    @Tag(name = "external-v2")
+    @Tag(name = "internal-v1")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/institutions/{institutionId}")
+    public Uni<OnboardingGet> getOnboardingProduct(@PathParam(value = "institutionId") String institutionId,
+                                                   @QueryParam(value = "productId") String productId) {
+        return onboardingService.retrieveOnboardingByInstitutionId(institutionId, productId);
+    }
+
 }
