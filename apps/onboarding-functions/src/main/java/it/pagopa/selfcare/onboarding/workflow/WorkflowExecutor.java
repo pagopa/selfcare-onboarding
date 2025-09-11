@@ -13,7 +13,6 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 public interface WorkflowExecutor {
@@ -63,7 +61,7 @@ public interface WorkflowExecutor {
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
-        if (Stream.of(WorkflowType.IMPORT, WorkflowType.IMPORT_AGGREGATION).noneMatch(onboarding.getWorkflowType()::equals)) {
+        if (Objects.isNull(onboarding.getActivatedAt())) {
             ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         }
 
