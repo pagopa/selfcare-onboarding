@@ -14,10 +14,8 @@ import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.product.entity.*;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -179,6 +177,15 @@ public class ProductServiceDefault implements ProductService {
 
     private static boolean statusIsNotValid(ProductStatus status) {
         return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
+    }
+
+    public boolean verifyAllowedByInstitutionCode(String productId, String taxCode) {
+        Product product = getProductIsValid(productId);
+
+        return Optional.ofNullable(product.getAllowedInstitutionTaxCode())
+                .orElse(Collections.emptyList())
+                .stream()
+                .anyMatch(taxCode::equalsIgnoreCase);
     }
 
 }

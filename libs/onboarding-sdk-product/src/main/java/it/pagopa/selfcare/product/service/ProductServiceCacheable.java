@@ -88,4 +88,10 @@ public class ProductServiceCacheable implements ProductService {
     refreshProduct();
     return productService.validateProductRole(productId, productRole, role);
   }
+
+  public boolean verifyAllowedByInstitutionCode(String productId, String taxCode) {
+    refreshProduct();
+    return productService.verifyAllowedByInstitutionCode(productId, taxCode);
+  }
+
 }
