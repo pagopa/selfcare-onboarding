@@ -28,8 +28,8 @@
     "zipCode": "47121"
   },
   "payment": {
-    "holder": "Antonello Golfini",
-    "iban": "IT60X0542811101000000123456"
+    "holder": "gED5oo6wNF5Lj12uaArXkkFUdOQ9FpGB9/Vrx9ikHdg=",
+    "iban": "6XQl0y+a+5KygdyOkVakwyRDYQHsga+NHBc6EHoEr9n4hraRSk5qViY49lokyT/8fKdOs8M1UA=="
   },
   "productId": "prod-idpay-merchant",
   "status": "REQUEST",

@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
@@ -2181,5 +2182,21 @@ public class OnboardingServiceDefault implements OnboardingService {
         Onboarding onboarding = new Onboarding();
         onboarding.setInstitution(institutionMapper.toEntity(aggregate));
         return onboarding;
+    }
+
+    @Override
+    public Uni<OnboardingGet> retrieveOnboardingByInstitutionId(String institutionId, String productId) {
+        return Onboarding.find(
+                        "institution.id = ?1 and productId = ?2 and status = ?3",
+                        institutionId, productId, COMPLETED)
+                .firstResult()
+                .map(entity -> (Onboarding) entity)
+                .onItem().ifNotNull().transform(onboardingMapper::toGetResponse)
+                .onItem().ifNull().failWith(() ->
+                        new ResourceNotFoundException(
+                                String.format("Onboarding with institutionId=%s and productId=%s not found",
+                                        institutionId, productId)
+                        )
+                );
     }
 }

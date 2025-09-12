@@ -90,4 +90,6 @@ public interface OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates);
+
+    Uni<OnboardingGet> retrieveOnboardingByInstitutionId(String institutionId, String productId);
 }

@@ -15,6 +15,7 @@ tags:
 - name: Onboarding
 - name: Onboarding Controller
 - name: billing-portal
+- name: external-v2
 - name: internal-pnpg
 - name: internal-v1
 - name: support
@@ -608,6 +609,37 @@ paths:
       security:
       - SecurityScheme: []
       x-legacy-api: "true"
+  /v1/onboarding/institutions/{institutionId}:
+    get:
+      tags:
+      - external-v2
+      - internal-v1
+      summary: Get onboarding COMPLETED by institutionId and productId.
+      description: Retrieve an onboarding record given institutionId and productId
+      operationId: getOnboardingProduct
+      parameters:
+      - name: institutionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingGet"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/pa:
     post:
       tags:
@@ -1952,6 +1984,8 @@ components:
           type: array
           items:
             type: string
+        legalForm:
+          type: string
     InstitutionType:
       enum:
       - PA
@@ -2058,6 +2092,8 @@ components:
           type: string
         billing:
           $ref: "#/components/schemas/BillingResponse"
+        payment:
+          $ref: "#/components/schemas/PaymentResponse"
         signContract:
           type: boolean
         additionalInformations:
@@ -2346,6 +2382,13 @@ components:
       properties:
         iban:
           pattern: "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$"
+          type: string
+        holder:
+          type: string
+    PaymentResponse:
+      type: object
+      properties:
+        iban:
           type: string
         holder:
           type: string

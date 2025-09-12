@@ -123,5 +123,6 @@ app_settings = {
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/namirial-sign-service-psw/)",
 
   ##ENCRYPTION PUB Key
-  "ONBOARDING_DATA_ENCRIPTION_KEY" = "onboarding-data-encryption-key"
+  "ONBOARDING_DATA_ENCRIPTION_KEY" = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/onboarding-data-encryption-key/)"
+
 }
