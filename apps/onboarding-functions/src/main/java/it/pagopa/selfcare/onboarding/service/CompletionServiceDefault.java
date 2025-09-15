@@ -245,10 +245,12 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistActivatedAt(Onboarding onboarding) {
-        LocalDateTime now = LocalDateTime.now();
-        onboardingRepository
-                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
-                .where("_id", onboarding.getId());
+        if (Objects.isNull(onboarding.getActivatedAt())) {
+            LocalDateTime now = LocalDateTime.now();
+            onboardingRepository
+                    .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
+                    .where("_id", onboarding.getId());
+        }
     }
 
     @Override
