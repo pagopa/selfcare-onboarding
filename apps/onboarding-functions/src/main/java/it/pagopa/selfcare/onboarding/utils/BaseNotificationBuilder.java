@@ -121,7 +121,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     public InstitutionToNotify retrieveInstitution(
             InstitutionResponse institution, Onboarding onboarding) {
         InstitutionToNotify toNotify = new InstitutionToNotify();
-        toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
+        toNotify.setInstitutionType(onboarding.getInstitution().getInstitutionType());
         toNotify.setDescription(institution.getDescription());
         toNotify.setDigitalAddress(
                 institution.getDigitalAddress() == null
