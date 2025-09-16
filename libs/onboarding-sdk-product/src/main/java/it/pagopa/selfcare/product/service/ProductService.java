@@ -21,5 +21,5 @@ public interface ProductService {
 
     ProductRole validateProductRole(String productId, String productRole, PartyRole role);
 
-    boolean verifyAllowedByInstitutionCode(String productId, String taxCode);
+    boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode);
 }

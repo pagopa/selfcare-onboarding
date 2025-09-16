@@ -179,7 +179,7 @@ public class ProductServiceDefault implements ProductService {
         return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
     }
 
-    public boolean verifyAllowedByInstitutionCode(String productId, String taxCode) {
+    public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
         Product product = getProductIsValid(productId);
 
         List<String> allowedInstitutionTaxCode = product.getAllowedInstitutionTaxCode();

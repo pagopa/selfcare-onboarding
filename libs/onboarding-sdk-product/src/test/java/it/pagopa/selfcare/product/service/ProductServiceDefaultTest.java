@@ -162,7 +162,7 @@ class ProductServiceDefaultTest {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING);
 
         // when
-        boolean result = productService.verifyAllowedByInstitutionCode("prod-test-parent", "taxCode1");
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode1");
 
         // then
         assertTrue(result);
@@ -175,7 +175,7 @@ class ProductServiceDefaultTest {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING);
 
         // when
-        boolean result = productService.verifyAllowedByInstitutionCode("prod-test-parent", "taxCode3");
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode3");
 
         // then
         assertFalse(result);
@@ -188,7 +188,7 @@ class ProductServiceDefaultTest {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
 
         // when
-        boolean result = productService.verifyAllowedByInstitutionCode("prod-test-parent", "taxCode");
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode");
 
         // then
         assertTrue(result);
