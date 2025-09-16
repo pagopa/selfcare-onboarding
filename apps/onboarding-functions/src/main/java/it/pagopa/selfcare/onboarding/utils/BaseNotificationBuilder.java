@@ -150,12 +150,12 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         }
         if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
             toNotify.setCategory(institution.getAttributes().get(0).getCode());
-        } else if (InstitutionType.GSP.name().equals(onboarding.getInstitution().getInstitutionType().name())
+        } else if (InstitutionType.GSP == onboarding.getInstitution().getInstitutionType()
                 && Origin.SELC.name().equals(institution.getOrigin())) {
             toNotify.setCategory("L37");
         }
         if (Objects.isNull(institution.getCity())
-                && InstitutionRequest.InstitutionTypeEnum.PA.name().equals(onboarding.getInstitution().getInstitutionType().name())) {
+                && InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
             retrieveAndSetGeographicData(toNotify);
         } else {
             toNotify.setCounty(institution.getCounty());

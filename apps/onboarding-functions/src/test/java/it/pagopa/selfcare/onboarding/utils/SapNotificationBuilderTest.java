@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.common.ProductId;
@@ -78,6 +79,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
@@ -132,6 +134,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
@@ -190,6 +193,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
