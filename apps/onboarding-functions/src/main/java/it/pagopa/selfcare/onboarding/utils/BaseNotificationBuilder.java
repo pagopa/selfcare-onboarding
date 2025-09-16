@@ -9,7 +9,6 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
 import it.pagopa.selfcare.onboarding.entity.Token;
-import org.openapi.quarkus.core_json.model.InstitutionRequest;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.PaymentServiceProviderResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
@@ -150,14 +149,12 @@ public class BaseNotificationBuilder implements NotificationBuilder {
         }
         if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
             toNotify.setCategory(institution.getAttributes().get(0).getCode());
-        } else if (institution.getInstitutionType().equals(InstitutionType.GSP.name())
-                && institution.getOrigin().equals(Origin.SELC.name())) {
+        } else if (InstitutionType.GSP == onboarding.getInstitution().getInstitutionType()
+                && Origin.SELC.name().equals(institution.getOrigin())) {
             toNotify.setCategory("L37");
         }
         if (Objects.isNull(institution.getCity())
-                && institution
-                .getInstitutionType()
-                .equals(InstitutionRequest.InstitutionTypeEnum.PA.name())) {
+                && InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
             retrieveAndSetGeographicData(toNotify);
         } else {
             toNotify.setCounty(institution.getCounty());

@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
@@ -304,6 +305,7 @@ class StandardNotificationBuilderTest {
                 OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
                 null
         );
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
