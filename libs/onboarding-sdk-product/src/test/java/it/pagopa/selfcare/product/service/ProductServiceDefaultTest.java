@@ -26,7 +26,6 @@ class ProductServiceDefaultTest {
             "{\"id\":\"prod-test\",\"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}]";
 
-
     final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\",\"productLabel\":\"Operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
@@ -192,7 +191,7 @@ class ProductServiceDefaultTest {
         boolean result = productService.verifyAllowedByInstitutionCode("prod-test-parent", "taxCode");
 
         // then
-        assertFalse(result);
+        assertTrue(result);
 
     }
 }

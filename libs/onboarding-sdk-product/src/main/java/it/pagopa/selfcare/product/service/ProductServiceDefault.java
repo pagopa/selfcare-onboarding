@@ -182,10 +182,14 @@ public class ProductServiceDefault implements ProductService {
     public boolean verifyAllowedByInstitutionCode(String productId, String taxCode) {
         Product product = getProductIsValid(productId);
 
-        return Optional.ofNullable(product.getAllowedInstitutionTaxCode())
-                .orElse(Collections.emptyList())
-                .stream()
-                .anyMatch(taxCode::equalsIgnoreCase);
+        List<String> allowedInstitutionTaxCode = product.getAllowedInstitutionTaxCode();
+
+        if (allowedInstitutionTaxCode == null || allowedInstitutionTaxCode.isEmpty()) {
+            return true;
+        }
+
+        return allowedInstitutionTaxCode.stream()
+                .anyMatch(currentTaxCode -> currentTaxCode.equalsIgnoreCase(taxCode));
     }
 
 }
