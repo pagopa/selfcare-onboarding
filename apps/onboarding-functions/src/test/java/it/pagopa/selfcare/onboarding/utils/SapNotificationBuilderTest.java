@@ -87,7 +87,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
@@ -143,7 +143,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(institution.getExternalId(), null, null)).thenThrow(new RuntimeException("Error"));
@@ -201,7 +201,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(institution.getExternalId(), null, null)).thenThrow(new RuntimeException("Error"));
@@ -257,7 +257,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(any(), any(), any()))
