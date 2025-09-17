@@ -22,6 +22,10 @@ class ProductServiceDefaultTest {
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
+    private static final String PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
+            "{\"id\":\"prod-test\",\"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
+            "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}]";
+
     final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\",\"productLabel\":\"Operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
@@ -150,5 +154,44 @@ class ProductServiceDefaultTest {
     void validateProductRoleOkWithProductRoleNotFound() throws JsonProcessingException {
         ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING_WITH_ROLEMAPPING);
         assertThrows(IllegalArgumentException.class, () -> productService.validateProductRole("prod-test", "amministratore", PartyRole.MANAGER));
+    }
+
+    @Test
+    void evaluateOnboardingByInstitutionTest() throws JsonProcessingException {
+        // given
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING);
+
+        // when
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode1");
+
+        // then
+        assertTrue(result);
+
+    }
+
+    @Test
+    void evaluateOnboardingByInstitutionTestKO() throws JsonProcessingException {
+        // given
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING);
+
+        // when
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode3");
+
+        // then
+        assertFalse(result);
+
+    }
+
+    @Test
+    void evaluateOnboardingByInstitutionTestNull() throws JsonProcessingException {
+        // given
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
+
+        // when
+        boolean result = productService.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode");
+
+        // then
+        assertTrue(result);
+
     }
 }

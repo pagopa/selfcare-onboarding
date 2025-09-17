@@ -20,4 +20,6 @@ public interface ProductService {
     Product getProductIsValid(String productId);
 
     ProductRole validateProductRole(String productId, String productRole, PartyRole role);
+
+    boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode);
 }
