@@ -111,4 +111,9 @@ public class IntegrationProductService implements ProductService {
     public ProductRole validateProductRole(String productId, String productRole, PartyRole role) {
         return null;
     }
+
+    @Override
+    public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
+        return false;
+    }
 }
