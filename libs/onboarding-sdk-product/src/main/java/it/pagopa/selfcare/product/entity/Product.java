@@ -41,6 +41,8 @@ public class Product {
     private Map<String, ContractTemplate> userAggregatorContractMappings;
     private Map<String, Map<String, List<EmailTemplate>>> emailTemplates;
 
+    private List<String> allowedInstitutionTaxCode;
+
     public String getId() {
         return id;
     }
@@ -458,5 +460,12 @@ public class Product {
         return Optional.empty();
     }
 
+    public List<String> getAllowedInstitutionTaxCode() {
+        return allowedInstitutionTaxCode;
+    }
+
+    public void setAllowedInstitutionTaxCode(List<String> allowedInstitutionTaxCode) {
+        this.allowedInstitutionTaxCode = allowedInstitutionTaxCode;
+    }
 
 }
