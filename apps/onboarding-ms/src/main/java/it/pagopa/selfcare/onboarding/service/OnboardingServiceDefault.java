@@ -58,6 +58,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -82,6 +84,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
 @ApplicationScoped
+@Slf4j
 public class OnboardingServiceDefault implements OnboardingService {
 
     private static final Logger LOG = Logger.getLogger(OnboardingServiceDefault.class);
@@ -156,6 +159,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     OnboardingValidationStrategy onboardingValidationStrategy;
+
     @Inject
     ProductService productService;
     @Inject
@@ -785,14 +789,24 @@ public class OnboardingServiceDefault implements OnboardingService {
         LOG.infof(
                 "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
                 taxCode, subunitCode, productId);
-        if (!onboardingValidationStrategy.validate(productId)) {
+        if (!validateByProductOrInstitutionTaxCode(productId, taxCode)) {
             return Uni.createFrom()
                     .failure(
                             new OnboardingNotAllowedException(
                                     String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
                                     DEFAULT_ERROR.getCode()));
+
         }
         return Uni.createFrom().item(Boolean.TRUE);
+    }
+
+    private boolean validateByProductOrInstitutionTaxCode(String productId, String taxCode) {
+        log.trace("Validate by taxCode by productId start");
+        log.debug("Provided productId = {} and taxCode = {}", productId, taxCode);
+        boolean result = onboardingValidationStrategy.validate(productId) || productService.verifyAllowedByInstitutionTaxCode(productId, taxCode);
+        log.debug("Validate result = {}", result);
+        log.trace("Validate end");
+        return result;
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
