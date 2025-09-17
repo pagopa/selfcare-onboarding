@@ -20,10 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+
+import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 
 @Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class })
@@ -197,5 +195,17 @@ public interface OnboardingMapper {
         user.setRole(PartyRole.DELEGATE.value());
 
         return Collections.singletonList(user);
+    }
+
+    @AfterMapping
+    default void handleDecryption(@MappingTarget OnboardingGet getResponse, Onboarding model) {
+        if (Boolean.TRUE.equals(model.getSoleTrader()) &&
+                Objects.nonNull(model.getInstitution()) &&
+                Objects.nonNull(getResponse.getInstitution())) {
+            String decryptedTaxCode = model.getInstitution().decryptTaxCode();
+            String decryptedOriginId = model.getInstitution().decryptOriginId();
+            getResponse.getInstitution().setTaxCode(decryptedTaxCode);
+            getResponse.getInstitution().setOriginId(decryptedOriginId);
+        }
     }
 }
