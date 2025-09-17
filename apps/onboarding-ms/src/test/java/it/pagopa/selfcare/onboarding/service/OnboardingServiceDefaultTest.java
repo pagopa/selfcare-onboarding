@@ -970,6 +970,46 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void onboarding_PRV_soleTrader(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_IDPAY_MERCHANT.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        request.setSoleTrader(Boolean.TRUE);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
+        pdndBusinessResource.setBusinessName("name");
+        pdndBusinessResource.setDigitalAddress("pec");
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(request.getProductId(), asserter);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboarding_SELC_WorkflowType_CONFIRMATION(UniAsserter asserter) {
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);

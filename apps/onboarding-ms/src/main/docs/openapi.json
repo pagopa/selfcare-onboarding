@@ -2784,6 +2784,9 @@
           "signContract" : {
             "type" : "boolean"
           },
+          "soleTrader" : {
+            "type" : "boolean"
+          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -2831,6 +2834,9 @@
             "type" : "string"
           },
           "signContract" : {
+            "type" : "boolean"
+          },
+          "soleTrader" : {
             "type" : "boolean"
           },
           "institution" : {
@@ -3031,6 +3037,9 @@
           "signContract" : {
             "type" : "boolean"
           },
+          "soleTrader" : {
+            "type" : "boolean"
+          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -3101,6 +3110,9 @@
             "type" : "string"
           },
           "signContract" : {
+            "type" : "boolean"
+          },
+          "soleTrader" : {
             "type" : "boolean"
           },
           "institution" : {

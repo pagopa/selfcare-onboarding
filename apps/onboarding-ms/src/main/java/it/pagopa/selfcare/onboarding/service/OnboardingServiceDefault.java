@@ -541,6 +541,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (Objects.nonNull(product.getParentId())) {
             setInstitutionId(onboarding, product.getParentId());
         }
+        encryptData(onboarding);
 
         // This condition has been added in order to avoid transaction for cucumber tests(not clustered mongo does not support transactions)
         if (INTEGRATION_PROFILE.equals(activeProfile)) {
@@ -548,6 +549,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
         return Panache.withTransaction(() ->
                 storeAndValidateOnboarding(onboarding, userRequests, product, aggregates, roleMappings));
+    }
+
+    private static void encryptData(Onboarding onboarding) {
+        if (Boolean.TRUE.equals(onboarding.getSoleTrader())) {
+            onboarding.getInstitution().encryptTaxCode(onboarding.getInstitution().getTaxCode());
+            onboarding.getInstitution().encryptOriginId(onboarding.getInstitution().getOriginId());
+        }
     }
 
     private Uni<Onboarding> storeAndValidateOnboarding(Onboarding onboarding, List<UserRequest> userRequests, Product product,
