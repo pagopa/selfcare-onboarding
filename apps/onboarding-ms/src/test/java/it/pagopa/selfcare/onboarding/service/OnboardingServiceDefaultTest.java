@@ -996,7 +996,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter);
         mockVerifyOnboardingNotFound();
-        mockVerifyAllowedProductList(request.getProductId(), asserter);
+        mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
