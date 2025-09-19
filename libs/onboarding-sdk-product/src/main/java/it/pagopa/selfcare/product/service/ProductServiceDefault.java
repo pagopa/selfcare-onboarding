@@ -179,6 +179,23 @@ public class ProductServiceDefault implements ProductService {
         return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
     }
 
+    /**
+     * Verifies whether the given tax code is allowed for the specified product.
+     * <p>
+     * The verification logic is as follows:
+     * <ul>
+     *   <li>If the product has no allowed institution tax codes (i.e., the list is {@code null} or empty),
+     *       the method returns {@code true} (all tax codes are considered valid).</li>
+     *   <li>If the list of allowed institution tax codes is not empty, the method returns {@code true}
+     *       only if the given {@code taxCode} matches (case-insensitive) one of the codes in the list.</li>
+     *   <li>Otherwise, the method returns {@code false}.</li>
+     * </ul>
+     *
+     * @param productId the identifier of the product to be checked
+     * @param taxCode the tax code of the institution to be verified
+     * @return {@code true} if the tax code is allowed for the product, {@code false} otherwise
+     * @throws IllegalArgumentException if the product with the given {@code productId} is not valid
+     */
     public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
         Product product = getProductIsValid(productId);
 
