@@ -4,6 +4,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
@@ -323,6 +324,30 @@ class StandardNotificationBuilderTest {
 
     }
 
+    @Test
+    void toNotificationGsp() {
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        // Create Token
+        Token token = createToken();
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                null, // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:00:00Z"), // updatedAt
+                null
+        );
+        onboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        onboarding.getInstitution().setOrigin(Origin.SELC);
+
+        //when
+        NotificationToSend notificationToSend = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+        //then
+        assertNotNull(notificationToSend);
+
+    }
 
     @Test
     void toNotificationToSendWhenPSPOnboardingHasActivatedAtAndQueueEventAdd() {
