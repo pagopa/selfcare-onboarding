@@ -86,7 +86,6 @@ import org.openapi.quarkus.user_registry_json.model.*;
 
 @Slf4j
 @ApplicationScoped
-@Slf4j
 public class OnboardingServiceDefault implements OnboardingService {
 
     private static final Logger LOG = Logger.getLogger(OnboardingServiceDefault.class);
