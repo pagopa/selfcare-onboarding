@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Product {
 
     public static final String CONTRACT_TYPE_DEFAULT = "default";
+
     private String id;
     private String alias;
     private String logo;
@@ -40,8 +41,8 @@ public class Product {
     private Map<String, ContractTemplate> userContractMappings;
     private Map<String, ContractTemplate> userAggregatorContractMappings;
     private Map<String, Map<String, List<EmailTemplate>>> emailTemplates;
-
     private List<String> allowedInstitutionTaxCode;
+    private Integer expirationDate;
 
     public String getId() {
         return id;
@@ -468,4 +469,11 @@ public class Product {
         this.allowedInstitutionTaxCode = allowedInstitutionTaxCode;
     }
 
+    public Integer getExpirationDate() {
+        return expirationDate;
+    }
+
+    public void setExpirationDate(Integer expirationDate) {
+        this.expirationDate = expirationDate;
+    }
 }

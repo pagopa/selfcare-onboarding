@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ProductServiceDefaultTest {
 
     private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
-    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"expirationDate\":\"7\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
@@ -26,8 +26,12 @@ class ProductServiceDefaultTest {
             "{\"id\":\"prod-test\",\"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}]";
 
-    final private String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+    private static final String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\",\"productLabel\":\"Operatore\"}], \"phasesAdditionAllowed\":[\"onboarding\"]}}}," +
+            "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
+
+    private static final String PRODUCT_JSON_STRING_WITHOUT_EXPIRING_DATE = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
+            "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
 
     @Test
@@ -192,6 +196,33 @@ class ProductServiceDefaultTest {
 
         // then
         assertTrue(result);
+
+    }
+
+
+    @Test
+    void getProductExpirationDateTest_whenDateIsSet() throws JsonProcessingException {
+        // given
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING);
+
+        // when
+        Integer result = productService.getProductExpirationDate("prod-test-parent");
+
+        // then
+        assertEquals(7, result);
+
+    }
+
+    @Test
+    void getProductExpirationDateTest_whenDateIsNotSet() throws JsonProcessingException {
+        // given
+        ProductServiceDefault productService = new ProductServiceDefault(PRODUCT_JSON_STRING_WITHOUT_EXPIRING_DATE);
+
+        // when
+        Integer result = productService.getProductExpirationDate("prod-test-parent");
+
+        // then
+        assertEquals(30, result);
 
     }
 }
