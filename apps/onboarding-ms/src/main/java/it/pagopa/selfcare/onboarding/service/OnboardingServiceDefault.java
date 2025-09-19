@@ -160,6 +160,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     OnboardingValidationStrategy onboardingValidationStrategy;
+
     @Inject
     ProductService productService;
     @Inject
@@ -798,14 +799,24 @@ public class OnboardingServiceDefault implements OnboardingService {
         LOG.infof(
                 "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
                 taxCode, subunitCode, productId);
-        if (!onboardingValidationStrategy.validate(productId)) {
+        if (!validateByProductOrInstitutionTaxCode(productId, taxCode)) {
             return Uni.createFrom()
                     .failure(
                             new OnboardingNotAllowedException(
                                     String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
                                     DEFAULT_ERROR.getCode()));
+
         }
         return Uni.createFrom().item(Boolean.TRUE);
+    }
+
+    private boolean validateByProductOrInstitutionTaxCode(String productId, String taxCode) {
+        log.info("Validate start");
+        log.debug("Provided productId = {} and taxCode = {}", productId, taxCode);
+        boolean result = onboardingValidationStrategy.validate(productId) || productService.verifyAllowedByInstitutionTaxCode(productId, taxCode);
+        log.debug("Validate result = {}", result);
+        log.info("Validate end");
+        return result;
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
