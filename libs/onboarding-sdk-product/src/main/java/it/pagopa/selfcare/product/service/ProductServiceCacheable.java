@@ -11,6 +11,7 @@ import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ProductServiceCacheable implements ProductService {
   protected LocalDateTime productLastModifiedDate;
@@ -89,9 +90,16 @@ public class ProductServiceCacheable implements ProductService {
     return productService.validateProductRole(productId, productRole, role);
   }
 
+  @Override
   public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
     refreshProduct();
     return productService.verifyAllowedByInstitutionTaxCode(productId, taxCode);
+  }
+
+  @Override
+  public Integer getProductExpirationDate(String productId) {
+    refreshProduct();
+    return productService.getProductExpirationDate(productId);
   }
 
 }

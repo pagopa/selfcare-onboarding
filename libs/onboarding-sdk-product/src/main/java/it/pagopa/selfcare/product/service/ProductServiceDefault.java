@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class ProductServiceDefault implements ProductService {
 
     protected static final String REQUIRED_PRODUCT_ID_MESSAGE = "A product id is required";
+    private static final int DEFAULT_EXPIRATION_DATE = 30;
 
     final Map<String, Product> productsMap;
 
@@ -207,6 +208,24 @@ public class ProductServiceDefault implements ProductService {
 
         return allowedInstitutionTaxCode.stream()
                 .anyMatch(currentTaxCode -> currentTaxCode.equalsIgnoreCase(taxCode));
+    }
+    
+    /**
+     * Returns the expiration date associated with the given product.
+     * If the product identified by {@code productId} exists and is valid,
+     * its expiration date is returned. Otherwise, the default value
+     * {@link #DEFAULT_EXPIRATION_DATE} is returned.
+     *
+     * @param productId the identifier of the product to look up (must not be {@code null}).
+     * @return the product's expiration date, or the default value if the product
+     *         does not exist or is not valid.
+     *
+     * @throws IllegalArgumentException if {@code productId} is {@code null} or empty.
+     */
+    public Integer getProductExpirationDate(String productId) {
+        return Optional.ofNullable(getProductIsValid(productId))
+                .map(Product::getExpirationDate)
+                .orElse(DEFAULT_EXPIRATION_DATE);
     }
 
 }
