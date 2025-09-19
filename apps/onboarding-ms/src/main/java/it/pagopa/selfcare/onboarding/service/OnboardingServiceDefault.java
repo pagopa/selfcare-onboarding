@@ -811,7 +811,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private boolean validateByProductOrInstitutionTaxCode(String productId, String taxCode) {
-        log.info("Validate by taxCode by productId start");
+        log.info("Validate start");
         log.debug("Provided productId = {} and taxCode = {}", productId, taxCode);
         boolean result = onboardingValidationStrategy.validate(productId) || productService.verifyAllowedByInstitutionTaxCode(productId, taxCode);
         log.debug("Validate result = {}", result);
