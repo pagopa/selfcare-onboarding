@@ -25,6 +25,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
+import it.pagopa.selfcare.onboarding.crypto.utils.DataEncryptionUtils;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryResourceFactory;
@@ -83,6 +84,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
+@Slf4j
 @ApplicationScoped
 @Slf4j
 public class OnboardingServiceDefault implements OnboardingService {
@@ -332,7 +334,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 onboarding.getInstitution(),
                                 product.getId(),
                                 product.getParentId(),
-                                isAggregatesIncrement)
+                                isAggregatesIncrement,
+                                onboarding.getSoleTrader())
                                 .replaceWith(product));
     }
 
@@ -421,14 +424,14 @@ public class OnboardingServiceDefault implements OnboardingService {
      * should be propagated, and the flow should be blocked.
      */
     private Uni<Void> verifyAlreadyOnboarding(
-            Institution institution, String productId, String parentId, boolean isAggregatesIncrement) {
+            Institution institution, String productId, String parentId, boolean isAggregatesIncrement, Boolean soleTrader) {
         if (isAggregatesIncrement) {
-            return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId)
+            return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId, soleTrader)
                     .onFailure(ResourceConflictException.class)
                     .recoverWithNull()
                     .replaceWithVoid();
         }
-        return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId)
+        return verifyAlreadyOnboardingForProductAndProductParent(institution, productId, parentId, soleTrader)
                 .replaceWithVoid();
     }
 
@@ -478,7 +481,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         product ->
                                 verifyAlreadyOnboardingForProductAndProductParent(
-                                        onboarding.getInstitution(), product.getId(), product.getParentId())
+                                        onboarding.getInstitution(), product.getId(), product.getParentId(), null)
                                         .replaceWith(product))
                 .onItem()
                 .transformToUni(
@@ -665,7 +668,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             String taxCode, String subunitCode, String origin, String originId, String productId) {
         final Map<String, Object> queryParameter =
                 QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
-                        taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId);
+                        taxCode, subunitCode, origin, originId, COMPLETED, productId);
         Document sort = QueryUtils.buildSortDocument(Onboarding.Fields.createdAt.name(), SortEnum.DESC);
         Document query = QueryUtils.buildQuery(queryParameter);
         return Onboarding.find(query, sort).stream();
@@ -762,11 +765,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(
-            Institution institution, String productId, String productParentId) {
+            Institution institution, String productId, String productParentId, Boolean soleTrader) {
         if (Objects.nonNull(productParentId)) {
-            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId)
+            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId, soleTrader)
                     .onItem().transformToUni(ignored ->
-                            checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productParentId)
+                            checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productParentId, soleTrader)
                                     .onItem().transformToUni(result -> Uni.createFrom().failure(
                                             new InvalidRequestException(
                                                     String.format(PARENT_PRODUCT_NOT_ONBOARDED.getMessage(),
@@ -777,7 +780,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     .recoverWithNull().replaceWith(Uni.createFrom().item(true))
                     );
         } else {
-            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId);
+            return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId, soleTrader);
         }
     }
 
@@ -818,7 +821,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
-            Institution institution, String productId) {
+            Institution institution, String productId, Boolean soleTrader) {
         return validateAllowedProductList(institution.getTaxCode(), institution.getSubunitCode(), productId)
                 .flatMap(
                         ignored -> {
@@ -829,8 +832,9 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     institution.getSubunitCode(),
                                     origin,
                                     institution.getOriginId(),
-                                    OnboardingStatus.COMPLETED,
-                                    productId)
+                                    COMPLETED,
+                                    productId,
+                                    soleTrader)
                                     .flatMap(
                                             onboardingResponses ->
                                                     onboardingResponses.isEmpty()
@@ -870,7 +874,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                     referenceOnboarding ->
                                                                             referenceOnboarding
                                                                                     .getStatus()
-                                                                                    .equals(OnboardingStatus.COMPLETED))
+                                                                                    .equals(COMPLETED))
                                                             .map(referenceOnboarding -> Uni.createFrom().item(Boolean.TRUE))
                                                             .orElse(
                                                                     Uni.createFrom()
@@ -920,8 +924,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .failure(
                             new InvalidRequestException(
                                     String.format(
-                                            CustomError.ROLES_NOT_ADMITTED_ERROR.getMessage(), usersNotValidRoleString),
-                                    CustomError.ROLES_NOT_ADMITTED_ERROR.getCode()));
+                                            ROLES_NOT_ADMITTED_ERROR.getMessage(), usersNotValidRoleString),
+                                    ROLES_NOT_ADMITTED_ERROR.getCode()));
         }
 
         return Uni.createFrom().item(users);
@@ -1193,7 +1197,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         verifyAlreadyOnboardingForProductAndProductParent(
                                                                 onboarding.getInstitution(),
                                                                 product.getId(),
-                                                                product.getParentId()))
+                                                                product.getParentId(),
+                                                                onboarding.getSoleTrader()))
                                         .replaceWith(onboarding))
                 .onItem()
                 .transformToUni(
@@ -1304,7 +1309,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         verifyAlreadyOnboardingForProductAndProductParent(
                                                                 onboarding.getInstitution(),
                                                                 product.getId(),
-                                                                product.getParentId()))
+                                                                product.getParentId(),
+                                                                onboarding.getSoleTrader()))
                                         .replaceWith(onboarding))
                 // Upload contract on storage
                 .onItem()
@@ -1505,7 +1511,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(
                         onboardingGet ->
-                                OnboardingStatus.COMPLETED.equals(onboardingGet.getStatus())
+                                COMPLETED.equals(onboardingGet.getStatus())
                                         ? Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
@@ -1569,11 +1575,20 @@ public class OnboardingServiceDefault implements OnboardingService {
             String origin,
             String originId,
             OnboardingStatus status,
-            String productId) {
-        Map<String, Object> queryParameter =
-                QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
-                        taxCode, subunitCode, origin, originId, status, productId);
+            String productId,
+            Boolean soleTrader) {
+        Map<String, Object> queryParameter;
+        if (Boolean.TRUE.equals(soleTrader)) {
+            taxCode = DataEncryptionUtils.encrypt(taxCode);
+            originId = DataEncryptionUtils.encrypt(originId);
+            log.info("soleTrader {}, taxCode and originId has been encrypted", true);
+        }
+
+        queryParameter = QueryUtils.createMapForInstitutionOnboardingsQueryParameter(
+                taxCode, subunitCode, origin, originId, status, productId);
+
         Document query = QueryUtils.buildQuery(queryParameter);
+
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)
                 .map(onboardingMapper::toResponse)

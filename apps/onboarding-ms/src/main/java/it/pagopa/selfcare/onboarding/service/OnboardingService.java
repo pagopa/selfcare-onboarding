@@ -74,7 +74,8 @@ public interface OnboardingService {
             String origin,
             String originId,
             OnboardingStatus status,
-            String productId);
+            String productId,
+            Boolean soleTrader);
 
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
