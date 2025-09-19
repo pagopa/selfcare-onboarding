@@ -2712,7 +2712,24 @@ class OnboardingServiceDefaultTest {
         when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
         when(Onboarding.find(any())).thenReturn(query);
         UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
-                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop")
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
+        assertFalse(response.isEmpty());
+        assertEquals(1, response.size());
+    }
+
+    @Test
+    void testVerifyOnboardingNonEmptyListSoleTrader() {
+        Onboarding onboarding = mock(Onboarding.class);
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
+        when(Onboarding.find(any())).thenReturn(query);
+        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", true)
                 .subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
 

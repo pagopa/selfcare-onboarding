@@ -888,7 +888,7 @@ class OnboardingControllerTest {
         OnboardingResponse onboardingResponse = dummyOnboardingResponse();
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
         onboardingResponses.add(onboardingResponse);
-        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
@@ -901,14 +901,14 @@ class OnboardingControllerTest {
                 .statusCode(204);
 
         verify(onboardingService, times(1))
-                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null);
     }
 
     @Test
     @TestSecurity(user = "userJwt")
     void verifyOnboardingResourceNotFound() {
         List<OnboardingResponse> onboardingResponses = new ArrayList<>();
-        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop"))
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null))
                 .thenReturn(Uni.createFrom().item(onboardingResponses));
 
         Map<String, String> queryParameterMap = getStringStringMapOnboardings();
@@ -921,7 +921,7 @@ class OnboardingControllerTest {
                 .statusCode(404);
 
         verify(onboardingService, times(1))
-                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop");
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null);
     }
 
     @Test
