@@ -11,7 +11,6 @@ import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class ProductServiceCacheable implements ProductService {
   protected LocalDateTime productLastModifiedDate;
