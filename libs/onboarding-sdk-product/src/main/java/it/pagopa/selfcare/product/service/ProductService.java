@@ -22,4 +22,6 @@ public interface ProductService {
     ProductRole validateProductRole(String productId, String productRole, PartyRole role);
 
     boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode);
+
+    Integer getProductExpirationDate(String productId);
 }
