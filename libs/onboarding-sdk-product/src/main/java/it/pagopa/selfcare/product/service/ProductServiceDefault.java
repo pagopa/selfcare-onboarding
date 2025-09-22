@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class ProductServiceDefault implements ProductService {
 
     protected static final String REQUIRED_PRODUCT_ID_MESSAGE = "A product id is required";
+    private static final int DEFAULT_EXPIRATION_DATE = 30;
 
     final Map<String, Product> productsMap;
 
@@ -179,6 +180,23 @@ public class ProductServiceDefault implements ProductService {
         return List.of(ProductStatus.INACTIVE, ProductStatus.PHASE_OUT).contains(status);
     }
 
+    /**
+     * Verifies whether the given tax code is allowed for the specified product.
+     * <p>
+     * The verification logic is as follows:
+     * <ul>
+     *   <li>If the product has no allowed institution tax codes (i.e., the list is {@code null} or empty),
+     *       the method returns {@code true} (all tax codes are considered valid).</li>
+     *   <li>If the list of allowed institution tax codes is not empty, the method returns {@code true}
+     *       only if the given {@code taxCode} matches (case-insensitive) one of the codes in the list.</li>
+     *   <li>Otherwise, the method returns {@code false}.</li>
+     * </ul>
+     *
+     * @param productId the identifier of the product to be checked
+     * @param taxCode the tax code of the institution to be verified
+     * @return {@code true} if the tax code is allowed for the product, {@code false} otherwise
+     * @throws IllegalArgumentException if the product with the given {@code productId} is not valid
+     */
     public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
         Product product = getProductIsValid(productId);
 
@@ -190,6 +208,24 @@ public class ProductServiceDefault implements ProductService {
 
         return allowedInstitutionTaxCode.stream()
                 .anyMatch(currentTaxCode -> currentTaxCode.equalsIgnoreCase(taxCode));
+    }
+    
+    /**
+     * Returns the expiration date associated with the given product.
+     * If the product identified by {@code productId} exists and is valid,
+     * its expiration date is returned. Otherwise, the default value
+     * {@link #DEFAULT_EXPIRATION_DATE} is returned.
+     *
+     * @param productId the identifier of the product to look up (must not be {@code null}).
+     * @return the product's expiration date, or the default value if the product
+     *         does not exist or is not valid.
+     *
+     * @throws IllegalArgumentException if {@code productId} is {@code null} or empty.
+     */
+    public Integer getProductExpirationDate(String productId) {
+        return Optional.ofNullable(getProductIsValid(productId))
+                .map(Product::getExpirationDate)
+                .orElse(DEFAULT_EXPIRATION_DATE);
     }
 
 }
