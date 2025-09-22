@@ -10,7 +10,6 @@ resource "random_password" "encryption_key" {
 resource "random_password" "encryption_iv" {
   length           = 12
   special          = false
-  override_characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
   keepers = {
     version = 1
