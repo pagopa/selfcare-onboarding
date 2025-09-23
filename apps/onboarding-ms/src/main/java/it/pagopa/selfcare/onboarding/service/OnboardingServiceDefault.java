@@ -193,8 +193,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
-        Integer expirationDate = productService.getProductExpirationDate(onboarding.getProductId());
-        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(expirationDate).toLocalDateTime());
+        Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
+        onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
@@ -206,9 +206,9 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates) {
-        Integer expirationDate = productService.getProductExpirationDate(onboarding.getProductId());
+        Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
         onboarding.setExpiringDate(
-                OffsetDateTime.now().plusDays(expirationDate).toLocalDateTime());
+                OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(PENDING);
 
@@ -221,7 +221,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<OnboardingResponse> onboardingUsers(
             OnboardingUserRequest request, String userId, WorkflowType workflowType) {
-        Integer expirationDate = productService.getProductExpirationDate(request.getProductId());
+        Integer onboardingExpirationDays = productService.getProductExpirationDate(request.getProductId());
         return getInstitutionFromUserRequest(request)
                 .onItem()
                 .transform(response -> institutionMapper.toEntity(response))
@@ -232,7 +232,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             institution.setInstitutionType(request.getInstitutionType());
                             onboarding.setInstitution(institution);
                             onboarding.setExpiringDate(
-                                    OffsetDateTime.now().plusDays(expirationDate).toLocalDateTime());
+                                    OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
                             return onboarding;
                         })
                 .onItem()
