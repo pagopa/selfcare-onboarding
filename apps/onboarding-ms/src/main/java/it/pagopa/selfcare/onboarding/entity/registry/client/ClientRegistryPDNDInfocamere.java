@@ -10,8 +10,7 @@ import java.time.temporal.ChronoUnit;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 
-public abstract class ClientRegistryPDNDInfocamere
-    extends BaseRegistryManager<PDNDBusinessResource> {
+public abstract class ClientRegistryPDNDInfocamere extends BaseRegistryManager<PDNDBusinessResource> {
 
   private final InfocamerePdndApi client;
 
