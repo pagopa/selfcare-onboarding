@@ -13,8 +13,12 @@ public class DataEncryptionConfig {
     @ConfigProperty(name = "onboarding-ms.data.encryption.key")
     String key;
 
+    @ConfigProperty(name = "onboarding-ms.data.encryption.iv")
+    String iv;
+
     @PostConstruct
     void init() {
         DataEncryptionUtils.setDefaultKey(key);
+        DataEncryptionUtils.setDefaultIv(iv);
     }
 }
