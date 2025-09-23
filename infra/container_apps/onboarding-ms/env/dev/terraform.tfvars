@@ -88,4 +88,5 @@ secrets_names = {
   "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "documents-storage-connection-string"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
   "ONBOARDING_DATA_ENCRIPTION_KEY"          = "onboarding-data-encryption-key"
+  "ONBOARDING_DATA_ENCRIPTION_IV"           = "onboarding-data-encryption-iv"
 }
