@@ -3495,4 +3495,52 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_verifyExpirationDateWhenIsSet(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
+        institutionBaseRequest.setTaxCode("taxCode");
+        request.setInstitution(institutionBaseRequest);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
+        pdndBusinessResource.setBusinessName("name");
+        pdndBusinessResource.setDigitalAddress("pec");
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        product.setExpirationDate(Integer.valueOf("30"));
+
+        asserter.execute(() -> when(productService.getProductExpirationDate(request.getProductId()))
+                .thenReturn(Integer.valueOf("30")));
+
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(request.getProductId(), asserter, true);
+
+        mockAllowedProductByInstitutionTaxCodeList(asserter, false);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
 }
