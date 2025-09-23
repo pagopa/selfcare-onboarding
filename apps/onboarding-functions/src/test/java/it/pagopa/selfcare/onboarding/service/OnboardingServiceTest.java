@@ -262,6 +262,7 @@ class OnboardingServiceTest {
     product.setId(productId);
     product.setInstitutionContractMappings(createDummyContractTemplateInstitution());
     product.setUserContractMappings(createDummyContractTemplateInstitution());
+    product.setExpirationDate(30);
 
     return product;
   }
@@ -631,7 +632,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -641,7 +642,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
   }
 
   @Test
@@ -667,7 +668,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -677,7 +678,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
   }
 
   @Test
@@ -710,7 +711,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -720,7 +721,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), sendMailInput.product.getExpirationDate());
+                    product.getTitle(), product.getExpirationDate().toString());
   }
 
   @Test
