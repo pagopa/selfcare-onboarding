@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface NotificationService {
 
-    void sendMailRegistration(String institutionName, String destination, String name, String username, String productName);
+    void sendMailRegistration(String institutionName, String destination, String name, String username, String productName, String expirationDate);
 
     void sendMailRegistrationApprove(String institutionName, String name, String username, String productName, String onboardingId);
 

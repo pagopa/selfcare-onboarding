@@ -128,7 +128,7 @@ class NotificationServiceDefaultTest {
 
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistration(onboardingId, destination,"","","");
+        notificationService.sendMailRegistration(onboardingId, destination,"","","", sendMailInput.product.getExpirationDate());
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());

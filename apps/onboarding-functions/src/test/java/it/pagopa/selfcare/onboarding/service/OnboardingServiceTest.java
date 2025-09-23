@@ -631,7 +631,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -641,7 +641,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
   }
 
   @Test
@@ -667,7 +667,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -677,7 +677,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
   }
 
   @Test
@@ -710,7 +710,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -720,7 +720,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), sendMailInput.product.getExpirationDate());
   }
 
   @Test

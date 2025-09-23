@@ -66,7 +66,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistration(String institutionName, String destination, String name, String username, String productName) {
+    public void sendMailRegistration(String institutionName, String destination, String name, String username, String productName, String expirationDate) {
 
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
@@ -74,6 +74,7 @@ public class NotificationServiceDefault implements NotificationService {
         Optional.ofNullable(name).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterName(), value));
         Optional.ofNullable(username).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.notificationRequesterSurname(), value));
         mailParameters.put(templatePlaceholdersConfig.institutionDescription(), institutionName);
+        mailParameters.put(templatePlaceholdersConfig.expirationDate(), expirationDate);
 
         sendMailWithFile(List.of(destination), templatePathConfig.registrationRequestPath(), mailParameters, productName, null);
     }

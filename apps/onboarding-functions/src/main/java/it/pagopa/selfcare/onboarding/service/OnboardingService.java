@@ -254,7 +254,8 @@ public class OnboardingService {
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput.userRequestName,
       sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle());
+      sendMailInput.product.getTitle(),
+      sendMailInput.product.getExpirationDate().toString());
   }
 
   public void sendMailRegistrationForUser(Onboarding onboarding) {
