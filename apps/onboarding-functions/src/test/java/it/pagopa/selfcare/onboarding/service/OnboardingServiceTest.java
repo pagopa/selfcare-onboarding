@@ -423,12 +423,12 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     sendMailInput,
                     "default",
-                    "default");
+                    "default", "10");
 
     onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
     Mockito.verify(notificationService, times(1))
-            .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString());
+            .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString(), anyString());
     verifyNoMoreInteractions(notificationService);
   }
 
@@ -544,8 +544,11 @@ class OnboardingServiceTest {
     UserResource userResource = createUserResource();
     Token token = createDummyToken();
 
+    Integer expirationDate = 30;
+
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
             .thenReturn(userResource);
@@ -557,7 +560,7 @@ class OnboardingServiceTest {
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
                     product.getTitle(),
-                    product.getExpirationDate().toString());
+                    String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistrationForContractAggregator(onboarding);
 
@@ -578,8 +581,11 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
     Token token = createDummyToken();
 
+    Integer expirationDate = 30;
+
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
 
@@ -593,7 +599,7 @@ class OnboardingServiceTest {
                     product.getTitle(),
                     "description",
                     "default",
-                    "default", "30");
+                    "default", String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
@@ -626,7 +632,11 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
     Onboarding onboarding = createOnboarding();
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
             .thenReturn(userResource);
     doNothing()
@@ -646,7 +656,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), product.getExpirationDate().toString());
+                    product.getTitle(), String.valueOf(expirationDate));
   }
 
   @Test
@@ -658,7 +668,11 @@ class OnboardingServiceTest {
     onboarding.getInstitution().setOrigin(Origin.IPA);
     onboarding.setPreviousManagerId("previousManagerId");
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
             .thenReturn(userResource);
 
@@ -672,7 +686,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), product.getExpirationDate().toString());
+                    product.getTitle(), String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -694,7 +708,11 @@ class OnboardingServiceTest {
     onboarding.getInstitution().setOrigin(Origin.IPA);
     onboarding.setPreviousManagerId("previousManagerId");
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(any(), any()))
             .thenReturn(userResource);
 
@@ -715,7 +733,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle(), product.getExpirationDate().toString());
+                    product.getTitle(), String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -922,6 +940,43 @@ class OnboardingServiceTest {
     assertThat(capturedWhereQuery, equalTo("_id = :tokenId"));
     assertThat(capturedWhereParams, Matchers.hasValue(token.getId()));
     assertThat(capturedWhereParams, Matchers.hasKey("tokenId"));
+  }
+
+  @Test
+  void sendMailRegistrationWithContractOK() {
+
+    Onboarding onboarding = createOnboarding();
+    Product product = createDummyProduct();
+    UserResource userResource = createUserResource();
+    Token token = createDummyToken();
+
+    when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
+    when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+            .thenReturn(userResource);
+
+    OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+    SendMailInput sendMailInput = new SendMailInput();
+    sendMailInput.setUserRequestName(userResource.getName().getValue());
+    sendMailInput.setUserRequestSurname(userResource.getFamilyName().getValue());
+    sendMailInput.setProduct(product);
+    sendMailInput.setInstitutionName("description");
+
+    doNothing()
+            .when(notificationService)
+            .sendMailRegistrationForContract(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput,
+                    "default",
+                    "default", "10");
+
+    onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
+
+    Mockito.verify(notificationService, times(1))
+             .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString(), anyString());
+    verifyNoMoreInteractions(notificationService);
   }
 
 }
