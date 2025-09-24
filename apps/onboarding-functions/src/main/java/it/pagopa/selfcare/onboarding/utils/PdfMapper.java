@@ -62,7 +62,10 @@ public class PdfMapper {
       throw new GenericOnboardingException(
           MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
     }
-
+    if(Boolean.TRUE.equals(onboarding.getSoleTrader())) {
+        institution.setTaxCode(institution.decryptTaxCode());
+        institution.setOriginId(institution.decryptOriginId());
+    }
     Map<String, Object> map = new HashMap<>();
     map.put(INSTITUTION_NAME, institution.getDescription());
     map.put("address", institution.getAddress());

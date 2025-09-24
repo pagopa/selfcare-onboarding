@@ -40,6 +40,7 @@ public class Onboarding {
     private String delegationId;
     private Boolean sendMailForImport;
     private Payment payment;
+    private Boolean soleTrader;
 
     //This field is used in case of workflowType USER
     private String previousManagerId;
@@ -68,6 +69,7 @@ public class Onboarding {
                 ", aggregates=" + aggregates +
                 ", isAggregator='" + isAggregator + '\'' +
                 ", sendMailForImport='" + sendMailForImport + '\'' +
+                ", soleTrader='" + soleTrader + '\'' +
                 '}';
     }
 
