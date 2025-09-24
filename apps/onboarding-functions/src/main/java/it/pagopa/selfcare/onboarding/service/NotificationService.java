@@ -16,11 +16,11 @@ public interface NotificationService {
 
     void sendMailOnboardingApprove(String institutionName, String name, String username, String productName, String onboardingId);
 
-    void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath, String confirmTokenUrl);
+    void sendMailRegistrationForContract(String onboardingId, String destination, String name, String username, String productName, String institutionName, String templatePath, String confirmTokenUrl, String expirationDate);
 
     void sendMailRegistrationForContract(String onboardingId, String destination, OnboardingService.SendMailInput sendMailInput, String templatePath, String confirmTokenUrl);
 
-    void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName);
+    void sendMailRegistrationForContractAggregator(String onboardingId, String destination, String name, String username, String productName, String expirationDate);
 
     void sendCompletedEmail(String institutionName, List<String> destinationMails, Product product, InstitutionType institutionType, OnboardingWorkflow onboardingWorkflow);
 

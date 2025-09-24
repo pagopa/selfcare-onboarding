@@ -301,7 +301,7 @@ public class OnboardingService {
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput,
       templatePath,
-      confirmTokenUrl);
+      confirmTokenUrl, sendMailInput.product.getExpirationDate().toString());
   }
 
   public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
@@ -311,7 +311,7 @@ public class OnboardingService {
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput.userRequestName,
       sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle());
+      sendMailInput.product.getTitle(), sendMailInput.product.getExpirationDate().toString());
   }
 
   public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
@@ -325,7 +325,7 @@ public class OnboardingService {
       product.getTitle(),
       "description",
       onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig),
-      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
+      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig), product.getExpirationDate().toString());
   }
 
   public void sendMailRegistrationApprove(Onboarding onboarding) {
