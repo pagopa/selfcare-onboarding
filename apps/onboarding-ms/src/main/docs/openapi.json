@@ -3086,6 +3086,9 @@
           },
           "digitalAddress" : {
             "type" : "string"
+          },
+          "skipVerifyLegal" : {
+            "type" : "boolean"
           }
         }
       },

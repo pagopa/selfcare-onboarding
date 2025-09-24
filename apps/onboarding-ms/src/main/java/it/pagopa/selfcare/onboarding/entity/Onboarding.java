@@ -9,6 +9,7 @@ import java.util.List;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -47,4 +48,7 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
 
     private Boolean sendMailForImport;
     private Boolean soleTrader;
+
+    @BsonIgnore
+    private Boolean skipVerifyLegal;
 }
