@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
 
-  private static final Logger logger = LoggerFactory.getLogger(ClientRegistryADE.class.getName());
+  private final Logger logger = LoggerFactory.getLogger(ClientRegistryADE.class.getName());
 
   private final NationalRegistriesApi client;
   private final String managerTaxCode;
