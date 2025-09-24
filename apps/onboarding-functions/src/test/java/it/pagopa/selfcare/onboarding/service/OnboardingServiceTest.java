@@ -1,13 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -20,6 +12,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
+import it.pagopa.selfcare.onboarding.dto.SendMailInput;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
@@ -30,10 +23,6 @@ import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +37,19 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -408,11 +410,11 @@ class OnboardingServiceTest {
             .thenReturn(userResource);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
-    OnboardingService.SendMailInput sendMailInput = new OnboardingService.SendMailInput();
-    sendMailInput.userRequestName = userResource.getName().getValue();
-    sendMailInput.userRequestSurname = userResource.getFamilyName().getValue();
-    sendMailInput.product = product;
-    sendMailInput.institutionName = "description";
+    SendMailInput sendMailInput = new SendMailInput();
+    sendMailInput.setUserRequestName(userResource.getName().getValue());
+    sendMailInput.setUserRequestSurname(userResource.getFamilyName().getValue());
+    sendMailInput.setProduct(product);
+    sendMailInput.setInstitutionName("description");
 
     doNothing()
             .when(notificationService)
@@ -554,7 +556,8 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(),
+                    product.getExpirationDate().toString());
 
     onboardingService.sendMailRegistrationForContractAggregator(onboarding);
 
@@ -564,7 +567,8 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(),
+                    product.getExpirationDate().toString());
   }
 
   @Test
@@ -589,7 +593,7 @@ class OnboardingServiceTest {
                     product.getTitle(),
                     "description",
                     "default",
-                    "default");
+                    "default", "30");
 
     onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
@@ -602,7 +606,7 @@ class OnboardingServiceTest {
                     product.getTitle(),
                     "description",
                     "contracts/template/mail/onboarding-request/1.0.1.json",
-                    "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=");
+                    "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=", "30");
   }
 
   @Test

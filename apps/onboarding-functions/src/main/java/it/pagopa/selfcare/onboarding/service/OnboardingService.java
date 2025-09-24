@@ -16,6 +16,7 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
+import it.pagopa.selfcare.onboarding.dto.SendMailInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
@@ -252,10 +253,10 @@ public class OnboardingService {
     notificationService.sendMailRegistration(
       onboarding.getInstitution().getDescription(),
       onboarding.getInstitution().getDigitalAddress(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(),
-      sendMailInput.product.getExpirationDate().toString());
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
+      sendMailInput.getProduct().getExpirationDate().toString());
   }
 
   public void sendMailRegistrationForUser(Onboarding onboarding) {
@@ -301,7 +302,7 @@ public class OnboardingService {
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput,
       templatePath,
-      confirmTokenUrl, sendMailInput.product.getExpirationDate().toString());
+      confirmTokenUrl);
   }
 
   public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
@@ -309,9 +310,9 @@ public class OnboardingService {
     notificationService.sendMailRegistrationForContractAggregator(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(), sendMailInput.product.getExpirationDate().toString());
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(), sendMailInput.getProduct().getExpirationDate().toString());
   }
 
   public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
@@ -332,9 +333,9 @@ public class OnboardingService {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
     notificationService.sendMailRegistrationApprove(
       onboarding.getInstitution().getDescription(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(),
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
       onboarding.getId());
   }
 
@@ -342,9 +343,9 @@ public class OnboardingService {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
     notificationService.sendMailOnboardingApprove(
       onboarding.getInstitution().getDescription(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(),
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
       onboarding.getId());
   }
 
@@ -364,7 +365,7 @@ public class OnboardingService {
 
   private SendMailInput builderWithProductAndUserRequest(Onboarding onboarding) {
     SendMailInput sendMailInput = new SendMailInput();
-    sendMailInput.product = productService.getProduct(onboarding.getProductId());
+    sendMailInput.setProduct(productService.getProduct(onboarding.getProductId()));
 
     // Set data of previousManager in case of workflowType USERS
     if (Objects.nonNull(onboarding.getPreviousManagerId())) {
@@ -379,16 +380,13 @@ public class OnboardingService {
           () ->
             new GenericOnboardingException(
               String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
-    sendMailInput.userRequestName =
-      Optional.ofNullable(userRequest.getName())
-        .map(CertifiableFieldResourceOfstring::getValue)
-        .orElse("");
-    sendMailInput.userRequestSurname =
-      Optional.ofNullable(userRequest.getFamilyName())
-        .map(CertifiableFieldResourceOfstring::getValue)
-        .orElse("");
-    sendMailInput.institutionName =
-      Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse("");
+    sendMailInput.setUserRequestName(Optional.ofNullable(userRequest.getName())
+            .map(CertifiableFieldResourceOfstring::getValue)
+            .orElse(""));
+    sendMailInput.setUserRequestSurname(Optional.ofNullable(userRequest.getFamilyName())
+            .map(CertifiableFieldResourceOfstring::getValue)
+            .orElse(""));
+    sendMailInput.setInstitutionName(Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse(""));
     return sendMailInput;
   }
 
@@ -584,19 +582,6 @@ public class OnboardingService {
       new Document(WORKFLOW_TYPE, new Document("$exists", false)));
   }
 
-  static class SendMailInput {
-    Product product;
-    String userRequestName;
-    // Used in case of workflowType USER
-    String previousManagerName;
-    String managerName;
-    String userRequestSurname;
-    // Used in case of workflowType USER
-    String previousManagerSurname;
-    String managerSurname;
-    String institutionName;
-  }
-
   private void setManagerData(Onboarding onboarding, SendMailInput sendMailInput) {
     final String managerId =
       onboarding.getUsers().stream()
@@ -612,12 +597,12 @@ public class OnboardingService {
       UserResource previousManager =
         userRegistryApi.findByIdUsingGET(
           USERS_WORKS_FIELD_LIST, onboarding.getPreviousManagerId());
-      sendMailInput.previousManagerName = previousManager.getName().getValue();
-      sendMailInput.previousManagerSurname = previousManager.getFamilyName().getValue();
+      sendMailInput.setPreviousManagerName(previousManager.getName().getValue());
+      sendMailInput.setPreviousManagerSurname(previousManager.getFamilyName().getValue());
       UserResource currentManager =
         userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, managerId);
-      sendMailInput.managerName = currentManager.getName().getValue();
-      sendMailInput.managerSurname = currentManager.getFamilyName().getValue();
+      sendMailInput.setManagerName(currentManager.getName().getValue());
+      sendMailInput.setManagerSurname(currentManager.getFamilyName().getValue());
     } else {
       onboarding.setPreviousManagerId(null);
     }

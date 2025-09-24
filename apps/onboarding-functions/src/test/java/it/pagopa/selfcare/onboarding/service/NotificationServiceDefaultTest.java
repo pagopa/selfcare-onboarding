@@ -68,7 +68,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName, "description", "contracts/template/mail/onboarding-request/1.0.1.json", "default");
+        notificationService.sendMailRegistrationForContract(onboardingId, destination,"","", productName, "description", "contracts/template/mail/onboarding-request/1.0.1.json", "default", "30");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -92,7 +92,7 @@ class NotificationServiceDefaultTest {
                 .thenReturn(mailTemplate);
         Mockito.doNothing().when(mailer).send(any());
 
-        notificationService.sendMailRegistrationForContractAggregator(onboardingId, destination,"","", productName);
+        notificationService.sendMailRegistrationForContractAggregator(onboardingId, destination,"","", productName, "30");
 
         Mockito.verify(azureBlobClient, Mockito.times(1))
                 .getFileAsText(any());
@@ -106,13 +106,13 @@ class NotificationServiceDefaultTest {
     @Test
     void sendMailRegistrationWithContract_shouldThrowException() {
         final String onboardingId = "onboardingId";
-        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example", "", "", ""));
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContract(onboardingId,  "example@pagopa.it","mario","rossi","prod-example", "", "", "", "30"));
     }
 
     @Test
     void sendMailRegistrationWithContractAggregator_shouldThrowException() {
         final String onboardingId = "onboardingId";
-        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContractAggregator(onboardingId,  "example@pagopa.it","mario","rossi","prod-example"));
+        assertThrows(RuntimeException.class, () -> notificationService.sendMailRegistrationForContractAggregator(onboardingId,  "example@pagopa.it","mario","rossi","prod-example", "30"));
     }
 
     @Test

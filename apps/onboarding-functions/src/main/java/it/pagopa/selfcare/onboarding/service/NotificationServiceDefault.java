@@ -8,6 +8,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
+import it.pagopa.selfcare.onboarding.dto.SendMailInput;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
@@ -121,22 +122,22 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationForContract(String onboardingId, String destination, OnboardingService.SendMailInput sendMailInput, String templatePath, String confirmTokenUrl) {
+    public void sendMailRegistrationForContract(String onboardingId, String destination, SendMailInput sendMailInput, String templatePath, String confirmTokenUrl) {
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
-        mailParameters.put(templatePlaceholdersConfig.productName(), sendMailInput.product.getTitle());
-        Optional.ofNullable(sendMailInput.userRequestName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
-        Optional.ofNullable(sendMailInput.userRequestSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.productName(), sendMailInput.getProduct().getTitle());
+        Optional.ofNullable(sendMailInput.getUserRequestName()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userName(), value));
+        Optional.ofNullable(sendMailInput.getUserRequestSurname()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.userSurname(), value));
         mailParameters.put(templatePlaceholdersConfig.rejectTokenName(), templatePlaceholdersConfig.rejectTokenPlaceholder() + onboardingId);
         mailParameters.put(templatePlaceholdersConfig.confirmTokenName(), confirmTokenUrl + onboardingId);
-        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), sendMailInput.institutionName);
-        Optional.ofNullable(sendMailInput.managerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerName(), value));
-        Optional.ofNullable(sendMailInput.managerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerSurname(), value));
-        Optional.ofNullable(sendMailInput.previousManagerName).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerName(), value));
-        Optional.ofNullable(sendMailInput.previousManagerSurname).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerSurname(), value));
-        mailParameters.put(templatePlaceholdersConfig.expirationDate(), sendMailInput.product.getExpirationDate().toString());
+        mailParameters.put(templatePlaceholdersConfig.institutionDescription(), sendMailInput.getInstitutionName());
+        Optional.ofNullable(sendMailInput.getManagerName()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerName(), value));
+        Optional.ofNullable(sendMailInput.getManagerSurname()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerSurname(), value));
+        Optional.ofNullable(sendMailInput.getPreviousManagerName()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerName(), value));
+        Optional.ofNullable(sendMailInput.getPreviousManagerSurname()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerSurname(), value));
+        mailParameters.put(templatePlaceholdersConfig.expirationDate(), sendMailInput.getProduct().getExpirationDate().toString());
 
-        sendMailWithFile(List.of(destination), templatePath, mailParameters, sendMailInput.product.getTitle(), null);
+        sendMailWithFile(List.of(destination), templatePath, mailParameters, sendMailInput.getProduct().getTitle(), null);
 
     }
 
