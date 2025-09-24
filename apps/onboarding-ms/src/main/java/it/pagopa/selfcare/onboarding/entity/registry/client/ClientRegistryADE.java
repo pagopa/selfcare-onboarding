@@ -9,14 +9,11 @@ import jakarta.ws.rs.WebApplicationException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-
+import lombok.extern.slf4j.Slf4j;
 import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
-
-  private final Logger logger = LoggerFactory.getLogger(ClientRegistryADE.class.getName());
 
   private final NationalRegistriesApi client;
   private final String managerTaxCode;
@@ -29,7 +26,7 @@ public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
 
   public Boolean retrieveInstitution() {
     if (Boolean.TRUE.equals(onboarding.getSkipVerifyLegal())) {
-      logger.info("ClientRegistryADE :: verifyLegal is skipped");
+      log.info("ClientRegistryADE :: verifyLegal is skipped");
       return true;
     }
     return client
