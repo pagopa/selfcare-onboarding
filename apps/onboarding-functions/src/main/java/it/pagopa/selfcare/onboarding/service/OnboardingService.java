@@ -1,8 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
-import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
-
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -17,11 +14,7 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.dto.SendMailInput;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -33,12 +26,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Stream;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
@@ -51,6 +38,16 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 
 @ApplicationScoped
 public class OnboardingService {
@@ -250,13 +247,16 @@ public class OnboardingService {
 
   public void sendMailRegistration(Onboarding onboarding) {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistration(
       onboarding.getInstitution().getDescription(),
       onboarding.getInstitution().getDigitalAddress(),
             sendMailInput.getUserRequestName(),
             sendMailInput.getUserRequestSurname(),
       sendMailInput.getProduct().getTitle(),
-      sendMailInput.getProduct().getExpirationDate().toString());
+            expirationDate);
   }
 
   public void sendMailRegistrationForUser(Onboarding onboarding) {
@@ -297,27 +297,35 @@ public class OnboardingService {
     final String confirmTokenUrl =
       onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
 
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContract(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput,
       templatePath,
-      confirmTokenUrl);
+      confirmTokenUrl, expirationDate);
   }
 
   public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContractAggregator(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
             sendMailInput.getUserRequestName(),
             sendMailInput.getUserRequestSurname(),
-      sendMailInput.getProduct().getTitle(), sendMailInput.getProduct().getExpirationDate().toString());
+      sendMailInput.getProduct().getTitle(), expirationDate);
   }
 
   public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
     Product product = productService.getProduct(onboarding.getProductId());
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContract(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
@@ -326,7 +334,7 @@ public class OnboardingService {
       product.getTitle(),
       "description",
       onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig),
-      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig), product.getExpirationDate().toString());
+      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig), expirationDate);
   }
 
   public void sendMailRegistrationApprove(Onboarding onboarding) {

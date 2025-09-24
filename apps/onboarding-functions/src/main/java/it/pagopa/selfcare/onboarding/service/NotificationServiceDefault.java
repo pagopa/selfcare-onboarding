@@ -125,7 +125,7 @@ public class NotificationServiceDefault implements NotificationService {
     }
 
     @Override
-    public void sendMailRegistrationForContract(String onboardingId, String destination, SendMailInput sendMailInput, String templatePath, String confirmTokenUrl) {
+    public void sendMailRegistrationForContract(String onboardingId, String destination, SendMailInput sendMailInput, String templatePath, String confirmTokenUrl, String expirationDate) {
         // Prepare data for email
         Map<String, String> mailParameters = new HashMap<>();
         mailParameters.put(templatePlaceholdersConfig.productName(), sendMailInput.getProduct().getTitle());
@@ -138,7 +138,7 @@ public class NotificationServiceDefault implements NotificationService {
         Optional.ofNullable(sendMailInput.getManagerSurname()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.managerSurname(), value));
         Optional.ofNullable(sendMailInput.getPreviousManagerName()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerName(), value));
         Optional.ofNullable(sendMailInput.getPreviousManagerSurname()).ifPresent(value -> mailParameters.put(templatePlaceholdersConfig.previousManagerSurname(), value));
-        mailParameters.put(templatePlaceholdersConfig.expirationDate(), sendMailInput.getProduct().getExpirationDate().toString());
+        mailParameters.put(templatePlaceholdersConfig.expirationDate(), expirationDate);
 
         sendMailWithFile(List.of(destination), templatePath, mailParameters, sendMailInput.getProduct().getTitle(), null);
 
