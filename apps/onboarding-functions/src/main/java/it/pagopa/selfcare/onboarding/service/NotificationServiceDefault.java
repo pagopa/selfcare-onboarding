@@ -8,6 +8,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
+import it.pagopa.selfcare.onboarding.dto.FileMailData;
 import it.pagopa.selfcare.onboarding.dto.SendMailInput;
 import it.pagopa.selfcare.onboarding.entity.MailTemplate;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -203,8 +204,8 @@ public class NotificationServiceDefault implements NotificationService {
         Optional<File> optFileLogo = contractService.getLogoFile();
         if (optFileLogo.isPresent()) {
             fileMailData = new FileMailData();
-            fileMailData.contentType = "image/png";
-            fileMailData.data = optFileLogo.map(File::toPath)
+            fileMailData.setContentType("image/png");
+            fileMailData.setData(optFileLogo.map(File::toPath)
                     .map(path -> {
                         try {
                             return Files.readAllBytes(path);
@@ -212,8 +213,8 @@ public class NotificationServiceDefault implements NotificationService {
                             throw new GenericOnboardingException(e.getMessage());
                         }
                     })
-                    .orElse(null);
-            fileMailData.name = PAGOPA_LOGO_FILENAME;
+                    .orElse(null));
+            fileMailData.setName(PAGOPA_LOGO_FILENAME);
         }
         return fileMailData;
     }
@@ -238,7 +239,7 @@ public class NotificationServiceDefault implements NotificationService {
                     .setFrom(senderMail);
 
             if (Objects.nonNull(fileMailData)) {
-                mail.addAttachment(fileMailData.name, fileMailData.data, fileMailData.contentType);
+                mail.addAttachment(fileMailData.getName(), fileMailData.getData(), fileMailData.getContentType());
             }
 
             send(mail);
@@ -256,11 +257,7 @@ public class NotificationServiceDefault implements NotificationService {
         }
     }
 
-    static class FileMailData {
-        byte[] data;
-        String name;
-        String contentType;
-    }
+
 
     @Override
     public void sendTestEmail(ExecutionContext context) {
