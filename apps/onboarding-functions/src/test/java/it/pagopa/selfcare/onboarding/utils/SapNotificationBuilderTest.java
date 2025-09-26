@@ -2,10 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.PricingPlan;
-import it.pagopa.selfcare.onboarding.common.ProductId;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
@@ -280,10 +277,9 @@ class SapNotificationBuilderTest {
         onboarding.setPricingPlan(PricingPlan.FA.name());
         Institution institutionOnboarding = new Institution();
         institutionOnboarding.setInstitutionType(InstitutionType.PA);
+        institutionOnboarding.setOrigin(Origin.IPA);
         onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType("PA");
-        institution.setOrigin("IPA");
 
         when(consumer.allowedInstitutionTypes()).thenReturn(Set.of("PA"));
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
@@ -315,9 +311,12 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.PA);
+        institutionOnboarding.setOrigin(Origin.INFOCAMERE);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType("PA");
-        institution.setOrigin("INFOCAMERE");
+
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
 
         assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
