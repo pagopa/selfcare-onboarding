@@ -151,7 +151,7 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
   public boolean shouldSendNotification(Onboarding onboarding, InstitutionResponse institution) {
     return isProductAllowed(onboarding)
       && isAllowedInstitutionType(onboarding)
-      && isAllowedOrigin(institution.getOrigin());
+      && isAllowedOrigin(onboarding.getInstitution().getOrigin().getValue());
   }
 
   private boolean isProductAllowed(Onboarding onboarding) {
