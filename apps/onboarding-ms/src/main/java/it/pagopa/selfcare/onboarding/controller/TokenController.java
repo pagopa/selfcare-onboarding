@@ -1,11 +1,13 @@
 package it.pagopa.selfcare.onboarding.controller;
 
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.controller.response.TokenResponse;
 import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
+import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
@@ -19,6 +21,7 @@ import java.io.File;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -27,6 +30,13 @@ import org.jboss.resteasy.reactive.RestResponse;
 @Path("/v1/tokens")
 @AllArgsConstructor
 public class TokenController {
+
+  @Inject
+  JsonWebToken jwt;
+
+  @Inject
+  SecurityIdentity securityIdentity;
+
 
   private final TokenService tokenService;
   private final TokenMapper tokenMapper;
