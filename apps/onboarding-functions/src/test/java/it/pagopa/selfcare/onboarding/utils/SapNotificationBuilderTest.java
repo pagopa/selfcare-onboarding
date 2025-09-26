@@ -11,6 +11,7 @@ import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -277,6 +278,9 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
         institution.setInstitutionType("PA");
         institution.setOrigin("IPA");
@@ -294,6 +298,9 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.AS);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
         institution.setInstitutionType("AS");
 
