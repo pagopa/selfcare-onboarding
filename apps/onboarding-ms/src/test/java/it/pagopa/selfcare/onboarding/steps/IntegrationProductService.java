@@ -33,6 +33,7 @@ public class IntegrationProductService implements ProductService {
     private boolean initialized = false;
     private List<Product> products;
     private final CountDownLatch initLatch = new CountDownLatch(1);
+    private static final int DEFAULT_EXPIRATION_DATE = 30;
 
     public void initializeBlocking() {
         if (!initialized) {
@@ -110,5 +111,15 @@ public class IntegrationProductService implements ProductService {
     @Override
     public ProductRole validateProductRole(String productId, String productRole, PartyRole role) {
         return null;
+    }
+
+    @Override
+    public boolean verifyAllowedByInstitutionTaxCode(String productId, String taxCode) {
+        return false;
+    }
+
+    @Override
+    public Integer getProductExpirationDate(String productId) {
+        return DEFAULT_EXPIRATION_DATE;
     }
 }

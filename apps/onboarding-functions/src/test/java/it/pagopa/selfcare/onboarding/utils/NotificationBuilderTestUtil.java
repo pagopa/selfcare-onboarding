@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -105,6 +106,8 @@ public class NotificationBuilderTestUtil {
     Institution institution = new Institution();
     institution.setId(INSTITUTION_ID);
     institution.setInstitutionType(InstitutionType.PSP);
+    institution.setOrigin(Origin.IPA);
+    institution.setOriginId("originId");
     PaymentServiceProvider paymentServiceProvider = new PaymentServiceProvider();
     paymentServiceProvider.setContractType("contractType");
     paymentServiceProvider.setProviderNames(List.of("providerName"));

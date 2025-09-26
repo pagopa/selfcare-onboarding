@@ -51,7 +51,7 @@ app_settings = [
   },
   {
     name  = "ONBOARDING_ALLOWED_INSTITUTIONS_PRODUCTS"
-    value = "prod-interop,prod-pn,prod-io,prod-io-premium,prod-pagopa,prod-dashboard-psp,prod-sendino,prod-io-sign,prod-registro-beni,prod-idpay,prod-idpay-merchant"
+    value = "prod-interop,prod-pn,prod-io,prod-io-premium,prod-pagopa,prod-dashboard-psp,prod-sendino,prod-io-sign,prod-registro-beni,prod-idpay,prod-idpay-merchant,prod-idpay-gi"
   },
   {
     name  = "STORAGE_CONTAINER_PRODUCT"
@@ -92,4 +92,5 @@ secrets_names = {
   "BLOB-STORAGE-CONTRACT-CONNECTION-STRING" = "documents-storage-connection-string"
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
   "ONBOARDING_DATA_ENCRIPTION_KEY"          = "onboarding-data-encryption-key"
+  "ONBOARDING_DATA_ENCRIPTION_IV"           = "onboarding-data-encryption-iv"
 }

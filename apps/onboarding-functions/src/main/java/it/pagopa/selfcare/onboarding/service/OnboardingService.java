@@ -1,8 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
-import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
-
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -16,11 +13,8 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePathConfig;
 import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.dto.SendMailInput;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
@@ -32,12 +26,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Stream;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
@@ -50,6 +38,16 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
+import static it.pagopa.selfcare.onboarding.utils.Utils.NOT_ALLOWED_WORKFLOWS_FOR_INSTITUTION_NOTIFICATIONS;
 
 @ApplicationScoped
 public class OnboardingService {
@@ -249,12 +247,16 @@ public class OnboardingService {
 
   public void sendMailRegistration(Onboarding onboarding) {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistration(
       onboarding.getInstitution().getDescription(),
       onboarding.getInstitution().getDigitalAddress(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle());
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
+            expirationDate);
   }
 
   public void sendMailRegistrationForUser(Onboarding onboarding) {
@@ -295,27 +297,35 @@ public class OnboardingService {
     final String confirmTokenUrl =
       onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig);
 
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContract(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
       sendMailInput,
       templatePath,
-      confirmTokenUrl);
+      confirmTokenUrl, expirationDate);
   }
 
   public void sendMailRegistrationForContractAggregator(Onboarding onboarding) {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContractAggregator(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle());
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(), expirationDate);
   }
 
   public void sendMailRegistrationForContractWhenApprove(OnboardingWorkflow onboardingWorkflow) {
     Onboarding onboarding = onboardingWorkflow.getOnboarding();
     Product product = productService.getProduct(onboarding.getProductId());
+
+    String expirationDate = productService.getProductExpirationDate(onboarding.getProductId()).toString();
+
     notificationService.sendMailRegistrationForContract(
       onboarding.getId(),
       onboarding.getInstitution().getDigitalAddress(),
@@ -324,16 +334,16 @@ public class OnboardingService {
       product.getTitle(),
       "description",
       onboardingWorkflow.getEmailRegistrationPath(mailTemplatePathConfig),
-      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig));
+      onboardingWorkflow.getConfirmTokenUrl(mailTemplatePlaceholdersConfig), expirationDate);
   }
 
   public void sendMailRegistrationApprove(Onboarding onboarding) {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
     notificationService.sendMailRegistrationApprove(
       onboarding.getInstitution().getDescription(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(),
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
       onboarding.getId());
   }
 
@@ -341,9 +351,9 @@ public class OnboardingService {
     SendMailInput sendMailInput = builderWithProductAndUserRequest(onboarding);
     notificationService.sendMailOnboardingApprove(
       onboarding.getInstitution().getDescription(),
-      sendMailInput.userRequestName,
-      sendMailInput.userRequestSurname,
-      sendMailInput.product.getTitle(),
+            sendMailInput.getUserRequestName(),
+            sendMailInput.getUserRequestSurname(),
+      sendMailInput.getProduct().getTitle(),
       onboarding.getId());
   }
 
@@ -363,7 +373,7 @@ public class OnboardingService {
 
   private SendMailInput builderWithProductAndUserRequest(Onboarding onboarding) {
     SendMailInput sendMailInput = new SendMailInput();
-    sendMailInput.product = productService.getProduct(onboarding.getProductId());
+    sendMailInput.setProduct(productService.getProduct(onboarding.getProductId()));
 
     // Set data of previousManager in case of workflowType USERS
     if (Objects.nonNull(onboarding.getPreviousManagerId())) {
@@ -378,16 +388,13 @@ public class OnboardingService {
           () ->
             new GenericOnboardingException(
               String.format(USER_REQUEST_DOES_NOT_FOUND, onboarding.getId())));
-    sendMailInput.userRequestName =
-      Optional.ofNullable(userRequest.getName())
-        .map(CertifiableFieldResourceOfstring::getValue)
-        .orElse("");
-    sendMailInput.userRequestSurname =
-      Optional.ofNullable(userRequest.getFamilyName())
-        .map(CertifiableFieldResourceOfstring::getValue)
-        .orElse("");
-    sendMailInput.institutionName =
-      Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse("");
+    sendMailInput.setUserRequestName(Optional.ofNullable(userRequest.getName())
+            .map(CertifiableFieldResourceOfstring::getValue)
+            .orElse(""));
+    sendMailInput.setUserRequestSurname(Optional.ofNullable(userRequest.getFamilyName())
+            .map(CertifiableFieldResourceOfstring::getValue)
+            .orElse(""));
+    sendMailInput.setInstitutionName(Optional.ofNullable(onboarding.getInstitution().getDescription()).orElse(""));
     return sendMailInput;
   }
 
@@ -583,19 +590,6 @@ public class OnboardingService {
       new Document(WORKFLOW_TYPE, new Document("$exists", false)));
   }
 
-  static class SendMailInput {
-    Product product;
-    String userRequestName;
-    // Used in case of workflowType USER
-    String previousManagerName;
-    String managerName;
-    String userRequestSurname;
-    // Used in case of workflowType USER
-    String previousManagerSurname;
-    String managerSurname;
-    String institutionName;
-  }
-
   private void setManagerData(Onboarding onboarding, SendMailInput sendMailInput) {
     final String managerId =
       onboarding.getUsers().stream()
@@ -611,12 +605,12 @@ public class OnboardingService {
       UserResource previousManager =
         userRegistryApi.findByIdUsingGET(
           USERS_WORKS_FIELD_LIST, onboarding.getPreviousManagerId());
-      sendMailInput.previousManagerName = previousManager.getName().getValue();
-      sendMailInput.previousManagerSurname = previousManager.getFamilyName().getValue();
+      sendMailInput.setPreviousManagerName(previousManager.getName().getValue());
+      sendMailInput.setPreviousManagerSurname(previousManager.getFamilyName().getValue());
       UserResource currentManager =
         userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, managerId);
-      sendMailInput.managerName = currentManager.getName().getValue();
-      sendMailInput.managerSurname = currentManager.getFamilyName().getValue();
+      sendMailInput.setManagerName(currentManager.getName().getValue());
+      sendMailInput.setManagerSurname(currentManager.getFamilyName().getValue());
     } else {
       onboarding.setPreviousManagerId(null);
     }
