@@ -26,5 +26,6 @@ public class OnboardingPgRequest {
     private Origin origin;
     @NotNull
     private String digitalAddress;
+    private Boolean skipVerifyLegal;
 
 }

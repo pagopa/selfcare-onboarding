@@ -21,4 +21,6 @@ public class OnboardingBaseRequest {
 
     private Boolean signContract;
 
+    private Boolean soleTrader;
+
 }

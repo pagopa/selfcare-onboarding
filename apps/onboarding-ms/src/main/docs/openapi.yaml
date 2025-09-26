@@ -968,6 +968,10 @@ paths:
         in: query
         schema:
           type: string
+      - name: soleTrader
+        in: query
+        schema:
+          type: boolean
       - name: subunitCode
         in: query
         schema:
@@ -2028,6 +2032,8 @@ components:
           type: string
         signContract:
           type: boolean
+        soleTrader:
+          type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2062,6 +2068,8 @@ components:
         pricingPlan:
           type: string
         signContract:
+          type: boolean
+        soleTrader:
           type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
@@ -2206,6 +2214,8 @@ components:
           type: string
         signContract:
           type: boolean
+        soleTrader:
+          type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2239,6 +2249,8 @@ components:
           $ref: "#/components/schemas/Origin"
         digitalAddress:
           type: string
+        skipVerifyLegal:
+          type: boolean
     OnboardingPspRequest:
       required:
       - productId
@@ -2261,6 +2273,8 @@ components:
         pricingPlan:
           type: string
         signContract:
+          type: boolean
+        soleTrader:
           type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionPspRequest"
