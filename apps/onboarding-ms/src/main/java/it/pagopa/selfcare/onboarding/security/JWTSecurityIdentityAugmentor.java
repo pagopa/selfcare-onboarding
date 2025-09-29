@@ -4,49 +4,44 @@ import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
-import io.quarkus.smallrye.jwt.runtime.auth.JsonWebTokenCredential;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-
-
 
 import java.util.Set;
 
 @ApplicationScoped
 public class JWTSecurityIdentityAugmentor implements SecurityIdentityAugmentor {
-  @Inject
-  MultiIssuerJWTValidator jwtValidator;
 
   @Override
   public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-    if (identity.isAnonymous()) {
-      return Uni.createFrom().item(identity);
-    }
-                                                        //this.jwtValidator.validateToken(identity.getCredential(JsonWebTokenCredential.class).getToken())
+//    Optional<Credential> tokenCredential = identity.getCredentials().stream()
+//      .filter(credential -> credential instanceof TokenCredential).findFirst();
+//    Optional.of(tokenCredential).ifPresent(token -> {
+//      if (token.isPresent()) {
+//        try {
+//          jwtValidator.p(((TokenCredential) token.get()).getToken());
+//        } catch (Exception e) {
+//          throw new RuntimeException(e);
+//        }
+//      }
+//    });
+//    if (identity.isAnonymous()) {
+//      return Uni.createFrom().item(identity);
+//    }
+//    String token = extractTokenFromContext(context);
+//    JsonWebToken validatedJwt = validator.validateAndParse(identity.getPrincipal().get);
+
+    //this.jwtValidator.validateToken(identity.getCredential(JsonWebTokenCredential.class).getToken())
     if (identity.getPrincipal() instanceof JsonWebToken) {
       return Uni.createFrom().item((JsonWebToken) identity.getPrincipal())
         .onItem().transform(JsonWebToken::getIssuer)
         .onItem().transform(issuer -> {
             QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
+            builder.addRole("SUPPORT");
             builder.addAttribute("jwt.issuer", issuer);
-            builder.addAttribute("jwt.supported.issuers", jwtValidator.getSupportedIssuers());
             return builder.build();
         });
-
-
-//      JsonWebToken jwt = (JsonWebToken) identity.getPrincipal();
-//      String issuer = jwt.getIssuer();
-
-//      QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder(identity);
-//      builder.addAttribute("jwt.issuer", issuer);
-//      builder.addAttribute("jwt.supported.issuers", jwtValidator.getSupportedIssuers());
-
-//      Set<String> issuerSpecificRoles = determineRolesForIssuer(jwt, issuer);
-//      issuerSpecificRoles.forEach(builder::addRole);
-
-//      return Uni.createFrom().item(builder.build());
     }
 
     return Uni.createFrom().item(identity);
