@@ -8,39 +8,41 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.util.Set;
+
+
 @ApplicationScoped
 public class JWTSecurityIdentityAugmentor implements SecurityIdentityAugmentor {
 
+
   @Override
   public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-    return Uni.createFrom().item(identity)
-      .onItem().transformToUni(securityIdentity ->
-        securityIdentity.getPrincipal() instanceof JsonWebToken
-          ? Uni.createFrom().item((JsonWebToken) securityIdentity.getPrincipal())
-          : Uni.createFrom().nullItem()
-      )
-      .onItem().ifNotNull().transform(JsonWebToken::getIssuer)
-      .onItem().ifNotNull().transform(issuer -> QuarkusSecurityIdentity.builder(identity)
-        .addRole("SUPPORT")
-        .addAttribute("jwt.issuer", issuer)
-        .build())
-      .onItem().ifNull().fail().replaceWith(identity);
+    if (!(identity.getPrincipal() instanceof JsonWebToken jwt)) {
+      return Uni.createFrom().item(identity);
+    }
+
+    String issuer = jwt.getIssuer();
+    if (issuer == null || issuer.isEmpty()) {
+      return Uni.createFrom().item(identity);
+    }
+
+    QuarkusSecurityIdentity.Builder builder = QuarkusSecurityIdentity.builder();
+    builder.setPrincipal(identity.getPrincipal());
+    identity.getRoles().forEach(builder::addRole);
+    identity.getAttributes().forEach(builder::addAttribute);
+    builder.addAttribute("jwt.issuer", issuer);
+    builder.addRoles(determineRolesForIssuer(issuer));
+    identity.getCredentials().forEach(builder::addCredential);
+    return Uni.createFrom().item(builder.build());
   }
 
-//  private Set<String> determineRolesForIssuer(JsonWebToken jwt, String issuer) {
-//    Set<String> roles = Set.of();
-//
-//    switch (issuer) {
-//      case "SPID":
-//        roles = Set.copyOf(jwt.getClaimNames());
-//        break;
-//      case "PAGOPA":
-//        roles = Set.of("SUPPORT");
-//        break;
-//      default:
-//        roles = jwt.getGroups();
-//    }
-//
-//    return roles != null ? roles : Set.of();
-//  }
+  private static Set<String> determineRolesForIssuer(String issuer) {
+    Set<String> roles = Set.of();
+
+    if (issuer.equals("PAGOPA")) {
+      roles = Set.of("SUPPORT");
+    }
+
+    return roles;
+  }
 }
