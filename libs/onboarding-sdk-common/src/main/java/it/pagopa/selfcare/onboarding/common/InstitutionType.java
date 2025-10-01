@@ -12,5 +12,6 @@ public enum InstitutionType {
     REC,
     CON,
     PRV,
-    GPU
+    GPU,
+    SCEC
 }
