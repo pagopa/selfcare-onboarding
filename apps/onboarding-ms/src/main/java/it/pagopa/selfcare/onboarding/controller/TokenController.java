@@ -32,9 +32,6 @@ import org.jboss.resteasy.reactive.RestResponse;
 public class TokenController {
 
   @Inject
-  JsonWebToken jwt;
-
-  @Inject
   SecurityIdentity securityIdentity;
 
 
