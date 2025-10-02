@@ -52,10 +52,6 @@ import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormD
 @Slf4j
 public class OnboardingController {
 
-
-    @Inject
-    JsonWebToken jwt;
-
     @Inject
     SecurityIdentity securityIdentity;
 
