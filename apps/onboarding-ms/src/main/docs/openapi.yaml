@@ -2249,6 +2249,8 @@ components:
           $ref: "#/components/schemas/Origin"
         digitalAddress:
           type: string
+        skipVerifyLegal:
+          type: boolean
     OnboardingPspRequest:
       required:
       - productId
