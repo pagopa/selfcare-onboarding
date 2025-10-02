@@ -19,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.GSP_CATEGORY_INSTITUTION_TYPE;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.SCEC_CATEGORY_INSTITUTION_TYPE;
 
 public class RegistryManagerIPA extends RegistryManagerIPAUo {
 
@@ -74,8 +75,10 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
         onboarding.getInstitution().setDigitalAddress(institutionResource.getDigitalAddress());
         onboarding.getInstitution().setAddress(institutionResource.getAddress());
         onboarding.getInstitution().setDescription(institutionResource.getDescription());
-        InstitutionType institutionType = institutionResource.getCategory().equalsIgnoreCase(GSP_CATEGORY_INSTITUTION_TYPE) ? InstitutionType.GSP : InstitutionType.PA;
+
+        InstitutionType institutionType = getCurrentInstitutionType(institutionResource);
         onboarding.getInstitution().setInstitutionType(institutionType);
+
         onboarding.getInstitution().setZipCode(institutionResource.getZipCode());
         GeographicTaxonomyResource geographicTaxonomyResource = geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(institutionResource.getIstatCode())
                 .await().atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));
@@ -93,6 +96,14 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
             billing.setRecipientCode(institutionResource.getOriginId());
             onboarding.setBilling(billing);
         }
+    }
+
+    private InstitutionType getCurrentInstitutionType(InstitutionResource institutionResource) {
+        return switch (institutionResource.getCategory()) {
+            case GSP_CATEGORY_INSTITUTION_TYPE -> InstitutionType.GSP;
+            case SCEC_CATEGORY_INSTITUTION_TYPE -> InstitutionType.SCEC;
+            default -> InstitutionType.PA;
+        };
     }
 
 }

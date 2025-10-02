@@ -32,6 +32,8 @@ import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.*;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
+import it.pagopa.selfcare.onboarding.entity.registry.RegistryManagerIPA;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
@@ -3532,6 +3534,67 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
         mockAllowedProductByInstitutionTaxCodeList(asserter, false);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingScecTest(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setOriginId("taxCode-OK");
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setImported(true);
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.SCEC);
+        institutionBaseRequest.setTaxCode("taxCode-OK");
+        request.setInstitution(institutionBaseRequest);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
+        pdndBusinessResource.setBusinessName("name");
+        pdndBusinessResource.setDigitalAddress("pec");
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        product.setAllowedInstitutionTaxCode(List.of("taxCode-OK"));
+
+        mockVerifyOnboardingNotFound();
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("S01G");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+
+        mockAllowedProductByInstitutionTaxCodeList(asserter, true);
+        mockVerifyAllowedProductList(request.getProductId(), asserter, false);
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
 
