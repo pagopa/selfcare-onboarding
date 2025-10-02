@@ -2753,7 +2753,7 @@
         }
       },
       "InstitutionType" : {
-        "enum" : [ "PA", "PG", "GSP", "SA", "PT", "SCP", "PSP", "AS", "REC", "CON", "PRV", "GPU" ],
+        "enum" : [ "PA", "PG", "GSP", "SA", "PT", "SCP", "PSP", "AS", "REC", "CON", "PRV", "PRV_PF", "GPU", "SCEC" ],
         "type" : "string"
       },
       "LocalDateTime" : {
