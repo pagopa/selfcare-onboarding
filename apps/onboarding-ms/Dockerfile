@@ -23,13 +23,10 @@ RUN echo "<settings>\n" \
          "<servers>\n" \
          "<server>\n" \
          "<id>\${repositoryId}</id>\n" \
-         "<username>\${repoLogin}</username>\n" \
-         "<password>\${repoPwd}</password>\n" \
+
          "</server>\n" \
          "<server>\n" \
          "<id>\${selfcareRepositoryId}</id>\n" \
-         "<username>\${repoLogin}</username>\n" \
-         "<password>\${repoPwd}</password>\n" \
          "</server>\n" \
          "</servers>\n" \
          "</settings>\n" > settings.xml
