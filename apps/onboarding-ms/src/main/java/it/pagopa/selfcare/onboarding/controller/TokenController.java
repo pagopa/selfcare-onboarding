@@ -34,7 +34,6 @@ public class TokenController {
   @Inject
   SecurityIdentity securityIdentity;
 
-
   private final TokenService tokenService;
   private final TokenMapper tokenMapper;
 
