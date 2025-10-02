@@ -150,8 +150,8 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
   @Override
   public boolean shouldSendNotification(Onboarding onboarding, InstitutionResponse institution) {
     return isProductAllowed(onboarding)
-      && isAllowedInstitutionType(institution)
-      && isAllowedOrigin(institution.getOrigin());
+      && isAllowedInstitutionType(onboarding)
+      && isAllowedOrigin(onboarding.getInstitution().getOrigin().getValue());
   }
 
   private boolean isProductAllowed(Onboarding onboarding) {
@@ -161,9 +161,9 @@ public class SapNotificationBuilder extends BaseNotificationBuilder
     return !isProdIo || PricingPlan.FA.name().equals(onboarding.getPricingPlan());
   }
 
-  private boolean isAllowedInstitutionType(InstitutionResponse institution) {
+  private boolean isAllowedInstitutionType(Onboarding onboarding) {
     return isNullOrEmpty(consumer.allowedInstitutionTypes())
-      || consumer.allowedInstitutionTypes().contains(institution.getInstitutionType());
+      || consumer.allowedInstitutionTypes().contains(onboarding.getInstitution().getInstitutionType().name());
   }
 
   private boolean isAllowedOrigin(String origin) {
