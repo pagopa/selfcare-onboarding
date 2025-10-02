@@ -31,7 +31,7 @@
         </repository>
         <repository>
             <id>selfcare-lib-github</id>
-            <name>Selfcare Onboarding SDK</name>
+            <name>Selfcare Lib SDK</name>
             <url>https://maven.pkg.github.com/pagopa/selfcare</url>
         </repository>
     </repositories>
