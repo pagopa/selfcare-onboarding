@@ -39,7 +39,6 @@ ARG REPO_USERNAME
 ARG REPO_PASSWORD
 ARG REPO_SELFCARE
 
-RUN cat settings.xml
 # RUN mvn --projects :onboarding-ms --also-make clean package -DskipTests
 RUN mvn --global-settings settings.xml --projects :onboarding-ms -DrepositoryId=${REPO_ONBOARDING} -DselfcareRepositoryId=${REPO_SELFCARE} -DrepoLogin=${REPO_USERNAME} -DrepoPwd=${REPO_PASSWORD} --also-make clean package -DskipTests
 
