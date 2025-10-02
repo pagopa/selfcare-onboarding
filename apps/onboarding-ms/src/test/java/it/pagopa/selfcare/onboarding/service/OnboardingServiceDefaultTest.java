@@ -3596,7 +3596,11 @@ class OnboardingServiceDefaultTest {
         mockAllowedProductByInstitutionTaxCodeList(asserter, true);
         mockVerifyAllowedProductList(request.getProductId(), asserter, false);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), onboardingResponse -> {
+            assertNotNull(onboardingResponse);
+            assertEquals(WorkflowType.CONTRACT_REGISTRATION.name(), onboardingResponse.getWorkflowType());
+            assertEquals("REQUEST", onboardingResponse.getStatus());
+        });
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());

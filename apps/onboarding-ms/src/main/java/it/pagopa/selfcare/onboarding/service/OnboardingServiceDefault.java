@@ -717,7 +717,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         if (InstitutionType.PA.equals(institutionType)
-                || isGspAndProdInterop(institutionType, onboarding.getProductId())
+                || verifyInstitutionOnInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || Objects.nonNull(product.getParentId())
@@ -737,8 +737,10 @@ public class OnboardingServiceDefault implements OnboardingService {
         return WorkflowType.FOR_APPROVE;
     }
 
-    private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
-        return InstitutionType.GSP == institutionType && productId.equals(PROD_INTEROP.getValue());
+    private boolean verifyInstitutionOnInterop(InstitutionType institutionType, String productId) {
+        Set<InstitutionType> allowedInstitutionType = Set.of(InstitutionType.GSP, InstitutionType.SCEC);
+        return allowedInstitutionType.contains(institutionType)
+                && PROD_INTEROP.getValue().equalsIgnoreCase(productId);
     }
 
     private Uni<Product> product(String productId) {
