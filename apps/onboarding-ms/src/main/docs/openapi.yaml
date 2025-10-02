@@ -2003,7 +2003,9 @@ components:
       - REC
       - CON
       - PRV
+      - PRV_PF
       - GPU
+      - SCEC
       type: string
     LocalDateTime:
       format: date-time
