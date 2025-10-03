@@ -739,7 +739,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private boolean verifyInstitutionOnInterop(InstitutionType institutionType, String productId) {
         Set<InstitutionType> allowedInstitutionType = Set.of(InstitutionType.GSP, InstitutionType.SCEC);
-        return allowedInstitutionType.contains(institutionType)
+        return Objects.nonNull(institutionType) && allowedInstitutionType.contains(institutionType)
                 && PROD_INTEROP.getValue().equalsIgnoreCase(productId);
     }
 
