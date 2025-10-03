@@ -2384,11 +2384,13 @@
                 "PA",
                 "PG",
                 "PRV",
+                "PRV_PF",
                 "PSP",
                 "PT",
                 "REC",
                 "SA",
-                "SCP"
+                "SCP",
+                "SCEC"
               ]
             }
           }
@@ -3353,11 +3355,13 @@
               "PA",
               "PG",
               "PRV",
+              "PRV_PF",
               "PSP",
               "PT",
               "REC",
               "SA",
-              "SCP"
+              "SCP",
+              "SCEC"
             ]
           },
           "subunitCode": {
@@ -3439,7 +3443,7 @@
           },
           "institutionType" : {
             "type" : "string",
-            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PSP", "PT", "REC", "SA", "SCP" ]
+            "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PRV_PF", "PSP", "PT", "REC", "SA", "SCP", "SCEC" ]
           }
         }
       },
@@ -3654,11 +3658,13 @@
               "PA",
               "PG",
               "PRV",
+              "PRV_PF",
               "PSP",
               "PT",
               "REC",
               "SA",
-              "SCP"
+              "SCP",
+              "SCEC"
             ]
           },
           "onboarding": {
@@ -3887,11 +3893,13 @@
               "PA",
               "PG",
               "PRV",
+              "PRV_PF",
               "PSP",
               "PT",
               "REC",
               "SA",
-              "SCP"
+              "SCP",
+              "SCEC"
             ]
           },
           "ivassCode": {
