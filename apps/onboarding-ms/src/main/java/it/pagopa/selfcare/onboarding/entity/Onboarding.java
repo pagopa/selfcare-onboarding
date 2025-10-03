@@ -47,7 +47,6 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private String previousManagerId;
 
     private Boolean sendMailForImport;
-    private Boolean soleTrader;
 
     @BsonIgnore
     private Boolean skipVerifyLegal;

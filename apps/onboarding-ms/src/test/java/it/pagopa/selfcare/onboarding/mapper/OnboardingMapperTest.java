@@ -1,12 +1,7 @@
 package it.pagopa.selfcare.onboarding.mapper;
 
-import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
-import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.model.*;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
 import org.openapi.quarkus.onboarding_functions_json.model.WorkflowType;
 
@@ -15,7 +10,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class OnboardingMapperTest {
 
@@ -162,72 +156,6 @@ class OnboardingMapperTest {
         List<AggregateUser> result = mapper.mapUsers(input);
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void handleDecryption_whenSoleTraderIsTrue_shouldDecryptFields() {
-        Onboarding model = new Onboarding();
-        model.setSoleTrader(true);
-
-        Institution sourceInstitution = Mockito.mock(Institution.class);
-        when(sourceInstitution.decryptTaxCode()).thenReturn("DECRYPTED_TAX_CODE");
-        when(sourceInstitution.decryptOriginId()).thenReturn("DECRYPTED_ORIGIN_ID");
-        model.setInstitution(sourceInstitution);
-
-        OnboardingGet getResponse = new OnboardingGet();
-        InstitutionResponse targetInstitution = new InstitutionResponse();
-
-        targetInstitution.setTaxCode("ENCRYPTED_TAX_CODE");
-        targetInstitution.setOriginId("ENCRYPTED_ORIGIN_ID");
-        getResponse.setInstitution(targetInstitution);
-
-        mapper.handleDecryption(getResponse, model);
-
-        assertEquals("DECRYPTED_TAX_CODE", getResponse.getInstitution().getTaxCode());
-        assertEquals("DECRYPTED_ORIGIN_ID", getResponse.getInstitution().getOriginId());
-
-        verify(sourceInstitution, times(1)).decryptTaxCode();
-        verify(sourceInstitution, times(1)).decryptOriginId();
-    }
-
-    @Test
-    void handleDecryption_whenSoleTraderIsFalse_shouldNotDecryptFields() {
-        Onboarding model = new Onboarding();
-        model.setSoleTrader(false);
-        Institution sourceInstitution = Mockito.mock(Institution.class);
-        model.setInstitution(sourceInstitution);
-
-        OnboardingGet getResponse = new OnboardingGet();
-        InstitutionResponse targetInstitution = new InstitutionResponse();
-        targetInstitution.setTaxCode("ENCRYPTED_TAX_CODE");
-        targetInstitution.setOriginId("ENCRYPTED_ORIGIN_ID");
-        getResponse.setInstitution(targetInstitution);
-
-        mapper.handleDecryption(getResponse, model);
-
-        assertEquals("ENCRYPTED_TAX_CODE", getResponse.getInstitution().getTaxCode());
-        assertEquals("ENCRYPTED_ORIGIN_ID", getResponse.getInstitution().getOriginId());
-
-        verify(sourceInstitution, never()).decryptTaxCode();
-        verify(sourceInstitution, never()).decryptOriginId();
-    }
-
-    @Test
-    void handleDecryption_whenSoleTraderIsNull_shouldNotDecryptFields() {
-        Onboarding model = new Onboarding();
-        model.setSoleTrader(null);
-        Institution sourceInstitution = mock(Institution.class);
-        model.setInstitution(sourceInstitution);
-
-        OnboardingGet getResponse = new OnboardingGet();
-        InstitutionResponse targetInstitution = new InstitutionResponse();
-        targetInstitution.setTaxCode("ENCRYPTED_VALUE");
-        getResponse.setInstitution(targetInstitution);
-
-        mapper.handleDecryption(getResponse, model);
-
-        assertEquals("ENCRYPTED_VALUE", getResponse.getInstitution().getTaxCode());
-        verify(sourceInstitution, never()).decryptTaxCode();
     }
 }
 

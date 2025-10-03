@@ -1318,6 +1318,12 @@
         "description" : "Verify if the onboarded product is already onboarded for the institution",
         "operationId" : "verifyOnboardingInfoByFilters",
         "parameters" : [ {
+          "name" : "institutionType",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/InstitutionType"
+          }
+        }, {
           "name" : "origin",
           "in" : "query",
           "schema" : {
@@ -1334,12 +1340,6 @@
           "in" : "query",
           "schema" : {
             "type" : "string"
-          }
-        }, {
-          "name" : "soleTrader",
-          "in" : "query",
-          "schema" : {
-            "type" : "boolean"
           }
         }, {
           "name" : "subunitCode",
@@ -2790,9 +2790,6 @@
           "signContract" : {
             "type" : "boolean"
           },
-          "soleTrader" : {
-            "type" : "boolean"
-          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -2840,9 +2837,6 @@
             "type" : "string"
           },
           "signContract" : {
-            "type" : "boolean"
-          },
-          "soleTrader" : {
             "type" : "boolean"
           },
           "institution" : {
@@ -3043,9 +3037,6 @@
           "signContract" : {
             "type" : "boolean"
           },
-          "soleTrader" : {
-            "type" : "boolean"
-          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -3119,9 +3110,6 @@
             "type" : "string"
           },
           "signContract" : {
-            "type" : "boolean"
-          },
-          "soleTrader" : {
             "type" : "boolean"
           },
           "institution" : {
