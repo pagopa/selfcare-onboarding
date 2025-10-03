@@ -714,8 +714,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || Objects.nonNull(product.getParentId())
-                || (InstitutionType.PRV.equals(institutionType)
                 || (InstitutionType.PRV_PF.equals(institutionType)
+                || (InstitutionType.PRV.equals(institutionType)
                 && !PROD_PAGOPA.getValue().equals(onboarding.getProductId())))) {
             return WorkflowType.CONTRACT_REGISTRATION;
         }

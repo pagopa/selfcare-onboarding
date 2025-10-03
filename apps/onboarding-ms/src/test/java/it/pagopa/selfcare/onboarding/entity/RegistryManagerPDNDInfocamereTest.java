@@ -123,14 +123,14 @@ class RegistryManagerPDNDInfocamereTest {
     @Test
     void customValidation_shouldDoNothing_whenInstitutionTypeIsNotPrvPf() {
 
-        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP); // Tipo diverso
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
 
         UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(null)
                 .subscribe().withSubscriber(UniAssertSubscriber.create());
         Onboarding result = subscriber.awaitItem().getItem();
 
         assertSame(baseOnboarding, result);
-        assertEquals("RSSMRA80A01H501U", result.getInstitution().getTaxCode()); // Il TaxCode non deve cambiare
+        assertEquals("RSSMRA80A01H501U", result.getInstitution().getTaxCode());
 
         verifyNoInteractions(userRegistryApi);
     }
@@ -145,7 +145,7 @@ class RegistryManagerPDNDInfocamereTest {
 
     @Test
     void isValid_shouldFail_whenDataDoesNotMatch() {
-        manager.getRegistryResource().setDigitalAddress("another@pec.it"); // Modifica un dato per creare un mismatch
+        manager.getRegistryResource().setDigitalAddress("another@pec.it");
 
         UniAssertSubscriber<Boolean> subscriber = manager.isValid()
                 .subscribe().withSubscriber(UniAssertSubscriber.create());
