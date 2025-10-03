@@ -23,9 +23,8 @@ import java.util.UUID;
 
 import org.mapstruct.*;
 import org.openapi.quarkus.onboarding_functions_json.model.PartyRole;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
 
-@Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class, UserApi.class})
+@Mapper(componentModel = "cdi", imports = { UUID.class, WorkflowType.class, OnboardingStatus.class})
 public interface OnboardingMapper {
 
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
