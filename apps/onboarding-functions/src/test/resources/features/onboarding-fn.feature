@@ -176,3 +176,16 @@ Feature: Onboarding collection
       | status    |
       | PENDING   |
       | COMPLETED |
+
+
+  Scenario Outline: Verify correct invocation of the StartOnboardingOrchestration for correct workflow CONTRACT_REGISTRATION request with institutionType SCEC
+    Given Preparing the invocation of "StartOnboardingOrchestration" HTTP call with onboardingId "e49167f4-d9f3-475f-8814-9c0d81e316d2"
+    When I send a GET request with given onboardingId
+    Then the response should have status code 202
+    And the answer should contain "id,purgeHistoryDeleteUri,restartPostUri"
+    And there is a document for onboarding with status "<status>"
+
+    Examples:
+      | status    |
+      | PENDING   |
+      | COMPLETED |

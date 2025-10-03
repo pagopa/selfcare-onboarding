@@ -36,7 +36,7 @@ services:
     networks:
       - developer-network
 
-  onboarding-fn:
+  onboarding-function:
     platform: linux/amd64
     build:
       context: ../../../../../..

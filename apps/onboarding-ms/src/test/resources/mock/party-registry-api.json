@@ -326,6 +326,24 @@
   {
     "httpRequest": {
       "method": "GET",
+      "path": "/party-registry-mock/institutions/{taxCode}",
+      "pathParameters": {
+        "taxCode": [
+          "83001010617"
+        ]
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "body": "{\n        \"id\": \"83001010617\",\n        \"originId\": \"c_h423\",\n        \"taxCode\": \"83001010617\",\n        \"category\": \"S01G\",\n        \"description\": \"Comune di Roccamonfina\",\n        \"digitalAddress\": \"protocollo.roccamonfina@asmepec.it\",\n        \"address\": \"p. Municipale, 2\",\n        \"zipCode\": \"00000\",\n        \"origin\": \"IPA\",\n        \"istatCode\": \"058091\"\n      }",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "GET",
       "path": "/party-registry-mock/origins/{origin}/categories/{code}",
       "pathParameters": {
         "origin": [

@@ -398,3 +398,11 @@ Feature: Onboarding collection
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "IBAN is not in an Italian format or is not 27 characters long"
+
+  Scenario: Successfully store onboarding in status REQUEST with institutionType SCEC
+    Given I have a request object named "success_scec_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 200
+    And the response body should not be empty
+    And the response should have field "status" with value "REQUEST"
+    And the response should have field "workflowType" with value "CONTRACT_REGISTRATION"

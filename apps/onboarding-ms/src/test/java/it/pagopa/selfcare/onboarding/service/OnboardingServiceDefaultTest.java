@@ -1,18 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
-
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -52,9 +39,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -78,6 +62,23 @@ import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfst
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -2943,13 +2944,13 @@ class OnboardingServiceDefaultTest {
                 }));
     }
 
-  void mockVerifyAllowedProductList(String productId, UniAsserter asserter, boolean aspectedResult) {
-    asserter.execute(() -> when(onboardingValidationStrategy.validate(productId)).thenReturn(aspectedResult));
-  }
+    void mockVerifyAllowedProductList(String productId, UniAsserter asserter, boolean aspectedResult) {
+        asserter.execute(() -> when(onboardingValidationStrategy.validate(productId)).thenReturn(aspectedResult));
+    }
 
-  void mockAllowedProductByInstitutionTaxCodeList(UniAsserter asserter, boolean aspectedResult) {
+    void mockAllowedProductByInstitutionTaxCodeList(UniAsserter asserter, boolean aspectedResult) {
         asserter.execute(() -> when(productService.verifyAllowedByInstitutionTaxCode(anyString(), anyString())).thenReturn(aspectedResult));
-  }
+    }
 
     private void mockUpdateOnboardingInfo(String onboardingId, Long updatedItemCount) {
         ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
@@ -3416,7 +3417,7 @@ class OnboardingServiceDefaultTest {
 
     @Test
     void retrieveOnboardingByInstitutionId_shouldThrowNotFound_whenNoResult() {
-        
+
         String institutionId = "inst-404";
         String productId = "prod-404";
 
@@ -3534,6 +3535,71 @@ class OnboardingServiceDefaultTest {
         mockAllowedProductByInstitutionTaxCodeList(asserter, false);
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboardingScecTest(UniAsserter asserter) {
+        Onboarding request = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        request.setProductId(PROD_INTEROP.getValue());
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setOriginId("taxCode-OK");
+        institutionBaseRequest.setDescription("name");
+        institutionBaseRequest.setImported(true);
+        institutionBaseRequest.setDigitalAddress("pec");
+        institutionBaseRequest.setInstitutionType(InstitutionType.SCEC);
+        institutionBaseRequest.setTaxCode("taxCode-OK");
+        request.setInstitution(institutionBaseRequest);
+        mockPersistOnboarding(asserter);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
+        pdndBusinessResource.setBusinessName("name");
+        pdndBusinessResource.setDigitalAddress("pec");
+
+        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        product.setAllowedInstitutionTaxCode(List.of("taxCode-OK"));
+
+        mockVerifyOnboardingNotFound();
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("S01G");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+
+        mockAllowedProductByInstitutionTaxCodeList(asserter, true);
+        mockVerifyAllowedProductList(request.getProductId(), asserter, false);
+
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), onboardingResponse -> {
+            assertNotNull(onboardingResponse);
+            assertEquals(WorkflowType.CONTRACT_REGISTRATION.name(), onboardingResponse.getWorkflowType());
+            assertEquals("REQUEST", onboardingResponse.getStatus());
+        });
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());

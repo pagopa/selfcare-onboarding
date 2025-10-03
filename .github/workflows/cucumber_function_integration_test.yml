@@ -123,7 +123,7 @@ jobs:
         shell: bash
         working-directory: apps/onboarding-functions
         run: |
-          mvn clean test \
+          mvn clean test -q \
               -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingFunctionStep \
               -Dsurefire.parallel=none \
               -Dsurefire.threadCount=1 \
@@ -141,8 +141,8 @@ jobs:
         working-directory: apps/onboarding-functions
         run: |
           mkdir -p docker-logs
-          for s in $(docker compose -f src/test/resources/docker-compose.yml ps --services); do
-            docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log || true
+          for s in $(docker compose -f src/test/resources/docker-compose.yml config --services); do
+            docker compose -f src/test/resources/docker-compose.yml logs $s > docker-logs/$s.log 2>&1 || true
           done
 
       - name: Upload logs
