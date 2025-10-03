@@ -37,6 +37,10 @@ jobs:
           maven-version: '3.9.5'
           cache-enabled: true
 
+      - uses: s4u/maven-settings-action@60912582505985be4cc55d2b890eb32767f8de5f # pin@v2.8.0
+        with:
+          servers: '[{"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},{"id": "selfcare-lib-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},{"id": "selfcare", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}]'
+
       - name: Build and Analyze
         shell: bash
         run: mvn --projects :test-coverage --also-make verify -P${{ inputs.module }},report,coverage
