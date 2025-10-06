@@ -58,10 +58,7 @@ import org.openapi.quarkus.party_registry_proxy_json.api.*;
 import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
-import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
-import org.openapi.quarkus.user_registry_json.model.UserId;
-import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+import org.openapi.quarkus.user_registry_json.model.*;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -982,7 +979,6 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
-        request.setSoleTrader(Boolean.TRUE);
         mockPersistOnboarding(asserter);
 
         asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
@@ -2708,40 +2704,6 @@ class OnboardingServiceDefaultTest {
     }
 
     @Test
-    void testVerifyOnboardingNonEmptyList() {
-        Onboarding onboarding = mock(Onboarding.class);
-        PanacheMock.mock(Onboarding.class);
-        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
-        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
-                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null)
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
-        assertFalse(response.isEmpty());
-        assertEquals(1, response.size());
-    }
-
-    @Test
-    void testVerifyOnboardingNonEmptyListSoleTrader() {
-        Onboarding onboarding = mock(Onboarding.class);
-        PanacheMock.mock(Onboarding.class);
-        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
-        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding));
-        when(Onboarding.find(any())).thenReturn(query);
-        UniAssertSubscriber<List<OnboardingResponse>> subscriber = onboardingService
-                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", true)
-                .subscribe()
-                .withSubscriber(UniAssertSubscriber.create());
-
-        List<OnboardingResponse> response = subscriber.assertCompleted().awaitItem().getItem();
-        assertFalse(response.isEmpty());
-        assertEquals(1, response.size());
-    }
-
-    @Test
     void checkRecipientCodeWithValidResponse() {
         String recipientCode = "recipientCode";
         String originId = "originId";
@@ -3546,6 +3508,133 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void verifyOnboarding_prvPfSuccessfulUserSearchAndOnboarding(UniAsserter asserter) {
+        String taxCode = "RSSMRA80A01H501U";
+        String subunitCode = "subunitCode";
+        String origin = "origin";
+        String originId = "originId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        String productId = "productId";
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+
+        OnboardingResponse onboardingResponse = new OnboardingResponse();
+        onboardingResponse.setId("onboardingId");
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().item(userResource));
+
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().items(createDummyOnboarding()));
+            when(Onboarding.find(any(Document.class))).thenReturn(query);
+        });
+
+        asserter.assertThat(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                result -> {
+                    assertThat(result).isNotNull();
+                    assertThat(result).hasSize(1);
+                });
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void verifyOnboarding_prvPfUserNotFoundReturnsEmpty(UniAsserter asserter) {
+        String taxCode = "RSSMRA80A01H501U";
+        String subunitCode = "subunitCode";
+        String origin = "origin";
+        String originId = "originId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        String productId = "productId";
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        WebApplicationException notFoundException = new WebApplicationException(Response.status(404).build());
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().failure(notFoundException));
+        });
+
+        asserter.assertThat(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                result -> {
+                    assertThat(result).isNotNull();
+                    assertThat(result).isEmpty();
+                });
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void verifyOnboarding_prvPfUserSearchThrowsWebApplicationException(UniAsserter asserter) {
+        String taxCode = "RSSMRA80A01H501U";
+        String subunitCode = "subunitCode";
+        String origin = "origin";
+        String originId = "originId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        String productId = "productId";
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        WebApplicationException serverErrorException = new WebApplicationException(Response.status(500).build());
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().failure(serverErrorException));
+        });
+
+        asserter.assertFailedWith(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                WebApplicationException.class);
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void verifyOnboarding_prvPfUserSearchThrowsOtherException(UniAsserter asserter) {
+        String taxCode = "RSSMRA80A01H501U";
+        String subunitCode = "subunitCode";
+        String origin = "origin";
+        String originId = "originId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        String productId = "productId";
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        RuntimeException runtimeException = new RuntimeException("Generic error");
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().failure(runtimeException));
+        });
+
+        asserter.assertFailedWith(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                RuntimeException.class);
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboardingScecTest(UniAsserter asserter) {
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
@@ -3607,6 +3696,7 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
-    }
 
+    }
+        
 }

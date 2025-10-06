@@ -956,6 +956,10 @@ paths:
       description: Verify if the onboarded product is already onboarded for the institution
       operationId: verifyOnboardingInfoByFilters
       parameters:
+      - name: institutionType
+        in: query
+        schema:
+          $ref: "#/components/schemas/InstitutionType"
       - name: origin
         in: query
         schema:
@@ -968,10 +972,6 @@ paths:
         in: query
         schema:
           type: string
-      - name: soleTrader
-        in: query
-        schema:
-          type: boolean
       - name: subunitCode
         in: query
         schema:
@@ -2034,8 +2034,6 @@ components:
           type: string
         signContract:
           type: boolean
-        soleTrader:
-          type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2070,8 +2068,6 @@ components:
         pricingPlan:
           type: string
         signContract:
-          type: boolean
-        soleTrader:
           type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
@@ -2216,8 +2212,6 @@ components:
           type: string
         signContract:
           type: boolean
-        soleTrader:
-          type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2275,8 +2269,6 @@ components:
         pricingPlan:
           type: string
         signContract:
-          type: boolean
-        soleTrader:
           type: boolean
         institution:
           $ref: "#/components/schemas/InstitutionPspRequest"
