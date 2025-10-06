@@ -4,9 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import java.util.List;
-import java.util.Optional;
 
-import it.pagopa.selfcare.onboarding.crypto.utils.DataEncryptionUtils;
 import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
@@ -48,29 +46,5 @@ public class Institution {
 
     private String parentDescription;
     private List<String> atecoCodes;
-
-    public void encryptTaxCode(String taxCode) {
-        this.taxCode = Optional.ofNullable(taxCode)
-                .map(DataEncryptionUtils::encrypt)
-                .orElse("");
-    }
-
-    public String decryptTaxCode() {
-        return Optional.ofNullable(taxCode)
-                .map(DataEncryptionUtils::decrypt)
-                .orElse("");
-    }
-
-    public void encryptOriginId(String originId) {
-        this.originId = Optional.ofNullable(originId)
-                .map(DataEncryptionUtils::encrypt)
-                .orElse("");
-    }
-
-    public String decryptOriginId() {
-        return Optional.ofNullable(originId)
-                .map(DataEncryptionUtils::decrypt)
-                .orElse("");
-    }
 
 }

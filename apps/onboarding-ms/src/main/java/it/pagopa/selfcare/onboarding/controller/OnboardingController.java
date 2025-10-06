@@ -5,6 +5,7 @@ import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -32,7 +33,6 @@ import jakarta.ws.rs.core.SecurityContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.extensions.Extension;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -579,8 +579,8 @@ public class OnboardingController {
                                                        @QueryParam("origin") String origin,
                                                        @QueryParam("originId") String originId,
                                                        @QueryParam("subunitCode") String subunitCode,
-                                                        @QueryParam("soleTrader") Boolean soleTrader) {
-        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId, soleTrader)
+                                                       @QueryParam("institutionType") InstitutionType institutionType) {
+        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId, institutionType)
                 .onItem().transform(onboardingList -> {
                     if (onboardingList.isEmpty()) {
                         throw new ResourceNotFoundException(CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getMessage(),
