@@ -39,6 +39,6 @@ COPY selfcare-onboarding/apps/onboarding-functions/src/test/resources/fn/entrypo
 
 RUN chmod +x entrypoint.sh
 
-RUN mvn clean install -DskipTests
+RUN mvn --global-settings settings.xml settings.xml --also-make clean install -DskipTests -q
 
 CMD ["./entrypoint.sh"]
