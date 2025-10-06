@@ -42,7 +42,7 @@ jobs:
             [
               {"id": "selfcare-onboarding", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
               {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
-              {"id": "selfcare-lib-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
+              {"id": "selfcare", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
             ]
 
       - name: Check Docker and Compose versions
