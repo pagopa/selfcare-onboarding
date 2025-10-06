@@ -10,34 +10,56 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.party_registry_proxy_json.api.*;
+import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 @ApplicationScoped
 public class RegistryResourceFactory {
 
-  @RestClient @Inject
-  org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
+    @RestClient
+    @Inject
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
 
-  @RestClient @Inject InfocamereApi infocamereApi;
+    @RestClient
+    @Inject
+    InfocamereApi infocamereApi;
 
-  @RestClient @Inject NationalRegistriesApi nationalRegistriesApi;
+    @RestClient
+    @Inject
+    NationalRegistriesApi nationalRegistriesApi;
 
-  @RestClient @Inject AooApi aooApi;
+    @RestClient
+    @Inject
+    AooApi aooApi;
 
-  @RestClient @Inject UoApi uoApi;
+    @RestClient
+    @Inject
+    UoApi uoApi;
 
-  @RestClient @Inject InfocamerePdndApi infocamerePdndApi;
+    @RestClient
+    @Inject
+    InfocamerePdndApi infocamerePdndApi;
 
-  @RestClient @Inject InsuranceCompaniesApi insuranceCompaniesApi;
+    @RestClient
+    @Inject
+    InsuranceCompaniesApi insuranceCompaniesApi;
 
-  @RestClient @Inject StationsApi stationsApi;
+    @RestClient
+    @Inject
+    StationsApi stationsApi;
 
-  @RestClient @Inject GeographicTaxonomiesApi geographicTaxonomiesApi;
+    @RestClient
+    @Inject
+    UserApi userRegistryApi;
+
+    @RestClient
+    @Inject
+    GeographicTaxonomiesApi geographicTaxonomiesApi;
 
   public RegistryManager<?> create(Onboarding onboarding, String managerTaxCode) {
     return switch (onboarding.getInstitution().getOrigin() != null
         ? onboarding.getInstitution().getOrigin()
         : Origin.SELC) {
-      case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi);
+      case PDND_INFOCAMERE -> new RegistryManagerPDNDInfocamere(onboarding, infocamerePdndApi, userRegistryApi);
       case ANAC -> new RegistryManagerANAC(onboarding, stationsApi);
       case IVASS -> new RegistryManagerIVASS(onboarding, insuranceCompaniesApi);
       case INFOCAMERE -> new RegistryManagerInfocamere(onboarding, infocamereApi, managerTaxCode);

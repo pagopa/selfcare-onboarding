@@ -1,6 +1,7 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
@@ -75,7 +76,7 @@ public interface OnboardingService {
             String originId,
             OnboardingStatus status,
             String productId,
-            Boolean soleTrader);
+            InstitutionType institutionType);
 
     Uni<OnboardingGet> onboardingGet(String onboardingId);
 
