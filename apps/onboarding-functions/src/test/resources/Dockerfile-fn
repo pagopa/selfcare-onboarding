@@ -26,8 +26,8 @@ WORKDIR /app
 
 COPY selfcare-onboarding /app/selfcare-onboarding
 
-WORKDIR /app/selfcare-onboarding/libs
-RUN mvn clean install -DskipTests
+#WORKDIR /app/selfcare-onboarding/libs
+#RUN mvn clean install -DskipTests -q
 
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
