@@ -364,6 +364,53 @@ class ContractServiceDefaultTest {
         PDF_FORMAT_FILENAME));
   }
 
+  @Test
+  void createContractPDFForPRV_PF() {
+    // given
+    final String contractFilepath = "contract";
+    final String contractHtml = "contract";
+    final String institutionTaxCodeUuid = UUID.randomUUID().toString();
+    final String realFiscalCode = "RSSMRA80A01H501U";
+
+    Onboarding onboarding = createOnboarding();
+    User userManager = onboarding.getUsers().get(0);
+    UserResource manager =
+      createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+
+    onboarding.getInstitution().setInstitutionType(InstitutionType.PRV_PF);
+    onboarding.getInstitution().setTaxCode(institutionTaxCodeUuid);
+    onboarding.getInstitution().setOriginId("originalOriginId");
+
+    UserResource userResourceFromRegistry = createUserResource();
+    userResourceFromRegistry.setFiscalCode(realFiscalCode);
+
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+    Mockito.when(userRegistryApi.findByIdUsingGET(any(), eq(institutionTaxCodeUuid)))
+      .thenReturn(userResourceFromRegistry);
+
+    // when
+    File result = contractService.createContractPDF(
+      contractFilepath,
+      onboarding,
+      manager,
+      List.of(),
+      PRODUCT_NAME_EXAMPLE,
+      PDF_FORMAT_FILENAME);
+
+    // then
+    assertNotNull(result);
+
+    Mockito.verify(userRegistryApi, times(1))
+      .findByIdUsingGET(any(), eq(institutionTaxCodeUuid));
+
+    assertEquals(realFiscalCode, onboarding.getInstitution().getTaxCode());
+    assertEquals(realFiscalCode, onboarding.getInstitution().getOriginId());
+
+    Mockito.verify(azureBlobClient, times(1)).getFileAsText(contractFilepath);
+    Mockito.verify(azureBlobClient, times(1)).uploadFile(any(), any(), any());
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"prod-io", "prod-io-sign"})
   void createContractPDFForProdIo(String productId) {
