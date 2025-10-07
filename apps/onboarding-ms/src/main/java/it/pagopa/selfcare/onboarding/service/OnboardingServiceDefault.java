@@ -98,6 +98,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
             "Onboarding with id %s not found or already deleted";
     public static final String GSP_CATEGORY_INSTITUTION_TYPE = "L37";
+    public static final String SCEC_CATEGORY_INSTITUTION_TYPE = "S01G";
     public static final String
             UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED =
             "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
@@ -710,7 +711,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         if (InstitutionType.PA.equals(institutionType)
-                || isGspAndProdInterop(institutionType, onboarding.getProductId())
+                || verifyInstitutionOnInterop(institutionType, onboarding.getProductId())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || Objects.nonNull(product.getParentId())
@@ -731,8 +732,10 @@ public class OnboardingServiceDefault implements OnboardingService {
         return WorkflowType.FOR_APPROVE;
     }
 
-    private boolean isGspAndProdInterop(InstitutionType institutionType, String productId) {
-        return InstitutionType.GSP == institutionType && productId.equals(PROD_INTEROP.getValue());
+    private boolean verifyInstitutionOnInterop(InstitutionType institutionType, String productId) {
+        Set<InstitutionType> allowedInstitutionType = Set.of(InstitutionType.GSP, InstitutionType.SCEC);
+        return Objects.nonNull(institutionType) && allowedInstitutionType.contains(institutionType)
+                && PROD_INTEROP.getValue().equalsIgnoreCase(productId);
     }
 
     private Uni<Product> product(String productId) {
