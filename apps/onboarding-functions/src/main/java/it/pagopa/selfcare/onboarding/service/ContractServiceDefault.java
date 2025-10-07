@@ -329,10 +329,8 @@ public class ContractServiceDefault implements ContractService {
         UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
         onboarding.getInstitution().setTaxCode(userResource.getFiscalCode());
         onboarding.getInstitution().setOriginId(userResource.getFiscalCode());
-        data = setUpCommonData(manager, users, onboarding, baseUrl);
-    } else {
-        data = setUpCommonData(manager, users, onboarding, baseUrl);
     }
+    data = setUpCommonData(manager, users, onboarding, baseUrl);
     if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
       && InstitutionType.PSP == institution.getInstitutionType()) {
       setupPSPData(data, manager, onboarding);
