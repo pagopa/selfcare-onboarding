@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
 import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
@@ -322,14 +323,21 @@ public class ContractServiceDefault implements ContractService {
     // Setting baseUrl used to construct aggregates csv url
     String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
     // Prepare common data for the contract document.
-    Map<String, Object> data = setUpCommonData(manager, users, onboarding, baseUrl);
+    Map<String, Object> data;
     // Customize data based on the product and institution type.
+    if (InstitutionType.PRV_PF.equals(onboarding.getInstitution().getInstitutionType())) {
+        UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
+        onboarding.getInstitution().setTaxCode(userResource.getFiscalCode());
+        onboarding.getInstitution().setOriginId(userResource.getFiscalCode());
+    }
+    data = setUpCommonData(manager, users, onboarding, baseUrl);
     if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
       && InstitutionType.PSP == institution.getInstitutionType()) {
       setupPSPData(data, manager, onboarding);
     } else if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_IDPAY_MERCHANT.getValue().equalsIgnoreCase(productId))
-      && (InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType())) {
-      setupPRVData(data, onboarding, users);
+            && (InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType()
+            || InstitutionType.PRV_PF == institution.getInstitutionType())) {
+        setupPRVData(data, onboarding, users);
 
       Payment payment = onboarding.getPayment();
       if (Objects.nonNull(payment)) {
