@@ -54,7 +54,7 @@ services:
       # - QUARKUS_LOG_CATEGORY__IO_QUARKUS_MONGODB__LEVEL=INFO
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      - MAVEN_OPTS= "-s /app/settings.xml"
+      - MAVEN_OPTS= "-global-settings /app/settings.xml"
     volumes:
       - "~/.m2/settings.xml:/app/settings.xml:ro"
 
