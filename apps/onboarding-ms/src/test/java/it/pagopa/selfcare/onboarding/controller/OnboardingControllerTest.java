@@ -926,6 +926,91 @@ class OnboardingControllerTest {
 
     @Test
     @TestSecurity(user = "userJwt")
+    void verifyOnboardingWithValidInstitutionType() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", InstitutionType.PA))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+        queryParameterMap.put("institutionType", "PA");
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", InstitutionType.PA);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingWithEmptyInstitutionType() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+        queryParameterMap.put("institutionType", "");
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", null);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingWithInvalidInstitutionType() {
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+        queryParameterMap.put("institutionType", "INVALID_TYPE");
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(500);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void verifyOnboardingWithDifferentInstitutionTypes() {
+        OnboardingResponse onboardingResponse = dummyOnboardingResponse();
+        List<OnboardingResponse> onboardingResponses = new ArrayList<>();
+        onboardingResponses.add(onboardingResponse);
+
+        // Test with PSP
+        when(onboardingService.verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", InstitutionType.PSP))
+                .thenReturn(Uni.createFrom().item(onboardingResponses));
+
+        Map<String, String> queryParameterMap = getStringStringMapOnboardings();
+        queryParameterMap.put("institutionType", "PSP");
+
+        given()
+                .when()
+                .queryParams(queryParameterMap)
+                .head("/verify")
+                .then()
+                .statusCode(204);
+
+        verify(onboardingService, times(1))
+                .verifyOnboarding("taxCode", "subunitCode", "origin", "originId", OnboardingStatus.COMPLETED, "prod-interop", InstitutionType.PSP);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
     void checkRecipientCodeValid() {
         String recipientCode = "validRecipientCode";
         String originId = "validOriginId";
