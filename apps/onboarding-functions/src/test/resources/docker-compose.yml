@@ -55,7 +55,7 @@ services:
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       # - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
-      - "~/.m2/settings.xml:/app/selfcare-onboarding/apps/onboarding-functions/settings.xml"
+      - "~/.m2/settings.xml:/app/settings.xml"
 
   user-ms:
     platform: linux/amd64

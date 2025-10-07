@@ -24,6 +24,8 @@ ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console_
 
 WORKDIR /app
 
+ENV MAVEN_OPTS="-s settings.xml"
+
 COPY selfcare-onboarding /app/selfcare-onboarding
 
 #WORKDIR /app/selfcare-onboarding/libs
