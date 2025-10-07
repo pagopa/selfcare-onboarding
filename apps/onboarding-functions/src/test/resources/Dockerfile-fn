@@ -1,7 +1,5 @@
 FROM maven:3.9.6-eclipse-temurin-17
 
-ENV MAVEN_CONFIG=/root/.m2
-
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 ENV QUARKUS_CLI_VERSION=3.10.0 \
@@ -38,6 +36,7 @@ COPY selfcare-onboarding/apps/onboarding-functions/src/test/resources/fn/entrypo
 
 RUN chmod +x entrypoint.sh
 
-RUN mvn clean install -DskipTests -q
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    mvn clean install -DskipTests -q
 
 CMD ["./entrypoint.sh"]
