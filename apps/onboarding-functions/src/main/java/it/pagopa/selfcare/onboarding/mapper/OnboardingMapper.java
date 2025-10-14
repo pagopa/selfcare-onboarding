@@ -26,10 +26,12 @@ public interface OnboardingMapper {
     @Mapping(target = "aggregator", source = "institution")
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "activatedAt", ignore = true)
+    @Mapping(target="referenceOnboardingId", source= "referenceOnboardingId")
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
     @Mapping(target = "users", expression = "java(mapAggregateUsers(onboarding, aggregateInstitution))")
+    @Mapping(target = "referenceOnboardingId", source = "onboarding.id")
     OnboardingAggregateOrchestratorInput mapToOnboardingAggregateOrchestratorInput(Onboarding onboarding, AggregateInstitution aggregateInstitution);
 
     @Mapping(target = "institution", expression = "java(mapInstitutionFromDelegation(delegationResponse))")

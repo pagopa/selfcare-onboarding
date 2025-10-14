@@ -44,6 +44,8 @@ public class Onboarding {
     //This field is used in case of workflowType USER
     private String previousManagerId;
 
+    private String referenceOnboardingId;
+
     @Override
     public String toString() {
         return "Onboarding{" +
@@ -68,6 +70,7 @@ public class Onboarding {
                 ", aggregates=" + aggregates +
                 ", isAggregator='" + isAggregator + '\'' +
                 ", sendMailForImport='" + sendMailForImport + '\'' +
+                ", referenceOnboardingId'" + previousManagerId + '\'' +
                 '}';
     }
 
