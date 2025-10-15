@@ -26,7 +26,7 @@ public interface OnboardingMapper {
     @Mapping(target = "aggregator", source = "institution")
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "activatedAt", ignore = true)
-    @Mapping(target="referenceOnboardingId", source= "referenceOnboardingId")
+    @Mapping(target = "referenceOnboardingId", source = "referenceOnboardingId")
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
@@ -74,7 +74,7 @@ public interface OnboardingMapper {
         if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
             return aggregateInstitution.getUsers();
         }
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
+        if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())) {
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();
@@ -82,7 +82,7 @@ public interface OnboardingMapper {
 
     @Named("mapAggregateUsers")
     default List<User> mapUsers(Onboarding onboarding) {
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
+        if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())) {
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();
