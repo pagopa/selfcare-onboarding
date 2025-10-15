@@ -70,7 +70,7 @@ public class Onboarding {
                 ", aggregates=" + aggregates +
                 ", isAggregator='" + isAggregator + '\'' +
                 ", sendMailForImport='" + sendMailForImport + '\'' +
-                ", referenceOnboardingId'" + previousManagerId + '\'' +
+                ", referenceOnboardingId'" + referenceOnboardingId + '\'' +
                 '}';
     }
 
