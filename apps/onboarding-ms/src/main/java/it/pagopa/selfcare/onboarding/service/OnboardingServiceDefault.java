@@ -2,8 +2,7 @@ package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
@@ -476,52 +475,132 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
+        return verifyExistingOnboardingForImport(onboarding)
+                .onItem()
+                .transformToUni(product -> handleOnboardingForImport(
+                        onboarding, userRequests, aggregateRequests, product, contractImported))
+                .onFailure(ResourceConflictException.class)
+                .recoverWithUni(throwable -> {
+                    // Call onboardingIncrement only if onboarding is aggregator and product is PROD_IO
+                    if (isAggregatorProdIo(onboarding)) {
+                        // If ResourceConflictException is thrown, it means there are existing onboardings
+                        // with workflowType different from CONFIRMATION_AGGREGATE
+                        // In this case, we need to call onboardingIncrement
+                        log.info("Existing onboarding found for institution {} and product {}, calling onboardingIncrement",
+                                onboarding.getInstitution().getTaxCode(), onboarding.getProductId());
+                        return onboardingIncrement(onboarding, userRequests, aggregateRequests);
+                    }
+                    // For other cases, rethrow the exception
+                    return Uni.createFrom().failure(throwable);
+                });
+    }
+
+    private Uni<Product> verifyExistingOnboardingForImport(Onboarding onboarding) {
         return getProductByOnboarding(onboarding)
                 .onItem()
-                .transformToUni(
-                        product ->
-                                verifyAlreadyOnboardingForProductAndProductParent(
-                                        onboarding.getInstitution(), product.getId(), product.getParentId())
-                                        .replaceWith(product))
+                .transformToUni(product ->
+                        verifyAlreadyOnboardingForProductAndProductParent(
+                                onboarding.getInstitution(), product.getId(), product.getParentId())
+                                .replaceWith(product)
+                                .onFailure(ResourceConflictException.class)
+                                .recoverWithUni(throwable ->
+                                        handleConflictForImport(onboarding, product)
+                                )
+                );
+    }
+
+    private Uni<Product> handleConflictForImport(Onboarding onboarding, Product product) {
+        // Apply special logic only if onboarding is aggregator and product is PROD_IO
+        if (!isAggregatorProdIo(onboarding)) {
+            // For other cases (not aggregator or not PROD_IO), rethrow the original exception
+            return Uni.createFrom().failure(createConflictException(product, onboarding.getInstitution()));
+        }
+
+        // Special logic for aggregator + PROD_IO: check existing onboardings workflowType
+        Institution institution = onboarding.getInstitution();
+        String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+
+        return verifyOnboarding(
+                institution.getTaxCode(),
+                institution.getSubunitCode(),
+                origin,
+                institution.getOriginId(),
+                COMPLETED,
+                product.getId(),
+                institution.getInstitutionType())
                 .onItem()
-                .transformToUni(
-                        product ->
-                                Uni.createFrom()
-                                        .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
-                                        .onItem()
-                                        .invoke(
-                                                registryManager ->
-                                                        registryManager.setResource(registryManager.retrieveInstitution()))
-                                        .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
-                                        .onItem()
-                                        .transformToUni(
-                                                registryManager ->
-                                                        registryManager
-                                                                .isValid()
-                                                                .onItem()
-                                                                .transformToUni(
-                                                                        ignored -> registryManager.customValidation(product)))
-                                        /* if product has some test environments, request must also onboard them (for ex. prod-interop-coll) */
-                                        .onItem()
-                                        .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
-                                        .onItem()
-                                        .transformToUni(
-                                                current -> persistOnboarding(onboarding, userRequests, product, aggregateRequests))
-                                        .onItem()
-                                        .call(
-                                                onboardingPersisted ->
-                                                        Token.persist(
-                                                                tokenMapper.toModel(onboardingPersisted, product, contractImported)))
-                                        /* Update onboarding data with users and start orchestration */
-                                        .onItem()
-                                        .transformToUni(
-                                                currentOnboarding ->
-                                                        persistAndStartOrchestrationOnboarding(
-                                                                currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
-                                        .onItem()
-                                        .transform(onboardingMapper::toResponse));
+                .transformToUni(onboardingResponses -> {
+                    // Check if any onboarding has workflowType different from CONFIRMATION_AGGREGATE
+                    boolean hasNonConfirmationAggregate = onboardingResponses.stream()
+                            .anyMatch(response -> !Objects.equals(response.getWorkflowType(),
+                                    WorkflowType.CONFIRMATION_AGGREGATE.name()));
+
+                    // If at least one has different workflowType, throw exception to trigger onboardingIncrement
+                    // Otherwise, all are CONFIRMATION_AGGREGATE, ignore the 409 and continue
+                    return hasNonConfirmationAggregate
+                            ? Uni.createFrom().failure(createConflictException(product, institution))
+                            : Uni.createFrom().item(product);
+                });
+    }
+
+    private boolean isAggregatorProdIo(Onboarding onboarding) {
+        return Boolean.TRUE.equals(onboarding.getIsAggregator()) && PROD_IO.getValue().equals(onboarding.getProductId());
+    }
+
+    private ResourceConflictException createConflictException(Product product, Institution institution) {
+        return new ResourceConflictException(
+                String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), product.getId(), institution.getTaxCode()),
+                PRODUCT_ALREADY_ONBOARDED.getCode());
+    }
+
+    private Uni<OnboardingResponse> handleOnboardingForImport(
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregateRequests,
+            Product product,
+            OnboardingImportContract contractImported) {
+
+        return Uni.createFrom()
+                .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
+                .onItem()
+                .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
+                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
+                .onItem()
+                .transformToUni(registryManager -> validateAndPersistOnboardingForImport(
+                        registryManager, onboarding, userRequests, aggregateRequests, product, contractImported));
+    }
+
+    private Uni<OnboardingResponse> validateAndPersistOnboardingForImport(
+            RegistryManager<?> registryManager,
+            Onboarding onboarding,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregateRequests,
+            Product product,
+            OnboardingImportContract contractImported) {
+
+        return registryManager.isValid()
+                .onItem()
+                .transformToUni(ignored -> registryManager.customValidation(product))
+                .onItem()
+                .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                .onItem()
+                .transformToUni(ignored -> persistOnboarding(onboarding, userRequests, product, aggregateRequests))
+                .onItem()
+                .call(onboardingPersisted -> persistTokenForImport(onboardingPersisted, product, contractImported))
+                .onItem()
+                .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(
+                        currentOnboarding,
+                        orchestrationApi.apiStartOnboardingOrchestrationGet(
+                                currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
+                .onItem()
+                .transform(onboardingMapper::toResponse);
+    }
+
+    private Uni<Void> persistTokenForImport(
+            Onboarding onboardingPersisted,
+            Product product,
+            OnboardingImportContract contractImported) {
+        return Token.persist(tokenMapper.toModel(onboardingPersisted, product, contractImported));
     }
 
     private Uni<Onboarding> persistOnboarding(
