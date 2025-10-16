@@ -750,8 +750,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         final List<Onboarding> onboardings = new ArrayList<>();
         onboardings.add(onboarding);
 
-        Log.infof(
-                "Persist onboarding and start orchestration %b for: taxCode %s, subunitCode %s, type %s",
+        log.info(
+                "Persist onboarding and start orchestration {} for: taxCode {}, subunitCode {}, type {}",
                 onboardingOrchestrationEnabled,
                 onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getSubunitCode(),
