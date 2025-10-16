@@ -330,7 +330,7 @@ class OnboardingFunctionsTest {
     assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
-    Mockito.verify(orchestrationContext, times(1))
+    Mockito.verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), any());
 
     Mockito.verify(service, times(1))
