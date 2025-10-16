@@ -201,7 +201,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false);
     }
 
     @Override
@@ -215,7 +215,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, true);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, true);
     }
 
     /**
@@ -239,7 +239,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                             return onboarding;
                         })
                 .onItem()
-                .transformToUni(onboarding -> verifyExistingOnboarding(onboarding, request.getUsers(), null));
+                .transformToUni(onboarding -> verifyExistingOnboarding(onboarding, request.getUsers()));
     }
 
     /**
@@ -254,7 +254,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
         return fillUsersAndOnboarding(
-                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+                onboarding, userRequests, null, false);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboarding(
-                onboarding, userRequests, null, TIMEOUT_ORCHESTRATION_RESPONSE, false);
+                onboarding, userRequests, null, false);
     }
 
     @Override
@@ -275,7 +275,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATOR);
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, null, false);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false);
     }
 
     @Override
@@ -306,23 +306,17 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding, userRequests, null, contractImported);
     }
 
-    /**
-     * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *                response is delivered asynchronously
-     */
     private Uni<OnboardingResponse> fillUsersAndOnboarding(
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            String timeout,
             boolean isAggregatesIncrement) {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return verifyExistingOnboarding(onboarding, isAggregatesIncrement)
                 .onItem()
-                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, timeout, product));
+                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, product));
     }
 
 
@@ -342,7 +336,6 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            String timeout,
             Product product) {
 
         return Uni.createFrom()
@@ -351,7 +344,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                 .onItem()
-                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, timeout));
+                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product));
     }
 
     private String getManagerTaxCode(List<UserRequest> userRequests) {
@@ -370,8 +363,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            Product product,
-            String timeout) {
+            Product product) {
 
         return registryManager.isValid()
                 .onItem()
@@ -386,7 +378,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationApi.apiStartOnboardingOrchestrationGet(currentOnboarding.getId(), timeout)))
+                        triggerOrchestration(currentOnboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
@@ -434,13 +426,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWithVoid();
     }
 
-    /**
-     * @param timeout The orchestration instances will try complete within the defined timeout and the
-     *                response is delivered synchronously. If is null the timeout is default 1 sec and the
-     *                response is delivered asynchronously
-     */
     private Uni<OnboardingResponse> verifyExistingOnboarding(
-            Onboarding onboarding, List<UserRequest> userRequests, String timeout) {
+            Onboarding onboarding, List<UserRequest> userRequests) {
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return getProductByOnboarding(onboarding)
@@ -461,8 +448,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                 currentOnboarding ->
                                                         persistAndStartOrchestrationOnboarding(
                                                                 currentOnboarding,
-                                                                orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                                        currentOnboarding.getId(), timeout)))
+                                                                triggerOrchestration(
+                                                                        currentOnboarding.getId())))
                                         .onItem()
                                         .transform(onboardingMapper::toResponse));
     }
@@ -539,7 +526,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     // Otherwise, all are CONFIRMATION_AGGREGATE, ignore the 409 and continue
                     return hasNonConfirmationAggregate
                             ? Uni.createFrom().failure(createConflictException(product, institution))
-                            : Uni.createFrom().item(product);
+                                : Uni.createFrom().item(product);
                 });
     }
 
@@ -590,10 +577,14 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(
                         currentOnboarding,
-                        orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
+                        triggerOrchestration(currentOnboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
+    }
+
+    private Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId) {
+        return orchestrationApi.apiStartOnboardingOrchestrationGet(
+                currentOnboardingId, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
 
     private Uni<Void> persistTokenForImport(
@@ -2068,8 +2059,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         unused ->
                                 persistAndStartOrchestrationOnboarding(
                                         onboarding,
-                                        orchestrationApi.apiStartOnboardingOrchestrationGet(
-                                                onboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
+                                        triggerOrchestration(onboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
