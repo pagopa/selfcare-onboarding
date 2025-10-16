@@ -27,10 +27,7 @@ import it.pagopa.selfcare.onboarding.controller.response.UserResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryManager;
 import it.pagopa.selfcare.onboarding.entity.registry.RegistryResourceFactory;
-import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
-import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.factory.OnboardingResponseFactory;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -466,19 +463,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(product -> handleOnboardingForImport(
                         onboarding, userRequests, aggregateRequests, product, contractImported))
-                .onFailure(ResourceConflictException.class)
+                .onFailure(IncrementRequiredException.class)
                 .recoverWithUni(throwable -> {
                     // Call onboardingIncrement only if onboarding is aggregator and product is PROD_IO
-                    if (isAggregatorProdIo(onboarding)) {
-                        // If ResourceConflictException is thrown, it means there are existing onboardings
-                        // with workflowType different from CONFIRMATION_AGGREGATE
-                        // In this case, we need to call onboardingIncrement
-                        log.info("Existing onboarding found for institution {} and product {}, calling onboardingIncrement",
-                                onboarding.getInstitution().getTaxCode(), onboarding.getProductId());
-                        return onboardingIncrement(onboarding, userRequests, aggregateRequests);
-                    }
+                    // If IncrementRequiredException is thrown, it means there are existing onboardings
+                    // with workflowType different from CONFIRMATION_AGGREGATE
+                    // In this case, we need to call onboardingIncrement
                     // For other cases, rethrow the exception
-                    return Uni.createFrom().failure(throwable);
+                    log.info("Existing onboarding found for institution {} and product {}, calling onboardingIncrement",
+                            onboarding.getInstitution().getTaxCode(), onboarding.getProductId());
+                    return onboardingIncrement(onboarding, userRequests, aggregateRequests);
                 });
     }
 
@@ -522,10 +516,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                             .anyMatch(response -> !Objects.equals(response.getWorkflowType(),
                                     WorkflowType.CONFIRMATION_AGGREGATE.name()));
 
-                    // If at least one has different workflowType, throw exception to trigger onboardingIncrement
+                    // If at least one has different workflowType, throw custom exception to trigger onboardingIncrement
                     // Otherwise, all are CONFIRMATION_AGGREGATE, ignore the 409 and continue
                     return hasNonConfirmationAggregate
-                            ? Uni.createFrom().failure(createConflictException(product, institution))
+                            ? Uni.createFrom().failure(createIncrementRequiredException(product, institution))
                                 : Uni.createFrom().item(product);
                 });
     }
@@ -536,6 +530,12 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private ResourceConflictException createConflictException(Product product, Institution institution) {
         return new ResourceConflictException(
+                String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), product.getId(), institution.getTaxCode()),
+                PRODUCT_ALREADY_ONBOARDED.getCode());
+    }
+
+    private IncrementRequiredException createIncrementRequiredException(Product product, Institution institution) {
+        return new IncrementRequiredException(
                 String.format(PRODUCT_ALREADY_ONBOARDED.getMessage(), product.getId(), institution.getTaxCode()),
                 PRODUCT_ALREADY_ONBOARDED.getCode());
     }
