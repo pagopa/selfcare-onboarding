@@ -3959,7 +3959,7 @@ class OnboardingServiceDefaultTest {
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
 
         Onboarding onboarding2 = new Onboarding();
-        onboarding2.setWorkflowType(IMPORT);
+        onboarding2.setWorkflowType(IMPORT_AGGREGATION);
 
         List<Onboarding> onboardingList = List.of(onboarding, onboarding2);
 
