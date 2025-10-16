@@ -405,12 +405,30 @@ class OnboardingServiceDefaultTest {
         uoResource.setCodiceIpa("originId");
         when(uoApi.findByUnicodeUsingGET1(any(), any())).thenReturn(Uni.createFrom().item(uoResource));
 
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+
+        Onboarding onboarding1 = createDummyOnboarding();
+
+        Mockito.doAnswer(invocation -> Multi.createFrom().items(onboarding1))
+                .when(query)
+                .stream();
+
+        when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
+
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         institutionResource.setDescription(DESCRIPTION_FIELD);
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
 
         asserter.assertFailedWith(() -> onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest)), InvalidRequestException.class);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class), any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
     }
 
     @Test
@@ -3961,11 +3979,17 @@ class OnboardingServiceDefaultTest {
         Onboarding onboarding2 = new Onboarding();
         onboarding2.setWorkflowType(IMPORT_AGGREGATION);
 
+        User manager = new User();
+        manager.setId("22323233");
+        manager.setRole(PartyRole.MANAGER);
+        onboarding.setUsers(List.of(manager));
+
         List<Onboarding> onboardingList = List.of(onboarding, onboarding2);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
         when(Onboarding.find(any())).thenReturn(query);
+        when(Onboarding.find(any(Document.class), any(Document.class))).thenReturn(query);
         when(query.stream()).thenReturn(Multi.createFrom().iterable(onboardingList));
 
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
@@ -3998,6 +4022,7 @@ class OnboardingServiceDefaultTest {
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class, times(3)).find(any(Document.class));
+            PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class), any(Document.class));
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);

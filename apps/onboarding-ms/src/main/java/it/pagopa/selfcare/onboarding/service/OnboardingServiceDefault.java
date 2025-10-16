@@ -212,7 +212,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(PENDING);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, true);
+        return addReferencedOnboardingId(onboarding)
+                .flatMap(onboardingObj -> fillUsersAndOnboarding(onboardingObj, userRequests, aggregates, true));
     }
 
     /**
@@ -689,6 +690,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         final String originId = onboarding.getInstitution().getOriginId();
         final String productId = onboarding.getProductId();
         final String subunitCode = onboarding.getInstitution().getSubunitCode();
+
         Multi<Onboarding> onboardings =
                 getOnboardingByFilters(taxCode, subunitCode, origin, originId, productId);
         Uni<Onboarding> current =
