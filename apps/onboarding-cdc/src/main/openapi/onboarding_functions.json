@@ -239,6 +239,9 @@
           },
           "userRequestUid": {
             "type": "string"
+          },
+          "referenceOnboardingId": {
+            "type": "string"
           }
         }
       },
