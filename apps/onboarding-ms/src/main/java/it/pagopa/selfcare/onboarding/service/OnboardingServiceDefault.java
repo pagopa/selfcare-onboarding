@@ -45,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.logging.Logger;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -83,7 +82,6 @@ import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
 
-    private static final Logger LOG = Logger.getLogger(OnboardingServiceDefault.class);
     protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED =
             "At least one Product role related to %s Party role is required";
     protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE =
@@ -858,8 +856,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Boolean> validateAllowedProductList(String taxCode, String subunitCode, String productId) {
-        LOG.infof(
-                "Validating allowed map for: taxCode %s, subunitCode %s, product %s",
+        log.info(
+                "Validating allowed map for: taxCode {}, subunitCode {}, product {}",
                 taxCode, subunitCode, productId);
         if (!validateByProductOrInstitutionTaxCode(productId, taxCode)) {
             return Uni.createFrom()
@@ -994,7 +992,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Void> validateUserAggregatesRoles(
             List<AggregateInstitutionRequest> aggregates, List<PartyRole> validRoles) {
-        LOG.debug("starting validateUserAggregatesRoles");
+        log.debug("starting validateUserAggregatesRoles");
         if (!CollectionUtils.isEmpty(aggregates)) {
             return Multi.createFrom()
                     .iterable(aggregates)
@@ -1002,7 +1000,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .onItem()
                     .invoke(
                             aggregate ->
-                                    LOG.debugf("Validating role for users of aggregate: %s", aggregate.getTaxCode()))
+                                    log.debug("Validating role for users of aggregate: {}", aggregate.getTaxCode()))
                     .onItem()
                     .transformToUniAndMerge(
                             aggregate ->
@@ -1010,7 +1008,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                             .onFailure()
                                             .invoke(
                                                     throwable ->
-                                                            LOG.error(
+                                                            log.error(
                                                                     "Error during validation role for aggregate: %s",
                                                                     aggregate.getTaxCode(), throwable)))
                     .collect()
@@ -1041,7 +1039,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     .onItem()
                     .invoke(
                             aggregate ->
-                                    LOG.debugf("Retrieving user resources for aggregate: %s", aggregate.getTaxCode()))
+                                    log.debug("Retrieving user resources for aggregate: {}", aggregate.getTaxCode()))
                     .onItem()
                     .transformToUni(
                             aggregate ->
@@ -1049,8 +1047,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                             .onFailure()
                                             .invoke(
                                                     throwable ->
-                                                            LOG.errorf(
-                                                                    "Error during retrieving user resources for aggregate: %s",
+                                                            log.error(
+                                                                    "Error during retrieving user resources for aggregate: {}",
                                                                     aggregate.getTaxCode(), throwable))
                                             .onItem()
                                             .invoke(users -> setUsersInAggregateToPersist(onboarding, aggregate, users)))
@@ -1908,8 +1906,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .flatMap(
                         onboardings -> {
                             if (CollectionUtils.isEmpty(onboardings)) {
-                                LOG.debugf(
-                                        "Onboarding for taxCode %s, origin %s, originId %s, productId %s, subunitCode %s not found",
+                                log.debug(
+                                        "Onboarding for taxCode {}, origin {}, originId {}, productId {}, subunitCode {} not found",
                                         checkManagerRequest.getTaxCode(),
                                         checkManagerRequest.getOrigin(),
                                         checkManagerRequest.getOriginId(),
@@ -1927,8 +1925,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     String.valueOf(userId))
                                     .map(
                                             isActiveManager -> {
-                                                LOG.debugf(
-                                                        "User with uuid %s is active manager: %s",
+                                                log.debug(
+                                                        "User with uuid {} is active manager: {}",
                                                         userId, isActiveManager);
                                                 response.setResponse(isActiveManager);
                                                 return response;
@@ -1974,7 +1972,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         List.of(String.valueOf(OnboardedProductResponse.StatusEnum.ACTIVE)),
                         uuid)
                 .onFailure()
-                .invoke(e -> LOG.error("Error while checking if user is active manager", e))
+                .invoke(e -> log.error("Error while checking if user is active manager", e))
                 .onItem()
                 .transform(CollectionUtils::isNotEmpty);
     }
@@ -2073,8 +2071,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Onboarding> retrievePreviousCompletedOnboarding(Onboarding onboarding) {
-        LOG.infof(
-                "Retrieving previous completed onboarding for taxCode %s, origin %s, productId %s",
+        log.info(
+                "Retrieving previous completed onboarding for taxCode {}, origin {}, productId {}",
                 onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getOrigin(),
                 onboarding.getProductId());
@@ -2161,8 +2159,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .orElse(null);
         String institutionId = currentOnboarding.getInstitution().getId();
 
-        LOG.infof(
-                "Checking if user with id: %s is already manager of the institution with id: %s",
+        log.info(
+                "Checking if user with id: {} is already manager of the institution with id: {}",
                 newManagerId, institutionId);
 
         return isUserActiveManager(institutionId, currentOnboarding.getProductId(), newManagerId)
@@ -2185,8 +2183,8 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     private Uni<Void> checkIfUserIsManagerOnRegistries(
             Onboarding onboarding, List<UserRequest> userRequests) {
-        LOG.infof(
-                "Checking if user is manager on registries for onboarding with origin %s",
+        log.info(
+                "Checking if user is manager on registries for onboarding with origin {}",
                 onboarding.getInstitution().getOrigin());
         String userTaxCode =
                 userRequests.stream()
