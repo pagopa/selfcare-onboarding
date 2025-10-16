@@ -52,7 +52,6 @@ import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
-import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.*;
 import org.openapi.quarkus.party_registry_proxy_json.model.*;
@@ -141,8 +140,7 @@ class OnboardingServiceDefaultTest {
     OnboardingApi onboardingApi;
 
     @InjectMock
-    @RestClient
-    OrchestrationApi orchestrationApi;
+    OrchestrationService orchestrationService;
 
     @InjectMock
     @RestClient
@@ -900,7 +898,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
 
@@ -1576,7 +1574,7 @@ class OnboardingServiceDefaultTest {
         institutionResource.setDescription(DESCRIPTION_FIELD);
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
@@ -1663,7 +1661,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
@@ -2267,7 +2265,7 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
 
-        when(orchestrationApi.apiStartOnboardingOrchestrationGet(onboarding.getId(), null))
+        when(orchestrationService.triggerOrchestration(onboarding.getId()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
 
         when(onboardingValidationStrategy.validate(onboarding.getProductId()))
@@ -2325,8 +2323,8 @@ class OnboardingServiceDefaultTest {
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(onboarding.getId(), actual.getId());
 
-        verify(orchestrationApi, times(1))
-                .apiStartOnboardingOrchestrationGet(onboarding.getId(), null);
+        verify(orchestrationService, times(1))
+                .triggerOrchestration(onboarding.getId());
     }
 
     @Test
@@ -3178,7 +3176,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertNotNull(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests));

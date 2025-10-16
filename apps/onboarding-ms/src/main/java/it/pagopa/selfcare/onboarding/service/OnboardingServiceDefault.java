@@ -1,13 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
-
 import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
@@ -47,15 +39,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +51,6 @@ import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
-import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
@@ -79,6 +61,23 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @Slf4j
 @ApplicationScoped
@@ -100,7 +99,6 @@ public class OnboardingServiceDefault implements OnboardingService {
             "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
@@ -129,10 +127,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     @RestClient
     @Inject
     UoApi uoApi;
-
-    @RestClient
-    @Inject
-    OrchestrationApi orchestrationApi;
 
     @RestClient
     @Inject
@@ -175,6 +169,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     RegistryResourceFactory registryResourceFactory;
     @Inject
     OnboardingUtils onboardingUtils;
+
+    @Inject
+    OrchestrationService orchestrationService;
 
     @ConfigProperty(name = "onboarding.orchestration.enabled")
     Boolean onboardingOrchestrationEnabled;
@@ -376,7 +373,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        triggerOrchestration(currentOnboarding.getId())))
+                        orchestrationService.triggerOrchestration(currentOnboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
@@ -446,7 +443,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                 currentOnboarding ->
                                                         persistAndStartOrchestrationOnboarding(
                                                                 currentOnboarding,
-                                                                triggerOrchestration(
+                                                                orchestrationService.triggerOrchestration(
                                                                         currentOnboarding.getId())))
                                         .onItem()
                                         .transform(onboardingMapper::toResponse));
@@ -578,15 +575,12 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(
                         currentOnboarding,
-                        triggerOrchestration(currentOnboarding.getId())))
+                        orchestrationService.triggerOrchestration(currentOnboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
 
-    private Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId) {
-        return orchestrationApi.apiStartOnboardingOrchestrationGet(
-                currentOnboardingId, TIMEOUT_ORCHESTRATION_RESPONSE);
-    }
+
 
     private Uni<Void> persistTokenForImport(
             Onboarding onboardingPersisted,
@@ -1270,8 +1264,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationApi
-                                        .apiStartOnboardingOrchestrationGet(onboardingId, null)
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding))
                 .flatMap(onboardingResponseFactory::toGetResponse);
@@ -1387,8 +1380,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationApi
-                                        .apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -1422,8 +1414,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationApi
-                                        .apiStartOnboardingOrchestrationGet(onboarding.getId(), null)
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -1598,8 +1589,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationApi
-                                        .apiStartOnboardingOrchestrationGet(onboardingId, "60")
+                                        ? orchestrationService.triggerOrchestration(onboardingId)
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -2061,7 +2051,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         unused ->
                                 persistAndStartOrchestrationOnboarding(
                                         onboarding,
-                                        triggerOrchestration(onboarding.getId())))
+                                        orchestrationService.triggerOrchestration(onboarding.getId())))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
@@ -2320,8 +2310,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 })
                 .onItem()
                 .transformToUni(
-                        onboarding -> orchestrationApi
-                                .apiTriggerDeleteInstitutionAndUserGet(onboardingId)
+                        onboarding -> orchestrationService.triggerOrchestrationDeleteInstitutionAndUser(onboardingId)
                                 .map(ignore -> onboarding));
     }
 
