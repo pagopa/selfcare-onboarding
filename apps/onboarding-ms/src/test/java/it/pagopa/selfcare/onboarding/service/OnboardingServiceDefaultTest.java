@@ -19,7 +19,10 @@ import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.*;
 import it.pagopa.selfcare.onboarding.entity.*;
-import it.pagopa.selfcare.onboarding.exception.*;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
+import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.model.FormItem;
@@ -4079,11 +4082,9 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions), ResourceConflictException.class);
 
         asserter.execute(() -> {
-            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
-            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
-            PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
     }
-        
+
 }
