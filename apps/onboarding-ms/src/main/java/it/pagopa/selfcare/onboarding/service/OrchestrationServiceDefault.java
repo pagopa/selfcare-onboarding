@@ -30,7 +30,7 @@ public class OrchestrationServiceDefault implements OrchestrationService {
      */
     @Override
     public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId) {
-        log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + " {}", currentOnboardingId);
+        log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + "current onboardingId {}", currentOnboardingId);
         return orchestrationApi.apiStartOnboardingOrchestrationGet(
                 currentOnboardingId, TIMEOUT_ORCHESTRATION_RESPONSE);
     }
@@ -44,7 +44,7 @@ public class OrchestrationServiceDefault implements OrchestrationService {
      */
     @Override
     public Uni<OrchestrationResponse> triggerOrchestrationDeleteInstitutionAndUser(String currentOnboardingId) {
-        log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + " delete institution and user {}", currentOnboardingId);
+        log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + " delete Institution and User {}", currentOnboardingId);
         return orchestrationApi
                 .apiTriggerDeleteInstitutionAndUserGet(currentOnboardingId);
     }
