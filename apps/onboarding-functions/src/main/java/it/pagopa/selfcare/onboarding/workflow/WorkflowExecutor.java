@@ -136,33 +136,15 @@ public interface WorkflowExecutor {
         return Optional.of(COMPLETED);
     }
 
-    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper) {
+    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
         List<Task<String>> parallelTasks = new ArrayList<>();
 
         for (AggregateInstitution aggregate : onboarding.getAggregates()) {
             OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
             final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-
-            String onboardingAggregateWithInstitutionIdString = ctx.callActivity(VERIFY_ONBOARDING_AGGREGATE_ACTIVITY, onboardingAggregateString, String.class).await();
-            Onboarding onboardingAggregateWithInstitutionId = readOnboardingValue(objectMapper(), onboardingAggregateWithInstitutionIdString);
-
-            if (Objects.nonNull(onboardingAggregateWithInstitutionId.getInstitution().getId())) {
-                boolean existsDelegation =
-                        Boolean.parseBoolean(
-                                ctx.callActivity(
-                                                EXISTS_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionId, String.class)
-                                        .await());
-                if (!existsDelegation) {
-                    String delegationId = ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionIdString, String.class).await();
-                    onboardingAggregateWithInstitutionId.setDelegationId(delegationId);
-
-                    final String onboardingWithDelegationIdString = getOnboardingString(objectMapper(), onboardingAggregateWithInstitutionId);
-                    ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithDelegationIdString, String.class).await();
-                }
-            } else {
-                parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
-            }
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
         }
+
         ctx.allOf(parallelTasks).await();
     }
 
