@@ -13,7 +13,9 @@ import java.util.Optional;
 
 import static it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowType.AGGREGATOR;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
+import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
 
 public record WorkflowExecutorIncrementRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry,
                                                               OnboardingMapper onboardingMapper) implements WorkflowExecutor {
@@ -31,7 +33,9 @@ public record WorkflowExecutorIncrementRegistrationAggregator(ObjectMapper objec
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        String onboardingWithInstitutionIdString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
         createInstitutionAndOnboardingAggregate(ctx, onboardingWorkflow.getOnboarding(), onboardingMapper);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
 

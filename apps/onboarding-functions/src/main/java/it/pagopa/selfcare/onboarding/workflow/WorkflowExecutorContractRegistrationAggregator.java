@@ -48,9 +48,8 @@ public class WorkflowExecutorContractRegistrationAggregator implements WorkflowE
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboardingWorkflow.getOnboarding());
         Onboarding onboarding = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
-
         createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper);
-
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
