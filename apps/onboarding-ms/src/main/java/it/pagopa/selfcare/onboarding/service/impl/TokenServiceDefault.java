@@ -32,16 +32,17 @@ import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_
 @Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
-  public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
-  public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+
+    public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
+            "Token with id %s not found or already deleted";
+
   @Inject
   SignatureService signatureService;
 
   private final AzureBlobClient azureBlobClient;
   private final OnboardingMsConfig onboardingMsConfig;
-
-  private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
-    "Token with id %s not found or already deleted";
 
   public TokenServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
     this.azureBlobClient = azureBlobClient;
