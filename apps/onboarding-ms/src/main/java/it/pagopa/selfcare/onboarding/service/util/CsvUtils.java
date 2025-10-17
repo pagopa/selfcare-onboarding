@@ -54,7 +54,7 @@ public class CsvUtils {
             return new AggregatesCsv(resultList, errors);
 
         } catch (Exception e) {
-            log.error(ERROR_READING_CSV + e.getMessage(), e);
+            log.error(ERROR_READING_CSV + "{}", e.getMessage(), e);
             throw new InvalidRequestException(ERROR_READING_CSV + e.getMessage());
         }
     }

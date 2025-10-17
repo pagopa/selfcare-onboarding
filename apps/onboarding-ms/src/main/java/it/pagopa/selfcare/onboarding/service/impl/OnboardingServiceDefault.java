@@ -2327,7 +2327,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         "institution.id = ?1 and productId = ?2 and status = ?3",
                         institutionId, productId, COMPLETED)
                 .firstResult()
-                .map(entity -> (Onboarding) entity)
+                .map(Onboarding.class::cast)
                 .onItem().ifNotNull().transformToUni(onboardingResponseFactory::toGetResponse)
                 .onItem().ifNull().failWith(() ->
                         new ResourceNotFoundException(
