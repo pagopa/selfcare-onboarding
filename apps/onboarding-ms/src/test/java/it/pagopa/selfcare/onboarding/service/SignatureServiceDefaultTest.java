@@ -18,6 +18,7 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.service.impl.SignatureServiceDefault;
 import jakarta.inject.Inject;
 import org.apache.batik.anim.dom.BindableElement;
 import org.apache.batik.anim.dom.SVG12DOMImplementation;

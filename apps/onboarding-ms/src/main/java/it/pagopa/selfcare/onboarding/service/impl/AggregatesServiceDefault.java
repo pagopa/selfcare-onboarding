@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.impl;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -9,6 +9,8 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.*;
+import it.pagopa.selfcare.onboarding.service.AggregatesService;
+import it.pagopa.selfcare.onboarding.service.util.CsvUtils;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -20,7 +22,6 @@ import net.jodah.expiringmap.ExpiringMap;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
@@ -43,8 +44,6 @@ import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
 @Slf4j
 public class AggregatesServiceDefault implements AggregatesService {
 
-    private static final Logger LOG = Logger.getLogger(AggregatesServiceDefault.class);
-
     @RestClient
     @Inject
     AooApi aooApi;
@@ -65,7 +64,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     OnboardingMapper onboardingMapper;
 
     @Inject
-    CsvService csvService;
+    CsvUtils csvUtils;
 
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
@@ -80,7 +79,7 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .build();
     }
 
-    public static final String LOG_CSV_ROWS = "CSV file validated end: %s valid row and %s invalid row";
+    private static final String LOG_CSV_ROWS = "CSV file validated end: {} valid row and {} invalid row";
     protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
     public static final String ERROR_IPA = "Codice Fiscale non presente su IPA";
     public static final String ERROR_TAXCODE = "Il Codice Fiscale è obbligatorio";
@@ -103,7 +102,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @Override
     public Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregateAppIo.class);
+        AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregateAppIo.class);
         List<CsvAggregateAppIo> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregateAppIoResponse = new VerifyAggregateResponse();
 
@@ -112,14 +111,12 @@ public class AggregatesServiceDefault implements AggregatesService {
                         checkCsvAggregateAppIoAndFillAggregateOrErrorList(csvAggregateAppIo, verifyAggregateAppIoResponse))
                 .collect().asList()
                 .replaceWith(verifyAggregateAppIoResponse)
-                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
-                        verifyAggregateAppIoResponse.getAggregates().size(),
-                        verifyAggregateAppIoResponse.getErrors().size()));
+                .onItem().invoke(() -> logVerificationSummary(verifyAggregateAppIoResponse));
     }
 
     @Override
     public Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregatePagoPa.class);
+        AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregatePagoPa.class);
         List<CsvAggregatePagoPa> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregatePagoPaResponse = new VerifyAggregateResponse();
 
@@ -127,14 +124,12 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .onItem().transformToUniAndMerge(csvAggregatePagoPa -> checkCsvAggregatePagoPaAndFillAggregateOrErrorList(csvAggregatePagoPa, verifyAggregatePagoPaResponse))
                 .collect().asList()
                 .replaceWith(verifyAggregatePagoPaResponse)
-                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
-                        verifyAggregatePagoPaResponse.getAggregates().size(),
-                        verifyAggregatePagoPaResponse.getErrors().size()));
+                .onItem().invoke(() -> logVerificationSummary(verifyAggregatePagoPaResponse));
     }
 
     @Override
     public Uni<VerifyAggregateResponse> validateSendAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregateSend> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregateSend.class);
+        AggregatesCsv<CsvAggregateSend> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregateSend.class);
         List<CsvAggregateSend> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregateSendResponse = new VerifyAggregateResponse();
 
@@ -142,9 +137,7 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .onItem().transformToUniAndMerge(csvAggregateSend -> checkCsvAggregateSendAndFillAggregateOrErrorList(csvAggregateSend, verifyAggregateSendResponse))
                 .collect().asList()
                 .replaceWith(verifyAggregateSendResponse)
-                .onItem().invoke(() -> LOG.infof(LOG_CSV_ROWS,
-                        verifyAggregateSendResponse.getAggregates().size(),
-                        verifyAggregateSendResponse.getErrors().size()));
+                .onItem().invoke(() -> logVerificationSummary(verifyAggregateSendResponse));
     }
 
     @Override
@@ -404,5 +397,11 @@ public class AggregatesServiceDefault implements AggregatesService {
         }
 
         return Uni.createFrom().voidItem();
+    }
+
+    private static void logVerificationSummary(VerifyAggregateResponse verifyAggregatePagoPaResponse) {
+        log.info(LOG_CSV_ROWS,
+                verifyAggregatePagoPaResponse.getAggregates().size(),
+                verifyAggregatePagoPaResponse.getErrors().size());
     }
 }

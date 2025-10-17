@@ -1,6 +1,5 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.impl;
 
-import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.smallrye.mutiny.Multi;
@@ -27,6 +26,10 @@ import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
+import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.service.OrchestrationService;
+import it.pagopa.selfcare.onboarding.service.SignatureService;
+import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
@@ -593,8 +596,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Product product,
             List<AggregateInstitutionRequest> aggregates) {
 
-        Log.infof(
-                "persist onboarding for: product %s, product parent %s",
+        log.info(
+                "persist onboarding for: product {}, product parent {}",
                 product.getId(), product.getParentId());
 
         Map<PartyRole, ProductRoleInfo> roleMappings =
@@ -1021,8 +1024,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Void> retrieveAndSetUserAggregatesResources(
             Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
 
-        Log.infof(
-                "Retrieving user resources for aggregates: product %s, product parent %s",
+        log.info(
+                "Retrieving user resources for aggregates: product {}, product parent {}",
                 product.getId(), product.getParentId());
 
         Map<PartyRole, ProductRoleInfo> roleMappings =
@@ -2324,7 +2327,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         "institution.id = ?1 and productId = ?2 and status = ?3",
                         institutionId, productId, COMPLETED)
                 .firstResult()
-                .map(entity -> (Onboarding) entity)
+                .map(Onboarding.class::cast)
                 .onItem().ifNotNull().transformToUni(onboardingResponseFactory::toGetResponse)
                 .onItem().ifNull().failWith(() ->
                         new ResourceNotFoundException(

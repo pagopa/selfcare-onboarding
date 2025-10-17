@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.impl;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -6,6 +6,8 @@ import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.service.SignatureService;
+import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,16 +32,17 @@ import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_
 @Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
-  public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
-  public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+
+    public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
+            "Token with id %s not found or already deleted";
+
   @Inject
   SignatureService signatureService;
 
   private final AzureBlobClient azureBlobClient;
   private final OnboardingMsConfig onboardingMsConfig;
-
-  private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
-    "Token with id %s not found or already deleted";
 
   public TokenServiceDefault(AzureBlobClient azureBlobClient, OnboardingMsConfig onboardingMsConfig) {
     this.azureBlobClient = azureBlobClient;

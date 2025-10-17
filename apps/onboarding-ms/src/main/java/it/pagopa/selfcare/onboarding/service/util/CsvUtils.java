@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.util;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -22,7 +22,7 @@ import static com.opencsv.ICSVParser.DEFAULT_QUOTE_CHARACTER;
 
 @ApplicationScoped
 @Slf4j
-public class CsvService {
+public class CsvUtils {
 
     public static final String ERROR_READING_CSV = "Error reading CSV: ";
     public static final String MALFORMED_ROW = "Riga malformata";
@@ -54,12 +54,12 @@ public class CsvService {
             return new AggregatesCsv(resultList, errors);
 
         } catch (Exception e) {
-            log.error(ERROR_READING_CSV + e.getMessage(), e);
+            log.error(ERROR_READING_CSV + "{}", e.getMessage(), e);
             throw new InvalidRequestException(ERROR_READING_CSV + e.getMessage());
         }
     }
 
-    public static boolean isBlankRow(String line) {
+    private static boolean isBlankRow(String line) {
         String[] values = line.split(String.valueOf(SEPARATOR));
         for (String value : values) {
             if (!value.trim().isEmpty()) {
