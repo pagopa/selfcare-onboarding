@@ -15,6 +15,7 @@ import it.pagopa.selfcare.onboarding.model.Aggregate;
 import it.pagopa.selfcare.onboarding.model.AggregateUser;
 import it.pagopa.selfcare.onboarding.model.RowError;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
+import it.pagopa.selfcare.onboarding.service.impl.AggregatesServiceDefault;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;

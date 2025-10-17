@@ -1,10 +1,11 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.impl;
 
 import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.INSTITUTION_ID;
 
 import io.smallrye.mutiny.Multi;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.service.InstitutionService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.*;
