@@ -10,7 +10,7 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.*;
 import it.pagopa.selfcare.onboarding.service.AggregatesService;
-import it.pagopa.selfcare.onboarding.service.CsvService;
+import it.pagopa.selfcare.onboarding.service.util.CsvUtils;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -67,7 +67,7 @@ public class AggregatesServiceDefault implements AggregatesService {
     OnboardingMapper onboardingMapper;
 
     @Inject
-    CsvService csvService;
+    CsvUtils csvUtils;
 
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
@@ -105,7 +105,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @Override
     public Uni<VerifyAggregateResponse> validateAppIoAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregateAppIo.class);
+        AggregatesCsv<CsvAggregateAppIo> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregateAppIo.class);
         List<CsvAggregateAppIo> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregateAppIoResponse = new VerifyAggregateResponse();
 
@@ -121,7 +121,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @Override
     public Uni<VerifyAggregateResponse> validatePagoPaAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregatePagoPa.class);
+        AggregatesCsv<CsvAggregatePagoPa> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregatePagoPa.class);
         List<CsvAggregatePagoPa> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregatePagoPaResponse = new VerifyAggregateResponse();
 
@@ -136,7 +136,7 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @Override
     public Uni<VerifyAggregateResponse> validateSendAggregatesCsv(File file) {
-        AggregatesCsv<CsvAggregateSend> aggregatesCsv = csvService.readItemsFromCsv(file, CsvAggregateSend.class);
+        AggregatesCsv<CsvAggregateSend> aggregatesCsv = csvUtils.readItemsFromCsv(file, CsvAggregateSend.class);
         List<CsvAggregateSend> csvAggregates = aggregatesCsv.getCsvAggregateList();
         VerifyAggregateResponse verifyAggregateSendResponse = new VerifyAggregateResponse();
 
