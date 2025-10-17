@@ -73,7 +73,7 @@ public class NotificationEventServiceDefaultTest {
     when(productService.getProduct(any())).thenReturn(product);
     mockNotificationMapper(true);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     List<UserDataResponse> users = new ArrayList<>();
     when(userApi.retrieveUsers(any(), any(), any(), any(), any(), any(), any()))
       .thenReturn(users);
@@ -92,7 +92,7 @@ public class NotificationEventServiceDefaultTest {
     when(productService.getProduct(any())).thenReturn(product);
     mockNotificationMapper(true);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     ExecutionContext context = mock(ExecutionContext.class);
     doReturn(Logger.getGlobal()).when(context).getLogger();
     doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -116,7 +116,7 @@ public class NotificationEventServiceDefaultTest {
     final Product product = createProduct();
     when(productService.getProduct(any())).thenReturn(product);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.empty());
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     mockNotificationMapper(true);
     ExecutionContext context = mock(ExecutionContext.class);
     doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -132,7 +132,7 @@ public class NotificationEventServiceDefaultTest {
     final Product product = createProduct();
     when(productService.getProduct(any())).thenReturn(product);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     mockNotificationMapper(false);
     ExecutionContext context = mock(ExecutionContext.class);
     doReturn(Logger.getGlobal()).when(context).getLogger();
@@ -149,7 +149,7 @@ public class NotificationEventServiceDefaultTest {
     when(productService.getProduct(any())).thenReturn(product);
     mockNotificationMapper(true);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     ExecutionContext context = mock(ExecutionContext.class);
     doReturn(Logger.getGlobal()).when(context).getLogger();
     doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -164,7 +164,7 @@ public class NotificationEventServiceDefaultTest {
     final Product product = createProduct();
     when(productService.getProduct(any())).thenReturn(product);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
     mockNotificationMapper(true);
     doThrow(new NotificationException("Impossible to send notification for object" + onboarding))
       .when(eventHubRestClient).sendMessage(anyString(), anyString());
@@ -342,7 +342,7 @@ public class NotificationEventServiceDefaultTest {
     when(productService.getProduct(any())).thenReturn(product);
 
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
-    when(institutionApi.retrieveInstitutionByIdUsingGET(any())).thenReturn(new InstitutionResponse());
+    when(institutionApi.retrieveInstitutionByIdUsingGET(any(), any())).thenReturn(new InstitutionResponse());
 
     BaseNotificationBuilder notificationMapper = mock(BaseNotificationBuilder.class);
     when(notificationBuilderFactory.create(any())).thenReturn(notificationMapper);
