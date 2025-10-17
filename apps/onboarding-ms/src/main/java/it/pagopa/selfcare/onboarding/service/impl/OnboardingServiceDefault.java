@@ -1,6 +1,5 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
-import io.quarkus.logging.Log;
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.smallrye.mutiny.Multi;
@@ -597,8 +596,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Product product,
             List<AggregateInstitutionRequest> aggregates) {
 
-        Log.infof(
-                "persist onboarding for: product %s, product parent %s",
+        log.info(
+                "persist onboarding for: product {}, product parent {}",
                 product.getId(), product.getParentId());
 
         Map<PartyRole, ProductRoleInfo> roleMappings =
@@ -1025,8 +1024,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Void> retrieveAndSetUserAggregatesResources(
             Onboarding onboarding, Product product, List<AggregateInstitutionRequest> aggregates) {
 
-        Log.infof(
-                "Retrieving user resources for aggregates: product %s, product parent %s",
+        log.info(
+                "Retrieving user resources for aggregates: product {}, product parent {}",
                 product.getId(), product.getParentId());
 
         Map<PartyRole, ProductRoleInfo> roleMappings =
