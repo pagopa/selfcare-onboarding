@@ -8,6 +8,7 @@
         <artifactId>onboarding-root</artifactId>
         <version>0.0.1</version>
     </parent>
+
     <artifactId>test-coverage</artifactId>
     <packaging>pom</packaging>
     <name>test-coverage</name>
@@ -15,9 +16,11 @@
     <properties>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.coverage.exclusions>**/exception/**, **/response/**, **/request/**, **/entity/**, **/common/**,
-            **/utils/**, **/*Constant*, **/*Config.java, **/error/**, **/filter/**, org/**
+        <!-- sonar config -->
+        <sonar.coverage.exclusions>
+            src/test/**,**/steps/**,**/cucumber/**,**/*IT.java,**/*Test.java,**/*Tests.java,**/*TestCase.java,**/exception/**,**/response/**,**/request/**,**/entity/**,**/common/**,**/utils/**,**/*Constant*,**/*Config.java,**/error/**,**/filter/**,org/**
         </sonar.coverage.exclusions>
+        <sonar.test.exclusions>src/test/**,**/steps/**,**/cucumber/**,**/*IT.java,**/*Test.java</sonar.test.exclusions>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <commons-sdk-version>0.12.0</commons-sdk-version>
     </properties>
@@ -42,7 +45,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
     </build>
 
     <profiles>
@@ -117,9 +119,7 @@
                                 <phase>verify</phase>
                             </execution>
                         </executions>
-
                         <configuration>
-
                             <excludes>
                                 <exclude>**/config/*</exclude>
                                 <exclude>**/exception/**</exclude>
@@ -131,6 +131,10 @@
                                 <exclude>**/error/**</exclude>
                                 <exclude>**/*Constant*</exclude>
                                 <exclude>org/**</exclude>
+                                <exclude>**/*Test*</exclude>
+                                <exclude>**/*IT*</exclude>
+                                <exclude>**/cucumber/**</exclude>
+                                <exclude>**/steps/**</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
@@ -153,12 +157,10 @@
                                 <phase>verify</phase>
                             </execution>
                         </executions>
-                        <configuration>
-
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
+
 </project>
