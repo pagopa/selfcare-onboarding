@@ -106,7 +106,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         context.getLogger().info(() -> String.format("Retrieving institution having ID %s", onboarding.getInstitution().getId()));
-        InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId());
+        InstitutionResponse institution = institutionApi.retrieveInstitutionByIdUsingGET(onboarding.getInstitution().getId(), onboarding.getProductId());
 
         Token token = tokenRepository.findByOnboardingId(onboarding.getId()).orElse(null);
         NotificationsResources notificationsResources = new NotificationsResources(onboarding, institution, token, queueEvent);
