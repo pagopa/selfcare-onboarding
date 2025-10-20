@@ -18,8 +18,8 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.GSP_CATEGORY_INSTITUTION_TYPE;
-import static it.pagopa.selfcare.onboarding.service.OnboardingServiceDefault.SCEC_CATEGORY_INSTITUTION_TYPE;
+import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.GSP_CATEGORY_INSTITUTION_TYPE;
+import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.SCEC_CATEGORY_INSTITUTION_TYPE;
 
 public class RegistryManagerIPA extends RegistryManagerIPAUo {
 
