@@ -75,7 +75,7 @@ public interface OnboardingMapper {
             return aggregateInstitution.getUsers();
         }
         if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())) {
-            onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
+            return List.of();
         }
         return onboarding.getUsers();
     }

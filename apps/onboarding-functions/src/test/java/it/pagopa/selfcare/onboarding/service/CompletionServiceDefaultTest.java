@@ -694,6 +694,102 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUsers_withAggregatorAndNotProdPN() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("product-not-pn");
+        onboarding.setIsAggregator(true);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(true, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be true when isAggregator=true and productId is not PROD_PN");
+    }
+
+    @Test
+    void persistUsers_withAggregatorAndProdPN() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-pn");
+        onboarding.setIsAggregator(true);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(false, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be false when productId is PROD_PN even if isAggregator=true");
+    }
+
+    @Test
+    void persistUsers_withoutAggregator() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("any-product");
+        onboarding.setIsAggregator(false);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(false, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be false when isAggregator=false");
+    }
+
+    @Test
     void createDelegation() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
