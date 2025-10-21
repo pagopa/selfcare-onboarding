@@ -83,7 +83,7 @@ services:
     depends_on:
       - mongo-db
       - mock-server
-      - azurite
+      - azure-cli
 
   mock-server:
     platform: linux/amd64
