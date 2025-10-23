@@ -78,7 +78,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
                         Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()),
                         ZoneOffset.UTC));
         notificationToSend.setProduct(onboarding.getProductId());
-
+        if (Objects.nonNull(onboarding.getReferenceOnboardingId())) {
+            notificationToSend.setReferenceOnboardingId(onboarding.getReferenceOnboardingId());
+        }
         if (queueEvent.equals(QueueEvent.ADD)) {
             // when onboarding complete last update is activated date
             notificationToSend.setUpdatedAt(
