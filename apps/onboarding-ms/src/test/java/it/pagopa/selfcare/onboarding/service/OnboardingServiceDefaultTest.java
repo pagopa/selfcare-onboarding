@@ -899,7 +899,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
 
@@ -1575,7 +1575,7 @@ class OnboardingServiceDefaultTest {
         institutionResource.setDescription(DESCRIPTION_FIELD);
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
 
-        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
@@ -1662,7 +1662,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
@@ -2266,7 +2266,7 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
 
-        when(orchestrationService.triggerOrchestration(onboarding.getId()))
+        when(orchestrationService.triggerOrchestration(onboarding.getId(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
 
         when(onboardingValidationStrategy.validate(onboarding.getProductId()))
@@ -2325,7 +2325,7 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(onboarding.getId(), actual.getId());
 
         verify(orchestrationService, times(1))
-                .triggerOrchestration(onboarding.getId());
+                .triggerOrchestration(onboarding.getId(), any());
     }
 
     @Test
@@ -3177,7 +3177,7 @@ class OnboardingServiceDefaultTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
 
         asserter.assertNotNull(() -> onboardingService.onboardingUserPg(newOnboarding, userRequests));

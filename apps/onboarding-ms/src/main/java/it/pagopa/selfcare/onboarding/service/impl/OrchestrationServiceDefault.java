@@ -15,7 +15,6 @@ import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse
 @Slf4j
 public class OrchestrationServiceDefault implements OrchestrationService {
 
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
     public static final String STARTING_ONBOARDING_ORCHESTRATION_FOR = "Starting Onboarding Orchestration for";
 
     @Inject
@@ -27,13 +26,14 @@ public class OrchestrationServiceDefault implements OrchestrationService {
      * The action is executed only upon subscription to the returned Uni.
      *
      * @param currentOnboardingId the onboarding identifier for which to start the orchestration.
+     * @param timeout
      * @return a Uni that emits a single OrchestrationResponse on success or a failure on error.
      */
     @Override
-    public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId) {
+    public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId, String timeout) {
         log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + "current onboardingId {}", currentOnboardingId);
         return orchestrationApi.apiStartOnboardingOrchestrationGet(
-                currentOnboardingId, TIMEOUT_ORCHESTRATION_RESPONSE);
+                currentOnboardingId, timeout);
     }
 
     /**

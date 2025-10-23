@@ -38,18 +38,18 @@ class OrchestrationServiceDefaultTest {
         String onboardingId = "onb-123";
         OrchestrationResponse response = mock(OrchestrationResponse.class);
         when(orchestrationApi.apiStartOnboardingOrchestrationGet(
-                onboardingId, OrchestrationServiceDefault.TIMEOUT_ORCHESTRATION_RESPONSE))
+                onboardingId, null))
                 .thenReturn(Uni.createFrom().item(response));
 
         // when
-        Uni<OrchestrationResponse> uni = service.triggerOrchestration(onboardingId);
+        Uni<OrchestrationResponse> uni = service.triggerOrchestration(onboardingId, null);
 
         // then
         UniAssertSubscriber<OrchestrationResponse> sub = uni.subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
         sub.assertCompleted().assertItem(response);
         verify(orchestrationApi).apiStartOnboardingOrchestrationGet(
-                onboardingId, OrchestrationServiceDefault.TIMEOUT_ORCHESTRATION_RESPONSE);
+                onboardingId, null);
         verifyNoMoreInteractions(orchestrationApi);
     }
 
@@ -59,18 +59,18 @@ class OrchestrationServiceDefaultTest {
         String onboardingId = "onb-err";
         RuntimeException boom = new RuntimeException("boom");
         when(orchestrationApi.apiStartOnboardingOrchestrationGet(
-                onboardingId, OrchestrationServiceDefault.TIMEOUT_ORCHESTRATION_RESPONSE))
+                onboardingId, null))
                 .thenReturn(Uni.createFrom().failure(boom));
 
         // when
-        Uni<OrchestrationResponse> uni = service.triggerOrchestration(onboardingId);
+        Uni<OrchestrationResponse> uni = service.triggerOrchestration(onboardingId, null);
 
         // then
         UniAssertSubscriber<OrchestrationResponse> sub = uni.subscribe()
                 .withSubscriber(UniAssertSubscriber.create());
         sub.assertFailedWith(RuntimeException.class);
         verify(orchestrationApi).apiStartOnboardingOrchestrationGet(
-                onboardingId, OrchestrationServiceDefault.TIMEOUT_ORCHESTRATION_RESPONSE);
+                onboardingId, null);
         verifyNoMoreInteractions(orchestrationApi);
     }
 

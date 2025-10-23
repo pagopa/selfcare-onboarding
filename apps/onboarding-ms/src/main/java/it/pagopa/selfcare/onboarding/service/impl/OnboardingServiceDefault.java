@@ -104,6 +104,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
+    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
 
     @RestClient
     @Inject
@@ -374,7 +375,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(current -> persistOnboarding(onboarding, userRequests, product, aggregates))
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(currentOnboarding,
-                        orchestrationService.triggerOrchestration(currentOnboarding.getId())))
+                        orchestrationService.triggerOrchestration(currentOnboarding.getId(), null)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
@@ -445,7 +446,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                         persistAndStartOrchestrationOnboarding(
                                                                 currentOnboarding,
                                                                 orchestrationService.triggerOrchestration(
-                                                                        currentOnboarding.getId())))
+                                                                        currentOnboarding.getId(), null)))
                                         .onItem()
                                         .transform(onboardingMapper::toResponse));
     }
@@ -576,7 +577,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(
                         currentOnboarding,
-                        orchestrationService.triggerOrchestration(currentOnboarding.getId())))
+                        orchestrationService.triggerOrchestration(currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
@@ -1265,7 +1266,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId(), null)
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding))
                 .flatMap(onboardingResponseFactory::toGetResponse);
@@ -1381,7 +1382,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId(), null)
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -1415,7 +1416,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationService.triggerOrchestration(onboarding.getId())
+                                        ? orchestrationService.triggerOrchestration(onboarding.getId(), null)
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -1590,7 +1591,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationService.triggerOrchestration(onboardingId)
+                                        ? orchestrationService.triggerOrchestration(onboardingId, TIMEOUT_ORCHESTRATION_RESPONSE)
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
@@ -2052,7 +2053,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         unused ->
                                 persistAndStartOrchestrationOnboarding(
                                         onboarding,
-                                        orchestrationService.triggerOrchestration(onboarding.getId())))
+                                        orchestrationService.triggerOrchestration(onboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
     }
