@@ -1591,7 +1591,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         onboarding ->
                                 onboardingOrchestrationEnabled
-                                        ? orchestrationService.triggerOrchestration(onboardingId, TIMEOUT_ORCHESTRATION_RESPONSE)
+                                        ? orchestrationService.triggerOrchestration(onboardingId, "60")
                                         .map(ignore -> onboarding)
                                         : Uni.createFrom().item(onboarding));
     }
