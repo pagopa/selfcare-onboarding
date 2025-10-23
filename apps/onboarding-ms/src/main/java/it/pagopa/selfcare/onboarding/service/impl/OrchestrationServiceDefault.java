@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
+import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.service.OrchestrationService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,7 +16,6 @@ import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse
 @Slf4j
 public class OrchestrationServiceDefault implements OrchestrationService {
 
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
     public static final String STARTING_ONBOARDING_ORCHESTRATION_FOR = "Starting Onboarding Orchestration for";
 
     @Inject
@@ -23,17 +23,28 @@ public class OrchestrationServiceDefault implements OrchestrationService {
     OrchestrationApi orchestrationApi;
 
     /**
-     * Starts the onboarding orchestration for the given identifier, returning a lazy asynchronous action that emits at most one result or a failure.
-     * The action is executed only upon subscription to the returned Uni.
+     * Starts the onboarding orchestration for the given identifier, returning a lazy asynchronous action
+     * that emits at most one result or a failure.
+     * <p>
+     * The execution mode depends on the {@code timeout} parameter:
+     * <ul>
+     *   <li>If {@code timeout} is {@code null}, the orchestration is started asynchronously —
+     *       the call returns immediately and the process continues in the background.</li>
+     *   <li>If {@code timeout} is provided, the orchestration is executed synchronously and
+     *       will wait up to the specified timeout before failing with a {@link TimeoutException}.</li>
+     * </ul>
+     * <p>
+     * The action is executed only upon subscription to the returned {@link Uni}.
      *
-     * @param currentOnboardingId the onboarding identifier for which to start the orchestration.
-     * @return a Uni that emits a single OrchestrationResponse on success or a failure on error.
+     * @param currentOnboardingId the onboarding identifier for which to start the orchestration
+     * @param timeout the timeout value for synchronous execution, or {@code null} to execute asynchronously
+     * @return a {@link Uni} that emits a single {@link OrchestrationResponse} on success or a failure on error
      */
     @Override
-    public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId) {
+    public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId, String timeout) {
         log.info(STARTING_ONBOARDING_ORCHESTRATION_FOR + "current onboardingId {}", currentOnboardingId);
         return orchestrationApi.apiStartOnboardingOrchestrationGet(
-                currentOnboardingId, TIMEOUT_ORCHESTRATION_RESPONSE);
+                currentOnboardingId, timeout);
     }
 
     /**
