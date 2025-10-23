@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
+import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.service.OrchestrationService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,12 +23,22 @@ public class OrchestrationServiceDefault implements OrchestrationService {
     OrchestrationApi orchestrationApi;
 
     /**
-     * Starts the onboarding orchestration for the given identifier, returning a lazy asynchronous action that emits at most one result or a failure.
-     * The action is executed only upon subscription to the returned Uni.
+     * Starts the onboarding orchestration for the given identifier, returning a lazy asynchronous action
+     * that emits at most one result or a failure.
+     * <p>
+     * The execution mode depends on the {@code timeout} parameter:
+     * <ul>
+     *   <li>If {@code timeout} is {@code null}, the orchestration is started asynchronously —
+     *       the call returns immediately and the process continues in the background.</li>
+     *   <li>If {@code timeout} is provided, the orchestration is executed synchronously and
+     *       will wait up to the specified timeout before failing with a {@link TimeoutException}.</li>
+     * </ul>
+     * <p>
+     * The action is executed only upon subscription to the returned {@link Uni}.
      *
-     * @param currentOnboardingId the onboarding identifier for which to start the orchestration.
-     * @param timeout
-     * @return a Uni that emits a single OrchestrationResponse on success or a failure on error.
+     * @param currentOnboardingId the onboarding identifier for which to start the orchestration
+     * @param timeout the timeout value for synchronous execution, or {@code null} to execute asynchronously
+     * @return a {@link Uni} that emits a single {@link OrchestrationResponse} on success or a failure on error
      */
     @Override
     public Uni<OrchestrationResponse> triggerOrchestration(String currentOnboardingId, String timeout) {

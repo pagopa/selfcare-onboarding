@@ -104,7 +104,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
-    public static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
+    private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
 
     @RestClient
     @Inject
