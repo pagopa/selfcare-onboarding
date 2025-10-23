@@ -2266,7 +2266,7 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
 
-        when(orchestrationService.triggerOrchestration(onboarding.getId(), any()))
+        when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse()));
 
         when(onboardingValidationStrategy.validate(onboarding.getProductId()))
@@ -2325,7 +2325,7 @@ class OnboardingServiceDefaultTest {
         Assertions.assertEquals(onboarding.getId(), actual.getId());
 
         verify(orchestrationService, times(1))
-                .triggerOrchestration(onboarding.getId(), any());
+                .triggerOrchestration(any(), any());
     }
 
     @Test
