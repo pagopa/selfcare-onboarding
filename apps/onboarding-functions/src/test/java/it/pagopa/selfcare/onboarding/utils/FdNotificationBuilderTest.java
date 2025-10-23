@@ -173,6 +173,55 @@ class FdNotificationBuilderTest {
         return productResponse;
     }
 
+    @Test
+    void buildNotificationToSendWithReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = getOnboardingTest();
+        String referenceOnboardingId = "ref-onboarding-456";
+        onboarding.setReferenceOnboardingId(referenceOnboardingId);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        // when
+        NotificationToSend notification = fdNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertEquals(referenceOnboardingId, notification.getReferenceOnboardingId());
+    }
+
+    @Test
+    void buildNotificationToSendWithoutReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = getOnboardingTest();
+        onboarding.setReferenceOnboardingId(null);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        // when
+        NotificationToSend notification = fdNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertNull(notification.getReferenceOnboardingId());
+    }
+
     private static Onboarding getOnboardingTest() {
         return createOnboarding(
                 OnboardingStatus.COMPLETED,

@@ -332,4 +332,89 @@ class SapNotificationBuilderTest {
 
         assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
     }
+
+    @Test
+    void buildNotificationToSendWithReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        String referenceOnboardingId = "ref-onboarding-789";
+        onboarding.setReferenceOnboardingId(referenceOnboardingId);
+
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        institution.setCity(null);
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
+                .thenReturn(new InstitutionResource().istatCode("istatCode"));
+
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
+
+        // when
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertEquals(referenceOnboardingId, notification.getReferenceOnboardingId());
+    }
+
+    @Test
+    void buildNotificationToSendWithoutReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        onboarding.setReferenceOnboardingId(null);
+
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        institution.setCity(null);
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
+                .thenReturn(new InstitutionResource().istatCode("istatCode"));
+
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
+
+        // when
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertNull(notification.getReferenceOnboardingId());
+    }
 }
