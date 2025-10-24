@@ -1,26 +1,27 @@
-package it.pagopa.selfcare.onboarding.service;
+package it.pagopa.selfcare.onboarding.service.impl;
 
 import static it.pagopa.selfcare.onboarding.util.QueryUtils.FieldNames.INSTITUTION_ID;
 
 import io.smallrye.mutiny.Multi;
 import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.service.InstitutionService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.*;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-import org.jboss.logging.Logger;
+
 
 @ApplicationScoped
+@Slf4j
 public class InstitutionServiceDefault implements InstitutionService {
-
-    private static final Logger LOG = Logger.getLogger(InstitutionServiceDefault.class);
 
     @Override
     public Multi<InstitutionResponse> getInstitutions(List<String> institutionIds) {
         if (Objects.isNull(institutionIds) || institutionIds.isEmpty()) {
-            LOG.error("The parameter institutionIds cannot be null or empty");
+            log.error("The parameter institutionIds cannot be null or empty");
             return Multi.createFrom().empty();
         }
         Map<String, Object> queryParameterMap = new HashMap<>();

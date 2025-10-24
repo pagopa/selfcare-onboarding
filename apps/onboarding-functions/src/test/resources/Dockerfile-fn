@@ -24,10 +24,9 @@ ENV AzureWebJobsScriptRoot=/usr/src/app AzureFunctionsJobHost__Logging__Console_
 
 WORKDIR /app
 
-COPY selfcare-onboarding /app/selfcare-onboarding
-
-WORKDIR /app/selfcare-onboarding/libs
-RUN mvn clean install -DskipTests
+COPY selfcare-onboarding/pom.xml /app/selfcare-onboarding/pom.xml
+COPY selfcare-onboarding/apps/pom.xml /app/selfcare-onboarding/apps/pom.xml
+COPY selfcare-onboarding/apps/onboarding-functions /app/selfcare-onboarding/apps/onboarding-functions
 
 WORKDIR /app/selfcare-onboarding/apps/onboarding-functions
 
@@ -39,6 +38,7 @@ COPY selfcare-onboarding/apps/onboarding-functions/src/test/resources/fn/entrypo
 
 RUN chmod +x entrypoint.sh
 
-RUN mvn clean install -DskipTests
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    mvn clean install -DskipTests -q
 
 CMD ["./entrypoint.sh"]

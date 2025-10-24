@@ -26,10 +26,12 @@ public interface OnboardingMapper {
     @Mapping(target = "aggregator", source = "institution")
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "activatedAt", ignore = true)
+    @Mapping(target = "referenceOnboardingId", source = "referenceOnboardingId")
     Onboarding mapToOnboarding(OnboardingAggregateOrchestratorInput input);
 
     @Mapping(target = "aggregate", expression = "java(mapFromAggregateInstitution(aggregateInstitution))")
     @Mapping(target = "users", expression = "java(mapAggregateUsers(onboarding, aggregateInstitution))")
+    @Mapping(target = "referenceOnboardingId", source = "onboarding.id")
     OnboardingAggregateOrchestratorInput mapToOnboardingAggregateOrchestratorInput(Onboarding onboarding, AggregateInstitution aggregateInstitution);
 
     @Mapping(target = "institution", expression = "java(mapInstitutionFromDelegation(delegationResponse))")
@@ -72,15 +74,15 @@ public interface OnboardingMapper {
         if (Objects.nonNull(aggregateInstitution) && !CollectionUtils.isEmpty(aggregateInstitution.getUsers())) {
             return aggregateInstitution.getUsers();
         }
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
-            onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
+        if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())) {
+            return List.of();
         }
         return onboarding.getUsers();
     }
 
     @Named("mapAggregateUsers")
     default List<User> mapUsers(Onboarding onboarding) {
-        if(PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())){
+        if (PROD_PAGOPA.getValue().equals(onboarding.getProductId()) || PROD_IO.getValue().equals(onboarding.getProductId())) {
             onboarding.getUsers().forEach(user -> user.setRole(ADMIN_EA));
         }
         return onboarding.getUsers();

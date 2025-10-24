@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
@@ -173,6 +175,10 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
+        Boolean toAddOnAggregates = Boolean.FALSE;
+        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId())) {
+            toAddOnAggregates = Boolean.TRUE;
+        }
         for (User user : onboarding.getUsers()) {
 
             if (!product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
@@ -183,6 +189,7 @@ public class CompletionServiceDefault implements CompletionService {
                 userRoleDto.setUserMailUuid(user.getUserMailUuid());
                 userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
                 userRoleDto.getProduct().setTokenId(onboarding.getId());
+                userRoleDto.getProduct().setToAddOnAggregates(toAddOnAggregates);
             /*
               The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
               {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}

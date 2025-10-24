@@ -959,7 +959,7 @@ paths:
       - name: institutionType
         in: query
         schema:
-          $ref: "#/components/schemas/InstitutionType"
+          type: string
       - name: origin
         in: query
         schema:

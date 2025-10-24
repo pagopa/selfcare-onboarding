@@ -15,7 +15,9 @@ import it.pagopa.selfcare.onboarding.model.Aggregate;
 import it.pagopa.selfcare.onboarding.model.AggregateUser;
 import it.pagopa.selfcare.onboarding.model.RowError;
 import it.pagopa.selfcare.onboarding.model.VerifyAggregateResponse;
+import it.pagopa.selfcare.onboarding.service.impl.AggregatesServiceDefault;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
+import it.pagopa.selfcare.onboarding.service.util.CsvUtils;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
@@ -57,7 +59,7 @@ class AggregatesServiceDefaultTest {
     InstitutionApi institutionApi;
 
     @Inject
-    CsvService csvService;
+    CsvUtils csvUtils;
 
     @RestClient
     @InjectMock

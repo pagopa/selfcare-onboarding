@@ -23,6 +23,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.service.impl.TokenServiceDefault;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import jakarta.inject.Inject;
 import org.jboss.resteasy.reactive.RestResponse;

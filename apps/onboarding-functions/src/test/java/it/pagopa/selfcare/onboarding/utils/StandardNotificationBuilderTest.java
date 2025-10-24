@@ -69,7 +69,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
         onboarding.setIsAggregator(true);
 
@@ -103,7 +103,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         onboarding.setIsAggregator(false);
@@ -147,7 +147,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
@@ -179,7 +179,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
@@ -211,7 +211,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
@@ -243,7 +243,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.UPDATE);
@@ -278,7 +278,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
 
@@ -310,7 +310,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         mockPartyRegistryProxy(registryProxyInstitutionsApi, geographicTaxonomiesApi, institution);
@@ -370,7 +370,7 @@ class StandardNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
         onboarding.setIsAggregator(true);
 
@@ -416,5 +416,66 @@ class StandardNotificationBuilderTest {
         assertEquals("ACTIVE", notification.getState());
         assertEquals(TOKEN_ID, notification.getOnboardingTokenId());
 
+    }
+
+    @Test
+    void buildNotificationToSendWithReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        String referenceOnboardingId = "ref-onboarding-123";
+        onboarding.setReferenceOnboardingId(referenceOnboardingId);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        // when
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertEquals(referenceOnboardingId, notification.getReferenceOnboardingId());
+    }
+
+    @Test
+    void buildNotificationToSendWithoutReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        onboarding.setReferenceOnboardingId(null);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        // when
+        NotificationToSend notification = standardNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertNull(notification.getReferenceOnboardingId());
     }
 }

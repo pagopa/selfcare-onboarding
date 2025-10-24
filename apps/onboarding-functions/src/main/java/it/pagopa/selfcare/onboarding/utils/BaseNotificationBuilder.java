@@ -78,7 +78,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
                         Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()),
                         ZoneOffset.UTC));
         notificationToSend.setProduct(onboarding.getProductId());
-
+        if (Objects.nonNull(onboarding.getReferenceOnboardingId())) {
+            notificationToSend.setReferenceOnboardingId(onboarding.getReferenceOnboardingId());
+        }
         if (queueEvent.equals(QueueEvent.ADD)) {
             // when onboarding complete last update is activated date
             notificationToSend.setUpdatedAt(
@@ -142,7 +144,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
             rootParent.setId(institution.getRootParent().getId());
             rootParent.setDescription(institution.getRootParent().getDescription());
             InstitutionResponse parentInstitution =
-                    coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId());
+                    coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId(), onboarding.getProductId());
             rootParent.setOriginId(
                     Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
             toNotify.setRootParent(rootParent);

@@ -23,6 +23,7 @@ import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
+import it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.steps.IntegrationProfile;
 import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;

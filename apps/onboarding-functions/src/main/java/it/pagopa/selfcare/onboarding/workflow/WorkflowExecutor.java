@@ -1,13 +1,5 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingAggregateString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readDelegationResponseList;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
@@ -18,11 +10,16 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
+
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 public interface WorkflowExecutor {
 
@@ -59,8 +56,6 @@ public interface WorkflowExecutor {
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-
         ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         /* TODO
@@ -98,7 +93,8 @@ public interface WorkflowExecutor {
 
     default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
-        createInstitutionAndOnboarding(ctx, onboarding);
+        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
         return Optional.of(COMPLETED);
     }
@@ -136,39 +132,22 @@ public interface WorkflowExecutor {
         return Optional.of(COMPLETED);
     }
 
-    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper) {
+    default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
         List<Task<String>> parallelTasks = new ArrayList<>();
 
         for (AggregateInstitution aggregate : onboarding.getAggregates()) {
             OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
             final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-
-            String onboardingAggregateWithInstitutionIdString = ctx.callActivity(VERIFY_ONBOARDING_AGGREGATE_ACTIVITY, onboardingAggregateString, String.class).await();
-            Onboarding onboardingAggregateWithInstitutionId = readOnboardingValue(objectMapper(), onboardingAggregateWithInstitutionIdString);
-
-            if (Objects.nonNull(onboardingAggregateWithInstitutionId.getInstitution().getId())) {
-                boolean existsDelegation =
-                        Boolean.parseBoolean(
-                                ctx.callActivity(
-                                                EXISTS_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionId, String.class)
-                                        .await());
-                if (!existsDelegation) {
-                    String delegationId = ctx.callActivity(CREATE_DELEGATION_ACTIVITY, onboardingAggregateWithInstitutionIdString, String.class).await();
-                    onboardingAggregateWithInstitutionId.setDelegationId(delegationId);
-
-                    final String onboardingWithDelegationIdString = getOnboardingString(objectMapper(), onboardingAggregateWithInstitutionId);
-                    ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithDelegationIdString, String.class).await();
-                }
-            } else {
-                parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
-            }
+            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
         }
+
         ctx.allOf(parallelTasks).await();
     }
 
     default Optional<OnboardingStatus> handleOnboardingCompletionActivityWithOptionalMail(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
-        createInstitutionAndOnboarding(ctx, onboarding);
+        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         if(Boolean.TRUE.equals(onboarding.getSendMailForImport())) {
             ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
         }

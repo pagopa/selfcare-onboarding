@@ -16,6 +16,7 @@ import io.smallrye.mutiny.helpers.test.AssertSubscriber;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.controller.response.*;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.service.impl.InstitutionServiceDefault;
 import jakarta.inject.Inject;
 import java.util.*;
 import org.junit.jupiter.api.Test;

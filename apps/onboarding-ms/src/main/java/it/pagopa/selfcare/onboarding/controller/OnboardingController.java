@@ -579,8 +579,12 @@ public class OnboardingController {
                                                        @QueryParam("origin") String origin,
                                                        @QueryParam("originId") String originId,
                                                        @QueryParam("subunitCode") String subunitCode,
-                                                       @QueryParam("institutionType") InstitutionType institutionType) {
-        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId, institutionType)
+                                                       @QueryParam("institutionType") String institutionType) {
+        InstitutionType institutionTypeEnum = null;
+        if (institutionType != null && !institutionType.isEmpty()) {
+            institutionTypeEnum = InstitutionType.valueOf(institutionType);
+        }
+        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId, institutionTypeEnum)
                 .onItem().transform(onboardingList -> {
                     if (onboardingList.isEmpty()) {
                         throw new ResourceNotFoundException(CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getMessage(),

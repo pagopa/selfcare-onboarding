@@ -1,20 +1,5 @@
 package it.pagopa.selfcare.onboarding.functions;
 
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
@@ -44,18 +29,20 @@ import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
+
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /** Unit test for Function class. */
 @QuarkusTest
@@ -272,8 +259,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     Mockito.verify(orchestrationContext, times(3))
@@ -326,11 +313,11 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
-    Mockito.verify(orchestrationContext, times(1))
+    Mockito.verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), any());
 
     Mockito.verify(service, times(1))
@@ -432,8 +419,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     Mockito.verify(orchestrationContext, times(3))
@@ -547,8 +534,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     verify(service, times(1))
@@ -573,9 +560,9 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
-    assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(4));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(3));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(4));
     assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(5));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(6));
 
@@ -709,8 +696,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
 
     verify(service, times(1))
             .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.COMPLETED);
@@ -734,8 +721,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     verify(service, times(1))
@@ -803,8 +790,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     verify(service, times(1))
@@ -1107,8 +1094,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     verify(service, times(1))
@@ -1407,8 +1394,8 @@ class OnboardingFunctionsTest {
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
     verify(service, times(1))
@@ -1476,8 +1463,8 @@ class OnboardingFunctionsTest {
 
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(2));
-    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(3));
+    assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, captorActivitySubOrchestrator.getAllValues().get(0));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(4));
 
