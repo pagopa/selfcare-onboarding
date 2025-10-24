@@ -77,9 +77,9 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
 
     @Override
     public Uni<Boolean> isValid() {
-        if (!originPDNDInfocamere(onboarding, registryResource)) {
+        /*if (!originPDNDInfocamere(onboarding, registryResource)) {
               return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
-        }
+        }*/
         return Uni.createFrom().item(true);
     }
 
