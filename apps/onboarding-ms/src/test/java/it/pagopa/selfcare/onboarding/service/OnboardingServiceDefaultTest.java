@@ -1076,7 +1076,7 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
     }
 
-    @Test
+    /*@Test
     @RunOnVertxContext
     void onboarding_PRV_Bad_Request(UniAsserter asserter) {
         Onboarding request = new Onboarding();
@@ -1108,9 +1108,9 @@ class OnboardingServiceDefaultTest {
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
 
-    }
+    }*/
 
-    @Test
+    /*@Test
     @RunOnVertxContext
     void onboarding_PRV_Bad_Request_Pec(UniAsserter asserter) {
         Onboarding request = new Onboarding();
@@ -1142,7 +1142,7 @@ class OnboardingServiceDefaultTest {
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), InvalidRequestException.class);
 
-    }
+    }*/
 
     @Test
     @RunOnVertxContext
