@@ -424,11 +424,11 @@ public class OnboardingStep extends CucumberQuarkusTest {
   private void mockMSCoreResponses() {
     InstitutionsResponse institutionsResponse = new InstitutionsResponse();
     institutionsResponse.setInstitutions(List.of());
-    when(institutionApi.getInstitutionsUsingGET("83001010616", null, null, null))
+    when(institutionApi.getInstitutionsUsingGET("83001010616", null, null, null, null, null))
             .thenReturn(Uni.createFrom().item(institutionsResponse));
-    when(institutionApi.getInstitutionsUsingGET("00095990644", null, null, null))
+    when(institutionApi.getInstitutionsUsingGET("00095990644", null, null, null, null, null))
             .thenReturn(Uni.createFrom().item(mockInstitutionsResponse("00095990644", "c_a489")));
-    when(institutionApi.getInstitutionsUsingGET("00231830688", null, null, null))
+    when(institutionApi.getInstitutionsUsingGET("00231830688", null, null, null, null, null))
             .thenReturn(Uni.createFrom().item(mockInstitutionsResponse("00231830688", "c_l186")));
   }
 
@@ -440,7 +440,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     institutionResponse.setCounty("NA");
     institutionResponse.setCountry("IT");
     institutionResponse.setCreatedAt(OffsetDateTime.now());
-    institutionResponse.setInstitutionType(InstitutionResponse.InstitutionTypeEnum.PA);
+    institutionResponse.setInstitutionType("PA");
     institutionResponse.setDescription("Comune di Atripalda");
     institutionResponse.setOrigin(Origin.IPA.name());
     institutionResponse.setOriginId(ipaCode);

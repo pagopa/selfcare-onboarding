@@ -2594,7 +2594,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setOriginId("originId");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse));
-        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response)));
 
         asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
@@ -2627,7 +2627,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setOriginId("originId");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse));
-        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response));
 
         asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS_EA), ResourceNotFoundException.class);
@@ -2647,10 +2647,10 @@ class OnboardingServiceDefaultTest {
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
         institutionResponse.setOrigin(Origin.IPA.name());
         institutionResponse.setOriginId("originId");
-        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
+        institutionResponse.setInstitutionType("PSP");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
-        when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null))
+        when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null, null, null))
                 .thenReturn(Uni.createFrom().item(response));
 
         onboardingService
@@ -2688,10 +2688,10 @@ class OnboardingServiceDefaultTest {
         org.openapi.quarkus.core_json.model.InstitutionResponse institutionResponse = new org.openapi.quarkus.core_json.model.InstitutionResponse();
         institutionResponse.setOrigin(Origin.IPA.name());
         institutionResponse.setOriginId("originId");
-        institutionResponse.setInstitutionType(org.openapi.quarkus.core_json.model.InstitutionResponse.InstitutionTypeEnum.PSP);
+        institutionResponse.setInstitutionType("PSP");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
-        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any()))
+        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response)));
 
         asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);

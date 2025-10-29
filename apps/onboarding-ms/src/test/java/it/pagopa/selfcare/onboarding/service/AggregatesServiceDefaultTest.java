@@ -27,6 +27,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.openapi.quarkus.core_json.model.UserToOnboard;
 import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
 import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
@@ -335,21 +336,21 @@ class AggregatesServiceDefaultTest {
         aggregateUserUO.setSurname("Rossi");
         aggregateUserUO.setTaxCode("RSSMRA66A01H501W");
         aggregateUserUO.setEmail("mario.rossi@acme.it");
-        aggregateUserUO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUserUO.setRole(UserToOnboard.RoleEnum.DELEGATE.name());
 
         AggregateUser aggregateUser = new AggregateUser();
         aggregateUser.setName("Guendalina");
         aggregateUser.setSurname("Giordano");
         aggregateUser.setTaxCode("GRDGDL66A01H501W");
         aggregateUser.setEmail("guendalina.giordano@test.it");
-        aggregateUser.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUser.setRole(UserToOnboard.RoleEnum.DELEGATE.name());
 
         AggregateUser aggregateUserAOO = new AggregateUser();
         aggregateUserAOO.setName("Ma");
         aggregateUserAOO.setSurname("Re");
         aggregateUserAOO.setTaxCode("REXMAX66A01H501W");
         aggregateUserAOO.setEmail("ma.re@test.it");
-        aggregateUserAOO.setRole(org.openapi.quarkus.core_json.model.Person.RoleEnum.DELEGATE.name());
+        aggregateUserAOO.setRole(UserToOnboard.RoleEnum.DELEGATE.name());
 
         VerifyAggregateResponse verifyAggregateResponse = new VerifyAggregateResponse();
         Aggregate aggregateUO = new Aggregate();

@@ -1822,13 +1822,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
             responseUni =
                     institutionApi.getInstitutionsUsingGET(
-                            request.getTaxCode(), request.getSubunitCode(), null, null);
+                            request.getTaxCode(), request.getSubunitCode(), null, null, null, null);
         } else if (Objects.nonNull(request.getTaxCode())) {
-            responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), null, null, null);
+            responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), null, null, null, null, null);
         } else {
             responseUni =
                     institutionApi.getInstitutionsUsingGET(
-                            null, null, request.getOrigin(), request.getOriginId());
+                            null, null, request.getOrigin(), request.getOriginId(), null, null);
         }
         return responseUni
                 .onFailure(WebApplicationException.class)
@@ -1865,7 +1865,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 institutionResponse ->
                                                                         institutionResponse
                                                                                 .getInstitutionType()
-                                                                                .name()
                                                                                 .equals(request.getInstitutionType().name()))
                                                         .findFirst()
                                                         .orElseThrow(
