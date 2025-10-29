@@ -108,6 +108,7 @@ public class NotificationBuilderTestUtil {
     institution.setInstitutionType(InstitutionType.PSP);
     institution.setOrigin(Origin.IPA);
     institution.setOriginId("originId");
+    institution.setTaxCode("taxCode");
     PaymentServiceProvider paymentServiceProvider = new PaymentServiceProvider();
     paymentServiceProvider.setContractType("contractType");
     paymentServiceProvider.setProviderNames(List.of("providerName"));
