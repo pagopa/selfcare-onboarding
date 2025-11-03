@@ -46,6 +46,7 @@ import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.IMPORT_AGGREGATION;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
@@ -176,7 +177,7 @@ public class CompletionServiceDefault implements CompletionService {
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
         Boolean toAddOnAggregates = Boolean.FALSE;
-        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId())) {
+        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId()) && IMPORT_AGGREGATION.name().equalsIgnoreCase(onboarding.getWorkflowType().name())) {
             toAddOnAggregates = Boolean.TRUE;
         }
         for (User user : onboarding.getUsers()) {
