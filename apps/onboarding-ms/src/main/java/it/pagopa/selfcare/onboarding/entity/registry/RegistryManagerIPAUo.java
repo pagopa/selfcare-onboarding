@@ -1,8 +1,7 @@
 package it.pagopa.selfcare.onboarding.entity.registry;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO_PREMIUM;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DENIED_NO_ASSOCIATION;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.DENIED_NO_BILLING;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.UO_NOT_FOUND;
@@ -43,8 +42,8 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     @Override
     public Uni<Onboarding> customValidation(Product product) {
         return checkRecipientCode().onItem().transformToUni(unused -> {
-            if (!PROD_INTEROP.getValue().equals(onboarding.getProductId()) && !onboarding.getInstitution().isImported()
-                    && (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))) {
+            if (!PROD_INTEROP.getValue().equals(onboarding.getProductId()) && !PROD_IO.getValue().equals(onboarding.getProductId())
+                    && !onboarding.getInstitution().isImported() && (Objects.isNull(onboarding.getBilling()) || Objects.isNull(onboarding.getBilling().getRecipientCode()))) {
                 return Uni.createFrom().failure(new InvalidRequestException(BILLING_OR_RECIPIENT_CODE_REQUIRED));
             } else if (PROD_IO_PREMIUM.getValue().equals(onboarding.getProductId()) &&
                     ALLOWED_PRICING_PLANS.stream().noneMatch(
