@@ -129,7 +129,7 @@ public class BaseNotificationBuilder implements NotificationBuilder {
                         ? alternativeEmail
                         : institution.getDigitalAddress());
         toNotify.setAddress(institution.getAddress());
-        toNotify.setTaxCode(institution.getTaxCode());
+        toNotify.setTaxCode(onboarding.getInstitution().getTaxCode());
         toNotify.setOrigin(onboarding.getInstitution().getOrigin().getValue());
         toNotify.setOriginId(onboarding.getInstitution().getOriginId());
         toNotify.setZipCode(institution.getZipCode());

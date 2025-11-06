@@ -3,10 +3,7 @@ package it.pagopa.selfcare.onboarding.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -45,7 +42,7 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.*;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
@@ -176,7 +173,7 @@ public class CompletionServiceDefault implements CompletionService {
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
         Boolean toAddOnAggregates = Boolean.FALSE;
-        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId())) {
+        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId()) && verifyAllowedOnboardingByWorkflowType(onboarding.getWorkflowType())) {
             toAddOnAggregates = Boolean.TRUE;
         }
         for (User user : onboarding.getUsers()) {
@@ -201,6 +198,14 @@ public class CompletionServiceDefault implements CompletionService {
                 }
             }
         }
+    }
+
+    boolean verifyAllowedOnboardingByWorkflowType(WorkflowType workflowType){
+        EnumSet<WorkflowType> allowedWorkflowType = EnumSet.of(
+                IMPORT_AGGREGATION,
+                INCREMENT_REGISTRATION_AGGREGATOR
+        );
+        return allowedWorkflowType.contains(workflowType);
     }
 
     @Override
