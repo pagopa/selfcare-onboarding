@@ -2305,6 +2305,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         updatedAt:
           $ref: "#/components/schemas/LocalDateTime"
+        referenceOnboardingId:
+          type: string
     OnboardingStatus:
       enum:
       - REQUEST
