@@ -21,5 +21,6 @@ public class OnboardingResponse {
     private Boolean isAggregator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String referenceOnboardingId;
 
 }
