@@ -3164,6 +3164,9 @@
           },
           "updatedAt" : {
             "$ref" : "#/components/schemas/LocalDateTime"
+          },
+          "referenceOnboardingId" : {
+            "type" : "string"
           }
         }
       },
