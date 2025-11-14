@@ -27,5 +27,7 @@ public class OnboardingUserRequest {
     @NotEmpty(message = "at least one user is required")
     private List<UserRequest> users;
 
+    private Boolean toAddOnboardingAggregates;
+
 
 }

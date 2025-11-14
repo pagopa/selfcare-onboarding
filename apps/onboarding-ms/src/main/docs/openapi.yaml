@@ -2367,6 +2367,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
+        toAddOnboardingAggregates:
+          type: boolean
     Origin:
       enum:
       - MOCK
