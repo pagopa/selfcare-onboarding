@@ -385,16 +385,12 @@ public class PdfMapper {
               .append("<p class=\"c141\"><span class=\"c6\">Codice Fiscale: ")
               .append(userResource.getFiscalCode())
               .append("</span></p>\n")
-              .append(
-                  "<p class=\"c141\"><span class=\"c6\">Amm.ne/Ente/Societ&agrave;: </span></p>\n")
-              .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
               .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
 
           printUserWorkEmail(users, userResource, builder);
 
           builder
               .append("&nbsp;</span></p>\n")
-              .append("<p class=\"c141\"><span class=\"c6\">PEC: &nbsp;</span></p>\n")
               .append("</br>");
         });
     return builder.toString();
