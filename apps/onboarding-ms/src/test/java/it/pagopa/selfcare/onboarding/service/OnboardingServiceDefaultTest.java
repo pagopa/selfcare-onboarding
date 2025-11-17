@@ -4032,6 +4032,91 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void onboarding_whenIsAggregatorAndProductIo(UniAsserter asserter) {
+        Onboarding onboarding = new Onboarding();
+
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        AggregateInstitutionRequest aggregateInstitution = new AggregateInstitutionRequest();
+        aggregateInstitution.setDescription("test");
+        List<AggregateInstitutionRequest> aggregateInstitutions = List.of(aggregateInstitution);
+
+
+        List<UserRequest> users = List.of(manager);
+        onboarding.setProductId(PROD_IO.getValue());
+        onboarding.setIsAggregator(Boolean.TRUE);
+        onboarding.setWorkflowType(CONTRACT_REGISTRATION);
+
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setImported(true);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        onboarding.setInstitution(institutionBaseRequest);
+
+        Onboarding onboarding2 = new Onboarding();
+        onboarding2.setProductId(PROD_IO.name());
+        onboarding2.setWorkflowType(CONFIRMATION_AGGREGATE);
+        onboarding2.setReferenceOnboardingId("referenceOnboardingId");
+
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+        contractImported.setFileName("filename");
+        contractImported.setFilePath("filepath");
+        contractImported.setCreatedAt(LocalDateTime.now());
+        contractImported.setContractType("type");
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(Onboarding.find(any())).thenReturn(query);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding2));
+
+        mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("codiceIPA");
+        uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+
+        asserter.assertThat(() -> onboardingService.onboarding(onboarding, users, aggregateInstitutions), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboarding_whenIsAggregatorAndProductPagoPa_test(UniAsserter asserter) {
         Onboarding onboarding = new Onboarding();
 

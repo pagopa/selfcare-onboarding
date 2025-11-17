@@ -927,7 +927,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             String productId,
             List<OnboardingResponse> onboardingResponses) {
 
-        return ProductId.PROD_IO.name().equals(productId)
+        return ProductId.PROD_IO.getValue().equals(productId)
                 && onboardingResponses.stream()
                 .allMatch(response -> Objects.nonNull(response.getReferenceOnboardingId()));
     }
