@@ -886,31 +886,50 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
             Institution institution, String productId) {
         return validateAllowedProductList(institution.getTaxCode(), institution.getSubunitCode(), productId)
-                .flatMap(
-                        ignored -> {
-                            String origin =
-                                    institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
-                            return verifyOnboarding(
-                                    institution.getTaxCode(),
-                                    institution.getSubunitCode(),
-                                    origin,
-                                    institution.getOriginId(),
-                                    COMPLETED,
-                                    productId,
-                                    institution.getInstitutionType())
-                                    .flatMap(
-                                            onboardingResponses ->
-                                                    onboardingResponses.isEmpty()
-                                                            ? Uni.createFrom().item(Boolean.TRUE)
-                                                            : Uni.createFrom()
-                                                            .failure(
-                                                                    new ResourceConflictException(
-                                                                            String.format(
-                                                                                    PRODUCT_ALREADY_ONBOARDED.getMessage(),
-                                                                                    productId,
-                                                                                    institution.getTaxCode()),
-                                                                            PRODUCT_ALREADY_ONBOARDED.getCode())));
-                        });
+                .flatMap(ignored -> {
+                    String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+                    return verifyOnboarding(
+                            institution.getTaxCode(),
+                            institution.getSubunitCode(),
+                            origin,
+                            institution.getOriginId(),
+                            COMPLETED,
+                            productId,
+                            institution.getInstitutionType())
+                            .flatMap(onboardingResponses ->
+                                    handleOnboardingResponses(onboardingResponses, productId, institution.getTaxCode()));
+                });
+    }
+
+    private Uni<Boolean> handleOnboardingResponses(
+            List<OnboardingResponse> onboardingResponses,
+            String productId,
+            String taxCode) {
+
+        if (onboardingResponses.isEmpty()) {
+            return Uni.createFrom().item(Boolean.TRUE);
+        }
+
+        if (isProductIoWithoutReferenceOnboarding(productId, onboardingResponses)) {
+            return Uni.createFrom().item(Boolean.TRUE);
+        }
+
+        return Uni.createFrom().failure(
+                new ResourceConflictException(
+                        String.format(
+                                PRODUCT_ALREADY_ONBOARDED.getMessage(),
+                                productId,
+                                taxCode),
+                        PRODUCT_ALREADY_ONBOARDED.getCode()));
+    }
+
+    private boolean isProductIoWithoutReferenceOnboarding(
+            String productId,
+            List<OnboardingResponse> onboardingResponses) {
+
+        return ProductId.PROD_IO.getValue().equals(productId)
+                && onboardingResponses.stream()
+                .allMatch(response -> Objects.nonNull(response.getReferenceOnboardingId()));
     }
 
     private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedProductList(
