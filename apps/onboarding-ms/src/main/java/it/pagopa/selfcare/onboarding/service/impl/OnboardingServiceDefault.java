@@ -929,7 +929,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
         return ProductId.PROD_IO.name().equals(productId)
                 && onboardingResponses.stream()
-                .noneMatch(response -> Objects.nonNull(response.getReferenceOnboardingId()));
+                .allMatch(response -> Objects.nonNull(response.getReferenceOnboardingId()));
     }
 
     private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedProductList(
