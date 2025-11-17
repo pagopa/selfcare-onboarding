@@ -172,9 +172,8 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
-        Boolean toAddOnAggregates = Boolean.FALSE;
         if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId()) && verifyAllowedOnboardingByWorkflowType(onboarding.getWorkflowType())) {
-            toAddOnAggregates = Boolean.TRUE;
+            onboarding.setToAddOnAggregates(Boolean.TRUE);
         }
         for (User user : onboarding.getUsers()) {
 
@@ -186,7 +185,7 @@ public class CompletionServiceDefault implements CompletionService {
                 userRoleDto.setUserMailUuid(user.getUserMailUuid());
                 userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
                 userRoleDto.getProduct().setTokenId(onboarding.getId());
-                userRoleDto.getProduct().setToAddOnAggregates(toAddOnAggregates);
+                userRoleDto.getProduct().setToAddOnAggregates(Optional.ofNullable(onboarding.getToAddOnAggregates()).orElse(false));
             /*
               The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
               {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}
