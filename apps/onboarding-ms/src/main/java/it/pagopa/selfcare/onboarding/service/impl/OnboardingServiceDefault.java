@@ -903,7 +903,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                     onboardingResponses.isEmpty()
                                                             ? Uni.createFrom().item(Boolean.TRUE) :
                                                             (ProductId.PROD_IO.name().equals(productId) & onboardingResponses.stream()
-                                                                    .noneMatch(onboardingResponse -> onboardingResponse.getReferenceOnboardingId().isEmpty())) ?
+                                                                    .noneMatch(onboardingResponse -> Objects.nonNull(onboardingResponse.getReferenceOnboardingId())) ?
                                                                     Uni.createFrom().item(Boolean.TRUE) :
                                                                     Uni.createFrom().failure(
                                                                     new ResourceConflictException(
