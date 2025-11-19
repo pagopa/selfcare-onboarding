@@ -3596,6 +3596,46 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void verifyOnboarding_prvPfSuccessfulUserSearchAndReferenceOnboardingId(UniAsserter asserter) {
+        final String taxCode = "RSSMRA80A01H501U";
+        final String subunitCode = "subunitCode";
+        final String origin = "origin";
+        final String originId = "originId";
+        final String productId = "productId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setReferenceOnboardingId("referenceOnboardingId");
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().item(userResource));
+
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+            when(Onboarding.find(any(Document.class))).thenReturn(query);
+        });
+
+        asserter.assertThat(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                result -> {
+                    assertThat(result).isNotNull();
+                    assertThat(result).hasSize(0);
+                });
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void verifyOnboarding_prvPfUserSearchThrowsWebApplicationException(UniAsserter asserter) {
         String taxCode = "RSSMRA80A01H501U";
         String subunitCode = "subunitCode";
