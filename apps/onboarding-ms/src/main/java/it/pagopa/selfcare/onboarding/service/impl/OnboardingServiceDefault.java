@@ -1723,6 +1723,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)
                 .map(onboardingMapper::toResponse)
+                .filter(response -> Objects.isNull(response.getReferenceOnboardingId()))
                 .collect()
                 .asList();
     }
