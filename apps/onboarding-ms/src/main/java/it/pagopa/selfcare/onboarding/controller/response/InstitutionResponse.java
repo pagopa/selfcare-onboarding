@@ -40,4 +40,6 @@ public class InstitutionResponse {
 
     private PaymentServiceProviderRequest paymentServiceProvider;
     private DataProtectionOfficerRequest dataProtectionOfficer;
+    private List<String> atecoCodes;
+    private String legalForm;
 }

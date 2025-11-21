@@ -2,14 +2,13 @@ package it.pagopa.selfcare.onboarding.utils;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.PricingPlan;
-import it.pagopa.selfcare.onboarding.common.ProductId;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationType;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -78,6 +77,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
@@ -87,7 +87,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
@@ -132,6 +132,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
@@ -143,7 +144,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(institution.getExternalId(), null, null)).thenThrow(new RuntimeException("Error"));
@@ -190,6 +191,7 @@ class SapNotificationBuilderTest {
         Billing billing = new Billing();
         billing.setTaxCodeInvoicing("taxCodeInvoicing");
         onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
 
         // Create Institution
         InstitutionResponse institution = createInstitution();
@@ -201,7 +203,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(institution.getExternalId(), null, null)).thenThrow(new RuntimeException("Error"));
@@ -257,7 +259,7 @@ class SapNotificationBuilderTest {
 
         InstitutionResponse institutionParentResource = new InstitutionResponse();
         institutionParentResource.setOriginId("parentOriginId");
-        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any()))
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
                 .thenReturn(institutionParentResource);
 
         when(registryProxyInstitutionsApi.findInstitutionUsingGET(any(), any(), any()))
@@ -273,9 +275,11 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.PA);
+        institutionOnboarding.setOrigin(Origin.IPA);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType("PA");
-        institution.setOrigin("IPA");
 
         when(consumer.allowedInstitutionTypes()).thenReturn(Set.of("PA"));
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
@@ -290,6 +294,9 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.AS);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
         institution.setInstitutionType("AS");
 
@@ -304,9 +311,12 @@ class SapNotificationBuilderTest {
         Onboarding onboarding = new Onboarding();
         onboarding.setProductId(ProductId.PROD_IO.name());
         onboarding.setPricingPlan(PricingPlan.FA.name());
+        Institution institutionOnboarding = new Institution();
+        institutionOnboarding.setInstitutionType(InstitutionType.PA);
+        institutionOnboarding.setOrigin(Origin.INFOCAMERE);
+        onboarding.setInstitution(institutionOnboarding);
         InstitutionResponse institution = new InstitutionResponse();
-        institution.setInstitutionType("PA");
-        institution.setOrigin("INFOCAMERE");
+
         when(consumer.allowedOrigins()).thenReturn(Set.of("IPA"));
 
         assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
@@ -321,5 +331,90 @@ class SapNotificationBuilderTest {
         InstitutionResponse institution = new InstitutionResponse();
 
         assertFalse(sapNotificationBuilder.shouldSendNotification(onboarding, institution));
+    }
+
+    @Test
+    void buildNotificationToSendWithReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        String referenceOnboardingId = "ref-onboarding-789";
+        onboarding.setReferenceOnboardingId(referenceOnboardingId);
+
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        institution.setCity(null);
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
+                .thenReturn(new InstitutionResource().istatCode("istatCode"));
+
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
+
+        // when
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertEquals(referenceOnboardingId, notification.getReferenceOnboardingId());
+    }
+
+    @Test
+    void buildNotificationToSendWithoutReferenceOnboardingId() {
+        // Create Onboarding
+        Onboarding onboarding = createOnboarding(
+                OnboardingStatus.COMPLETED,
+                OffsetDateTime.parse("2020-11-01T10:00:00Z"), // createdAt
+                OffsetDateTime.parse("2020-11-02T10:02:00Z"), // activatedAt
+                OffsetDateTime.parse("2020-11-02T10:05:00Z"), // updatedAt
+                null // deletedAt
+        );
+        onboarding.setReferenceOnboardingId(null);
+
+        Billing billing = new Billing();
+        billing.setTaxCodeInvoicing("taxCodeInvoicing");
+        onboarding.setBilling(billing);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+
+        // Create Institution
+        InstitutionResponse institution = createInstitution();
+        institution.setCity(null);
+        // Create Token
+        Token token = createToken();
+
+        InstitutionResponse institutionParentResource = new InstitutionResponse();
+        institutionParentResource.setOriginId("parentOriginId");
+        when(coreInstitutionApi.retrieveInstitutionByIdUsingGET(any(), any()))
+                .thenReturn(institutionParentResource);
+
+        when(registryProxyInstitutionsApi.findInstitutionUsingGET("taxCode", null, null))
+                .thenReturn(new InstitutionResource().istatCode("istatCode"));
+
+        when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(new GeographicTaxonomyResource().country("country").provinceAbbreviation("provinceAbbreviation").countryAbbreviation("countryAbbreviation").desc("desc"));
+
+        // when
+        NotificationToSend notification = sapNotificationBuilder.buildNotificationToSend(onboarding, token, institution, QueueEvent.ADD);
+
+        // then
+        assertNotNull(notification);
+        assertNull(notification.getReferenceOnboardingId());
     }
 }

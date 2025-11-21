@@ -20,7 +20,7 @@ public class IntegrationOnboardingResources {
 
   @PostConstruct
   public void init() {
-    loadJsonTemplatesFromDirectory("integration_data");
+    loadJsonTemplatesFromDirectory("integration-data");
   }
 
   private void loadJsonTemplatesFromDirectory(String directoryPath) {

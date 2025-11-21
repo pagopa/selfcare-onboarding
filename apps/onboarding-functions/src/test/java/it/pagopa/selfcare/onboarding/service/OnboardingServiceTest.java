@@ -1,38 +1,21 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import com.microsoft.azure.functions.ExecutionContext;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import io.quarkus.mongodb.panache.PanacheQuery;
+import io.quarkus.mongodb.panache.common.PanacheUpdate;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.NotificationCountResult;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflowInstitution;
-import it.pagopa.selfcare.onboarding.entity.Token;
-import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.dto.SendMailInput;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
@@ -40,19 +23,33 @@ import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
-import java.io.File;
-import java.util.*;
-import java.util.logging.Logger;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.openapi.quarkus.party_registry_proxy_json.api.PdndVisuraInfoCamereControllerApi;
 import org.openapi.quarkus.user_json.api.InstitutionApi;
+import org.openapi.quarkus.user_json.model.SendMailDto;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class OnboardingServiceTest {
@@ -61,10 +58,17 @@ class OnboardingServiceTest {
   @InjectMock TokenRepository tokenRepository;
   @RestClient @InjectMock UserApi userRegistryApi;
   @RestClient @InjectMock InstitutionApi userInstitutionApi;
+  @RestClient @InjectMock
+  org.openapi.quarkus.user_json.api.UserApi userApi;
+  @RestClient @InjectMock
+  PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi;
   @InjectMock NotificationService notificationService;
   @InjectMock ContractService contractService;
   @InjectMock ProductService productService;
-
+  @InjectMock
+  UserMapper userMapper;
+  @InjectMock
+  AzureBlobClient azureBlobClient;
   @Inject OnboardingService onboardingService;
 
   final String productId = "productId";
@@ -121,7 +125,7 @@ class OnboardingServiceTest {
     user.setRole(PartyRole.MANAGER);
 
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, user.getId()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     Product product = new Product();
     product.setTitle("title");
@@ -129,8 +133,8 @@ class OnboardingServiceTest {
     when(productService.getProductIsValid(any())).thenReturn(product);
 
     assertThrows(
-        GenericOnboardingException.class,
-        () -> onboardingService.createContract(onboardingWorkflow));
+            GenericOnboardingException.class,
+            () -> onboardingService.createContract(onboardingWorkflow));
   }
 
   @Test
@@ -147,7 +151,7 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
 
     when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
 
@@ -155,18 +159,18 @@ class OnboardingServiceTest {
     onboardingService.createContract(onboardingWorkflow);
 
     Mockito.verify(userRegistryApi, Mockito.times(1))
-        .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
+            .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
 
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
 
     ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
     Mockito.verify(contractService, Mockito.times(1))
-        .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
+            .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
     assertEquals(
-        captorTemplatePath.getValue(),
-        product
-            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-            .getContractTemplatePath());
+            captorTemplatePath.getValue(),
+            product
+                    .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+                    .getContractTemplatePath());
   }
 
   private static OnboardingWorkflow getOnboardingWorkflowInstitution(Onboarding onboarding) {
@@ -191,10 +195,10 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
 
     when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     when(userRegistryApi.findByIdUsingGET(USERS_WORKS_FIELD_LIST, delegate.getId()))
-        .thenReturn(delegateResource);
+            .thenReturn(delegateResource);
 
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(product);
 
@@ -202,21 +206,21 @@ class OnboardingServiceTest {
     onboardingService.createContract(onboardingWorkflow);
 
     Mockito.verify(userRegistryApi, Mockito.times(1))
-        .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
+            .findByIdUsingGET(USERS_WORKS_FIELD_LIST, manager.getId());
 
     Mockito.verify(userRegistryApi, Mockito.times(1))
-        .findByIdUsingGET(USERS_WORKS_FIELD_LIST, delegate.getId());
+            .findByIdUsingGET(USERS_WORKS_FIELD_LIST, delegate.getId());
 
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
 
     ArgumentCaptor<String> captorTemplatePath = ArgumentCaptor.forClass(String.class);
     Mockito.verify(contractService, Mockito.times(1))
-        .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
+            .createContractPDF(captorTemplatePath.capture(), any(), any(), any(), any(), any());
     assertEquals(
-        captorTemplatePath.getValue(),
-        product
-            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-            .getContractTemplatePath());
+            captorTemplatePath.getValue(),
+            product
+                    .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+                    .getContractTemplatePath());
   }
 
   @Test
@@ -243,7 +247,7 @@ class OnboardingServiceTest {
     userResource.setWorkContacts(map);
 
     when(userRegistryApi.findByIdUsingGET(anyString(), anyString()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     // Act
     onboardingService.createAttachment(onboardingAttachment);
@@ -251,7 +255,7 @@ class OnboardingServiceTest {
     // Assert
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
     Mockito.verify(contractService, Mockito.times(1))
-        .createAttachmentPDF(any(), any(), any(), any(), any());
+            .createAttachmentPDF(any(), any(), any(), any(), any());
   }
 
   private Product createDummyProduct() {
@@ -260,6 +264,7 @@ class OnboardingServiceTest {
     product.setId(productId);
     product.setInstitutionContractMappings(createDummyContractTemplateInstitution());
     product.setUserContractMappings(createDummyContractTemplateInstitution());
+    product.setExpirationDate(30);
 
     return product;
   }
@@ -307,16 +312,16 @@ class OnboardingServiceTest {
     OnboardingWorkflow onboardingWorkflow = new OnboardingWorkflowInstitution();
     onboardingWorkflow.setOnboarding(onboarding);
     File contract =
-        new File(
-            Objects.requireNonNull(
-                    getClass().getClassLoader().getResource("application.properties"))
-                .getFile());
+            new File(
+                    Objects.requireNonNull(
+                                    getClass().getClassLoader().getResource("application.properties"))
+                            .getFile());
     DSSDocument document = new FileDocument(contract);
-    String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
+    String digestExpected = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     Product productExpected = createDummyProduct();
     when(contractService.retrieveContractNotSigned(onboardingWorkflow, productExpected.getTitle()))
-        .thenReturn(contract);
+            .thenReturn(contract);
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(productExpected);
 
     Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
@@ -328,15 +333,15 @@ class OnboardingServiceTest {
     assertEquals(onboarding.getProductId(), tokenArgumentCaptor.getValue().getProductId());
     assertEquals(digestExpected, tokenArgumentCaptor.getValue().getChecksum());
     assertEquals(
-        productExpected
-            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-            .getContractTemplatePath(),
-        tokenArgumentCaptor.getValue().getContractTemplate());
+            productExpected
+                    .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+                    .getContractTemplatePath(),
+            tokenArgumentCaptor.getValue().getContractTemplate());
     assertEquals(
-        productExpected
-            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-            .getContractTemplateVersion(),
-        tokenArgumentCaptor.getValue().getContractVersion());
+            productExpected
+                    .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+                    .getContractTemplateVersion(),
+            tokenArgumentCaptor.getValue().getContractVersion());
   }
 
   @Test
@@ -347,16 +352,16 @@ class OnboardingServiceTest {
     onboardingAttachment.setOnboarding(onboarding);
     onboardingAttachment.setAttachment(attachmentTemplate);
     File contract =
-        new File(
-            Objects.requireNonNull(
-                    getClass().getClassLoader().getResource("application.properties"))
-                .getFile());
+            new File(
+                    Objects.requireNonNull(
+                                    getClass().getClassLoader().getResource("application.properties"))
+                            .getFile());
     DSSDocument document = new FileDocument(contract);
-    String digestExpected = document.getDigest(DigestAlgorithm.SHA256);
+    String digestExpected = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
 
     Product productExpected = createDummyProduct();
     when(contractService.retrieveAttachment(onboardingAttachment, productExpected.getTitle()))
-        .thenReturn(contract);
+            .thenReturn(contract);
     when(productService.getProductIsValid(onboarding.getProductId())).thenReturn(productExpected);
 
     Mockito.doNothing().when(tokenRepository).persist(any(Token.class));
@@ -382,12 +387,12 @@ class OnboardingServiceTest {
 
     Mockito.verify(productService, Mockito.times(1)).getProductIsValid(onboarding.getProductId());
     Mockito.verify(contractService, Mockito.times(1))
-        .loadContractPDF(
-            product
-                .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
-                .getContractTemplatePath(),
-            onboarding.getId(),
-            product.getTitle());
+            .loadContractPDF(
+                    product
+                            .getInstitutionContractTemplate(Product.CONTRACT_TYPE_DEFAULT)
+                            .getContractTemplatePath(),
+                    onboarding.getId(),
+                    product.getTitle());
   }
 
   @Test
@@ -402,29 +407,133 @@ class OnboardingServiceTest {
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
 
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
-    OnboardingService.SendMailInput sendMailInput = new OnboardingService.SendMailInput();
-    sendMailInput.userRequestName = userResource.getName().getValue();
-    sendMailInput.userRequestSurname = userResource.getFamilyName().getValue();
-    sendMailInput.product = product;
-    sendMailInput.institutionName = "description";
+    SendMailInput sendMailInput = new SendMailInput();
+    sendMailInput.setUserRequestName(userResource.getName().getValue());
+    sendMailInput.setUserRequestSurname(userResource.getFamilyName().getValue());
+    sendMailInput.setProduct(product);
+    sendMailInput.setInstitutionName("description");
 
     doNothing()
-        .when(notificationService)
-        .sendMailRegistrationForContract(
-            onboarding.getId(),
-            onboarding.getInstitution().getDigitalAddress(),
-            sendMailInput,
-            "default",
-            "default");
+            .when(notificationService)
+            .sendMailRegistrationForContract(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput,
+                    "default",
+                    "default", "10");
 
     onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString());
+            .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString(), anyString());
     verifyNoMoreInteractions(notificationService);
+  }
+
+  @Test
+  void testSendMailRegistrationForUser_Success() {
+    // Arrange
+    Onboarding onboarding = new Onboarding();
+    Institution institution = new Institution();
+    institution.setDescription("Test Institution");
+    onboarding.setInstitution(institution);
+    onboarding.setProductId("prod-123");
+
+    User user = new User();
+    user.setId("user-1");
+    user.setRole(PartyRole.MANAGER);
+    user.setUserMailUuid("uuid-123");
+    onboarding.setUsers(List.of(user));
+
+    SendMailDto expectedDto = new SendMailDto();
+    expectedDto.setInstitutionName("Test Institution");
+    expectedDto.setProductId("prod-123");
+    expectedDto.setRole(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+    expectedDto.setUserMailUuid("uuid-123");
+
+    Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+
+    // Act
+    onboardingService.sendMailRegistrationForUser(onboarding);
+
+    // Assert
+    Mockito.verify(userApi).sendMailRequest(any(),
+            Mockito.argThat(dto ->
+                    dto.getInstitutionName().equals(expectedDto.getInstitutionName()) &&
+                            dto.getProductId().equals(expectedDto.getProductId()) &&
+                            dto.getRole().equals(expectedDto.getRole()) &&
+                            dto.getUserMailUuid().equals(expectedDto.getUserMailUuid())
+            )
+    );
+  }
+
+  @Test
+  void testSaveVisuraForMerchant_Success() {
+    // Arrange
+    Onboarding onboarding = new Onboarding();
+    Institution institution = new Institution();
+    institution.setDescription("Test Institution");
+    onboarding.setInstitution(institution);
+    onboarding.setProductId("prod-123");
+
+    User user = new User();
+    user.setId("user-1");
+    user.setRole(PartyRole.MANAGER);
+    user.setUserMailUuid("uuid-123");
+    onboarding.setUsers(List.of(user));
+
+    Mockito.when(pdndVisuraInfoCamereControllerApi.institutionVisuraDocumentByTaxCodeUsingGET(any())).thenReturn("test".getBytes(StandardCharsets.UTF_8));
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn("test");
+    // Act
+    onboardingService.saveVisuraForMerchant(onboarding);
+
+    // Assert
+    Mockito.verify(pdndVisuraInfoCamereControllerApi).institutionVisuraDocumentByTaxCodeUsingGET(Mockito.any());
+
+  }
+
+  @Test
+  void testSaveVisuraForMerchant_Exception() {
+    Onboarding onboarding = new Onboarding();
+    Institution institution = new Institution();
+    institution.setDescription("Test Institution");
+    onboarding.setInstitution(institution);
+    onboarding.setProductId("prod-123");
+    User user = new User();
+    user.setId("user-1");
+    user.setRole(PartyRole.MANAGER);
+    user.setUserMailUuid("uuid-123");
+    onboarding.setUsers(List.of(user));
+
+    Mockito.doThrow(new RuntimeException("Error during download"))
+            .when(pdndVisuraInfoCamereControllerApi).institutionVisuraDocumentByTaxCodeUsingGET(Mockito.any());
+
+    Assertions.assertDoesNotThrow(() -> onboardingService.saveVisuraForMerchant(onboarding));
+
+    Mockito.verify(pdndVisuraInfoCamereControllerApi).institutionVisuraDocumentByTaxCodeUsingGET(Mockito.any());
+  }
+
+  @Test
+  void testSendMailRegistrationForUser_Exception() {
+    Onboarding onboarding = new Onboarding();
+    Institution institution = new Institution();
+    institution.setDescription("Test Institution");
+    onboarding.setInstitution(institution);
+    onboarding.setProductId("prod-123");
+    User user = new User();
+    user.setId("user-1");
+    user.setRole(PartyRole.MANAGER);
+    user.setUserMailUuid("uuid-123");
+    onboarding.setUsers(List.of(user));
+    Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+    Mockito.doThrow(new RuntimeException("Email failure"))
+            .when(userApi).sendMailRequest(Mockito.any(), Mockito.any());
+
+    Assertions.assertDoesNotThrow(() -> onboardingService.sendMailRegistrationForUser(onboarding));
+
+    Mockito.verify(userApi).sendMailRequest(Mockito.any(), Mockito.any());
   }
 
   @Test
@@ -435,29 +544,34 @@ class OnboardingServiceTest {
     UserResource userResource = createUserResource();
     Token token = createDummyToken();
 
+    Integer expirationDate = 30;
+
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
     doNothing()
-        .when(notificationService)
-        .sendMailRegistrationForContractAggregator(
-            onboarding.getId(),
-            onboarding.getInstitution().getDigitalAddress(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle());
+            .when(notificationService)
+            .sendMailRegistrationForContractAggregator(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(),
+                    String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistrationForContractAggregator(onboarding);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailRegistrationForContractAggregator(
-            onboarding.getId(),
-            onboarding.getInstitution().getDigitalAddress(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle());
+            .sendMailRegistrationForContractAggregator(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(),
+                    product.getExpirationDate().toString());
   }
 
   @Test
@@ -467,35 +581,38 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
     Token token = createDummyToken();
 
+    Integer expirationDate = 30;
+
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
 
     doNothing()
-        .when(notificationService)
-        .sendMailRegistrationForContract(
-            onboarding.getId(),
-            onboarding.getInstitution().getDigitalAddress(),
-            onboarding.getInstitution().getDescription(),
-            "",
-            product.getTitle(),
-            "description",
-            "default",
-            "default");
+            .when(notificationService)
+            .sendMailRegistrationForContract(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    onboarding.getInstitution().getDescription(),
+                    "",
+                    product.getTitle(),
+                    "description",
+                    "default",
+                    "default", String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistrationForContractWhenApprove(onboardingWorkflow);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailRegistrationForContract(
-            onboarding.getId(),
-            onboarding.getInstitution().getDigitalAddress(),
-            onboarding.getInstitution().getDescription(),
-            "",
-            product.getTitle(),
-            "description",
-            "default",
-            "default");
+            .sendMailRegistrationForContract(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    onboarding.getInstitution().getDescription(),
+                    "",
+                    product.getTitle(),
+                    "description",
+                    "contracts/template/mail/onboarding-request/1.0.1.json",
+                    "https://dev.selfcare.pagopa.it/onboarding/confirm?jwt=", "30");
   }
 
   @Test
@@ -504,8 +621,8 @@ class OnboardingServiceTest {
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.empty());
     assertThrows(
-        GenericOnboardingException.class,
-        () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
+            GenericOnboardingException.class,
+            () -> onboardingService.sendMailRegistrationForContract(onboardingWorkflow));
   }
 
   @Test
@@ -515,27 +632,31 @@ class OnboardingServiceTest {
     Product product = createDummyProduct();
     Onboarding onboarding = createOnboarding();
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
     doNothing()
-        .when(notificationService)
-        .sendMailRegistration(
-            onboarding.getInstitution().getDescription(),
-            onboarding.getInstitution().getDigitalAddress(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle());
+            .when(notificationService)
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(), product.getExpirationDate().toString());
 
     onboardingService.sendMailRegistration(onboarding);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailRegistration(
-            onboarding.getInstitution().getDescription(),
-            onboarding.getInstitution().getDigitalAddress(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle());
+            .sendMailRegistration(
+                    onboarding.getInstitution().getDescription(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(), String.valueOf(expirationDate));
   }
 
   @Test
@@ -547,12 +668,16 @@ class OnboardingServiceTest {
     onboarding.getInstitution().setOrigin(Origin.IPA);
     onboarding.setPreviousManagerId("previousManagerId");
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
             .thenReturn(userResource);
 
     when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
-        .thenReturn(Collections.emptyList());
+            .thenReturn(Collections.emptyList());
 
     doNothing()
             .when(notificationService)
@@ -561,7 +686,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -571,7 +696,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), product.getExpirationDate().toString());
   }
 
   @Test
@@ -583,7 +708,11 @@ class OnboardingServiceTest {
     onboarding.getInstitution().setOrigin(Origin.IPA);
     onboarding.setPreviousManagerId("previousManagerId");
 
+    Integer expirationDate = 30;
+
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
+
     when(userRegistryApi.findByIdUsingGET(any(), any()))
             .thenReturn(userResource);
 
@@ -604,7 +733,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), String.valueOf(expirationDate));
 
     onboardingService.sendMailRegistration(onboarding);
 
@@ -614,7 +743,7 @@ class OnboardingServiceTest {
                     onboarding.getInstitution().getDigitalAddress(),
                     userResource.getName().getValue(),
                     userResource.getFamilyName().getValue(),
-                    product.getTitle());
+                    product.getTitle(), product.getExpirationDate().toString());
   }
 
   @Test
@@ -626,21 +755,21 @@ class OnboardingServiceTest {
 
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
 
     doNothing()
-        .when(notificationService)
-        .sendMailRegistrationApprove(any(), any(), any(), any(), any());
+            .when(notificationService)
+            .sendMailRegistrationApprove(any(), any(), any(), any(), any());
 
     onboardingService.sendMailRegistrationApprove(onboarding);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailRegistrationApprove(
-            onboarding.getInstitution().getDescription(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle(),
-            onboarding.getId());
+            .sendMailRegistrationApprove(
+                    onboarding.getInstitution().getDescription(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(),
+                    onboarding.getId());
   }
 
   @Test
@@ -648,8 +777,8 @@ class OnboardingServiceTest {
     Onboarding onboarding = createOnboarding();
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.empty());
     assertThrows(
-        GenericOnboardingException.class,
-        () -> onboardingService.sendMailRegistrationApprove(onboarding));
+            GenericOnboardingException.class,
+            () -> onboardingService.sendMailRegistrationApprove(onboarding));
   }
 
   @Test
@@ -661,20 +790,20 @@ class OnboardingServiceTest {
 
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
     when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
-        .thenReturn(userResource);
+            .thenReturn(userResource);
     doNothing()
-        .when(notificationService)
-        .sendMailOnboardingApprove(any(), any(), any(), any(), any());
+            .when(notificationService)
+            .sendMailOnboardingApprove(any(), any(), any(), any(), any());
 
     onboardingService.sendMailOnboardingApprove(onboarding);
 
     Mockito.verify(notificationService, times(1))
-        .sendMailOnboardingApprove(
-            onboarding.getInstitution().getDescription(),
-            userResource.getName().getValue(),
-            userResource.getFamilyName().getValue(),
-            product.getTitle(),
-            onboarding.getId());
+            .sendMailOnboardingApprove(
+                    onboarding.getInstitution().getDescription(),
+                    userResource.getName().getValue(),
+                    userResource.getFamilyName().getValue(),
+                    product.getTitle(),
+                    onboarding.getId());
   }
 
   @Test
@@ -682,8 +811,8 @@ class OnboardingServiceTest {
     Onboarding onboarding = createOnboarding();
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.empty());
     assertThrows(
-        GenericOnboardingException.class,
-        () -> onboardingService.sendMailOnboardingApprove(onboarding));
+            GenericOnboardingException.class,
+            () -> onboardingService.sendMailOnboardingApprove(onboarding));
   }
 
   @Test
@@ -703,7 +832,7 @@ class OnboardingServiceTest {
     when(onboardingQuery.count()).thenReturn(5L).thenReturn(3L);
 
     List<NotificationCountResult> results =
-        onboardingService.countNotifications(product1.getId(), from, to, context);
+            onboardingService.countNotifications(product1.getId(), from, to, context);
 
     assertEquals(1, results.size());
     assertEquals(8, results.get(0).getNotificationCount());
@@ -715,7 +844,7 @@ class OnboardingServiceTest {
 
     when(productService.getProducts(true, false)).thenReturn(List.of());
     List<NotificationCountResult> results =
-        onboardingService.countNotifications(null, null, null, context);
+            onboardingService.countNotifications(null, null, null, context);
     assertTrue(results.isEmpty());
   }
 
@@ -763,6 +892,91 @@ class OnboardingServiceTest {
     Token token = new Token();
     token.setId(UUID.randomUUID().toString());
     return token;
+  }
+
+  @Test
+  void testUpdateTokenContractFiles() {
+    // Given
+    String contractSigned = "parties/docs/token1/doc.7m";
+    String contractFilename = "contract.pdf";
+    Token token = new Token();
+    token.setId("token1");
+    token.setContractSigned(contractSigned);
+    token.setContractFilename(contractFilename);
+
+    PanacheUpdate panacheUpdate = mock(PanacheUpdate.class);
+    when(tokenRepository.update(anyString(), any(Map.class)))
+            .thenReturn(panacheUpdate);
+    when(panacheUpdate.where(anyString(), any(Map.class)))
+            .thenReturn(1L);
+    long result = onboardingService.updateTokenContractFiles(token);
+
+    assertEquals(1L, result);
+
+    // Then
+    ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    Mockito.verify(tokenRepository).update(queryCaptor.capture(), paramsCaptor.capture());
+
+    String capturedQuery = queryCaptor.getValue();
+    Map<String, Object> capturedParams = paramsCaptor.getValue();
+    assertThat(capturedQuery, equalTo("contractSigned = :contractSigned and contractFilename = :contractFilename and updatedAt = :updatedAt"));
+    assertThat(capturedParams, Matchers.hasKey("contractSigned"));
+    assertThat(capturedParams, Matchers.hasValue(contractSigned));
+    assertThat(capturedParams, Matchers.hasKey("contractFilename"));
+    assertThat(capturedParams, Matchers.hasValue(contractFilename));
+    assertThat(capturedParams, Matchers.hasKey("updatedAt"));
+
+    // Verifica chiamata al where
+    ArgumentCaptor<String> whereQueryCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<Map<String, Object>> whereParamsCaptor = ArgumentCaptor.forClass(Map.class);
+
+    verify(panacheUpdate).where(whereQueryCaptor.capture(), whereParamsCaptor.capture());
+
+    String capturedWhereQuery = whereQueryCaptor.getValue();
+    Map<String, Object> capturedWhereParams = whereParamsCaptor.getValue();
+
+    assertThat(capturedWhereQuery, equalTo("_id = :tokenId"));
+    assertThat(capturedWhereParams, Matchers.hasValue(token.getId()));
+    assertThat(capturedWhereParams, Matchers.hasKey("tokenId"));
+  }
+
+  @Test
+  void sendMailRegistrationWithContractOK() {
+
+    Onboarding onboarding = createOnboarding();
+    Product product = createDummyProduct();
+    UserResource userResource = createUserResource();
+    Token token = createDummyToken();
+
+    when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
+    when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
+
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+            .thenReturn(userResource);
+
+    OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
+    SendMailInput sendMailInput = new SendMailInput();
+    sendMailInput.setUserRequestName(userResource.getName().getValue());
+    sendMailInput.setUserRequestSurname(userResource.getFamilyName().getValue());
+    sendMailInput.setProduct(product);
+    sendMailInput.setInstitutionName("description");
+
+    doNothing()
+            .when(notificationService)
+            .sendMailRegistrationForContract(
+                    onboarding.getId(),
+                    onboarding.getInstitution().getDigitalAddress(),
+                    sendMailInput,
+                    "default",
+                    "default", "10");
+
+    onboardingService.sendMailRegistrationForContract(onboardingWorkflow);
+
+    Mockito.verify(notificationService, times(1))
+             .sendMailRegistrationForContract(any(), any(), any(), anyString(), anyString(), anyString());
+    verifyNoMoreInteractions(notificationService);
   }
 
 }

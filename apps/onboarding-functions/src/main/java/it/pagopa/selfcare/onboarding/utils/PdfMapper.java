@@ -62,7 +62,6 @@ public class PdfMapper {
       throw new GenericOnboardingException(
           MANAGER_EMAIL_NOT_FOUND.getMessage(), MANAGER_EMAIL_NOT_FOUND.getCode());
     }
-
     Map<String, Object> map = new HashMap<>();
     map.put(INSTITUTION_NAME, institution.getDescription());
     map.put("address", institution.getAddress());
@@ -386,16 +385,12 @@ public class PdfMapper {
               .append("<p class=\"c141\"><span class=\"c6\">Codice Fiscale: ")
               .append(userResource.getFiscalCode())
               .append("</span></p>\n")
-              .append(
-                  "<p class=\"c141\"><span class=\"c6\">Amm.ne/Ente/Societ&agrave;: </span></p>\n")
-              .append("<p class=\"c141\"><span class=\"c6\">Qualifica/Posizione: </span></p>\n")
               .append("<p class=\"c141\"><span class=\"c6\">e-mail: ");
 
           printUserWorkEmail(users, userResource, builder);
 
           builder
               .append("&nbsp;</span></p>\n")
-              .append("<p class=\"c141\"><span class=\"c6\">PEC: &nbsp;</span></p>\n")
               .append("</br>");
         });
     return builder.toString();
@@ -485,4 +480,10 @@ public class PdfMapper {
       map.put(INSTITUTION_RECIPIENT_CODE, billing.getRecipientCode());
     }
   }
+
+  public static void setupPaymentData(Map<String, Object> data, Payment payment) {
+    data.put("holder", payment.retrieveEncryptedHolder());
+    data.put("holder-iban", payment.retrieveEncryptedIban());
+  }
+
 }

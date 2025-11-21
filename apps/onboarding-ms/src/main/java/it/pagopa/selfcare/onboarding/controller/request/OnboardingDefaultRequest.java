@@ -19,4 +19,6 @@ public class OnboardingDefaultRequest extends OnboardingBaseRequest {
     private AdditionalInformationsDto additionalInformations;
     @Valid
     private GPUData gpuData;
+    @Valid
+    private PaymentRequestDto payment;
 }

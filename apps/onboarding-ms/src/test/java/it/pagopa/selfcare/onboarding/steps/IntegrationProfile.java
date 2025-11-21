@@ -23,6 +23,11 @@ import org.eclipse.microprofile.config.ConfigProvider;
 public class IntegrationProfile implements QuarkusTestProfile {
 
   @Override
+  public String getConfigProfile() {
+    return "integrationProfile";
+  }
+
+  @Override
   public Map<String, String> getConfigOverrides() {
     return Map.of(
         "mp.jwt.verify.publickey",

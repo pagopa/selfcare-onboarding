@@ -1,23 +1,15 @@
 package it.pagopa.selfcare.onboarding.controller;
 
-import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
-
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.jwt.auth.principal.DefaultJWTCallerPrincipal;
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingDefaultRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPaRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingPspRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserPgRequest;
-import it.pagopa.selfcare.onboarding.controller.request.OnboardingUserRequest;
-import it.pagopa.selfcare.onboarding.controller.request.ReasonRequest;
+import it.pagopa.selfcare.onboarding.controller.request.*;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -38,9 +30,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -50,12 +39,21 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveContractFromFormData;
+
 @Authenticated
 @Path("/v1/onboarding")
 @Tag(name = "Onboarding Controller")
 @AllArgsConstructor
 @Slf4j
 public class OnboardingController {
+
+    @Inject
+    SecurityIdentity securityIdentity;
 
     private final OnboardingService onboardingService;
     private final OnboardingMapper onboardingMapper;
@@ -202,18 +200,36 @@ public class OnboardingController {
                         .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
     }
 
+  @Operation(
+    summary = "Import PA onboarding with token creation and complete to COMPLETED.",
+    description = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase."
+  )
+  @POST
+  @Path("/pa/import")
+  @Tag(name = "Onboarding Controller")
+  @Tag(name = "internal-v1")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
+    return readUserIdFromToken(ctx)
+      .onItem().transformToUni(userId -> onboardingService
+        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
+  }
+
     @Operation(
-            summary = "Import PA onboarding with token creation and complete to COMPLETED.",
-            description = "Perform onboarding as /onboarding/pa but create token and completing the onboarding request to COMPLETED phase."
+            summary = "Import onboarding (not PA and PSP) with token creation and complete to COMPLETED.",
+            description = "Perform onboarding (not PA and PSP) but create token and completing the request to COMPLETED phase."
     )
     @POST
-    @Path("/pa/import")
+    @Path("/import")
+    @Tag(name = "Onboarding Controller")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
+    public Uni<OnboardingResponse> onboardingImport(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
     }
 
     @Operation(
@@ -520,19 +536,33 @@ public class OnboardingController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/check-manager")
-    public Uni<CheckManagerResponse> checkManager(OnboardingUserRequest onboardingUserRequest) {
-        return onboardingService.checkManager(onboardingUserRequest);
+    public Uni<CheckManagerResponse> checkManager(CheckManagerRequest checkManagerRequest) {
+        return onboardingService.checkManager(checkManagerRequest);
     }
 
     @Operation(
-            summary = "Asynchronously complete aggregated onboarding to COMPLETED status.",
-            description = "Perform onboarding aggregation as /onboarding but completing the onboarding request to COMPLETED phase. The operation will be performed async due to the possible amount of time the process could take."
+            summary = "Asynchronously complete aggregated onboarding to PENDING status.",
+            description = "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take."
     )
     @Path("/aggregation/completion")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingAggregationCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
+        return readUserIdFromToken(ctx)
+                .onItem().transformToUni(userId -> onboardingService
+                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+    }
+
+    @Operation(
+            summary = "Asynchronously complete aggregated PSP onboarding to PENDING status.",
+            description = "Perform onboarding aggregation as /onboarding to PENDING phase. The operation will be performed async due to the possible amount of time the process could take."
+    )
+    @Path("/aggregation/psp/completion")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Uni<OnboardingResponse> onboardingAggregationPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
                         .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
@@ -548,8 +578,13 @@ public class OnboardingController {
                                                        @QueryParam("taxCode") String taxCode,
                                                        @QueryParam("origin") String origin,
                                                        @QueryParam("originId") String originId,
-                                                       @QueryParam("subunitCode") String subunitCode) {
-        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId)
+                                                       @QueryParam("subunitCode") String subunitCode,
+                                                       @QueryParam("institutionType") String institutionType) {
+        InstitutionType institutionTypeEnum = null;
+        if (institutionType != null && !institutionType.isEmpty()) {
+            institutionTypeEnum = InstitutionType.valueOf(institutionType);
+        }
+        return onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, OnboardingStatus.COMPLETED, productId, institutionTypeEnum)
                 .onItem().transform(onboardingList -> {
                     if (onboardingList.isEmpty()) {
                         throw new ResourceNotFoundException(CustomError.INSTITUTION_NOT_ONBOARDED_BY_FILTERS.getMessage(),
@@ -612,4 +647,19 @@ public class OnboardingController {
                         .status(HttpStatus.SC_NO_CONTENT)
                         .build());
     }
+
+    @Operation(
+            summary = "Get onboarding COMPLETED by institutionId and productId.",
+            description = "Retrieve an onboarding record given institutionId and productId"
+    )
+    @GET
+    @Tag(name = "external-v2")
+    @Tag(name = "internal-v1")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/institutions/{institutionId}")
+    public Uni<OnboardingGet> getOnboardingProduct(@PathParam(value = "institutionId") String institutionId,
+                                                   @QueryParam(value = "productId") String productId) {
+        return onboardingService.retrieveOnboardingByInstitutionId(institutionId, productId);
+    }
+
 }

@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.conf;
 
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
+import eu.europa.esig.dss.spi.client.http.DSSCacheFileLoader;
 import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
@@ -87,7 +88,7 @@ public class TrustedListsCertificateSourceConfig {
         return lotlSource;
     }
 
-    private DSSFileLoader offlineLoader() {
+    private DSSCacheFileLoader offlineLoader() {
         FileCacheDataLoader offlineFileLoader = new FileCacheDataLoader();
         offlineFileLoader.setCacheExpirationTime(Long.MAX_VALUE);
         offlineFileLoader.setDataLoader(new IgnoreDataLoader());

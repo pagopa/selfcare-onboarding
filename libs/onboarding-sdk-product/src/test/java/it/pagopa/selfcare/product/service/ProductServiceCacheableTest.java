@@ -1,9 +1,5 @@
 package it.pagopa.selfcare.product.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.azure.storage.blob.models.BlobProperties;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
@@ -12,14 +8,20 @@ import it.pagopa.selfcare.product.entity.ProductRole;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.exception.InvalidRoleMappingException;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class ProductServiceCacheableTest {
+
     private static final String PRODUCT_JSON_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
@@ -27,6 +29,11 @@ class ProductServiceCacheableTest {
     private static final String PRODUCT_JSON_STRING_WITH_ROLEMAPPING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\"}," +
             "{\"id\":\"prod-test\", \"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\", \"roleMappings\" : {\"MANAGER\":{\"roles\":[{\"code\":\"operatore\"}]}}}," +
             "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\"}]";
+
+    private static final String PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING = "[{\"id\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
+            "{\"id\":\"prod-test\",\"parentId\":\"prod-test-parent\",\"status\":\"ACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}," +
+            "{\"id\":\"prod-inactive\",\"status\":\"INACTIVE\",\"allowedInstitutionTaxCode\":[\"taxCode1\",\"taxCode2\"]}]";
+
 
     private static final String PRODUCT_JSON_STRING_EMPTY = "[]";
 
@@ -224,6 +231,48 @@ class ProductServiceCacheableTest {
         final String filePath = "filePath";
         ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING_WITH_ROLEMAPPING, filePath);
         assertThrows(IllegalArgumentException.class, () -> productServiceCacheable.validateProductRole("prod-test", "amministratore", PartyRole.MANAGER));
+    }
+
+    @Test
+    void verifyAllowedByInstitutionTaxCodeTestOk() {
+        // given
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
+
+        // when
+        boolean result = productServiceCacheable.verifyAllowedByInstitutionTaxCode("prod-test-parent", "exampleTaxCode");
+
+        // then
+        assertTrue(result);
+
+    }
+
+    @Test
+    void verifyAllowedByInstitutionTaxCodeTestMissingTaxCode() {
+        // given
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_WITH_INSTITUTION_TAXCODE_STRING, filePath);
+
+        // when
+        boolean result = productServiceCacheable.verifyAllowedByInstitutionTaxCode("prod-test-parent", "taxCode3");
+
+        // then
+        assertFalse(result);
+
+    }
+
+    @Test
+    void getProductExpirationDateTestOk() {
+        // given
+        final String filePath = "filePath";
+        ProductServiceCacheable productServiceCacheable = mockProductService(PRODUCT_JSON_STRING, filePath);
+
+        // when
+        Integer result = productServiceCacheable.getProductExpirationDate("prod-test-parent");
+
+        // then
+        assertEquals(30, result);
+
     }
 
     private ProductServiceCacheable mockProductService(String productJson, String filePath) {

@@ -16,7 +16,17 @@ import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
 import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
 
-public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) implements WorkflowExecutor {
+public class WorkflowExecutorContractRegistrationAggregator implements WorkflowExecutor {
+
+    private final ObjectMapper objectMapper;
+    private final TaskOptions optionsRetry;
+    protected final OnboardingMapper onboardingMapper;
+
+    public WorkflowExecutorContractRegistrationAggregator(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) {
+        this.objectMapper = objectMapper;
+        this.optionsRetry = optionsRetry;
+        this.onboardingMapper = onboardingMapper;
+    }
 
     @Override
     public Optional<OnboardingStatus> executeRequestState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -25,6 +35,7 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT, onboardingWorkflowString, optionsRetry, String.class).await();
+        sendMailForUserActivity(ctx, onboardingWorkflow, onboardingMapper);
         return Optional.of(OnboardingStatus.PENDING);
     }
 
@@ -37,9 +48,8 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboardingWorkflow.getOnboarding());
         Onboarding onboarding = readOnboardingValue(objectMapper(), onboardingWithInstitutionIdString);
-
         createInstitutionAndOnboardingAggregate(ctx, onboarding, onboardingMapper);
-
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry, String.class).await();
         return Optional.of(OnboardingStatus.COMPLETED);
     }
@@ -47,6 +57,16 @@ public record WorkflowExecutorContractRegistrationAggregator(ObjectMapper object
     @Override
     public OnboardingWorkflow createOnboardingWorkflow(Onboarding onboarding) {
         return new OnboardingWorkflowAggregator(onboarding, AGGREGATOR.name());
+    }
+
+    @Override
+    public ObjectMapper objectMapper() {
+        return objectMapper;
+    }
+
+    @Override
+    public TaskOptions optionsRetry() {
+        return optionsRetry;
     }
 
 

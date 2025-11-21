@@ -8,12 +8,14 @@ import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+
 import java.util.Optional;
 
 public class WorkflowExecutorForApproveGpu extends WorkflowExecutorForApprove {
 
-    public WorkflowExecutorForApproveGpu(ObjectMapper objectMapper, TaskOptions optionsRetry) {
-        super(objectMapper, optionsRetry);
+    public WorkflowExecutorForApproveGpu(ObjectMapper objectMapper, TaskOptions optionsRetry, OnboardingMapper onboardingMapper) {
+        super(objectMapper, optionsRetry, onboardingMapper);
     }
 
     @Override

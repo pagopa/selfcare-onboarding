@@ -4,6 +4,7 @@ import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import java.util.List;
+
 import lombok.Data;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
@@ -26,6 +27,7 @@ public class Institution {
     private String digitalAddress;
     private String address;
     private String zipCode;
+    private String legalForm;
 
     private List<GeographicTaxonomy> geographicTaxonomies;
 
@@ -43,4 +45,6 @@ public class Institution {
     private GPUData gpuData;
 
     private String parentDescription;
+    private List<String> atecoCodes;
+
 }

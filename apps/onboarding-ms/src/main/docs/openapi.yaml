@@ -15,6 +15,7 @@ tags:
 - name: Onboarding
 - name: Onboarding Controller
 - name: billing-portal
+- name: external-v2
 - name: internal-pnpg
 - name: internal-v1
 - name: support
@@ -346,10 +347,10 @@ paths:
     post:
       tags:
       - Onboarding Controller
-      summary: Asynchronously complete aggregated onboarding to COMPLETED status.
-      description: Perform onboarding aggregation as /onboarding but completing the
-        onboarding request to COMPLETED phase. The operation will be performed async
-        due to the possible amount of time the process could take.
+      summary: Asynchronously complete aggregated onboarding to PENDING status.
+      description: Perform onboarding aggregation as /onboarding to PENDING phase.
+        The operation will be performed async due to the possible amount of time the
+        process could take.
       operationId: onboardingAggregationCompletion
       requestBody:
         content:
@@ -423,6 +424,33 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/aggregation/psp/completion:
+    post:
+      tags:
+      - Onboarding Controller
+      summary: Asynchronously complete aggregated PSP onboarding to PENDING status.
+      description: Perform onboarding aggregation as /onboarding to PENDING phase.
+        The operation will be performed async due to the possible amount of time the
+        process could take.
+      operationId: onboardingAggregationPspCompletion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingPspRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/check-manager:
     post:
       tags:
@@ -435,7 +463,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OnboardingUserRequest"
+              $ref: "#/components/schemas/CheckManagerRequest"
       responses:
         "200":
           description: OK
@@ -507,6 +535,34 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/import:
+    post:
+      tags:
+      - Onboarding Controller
+      - internal-v1
+      summary: Import onboarding (not PA and PSP) with token creation and complete
+        to COMPLETED.
+      description: Perform onboarding (not PA and PSP) but create token and completing
+        the request to COMPLETED phase.
+      operationId: onboardingImport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingDefaultRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/institutionOnboardings:
     get:
       tags:
@@ -553,6 +609,37 @@ paths:
       security:
       - SecurityScheme: []
       x-legacy-api: "true"
+  /v1/onboarding/institutions/{institutionId}:
+    get:
+      tags:
+      - external-v2
+      - internal-v1
+      summary: Get onboarding COMPLETED by institutionId and productId.
+      description: Retrieve an onboarding record given institutionId and productId
+      operationId: getOnboardingProduct
+      parameters:
+      - name: institutionId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: productId
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnboardingGet"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/pa:
     post:
       tags:
@@ -645,6 +732,7 @@ paths:
     post:
       tags:
       - Onboarding Controller
+      - internal-v1
       summary: Import PA onboarding with token creation and complete to COMPLETED.
       description: Perform onboarding as /onboarding/pa but create token and completing
         the onboarding request to COMPLETED phase.
@@ -868,6 +956,10 @@ paths:
       description: Verify if the onboarded product is already onboarded for the institution
       operationId: verifyOnboardingInfoByFilters
       parameters:
+      - name: institutionType
+        in: query
+        schema:
+          type: string
       - name: origin
         in: query
         schema:
@@ -1574,6 +1666,30 @@ components:
           type: string
         publicServices:
           type: boolean
+    CheckManagerRequest:
+      required:
+      - productId
+      - userId
+      type: object
+      properties:
+        productId:
+          minLength: 1
+          type: string
+        institutionType:
+          $ref: "#/components/schemas/InstitutionType"
+        subunitCode:
+          type: string
+        origin:
+          type: string
+        originId:
+          type: string
+        taxCode:
+          type: string
+        userId:
+          description: User UUID
+          type: string
+          allOf:
+          - $ref: "#/components/schemas/UUID"
     CheckManagerResponse:
       type: object
       properties:
@@ -1674,6 +1790,10 @@ components:
           type: string
         zipCode:
           type: string
+        istatCode:
+          type: string
+        legalForm:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -1690,6 +1810,10 @@ components:
           type: string
         imported:
           type: boolean
+        atecoCodes:
+          type: array
+          items:
+            type: string
     InstitutionImportRequest:
       required:
       - taxCode
@@ -1779,6 +1903,10 @@ components:
           type: string
         zipCode:
           type: string
+        istatCode:
+          type: string
+        legalForm:
+          type: string
         geographicTaxonomies:
           type: array
           items:
@@ -1795,6 +1923,10 @@ components:
           type: string
         imported:
           type: boolean
+        atecoCodes:
+          type: array
+          items:
+            type: string
         paymentServiceProvider:
           $ref: "#/components/schemas/PaymentServiceProviderRequest"
         dataProtectionOfficer:
@@ -1852,6 +1984,12 @@ components:
           $ref: "#/components/schemas/PaymentServiceProviderRequest"
         dataProtectionOfficer:
           $ref: "#/components/schemas/DataProtectionOfficerRequest"
+        atecoCodes:
+          type: array
+          items:
+            type: string
+        legalForm:
+          type: string
     InstitutionType:
       enum:
       - PA
@@ -1865,7 +2003,9 @@ components:
       - REC
       - CON
       - PRV
+      - PRV_PF
       - GPU
+      - SCEC
       type: string
     LocalDateTime:
       format: date-time
@@ -1874,7 +2014,6 @@ components:
     OnboardingAggregationImportRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -1882,7 +2021,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -1904,12 +2042,13 @@ components:
           $ref: "#/components/schemas/AdditionalInformationsDto"
         gpuData:
           $ref: "#/components/schemas/GPUData"
+        payment:
+          $ref: "#/components/schemas/PaymentRequestDto"
         onboardingImportContract:
           $ref: "#/components/schemas/OnboardingImportContract"
     OnboardingDefaultRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -1917,7 +2056,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -1939,6 +2077,8 @@ components:
           $ref: "#/components/schemas/AdditionalInformationsDto"
         gpuData:
           $ref: "#/components/schemas/GPUData"
+        payment:
+          $ref: "#/components/schemas/PaymentRequestDto"
     OnboardingGet:
       type: object
       properties:
@@ -1958,6 +2098,8 @@ components:
           type: string
         billing:
           $ref: "#/components/schemas/BillingResponse"
+        payment:
+          $ref: "#/components/schemas/PaymentResponse"
         signContract:
           type: boolean
         additionalInformations:
@@ -1967,6 +2109,8 @@ components:
         updatedAt:
           $ref: "#/components/schemas/LocalDateTime"
         expiringDate:
+          $ref: "#/components/schemas/LocalDateTime"
+        activatedAt:
           $ref: "#/components/schemas/LocalDateTime"
         status:
           type: string
@@ -2043,10 +2187,11 @@ components:
           $ref: "#/components/schemas/BillingPaRequest"
         forceImport:
           type: boolean
+        sendMailForImport:
+          type: boolean
     OnboardingPaRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -2054,7 +2199,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -2101,10 +2245,11 @@ components:
           $ref: "#/components/schemas/Origin"
         digitalAddress:
           type: string
+        skipVerifyLegal:
+          type: boolean
     OnboardingPspRequest:
       required:
       - productId
-      - users
       - institution
       type: object
       properties:
@@ -2112,7 +2257,6 @@ components:
           minLength: 1
           type: string
         users:
-          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
@@ -2161,6 +2305,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         updatedAt:
           $ref: "#/components/schemas/LocalDateTime"
+        referenceOnboardingId:
+          type: string
     OnboardingStatus:
       enum:
       - REQUEST
@@ -2221,6 +2367,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
+        toAddOnAggregates:
+          type: boolean
     Origin:
       enum:
       - MOCK
@@ -2241,6 +2389,21 @@ components:
       - OPERATOR
       - ADMIN_EA
       type: string
+    PaymentRequestDto:
+      type: object
+      properties:
+        iban:
+          pattern: "^IT\\d{2}[A-Z]\\d{5}\\d{5}[0-9A-Z]{12}$"
+          type: string
+        holder:
+          type: string
+    PaymentResponse:
+      type: object
+      properties:
+        iban:
+          type: string
+        holder:
+          type: string
     PaymentServiceProviderRequest:
       type: object
       properties:
@@ -2318,6 +2481,10 @@ components:
       - LEGALS
       - USER
       - ATTACHMENT
+      type: string
+    UUID:
+      format: uuid
+      pattern: "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
       type: string
     UserOnboardingResponse:
       type: object

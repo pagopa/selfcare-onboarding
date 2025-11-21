@@ -5,12 +5,11 @@ import eu.europa.esig.dss.diagnostic.OrphanCertificateTokenWrapper;
 import eu.europa.esig.dss.diagnostic.jaxb.*;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.EncryptionAlgorithm;
-import eu.europa.esig.dss.enumerations.MaskGenerationFunction;
 import eu.europa.esig.dss.model.DigestDocument;
+import eu.europa.esig.dss.model.identifier.TokenIdentifierProvider;
 import eu.europa.esig.dss.simplereport.jaxb.XmlSimpleReport;
-import eu.europa.esig.dss.validation.AdvancedSignature;
+import eu.europa.esig.dss.spi.signature.AdvancedSignature;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
-import eu.europa.esig.dss.validation.TokenIdentifierProvider;
 import eu.europa.esig.dss.validation.reports.Reports;
 import eu.europa.esig.dss.validation.timestamp.DetachedTimestampValidator;
 import eu.europa.esig.dss.xades.validation.XAdESSignature;
@@ -19,6 +18,7 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.service.impl.SignatureServiceDefault;
 import jakarta.inject.Inject;
 import org.apache.batik.anim.dom.BindableElement;
 import org.apache.batik.anim.dom.SVG12DOMImplementation;
@@ -398,7 +398,6 @@ class SignatureServiceDefaultTest {
         xmlBasicSignature.setDigestAlgoUsedToSignThisToken(DigestAlgorithm.SHA1);
         xmlBasicSignature.setEncryptionAlgoUsedToSignThisToken(EncryptionAlgorithm.RSA);
         xmlBasicSignature.setKeyLengthUsedToSignThisToken("42");
-        xmlBasicSignature.setMaskGenerationFunctionUsedToSignThisToken(MaskGenerationFunction.MGF1);
         xmlBasicSignature.setSignatureIntact(true);
         xmlBasicSignature.setSignatureValid(true);
 
@@ -461,7 +460,6 @@ class SignatureServiceDefaultTest {
         xmlBasicSignature1.setDigestAlgoUsedToSignThisToken(DigestAlgorithm.SHA1);
         xmlBasicSignature1.setEncryptionAlgoUsedToSignThisToken(EncryptionAlgorithm.RSA);
         xmlBasicSignature1.setKeyLengthUsedToSignThisToken("42");
-        xmlBasicSignature1.setMaskGenerationFunctionUsedToSignThisToken(MaskGenerationFunction.MGF1);
         xmlBasicSignature1.setSignatureIntact(true);
         xmlBasicSignature1.setSignatureValid(true);
 
@@ -520,8 +518,10 @@ class SignatureServiceDefaultTest {
         xmlCertificate.setSubjectSerialNumber("42");
         xmlCertificate.setSurname("42");
         xmlCertificate.setTitle("42");
-        xmlCertificate.setTrusted(true);
-        xmlCertificate.setTrustedServiceProviders(new ArrayList<>());
+        XmlTrusted xmlTrusted = new XmlTrusted();
+        xmlTrusted.setValue(false);
+        xmlCertificate.setTrusted(xmlTrusted);
+        xmlCertificate.setTrustServiceProviders(new ArrayList<>());
 
         XmlSigningCertificate xmlSigningCertificate1 = new XmlSigningCertificate();
         xmlSigningCertificate1.setCertificate(xmlCertificate);
@@ -558,8 +558,11 @@ class SignatureServiceDefaultTest {
         xmlCertificate1.setSubjectSerialNumber("42");
         xmlCertificate1.setSurname("42");
         xmlCertificate1.setTitle("42");
-        xmlCertificate1.setTrusted(true);
-        xmlCertificate1.setTrustedServiceProviders(new ArrayList<>());
+        XmlTrusted xmlTrusted1 = new XmlTrusted();
+        xmlTrusted1.setValue(false);
+        xmlCertificate1.setTrusted(xmlTrusted1);
+        xmlCertificate1.setTrustServiceProviders(new ArrayList<>());
+
 
         ArrayList<XmlCertificate> xmlCertificateList = new ArrayList<>();
         xmlCertificateList.add(xmlCertificate1);

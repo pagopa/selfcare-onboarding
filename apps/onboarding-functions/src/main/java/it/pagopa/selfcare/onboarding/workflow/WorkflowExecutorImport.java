@@ -26,7 +26,7 @@ public record WorkflowExecutorImport(ObjectMapper objectMapper, TaskOptions opti
 
     @Override
     public Optional<OnboardingStatus> executePendingState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        return onboardingCompletionActivityWithoutMail(ctx, onboardingWorkflow.getOnboarding());
+        return handleOnboardingCompletionActivityWithOptionalMail(ctx, onboardingWorkflow);
     }
 
     @Override

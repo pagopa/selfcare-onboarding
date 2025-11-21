@@ -1,12 +1,12 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.ExecutionContext;
-import it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType;
-import it.pagopa.selfcare.onboarding.common.InstitutionType;
-import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -36,15 +36,13 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.REJECTED;
 import static it.pagopa.selfcare.onboarding.common.PartyRole.MANAGER;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.CONFIRMATION_AGGREGATE;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.*;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.openapi.quarkus.core_json.model.DelegationResponse.StatusEnum.ACTIVE;
 
@@ -86,6 +84,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     private final InstitutionMapper institutionMapper;
     private final OnboardingRepository onboardingRepository;
+    private final ObjectMapper objectMapper;
     private final TokenRepository tokenRepository;
     private final UserMapper userMapper;
     private final ProductMapper productMapper;
@@ -102,12 +101,13 @@ public class CompletionServiceDefault implements CompletionService {
                                     UserMapper userMapper,
                                     ProductMapper productMapper,
                                     InstitutionMapper institutionMapper,
-                                    OnboardingRepository onboardingRepository,
+                                    OnboardingRepository onboardingRepository, ObjectMapper objectMapper,
                                     TokenRepository tokenRepository,
                                     @ConfigProperty(name = "onboarding-functions.persist-users.send-mail") boolean hasToSendEmail,
                                     @ConfigProperty(name = "onboarding-functions.force-institution-persist") boolean forceInstitutionCreation) {
         this.institutionMapper = institutionMapper;
         this.onboardingRepository = onboardingRepository;
+        this.objectMapper = objectMapper;
         this.tokenRepository = tokenRepository;
         this.productService = productService;
         this.notificationService = notificationService;
@@ -140,7 +140,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     public InstitutionResponse createOrRetrieveInstitution(Onboarding onboarding) {
         if (forceInstitutionCreation) {
-            //When onboarding a pg institution this condition ensures that the institution's informations are persisted correctly
+            //When onboarding a pg institution this condition ensures that the institution's information are persisted correctly
             return createInstitution(onboarding.getInstitution());
         }
 
@@ -172,6 +172,9 @@ public class CompletionServiceDefault implements CompletionService {
     @Override
     public void persistUsers(Onboarding onboarding) {
         Product product = productService.getProduct(onboarding.getProductId());
+        if (Boolean.TRUE.equals(onboarding.getIsAggregator()) && !PROD_PN.getValue().equals(onboarding.getProductId()) && verifyAllowedOnboardingByWorkflowType(onboarding.getWorkflowType())) {
+            onboarding.setToAddOnAggregates(Boolean.TRUE);
+        }
         for (User user : onboarding.getUsers()) {
 
             if (!product.getRoleMappings(onboarding.getInstitution().getInstitutionType().name())
@@ -182,6 +185,7 @@ public class CompletionServiceDefault implements CompletionService {
                 userRoleDto.setUserMailUuid(user.getUserMailUuid());
                 userRoleDto.setProduct(productMapper.toProduct(onboarding, user));
                 userRoleDto.getProduct().setTokenId(onboarding.getId());
+                userRoleDto.getProduct().setToAddOnAggregates(Optional.ofNullable(onboarding.getToAddOnAggregates()).orElse(false));
             /*
               The second parameter (header param) of the following method is used to build a bearer token with which invoke the API
               {@link it.pagopa.selfcare.onboarding.client.auth.AuthenticationPropagationHeadersFactory}
@@ -193,6 +197,14 @@ public class CompletionServiceDefault implements CompletionService {
                 }
             }
         }
+    }
+
+    boolean verifyAllowedOnboardingByWorkflowType(WorkflowType workflowType){
+        EnumSet<WorkflowType> allowedWorkflowType = EnumSet.of(
+                IMPORT_AGGREGATION,
+                INCREMENT_REGISTRATION_AGGREGATOR
+        );
+        return allowedWorkflowType.contains(workflowType);
     }
 
     @Override
@@ -231,6 +243,9 @@ public class CompletionServiceDefault implements CompletionService {
             onboardingRequest.billing(billingRequest);
         }
 
+        onboardingRequest.setOrigin(onboarding.getInstitution().getOrigin().name());
+        onboardingRequest.setOriginId(onboarding.getInstitution().getOriginId());
+        onboardingRequest.setInstitutionType(InstitutionOnboardingRequest.InstitutionTypeEnum.valueOf(onboarding.getInstitution().getInstitutionType().name()));
         onboardingRequest.setIsAggregator(onboarding.getIsAggregator());
         //If contract exists we send the path of the contract
         Optional<Token> optToken = tokenRepository.findByOnboardingId(onboarding.getId());
@@ -241,10 +256,12 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public void persistActivatedAt(Onboarding onboarding) {
-        LocalDateTime now = LocalDateTime.now();
-        onboardingRepository
-                .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
-                .where("_id", onboarding.getId());
+        if (Objects.isNull(onboarding.getActivatedAt())) {
+            LocalDateTime now = LocalDateTime.now();
+            onboardingRepository
+                    .update("activatedAt = ?1 and updatedAt = ?2 ", now, now)
+                    .where("_id", onboarding.getId());
+        }
     }
 
     @Override
@@ -265,6 +282,7 @@ public class CompletionServiceDefault implements CompletionService {
 
     @Override
     public String createAggregateOnboardingRequest(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput) {
+        setAggregatorInstitutionId(onboardingAggregateOrchestratorInput);
         Onboarding onboardingToUpdate = onboardingMapper.mapToOnboarding(onboardingAggregateOrchestratorInput);
         onboardingToUpdate.setWorkflowType(CONFIRMATION_AGGREGATE);
         onboardingToUpdate.setStatus(OnboardingStatus.PENDING);
@@ -283,6 +301,8 @@ public class CompletionServiceDefault implements CompletionService {
 
         if (Objects.nonNull(input) && Objects.nonNull(input.getInstitution()) && Objects.nonNull(input.getAggregate())) {
             try {
+                setAggregatorInstitutionId(input);
+
                 DelegationWithPaginationResponse delegationWithPaginationResponse = delegationApi.getDelegationsUsingGET1(null, input.getInstitution().getId(), null, null,
                         input.getAggregate().getTaxCode(), null, null, null);
                 if (Objects.nonNull(delegationWithPaginationResponse) && !CollectionUtils.isEmpty(delegationWithPaginationResponse.getDelegations())) {
@@ -293,6 +313,58 @@ public class CompletionServiceDefault implements CompletionService {
             }
         }
         return existsDelegation ? "true" : "false";
+    }
+
+    @Override
+    public String verifyOnboardingAggregate(OnboardingAggregateOrchestratorInput input) {
+        if (Objects.isNull(input.getInstitution().getId())) {
+            input.getInstitution().setId(
+                    onboardingRepository.findByFilters(
+                                    input.getInstitution().getTaxCode(),
+                                    null,
+                                    input.getInstitution().getOrigin().getValue(),
+                                    input.getInstitution().getOriginId(),
+                                    input.getProductId())
+                            .stream()
+                            .findFirst()
+                            .map(onboardingAggregator -> onboardingAggregator.getInstitution().getId())
+                            .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"))
+            );
+        }
+
+        if (Objects.isNull(input.getAggregate().getId())) {
+            onboardingRepository.findByFilters(
+                            input.getAggregate().getTaxCode(),
+                            input.getAggregate().getSubunitCode(),
+                            input.getAggregate().getOrigin().getValue(),
+                            input.getAggregate().getOriginId(),
+                            input.getProductId())
+                    .stream()
+                    .findFirst()
+                    .ifPresent(onboardingAggregate ->
+                            input.getAggregate().setId(onboardingAggregate.getInstitution().getId())
+                    );
+        }
+        Onboarding onboardingAggregate = onboardingMapper.mapToOnboarding(input);
+        try {
+            return objectMapper.writeValueAsString(onboardingAggregate);
+        } catch (JsonProcessingException e) {
+            throw new GenericOnboardingException(e.getMessage());
+        }
+    }
+
+    private void setAggregatorInstitutionId(OnboardingAggregateOrchestratorInput input) {
+        if (Objects.isNull(input.getInstitution().getId())) {
+            Onboarding onboardingAggregator = onboardingRepository.findByFilters(input.getInstitution().getTaxCode(),
+                    null, input.getInstitution().getOrigin().getValue(),
+                    input.getInstitution().getOriginId(), input.getProductId()).stream()
+                    .findFirst()
+                    .orElseThrow(() -> new GenericOnboardingException("Onboarding not found"));
+            input.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+            Onboarding onboarding = onboardingRepository.findById(input.getId());
+            onboarding.getInstitution().setId(onboardingAggregator.getInstitution().getId());
+            onboardingRepository.persistOrUpdate(onboarding);
+        }
     }
 
     private static DelegationRequest getDelegationRequest(Onboarding onboarding) {
@@ -414,4 +486,5 @@ public class CompletionServiceDefault implements CompletionService {
         DelegationWithPaginationResponse delegations = delegationApi.getDelegationsUsingGET1(null, institutionId, productId, null, null, null, null, null);
         return delegations.getDelegations();
     }
+
 }

@@ -32,6 +32,8 @@ container_app = {
   memory = "2Gi"
 }
 
+workload_profile_name = "Consumption"
+
 app_settings = [
   {
     name  = "JAVA_TOOL_OPTIONS"

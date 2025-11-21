@@ -521,7 +521,9 @@
           "FOR_APPROVE_GPU",
           "CONFIRMATION",
           "IMPORT",
-          "IMPORT_AGGREGATION"
+          "IMPORT_AGGREGATION",
+          "CONFIRMATION_AGGREGATOR",
+          "CONTRACT_REGISTRATION_AGGREGATOR"
         ],
         "type": "string"
       },
@@ -550,7 +552,9 @@
           "REC",
           "CON",
           "PRV",
-          "GPU"
+          "PRV_PF",
+          "GPU",
+          "SCEC"
         ],
         "type": "string"
       },

@@ -16,7 +16,9 @@ import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.entity.Billing;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.repository.OnboardingRepository;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
@@ -33,10 +35,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.core.ServerResponse;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.openapi.quarkus.core_json.api.DelegationApi;
@@ -99,6 +98,15 @@ public class CompletionServiceDefaultTest {
 
     final String productId = "productId";
     private static final UserResource userResource;
+
+    private OnboardingMapper onboardingMapper;
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setup() {
+        onboardingMapper = mock(OnboardingMapper.class);
+        objectMapper = mock(ObjectMapper.class);
+    }
 
     static {
         userResource = new UserResource();
@@ -504,6 +512,9 @@ public class CompletionServiceDefaultTest {
     @Test
     void persistOnboarding_emailIsEmpty() {
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setOrigin(Origin.SELC);
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
 
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
@@ -530,6 +541,9 @@ public class CompletionServiceDefaultTest {
     @Test
     void persistOnboarding() {
         Onboarding onboarding = createOnboarding();
+        onboarding.getInstitution().setOrigin(Origin.SELC);
+        onboarding.getInstitution().setOriginId("originId");
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PRV);
         onboarding.setActivatedAt(LocalDateTime.now());
         when(institutionApi.onboardingInstitutionUsingPOST(any(), any()))
                 .thenReturn(new InstitutionResponse());
@@ -680,6 +694,135 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void persistUsers_withAggregatorAndNotProdPNAndWorkflowTypeIsImport() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("product-not-pn");
+        onboarding.setIsAggregator(true);
+        onboarding.setWorkflowType(WorkflowType.IMPORT_AGGREGATION);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(true, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be true when isAggregator=true and productId is not PROD_PN");
+    }
+
+    @Test
+    void persistUsers_withAggregatorAndNotProdPNAndWorkflowTypeIsNotImport() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("product-not-pn");
+        onboarding.setIsAggregator(true);
+        onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor =
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(false, capturedDto.getProduct().getToAddOnAggregates());
+    }
+
+    @Test
+    void persistUsers_withAggregatorAndProdPN() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("prod-pn");
+        onboarding.setIsAggregator(true);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(false, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be false when productId is PROD_PN even if isAggregator=true");
+    }
+
+    @Test
+    void persistUsers_withoutAggregator() {
+        // Given
+        Product product = mock(Product.class);
+        ProductRoleInfo productRoleInfo = new ProductRoleInfo();
+        productRoleInfo.setSkipUserCreation(false);
+        Map<PartyRole, ProductRoleInfo> roleMappings = Map.of(PartyRole.MANAGER, productRoleInfo);
+        when(product.getRoleMappings(anyString())).thenReturn(roleMappings);
+        
+        Onboarding onboarding = createOnboarding();
+        onboarding.setProductId("any-product");
+        onboarding.setIsAggregator(false);
+        onboarding.getInstitution().setInstitutionType(InstitutionType.PA);
+        createDummyUser(onboarding);
+        
+        Response response = new ServerResponse(null, 200, null);
+        when(userControllerApi.createUserByUserId(any(), any())).thenReturn(response);
+        when(productService.getProduct(any())).thenReturn(product);
+        
+        ArgumentCaptor<org.openapi.quarkus.user_json.model.AddUserRoleDto> captor = 
+                ArgumentCaptor.forClass(org.openapi.quarkus.user_json.model.AddUserRoleDto.class);
+        
+        // When
+        completionServiceDefault.persistUsers(onboarding);
+        
+        // Then
+        verify(userControllerApi, times(1)).createUserByUserId(anyString(), captor.capture());
+        org.openapi.quarkus.user_json.model.AddUserRoleDto capturedDto = captor.getValue();
+        assertEquals(false, capturedDto.getProduct().getToAddOnAggregates(),
+                "toAddOnAggregates should be false when isAggregator=false");
+    }
+
+    @Test
     void createDelegation() {
         Onboarding onboarding = createOnboarding();
         onboarding.getInstitution().setId("institution-id");
@@ -732,8 +875,33 @@ public class CompletionServiceDefaultTest {
         // When
         String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        assertNotEquals(onboardingToUpdate.getId(), onboardingId);
+        assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
+    }
+
+    @Test
+    void testCreateAggregateOnboardingRequestWithoutInstitutionId() {
+        // Given
+        OnboardingAggregateOrchestratorInput input = createSampleOnboardingInput();
+        input.getInstitution().setId(null);
+        Onboarding onboardingToUpdate = createSampleOnboarding();
+        Institution aggregator = new Institution();
+        Onboarding onboardingAggregator = new Onboarding();
+        onboardingAggregator.setInstitution(aggregator);
+        List<Onboarding> onboardingList = new ArrayList<>();
+        onboardingList.add(onboardingAggregator);
+
+        // When
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(onboardingList);
+        when(onboardingRepository.findById(any())).thenReturn(onboardingAggregator);
+        doNothing().when(onboardingRepository).persistOrUpdate(any(Onboarding.class));
+        String onboardingId = completionServiceDefault.createAggregateOnboardingRequest(input);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
 
         assertNotEquals(onboardingToUpdate.getId(), onboardingId);
         assertEquals(input.getAggregate().getTaxCode(), onboardingToUpdate.getInstitution().getTaxCode());
@@ -891,6 +1059,171 @@ public class CompletionServiceDefaultTest {
         assertFalse(Boolean.parseBoolean(result));
     }
 
+    @Test
+    void checkExistsDelegationFalseWithNullInstitutionId() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        Institution aggregator = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+        input.setInstitution(aggregator);
+        Onboarding onboardingAggregator = new Onboarding();
+
+        input.getInstitution().setOrigin(Origin.IPA);
+        input.getInstitution().setOriginId("originId");
+        input.getInstitution().setTaxCode("taxCode");
+        onboardingAggregator.setInstitution(aggregator);
+        input.setProductId("prod-io");
+
+        List<Onboarding> onboardingList = new ArrayList<>();
+        onboardingList.add(onboardingAggregator);
+
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(onboardingList);
+        when(onboardingRepository.findById(any())).thenReturn(onboardingAggregator);
+        doNothing().when(onboardingRepository).persistOrUpdate(any(Onboarding.class));
+
+        DelegationWithPaginationResponse delegationWithPaginationResponse = new DelegationWithPaginationResponse();
+        delegationWithPaginationResponse.setDelegations(Collections.emptyList());
+        when(delegationApi.getDelegationsUsingGET1(null, aggregator.getId(), null, null, aggregator.getTaxCode(), null, null, null))
+                .thenReturn(delegationWithPaginationResponse);
+
+        String result = completionServiceDefault.existsDelegation(input);
+
+        assertFalse(Boolean.parseBoolean(result));
+    }
+
+    @Test
+    void checkExistsDelegationFalseOnboardingNotFound() {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+        Institution aggregate = new Institution();
+        Institution aggregator = new Institution();
+        aggregate.setTaxCode("taxCode");
+        input.setAggregate(aggregate);
+        input.setInstitution(aggregator);
+
+        input.getInstitution().setOrigin(Origin.IPA);
+        input.getInstitution().setOriginId("originId");
+        input.getInstitution().setTaxCode("taxCode");
+        input.setProductId("prod-io");
+
+        when(onboardingRepository.findByFilters(any(), eq(null), any(), any(), any())).thenReturn(List.of());
+
+        Assertions.assertThrows(GenericOnboardingException.class, () -> completionServiceDefault.existsDelegation(input));
+
+    }
+
+    @Test
+    void institutionAndAggregateHaveIds() throws Exception {
+        OnboardingAggregateOrchestratorInput input = buildInput("inst123", "agg123");
+        Onboarding onboarding = new Onboarding();
+        when(onboardingMapper.mapToOnboarding(input)).thenReturn(onboarding);
+        when(objectMapper.writeValueAsString(onboarding)).thenReturn("json");
+
+        String result = completionServiceDefault.verifyOnboardingAggregate(input);
+        assertTrue(result.contains("\"id\""));
+        assertTrue(result.contains("\"productId\":\"product1\""));
+        assertTrue(result.contains("\"institution\":{\"id\":\"agg123\""));
+        assertTrue(result.contains("\"aggregator\":{\"id\":\"inst123\""));
+    }
+
+    @Test
+    void institutionIdNull_foundInDb() throws Exception {
+        OnboardingAggregateOrchestratorInput input = buildInput(null, "agg123");
+        Institution institutionFromDb = new Institution();
+        institutionFromDb.setId("foundInstId");
+        Onboarding onboardingDb = new Onboarding();
+        onboardingDb.setInstitution(institutionFromDb);
+        when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.singletonList(onboardingDb));
+
+        Onboarding onboarding = new Onboarding();
+        when(onboardingMapper.mapToOnboarding(input)).thenReturn(onboarding);
+        when(objectMapper.writeValueAsString(onboarding)).thenReturn("json");
+
+        String result = completionServiceDefault.verifyOnboardingAggregate(input);
+        assertTrue(result.contains("\"id\""));
+        assertTrue(result.contains("\"productId\":\"product1\""));
+        assertTrue(result.contains("\"institution\":{\"id\":\"agg123\""));
+        assertEquals("foundInstId", input.getInstitution().getId());
+    }
+
+    @Test
+    void institutionIdNull_notFoundInDb() {
+        OnboardingAggregateOrchestratorInput input = buildInput(null, "agg123");
+        when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        GenericOnboardingException exception = assertThrows(GenericOnboardingException.class,
+                () -> completionServiceDefault.verifyOnboardingAggregate(input));
+        assertEquals("Onboarding not found", exception.getMessage());
+    }
+
+    @Test
+    void aggregateIdNull_foundInDb() throws Exception {
+        OnboardingAggregateOrchestratorInput input = buildInput("inst123", null);
+        Institution aggregateFromDb = new Institution();
+        aggregateFromDb.setId("aggFound");
+        Onboarding onboardingDb = new Onboarding();
+        onboardingDb.setInstitution(aggregateFromDb);
+        when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.singletonList(onboardingDb));
+
+        Onboarding onboarding = new Onboarding();
+        when(onboardingMapper.mapToOnboarding(input)).thenReturn(onboarding);
+        when(objectMapper.writeValueAsString(onboarding)).thenReturn("json");
+
+        String result = completionServiceDefault.verifyOnboardingAggregate(input);
+        assertTrue(result.contains("\"id\""));
+        assertTrue(result.contains("\"productId\":\"product1\""));
+        assertTrue(result.contains("\"aggregator\":{\"id\":\"inst123\""));
+        assertEquals("aggFound", input.getAggregate().getId());
+    }
+
+    @Test
+    void aggregateIdNull_notFoundInDb() throws Exception {
+        OnboardingAggregateOrchestratorInput input = buildInput("inst123", null);
+        when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        Onboarding onboarding = new Onboarding();
+        when(onboardingMapper.mapToOnboarding(input)).thenReturn(onboarding);
+        when(objectMapper.writeValueAsString(onboarding)).thenReturn("json");
+
+        String result = completionServiceDefault.verifyOnboardingAggregate(input);
+        assertTrue(result.contains("\"id\""));
+        assertTrue(result.contains("\"productId\":\"product1\""));
+        assertTrue(result.contains("\"aggregator\":{\"id\":\"inst123\""));
+        assertNull(input.getAggregate().getId());
+    }
+
+    @Test
+    void bothIdsNull_bothFoundInDb() throws Exception {
+        OnboardingAggregateOrchestratorInput input = buildInput(null, null);
+        Institution inst = new Institution();
+        inst.setId("instId");
+        Institution agg = new Institution();
+        agg.setId("aggId");
+
+        Onboarding onboardingInstitution = new Onboarding();
+        onboardingInstitution.setInstitution(inst);
+        Onboarding onboardingAggregate = new Onboarding();
+        onboardingAggregate.setInstitution(agg);
+
+        when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
+                .thenReturn(Collections.singletonList(onboardingInstitution))
+                .thenReturn(Collections.singletonList(onboardingAggregate));
+
+        Onboarding onboarding = new Onboarding();
+        when(onboardingMapper.mapToOnboarding(input)).thenReturn(onboarding);
+        when(objectMapper.writeValueAsString(onboarding)).thenReturn("json");
+
+        String result = completionServiceDefault.verifyOnboardingAggregate(input);
+        assertTrue(result.contains("\"id\""));
+        assertTrue(result.contains("\"productId\":\"product1\""));
+        assertEquals("instId", input.getInstitution().getId());
+        assertEquals("aggId", input.getAggregate().getId());
+    }
+
     @Nested
     @TestProfile(CompletionServiceDefaultTest.ForceCreationProfile.class)
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -945,6 +1278,27 @@ public class CompletionServiceDefaultTest {
         assertEquals(delegationResponses, delegations);
         verify(delegationApi, times(1)).getDelegationsUsingGET1(any(), eq(onboarding.getInstitution().getId()), eq(onboarding.getProductId()), any(), any(), any(), any(), any());
 
+    }
+
+    private OnboardingAggregateOrchestratorInput buildInput(String institutionId, String aggregateId) {
+        OnboardingAggregateOrchestratorInput input = new OnboardingAggregateOrchestratorInput();
+
+        Institution inst = new Institution();
+        inst.setId(institutionId);
+        inst.setOriginId("originInst");
+        inst.setTaxCode("taxInst");
+        inst.setOrigin(Origin.IPA);
+
+        Institution agg = new Institution();
+        agg.setId(aggregateId);
+        agg.setOriginId("originAgg");
+        agg.setTaxCode("taxAgg");
+        agg.setOrigin(Origin.IPA);
+
+        input.setInstitution(inst);
+        input.setAggregate(agg);
+        input.setProductId("product1");
+        return input;
     }
 
     private User createDummyUser(Onboarding onboarding) {

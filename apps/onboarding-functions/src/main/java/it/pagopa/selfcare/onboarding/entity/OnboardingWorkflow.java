@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.pagopa.selfcare.onboarding.common.TokenType;
@@ -42,10 +43,12 @@ public abstract class OnboardingWorkflow {
 
   public abstract String getContractTemplateVersion(Product product);
 
+  @JsonProperty("onboarding")
   public Onboarding getOnboarding() {
     return onboarding;
   }
 
+  @JsonProperty("onboarding")
   public void setOnboarding(Onboarding onboarding) {
     this.onboarding = onboarding;
   }

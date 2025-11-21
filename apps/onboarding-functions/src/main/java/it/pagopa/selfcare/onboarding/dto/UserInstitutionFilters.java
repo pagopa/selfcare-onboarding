@@ -1,20 +1,10 @@
 package it.pagopa.selfcare.onboarding.dto;
 
 public class UserInstitutionFilters {
-
-    private String userId;
     private String productId;
     private String institutionId;
 
     public UserInstitutionFilters() {
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getProductId() {
@@ -36,7 +26,6 @@ public class UserInstitutionFilters {
     @Override
     public String toString() {
         return "UserInstitutionFilters{" +
-                "userId='" + userId + '\'' +
                 ", productId='" + productId + '\'' +
                 ", institutionId='" + institutionId + '\'' +
                 '}';

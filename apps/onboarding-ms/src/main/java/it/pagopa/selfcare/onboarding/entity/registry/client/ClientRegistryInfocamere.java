@@ -45,7 +45,7 @@ public abstract class ClientRegistryInfocamere extends BaseRegistryManager<Busin
                             new ResourceNotFoundException(
                                 String.format(
                                     "Institutions' list for user with taxCode %s not found",
-                                    onboarding.getInstitution().getTaxCode())))
+                                        managerTaxCode)))
                     : Uni.createFrom().failure(ex))
         .await()
         .atMost(Duration.of(DURATION_TIMEOUT, ChronoUnit.SECONDS));

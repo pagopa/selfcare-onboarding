@@ -9,7 +9,6 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.PaymentServiceProvider;
 import it.pagopa.selfcare.onboarding.entity.Token;
-import org.openapi.quarkus.core_json.model.InstitutionRequest;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.PaymentServiceProviderResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
@@ -79,7 +78,9 @@ public class BaseNotificationBuilder implements NotificationBuilder {
                         Optional.ofNullable(onboarding.getActivatedAt()).orElse(onboarding.getCreatedAt()),
                         ZoneOffset.UTC));
         notificationToSend.setProduct(onboarding.getProductId());
-
+        if (Objects.nonNull(onboarding.getReferenceOnboardingId())) {
+            notificationToSend.setReferenceOnboardingId(onboarding.getReferenceOnboardingId());
+        }
         if (queueEvent.equals(QueueEvent.ADD)) {
             // when onboarding complete last update is activated date
             notificationToSend.setUpdatedAt(
@@ -121,16 +122,16 @@ public class BaseNotificationBuilder implements NotificationBuilder {
     public InstitutionToNotify retrieveInstitution(
             InstitutionResponse institution, Onboarding onboarding) {
         InstitutionToNotify toNotify = new InstitutionToNotify();
-        toNotify.setInstitutionType(InstitutionType.valueOf(institution.getInstitutionType()));
+        toNotify.setInstitutionType(onboarding.getInstitution().getInstitutionType());
         toNotify.setDescription(institution.getDescription());
         toNotify.setDigitalAddress(
                 institution.getDigitalAddress() == null
                         ? alternativeEmail
                         : institution.getDigitalAddress());
         toNotify.setAddress(institution.getAddress());
-        toNotify.setTaxCode(institution.getTaxCode());
-        toNotify.setOrigin(institution.getOrigin());
-        toNotify.setOriginId(institution.getOriginId());
+        toNotify.setTaxCode(onboarding.getInstitution().getTaxCode());
+        toNotify.setOrigin(onboarding.getInstitution().getOrigin().getValue());
+        toNotify.setOriginId(onboarding.getInstitution().getOriginId());
         toNotify.setZipCode(institution.getZipCode());
         toNotify.setPaymentServiceProvider(
                 toSetPaymentServiceProvider(institution.getPaymentServiceProvider(), onboarding));
@@ -143,21 +144,19 @@ public class BaseNotificationBuilder implements NotificationBuilder {
             rootParent.setId(institution.getRootParent().getId());
             rootParent.setDescription(institution.getRootParent().getDescription());
             InstitutionResponse parentInstitution =
-                    coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId());
+                    coreInstitutionApi.retrieveInstitutionByIdUsingGET(rootParent.getId(), onboarding.getProductId());
             rootParent.setOriginId(
                     Objects.nonNull(parentInstitution) ? parentInstitution.getOriginId() : null);
             toNotify.setRootParent(rootParent);
         }
         if (Objects.nonNull(institution.getAttributes()) && !institution.getAttributes().isEmpty()) {
             toNotify.setCategory(institution.getAttributes().get(0).getCode());
-        } else if (institution.getInstitutionType().equals(InstitutionType.GSP.name())
-                && institution.getOrigin().equals(Origin.SELC.name())) {
+        } else if (InstitutionType.GSP == onboarding.getInstitution().getInstitutionType()
+                && Origin.SELC.name().equals(onboarding.getInstitution().getOrigin().name())) {
             toNotify.setCategory("L37");
         }
         if (Objects.isNull(institution.getCity())
-                && institution
-                .getInstitutionType()
-                .equals(InstitutionRequest.InstitutionTypeEnum.PA.name())) {
+                && InstitutionType.PA == onboarding.getInstitution().getInstitutionType()) {
             retrieveAndSetGeographicData(toNotify);
         } else {
             toNotify.setCounty(institution.getCounty());

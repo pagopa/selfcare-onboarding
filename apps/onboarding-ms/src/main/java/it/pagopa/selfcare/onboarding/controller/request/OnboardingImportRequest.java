@@ -25,4 +25,7 @@ public class OnboardingImportRequest {
   private BillingPaRequest billing;
 
   private boolean forceImport;
+
+  private Boolean sendMailForImport;
+
 }

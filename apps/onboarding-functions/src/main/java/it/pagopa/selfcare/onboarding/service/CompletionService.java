@@ -34,6 +34,8 @@ public interface CompletionService {
 
     String existsDelegation(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
 
+    String verifyOnboardingAggregate(OnboardingAggregateOrchestratorInput onboardingAggregateOrchestratorInput);
+
     List<DelegationResponse> retrieveAggregates(Onboarding onboarding);
 
 

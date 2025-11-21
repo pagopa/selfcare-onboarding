@@ -3,20 +3,23 @@ package it.pagopa.selfcare.onboarding.util;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.model.FormItem;
-import jakarta.enterprise.context.ApplicationScoped;
-import org.apache.commons.lang3.StringUtils;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Deque;
 import org.jboss.resteasy.reactive.server.core.multipart.FormData;
 import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
-import java.io.File;
-import java.util.Deque;
-import java.util.function.BinaryOperator;
-
-@ApplicationScoped
 public class Utils {
     private static final String DEFAULT_CONTRACT_FORM_DATA_NAME = "contract";
 
     private Utils() {
+    }
+
+    public static String extractSurnamePart(String surname) {
+        String consonants = surname.replaceAll("[AEIOUaeiou]", "");
+        String vowels = surname.replaceAll("[^AEIOUaeiou]", "");
+        String part = (consonants + vowels).toUpperCase();
+        return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
     }
 
     public static FormItem retrieveContractFromFormData(FormData formData, File file) {
@@ -29,20 +32,7 @@ public class Utils {
         return FormItem.builder().file(file).fileName(deck.getFirst().getFileName()).build();
     }
 
-    public static final BinaryOperator<String> CONTRACT_FILENAME_FUNC =
-            (filename, productName) ->
-                    String.format(filename, StringUtils.stripAccents(productName.replaceAll("\\s+", "_")));
-
-
-
-    public String extractSurnamePart(String surname) {
-        String consonants = surname.replaceAll("[AEIOUaeiou]", "");
-        String vowels = surname.replaceAll("[^AEIOUaeiou]", "");
-        String part = (consonants + vowels).toUpperCase();
-        return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
-    }
-
-    public String extractNamePart(String name) {
+    public static String extractNamePart(String name) {
         String consonants = name.replaceAll("[AEIOUaeiou]", "");
         String vowels = name.replaceAll("[^AEIOUaeiou]", "");
         if (consonants.length() > 3) {
@@ -52,7 +42,7 @@ public class Utils {
         return part.length() >= 3 ? part.substring(0, 3) : padWithX(part);
     }
 
-    private String padWithX(String input) {
+    private static String padWithX(String input) {
         StringBuilder sb = new StringBuilder(input);
         while (sb.length() < 3) {
             sb.append("X");
@@ -60,5 +50,29 @@ public class Utils {
         return sb.toString();
     }
 
+    public static String getFileExtension(String name) {
+        String[] parts = name.split("\\.");
+        String ext = "";
+
+        if (parts.length == 2) {
+            return parts[1];
+        }
+
+        if (parts.length > 2) {
+            // join all parts except the first one
+            ext = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
+        }
+
+        return ext;
+    }
+
+    public static String replaceFileExtension(String originalFilename, String newExtension) {
+        int lastIndexOf = originalFilename.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return originalFilename + newExtension;
+        } else {
+            return originalFilename.substring(0, lastIndexOf) + "." + newExtension;
+        }
+    }
 
 }

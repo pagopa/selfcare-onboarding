@@ -11,7 +11,6 @@ public class OnboardingBaseRequest {
     @NotEmpty(message = "productId is required")
     private String productId;
 
-    @NotEmpty(message = "at least one user is required")
     private List<UserRequest> users;
 
     private List<AggregateInstitutionRequest> aggregates;

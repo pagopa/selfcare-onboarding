@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.entity;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.quarkus.test.InjectMock;
@@ -36,7 +37,6 @@ public class RegistryManagerADETest {
         assertTrue(result);
     }
 
-
     @Test
     void isNotValid() {
         Onboarding onboarding = createOnboarding();
@@ -45,6 +45,17 @@ public class RegistryManagerADETest {
         UniAssertSubscriber<Boolean> subscriber = registryManagerADE.isValid()
                 .subscribe().withSubscriber(UniAssertSubscriber.create());
         subscriber.assertFailedWith(InvalidRequestException.class);
+    }
+
+    @Test
+    void skipVerifyLegal() {
+        Onboarding onboarding = createOnboarding();
+        onboarding.setSkipVerifyLegal(true);
+        RegistryManagerADE registryManagerADE = new RegistryManagerADE(onboarding, nationalRegistriesApi, "taxCode");
+        registryManagerADE.setResource(true);
+        Boolean result = registryManagerADE.retrieveInstitution();
+        assertTrue(result);
+        verifyNoInteractions(nationalRegistriesApi);
     }
 
     private Onboarding createOnboarding() {

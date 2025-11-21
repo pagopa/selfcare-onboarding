@@ -11,7 +11,6 @@ import java.util.Objects;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
 
 public class RegistryManagerInfocamere extends ClientRegistryInfocamere {
 

@@ -1,41 +1,25 @@
 package it.pagopa.selfcare.onboarding.workflow;
 
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.BUILD_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_INSTITUTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_ONBOARDING_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.CREATE_USERS_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.ONBOARDINGS_AGGREGATE_ORCHESTRATOR;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.REJECT_OUTDATED_ONBOARDINGS;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.RETRIEVE_AGGREGATES_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_COMPLETION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REGISTRATION_FOR_CONTRACT;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.SEND_MAIL_REJECTION_ACTIVITY;
-import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.STORE_ONBOARDING_ACTIVATEDAT;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingAggregateString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.getOnboardingWorkflowString;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readDelegationResponseList;
-import static it.pagopa.selfcare.onboarding.utils.Utils.readOnboardingValue;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
-import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
+import org.openapi.quarkus.core_json.model.DelegationResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
-import org.openapi.quarkus.core_json.model.DelegationResponse;
+
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 public interface WorkflowExecutor {
 
@@ -72,11 +56,7 @@ public interface WorkflowExecutor {
         final String onboardingWithInstitutionIdString = getOnboardingString(objectMapper(), onboarding);
 
         ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-
-        if (Stream.of(WorkflowType.IMPORT, WorkflowType.IMPORT_AGGREGATION).noneMatch(onboarding.getWorkflowType()::equals)) {
-            ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
-        }
+        ctx.callActivity(STORE_ONBOARDING_ACTIVATEDAT, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
 
         /* TODO
         ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
@@ -92,7 +72,7 @@ public interface WorkflowExecutor {
         if (Objects.nonNull(onboarding.getTestEnvProductIds()) && !onboarding.getTestEnvProductIds().isEmpty()) {
             // Schedule each task to run in parallel
             List<Task<String>> parallelTasks = new ArrayList<>();
-            onboarding.getTestEnvProductIds().stream()
+            onboarding.getTestEnvProductIds()
                     .forEach(testEnvProductId -> {
                         final String onboardingStringWithTestEnvProductId = onboardingStringWithTestEnvProductId(testEnvProductId, onboardingWithInstitutionIdString);
                         parallelTasks.add(ctx.callActivity(CREATE_ONBOARDING_ACTIVITY, onboardingStringWithTestEnvProductId, optionsRetry(), String.class));
@@ -113,7 +93,8 @@ public interface WorkflowExecutor {
 
     default Optional<OnboardingStatus> onboardingCompletionActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
-        createInstitutionAndOnboarding(ctx, onboarding);
+        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
         ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
         return Optional.of(COMPLETED);
     }
@@ -163,8 +144,13 @@ public interface WorkflowExecutor {
         ctx.allOf(parallelTasks).await();
     }
 
-    default Optional<OnboardingStatus> onboardingCompletionActivityWithoutMail(TaskOrchestrationContext ctx, Onboarding onboarding) {
-        createInstitutionAndOnboarding(ctx, onboarding);
+    default Optional<OnboardingStatus> handleOnboardingCompletionActivityWithOptionalMail(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        String onboardingWithInstitutionIdString = createInstitutionAndOnboarding(ctx, onboarding);
+        ctx.callActivity(CREATE_USERS_ACTIVITY, onboardingWithInstitutionIdString, optionsRetry(), String.class).await();
+        if(Boolean.TRUE.equals(onboarding.getSendMailForImport())) {
+            ctx.callActivity(SEND_MAIL_COMPLETION_ACTIVITY, getOnboardingWorkflowString(objectMapper(), onboardingWorkflow), optionsRetry(), String.class).await();
+        }
         return Optional.of(COMPLETED);
     }
 
@@ -188,6 +174,22 @@ public interface WorkflowExecutor {
         if (COMPLETED.equals(onboardingStatus)) {
             final String onboardingString = getOnboardingString(objectMapper(), onboarding);
             ctx.callActivity(REJECT_OUTDATED_ONBOARDINGS, onboardingString, optionsRetry(), String.class).await();
+        }
+    }
+
+    default void sendMailForUserActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow, OnboardingMapper onboardingMapper) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        onboarding.getUsers().forEach(user -> {
+            Onboarding onboardingWithSingleUser = onboardingMapper.mapToOnboardingWithSingleUser(onboardingWorkflow.getOnboarding(), user);
+            onboardingWorkflow.setOnboarding(onboardingWithSingleUser);
+            ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
+        });
+    }
+
+    default void saveVisuraActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
+        List<String> atecoCodes = onboarding.getInstitution().getAtecoCodes();
+        if (Objects.nonNull(atecoCodes) && !atecoCodes.isEmpty()) {
+            ctx.callActivity(SAVE_VISURA_FOR_MERCHANT, getOnboardingString(objectMapper(), onboarding), optionsRetry(), String.class).await();
         }
     }
 
