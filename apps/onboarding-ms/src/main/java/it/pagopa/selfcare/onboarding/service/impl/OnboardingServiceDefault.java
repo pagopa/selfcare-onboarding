@@ -1370,6 +1370,25 @@ public class OnboardingServiceDefault implements OnboardingService {
         return complete(onboardingId, formItem, verification);
     }
 
+    @Override
+    public Uni<Onboarding> uploadContractSigned(
+            String onboardingId, FormItem formItem) {
+
+        return retrieveOnboarding(onboardingId)
+                .onItem()
+                .transformToUni(this::checkIfCompleted)
+                .onItem()
+                .transformToUni(onboarding ->
+                        uploadSignedContractAndUpdateToken(onboarding, formItem)
+                                .onItem()
+                                .transform(ignore -> {
+                                    onboarding.setUpdatedAt(LocalDateTime.now());
+                                    return onboarding;
+                                }))
+                .onItem()
+                .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding).map(ignore -> onboarding));
+    }
+
     private Uni<Onboarding> complete(
             String onboardingId,
             FormItem formItem,
@@ -1482,6 +1501,27 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(filepath);
     }
 
+    private Uni<Onboarding> retrieveOnboarding(String onboardingId) {
+        // Retrieve Onboarding if exists
+        return Onboarding.findByIdOptional(onboardingId)
+                .onItem()
+                .transformToUni(
+                        opt ->
+                                opt
+                                        // I must cast to Onboarding because findByIdOptional return a generic
+                                        // ReactiveEntity
+                                        .map(Onboarding.class::cast)
+                                        .map(onboarding -> Uni.createFrom().item(onboarding))
+                                        .orElse(
+                                                Uni.createFrom()
+                                                        .failure(
+                                                                new InvalidRequestException(
+                                                                        String.format(
+                                                                                "Onboarding with id '%s' not found",
+                                                                                onboardingId)))));
+    }
+
+
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
         // Retrieve Onboarding if exists
         return Onboarding.findByIdOptional(onboardingId)
@@ -1515,6 +1555,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
                                         onboarding.getId(),
                                         ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
+    }
+
+    private Uni<Onboarding> checkIfCompleted(Onboarding onboarding) {
+        return COMPLETED.equals(onboarding.getStatus())
+                ? Uni.createFrom().item(onboarding)
+                : Uni.createFrom()
+                .failure(
+                        new InvalidRequestException(
+                                String.format(
+                                        ONBOARDING_NOT_COMPLETED.getMessage(),
+                                        onboarding.getId(),
+                                        onboarding.getStatus(),
+                                        ONBOARDING_NOT_COMPLETED.getCode())));
     }
 
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
