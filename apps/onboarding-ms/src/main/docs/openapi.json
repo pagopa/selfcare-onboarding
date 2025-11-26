@@ -1788,6 +1788,55 @@
         } ]
       }
     },
+    "/v1/onboarding/{onboardingId}/upload-contract-signed" : {
+      "put" : {
+        "tags" : [ "internal-v1" ],
+        "summary" : "Update COMPELTED onboarding uploading signed contract",
+        "description" : "Uploading signed contract given onboardingId, updating related token",
+        "operationId" : "uploadContractSigned",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "required" : [ "contract" ],
+                "type" : "object",
+                "properties" : {
+                  "contract" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : { }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/onboarding/{onboardingId}/withUserInfo" : {
       "get" : {
         "tags" : [ "Onboarding Controller" ],

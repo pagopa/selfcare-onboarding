@@ -4236,4 +4236,111 @@ class OnboardingServiceDefaultTest {
         });
     }
 
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_shouldSuccessfullyUploadContractAndUpdateOnboarding(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+        final String filepath = "upload-file-path";
+
+        // Mock di Onboarding - DEVE RIMANERE ATTIVO PER TUTTA LA DURATA
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+        when(Onboarding.findById(any()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockFindToken(asserter, onboardingId);
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+        mockUpdateToken(asserter, onboardingId);
+        mockUpdateOnboarding(onboardingId, 1L);
+
+        asserter.assertThat(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                result -> {
+                    Assertions.assertNotNull(result);
+                    Assertions.assertEquals(onboarding.getId(), result.getId());
+                    Assertions.assertNotNull(result.getUpdatedAt());
+                });
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenOnboardingNotFound_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        String onboardingId = "non-existent-id";
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.empty())));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenOnboardingNotCompleted_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        String onboardingId = onboarding.getId();
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenUploadFileToAzureFails_shouldPropagateException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboardingId);
+
+        when(azureBlobClient.uploadFile(any(), any(), any()))
+                .thenThrow(new RuntimeException("Azure upload failed"));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                RuntimeException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenUpdateOnboardingFails_shouldPropagateException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+        final String filepath = "upload-file-path";
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboardingId);
+
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+
+        mockUpdateToken(asserter, filepath);
+
+        // Mock update onboarding to fail
+        asserter.execute(() -> {
+            ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
+            when(Onboarding.update(any(Document.class))).thenReturn(query);
+            when(query.where("_id", onboardingId))
+                    .thenReturn(Uni.createFrom().failure(new RuntimeException("DB update failed")));
+        });
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                RuntimeException.class);
+    }
+
 }

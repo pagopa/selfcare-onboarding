@@ -36,6 +36,7 @@ import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.model.RecipientCodeStatus;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -1593,6 +1594,100 @@ class OnboardingControllerTest {
                 .get("/institutions/{institutionId}")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    void uploadContractSigned_unauthorized() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/upload-contract-signed")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadContractSigned_whenSuccess_shouldReturnNoContent() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.uploadContractSigned(anyString(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/upload-contract-signed")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadContractSigned_withoutFile_shouldReturnBadRequest() {
+        String onboardingId = "actual-onboarding-id";
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .put("/{onboardingId}/upload-contract-signed")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadContractSigned_whenServiceThrowsException_shouldReturnError() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+        String errorMessage = "Upload failed";
+
+        when(onboardingService.uploadContractSigned(anyString(), any()))
+                .thenReturn(Uni.createFrom().failure(new RuntimeException(errorMessage)));
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/upload-contract-signed")
+                .then()
+                .statusCode(500);
+    }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadContractSigned_shouldPassCorrectParametersToService() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.uploadContractSigned(anyString(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile)
+                .put("/{onboardingId}/upload-contract-signed")
+                .then()
+                .statusCode(204);
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<FormItem> formItemCaptor = ArgumentCaptor.forClass(FormItem.class);
+        verify(onboardingService, times(1))
+                .uploadContractSigned(idCaptor.capture(), formItemCaptor.capture());
+        assertEquals(idCaptor.getValue(), onboardingId);
+        assertNotNull(formItemCaptor.getValue());
     }
 
 }
