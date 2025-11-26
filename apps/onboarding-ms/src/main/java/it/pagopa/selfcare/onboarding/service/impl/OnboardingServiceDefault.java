@@ -1386,7 +1386,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     return onboarding;
                                 }))
                 .onItem()
-                .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding).map(ignore -> onboarding));
+                .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding)
+                        .onItem()
+                        .transformToUni(ignore -> updateTokenUpdatedAt(onboardingId))
+                        .replaceWith(onboarding));
     }
 
     private Uni<Onboarding> complete(
@@ -1499,6 +1502,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Token.update("contractSigned", filepath)
                 .where("_id", token.getId())
                 .replaceWith(filepath);
+    }
+
+    private Uni<Void> updateTokenUpdatedAt(String onboardingId) {
+        return Token.update("updatedAt", LocalDateTime.now())
+                .where("onboardingId", onboardingId)
+                .onItem()
+                .transform(ignore -> null);
     }
 
     private Uni<Onboarding> retrieveOnboarding(String onboardingId) {
