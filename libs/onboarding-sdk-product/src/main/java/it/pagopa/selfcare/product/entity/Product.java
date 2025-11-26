@@ -1,9 +1,10 @@
 package it.pagopa.selfcare.product.entity;
 
 import it.pagopa.selfcare.onboarding.common.PartyRole;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.Instant;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 public class Product {
 
@@ -43,6 +44,9 @@ public class Product {
     private Map<String, Map<String, List<EmailTemplate>>> emailTemplates;
     private List<String> allowedInstitutionTaxCode;
     private Integer expirationDate;
+    private List<OriginEntry> institutionOrigins;
+    private boolean allowIndividualOnboarding;
+    private boolean allowCompanyOnboarding;
 
     public String getId() {
         return id;
@@ -475,5 +479,29 @@ public class Product {
 
     public void setExpirationDate(Integer expirationDate) {
         this.expirationDate = expirationDate;
+    }
+
+    public boolean isAllowIndividualOnboarding() {
+        return allowIndividualOnboarding;
+    }
+
+    public void setAllowIndividualOnboarding(boolean allowIndividualOnboarding) {
+        this.allowIndividualOnboarding = allowIndividualOnboarding;
+    }
+
+    public boolean isAllowCompanyOnboarding() {
+        return allowCompanyOnboarding;
+    }
+
+    public void setAllowCompanyOnboarding(boolean allowCompanyOnboarding) {
+        this.allowCompanyOnboarding = allowCompanyOnboarding;
+    }
+
+    public List<OriginEntry> getInstitutionOrigins() {
+        return institutionOrigins;
+    }
+
+    public void setInstitutionOrigins(List<OriginEntry> institutionOrigins) {
+        this.institutionOrigins = institutionOrigins;
     }
 }
