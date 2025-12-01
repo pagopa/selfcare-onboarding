@@ -3596,6 +3596,46 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void verifyOnboarding_prvPfSuccessfulUserSearchAndReferenceOnboardingId(UniAsserter asserter) {
+        final String taxCode = "RSSMRA80A01H501U";
+        final String subunitCode = "subunitCode";
+        final String origin = "origin";
+        final String originId = "originId";
+        final String productId = "productId";
+        OnboardingStatus status = OnboardingStatus.COMPLETED;
+        InstitutionType institutionType = InstitutionType.PRV_PF;
+
+        UserResource userResource = new UserResource();
+        userResource.setId(UUID.randomUUID());
+
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setReferenceOnboardingId("referenceOnboardingId");
+
+        asserter.execute(() -> {
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any(UserSearchDto.class)))
+                    .thenReturn(Uni.createFrom().item(userResource));
+
+            PanacheMock.mock(Onboarding.class);
+            ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+            when(query.stream()).thenReturn(Multi.createFrom().items(onboarding));
+            when(Onboarding.find(any(Document.class))).thenReturn(query);
+        });
+
+        asserter.assertThat(() ->
+                        onboardingService.verifyOnboarding(taxCode, subunitCode, origin, originId, status, productId, institutionType),
+                result -> {
+                    assertThat(result).isNotNull();
+                    assertThat(result).hasSize(0);
+                });
+
+        asserter.execute(() -> {
+            verify(userRegistryApi).searchUsingPOST(eq(USERS_FIELD_LIST), argThat(dto ->
+                    dto.getFiscalCode().equals(taxCode)));
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void verifyOnboarding_prvPfUserSearchThrowsWebApplicationException(UniAsserter asserter) {
         String taxCode = "RSSMRA80A01H501U";
         String subunitCode = "subunitCode";
@@ -4032,6 +4072,91 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void onboarding_whenIsAggregatorAndProductIo(UniAsserter asserter) {
+        Onboarding onboarding = new Onboarding();
+
+        Billing billing = new Billing();
+        billing.setRecipientCode("recipientCode");
+        onboarding.setBilling(billing);
+
+        AggregateInstitutionRequest aggregateInstitution = new AggregateInstitutionRequest();
+        aggregateInstitution.setDescription("test");
+        List<AggregateInstitutionRequest> aggregateInstitutions = List.of(aggregateInstitution);
+
+
+        List<UserRequest> users = List.of(manager);
+        onboarding.setProductId(PROD_IO.getValue());
+        onboarding.setIsAggregator(Boolean.TRUE);
+        onboarding.setWorkflowType(CONTRACT_REGISTRATION);
+
+        Institution institutionBaseRequest = new Institution();
+        institutionBaseRequest.setOrigin(Origin.IPA);
+        institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setImported(true);
+        institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
+        institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        onboarding.setInstitution(institutionBaseRequest);
+
+        Onboarding onboarding2 = new Onboarding();
+        onboarding2.setProductId(PROD_IO.name());
+        onboarding2.setWorkflowType(CONFIRMATION_AGGREGATE);
+        onboarding2.setReferenceOnboardingId("referenceOnboardingId");
+
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+        contractImported.setFileName("filename");
+        contractImported.setFilePath("filepath");
+        contractImported.setCreatedAt(LocalDateTime.now());
+        contractImported.setContractType("type");
+
+        mockPersistOnboarding(asserter);
+        mockPersistToken(asserter);
+
+        mockSimpleSearchPOSTAndPersist(asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+
+        PanacheMock.mock(Onboarding.class);
+        ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
+        when(Onboarding.find(any())).thenReturn(query);
+        when(query.stream()).thenReturn(Multi.createFrom().item(onboarding2));
+
+        mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
+
+        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
+                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+
+        UOResource uoResource = new UOResource();
+        uoResource.setCodiceIpa("codiceIPA");
+        uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
+        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+                .thenReturn(Uni.createFrom().item(uoResource));
+
+        InstitutionResource institutionResource = new InstitutionResource();
+        institutionResource.setCategory("L37");
+        institutionResource.setDescription(DESCRIPTION_FIELD);
+        institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institutionResource.setIstatCode("istatCode");
+        asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
+                .thenReturn(Uni.createFrom().item(institutionResource)));
+
+        GeographicTaxonomyResource geographicTaxonomyResource = new GeographicTaxonomyResource();
+        geographicTaxonomyResource.setCountryAbbreviation("IT");
+        geographicTaxonomyResource.setProvinceAbbreviation("RM");
+        geographicTaxonomyResource.setDesc("desc");
+        asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
+                .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
+
+        asserter.assertThat(() -> onboardingService.onboarding(onboarding, users, aggregateInstitutions), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class, times(1)).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
     void onboarding_whenIsAggregatorAndProductPagoPa_test(UniAsserter asserter) {
         Onboarding onboarding = new Onboarding();
 
@@ -4109,6 +4234,113 @@ class OnboardingServiceDefaultTest {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
             PanacheMock.verifyNoMoreInteractions(Onboarding.class);
         });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_shouldSuccessfullyUploadContractAndUpdateOnboarding(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+        final String filepath = "upload-file-path";
+
+        // Mock di Onboarding - DEVE RIMANERE ATTIVO PER TUTTA LA DURATA
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+        when(Onboarding.findById(any()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        mockFindToken(asserter, onboardingId);
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+        mockUpdateToken(asserter, onboardingId);
+        mockUpdateOnboarding(onboardingId, 1L);
+
+        asserter.assertThat(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                result -> {
+                    Assertions.assertNotNull(result);
+                    Assertions.assertEquals(onboarding.getId(), result.getId());
+                    Assertions.assertNotNull(result.getUpdatedAt());
+                });
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenOnboardingNotFound_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        String onboardingId = "non-existent-id";
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.empty())));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenOnboardingNotCompleted_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        String onboardingId = onboarding.getId();
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenUploadFileToAzureFails_shouldPropagateException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboardingId);
+
+        when(azureBlobClient.uploadFile(any(), any(), any()))
+                .thenThrow(new RuntimeException("Azure upload failed"));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                RuntimeException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenUpdateOnboardingFails_shouldPropagateException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+        final String filepath = "upload-file-path";
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboardingId);
+
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+
+        mockUpdateToken(asserter, filepath);
+
+        // Mock update onboarding to fail
+        asserter.execute(() -> {
+            ReactivePanacheUpdate query = mock(ReactivePanacheUpdate.class);
+            when(Onboarding.update(any(Document.class))).thenReturn(query);
+            when(query.where("_id", onboardingId))
+                    .thenReturn(Uni.createFrom().failure(new RuntimeException("DB update failed")));
+        });
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                RuntimeException.class);
     }
 
 }

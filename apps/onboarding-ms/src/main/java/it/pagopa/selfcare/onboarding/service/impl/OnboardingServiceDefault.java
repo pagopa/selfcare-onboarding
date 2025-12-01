@@ -886,31 +886,50 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Boolean> checkIfAlreadyOnboardingAndValidateAllowedProductList(
             Institution institution, String productId) {
         return validateAllowedProductList(institution.getTaxCode(), institution.getSubunitCode(), productId)
-                .flatMap(
-                        ignored -> {
-                            String origin =
-                                    institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
-                            return verifyOnboarding(
-                                    institution.getTaxCode(),
-                                    institution.getSubunitCode(),
-                                    origin,
-                                    institution.getOriginId(),
-                                    COMPLETED,
-                                    productId,
-                                    institution.getInstitutionType())
-                                    .flatMap(
-                                            onboardingResponses ->
-                                                    onboardingResponses.isEmpty()
-                                                            ? Uni.createFrom().item(Boolean.TRUE)
-                                                            : Uni.createFrom()
-                                                            .failure(
-                                                                    new ResourceConflictException(
-                                                                            String.format(
-                                                                                    PRODUCT_ALREADY_ONBOARDED.getMessage(),
-                                                                                    productId,
-                                                                                    institution.getTaxCode()),
-                                                                            PRODUCT_ALREADY_ONBOARDED.getCode())));
-                        });
+                .flatMap(ignored -> {
+                    String origin = institution.getOrigin() != null ? institution.getOrigin().getValue() : null;
+                    return verifyOnboarding(
+                            institution.getTaxCode(),
+                            institution.getSubunitCode(),
+                            origin,
+                            institution.getOriginId(),
+                            COMPLETED,
+                            productId,
+                            institution.getInstitutionType())
+                            .flatMap(onboardingResponses ->
+                                    handleOnboardingResponses(onboardingResponses, productId, institution.getTaxCode()));
+                });
+    }
+
+    private Uni<Boolean> handleOnboardingResponses(
+            List<OnboardingResponse> onboardingResponses,
+            String productId,
+            String taxCode) {
+
+        if (onboardingResponses.isEmpty()) {
+            return Uni.createFrom().item(Boolean.TRUE);
+        }
+
+        if (isProductIoWithoutReferenceOnboarding(productId, onboardingResponses)) {
+            return Uni.createFrom().item(Boolean.TRUE);
+        }
+
+        return Uni.createFrom().failure(
+                new ResourceConflictException(
+                        String.format(
+                                PRODUCT_ALREADY_ONBOARDED.getMessage(),
+                                productId,
+                                taxCode),
+                        PRODUCT_ALREADY_ONBOARDED.getCode()));
+    }
+
+    private boolean isProductIoWithoutReferenceOnboarding(
+            String productId,
+            List<OnboardingResponse> onboardingResponses) {
+
+        return ProductId.PROD_IO.getValue().equals(productId)
+                && onboardingResponses.stream()
+                .allMatch(response -> Objects.nonNull(response.getReferenceOnboardingId()));
     }
 
     private Uni<Boolean> checkIfOnboardingNotExistAndValidateAllowedProductList(
@@ -1351,6 +1370,28 @@ public class OnboardingServiceDefault implements OnboardingService {
         return complete(onboardingId, formItem, verification);
     }
 
+    @Override
+    public Uni<Onboarding> uploadContractSigned(
+            String onboardingId, FormItem formItem) {
+
+        return retrieveOnboarding(onboardingId)
+                .onItem()
+                .transformToUni(this::checkIfCompleted)
+                .onItem()
+                .transformToUni(onboarding ->
+                        uploadSignedContractAndUpdateToken(onboarding, formItem)
+                                .onItem()
+                                .transform(ignore -> {
+                                    onboarding.setUpdatedAt(LocalDateTime.now());
+                                    return onboarding;
+                                }))
+                .onItem()
+                .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding)
+                        .onItem()
+                        .transformToUni(ignore -> updateTokenUpdatedAt(onboardingId))
+                        .replaceWith(onboarding));
+    }
+
     private Uni<Onboarding> complete(
             String onboardingId,
             FormItem formItem,
@@ -1463,6 +1504,34 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(filepath);
     }
 
+    private Uni<Void> updateTokenUpdatedAt(String onboardingId) {
+        return Token.update("updatedAt", LocalDateTime.now())
+                .where("onboardingId", onboardingId)
+                .onItem()
+                .transform(ignore -> null);
+    }
+
+    private Uni<Onboarding> retrieveOnboarding(String onboardingId) {
+        // Retrieve Onboarding if exists
+        return Onboarding.findByIdOptional(onboardingId)
+                .onItem()
+                .transformToUni(
+                        opt ->
+                                opt
+                                        // I must cast to Onboarding because findByIdOptional return a generic
+                                        // ReactiveEntity
+                                        .map(Onboarding.class::cast)
+                                        .map(onboarding -> Uni.createFrom().item(onboarding))
+                                        .orElse(
+                                                Uni.createFrom()
+                                                        .failure(
+                                                                new InvalidRequestException(
+                                                                        String.format(
+                                                                                "Onboarding with id '%s' not found",
+                                                                                onboardingId)))));
+    }
+
+
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
         // Retrieve Onboarding if exists
         return Onboarding.findByIdOptional(onboardingId)
@@ -1496,6 +1565,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         ONBOARDING_NOT_TO_BE_VALIDATED.getMessage(),
                                         onboarding.getId(),
                                         ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
+    }
+
+    private Uni<Onboarding> checkIfCompleted(Onboarding onboarding) {
+        return COMPLETED.equals(onboarding.getStatus())
+                ? Uni.createFrom().item(onboarding)
+                : Uni.createFrom()
+                .failure(
+                        new InvalidRequestException(
+                                String.format(
+                                        ONBOARDING_NOT_COMPLETED.getMessage(),
+                                        onboarding.getId(),
+                                        onboarding.getStatus(),
+                                        ONBOARDING_NOT_COMPLETED.getCode())));
     }
 
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
@@ -1704,6 +1786,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return Onboarding.find(query).stream()
                 .map(Onboarding.class::cast)
                 .map(onboardingMapper::toResponse)
+                .filter(response -> Objects.isNull(response.getReferenceOnboardingId()))
                 .collect()
                 .asList();
     }

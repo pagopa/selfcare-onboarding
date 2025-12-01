@@ -40,6 +40,7 @@ public class Onboarding {
     private String delegationId;
     private Boolean sendMailForImport;
     private Payment payment;
+    private Boolean toAddOnAggregates;
 
     //This field is used in case of workflowType USER
     private String previousManagerId;
