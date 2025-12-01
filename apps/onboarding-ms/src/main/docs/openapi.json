@@ -2041,6 +2041,51 @@
         } ]
       }
     },
+    "/v1/tokens/{onboardingId}/attachment/template" : {
+      "get" : {
+        "tags" : [ "Token Controller" ],
+        "summary" : "Retrieve attachment template for a given filename",
+        "description" : "Downloads the attachment template file associated with the specified filenameusing the onboarding identifier to retrieve eventually product and institution type.",
+        "operationId" : "getAttachmentTemplate",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
+    },
     "/v1/tokens/{onboardingId}/contract" : {
       "get" : {
         "tags" : [ "Token Controller" ],
