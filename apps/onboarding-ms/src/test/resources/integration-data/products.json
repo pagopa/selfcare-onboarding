@@ -1,49 +1,94 @@
 [
   {
     "alias": "prod-io",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Locale": {
         "identityTokenAudience": "locale",
         "url": "http://localhost:3999/idp/selfcare/resolve-identity?id=<IdentityToken>;env=locale"
       }
     },
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2021-12-15T15:54:55.190Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "delegable": false,
-    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io/depict-image.jpeg",
     "description": "Offri ai cittadini i servizi del tuo ente in un unico canale",
+    "emailTemplates": {
+      "default": {
+        "IMPORT": [
+          {
+            "path": "contracts/template/mail/import-massivo-io/1.0.0.json",
+            "status": "PENDING",
+            "version": "1.0.0"
+          }
+        ],
+        "IMPORT_AGGREGATION": [
+          {
+            "path": "contracts/template/mail/import-massivo-io/1.0.0.json",
+            "status": "PENDING",
+            "version": "1.0.0"
+          }
+        ]
+      }
+    },
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-io",
     "identityTokenAudience": "api.io.selfcare.pagopa.it",
-    "institutionContractMappings": {
-      "default": {
-        "contractTemplatePath": "contracts/template/io/2.4.5/io-accordo_di_adesione-v.2.4.5.html",
-        "contractTemplateVersion": "2.4.5",
-        "attachments": []
-      }
-    },
     "institutionAggregatorContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/io/2.4.5/io-accordo_di_adesione-v.2.4.5.html",
-        "contractTemplateVersion": "2.4.5",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/io/2.4.6/io-accordo_di_adesione-v.2.4.6.html",
+        "contractTemplateVersion": "2.4.6"
       }
     },
+    "institutionContractMappings": {
+      "default": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/io/2.4.6/io-accordo_di_adesione-v.2.4.6.html",
+        "contractTemplateVersion": "2.4.6"
+      }
+    },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "SELC",
+        "labelKey": "scp"
+      }
+    ],
     "invoiceable": true,
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io/logo.svg",
     "logoBgColor": "#0B3EE3",
     "modifiedAt": "2022-11-18T17:59:27.744Z",
     "modifiedBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "roleMappings": {
+      "ADMIN_EA": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": ["onboarding"],
+        "roles": [
+          {
+            "code": "referente amministrativo",
+            "description": "Amministratore",
+            "label": "Amministratore"
+          }
+        ]
+      },
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -54,9 +99,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -67,9 +110,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente operativo",
@@ -80,23 +121,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard-async",
-          "dashboard-aggregator"
-        ],
-        "roles": [
-          {
-            "code": "referente amministrativo",
-            "description": "Amministratore",
-            "label": "Amministratore"
-          }
-        ]
-      },
-      "ADMIN_EA": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["dashboard-async", "dashboard-aggregator"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -110,13 +135,13 @@
     "title": "IO",
     "urlBO": "https://api.io.selfcare.pagopa.it/idp/selfcare/resolve-identity?id=<IdentityToken>",
     "urlPublic": "https://io.italia.it/",
-    "userContractMappings": {
+    "userAggregatorContractMappings": {
       "default": {
         "contractTemplatePath": "contracts/template/io/user/1.0.0/io-aggiunta-amministratore-v.1.0.html",
         "contractTemplateVersion": "1.0.0"
       }
     },
-    "userAggregatorContractMappings": {
+    "userContractMappings": {
       "default": {
         "contractTemplatePath": "contracts/template/io/user/1.0.0/io-aggiunta-amministratore-v.1.0.html",
         "contractTemplateVersion": "1.0.0"
@@ -125,6 +150,9 @@
   },
   {
     "alias": "prod-pn",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pn-test.it",
@@ -135,30 +163,35 @@
         "url": "https://selfcare.dev.platform.pn-test-svil.it/ui#id=<IdentityToken>"
       }
     },
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2021-12-15T15:55:08.009392Z",
-    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-pn/depict-image.jpeg",
     "description": "Digitalizza e semplifica la gestione delle comunicazioni a valore legale",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pn",
     "identityTokenAudience": "portale-pa.dev.pn.pagopa.it",
-    "institutionContractMappings": {
-      "default": {
-        "contractTemplatePath": "contracts/template/pn/2.0.0/pn-accordo_di_adesione-v.2.0.0.html",
-        "contractTemplateVersion": "2.0.0",
-        "attachments": []
-      }
-    },
     "institutionAggregatorContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/pn/aggregator/1.0.0/pn-accordo_di_adesione-aggregatore-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionContractMappings": {
+      "default": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/pn/2.0.2/pn-accordo_di_adesione-v.2.0.2.html",
+        "contractTemplateVersion": "2.0.2"
+      }
+    },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      }
+    ],
     "invoiceable": true,
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-pn/logo.svg\n",
     "logoBgColor": "#0066CC",
@@ -167,9 +200,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -180,9 +211,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -193,9 +222,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -206,9 +233,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -231,70 +256,122 @@
   },
   {
     "alias": "prod-pagopa",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pagopa.it",
         "url": "https://selfcare.dev.platform.pagopa.it/ui#id=<IdentityToken>"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2021-12-15T15:55:18.096Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "delegable": true,
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Gestisci gli incassi in modo centralizzato, efficiente e immediato",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pagopa",
     "identityTokenAudience": "api.platform.pagopa.it",
-    "institutionContractMappings": {
-      "default": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_ec-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
-      },
-      "PA": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_ec-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
-      },
-      "PRV": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.4/pagopa-accordo_di_adesione_prv-v.1.0.4.html",
-        "contractTemplateVersion": "1.0.4",
-        "attachments": []
-      },
-      "PSP": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_psp-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
-      },
-      "GPU": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.4/pagopa-accordo_di_adesione_prv-v.1.0.4.html",
-        "contractTemplateVersion": "1.0.4",
-        "attachments": [
-          {
-            "name": "Dichiarazione_sostitutiva_certificazione",
-            "mandatory": true,
-            "templatePath": "contracts/template/pagopa/attachments/1.0.0/pagopa-checklist-v1.0.0.html",
-            "templateVersion": "1.0.0",
-            "workflowType": [
-              "FOR_APPROVE_GPU"
-            ],
-            "workflowState": "REQUEST",
-            "order": 1,
-            "generated": true
-          }
-        ]
-      }
-    },
     "institutionAggregatorContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/pagopa/1.0.4/pagopa-accordo_di_adesione_prv-v.1.0.4.html",
-        "contractTemplateVersion": "1.0.4",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.5/pagopa-accordo_di_adesione_prv-v.1.0.5.html",
+        "contractTemplateVersion": "1.0.5"
       }
     },
+    "institutionContractMappings": {
+      "default": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_ec-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
+      },
+      "GPU": {
+        "attachments": [
+          {
+            "generated": true,
+            "mandatory": true,
+            "name": "Dichiarazione_sostitutiva_certificazione",
+            "order": 1,
+            "templatePath": "contracts/template/pagopa/attachments/1.0.0/pagopa-checklist-v1.0.0.html",
+            "templateVersion": "1.0.0",
+            "workflowState": "REQUEST",
+            "workflowType": ["FOR_APPROVE_GPU"]
+          }
+        ],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.5/pagopa-accordo_di_adesione_prv-v.1.0.5.html",
+        "contractTemplateVersion": "1.0.5"
+      },
+      "PA": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_ec-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
+      },
+      "PRV": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.5/pagopa-accordo_di_adesione_prv-v.1.0.5.html",
+        "contractTemplateVersion": "1.0.5"
+      },
+      "PSP": {
+        "attachments": [
+          {
+            "generated": true,
+            "mandatory": true,
+            "name": "Addendum",
+            "order": 1,
+            "templatePath": "contracts/template/prod-pagopa/attachments/1.0.0/addendum.html",
+            "templateVersion": "1.0.0",
+            "workflowState": "COMPLETED"
+          }
+        ],
+        "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_psp-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
+      }
+    },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "SELC",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "GPU",
+        "origin": "SELC",
+        "labelKey": "gpu"
+      },
+      {
+        "institutionType": "PRV",
+        "origin": "SELC",
+        "labelKey": "prv"
+      },
+      {
+        "institutionType": "PSP",
+        "origin": "SELC",
+        "labelKey": "psp"
+      },
+      {
+        "institutionType": "PT",
+        "origin": "SELC",
+        "labelKey": "pt"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "SELC",
+        "labelKey": "scp"
+      }
+    ],
     "invoiceable": true,
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-pagopa/logo.svg",
     "logoBgColor": "#0066CC",
@@ -303,9 +380,7 @@
     "roleMappings": {
       "ADMIN_EA": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -317,9 +392,7 @@
       },
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -331,9 +404,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -345,9 +416,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -359,9 +428,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -373,80 +440,10 @@
       }
     },
     "roleMappingsByInstitutionType": {
-      "PSP": {
-        "DELEGATE": {
-          "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
-          "roles": [
-            {
-              "code": "admin-psp",
-              "description": "Ha tutti i permessi e gestisce gli utenti",
-              "label": "Amministratore"
-            }
-          ]
-        },
-        "MANAGER": {
-          "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
-          "roles": [
-            {
-              "code": "admin-psp",
-              "description": "Stipula il contratto e identifica gli amministratori",
-              "label": "Amministratore"
-            }
-          ]
-        },
-        "OPERATOR": {
-          "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard"
-          ],
-          "roles": [
-            {
-              "code": "operator-psp",
-              "description": "Gestisce l’integrazione tecnologica e/o l'operatività dei servizi",
-              "label": "Operatore",
-              "productLabel": "Responsabile Tecnico"
-            }
-          ]
-        },
-        "SUB_DELEGATE": {
-          "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard-async"
-          ],
-          "roles": [
-            {
-              "code": "admin-psp",
-              "description": "Ha tutti i permessi e gestisce gli utenti. Possono essere al massimo 4.",
-              "label": "Amministratore"
-            }
-          ]
-        },
+      "GPU": {
         "ADMIN_EA": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
-          "roles": [
-            {
-              "code": "admin-psp",
-              "description": "Ha tutti i permessi e gestisce gli utenti",
-              "label": "Amministratore"
-            }
-          ]
-        }
-      },
-      "PA": {
-        "ADMIN_EA": {
-          "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -457,9 +454,7 @@
         },
         "DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -470,9 +465,7 @@
         },
         "MANAGER": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -483,9 +476,7 @@
         },
         "OPERATOR": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard"
-          ],
+          "phasesAdditionAllowed": ["dashboard"],
           "roles": [
             {
               "code": "operator",
@@ -497,9 +488,7 @@
         },
         "SUB_DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard-async"
-          ],
+          "phasesAdditionAllowed": ["dashboard-async"],
           "roles": [
             {
               "code": "admin",
@@ -512,9 +501,7 @@
       "GSP": {
         "ADMIN_EA": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -525,9 +512,7 @@
         },
         "DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -538,9 +523,7 @@
         },
         "MANAGER": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -551,9 +534,7 @@
         },
         "OPERATOR": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard"
-          ],
+          "phasesAdditionAllowed": ["dashboard"],
           "roles": [
             {
               "code": "operator",
@@ -565,9 +546,7 @@
         },
         "SUB_DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard-async"
-          ],
+          "phasesAdditionAllowed": ["dashboard-async"],
           "roles": [
             {
               "code": "admin",
@@ -577,12 +556,10 @@
           ]
         }
       },
-      "GPU": {
+      "PA": {
         "ADMIN_EA": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -593,9 +570,7 @@
         },
         "DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -606,9 +581,7 @@
         },
         "MANAGER": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -619,9 +592,7 @@
         },
         "OPERATOR": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard"
-          ],
+          "phasesAdditionAllowed": ["dashboard"],
           "roles": [
             {
               "code": "operator",
@@ -633,9 +604,7 @@
         },
         "SUB_DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard-async"
-          ],
+          "phasesAdditionAllowed": ["dashboard-async"],
           "roles": [
             {
               "code": "admin",
@@ -648,9 +617,7 @@
       "PRV": {
         "ADMIN_EA": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -661,9 +628,7 @@
         },
         "DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -674,9 +639,7 @@
         },
         "MANAGER": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "onboarding"
-          ],
+          "phasesAdditionAllowed": ["onboarding"],
           "roles": [
             {
               "code": "admin",
@@ -687,9 +650,7 @@
         },
         "OPERATOR": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard"
-          ],
+          "phasesAdditionAllowed": ["dashboard"],
           "roles": [
             {
               "code": "operator",
@@ -701,15 +662,70 @@
         },
         "SUB_DELEGATE": {
           "multiroleAllowed": false,
-          "phasesAdditionAllowed": [
-            "dashboard-async",
-            "dashboard-aggregator"
-          ],
+          "phasesAdditionAllowed": ["dashboard-async", "dashboard-aggregator"],
           "roles": [
             {
               "code": "admin",
               "description": "Ha tutti i permessi e gestisce gli utenti",
               "label": "Referente dei Pagamenti"
+            }
+          ]
+        }
+      },
+      "PSP": {
+        "ADMIN_EA": {
+          "multiroleAllowed": false,
+          "phasesAdditionAllowed": ["onboarding"],
+          "roles": [
+            {
+              "code": "admin-psp",
+              "description": "Ha tutti i permessi e gestisce gli utenti",
+              "label": "Amministratore"
+            }
+          ]
+        },
+        "DELEGATE": {
+          "multiroleAllowed": false,
+          "phasesAdditionAllowed": ["onboarding"],
+          "roles": [
+            {
+              "code": "admin-psp",
+              "description": "Ha tutti i permessi e gestisce gli utenti",
+              "label": "Amministratore"
+            }
+          ]
+        },
+        "MANAGER": {
+          "multiroleAllowed": false,
+          "phasesAdditionAllowed": ["onboarding"],
+          "roles": [
+            {
+              "code": "admin-psp",
+              "description": "Stipula il contratto e identifica gli amministratori",
+              "label": "Amministratore"
+            }
+          ]
+        },
+        "OPERATOR": {
+          "multiroleAllowed": false,
+          "phasesAdditionAllowed": ["dashboard"],
+          "roles": [
+            {
+              "code": "operator-psp",
+              "description": "Gestisce l’integrazione tecnologica e/o l'operatività dei servizi",
+              "label": "Operatore",
+              "productLabel": "Responsabile Tecnico"
+            }
+          ]
+        },
+        "SUB_DELEGATE": {
+          "multiroleAllowed": false,
+          "phasesAdditionAllowed": ["dashboard-async"],
+          "roles": [
+            {
+              "code": "admin-psp",
+              "description": "Ha tutti i permessi e gestisce gli utenti. Possono essere al massimo 4.",
+              "label": "Amministratore"
             }
           ]
         }
@@ -719,6 +735,12 @@
     "title": "Pagamenti pagoPA",
     "urlBO": "https://selfcare.dev.platform.pagopa.it/ui#id=<IdentityToken>",
     "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/piattaforma-notifiche-digitali",
+    "userAggregatorContractMappings": {
+      "default": {
+        "contractTemplatePath": "contracts/template/pagopa/user-aggregator/1.0.0/pagopa-aggiunta-amministratore-aggregatore-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
+      }
+    },
     "userContractMappings": {
       "default": {
         "contractTemplatePath": "contracts/template/pagopa/user/1.0.0/pagopa-aggiunta-amministratore-v.1.0.html",
@@ -728,52 +750,52 @@
         "contractTemplatePath": "contracts/template/pagopa/user/psp/1.1.0/pagopa-aggiunta-amministratore-psp-v.1.1.0.html",
         "contractTemplateVersion": "1.1.0"
       }
-    },
-    "userAggregatorContractMappings": {
-      "default": {
-        "contractTemplatePath": "contracts/template/pagopa/user-aggregator/1.0.0/pagopa-aggiunta-amministratore-aggregatore-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0"
-      }
     }
   },
   {
     "alias": "prod-dashboard-psp",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pagopa.it",
         "url": "https://selfcare.uat.platform.pagopa.it/ui#id=<IdentityToken>"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2022-11-03T09:50:03.478Z",
     "createdBy": "0cda0324-056c-4651-8815-2ee3f17712f1",
     "delegable": true,
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-dashboard-psp/depict-image.png",
     "description": "Ottimizza al meglio la gestione delle tue attività su pagoPA: accedi ai dati transazionali della piattaforma e analizzali con una dashboard dinamica, intuitiva e aggiornata quotidianamente.",
     "enabled": false,
+    "expirationDate": 30,
     "id": "prod-dashboard-psp",
     "identityTokenAudience": "api.platform.pagopa.it",
     "institutionContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/pagopa-insights/1.0.0/pagopa-insights-accordo-di-adesione-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0"
+        "contractTemplatePath": "contracts/template/pagopa-insights/1.0.1/pagopa-insights-accordo-di-adesione-v.1.0.1.html",
+        "contractTemplateVersion": "1.0.1"
       }
     },
-    "institutionTypesAllowed": [
-      "PSP"
+    "institutionOrigins": [
+      {
+        "institutionType": "PSP",
+        "origin": "SELC",
+        "labelKey": "psp"
+      }
     ],
+    "institutionTypesAllowed": ["PSP"],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-dashboard-psp/logo.svg",
     "logoBgColor": "#0066CC",
     "modifiedAt": "2022-11-03T09:50:03.478Z",
     "modifiedBy": "0cda0324-056c-4651-8815-2ee3f17712f1",
+    "parentId": "prod-pagopa",
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -785,10 +807,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "skipUserCreation": true,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -796,13 +815,12 @@
             "label": "Referente dei Pagamenti",
             "productLabel": "Amministratore"
           }
-        ]
+        ],
+        "skipUserCreation": true
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -814,9 +832,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -829,7 +845,6 @@
     },
     "status": "ACTIVE",
     "title": "pagoPA Insights",
-    "parentId": "prod-pagopa",
     "urlBO": "https://selfcare.platform.pagopa.it/ui#id=<IdentityToken>",
     "userContractMappings": {
       "default": {
@@ -840,19 +855,21 @@
   },
   {
     "alias": "prod-ciban",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2021-12-15T15:55:26.790225Z",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Valida l'IBAN abbinato al Codice Fiscale fornito da un cittadino o da un'impresa",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-ciban",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-ciban/logo.svg",
@@ -863,9 +880,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -876,9 +891,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -889,9 +902,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente operativo",
@@ -902,9 +913,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -921,19 +930,21 @@
   },
   {
     "alias": "prod-cgn",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2021-12-15T15:55:35.379813Z",
-    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-cgn/depict-image.jpeg",
     "description": "Diventa partner e offri sconti e agevolazioni ai giovani tra i 18 e 35 anni",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-cgn",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-cgn/logo.png",
@@ -943,9 +954,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -956,9 +965,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -969,9 +976,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente operativo",
@@ -982,9 +987,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -1001,39 +1004,83 @@
   },
   {
     "alias": "prod-interop",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Test": {
         "identityTokenAudience": "test",
         "url": "https://interop.dev.selfcare.pagopa.it/ui#id=<IdentityToken>;env=test"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2021-12-15T15:55:42.891Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Scambia informazioni con altri enti in modo semplice e sicuro",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-interop",
     "identityTokenAudience": "api.interop.selfcare.pagopa.it",
     "institutionContractMappings": {
       "AS": {
-        "contractTemplatePath": "contracts/template/interop/ivass/2.1.1/interop-accordo_di_adesione_as-v.2.1.1.html",
-        "contractTemplateVersion": "2.1.1",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/interop/ivass/2.2.0/interop-accordo_di_adesione_as-v.2.2.0.html",
+        "contractTemplateVersion": "2.2.0"
       },
       "default": {
-        "contractTemplatePath": "contracts/template/interop/2.3.2/interop-accordo_di_adesione-v.2.3.2.html",
-        "contractTemplateVersion": "2.3.2",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/interop/3.0.0/interop-accordo_di_adesione-v.3.0.0.html",
+        "contractTemplateVersion": "3.0.0"
       },
       "PRV": {
-        "contractTemplatePath": "contracts/template/interop/prv/1.0.2/interop-accordo_di_adesione_prv-v.1.0.2.html",
-        "contractTemplateVersion": "1.0.2",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/interop/prv/1.2.0/interop-accordo_di_adesione_prv-v.1.2.0.html",
+        "contractTemplateVersion": "1.2.0"
+      },
+      "SA": {
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/interop/anac/1.0.0/interop-accordo_di_adesione_sa-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "scp"
+      },
+      {
+        "institutionType": "SA",
+        "origin": "ANAC",
+        "labelKey": "sa"
+      },
+      {
+        "institutionType": "PRV",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv"
+      },
+      {
+        "institutionType": "SCEC",
+        "origin": "IPA",
+        "labelKey": "scec"
+      },
+      {
+        "institutionType": "AS",
+        "origin": "IVASS",
+        "labelKey": "sa"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-interop/logo.svg",
     "logoBgColor": "#0066CC",
     "modifiedAt": "2022-11-21T11:41:12.158Z",
@@ -1041,9 +1088,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1054,9 +1099,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1067,9 +1110,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "api",
@@ -1085,9 +1126,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard-async"
-        ],
+        "phasesAdditionAllowed": ["dashboard-async"],
         "roles": [
           {
             "code": "admin",
@@ -1098,39 +1137,44 @@
       }
     },
     "status": "ACTIVE",
-    "testEnvProductIds": [
-      "prod-interop-coll",
-      "prod-interop-atst"
-    ],
-    "title": "Interoperabilità",
+    "testEnvProductIds": ["prod-interop-coll", "prod-interop-atst"],
+    "title": "PDND Interoperabilità",
     "urlBO": "https://selfcare.dev.interop.pagopa.it/ui#id=<IdentityToken>",
     "urlPublic": "http://www.google.it",
     "userContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/interop/user/2.0.1/interop-aggiunta-amministratore-v.2.0.1.html",
-        "contractTemplateVersion": "2.0.1"
+        "contractTemplatePath": "contracts/template/interop/user/2.0.2/interop-aggiunta-amministratore-v.2.0.2.html",
+        "contractTemplateVersion": "2.0.2"
       }
     }
   },
   {
     "alias": "prod-io-premium",
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2022-05-03T13:46:58.893Z",
     "createdBy": "760df42e-f513-4d94-9e3a-a0dda884ed92",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io-premium/depict-image.jpeg",
     "description": "Accedi alle funzionalità avanzate per i messaggi dell'app IO",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-io-premium",
     "institutionContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/io-premium/1.1.1/io-premium-accordo_di_adesione-v.1.1.1.html",
-        "contractTemplateVersion": "1.1.1",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/io-premium/1.1.2/io-premium-accordo_di_adesione-v.1.1.2.html",
+        "contractTemplateVersion": "1.1.2"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io-premium/logo.svg",
     "logoBgColor": "#0B3EE3",
     "modifiedAt": "2023-05-10T10:34:15.664Z",
@@ -1139,9 +1183,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1152,9 +1194,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1165,9 +1205,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -1189,17 +1227,19 @@
   },
   {
     "alias": "prod-pn-premium",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-05-03T15:19:39.021021Z",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pn-premium",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/pn-premium/0.0.1/pn-premium-accordo_di_adesione-v.0.0.1.html",
-        "contractTemplateVersion": "0.0.1",
-        "attachments": []
+        "contractTemplateVersion": "0.0.1"
       }
     },
     "modifiedAt": "2022-11-14T15:00:15.639Z",
@@ -1210,31 +1250,32 @@
   },
   {
     "alias": "prod-idpay",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-06-30T09:05:50.091934Z",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-idpay/depict-image.jpeg",
     "description": "Crea e gestisci iniziative di welfare e supporto alla spesa",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-idpay",
     "identityTokenAudience": "idpay.welfare.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-idpay/logo.png",
+    "logoBgColor": "#0B0000",
     "modifiedAt": "2022-11-14T15:00:24.421Z",
     "modifiedBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1245,9 +1286,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1258,9 +1297,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ope_base",
@@ -1271,9 +1308,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -1290,21 +1325,23 @@
   },
   {
     "alias": "test-product",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-11-17T10:01:22.070Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.png",
     "description": "string",
     "enabled": true,
+    "expirationDate": 30,
     "id": "test-product",
     "identityTokenAudience": "string",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "string",
-        "contractTemplateVersion": "string",
-        "attachments": []
+        "contractTemplateVersion": "string"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -1313,9 +1350,7 @@
     "roleMappings": {
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "string",
@@ -1331,20 +1366,22 @@
   },
   {
     "alias": "test-test",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-07-12T11:05:04.6830879Z",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.png",
     "description": "string",
     "enabled": false,
+    "expirationDate": 30,
     "id": "test-test",
     "identityTokenAudience": "string",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "string",
-        "contractTemplateVersion": "string",
-        "attachments": []
+        "contractTemplateVersion": "string"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/test-test/logo.svg",
@@ -1355,9 +1392,7 @@
     "roleMappings": {
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "string",
@@ -1377,21 +1412,23 @@
   },
   {
     "alias": "test-product2",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-11-17T10:08:45.982Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.png",
     "description": "string",
     "enabled": true,
+    "expirationDate": 30,
     "id": "test-product2",
     "identityTokenAudience": "string",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "string",
-        "contractTemplateVersion": "string",
-        "attachments": []
+        "contractTemplateVersion": "string"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -1400,9 +1437,7 @@
     "roleMappings": {
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "string",
@@ -1418,18 +1453,20 @@
   },
   {
     "alias": "test-product-sub",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-11-17T10:10:59.043Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "enabled": true,
+    "expirationDate": 30,
     "id": "test-product-sub",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "string",
-        "contractTemplateVersion": "string",
-        "attachments": []
+        "contractTemplateVersion": "string"
       }
     },
     "modifiedAt": "2022-11-17T10:15:01.998Z",
@@ -1440,20 +1477,22 @@
   },
   {
     "alias": "prod-pagopa-5",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2022-06-30T09:05:50.091934Z",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-idpay/depict-image.jpeg",
     "description": "La piattaforma TEST",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pagopa-5",
     "identityTokenAudience": "idpay.welfare.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-idpay/logo.png",
@@ -1462,9 +1501,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1475,9 +1512,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1488,9 +1523,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ope_base",
@@ -1501,9 +1534,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -1515,32 +1546,34 @@
     },
     "status": "TESTING",
     "title": "Test APZ",
-    "urlBO": "https://welfare.dev.cstar.pagopa.it/portale-enti/auth#token=<IdentityToken>",
+    "urlBO": "https://welfare-italy.dev.cstar.pagopa.it/portale-enti/auth#token=<IdentityToken>",
     "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/centro-stella-pagamenti-elettronici"
   },
   {
     "alias": "prod-pagopa-ec",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Test": {
         "identityTokenAudience": "api.platform.pagopa.it",
         "url": "https://selfcare.uat.platform.pagopa.it/ui#id=<IdentityToken>"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2022-12-23T18:32:00.205Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Gestisci gli incassi in modo centralizzato ed efficiente, risparmiando.",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pagopa-ec",
     "identityTokenAudience": "api.platform.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/pagopa/1.0.0/pagopa-accordo_di_adesione_ec-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -1548,9 +1581,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1561,9 +1592,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1574,9 +1603,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -1587,9 +1614,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -1606,6 +1631,9 @@
   },
   {
     "alias": "prod-test-1",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "collaudo",
@@ -1616,31 +1644,30 @@
         "url": "https://interop.dev.selfcare.pagopa.it/ui#id=<IdentityToken>;env=test"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2023-01-04T09:45:49.463Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.png",
     "description": "App TEST description",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-test-1",
     "identityTokenAudience": "api.io.selfcare.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/io/2.3.2/io-accordo_di_adesione-v.2.3.2.html",
-        "contractTemplateVersion": "2.3.2",
-        "attachments": []
+        "contractTemplateVersion": "2.3.2"
       },
       "GSP": {
+        "attachments": [],
         "contractTemplatePath": "test path GSP",
-        "contractTemplateVersion": "2.3.3",
-        "attachments": []
+        "contractTemplateVersion": "2.3.3"
       },
       "PA": {
+        "attachments": [],
         "contractTemplatePath": "test path",
-        "contractTemplateVersion": "2.3.2",
-        "attachments": []
+        "contractTemplateVersion": "2.3.2"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -1650,9 +1677,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -1663,9 +1688,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -1676,9 +1699,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente operativo",
@@ -1689,9 +1710,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "referente amministrativo",
@@ -1708,77 +1727,60 @@
   },
   {
     "alias": "prod-idpay-gi",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2023-01-31T15:58:33.795Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "La piattaforma IDPay si pone l'obiettivo di fornire una soluzione centralizzata, e flessibile, riusabile con effort limitato da parte degli stakeholder coinvolti, per l'erogazione dei programmi di welfare (es. sconti, bonus, etc.) promossi dalle amministrazioni pubbliche centrali o locali a favore degli utenti beneficiari.",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-idpay-gi",
     "identityTokenAudience": "idpay.welfare.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
     "logoBgColor": "#000000",
     "modifiedAt": "2023-01-31T16:00:31.345Z",
     "modifiedBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "roleMappings": {
-      "DELEGATE": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
-        "roles": [
-          {
-            "code": "pagopa_admin",
-            "description": "Ha tutti i permessi e gestisce gli utenti",
-            "label": "Amministratore"
-          }
-        ]
-      },
-      "MANAGER": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
-        "roles": [
-          {
-            "code": "pagopa_admin",
-            "description": "Stipula il contratto e identifica gli amministratori",
-            "label": "Amministratore"
-          }
-        ]
-      },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ope_base",
             "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
             "label": "Operatore"
-          }
-        ]
-      },
-      "SUB_DELEGATE": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
-        "roles": [
+          },
           {
-            "code": "admin",
-            "description": "Ha tutti i permessi e gestisce gli utenti",
-            "label": "Amministratore"
+            "code": "operator1",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          },
+          {
+            "code": "operator2",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          },
+          {
+            "code": "operator3",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
           }
         ]
       }
@@ -1790,32 +1792,48 @@
   },
   {
     "alias": "prod-io-sign",
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2023-02-23T15:38:39.605Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
-    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
+    "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io-sign/depict-image.jpeg",
     "description": "Consenti ai cittadini di firmare digitalmente documenti tramite l’app IO",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-io-sign",
     "identityTokenAudience": "firmaconio.selfcare.pagopa.it",
     "institutionContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/template/io-sign/1.0.4/io_sign-accordo_di_adesione-v.1.0.4.html",
-        "contractTemplateVersion": "1.0.4",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/io-sign/7.0.0/io_sign-accordo_di_adesione-v.7.0.0.html",
+        "contractTemplateVersion": "7.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "scp"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-io/logo.svg",
     "logoBgColor": "#0B3EE3",
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1826,9 +1844,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1839,9 +1855,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -1864,33 +1878,72 @@
   },
   {
     "alias": "prod-interop-coll",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2023-02-24T16:43:38.910Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Scambia informazioni con altri enti in modo semplice e sicuro",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-interop-coll",
     "identityTokenAudience": "api.interop.selfcare.pagopa.it",
     "institutionContractMappings": {
       "AS": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/ivass/2.1.0/interop-accordo_di_adesione_as-v.2.1.0.html",
-        "contractTemplateVersion": "2.1.0",
-        "attachments": []
+        "contractTemplateVersion": "2.1.0"
       },
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/2.0.0/interop-accordo_di_adesione-v.2.0.0.html",
-        "contractTemplateVersion": "2.0.0",
-        "attachments": []
+        "contractTemplateVersion": "2.0.0"
       },
       "PRV": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/prv/1.0.0/interop-accordo_di_adesione_prv-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "scp"
+      },
+      {
+        "institutionType": "SA",
+        "origin": "ANAC",
+        "labelKey": "sa"
+      },
+      {
+        "institutionType": "PRV",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv"
+      },
+      {
+        "institutionType": "SCEC",
+        "origin": "IPA",
+        "labelKey": "scec"
+      },
+      {
+        "institutionType": "AS",
+        "origin": "IVASS",
+        "labelKey": "as"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-interop/logo.svg",
     "logoBgColor": "#0066CC",
     "modifiedAt": "2023-02-24T16:43:38.911Z",
@@ -1898,9 +1951,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1911,9 +1962,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -1924,9 +1973,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "api",
@@ -1942,9 +1989,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -1955,48 +2000,85 @@
       }
     },
     "status": "TESTING",
-    "title": "Interoperabilità Collaudo",
+    "title": "PDND Interoperabilità Collaudo",
     "urlBO": "https://selfcare.dev.interop.pagopa.it/ui#id=<IdentityToken>;env=test",
     "urlPublic": "http://www.google.it"
   },
   {
     "alias": "prod-interop-atst",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2024-03-05T13:49:21.307Z",
     "createdBy": "d35dc17c-affa-4ed9-a68c-547dfa27850d",
     "delegable": false,
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Scambia informazioni con altri enti in modo semplice e sicuro",
+    "expirationDate": 30,
     "id": "prod-interop-atst",
     "identityTokenAudience": "api.interop.selfcare.pagopa.it",
     "institutionContractMappings": {
       "AS": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/ivass/2.1.0/interop-accordo_di_adesione_as-v.2.1.0.html",
-        "contractTemplateVersion": "2.1.0",
-        "attachments": []
+        "contractTemplateVersion": "2.1.0"
       },
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/2.0.0/interop-accordo_di_adesione-v.2.0.0.html",
-        "contractTemplateVersion": "2.0.0",
-        "attachments": []
+        "contractTemplateVersion": "2.0.0"
       },
       "PRV": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/interop/prv/1.0.0/interop-accordo_di_adesione_prv-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PA",
+        "origin": "IPA",
+        "labelKey": "pa"
+      },
+      {
+        "institutionType": "GSP",
+        "origin": "IPA",
+        "labelKey": "gsp"
+      },
+      {
+        "institutionType": "SCP",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "scp"
+      },
+      {
+        "institutionType": "SA",
+        "origin": "ANAC",
+        "labelKey": "sa"
+      },
+      {
+        "institutionType": "PRV",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv"
+      },
+      {
+        "institutionType": "SCEC",
+        "origin": "IPA",
+        "labelKey": "scec"
+      },
+      {
+        "institutionType": "AS",
+        "origin": "IVASS",
+        "labelKey": "as"
+      }
+    ],
     "invoiceable": false,
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-interop/logo.svg",
     "logoBgColor": "#0066CC",
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2007,9 +2089,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2020,9 +2100,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "api",
@@ -2038,9 +2116,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -2051,27 +2127,29 @@
       }
     },
     "status": "TESTING",
-    "title": "Interoperabilità Attestazioni",
+    "title": "PDND Interoperabilità Attestazioni",
     "urlBO": "https://selfcare.dev.interop.pagopa.it/ui#id=<IdentityToken>;env=atst",
     "urlPublic": "http://www.google.it"
   },
   {
     "alias": "prod-pn-coll",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2023-02-27T09:13:41.903Z",
     "createdBy": "5096e4c6-25a1-45d5-9bdf-2fb974a7c1c8",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "SEND - Servizio Notifiche Digitali description",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-pn-coll",
     "identityTokenAudience": "portale-pa.dev.pn.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/pn/1.0.0/pn-accordo_di_adesione-v.1.0.0.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -2079,9 +2157,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2092,9 +2168,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2105,9 +2179,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -2118,9 +2190,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -2137,31 +2207,43 @@
   },
   {
     "alias": "prod-idpay-merchant",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": true,
+    "consumers": ["Standard"],
     "createdAt": "2023-05-19T09:04:52.512Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "La piattaforma IDPay Esercenti si pone l’obiettivo di fornire una soluzione centralizzata e riutilizzabile dai merchant coinvolti su iniziative di welfare (es. sconti, bonus, etc.) promosse dalle amministrazioni pubbliche centrali o locali a favore degli utenti beneficiari.",
     "enabled": true,
+    "expirationDate": 7,
     "id": "prod-idpay-merchant",
     "identityTokenAudience": "idpay.merchant.welfare.pagopa.it",
     "institutionContractMappings": {
       "default": {
-        "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "attachments": [],
+        "contractTemplatePath": "contracts/template/idpay-merchant/1.0.0/idpay-merchant-accordo_di_adesione-v.1.0.0.html",
+        "contractTemplateVersion": "1.0.0"
       }
     },
-    "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
-    "logoBgColor": "#000000",
+    "institutionOrigins": [
+      {
+        "institutionType": "PRV",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv"
+      },
+      {
+        "institutionType": "PRV_PF",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv_pf"
+      }
+    ],
+    "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-registro-beni/logo.svg",
+    "logoBgColor": "#0B3EE3",
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2172,9 +2254,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2182,36 +2262,48 @@
             "label": "Amministratore"
           }
         ]
+      },
+      "OPERATOR": {
+        "multiroleAllowed": false,
+        "phasesAdditionAllowed": ["dashboard"],
+        "roles": [
+          {
+            "code": "operator",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          }
+        ]
       }
     },
     "status": "TESTING",
-    "title": "IDPay - Esercenti",
+    "title": "PARI - Bonus Elettrodomestici",
     "urlBO": "https://welfare.dev.cstar.pagopa.it/portale-esercenti/auth#token=<IdentityToken>",
     "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/centro-stella-pagamenti-elettronici"
   },
   {
     "alias": "prod-fd",
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2023-06-12T11:36:41.553Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Fideiussioni Digitali",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-fd",
     "identityTokenAudience": "fid00001fe.siachain.sv.sia.eu",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.0.0/Regolamento di Piattaforma Garantito e Contraente PA_Cetif Advisory_FD_v. 1.0.pdf",
-        "contractTemplateVersion": "v.1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.0.0"
       },
       "PA": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.0.0/Regolamento di Piattaforma Garantito e Contraente PA_Cetif Advisory_FD_v. 1.0.pdf",
-        "contractTemplateVersion": "v.1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -2219,9 +2311,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2232,9 +2322,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2245,9 +2333,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_OPERATOR",
@@ -2268,9 +2354,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2287,26 +2371,28 @@
   },
   {
     "alias": "testpp",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2023-06-12T11:36:41.553Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Fideiussioni Digitali",
     "enabled": true,
+    "expirationDate": 30,
     "id": "testpp",
     "identityTokenAudience": "string",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.2.0/CetifAdvisory_FideiussioniDigitali_Contrattod_v1.2.0.html",
-        "contractTemplateVersion": "v.1.2.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.2.0"
       },
       "PA": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.2.0/CetifAdvisory_FideiussioniDigitali_Contrattod_v1.2.0.html",
-        "contractTemplateVersion": "v.1.2.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.2.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -2314,9 +2400,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2327,9 +2411,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "USER_MANAGER",
@@ -2340,9 +2422,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_OPERATOR",
@@ -2363,9 +2443,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2382,27 +2460,28 @@
   },
   {
     "alias": "prod-fd-garantito",
-    "consumers": [
-      "Standard",
-      "SAP"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard", "SAP"],
     "createdAt": "2023-09-08T15:18:45.559Z",
     "createdBy": "d0aacc61-e6c8-4711-927e-6418f01b130b",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Fideiussioni Digitali Garantito",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-fd-garantito",
     "identityTokenAudience": "fid00001fe.siachain.sv.sia.eu",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.0.0/Regolamento di Piattaforma Garantito e Contraente PA_Cetif Advisory_FD_v. 1.0.pdf",
-        "contractTemplateVersion": "v.1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.0.0"
       },
       "PA": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/fd/1.0.0/Regolamento di Piattaforma Garantito e Contraente PA_Cetif Advisory_FD_v. 1.0.pdf",
-        "contractTemplateVersion": "v.1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "v.1.0.0"
       }
     },
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/logo.png",
@@ -2410,9 +2489,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2423,9 +2500,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2436,9 +2511,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_OPERATOR",
@@ -2459,9 +2532,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ORG_ADMIN",
@@ -2478,6 +2549,9 @@
   },
   {
     "alias": "prod-sendino",
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pn-test.it",
@@ -2488,22 +2562,21 @@
         "url": "https://selfcare.dev.platform.pn-test-svil.it/ui#id=<IdentityToken>"
       }
     },
-    "consumers": [
-      "Standard"
-    ],
+    "consumers": ["Standard"],
     "createdAt": "2024-01-22T15:00:49.624Z",
     "createdBy": "760df42e-f513-4d94-9e3a-a0dda884ed92",
     "delegable": false,
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Sendino",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-sendino",
     "identityTokenAudience": "portale-pa.dev.pn.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/template/pn/2.0.0/pn-accordo_di_adesione-v.2.0.0.html",
-        "contractTemplateVersion": "2.0.0",
-        "attachments": []
+        "contractTemplateVersion": "2.0.0"
       }
     },
     "invoiceable": true,
@@ -2512,9 +2585,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2525,9 +2596,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "admin",
@@ -2538,9 +2607,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": true,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "operator",
@@ -2551,9 +2618,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "admin",
@@ -2570,22 +2635,24 @@
   },
   {
     "alias": "prod-piattaforma-unitaria",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2024-05-14T08:30:55.815Z",
     "createdBy": "c5ae981f-c651-45f9-bb7f-589297c88416",
     "delegable": false,
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "La piattaforma offre agli Enti regionali un sistema per gestire i pagamenti dei cittadini e delle imprese. Ha un front office per i pagamenti elettronici e un back office per la gestione delle posizioni debitorie. Inoltre, fornisce servizi tecnologici agli Enti Creditori delle regioni per collegarsi e scambiare flussi con la piattaforma PagoPA.",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-piattaforma-unitaria",
     "identityTokenAudience": "dev.piattaformaunitaria.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
     "invoiceable": false,
@@ -2594,9 +2661,7 @@
     "roleMappings": {
       "DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ROLE_ADMIN",
@@ -2607,9 +2672,7 @@
       },
       "MANAGER": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "ROLE_ADMIN",
@@ -2620,9 +2683,7 @@
       },
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ROLE_OPER",
@@ -2633,9 +2694,7 @@
       },
       "SUB_DELEGATE": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
+        "phasesAdditionAllowed": ["dashboard"],
         "roles": [
           {
             "code": "ROLE_ADMIN",
@@ -2651,87 +2710,32 @@
     "urlPublic": "https://www.pagopa.it"
   },
   {
-    "alias": "prod-pn-pg",
-    "createdAt": "2023-01-27T12:08:39.244Z",
-    "createdBy": "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-    "depictImageUrl": "https://selcpweupnpgcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
-    "description": "SEND - Notifiche Digitali",
-    "enabled": true,
-    "id": "prod-pn-pg",
-    "identityTokenAudience": "imprese.notifichedigitali.it",
-    "institutionContractMappings": {
-      "default": {
-        "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0"
-      }
-    },
-    "logo": "https://selcpweupnpgcheckoutsa.z6.web.core.windows.net/resources/products/prod-pn/logo.png",
-    "logoBgColor": "#0B3EE3",
-    "roleMappings": {
-      "MANAGER": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
-        "roles": [
-          {
-            "code": "pg-admin",
-            "description": "Stipula il contratto e identifica gli amministratori",
-            "label": "Amministratore"
-          }
-        ]
-      },
-      "OPERATOR": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
-        "roles": [
-          {
-            "code": "pg-operator",
-            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
-            "label": "Gestore Notifiche"
-          }
-        ]
-      },
-      "SUB_DELEGATE": {
-        "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "dashboard"
-        ],
-        "roles": [
-          {
-            "code": "pg-admin",
-            "description": "Ha tutti i permessi e gestisce gli utenti",
-            "label": "Amministratore"
-          }
-        ]
-      }
-    },
-    "status": "ACTIVE",
-    "title": "SEND",
-    "urlBO": "https://portale-pg.dev.pn.pagopa.it/#selfCareToken=<IdentityToken>&lang=<lang>",
-    "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/piattaforma-notifiche-digitali",
-    "userContractMappings": {}
-  },
-  {
     "alias": "prod-registro-beni",
-    "consumers": [
-      "Standard"
-    ],
+    "allowCompanyOnboarding": true,
+    "allowedInstitutionTaxCode": [],
+    "allowIndividualOnboarding": false,
+    "consumers": ["Standard"],
     "createdAt": "2025-05-27T09:05:50.091934Z",
     "depictImageUrl": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
     "description": "Crea e gestisce il registro dei beni per il bonus elettrodomestici",
     "enabled": true,
+    "expirationDate": 30,
     "id": "prod-registro-beni",
     "identityTokenAudience": "idpay.register.welfare.pagopa.it",
     "institutionContractMappings": {
       "default": {
+        "attachments": [],
         "contractTemplatePath": "contracts/dummy-accordo_di_adesione.html",
-        "contractTemplateVersion": "1.0.0",
-        "attachments": []
+        "contractTemplateVersion": "1.0.0"
       }
     },
+    "institutionOrigins": [
+      {
+        "institutionType": "PRV",
+        "origin": "PDND_INFOCAMERE",
+        "labelKey": "prv"
+      }
+    ],
     "logo": "https://selcdcheckoutsa.z6.web.core.windows.net/resources/products/prod-registro-beni/logo.svg",
     "logoBgColor": "#0B3EE3",
     "modifiedAt": "2025-05-27T09:05:50.091934Z",
@@ -2739,12 +2743,20 @@
     "roleMappings": {
       "OPERATOR": {
         "multiroleAllowed": false,
-        "phasesAdditionAllowed": [
-          "onboarding"
-        ],
+        "phasesAdditionAllowed": ["onboarding"],
         "roles": [
           {
             "code": "operatore_beni",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          },
+          {
+            "code": "operator1",
+            "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
+            "label": "Operatore"
+          },
+          {
+            "code": "operator2",
             "description": "Gestisce l'integrazione tecnologica e/o l'operatività dei servizi",
             "label": "Operatore"
           }
@@ -2752,8 +2764,8 @@
       }
     },
     "status": "ACTIVE",
-    "title": "Registro dei beni",
-    "urlBO": "https://registrodeibeni.dev.cstar.pagopa.it/registro-dei-beni/auth#token=<IdentityToken>",
+    "title": "Elenco informatico degli elettrodomestici",
+    "urlBO": "https://eie.dev.cstar.pagopa.it/elenco-informatico-elettrodomestici/auth#token=<IdentityToken>",
     "urlPublic": "https://www.pagopa.it/it/prodotti-e-servizi/centro-stella-pagamenti-elettronici"
   }
 ]
