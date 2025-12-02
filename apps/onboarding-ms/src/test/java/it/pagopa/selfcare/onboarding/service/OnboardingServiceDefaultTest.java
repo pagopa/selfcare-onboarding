@@ -281,7 +281,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setTaxCode("taxCode");
         onboardingRequest.setInstitution(institutionBaseRequest);
 
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         mockVerifyOnboardingNotEmpty(asserter);
 
@@ -315,7 +315,7 @@ class OnboardingServiceDefaultTest {
         aggregateInstitutionRequest.setDescription("test");
         aggregateInstitutionRequest.setTaxCode("taxCode");
 
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         mockVerifyOnboardingNotEmpty(asserter);
 
@@ -395,7 +395,7 @@ class OnboardingServiceDefaultTest {
         aggregateInstitutionRequest.setDescription("test");
         aggregateInstitutionRequest.setTaxCode("taxCode");
 
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         mockVerifyOnboardingNotFound();
 
@@ -516,7 +516,7 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.OPERATOR)
                 .build());
 
-        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockPersistOnboarding(asserter);
         mockVerifyAllowedProductList(onboardingDefaultRequest.getProductId(), asserter, true);
@@ -553,7 +553,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
 
         AOOResource aooResource = new AOOResource();
@@ -587,7 +587,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -621,7 +621,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -665,7 +665,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -701,7 +701,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDigitalAddress("mail@pec.it");
         request.setInstitution(institutionBaseRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -735,7 +735,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setSubunitCode("SubunitCode");
         request.setInstitution(institutionBaseRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -777,7 +777,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
 
         UOResource uoResource = new UOResource();
@@ -826,7 +826,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
 
         UOResource uoResource = new UOResource();
@@ -868,7 +868,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
 
         UOResource uoResource = new UOResource();
@@ -928,7 +928,7 @@ class OnboardingServiceDefaultTest {
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -967,7 +967,7 @@ class OnboardingServiceDefaultTest {
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1008,7 +1008,7 @@ class OnboardingServiceDefaultTest {
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1041,7 +1041,7 @@ class OnboardingServiceDefaultTest {
 
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1068,7 +1068,7 @@ class OnboardingServiceDefaultTest {
 
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1102,7 +1102,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(pdndBusinessResource)));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1136,7 +1136,7 @@ class OnboardingServiceDefaultTest {
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1171,7 +1171,7 @@ class OnboardingServiceDefaultTest {
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().failure(exception));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1213,7 +1213,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1280,7 +1280,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Response.noContent().build())));
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1320,7 +1320,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
 
@@ -1340,8 +1340,8 @@ class OnboardingServiceDefaultTest {
     }
 
 
-    Product mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter) {
-        Product productResource = createDummyProduct(productId, hasParent);
+    Product mockSimpleProductValidAssert(String productId, boolean hasParent, UniAsserter asserter, boolean allowIndividualOnboarding, boolean allowCompanyOnboarding) {
+        Product productResource = createDummyProduct(productId, hasParent, allowIndividualOnboarding, allowCompanyOnboarding);
         asserter.execute(() -> when(productService.getProductIsValid(productId))
                 .thenReturn(productResource));
         return productResource;
@@ -1356,8 +1356,9 @@ class OnboardingServiceDefaultTest {
         return productRoleInfo;
     }
 
-    Product createDummyProduct(String productId, boolean hasParent) {
-
+    Product createDummyProduct(String productId, boolean hasParent,
+                               boolean allowIndividualOnboarding,
+                               boolean allowCompanyOnboarding) {
         Map<PartyRole, ProductRoleInfo> roleMappingByInstitutionType = new HashMap<>();
         roleMappingByInstitutionType.put(manager.getRole(), dummyProductRoleInfo(PRODUCT_ROLE_ADMIN_PSP_CODE));
 
@@ -1369,6 +1370,9 @@ class OnboardingServiceDefaultTest {
         productResource.setRoleMappings(roleMappings);
         productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
         productResource.setTitle("title");
+        productResource.setAllowIndividualOnboarding(allowIndividualOnboarding);
+        productResource.setAllowCompanyOnboarding(allowCompanyOnboarding);
+
         if (PROD_DASHBOARD_PSP.getValue().equals(productId)) {
             List<String> institutionTypeList = new ArrayList<>();
             institutionTypeList.add(PSP.name());
@@ -1399,7 +1403,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
 
@@ -1427,7 +1431,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter, false, true);
 
         // mock verify allowed Map
         asserter.execute(() -> when(onboardingValidationStrategy.validate(any()))
@@ -1477,7 +1481,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter);
+        mockSimpleProductValidAssert(onboardingRequest.getProductId(), true, asserter, false, true);
 
         // mock verify allowed Map
         asserter.execute(() -> when(onboardingValidationStrategy.validate(any()))
@@ -1510,7 +1514,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingDefaultRequest.getProductId(), asserter, true);
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
@@ -1548,7 +1552,7 @@ class OnboardingServiceDefaultTest {
         adds.setOtherNote("other");
         request.setAdditionalInformations(adds);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1607,7 +1611,7 @@ class OnboardingServiceDefaultTest {
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1648,7 +1652,7 @@ class OnboardingServiceDefaultTest {
         institutionPspRequest.setInstitutionType(InstitutionType.GSP);
         request.setInstitution(institutionPspRequest);
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1697,7 +1701,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(userRegistryApi.saveUsingPATCH(any()))
                 .thenReturn(Uni.createFrom().item(UserId.builder().id(createUserId).build())));
 
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -1737,7 +1741,7 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
 
-        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboardingDefaultRequest.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingDefaultRequest.getProductId(), asserter, true);
 
@@ -1788,7 +1792,7 @@ class OnboardingServiceDefaultTest {
 
         mockFindToken(asserter, onboarding.getId());
 
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
@@ -1823,7 +1827,7 @@ class OnboardingServiceDefaultTest {
                 .when(signatureService)
                 .verifySignature(any(), any(), any()));
 
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
@@ -1859,7 +1863,7 @@ class OnboardingServiceDefaultTest {
                 .verifySignature(any(), any(), any()));
 
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
-        mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter, false, true);
         mockVerifyOnboardingNotFound();
 
         final String filepath = "upload-file-path";
@@ -1880,7 +1884,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
         mockFindToken(asserter, onboarding.getId());
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
         asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
@@ -1896,7 +1900,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
         mockFindToken(asserter, onboarding.getId());
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         asserter.execute(() -> when(onboardingValidationStrategy.validate(onboarding.getProductId()))
                 .thenReturn(false));
@@ -1914,7 +1918,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
         mockFindToken(asserter, onboarding.getId());
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
         asserter.assertFailedWith(() -> onboardingService.completeOnboardingUsers(onboarding.getId(), TEST_FORM_ITEM),
@@ -2262,7 +2266,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false, false, true));
 
         mockVerifyOnboardingNotFound();
 
@@ -2290,7 +2294,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false, false, true));
 
         onboardingService
                 .approve(onboarding.getId())
@@ -2308,7 +2312,7 @@ class OnboardingServiceDefaultTest {
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
 
         when(productService.getProductIsValid(onboarding.getProductId()))
-                .thenReturn(createDummyProduct(onboarding.getProductId(), false));
+                .thenReturn(createDummyProduct(onboarding.getProductId(), false, false, true));
 
         mockVerifyOnboardingNotFound();
 
@@ -2354,7 +2358,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -2415,7 +2419,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -2450,7 +2454,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -2478,7 +2482,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingCompletion(UniAsserter asserter) {
         Onboarding request = new Onboarding();
-        Product product = createDummyProduct(PROD_INTEROP.getValue(), false);
+        Product product = createDummyProduct(PROD_INTEROP.getValue(), false, false, true);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -2493,7 +2497,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -2523,7 +2527,7 @@ class OnboardingServiceDefaultTest {
     @RunOnVertxContext
     void onboardingPgCompletion(UniAsserter asserter) {
         Onboarding request = new Onboarding();
-        Product product = createDummyProduct(PROD_PN.getValue(), false);
+        Product product = createDummyProduct(PROD_PN.getValue(), false, false, true);
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_PN.getValue());
         Institution institutionBaseRequest = new Institution();
@@ -2536,7 +2540,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -2578,7 +2582,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
 
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
@@ -2612,7 +2616,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_INTEROP.getValue());
         request.setUsers(users);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -2674,7 +2678,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
 
         Onboarding onboarding = createDummyOnboarding();
         PanacheMock.mock(Onboarding.class);
@@ -2856,7 +2860,7 @@ class OnboardingServiceDefaultTest {
                     .verifySignature(any(), any(), any()));
 
             mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
-            mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter);
+            mockSimpleProductValidAssert(onboarding.getProductId(), true, asserter, false, true);
             mockVerifyOnboardingNotFound();
 
             final String filepath = "upload-file-path";
@@ -2889,7 +2893,7 @@ class OnboardingServiceDefaultTest {
                     .when(signatureService)
                     .verifySignature(any(), any(), any()));
 
-            mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+            mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
             mockVerifyOnboardingNotFound();
             mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
@@ -3083,7 +3087,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> userRequests = List.of(manager);
 
         mockFindOnboarding(asserter, previousOnboarding);
-        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter, false, true);
         mockSimpleSearchPOSTAndPersist(asserter);
 
         mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), true, asserter);
@@ -3106,7 +3110,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> userRequests = List.of(manager);
 
         mockFindOnboarding(asserter, previousOnboarding);
-        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter, false, true);
         mockSimpleSearchPOSTAndPersist(asserter);
 
         mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), false, asserter);
@@ -3131,7 +3135,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> userRequests = List.of(manager);
 
         mockFindOnboarding(asserter, previousOnboarding);
-        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter, false, true);
         mockSimpleSearchPOSTAndPersist(asserter);
 
         mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), false, asserter);
@@ -3159,7 +3163,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> userRequests = List.of(manager);
 
         mockFindOnboarding(asserter, previousOnboarding);
-        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(newOnboarding.getProductId(), false, asserter, false, true);
         mockSimpleSearchPOSTAndPersist(asserter);
 
         mockRetrieveUserInstitutions(newOnboarding.getInstitution().getId(), false, asserter);
@@ -3220,7 +3224,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
@@ -3458,7 +3462,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
 
-        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         product.setAllowedInstitutionTaxCode(List.of("taxCode-OK"));
 
         mockVerifyOnboardingNotFound();
@@ -3502,7 +3506,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
 
-        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         product.setExpirationDate(Integer.valueOf("30"));
 
         asserter.execute(() -> when(productService.getProductExpirationDate(request.getProductId()))
@@ -3718,7 +3722,7 @@ class OnboardingServiceDefaultTest {
 
         mockSimpleSearchPOSTAndPersist(asserter);
 
-        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter);
+        Product product = mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         product.setAllowedInstitutionTaxCode(List.of("taxCode-OK"));
 
         mockVerifyOnboardingNotFound();
@@ -3786,7 +3790,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -3858,7 +3862,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -3934,7 +3938,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -4013,7 +4017,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         Onboarding onboarding2 = new Onboarding();
         onboarding2.setWorkflowType(IMPORT_AGGREGATION);
@@ -4112,7 +4116,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -4195,7 +4199,7 @@ class OnboardingServiceDefaultTest {
         mockPersistToken(asserter);
 
         mockSimpleSearchPOSTAndPersist(asserter);
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter);
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -4341,6 +4345,137 @@ class OnboardingServiceDefaultTest {
 
         asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
                 RuntimeException.class);
+    }
+
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenValidIndividualCFWithAllowIndividualOnboarding_shouldSucceed(UniAsserter asserter) {
+        String individualCF = "RSSMRA80A01H501T";
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setTaxCode(individualCF);
+        onboardingRequest.setInstitution(institution);
+
+        mockPersistOnboarding(asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+        
+        Product product = createDummyProduct("productId", false, true, true);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+        
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenValidIndividualCFWithDisallowIndividualOnboarding_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        String individualCF = "RSSMRA80A01H501T";
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setTaxCode(individualCF);
+        institution.setOriginId("originId");
+        onboardingRequest.setInstitution(institution);
+
+        mockVerifyOnboardingNotFound();
+        mockSimpleSearchPOSTAndPersist(asserter);
+        
+        Product product = createDummyProduct("productId", false, false, true);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+        
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
+                InvalidRequestException.class);
+
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenCompanyTaxCodeWithAllowCompanyOnboarding_shouldSucceed(UniAsserter asserter) {
+        String companyTaxCode = "12345678901";
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setTaxCode(companyTaxCode);
+        onboardingRequest.setInstitution(institution);
+
+        mockPersistOnboarding(asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+        
+        // Create product that allows company onboarding
+        Product product = createDummyProduct("productId", false, true, true);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+        
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
+
+        asserter.execute(() -> {
+            PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
+            PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));
+            PanacheMock.verify(Onboarding.class).find(any(Document.class));
+            PanacheMock.verifyNoMoreInteractions(Onboarding.class);
+        });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenCompanyTaxCodeWithDisallowCompanyOnboarding_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        String companyTaxCode = "12345678901";
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setTaxCode(companyTaxCode);
+        onboardingRequest.setInstitution(institution);
+
+        mockVerifyOnboardingNotFound();
+        mockSimpleSearchPOSTAndPersist(asserter);
+        
+        // Create product that disallows company onboarding
+        Product product = createDummyProduct("productId", false, true, false);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+        
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
+                InvalidRequestException.class);
     }
 
 }
