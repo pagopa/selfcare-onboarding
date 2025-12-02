@@ -71,6 +71,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
@@ -105,6 +106,10 @@ public class OnboardingServiceDefault implements OnboardingService {
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
     private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
+    private static final Pattern INDIVIDUAL_CF_PATTERN =
+            Pattern.compile("^[A-Z]{6}\\d{2}[A-Z]\\d{2}[A-Z]\\d{3}[A-Z]$");
+
+
 
     @RestClient
     @Inject
@@ -365,6 +370,8 @@ public class OnboardingServiceDefault implements OnboardingService {
         return registryManager.isValid()
                 .onItem()
                 .transformToUni(ignored -> registryManager.validateInstitutionType(product))
+                .onItem()
+                .invoke(() -> validateTaxCode(onboarding.getInstitution().getTaxCode(), product))
                 .onItem()
                 .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
@@ -2402,6 +2409,44 @@ public class OnboardingServiceDefault implements OnboardingService {
         Onboarding onboarding = new Onboarding();
         onboarding.setInstitution(institutionMapper.toEntity(aggregate));
         return onboarding;
+    }
+
+    /**
+     * Validates the institution tax code against product onboarding rules.
+     * Checks if the tax code is an Italian individual CF (16 characters, specific format).
+     * If it's an individual CF, allowIndividualOnboarding must be true.
+     * If it's not an individual CF, allowCompanyOnboarding must be true.
+     *
+     * @param taxCode The tax code to validate
+     * @param product The product with onboarding rules
+     * @throws InvalidRequestException if validation fails
+     */
+    private void validateTaxCode(String taxCode, Product product) {
+        if (StringUtils.isBlank(taxCode)) {
+            return;
+        }
+
+        boolean isIndividual = isIndividualTaxCode(taxCode);
+
+        if (isIndividual && !product.isAllowIndividualOnboarding()) {
+            throw new InvalidRequestException(
+                    INDIVIDUAL_ONBOARDING_NOT_ALLOWED.getMessage(),
+                    INDIVIDUAL_ONBOARDING_NOT_ALLOWED.getCode()
+            );
+        }
+
+        if (!isIndividual && !product.isAllowCompanyOnboarding()) {
+            throw new InvalidRequestException(
+                    COMPANY_ONBOARDING_NOT_ALLOWED.getMessage(),
+                    COMPANY_ONBOARDING_NOT_ALLOWED.getCode()
+            );
+        }
+    }
+
+    private boolean isIndividualTaxCode(String taxCode) {
+        return INDIVIDUAL_CF_PATTERN
+                .matcher(taxCode.toUpperCase(Locale.ITALY))
+                .matches();
     }
 
     @Override
