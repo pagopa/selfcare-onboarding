@@ -1,6 +1,8 @@
 [
   {
     "alias": "prod-io",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Locale": {
         "identityTokenAudience": "locale",
@@ -125,6 +127,8 @@
   },
   {
     "alias": "prod-pn",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pn-test.it",
@@ -231,6 +235,8 @@
   },
   {
     "alias": "prod-pagopa",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pagopa.it",
@@ -738,6 +744,8 @@
   },
   {
     "alias": "prod-dashboard-psp",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pagopa.it",
@@ -840,6 +848,8 @@
   },
   {
     "alias": "prod-ciban",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -921,6 +931,8 @@
   },
   {
     "alias": "prod-cgn",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1001,6 +1013,8 @@
   },
   {
     "alias": "prod-interop",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Test": {
         "identityTokenAudience": "test",
@@ -1114,6 +1128,8 @@
   },
   {
     "alias": "prod-io-premium",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard",
       "SAP"
@@ -1189,6 +1205,8 @@
   },
   {
     "alias": "prod-pn-premium",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1210,6 +1228,8 @@
   },
   {
     "alias": "prod-idpay",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1290,6 +1310,8 @@
   },
   {
     "alias": "test-product",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1331,6 +1353,8 @@
   },
   {
     "alias": "test-test",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1377,6 +1401,8 @@
   },
   {
     "alias": "test-product2",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1418,6 +1444,8 @@
   },
   {
     "alias": "test-product-sub",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1440,6 +1468,8 @@
   },
   {
     "alias": "prod-pagopa-5",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1520,6 +1550,8 @@
   },
   {
     "alias": "prod-pagopa-ec",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Test": {
         "identityTokenAudience": "api.platform.pagopa.it",
@@ -1606,6 +1638,8 @@
   },
   {
     "alias": "prod-test-1",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "collaudo",
@@ -1708,6 +1742,8 @@
   },
   {
     "alias": "prod-idpay-gi",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1790,6 +1826,8 @@
   },
   {
     "alias": "prod-io-sign",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard",
       "SAP"
@@ -1864,6 +1902,8 @@
   },
   {
     "alias": "prod-interop-coll",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -1961,6 +2001,8 @@
   },
   {
     "alias": "prod-interop-atst",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -2057,6 +2099,8 @@
   },
   {
     "alias": "prod-pn-coll",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -2137,6 +2181,8 @@
   },
   {
     "alias": "prod-idpay-merchant",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": true,
     "consumers": [
       "Standard"
     ],
@@ -2191,6 +2237,8 @@
   },
   {
     "alias": "prod-fd",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard",
       "SAP"
@@ -2287,6 +2335,8 @@
   },
   {
     "alias": "testpp",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -2382,6 +2432,8 @@
   },
   {
     "alias": "prod-fd-garantito",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard",
       "SAP"
@@ -2478,6 +2530,8 @@
   },
   {
     "alias": "prod-sendino",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "backOfficeEnvironmentConfigurations": {
       "Collaudo": {
         "identityTokenAudience": "api.platform.pn-test.it",
@@ -2570,6 +2624,8 @@
   },
   {
     "alias": "prod-piattaforma-unitaria",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
@@ -2652,6 +2708,8 @@
   },
   {
     "alias": "prod-pn-pg",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": true,
     "createdAt": "2023-01-27T12:08:39.244Z",
     "createdBy": "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
     "depictImageUrl": "https://selcpweupnpgcheckoutsa.z6.web.core.windows.net/resources/products/default/depict-image.jpeg",
@@ -2716,6 +2774,8 @@
   },
   {
     "alias": "prod-registro-beni",
+    "allowCompanyOnboarding": true,
+    "allowIndividualOnboarding": false,
     "consumers": [
       "Standard"
     ],
