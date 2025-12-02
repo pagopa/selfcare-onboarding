@@ -20,18 +20,25 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.impl.TokenServiceDefault;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
+import it.pagopa.selfcare.product.entity.AttachmentTemplate;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import java.io.File;
+import java.util.*;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.util.*;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
@@ -43,6 +50,9 @@ class TokenServiceDefaultTest {
   AzureBlobClient azureBlobClient;
   @InjectMock
   SignatureService signatureService;
+
+  @InjectMock
+  ProductService productService;
 
   private static final String onboardingId = "onboardingId";
 
@@ -165,7 +175,6 @@ class TokenServiceDefaultTest {
     Token token = new Token();
     token.setContractSigned("parties/docs/test-path/NomeDocumentoProva.p7m");
     token.setType(TokenType.INSTITUTION);
-    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
     when(Token.findById(onboardingId))
@@ -189,26 +198,127 @@ class TokenServiceDefaultTest {
   }
 
   @Test
-  void retrieveAttachment() {
-    final String filename = "filename";
+  void retrieveAttachment_onboardingNotFound() {
+    PanacheMock.mock(Onboarding.class);
+    when(Onboarding.findById(anyString()))
+            .thenReturn(Uni.createFrom().nullItem());
+
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService.retrieveAttachment("id", "file")
+                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    subscriber.awaitFailure()
+            .assertFailedWith(ResourceNotFoundException.class);
+  }
+
+
+  @Test
+  void retrieveAttachmentGeneratedSuccess() {
+    final String onboardingId = "onboardingId";
+    final String filename = "filename.pdf";
+    final String productId = "productId";
+    final String institutionType = "PA";
+
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId(onboardingId);
+    onboarding.setProductId(productId);
+
+    Institution institution = new Institution();
+    institution.setInstitutionType(InstitutionType.PA);
+    onboarding.setInstitution(institution);
+
+    PanacheMock.mock(Onboarding.class);
+    when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
+
+    AttachmentTemplate attachment = new AttachmentTemplate();
+    attachment.setName(filename);
+    attachment.setGenerated(true);
+    Product product = createProductWithAttachment(institutionType, attachment);
+
+    when(productService.getProductIsValid(productId)).thenReturn(product);
+
     Token token = new Token();
     token.setContractFilename(filename);
     token.setName(filename);
+
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
     when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
 
     PanacheMock.mock(Token.class);
     when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), filename))
-      .thenReturn(queryPage);
+            .thenReturn(queryPage);
 
-    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
+    File file = new File("test.pdf");
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(file);
 
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveAttachment(onboardingId, filename)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService.retrieveAttachment(onboardingId, filename)
+                    .subscribe().withSubscriber(UniAssertSubscriber.create());
 
-    RestResponse<File> actual = subscriber.awaitItem().getItem();
-    assertNotNull(actual);
-    assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+    RestResponse<File> response = subscriber.awaitItem().getItem();
+
+    assertNotNull(response);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(file, response.getEntity());
+
+    verify(productService).getProductIsValid(productId);
+    verify(azureBlobClient).getFileAsPdf(anyString());
+  }
+
+  @Test
+  void retrieveAttachmentGeneratedFalseSuccess() {
+    final String onboardingId = "onboardingId";
+    final String filename = "filename.pdf";
+    final String productId = "productId";
+    final String institutionType = "PA";
+
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId(onboardingId);
+    onboarding.setProductId(productId);
+
+    Institution institution = new Institution();
+    institution.setInstitutionType(InstitutionType.PA);
+    onboarding.setInstitution(institution);
+
+    PanacheMock.mock(Onboarding.class);
+    when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
+
+    AttachmentTemplate attachment = new AttachmentTemplate();
+    attachment.setName(filename);
+    attachment.setGenerated(false);
+    attachment.setTemplatePath("templatePath");
+    Product product = createProductWithAttachment(institutionType, attachment);
+
+    when(productService.getProductIsValid(productId)).thenReturn(product);
+
+    File file = new File("test.pdf");
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(file);
+
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService.retrieveAttachment(onboardingId, filename)
+                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+    RestResponse<File> response = subscriber.awaitItem().getItem();
+
+    assertNotNull(response);
+    assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
+    assertEquals(file, response.getEntity());
+
+    verify(productService).getProductIsValid(productId);
+    verify(azureBlobClient).getFileAsPdf(anyString());
+  }
+
+  private Product createProductWithAttachment(String institutionType, AttachmentTemplate attachment) {
+    Product product = new Product();
+
+    ContractTemplate contractTemplate = new ContractTemplate();
+    contractTemplate.setAttachments(List.of(attachment));
+
+    Map<String, ContractTemplate> institutionContractMappings = new HashMap<>();
+    institutionContractMappings.put(institutionType, contractTemplate);
+
+    product.setInstitutionContractMappings(institutionContractMappings);
+    return product;
   }
 
   @Test
@@ -286,7 +396,6 @@ class TokenServiceDefaultTest {
     Token token = new Token();
     token.setContractFilename("fileName");
     token.setType(TokenType.INSTITUTION);
-    ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
     when(Token.findById(onboardingId))
