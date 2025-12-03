@@ -1,15 +1,17 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
+
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
-import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.SignatureService;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
@@ -19,24 +21,18 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.bson.Document;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestResponse;
-
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-
-import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
 
 @Slf4j
 @ApplicationScoped
@@ -53,8 +49,6 @@ public class TokenServiceDefault implements TokenService {
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ProductService productService;
-    @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
-    Boolean isVerifyEnabled;
 
     public TokenServiceDefault(AzureBlobClient azureBlobClient,
                                OnboardingMsConfig onboardingMsConfig,
@@ -62,7 +56,6 @@ public class TokenServiceDefault implements TokenService {
         this.azureBlobClient = azureBlobClient;
         this.onboardingMsConfig = onboardingMsConfig;
         this.productService = productService;
-
     }
 
     @Override
@@ -135,57 +128,57 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
-        return Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), attachmentName)
-                .firstResult()
-                .map(Token.class::cast)
-                .onItem().transformToUni(token ->
-                        Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(getAttachmentByOnboarding(onboardingId, token.getContractFilename())))
-                                .runSubscriptionOn(Executors.newSingleThreadExecutor())
-                                .onItem().transform(contract -> {
-                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-                                    response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename());
-                                    return response.build();
-                                }));
-    }
+        return Onboarding.findById(onboardingId)
+                .onItem().ifNull().failWith(() ->
+                        new ResourceNotFoundException(String.format("Onboarding with id %S not found", onboardingId))
+                )
+                .map(Onboarding.class::cast)
+                .onItem().transformToUni(onboarding -> {
 
-    @Override
-    public Uni<Token> uploadAttachment(String onboardingId, FormItem file) {
-        return Onboarding.findById(onboardingId).map(Onboarding.class::cast)
-                .onItem().transformToUni(
-                        onboarding -> {
-                            Product product = productService.getProductIsValid(onboarding.getProductId());
-                            AttachmentTemplate attachment = this.getAttachmentTemplate(file.getFileName(), onboarding, product);
-                            if (Boolean.TRUE.equals(isVerifyEnabled)) {
+                    Product product = productService.getProductIsValid(onboarding.getProductId());
+                    AttachmentTemplate attachment = getAttachmentTemplate(attachmentName, onboarding, product);
 
-                            }else {
+                    if (!attachment.isGenerated()) {
+                        return Uni.createFrom()
+                                .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
+                                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                                .onItem().transform(contract -> RestResponse.ResponseBuilder
+                                        .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
+                                        .header(
+                                                HTTP_HEADER_CONTENT_DISPOSITION,
+                                                HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName
+                                        )
+                                        .build());
+                    }
 
-                            }
-                            Token token = new Token();
-                            token.setCreatedAt(LocalDateTime.now());
-                            token.setActivatedAt(LocalDateTime.now());
-                            token.setType(ATTACHMENT);
-                            token.setOnboardingId(onboardingId);
-                            token.setContractVersion(attachment.getTemplateVersion());
-                            token.setContractTemplate(attachment.getTemplatePath());
-                            token.setContractFilename(file.getFileName());
-                            token.setChecksum();
-                            Token.persist(token);
-                        });
-    }
-
-    private AttachmentTemplate getAttachmentTemplate(String attachmentName, Onboarding onboarding, Product product) {
-        return product
-                .getInstitutionContractMappings()
-                .get(onboarding.getInstitution().getInstitutionType().name())
-                .getAttachments()
-                .stream()
-                .filter(a -> a.getName().equals(attachmentName))
-                .findFirst()
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                String.format("Attachment with name %s not found", attachmentName)
-                        )
-                );
+                    return Token
+                            .find(
+                                    "onboardingId = ?1 and type = ?2 and name = ?3",
+                                    onboardingId,
+                                    ATTACHMENT.name(),
+                                    attachmentName
+                            )
+                            .firstResult()
+                            .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Token with id %s not found", onboardingId)))
+                            .map(Token.class::cast)
+                            .onItem().transformToUni(token ->
+                                    Uni.createFrom()
+                                            .item(() -> azureBlobClient.getFileAsPdf(
+                                                    getAttachmentByOnboarding(
+                                                            onboardingId,
+                                                            token.getContractFilename()
+                                                    )
+                                            ))
+                                            .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                                            .onItem().transform(contract -> RestResponse.ResponseBuilder
+                                                    .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
+                                                    .header(
+                                                            HTTP_HEADER_CONTENT_DISPOSITION,
+                                                            HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
+                                                    )
+                                                    .build())
+                            );
+                });
     }
 
     @Override
@@ -232,5 +225,20 @@ public class TokenServiceDefault implements TokenService {
                                     signatureService.verifySignature(contract);
                                     return ContractSignedReport.cades(true);
                                 })).onFailure().recoverWithUni(() -> Uni.createFrom().item(ContractSignedReport.cades(false)));
+    }
+
+    private AttachmentTemplate getAttachmentTemplate(String attachmentName, Onboarding onboarding, Product product) {
+        return product
+                .getInstitutionContractMappings()
+                .get(onboarding.getInstitution().getInstitutionType().name())
+                .getAttachments()
+                .stream()
+                .filter(a -> a.getName().equals(attachmentName))
+                .findFirst()
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                String.format("Attachment with name %s not found", attachmentName)
+                        )
+                );
     }
 }

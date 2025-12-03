@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.service;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
-
 import java.io.File;
 import java.util.List;
 
