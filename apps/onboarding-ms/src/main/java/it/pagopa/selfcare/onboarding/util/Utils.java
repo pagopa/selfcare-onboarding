@@ -11,6 +11,7 @@ import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
 public class Utils {
     private static final String DEFAULT_CONTRACT_FORM_DATA_NAME = "contract";
+    private static final String DEFAULT_ATTACHMENT_FORM_DATA_NAME = "name";
 
     private Utils() {
     }
@@ -24,6 +25,16 @@ public class Utils {
 
     public static FormItem retrieveContractFromFormData(FormData formData, File file) {
         Deque<FormValue> deck = formData.get(DEFAULT_CONTRACT_FORM_DATA_NAME);
+        if (deck.size() > 1) {
+            throw new InvalidRequestException(
+                    CustomError.TOO_MANY_CONTRACTS.getMessage(), CustomError.TOO_MANY_CONTRACTS.getCode());
+        }
+
+        return FormItem.builder().file(file).fileName(deck.getFirst().getFileName()).build();
+    }
+
+    public static FormItem retrieveAttachmentFromFormData(FormData formData, File file) {
+        Deque<FormValue> deck = formData.get(DEFAULT_ATTACHMENT_FORM_DATA_NAME);
         if (deck.size() > 1) {
             throw new InvalidRequestException(
                     CustomError.TOO_MANY_CONTRACTS.getMessage(), CustomError.TOO_MANY_CONTRACTS.getCode());

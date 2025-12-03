@@ -9,21 +9,21 @@ import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveAttachmentFromFormData;
 
 @Authenticated
 @Path("/v1/tokens")
@@ -115,5 +115,23 @@ public class TokenController {
   @Path("/contract-report")
   public Uni<ContractSignedReport> reportContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId) {
     return tokenService.reportContractSigned(onboardingId);
+  }
+
+  @Operation(
+          summary = "Complete onboarding by verifying and uploading contract, then trigger async activities.",
+          description = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
+                  "It checks the contract's signature and upload the contract on an azure storage" +
+                  "At the end, function triggers async activities related to complete onboarding " +
+                  "that consist of create the institution, activate the onboarding and sending data to notification queue.",
+          operationId = "completeOnboardingUsingPUT"
+  )
+  @POST
+  @Path("/{onboardingId}/attachment")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("name") File file, @Context ResteasyReactiveRequestContext ctx) {
+    return tokenService.uploadAttachment(onboardingId, retrieveAttachmentFromFormData(ctx.getFormData(), file))
+            .map(ignore -> Response
+                    .status(HttpStatus.SC_NO_CONTENT)
+                    .build());
   }
 }
