@@ -380,6 +380,27 @@ class OnboardingControllerTest {
     }
 
     @Test
+    @TestSecurity(user = "userJwt")
+    void completeWithManyFiles() {
+        File testFile1 = new File("src/test/resources/application.properties");
+        File testFile2 = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(onboardingService.complete(any(), any()))
+                .thenReturn(Uni.createFrom().nullItem());
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .contentType(ContentType.MULTIPART)
+                .multiPart("contract", testFile1)
+                .multiPart("contract", testFile2)
+                .put("/{onboardingId}/complete")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void completeOnboardingUsers_unauthorized() {
 
         given()

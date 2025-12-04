@@ -1,12 +1,12 @@
 package it.pagopa.selfcare.onboarding.util;
 
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import java.io.File;
 import org.jboss.resteasy.reactive.server.core.multipart.FormData;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
 
@@ -60,6 +60,51 @@ public class UtilsTest {
   void extractNameWithNullPath() {
     var extension = Utils.extractFileName(null);
     assertNull(extension);
+  }
+
+  @Test
+  void extractFileNameEmptyPath() {
+    assertNull(Utils.extractFileName(""));
+  }
+
+  @Test
+  void extractFileNameBlankPath() {
+    assertNull(Utils.extractFileName("   "));
+  }
+
+  @Test
+  void extractFileNameSimpleFileName() {
+    assertEquals("test.pdf", Utils.extractFileName("test.pdf"));
+  }
+
+  @Test
+  void extractFileNameSingleDirectoryPath() {
+    assertEquals("test.pdf", Utils.extractFileName("dir/test.pdf"));
+  }
+
+  @Test
+  void extractFileNameMultipleDirectoryPath() {
+    assertEquals("test.pdf", Utils.extractFileName("dir/subdir/another/test.pdf"));
+  }
+
+  @Test
+  void extractFileNamePathEndsWithSlash() {
+    assertEquals("", Utils.extractFileName("dir/subdir/"));
+  }
+
+  @Test
+  void extractFileNameRootPathOnly() {
+    assertEquals("", Utils.extractFileName("/"));
+  }
+
+  @Test
+  void extractFileNameWithoutExtension() {
+    assertEquals("file", Utils.extractFileName("dir/file"));
+  }
+
+  @Test
+  void extractFileNameWithMultipleDots() {
+    assertEquals("my.file.name.pdf", Utils.extractFileName("path/to/my.file.name.pdf"));
   }
 
 

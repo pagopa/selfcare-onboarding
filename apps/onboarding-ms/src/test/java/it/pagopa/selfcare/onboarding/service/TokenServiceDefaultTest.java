@@ -13,6 +13,7 @@ import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.mongodb.MongoTestResource;
 import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
@@ -23,6 +24,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
+import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
@@ -40,21 +42,18 @@ import java.io.File;
 import java.util.*;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @QuarkusTestResource(MongoTestResource.class)
 class TokenServiceDefaultTest {
 
-  @Inject
-  TokenServiceDefault tokenService;
-  @InjectMock
-  AzureBlobClient azureBlobClient;
-  @InjectMock
-  SignatureService signatureService;
-
-  @InjectMock
-  ProductService productService;
+  @Inject TokenServiceDefault tokenService;
+  @InjectMock AzureBlobClient azureBlobClient;
+  @InjectMock SignatureService signatureService;
+  @InjectMock PadesSignService padesSignService;
+  @InjectMock ProductService productService;
 
   private static final String onboardingId = "onboardingId";
 
@@ -64,12 +63,13 @@ class TokenServiceDefaultTest {
     when(queryPage.list()).thenReturn(Uni.createFrom().item(List.of(new Token())));
 
     PanacheMock.mock(Token.class);
-    when(Token.find("onboardingId", onboardingId))
-      .thenReturn(queryPage);
+    when(Token.find("onboardingId", onboardingId)).thenReturn(queryPage);
 
-    tokenService.getToken(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create())
-      .assertCompleted();
+    tokenService
+            .getToken(onboardingId)
+            .subscribe()
+            .withSubscriber(UniAssertSubscriber.create())
+            .assertCompleted();
   }
 
   @Test
@@ -80,13 +80,15 @@ class TokenServiceDefaultTest {
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, false)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService
+                    .retrieveContract(onboardingId, false)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     RestResponse<File> actual = subscriber.awaitItem().getItem();
     assertNotNull(actual);
@@ -102,14 +104,16 @@ class TokenServiceDefaultTest {
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
     // when
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveContract(onboardingId, true)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService
+                    .retrieveContract(onboardingId, true)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
@@ -126,17 +130,20 @@ class TokenServiceDefaultTest {
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     ClassLoader classLoader = getClass().getClassLoader();
-    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
+    String resourcePath =
+            Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
 
     when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
 
     // when
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService
+                    .retrieveSignedFile(onboardingId)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
@@ -153,17 +160,20 @@ class TokenServiceDefaultTest {
     ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     ClassLoader classLoader = getClass().getClassLoader();
-    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
+    String resourcePath =
+            Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
 
     when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
 
     // when
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService
+                    .retrieveSignedFile(onboardingId)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
@@ -179,19 +189,23 @@ class TokenServiceDefaultTest {
     token.setType(TokenType.INSTITUTION);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     ClassLoader classLoader = getClass().getClassLoader();
-    String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
+    String resourcePath =
+            Objects.requireNonNull(classLoader.getResource("documents/test.pdf.p7m")).getPath();
     when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
 
-    String resourceExtractedPath = Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
+    String resourceExtractedPath =
+            Objects.requireNonNull(classLoader.getResource("documents/test.pdf")).getPath();
     when(signatureService.extractFile(any())).thenReturn(new File(resourceExtractedPath));
 
     // when
-    UniAssertSubscriber<RestResponse<File>> subscriber = tokenService.retrieveSignedFile(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<RestResponse<File>> subscriber =
+            tokenService
+                    .retrieveSignedFile(onboardingId)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     RestResponse<File> actual = subscriber.awaitItem().getItem();
@@ -202,17 +216,16 @@ class TokenServiceDefaultTest {
   @Test
   void retrieveAttachment_onboardingNotFound() {
     PanacheMock.mock(Onboarding.class);
-    when(Onboarding.findById(anyString()))
-            .thenReturn(Uni.createFrom().nullItem());
+    when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().nullItem());
 
     UniAssertSubscriber<RestResponse<File>> subscriber =
-            tokenService.retrieveAttachment("id", "file")
-                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+            tokenService
+                    .retrieveAttachment("id", "file")
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
-    subscriber.awaitFailure()
-            .assertFailedWith(ResourceNotFoundException.class);
+    subscriber.awaitFailure().assertFailedWith(ResourceNotFoundException.class);
   }
-
 
   @Test
   void retrieveAttachmentGeneratedSuccess() {
@@ -247,15 +260,21 @@ class TokenServiceDefaultTest {
     when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(token));
 
     PanacheMock.mock(Token.class);
-    when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3", onboardingId, ATTACHMENT.name(), filename))
+    when(Token.find(
+            "onboardingId = ?1 and type = ?2 and name = ?3",
+            onboardingId,
+            ATTACHMENT.name(),
+            filename))
             .thenReturn(queryPage);
 
     File file = new File("test.pdf");
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(file);
 
     UniAssertSubscriber<RestResponse<File>> subscriber =
-            tokenService.retrieveAttachment(onboardingId, filename)
-                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+            tokenService
+                    .retrieveAttachment(onboardingId, filename)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     RestResponse<File> response = subscriber.awaitItem().getItem();
 
@@ -297,8 +316,10 @@ class TokenServiceDefaultTest {
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(file);
 
     UniAssertSubscriber<RestResponse<File>> subscriber =
-            tokenService.retrieveAttachment(onboardingId, filename)
-                    .subscribe().withSubscriber(UniAssertSubscriber.create());
+            tokenService
+                    .retrieveAttachment(onboardingId, filename)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     RestResponse<File> response = subscriber.awaitItem().getItem();
 
@@ -326,8 +347,7 @@ class TokenServiceDefaultTest {
     onboarding.setInstitution(institution);
 
     PanacheMock.mock(Onboarding.class);
-    when(Onboarding.findById(onboardingId))
-            .thenReturn(Uni.createFrom().item(onboarding));
+    when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
 
     AttachmentTemplate attachment = new AttachmentTemplate();
     attachment.setName(filename);
@@ -341,16 +361,13 @@ class TokenServiceDefaultTest {
 
     File originalFile = new File("src/test/resources/original.pdf");
 
-    when(azureBlobClient.getFileAsPdf(anyString()))
-            .thenReturn(originalFile);
+    when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(originalFile);
 
-    FormItem formItem = FormItem.builder()
-            .file(uploadedFile)
-            .fileName(filename)
-            .build();
+    FormItem formItem = FormItem.builder().file(uploadedFile).fileName(filename).build();
 
     UniAssertSubscriber<Void> subscriber =
-            tokenService.uploadAttachment(onboardingId, formItem, filename)
+            tokenService
+                    .uploadAttachment(onboardingId, formItem, filename)
                     .subscribe()
                     .withSubscriber(UniAssertSubscriber.create());
 
@@ -379,8 +396,8 @@ class TokenServiceDefaultTest {
     onboarding.setInstitution(institution);
 
     asserter.execute(() -> PanacheMock.mock(Onboarding.class));
-    asserter.execute(() -> when(Onboarding.findById(anyString()))
-            .thenReturn(Uni.createFrom().item(onboarding)));
+    asserter.execute(
+            () -> when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().item(onboarding)));
 
     AttachmentTemplate attachment = new AttachmentTemplate();
     attachment.setName(filename);
@@ -388,22 +405,18 @@ class TokenServiceDefaultTest {
     attachment.setGenerated(true);
 
     Product product = createProductWithAttachment("PA", attachment);
-    asserter.execute(() -> when(productService.getProductIsValid(anyString()))
-            .thenReturn(product));
+    asserter.execute(() -> when(productService.getProductIsValid(anyString())).thenReturn(product));
 
     File pdf = new File("src/test/resources/test.pdf");
 
-    asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString()))
-            .thenReturn(pdf));
+    asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
 
-    asserter.execute(() -> when(azureBlobClient
-            .uploadFile(anyString(), anyString(), any(byte[].class)))
-            .thenReturn("mocked-filepath"));
+    asserter.execute(
+            () ->
+                    when(azureBlobClient.uploadFile(anyString(), anyString(), any(byte[].class)))
+                            .thenReturn("mocked-filepath"));
 
-    FormItem formItem = FormItem.builder()
-            .file(pdf)
-            .fileName(filename)
-            .build();
+    FormItem formItem = FormItem.builder().file(pdf).fileName(filename).build();
 
     mockPersistToken(asserter);
 
@@ -413,22 +426,26 @@ class TokenServiceDefaultTest {
               verify(productService).getProductIsValid(anyString());
               verify(azureBlobClient).getFileAsPdf(anyString());
               verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
-            }
-    );
+            });
   }
 
   void mockPersistToken(UniAsserter asserter) {
     asserter.execute(() -> PanacheMock.mock(Token.class));
-    asserter.execute(() -> when(Token.persist(any(Token.class), any()))
-            .thenAnswer(arg -> {
-              Token token = (Token) arg.getArguments()[0];
-              token.setId(UUID.randomUUID().toString());
-              return Uni.createFrom().nullItem();
-            }));
+    asserter.execute(
+            () ->
+                    when(Token.persist(any(Token.class), any()))
+                            .thenAnswer(
+                                    arg -> {
+                                      Token token = (Token) arg.getArguments()[0];
+                                      token.setId(UUID.randomUUID().toString());
+                                      return Uni.createFrom().nullItem();
+                                    }));
   }
 
-  private Product createProductWithAttachment(String institutionType, AttachmentTemplate attachment) {
+  private Product createProductWithAttachment(
+          String institutionType, AttachmentTemplate attachment) {
     Product product = new Product();
+    product.setId("prod");
 
     ContractTemplate contractTemplate = new ContractTemplate();
     contractTemplate.setAttachments(List.of(attachment));
@@ -451,10 +468,13 @@ class TokenServiceDefaultTest {
 
     PanacheMock.mock(Token.class);
     when(Token.find("onboardingId = ?1 and type = ?2", onboardingId, ATTACHMENT.name()))
-      .thenReturn(queryPage);
+            .thenReturn(queryPage);
 
-    UniAssertSubscriber<List<String>> subscriber = tokenService.getAttachments(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<List<String>> subscriber =
+            tokenService
+                    .getAttachments(onboardingId)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     List<String> actual = subscriber.awaitItem().getItem();
     assertNotNull(actual);
@@ -476,13 +496,15 @@ class TokenServiceDefaultTest {
     when(Token.update(QueryUtils.buildUpdateDocument(testMap))).thenReturn(queryPage);
 
     // when
-    UniAssertSubscriber<Long> result = tokenService.updateContractSigned(onboardingId, documentSignedPath).subscribe()
-      .withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<Long> result =
+            tokenService
+                    .updateContractSigned(onboardingId, documentSignedPath)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     assertNotNull(result);
     assertEquals(1L, result.assertCompleted().awaitItem().getItem());
-
   }
 
   @Test
@@ -496,19 +518,23 @@ class TokenServiceDefaultTest {
 
     ReactivePanacheUpdate queryPage = mock(ReactivePanacheUpdate.class);
     PanacheMock.mock(Token.class);
-    when(queryPage.where(anyString(), anyString())).thenReturn(Uni.createFrom().item(Long.valueOf("0")));
+    when(queryPage.where(anyString(), anyString()))
+            .thenReturn(Uni.createFrom().item(Long.valueOf("0")));
     when(Token.update(QueryUtils.buildUpdateDocument(testMap))).thenReturn(queryPage);
 
     // when
-    UniAssertSubscriber<Long> result = tokenService.updateContractSigned(onboardingId, documentSignedPath).subscribe()
-      .withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<Long> result =
+            tokenService
+                    .updateContractSigned(onboardingId, documentSignedPath)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     // then
     assertNotNull(result);
-    assertEquals("Token with id testContractSigned not found or already deleted", result.getFailure().getMessage());
-
+    assertEquals(
+            "Token with id testContractSigned not found or already deleted",
+            result.getFailure().getMessage());
   }
-
 
   @Test
   void reportContractSignedTest_OK() {
@@ -517,17 +543,19 @@ class TokenServiceDefaultTest {
     token.setType(TokenType.INSTITUTION);
 
     PanacheMock.mock(Token.class);
-    when(Token.findById(onboardingId))
-      .thenReturn(Uni.createFrom().item(token));
+    when(Token.findById(onboardingId)).thenReturn(Uni.createFrom().item(token));
 
     when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(new File("fileName"));
 
-    UniAssertSubscriber<ContractSignedReport> subscriber = tokenService.reportContractSigned(onboardingId)
-      .subscribe().withSubscriber(UniAssertSubscriber.create());
+    UniAssertSubscriber<ContractSignedReport> subscriber =
+            tokenService
+                    .reportContractSigned(onboardingId)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
 
     ContractSignedReport actual = subscriber.awaitItem().getItem();
     assertNotNull(actual);
-    //assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
+    // assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
   }
 
   private Token createDummyToken() {
@@ -542,8 +570,8 @@ class TokenServiceDefaultTest {
     Token token = new Token();
     token.setChecksum("actual-checksum");
     asserter.execute(() -> PanacheMock.mock(Token.class));
-    asserter.execute(() -> when(Token.list("_id", tokenId))
-      .thenReturn(Uni.createFrom().item(List.of(token))));
+    asserter.execute(
+            () -> when(Token.list("_id", tokenId)).thenReturn(Uni.createFrom().item(List.of(token))));
   }
 
   @Test
@@ -551,14 +579,86 @@ class TokenServiceDefaultTest {
   void reportContractSignedTest(UniAsserter asserter) {
     Token token = createDummyToken();
     asserter.execute(() -> PanacheMock.mock(Token.class));
-    asserter.execute(() -> when(Token.findByIdOptional(any()))
-      .thenReturn(Uni.createFrom().item(Optional.of(token))));
+    asserter.execute(
+            () ->
+                    when(Token.findByIdOptional(any()))
+                            .thenReturn(Uni.createFrom().item(Optional.of(token))));
 
     mockFindToken(asserter, token.getId());
 
     when(signatureService.verifySignature(any())).thenReturn(true);
 
-    asserter.assertThat(() -> tokenService.reportContractSigned(token.getId()),
-      Assertions::assertNotNull);
+    asserter.assertThat(
+            () -> tokenService.reportContractSigned(token.getId()), Assertions::assertNotNull);
+  }
+
+  public static class SignPdfProfile implements io.quarkus.test.junit.QuarkusTestProfile {
+    @Override
+    public Map<String, String> getConfigOverrides() {
+      return Map.of(
+              "onboarding-ms.pagopa-signature.source", "test");
+    }
+  }
+
+  @Nested
+  @TestProfile(SignPdfProfile.class)
+  class SignAttachmentTest {
+
+    @Test
+    @RunOnVertxContext
+    void uploadAttachmentSuccessWithSignature(UniAsserter asserter) {
+      final String onboardingId = "onboardingId";
+      final String filename = "filename.pdf";
+      final String productId = "productId";
+
+      Onboarding onboarding = new Onboarding();
+      onboarding.setId(onboardingId);
+      onboarding.setProductId(productId);
+
+      Institution institution = new Institution();
+      institution.setInstitutionType(InstitutionType.PA);
+      institution.setDescription("description");
+      onboarding.setInstitution(institution);
+
+      asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+      asserter.execute(
+              () ->
+                      when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().item(onboarding)));
+
+      AttachmentTemplate attachment = new AttachmentTemplate();
+      attachment.setName(filename);
+      attachment.setTemplatePath("template.pdf");
+      attachment.setGenerated(true);
+
+      Product product = createProductWithAttachment("PA", attachment);
+      asserter.execute(
+              () -> when(productService.getProductIsValid(anyString())).thenReturn(product));
+
+      File pdf = new File("src/test/resources/test.pdf");
+
+      asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
+
+      asserter.execute(
+              () ->
+                      when(azureBlobClient.uploadFile(anyString(), anyString(), any(byte[].class)))
+                              .thenReturn("mocked-filepath"));
+
+      asserter.execute(() ->
+              doNothing().when(padesSignService)
+                      .padesSign(any(), any(), any())
+      );
+
+      FormItem formItem = FormItem.builder().file(pdf).fileName(filename).build();
+
+      mockPersistToken(asserter);
+
+      asserter.assertThat(
+              () -> tokenService.uploadAttachment(onboardingId, formItem, filename),
+              result -> {
+                verify(productService).getProductIsValid(anyString());
+                verify(azureBlobClient).getFileAsPdf(anyString());
+                verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
+              });
+    }
   }
 }
