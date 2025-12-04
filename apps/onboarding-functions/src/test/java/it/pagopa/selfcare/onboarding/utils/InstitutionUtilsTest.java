@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 public class InstitutionUtilsTest {
 
-  public static final String INSTITUTION_TYPE_DEFAULT = "DEFAULT  ";
+  public static final String INSTITUTION_TYPE_DEFAULT = "DEFAULT";
 
   @Test
   void getCurrentInstitutionTypeTest() {
