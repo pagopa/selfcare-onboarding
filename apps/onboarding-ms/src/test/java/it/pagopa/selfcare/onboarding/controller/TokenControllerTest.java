@@ -1,9 +1,10 @@
 package it.pagopa.selfcare.onboarding.controller;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -18,13 +19,12 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
-
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 @QuarkusTest
@@ -126,7 +126,7 @@ class TokenControllerTest {
     final String onboardingId = "onboardingId";
     final String contractSigned = "contractSigned";
 
-    Uni<Long> response = Uni.createFrom().item(Long.valueOf(1));
+    Uni<Long> response = Uni.createFrom().item(1L);
     when(tokenService.updateContractSigned(onboardingId, contractSigned)).thenReturn(response);
 
     // when
@@ -191,5 +191,30 @@ class TokenControllerTest {
 
     // then
     Mockito.verify(tokenService, times(1)).reportContractSigned(anyString());
+  }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void uploadAttachment() {
+    File testFile = new File("src/test/resources/application.properties");
+    String onboardingId = "actual-onboarding-id";
+
+    when(tokenService.uploadAttachment(any(), any(), anyString()))
+            .thenReturn(Uni.createFrom().nullItem());
+
+    given()
+            .when()
+            .pathParam("onboardingId", onboardingId)
+            .queryParam("name", "name")
+            .contentType(ContentType.MULTIPART)
+            .multiPart("file", testFile)
+            .post("/{onboardingId}/attachment")
+            .then()
+            .statusCode(204);
+
+    ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+    verify(tokenService, times(1))
+            .uploadAttachment(expectedId.capture(), any(), anyString());
+    assertEquals(expectedId.getValue(), onboardingId);
   }
 }

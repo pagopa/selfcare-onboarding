@@ -19,7 +19,7 @@ public interface TokenService {
 
   Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName);
 
-  Uni<Token> uploadAttachment(String onboardingId, FormItem file);
+  Uni<Void> uploadAttachment(String onboardingId, FormItem file, String attachmentName);
 
   Uni<Long> updateContractSigned(String onboardingId, String documentSignedPath);
 

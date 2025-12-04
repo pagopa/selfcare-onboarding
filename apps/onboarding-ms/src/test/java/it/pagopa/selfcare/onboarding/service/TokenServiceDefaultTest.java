@@ -26,7 +26,9 @@ import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.impl.TokenServiceDefault;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
@@ -306,6 +308,123 @@ class TokenServiceDefaultTest {
 
     verify(productService).getProductIsValid(productId);
     verify(azureBlobClient).getFileAsPdf(anyString());
+  }
+
+  @Test
+  void uploadAttachmentErrorDigest() {
+
+    final String onboardingId = "onboardingId";
+    final String filename = "filename.pdf";
+    final String productId = "productId";
+
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId(onboardingId);
+    onboarding.setProductId(productId);
+
+    Institution institution = new Institution();
+    institution.setInstitutionType(InstitutionType.PA);
+    onboarding.setInstitution(institution);
+
+    PanacheMock.mock(Onboarding.class);
+    when(Onboarding.findById(onboardingId))
+            .thenReturn(Uni.createFrom().item(onboarding));
+
+    AttachmentTemplate attachment = new AttachmentTemplate();
+    attachment.setName(filename);
+    attachment.setTemplatePath("template.pdf");
+    attachment.setGenerated(true);
+
+    Product product = createProductWithAttachment("PA", attachment);
+    when(productService.getProductIsValid(productId)).thenReturn(product);
+
+    File uploadedFile = new File("src/test/resources/test.pdf");
+
+    File originalFile = new File("src/test/resources/original.pdf");
+
+    when(azureBlobClient.getFileAsPdf(anyString()))
+            .thenReturn(originalFile);
+
+    FormItem formItem = FormItem.builder()
+            .file(uploadedFile)
+            .fileName(filename)
+            .build();
+
+    UniAssertSubscriber<Void> subscriber =
+            tokenService.uploadAttachment(onboardingId, formItem, filename)
+                    .subscribe()
+                    .withSubscriber(UniAssertSubscriber.create());
+
+    subscriber.awaitFailure();
+
+    subscriber.assertFailedWith(InvalidRequestException.class);
+
+    verify(productService).getProductIsValid(productId);
+    verify(azureBlobClient).getFileAsPdf(anyString());
+  }
+
+  @Test
+  @RunOnVertxContext
+  void uploadAttachmentSuccess(UniAsserter asserter) {
+
+    final String onboardingId = "onboardingId";
+    final String filename = "filename.pdf";
+    final String productId = "productId";
+
+    Onboarding onboarding = new Onboarding();
+    onboarding.setId(onboardingId);
+    onboarding.setProductId(productId);
+
+    Institution institution = new Institution();
+    institution.setInstitutionType(InstitutionType.PA);
+    onboarding.setInstitution(institution);
+
+    asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+    asserter.execute(() -> when(Onboarding.findById(anyString()))
+            .thenReturn(Uni.createFrom().item(onboarding)));
+
+    AttachmentTemplate attachment = new AttachmentTemplate();
+    attachment.setName(filename);
+    attachment.setTemplatePath("template.pdf");
+    attachment.setGenerated(true);
+
+    Product product = createProductWithAttachment("PA", attachment);
+    asserter.execute(() -> when(productService.getProductIsValid(anyString()))
+            .thenReturn(product));
+
+    File pdf = new File("src/test/resources/test.pdf");
+
+    asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString()))
+            .thenReturn(pdf));
+
+    asserter.execute(() -> when(azureBlobClient
+            .uploadFile(anyString(), anyString(), any(byte[].class)))
+            .thenReturn("mocked-filepath"));
+
+    FormItem formItem = FormItem.builder()
+            .file(pdf)
+            .fileName(filename)
+            .build();
+
+    mockPersistToken(asserter);
+
+    asserter.assertThat(
+            () -> tokenService.uploadAttachment(onboardingId, formItem, filename),
+            result -> {
+              verify(productService).getProductIsValid(anyString());
+              verify(azureBlobClient).getFileAsPdf(anyString());
+              verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
+            }
+    );
+  }
+
+  void mockPersistToken(UniAsserter asserter) {
+    asserter.execute(() -> PanacheMock.mock(Token.class));
+    asserter.execute(() -> when(Token.persist(any(Token.class), any()))
+            .thenAnswer(arg -> {
+              Token token = (Token) arg.getArguments()[0];
+              token.setId(UUID.randomUUID().toString());
+              return Uni.createFrom().nullItem();
+            }));
   }
 
   private Product createProductWithAttachment(String institutionType, AttachmentTemplate attachment) {

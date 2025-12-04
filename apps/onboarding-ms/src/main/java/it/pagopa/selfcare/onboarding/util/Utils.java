@@ -11,7 +11,7 @@ import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
 public class Utils {
     private static final String DEFAULT_CONTRACT_FORM_DATA_NAME = "contract";
-    private static final String DEFAULT_ATTACHMENT_FORM_DATA_NAME = "name";
+    private static final String DEFAULT_ATTACHMENT_FORM_DATA_NAME = "file";
 
     private Utils() {
     }
@@ -84,6 +84,17 @@ public class Utils {
         } else {
             return originalFilename.substring(0, lastIndexOf) + "." + newExtension;
         }
+    }
+
+    public static String extractFileName(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash >= 0
+                ? path.substring(lastSlash + 1)
+                : path;
     }
 
 }

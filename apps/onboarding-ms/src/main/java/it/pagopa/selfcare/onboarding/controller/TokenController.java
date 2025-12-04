@@ -118,18 +118,16 @@ public class TokenController {
   }
 
   @Operation(
-          summary = "Complete onboarding by verifying and uploading contract, then trigger async activities.",
-          description = "Perform complete operation of an onboarding request receiving onboarding id and contract signed by the institution." +
-                  "It checks the contract's signature and upload the contract on an azure storage" +
-                  "At the end, function triggers async activities related to complete onboarding " +
-                  "that consist of create the institution, activate the onboarding and sending data to notification queue.",
-          operationId = "completeOnboardingUsingPUT"
+          summary = "Upload attachment by verifying and signing document, then save into storage.",
+          description = "Perform upload  of the file passed in input verifying digest e put company signature"
   )
   @POST
   @Path("/{onboardingId}/attachment")
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("name") File file, @Context ResteasyReactiveRequestContext ctx) {
-    return tokenService.uploadAttachment(onboardingId, retrieveAttachmentFromFormData(ctx.getFormData(), file))
+  public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId,
+                                @NotNull @RestForm("file") File file, @Context ResteasyReactiveRequestContext ctx,
+                                @NotNull @QueryParam(value = "name") String attachmentName) {
+    return tokenService.uploadAttachment(onboardingId, retrieveAttachmentFromFormData(ctx.getFormData(), file), attachmentName)
             .map(ignore -> Response
                     .status(HttpStatus.SC_NO_CONTENT)
                     .build());
