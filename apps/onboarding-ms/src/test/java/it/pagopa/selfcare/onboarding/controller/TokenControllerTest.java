@@ -217,4 +217,26 @@ class TokenControllerTest {
             .uploadAttachment(expectedId.capture(), any(), anyString());
     assertEquals(expectedId.getValue(), onboardingId);
   }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void uploadAttachmentError() {
+    File testFile1 = new File("src/test/resources/application.properties");
+    File testFile2 = new File("src/test/resources/application.properties");
+    String onboardingId = "actual-onboarding-id";
+
+    given()
+            .when()
+            .pathParam("onboardingId", onboardingId)
+            .queryParam("name", "name")
+            .contentType(ContentType.MULTIPART)
+            .multiPart("file", testFile1)
+            .multiPart("file", testFile2)
+            .post("/{onboardingId}/attachment")
+            .then()
+            .statusCode(400);
+
+    verify(tokenService, never())
+            .uploadAttachment(any(), any(), any());
+  }
 }

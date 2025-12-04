@@ -1,13 +1,12 @@
 package it.pagopa.selfcare.onboarding.util;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import java.io.File;
 import org.jboss.resteasy.reactive.server.core.multipart.FormData;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
 
@@ -49,5 +48,19 @@ public class UtilsTest {
     var extension = Utils.replaceFileExtension(filename, "p7m");
     assertEquals("index/test/test.p7m", extension);
   }
+
+  @Test
+  void extractName() {
+    final var filename = "index/test/test.pdf";
+    var extension = Utils.extractFileName(filename);
+    assertEquals("test.pdf", extension);
+  }
+
+  @Test
+  void extractNameWithNullPath() {
+    var extension = Utils.extractFileName(null);
+    assertNull(extension);
+  }
+
 
 }
