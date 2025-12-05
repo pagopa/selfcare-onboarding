@@ -9,21 +9,21 @@ import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestResponse;
+import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+
+import static it.pagopa.selfcare.onboarding.util.Utils.retrieveAttachmentFromFormData;
 
 @Authenticated
 @Path("/v1/tokens")
@@ -115,5 +115,21 @@ public class TokenController {
   @Path("/contract-report")
   public Uni<ContractSignedReport> reportContractSigned(@NotNull @QueryParam(value = "onboardingId") String onboardingId) {
     return tokenService.reportContractSigned(onboardingId);
+  }
+
+  @Operation(
+          summary = "Upload attachment by verifying and signing document, then save into storage.",
+          description = "Perform upload  of the file passed in input verifying digest e put company signature"
+  )
+  @POST
+  @Path("/{onboardingId}/attachment")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId,
+                                @NotNull @RestForm("file") File file, @Context ResteasyReactiveRequestContext ctx,
+                                @NotNull @QueryParam(value = "name") String attachmentName) {
+    return tokenService.uploadAttachment(onboardingId, retrieveAttachmentFromFormData(ctx.getFormData(), file), attachmentName)
+            .map(ignore -> Response
+                    .status(HttpStatus.SC_NO_CONTENT)
+                    .build());
   }
 }
