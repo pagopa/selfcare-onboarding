@@ -8,7 +8,7 @@ import java.util.*;
 
 public class Product {
 
-    public static final String CONTRACT_TYPE_DEFAULT = "default";
+    public static final String CONTRACT_TYPE_DEFAULT = "DEFAULT";
 
     private String id;
     private String alias;
