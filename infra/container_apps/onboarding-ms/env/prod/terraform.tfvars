@@ -74,10 +74,6 @@ app_settings = [
     value = "http://selc-p-user-ms-ca"
   },
   {
-    name  = "JWT_BEARER_TOKEN"
-    value = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
-  },
-  {
     name  = "ALLOWED_ATECO_CODES"
     value = "47.12.10,47.54.00,47.11.02,47.12.20,47.12.30,47.12.40"
   }
@@ -85,6 +81,7 @@ app_settings = [
 
 secrets_names = {
   "JWT-PUBLIC-KEY"                          = "jwt-public-key"
+  "JWT_BEARER_TOKEN"                        = "jwt-bearer-token-functions"
   "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
   "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
   "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"

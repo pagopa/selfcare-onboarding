@@ -78,17 +78,22 @@ app_settings = [
     value = "http://selc-u-user-ms-ca"
   },
   {
-    name  = "JWT_BEARER_TOKEN"
-    value = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
-  },
-  {
     name  = "ALLOWED_ATECO_CODES"
     value = "47.12.10,47.54.00,47.11.02,47.12.20,47.12.30,47.12.40"
+  },
+  {
+    name  = "PAGOPA_SIGNATURE_SOURCE"
+    value = "namirial",
+  },
+  {
+    name  = "NAMIRIAL_BASE_URL"
+    value = "https://selc-u-namirial-sws-ca.mangopond-2a5d4d65.westeurope.azurecontainerapps.io",
   }
 ]
 
 secrets_names = {
   "JWT-PUBLIC-KEY"                          = "jwt-public-key"
+  "JWT_BEARER_TOKEN"                        = "jwt-bearer-token-functions"
   "MONGODB-CONNECTION-STRING"               = "mongodb-connection-string"
   "USER-REGISTRY-API-KEY"                   = "user-registry-api-key"
   "ONBOARDING-FUNCTIONS-API-KEY"            = "fn-onboarding-primary-key"
@@ -97,9 +102,8 @@ secrets_names = {
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
   "ONBOARDING_DATA_ENCRIPTION_KEY"          = "onboarding-data-encryption-key"
   "ONBOARDING_DATA_ENCRIPTION_IV"           = "onboarding-data-encryption-iv"
-  "PAGOPA_SIGNATURE_SOURCE"                 = "namirial",
-  "NAMIRIAL_BASE_URL"                       = "https://selc-u-namirial-sws-ca.mangopond-2a5d4d65.westeurope.azurecontainerapps.io",
-  "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
-  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-psw/)",
+  ##NAMIRIAL SIGNATURE
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "namirial-sign-service-user",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "namirial-sign-service-psw",
 
 }
