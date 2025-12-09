@@ -76,6 +76,10 @@ app_settings = [
   {
     name  = "JWT_BEARER_TOKEN"
     value = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
+  },
+  {
+    name  = "ALLOWED_ATECO_CODES"
+    value = "47.12.10,47.54.00,47.11.02,47.12.20,47.12.30,47.12.40"
   }
 ]
 

@@ -2,18 +2,11 @@
   "productId": "prod-idpay-merchant",
   "users": [
     {
-      "taxCode": "FRDSMN80A01F205Z",
-      "name": "Sigmund",
-      "surname": "Freud",
-      "email": "s.freud@test.email.it",
-      "role": "MANAGER"
-    },
-    {
       "taxCode": "CLVTLI80A01F839V",
       "name": "Italo",
       "surname": "Calvino",
       "email": "i.calvino@test.email.it",
-      "role": "DELEGATE"
+      "role": "MANAGER"
     }
   ],
   "institution": {
@@ -38,12 +31,12 @@
     "atecoCodes": ["01.11.00", "01.12.00"]
   },
   "billing": {
-    "vatNumber": "00876320409",
+    "vatNumber": "05439260652",
     "recipientCode": "UFR0DM",
     "publicServices": true
   },
   "payment": {
     "iban": "IT60X0542811101000000123456",
-    "holder": "Antonello Golfini"
+    "holder": "Marco Rossi"
   }
 }

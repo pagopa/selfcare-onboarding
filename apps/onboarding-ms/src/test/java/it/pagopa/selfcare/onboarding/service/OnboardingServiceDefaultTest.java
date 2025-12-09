@@ -995,6 +995,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setAtecoCodes(List.of("01.11.00"));
         request.setInstitution(institutionBaseRequest);
         mockPersistOnboarding(asserter);
 
