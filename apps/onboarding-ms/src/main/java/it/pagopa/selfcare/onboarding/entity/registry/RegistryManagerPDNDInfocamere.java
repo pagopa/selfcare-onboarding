@@ -52,13 +52,6 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
         return InstitutionType.PRV_PF.equals(onboarding.getInstitution().getInstitutionType());
     }
 
-    private Uni<Onboarding> handleIdPayMerchantProduct() {
-        if (isPrivatePersonInstitution()) {
-            return manageTaxCode();
-        }
-        return Uni.createFrom().item(onboarding);
-    }
-
     private Uni<Onboarding> manageTaxCode() {
         final String fiscalCode = onboarding.getInstitution().getTaxCode();
         final UserSearchDto searchDto = new UserSearchDto().fiscalCode(fiscalCode);
