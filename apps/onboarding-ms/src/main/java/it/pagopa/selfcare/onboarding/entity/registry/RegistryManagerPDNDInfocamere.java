@@ -111,8 +111,9 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
         }
 
         List<String> allowedCodes = allowedAtecoCodes
+                .filter(codes -> !codes.trim().isEmpty())
                 .map(codes -> List.of(codes.split(",")))
-                .orElse(List.of());
+                .orElseThrow(() -> new InvalidRequestException("Allowed ATECO codes are not configured"));
         boolean hasValidAteco = institutionAtecoCodes.stream()
                 .anyMatch(ateco -> allowedCodes.contains(ateco.trim()));
 
