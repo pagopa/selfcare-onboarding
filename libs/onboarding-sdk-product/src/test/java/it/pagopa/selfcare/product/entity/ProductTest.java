@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ProductTest {
 
   private static final Logger log = LoggerFactory.getLogger(ProductTest.class);
+  public static final String INSTITUTION_TYPE_DEFAULT = "DEFAULT";
 
   ProductRoleInfo dummmyProductRoleInfo(PartyRole partyRole) {
     ProductRoleInfo productRoleInfo = new ProductRoleInfo();
@@ -178,7 +179,7 @@ public class ProductTest {
 
     Map<String, ContractTemplate> mapTest = new HashMap<>();
     mapTest.put(institutionType.toString(), ContractTemplate);
-    mapTest.put("default", ContractTemplate);
+    mapTest.put(INSTITUTION_TYPE_DEFAULT, ContractTemplate);
 
     Product product = new Product();
     product.setUserContractMappings(mapTest);
@@ -232,7 +233,7 @@ public class ProductTest {
 
     Map<String, ContractTemplate> mapTest = new HashMap<>();
     mapTest.put(institutionType.toString(), contractTemplate);
-    mapTest.put("default", contractTemplate);
+    mapTest.put(INSTITUTION_TYPE_DEFAULT, contractTemplate);
 
     Product product = new Product();
     product.setInstitutionContractMappings(mapTest);
@@ -273,10 +274,10 @@ public class ProductTest {
     assertEquals(product.getAlias(), jsonNode.get("alias").asText());
     assertEquals(product.getId(), jsonNode.get("id").asText());
     assertEquals(
-            product.getInstitutionContractMappings().get("default").getContractTemplatePath(),
+            product.getInstitutionContractMappings().get(INSTITUTION_TYPE_DEFAULT).getContractTemplatePath(),
             jsonNode
                     .get("institutionContractMappings")
-                    .get("default")
+                    .get(INSTITUTION_TYPE_DEFAULT)
                     .get("contractTemplatePath")
                     .asText());
     assertEquals(product.getStatus().toString(), jsonNode.get("status").asText());
@@ -309,7 +310,7 @@ public class ProductTest {
     ContractTemplate contractTemplate = new ContractTemplate();
     contractTemplate.setContractTemplatePath("path");
     contractTemplate.setContractTemplatePath("version");
-    mappings.put("default", contractTemplate);
+    mappings.put(INSTITUTION_TYPE_DEFAULT, contractTemplate);
     product.setUserAggregatorContractMappings(mappings);
 
     // Execute
@@ -317,7 +318,7 @@ public class ProductTest {
 
     // Verify
     assertNotNull(result);
-    assertEquals(mappings.get("default"), result);
+    assertEquals(mappings.get(INSTITUTION_TYPE_DEFAULT), result);
   }
 
   @Test
@@ -368,7 +369,7 @@ public class ProductTest {
     EmailTemplate emailTemplate = new EmailTemplate();
     emailTemplate.setPath("path");
     emailTemplate.setStatus(status);
-    mappings.put("default", Map.of(workflowType.name(), List.of(emailTemplate)));
+    mappings.put(INSTITUTION_TYPE_DEFAULT, Map.of(workflowType.name(), List.of(emailTemplate)));
     product.setEmailTemplates(mappings);
 
     // Execute
@@ -402,7 +403,7 @@ public class ProductTest {
     EmailTemplate emailTemplate = new EmailTemplate();
     emailTemplate.setPath("path");
     emailTemplate.setStatus(status);
-    mappings.put("default", Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), List.of(emailTemplate)));
+    mappings.put(INSTITUTION_TYPE_DEFAULT, Map.of(WorkflowType.CONTRACT_REGISTRATION.name(), List.of(emailTemplate)));
     product.setEmailTemplates(mappings);
 
     // Execute

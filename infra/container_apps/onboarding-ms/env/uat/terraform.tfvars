@@ -93,4 +93,9 @@ secrets_names = {
   "APPLICATIONINSIGHTS_CONNECTION_STRING"   = "appinsights-connection-string"
   "ONBOARDING_DATA_ENCRIPTION_KEY"          = "onboarding-data-encryption-key"
   "ONBOARDING_DATA_ENCRIPTION_IV"           = "onboarding-data-encryption-iv"
+  "PAGOPA_SIGNATURE_SOURCE"                 = "namirial",
+  "NAMIRIAL_BASE_URL"                       = "https://selc-u-namirial-sws-ca.mangopond-2a5d4d65.westeurope.azurecontainerapps.io",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-user/)",
+  "NAMIRIAL_SIGN_SERVICE_IDENTITY_PASSWORD" = "@Microsoft.KeyVault(SecretUri=https://selc-u-kv.vault.azure.net/secrets/namirial-sign-service-psw/)",
+
 }

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 public class InstitutionUtilsTest {
 
+  public static final String INSTITUTION_TYPE_DEFAULT = "DEFAULT";
+
   @Test
   void getCurrentInstitutionTypeTest() {
     // given
@@ -35,7 +37,7 @@ public class InstitutionUtilsTest {
     String result = InstitutionUtils.getCurrentInstitutionType(onboarding);
 
     // then
-    assertEquals("default", result);
+    assertEquals(INSTITUTION_TYPE_DEFAULT, result);
   }
 
   @Test
@@ -47,7 +49,7 @@ public class InstitutionUtilsTest {
     String result = InstitutionUtils.getCurrentInstitutionType(onboarding);
 
     // then
-    assertEquals("default", result);
+    assertEquals(INSTITUTION_TYPE_DEFAULT, result);
   }
 
   @Test
@@ -59,7 +61,7 @@ public class InstitutionUtilsTest {
     String result = InstitutionUtils.getCurrentInstitutionType(onboarding);
 
     // then
-    assertEquals("default", result);
+    assertEquals(INSTITUTION_TYPE_DEFAULT, result);
   }
 
   private Onboarding createDummyOnboarding() {
