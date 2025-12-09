@@ -1,0 +1,42 @@
+{
+  "productId": "prod-idpay-merchant",
+  "users": [
+    {
+      "taxCode": "CLVTLI80A01F839V",
+      "name": "Italo",
+      "surname": "Calvino",
+      "email": "i.calvino@test.email.it",
+      "role": "MANAGER"
+    }
+  ],
+  "institution": {
+    "institutionType": "PRV",
+    "taxCode": "05439260652",
+    "origin": "PDND_INFOCAMERE",
+    "originId": "05439260652",
+    "city": "Roma",
+    "country": "IT",
+    "county": "RM",
+    "description": "ACME CORPORATION S.R.L.",
+    "digitalAddress": "ACMECORP@PEC.IT",
+    "address": "Via Roma 123",
+    "zipCode": "00100",
+    "geographicTaxonomies": [
+      {
+        "code": "ITA",
+        "desc": "ITALIA"
+      }
+    ],
+    "imported": false,
+    "atecoCodes": ["01.11.00", "01.12.00"]
+  },
+  "billing": {
+    "vatNumber": "05439260652",
+    "recipientCode": "UFR0DM",
+    "publicServices": true
+  },
+  "payment": {
+    "iban": "IT60X0542811101000000123456",
+    "holder": "Marco Rossi"
+  }
+}

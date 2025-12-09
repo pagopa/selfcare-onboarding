@@ -20,7 +20,12 @@ import org.openapi.quarkus.user_registry_json.model.SaveUserDto;
 import org.openapi.quarkus.user_registry_json.model.UserId;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.UserSearchDto;
+import it.pagopa.selfcare.product.entity.Product;
+import it.pagopa.selfcare.onboarding.common.ProductId;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +48,7 @@ class RegistryManagerPDNDInfocamereTest {
     private Onboarding baseOnboarding;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws NoSuchFieldException, IllegalAccessException {
         reset(userRegistryApi, infocamerePdndApi);
 
         baseOnboarding = new Onboarding();
@@ -54,7 +59,7 @@ class RegistryManagerPDNDInfocamereTest {
         institution.setDescription("Test Business Name");
         baseOnboarding.setInstitution(institution);
 
-        manager = new RegistryManagerPDNDInfocamere(baseOnboarding, infocamerePdndApi, userRegistryApi);
+        manager = new RegistryManagerPDNDInfocamere(baseOnboarding, infocamerePdndApi, userRegistryApi, Optional.of("01.11.00,01.12.00,01.13.00"));
 
         PDNDBusinessResource resource = new PDNDBusinessResource();
         resource.setDigitalAddress("test@pec.it");
@@ -154,4 +159,141 @@ class RegistryManagerPDNDInfocamereTest {
         assertInstanceOf(InvalidRequestException.class, failure);
         assertEquals("Field digitalAddress or description are not valid", failure.getMessage());
     }*/
+
+    @Test
+    void validateAtecoCodes_shouldThrowException_whenAtecosAreNull() {
+        baseOnboarding.getInstitution().setAtecoCodes(null);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Throwable failure = subscriber.awaitFailure().getFailure();
+        assertInstanceOf(InvalidRequestException.class, failure);
+        assertEquals("Institution must have at least one ATECO code", failure.getMessage());
+    }
+
+    @Test
+    void validateAtecoCodes_shouldThrowException_whenAtecosAreEmpty() {
+        baseOnboarding.getInstitution().setAtecoCodes(new ArrayList<>());
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Throwable failure = subscriber.awaitFailure().getFailure();
+        assertInstanceOf(InvalidRequestException.class, failure);
+        assertEquals("Institution must have at least one ATECO code", failure.getMessage());
+    }
+
+    @Test
+    void validateAtecoCodes_shouldSucceed_whenAtecosContainValidCode() {
+        baseOnboarding.getInstitution().setAtecoCodes(List.of("01.11.00"));
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+        assertEquals("01.11.00", result.getInstitution().getAtecoCodes().get(0));
+    }
+
+    @Test
+    void validateAtecoCodes_shouldThrowException_whenAtecosContainInvalidCode() {
+        baseOnboarding.getInstitution().setAtecoCodes(List.of("99.99.99"));
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Throwable failure = subscriber.awaitFailure().getFailure();
+        assertInstanceOf(InvalidRequestException.class, failure);
+        assertEquals("Institution ATECO codes are not allowed for this product", failure.getMessage());
+    }
+
+    @Test
+    void validateAtecoCodes_shouldSucceed_whenAtecosContainMultipleCodesWithValidOne() {
+        baseOnboarding.getInstitution().setAtecoCodes(List.of("99.99.99", "01.12.00", "88.88.88"));
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+        assertTrue(result.getInstitution().getAtecoCodes().contains("01.12.00"));
+    }
+
+    @Test
+    void validateAtecoCodes_shouldThrowException_whenAtecosContainMultipleCodesButNoneValid() {
+        baseOnboarding.getInstitution().setAtecoCodes(List.of("99.99.99", "88.88.88", "77.77.77"));
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+        
+        Throwable failure = subscriber.awaitFailure().getFailure();
+        assertInstanceOf(InvalidRequestException.class, failure);
+        assertEquals("Institution ATECO codes are not allowed for this product", failure.getMessage());
+    }
+
+    @Test
+    void validateAtecoCodes_shouldSucceed_whenAtecosContainValidCodeWithSpaces() {
+        baseOnboarding.getInstitution().setAtecoCodes(List.of(" 01.13.00 "));
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_IDPAY_MERCHANT.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+        assertEquals(" 01.13.00 ", result.getInstitution().getAtecoCodes().get(0));
+    }
+
+    @Test
+    void validateAtecoCodes_shouldNotBeCalledWhenProductIsNull() {
+        baseOnboarding.getInstitution().setAtecoCodes(null);
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.PRV_PF);
+
+        UUID existingUserId = UUID.randomUUID();
+        UserResource existingUser = new UserResource();
+        existingUser.setId(existingUserId);
+
+        when(userRegistryApi.searchUsingPOST(anyString(), any(UserSearchDto.class)))
+                .thenReturn(Uni.createFrom().item(existingUser));
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(null)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+        assertEquals(existingUserId.toString(), result.getInstitution().getTaxCode());
+    }
+
+    @Test
+    void validateAtecoCodes_shouldNotBeCalledWhenProductIdIsDifferent() {
+        baseOnboarding.getInstitution().setAtecoCodes(null);
+        baseOnboarding.getInstitution().setInstitutionType(InstitutionType.GSP);
+        Product product = new Product();
+        product.setId(ProductId.PROD_INTEROP.getValue());
+
+        UniAssertSubscriber<Onboarding> subscriber = manager.customValidation(product)
+                .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+        Onboarding result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+    }
 }
