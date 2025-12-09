@@ -27,7 +27,8 @@
         "desc": "ITALIA"
       }
     ],
-    "imported": false
+    "imported": false,
+    "atecoCodes": ["01.11.00", "01.12.00"]
   },
   "billing": {
     "vatNumber": "00876320409",

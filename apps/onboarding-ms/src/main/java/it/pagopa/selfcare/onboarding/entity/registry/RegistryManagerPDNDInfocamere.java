@@ -28,7 +28,7 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
     private final Optional<String> allowedAtecoCodes;
 
     public RegistryManagerPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi, UserApi userRegistryApi,
-                                        @ConfigProperty(name = "onboarding-ms.allowed-ateco-codes") Optional<String> allowedAtecoCodes) {
+                                        Optional<String> allowedAtecoCodes) {
         super(onboarding, infocamerePdndApi);
         this.userRegistryApi = userRegistryApi;
         this.allowedAtecoCodes = allowedAtecoCodes;
