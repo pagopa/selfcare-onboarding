@@ -1598,7 +1598,12 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Token> retrieveToken(String onboardingId) {
         return Token.list("onboardingId", onboardingId)
-                .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
+                .map(tokens -> tokens.stream()
+                        .findFirst()
+                        .map(Token.class::cast)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                String.format("Onboarding with onboarding id %s does not have an associated token", onboardingId)
+                        )));
     }
 
     private Uni<List<String>> retrieveOnboardingUserFiscalCodeList(Onboarding onboarding) {
