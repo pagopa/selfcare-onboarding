@@ -4348,6 +4348,25 @@ class OnboardingServiceDefaultTest {
                 RuntimeException.class);
     }
 
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_whenTokenNotFound_shouldThrowResourceNotFoundException(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        String onboardingId = onboarding.getId();
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() -> when(Token.list("onboardingId", onboardingId))
+                .thenReturn(Uni.createFrom().item(List.of())));
+
+        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                ResourceNotFoundException.class);
+    }
+
 
     @Test
     @RunOnVertxContext
