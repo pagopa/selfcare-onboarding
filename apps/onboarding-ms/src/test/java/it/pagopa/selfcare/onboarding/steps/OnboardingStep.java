@@ -98,7 +98,7 @@ public class OnboardingStep extends CucumberQuarkusTest {
     composeContainer = new ComposeContainer(new File("docker-compose.yml"))
             .withLocalCompose(true);
     // .waitingFor("azure-cli", Wait.forLogMessage(".*BLOBSTORAGE INITIALIZED.*\\n", 1));
-    composeContainer.start();
+    //composeContainer.start();
     Runtime.getRuntime().addShutdownHook(new Thread(composeContainer::stop));
 
     log.info("Test containers started successfully");
