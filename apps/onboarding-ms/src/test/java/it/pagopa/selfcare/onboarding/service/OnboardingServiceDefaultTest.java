@@ -115,6 +115,10 @@ class OnboardingServiceDefaultTest {
     @RestClient
     InfocamerePdndApi infocamerePdndApi;
 
+    @InjectMock
+    @RestClient
+    PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi;
+
     @RestClient
     @InjectMock
     InfocamereApi infocamereApi;
@@ -915,6 +919,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setAtecoCodes(List.of("01.11.00"));
         request.setInstitution(institutionBaseRequest);
         mockPersistOnboarding(asserter);
 
@@ -924,8 +929,10 @@ class OnboardingServiceDefaultTest {
         PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
         pdndBusinessResource.setBusinessName("name");
         pdndBusinessResource.setDigitalAddress("pec");
+        pdndBusinessResource.setAtecoCodes(List.of("01.11.00"));
 
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
@@ -954,6 +961,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
+        institutionBaseRequest.setAtecoCodes(List.of("01.11.00"));
         request.setInstitution(institutionBaseRequest);
         mockPersistOnboarding(asserter);
 
@@ -963,8 +971,10 @@ class OnboardingServiceDefaultTest {
         PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
         pdndBusinessResource.setBusinessName("name");
         pdndBusinessResource.setDigitalAddress("pec");
+        pdndBusinessResource.setAtecoCodes(List.of("01.11.00"));
 
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
@@ -1005,8 +1015,10 @@ class OnboardingServiceDefaultTest {
         PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
         pdndBusinessResource.setBusinessName("name");
         pdndBusinessResource.setDigitalAddress("pec");
+        pdndBusinessResource.setAtecoCodes(List.of("01.11.00"));
 
         when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
 
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
