@@ -414,10 +414,16 @@ Feature: Onboarding collection
     And the response should contain the text "Institution must have at least one ATECO code"
 
   Scenario: Can't perform onboarding PRV merchant request with invalid ATECO codes
-    Given I have a request object named "invalid_ateco_invalid_prv_request"
+    Given I have a request object named "invalid_ateco_prv_request"
     When I send a POST request to "" with this request
     Then the response status code should be 400
     And the response should contain the text "Institution ATECO codes from PDND Visura are not allowed for this product"
+
+  Scenario: Can't perform onboarding PRV merchant request with invalid ATECO codes
+    Given I have a request object named "invalid_ateco_not_match_request"
+    When I send a POST request to "" with this request
+    Then the response status code should be 400
+    And the response should contain the text "Institution ATECO codes from request doesn't match with ATECO codes from PDND Visura"
 
   Scenario: Successfully store onboarding PRV merchant in status REQUEST with valid ATECO codes
     Given I have a request object named "success_ateco_valid_prv_request"
