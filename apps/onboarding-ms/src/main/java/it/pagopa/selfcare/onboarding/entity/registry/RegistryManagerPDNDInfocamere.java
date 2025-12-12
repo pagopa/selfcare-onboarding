@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.entity.registry;
 
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryPDNDInfocamere;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
@@ -14,10 +15,7 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.SaveUserDto;
 import org.openapi.quarkus.user_registry_json.model.UserSearchDto;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IDPAY_MERCHANT;
@@ -122,7 +120,7 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
                         .collect(Collectors.toList()))
                 .orElseThrow(() -> new InvalidRequestException("Allowed ATECO codes are not configured"));
 
-        return validPdndVisuraInfocamere(onboarding, pdndVisuraInfoCamereControllerApi, allowedCodes)
+        return validPdndVisuraInfocamere(pdndVisuraInfoCamereControllerApi, allowedCodes)
                 .onItem().transform(isValid -> {
                     if (!isValid) {
                         throw new InvalidRequestException("Institution ATECO codes from PDND Visura are not allowed for this product");
@@ -139,19 +137,30 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
         return Uni.createFrom().item(true);
     }
 
-    private Uni<Boolean> validPdndVisuraInfocamere(Onboarding onboarding, PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi, List<String> allowedCodes) {
-        String taxCode = onboarding.getInstitution().getTaxCode();
+    private Uni<Boolean> validPdndVisuraInfocamere(PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi,
+                                                   List<String> allowedCodes) {
+        Institution institution = onboarding.getInstitution();
+        String taxCode = institution.getTaxCode();
 
         return pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(taxCode)
                 .onItem().transform(pdndBusinessResource -> {
                     List<String> pdndAtecoCodes = pdndBusinessResource.getAtecoCodes();
 
-                    if (Objects.isNull(pdndAtecoCodes) || pdndAtecoCodes.isEmpty()) {
+                    if (pdndAtecoCodes == null || pdndAtecoCodes.isEmpty()) {
                         return false;
                     }
 
-                    return pdndAtecoCodes.stream()
-                            .anyMatch(ateco -> allowedCodes.contains(ateco.trim()));
+                    Set<String> pdndAteco = new HashSet<>(pdndAtecoCodes);
+
+                    Set<String> institutionAtecoCodes = new HashSet<>(institution.getAtecoCodes());
+
+                    if (!pdndAteco.equals(institutionAtecoCodes)) {
+                        throw new InvalidRequestException("Institution ATECO codes from request doesn't match with ATECO codes from PDND Visura");
+                    }
+
+                    return institutionAtecoCodes.stream()
+                            .map(String::trim)
+                            .anyMatch(allowedCodes::contains);
                 });
     }
 
