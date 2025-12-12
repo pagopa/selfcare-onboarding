@@ -5,12 +5,12 @@ import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryANAC;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
-import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.StationControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.StationResource;
 
 public class RegistryManagerANAC extends ClientRegistryANAC {
 
-    public RegistryManagerANAC(Onboarding onboarding, StationsApi stationsApi) {
+    public RegistryManagerANAC(Onboarding onboarding, StationControllerApi stationsApi) {
         super(onboarding, stationsApi);
     }
 

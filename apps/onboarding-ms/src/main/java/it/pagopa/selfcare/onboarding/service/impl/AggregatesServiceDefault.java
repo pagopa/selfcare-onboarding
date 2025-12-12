@@ -23,10 +23,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
@@ -46,19 +46,19 @@ public class AggregatesServiceDefault implements AggregatesService {
 
     @RestClient
     @Inject
-    AooApi aooApi;
+    AooControllerApi aooApi;
 
     @RestClient
     @Inject
-    InstitutionApi institutionApi;
+    InstitutionControllerApi institutionApi;
 
     @RestClient
     @Inject
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @RestClient
     @Inject
-    GeographicTaxonomiesApi geographicTaxonomiesApi;
+    GeographicTaxonomiesControllerApi geographicTaxonomiesApi;
 
     @Inject
     OnboardingMapper onboardingMapper;
@@ -231,12 +231,12 @@ public class AggregatesServiceDefault implements AggregatesService {
                     .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .onItem().transformToUni(institutionResource -> retrieveCityCountyAndMapIpaFieldForPA(institutionResource, aggregate));
         } else if (InstitutionPaSubunitType.AOO.name().equalsIgnoreCase(aggregate.getSubunitType())) {
-            return aooApi.findByUnicodeUsingGET(aggregate.getSubunitCode(), null)
+            return aooApi.findAOOByUnicodeUsingGET(aggregate.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
                     .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .onItem().transformToUni(aooResource -> retrieveCityCountyAndMapIpaFieldForAOO(aooResource, aggregate));
         } else if (UO.name().equalsIgnoreCase(aggregate.getSubunitType())) {
-            return uoApi.findByUnicodeUsingGET1(aggregate.getSubunitCode(), null)
+            return uoApi.findUoByUnicodeUsingGET(aggregate.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
                     .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
                     .onItem().transformToUni(uoResource -> retrieveCityCountyAndMapIpaFieldForUO(uoResource, aggregate));

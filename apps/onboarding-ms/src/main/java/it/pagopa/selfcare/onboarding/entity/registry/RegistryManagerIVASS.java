@@ -5,12 +5,12 @@ import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryIVASS;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
-import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.IvassControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.InsuranceCompanyResource;
 
 public class RegistryManagerIVASS extends ClientRegistryIVASS {
 
-    public RegistryManagerIVASS(Onboarding onboarding, InsuranceCompaniesApi insuranceApi) {
+    public RegistryManagerIVASS(Onboarding onboarding, IvassControllerApi insuranceApi) {
         super(onboarding, insuranceApi);
     }
 

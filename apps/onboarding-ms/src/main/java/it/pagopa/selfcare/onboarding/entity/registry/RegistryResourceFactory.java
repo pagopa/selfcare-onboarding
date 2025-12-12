@@ -20,7 +20,7 @@ public class RegistryResourceFactory {
 
     @RestClient
     @Inject
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi institutionApi;
 
     @RestClient
     @Inject
@@ -28,15 +28,15 @@ public class RegistryResourceFactory {
 
     @RestClient
     @Inject
-    NationalRegistriesApi nationalRegistriesApi;
+    NationalRegistriesControllerApi nationalRegistriesApi;
 
     @RestClient
     @Inject
-    AooApi aooApi;
+    AooControllerApi aooApi;
 
     @RestClient
     @Inject
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @RestClient
     @Inject
@@ -44,11 +44,11 @@ public class RegistryResourceFactory {
 
     @RestClient
     @Inject
-    InsuranceCompaniesApi insuranceCompaniesApi;
+    IvassControllerApi insuranceCompaniesApi;
 
     @RestClient
     @Inject
-    StationsApi stationsApi;
+    StationControllerApi stationsApi;
 
     @RestClient
     @Inject
@@ -56,7 +56,7 @@ public class RegistryResourceFactory {
 
     @RestClient
     @Inject
-    GeographicTaxonomiesApi geographicTaxonomiesApi;
+    GeographicTaxonomiesControllerApi geographicTaxonomiesApi;
 
     @ConfigProperty(name = "onboarding-ms.allowed-ateco-codes")
     Optional<String> allowedAtecoCodes;

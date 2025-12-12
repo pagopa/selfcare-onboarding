@@ -28,10 +28,10 @@ import org.jboss.resteasy.reactive.client.api.WebClientApplicationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.core_json.model.UserToOnboard;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
@@ -49,22 +49,22 @@ class AggregatesServiceDefaultTest {
 
     @RestClient
     @InjectMock
-    GeographicTaxonomiesApi geographicTaxonomiesApi;
+    GeographicTaxonomiesControllerApi geographicTaxonomiesApi;
 
     @RestClient
     @InjectMock
-    AooApi aooApi;
+    AooControllerApi aooApi;
 
     @RestClient
     @InjectMock
-    InstitutionApi institutionApi;
+    InstitutionControllerApi institutionApi;
 
     @Inject
     CsvUtils csvUtils;
 
     @RestClient
     @InjectMock
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @InjectMock
     AzureBlobClient azureBlobClient;
@@ -110,10 +110,10 @@ class AggregatesServiceDefaultTest {
         Response response = mock(Response.class);
         when(webClientApplicationException.getResponse()).thenReturn(response);
         when(response.getStatus()).thenReturn(404);
-        when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
-        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
+        when(aooApi.findAOOByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
+        when(aooApi.findAOOByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
         when(institutionApi.findInstitutionUsingGET("13071104841", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
-        when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("123")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
 
         VerifyAggregateResponse verifyAggregateResponse = mockResponseForIO();
@@ -130,8 +130,8 @@ class AggregatesServiceDefaultTest {
         Assertions.assertEquals(verifyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("123");
-        verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
-        verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
+        verify(aooApi, times(1)).findAOOByUnicodeUsingGET("18SU3R", null);
+        verify(aooApi, times(1)).findAOOByUnicodeUsingGET("18SU3S", null);
         verify(institutionApi, times(3)).findInstitutionUsingGET("13071104841", null, null);
 
     }
@@ -212,10 +212,10 @@ class AggregatesServiceDefaultTest {
         Response response = mock(Response.class);
         when(webClientApplicationException.getResponse()).thenReturn(response);
         when(response.getStatus()).thenReturn(404);
-        when(aooApi.findByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
-        when(aooApi.findByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
+        when(aooApi.findAOOByUnicodeUsingGET("18SU3S", null)).thenReturn(Uni.createFrom().item(aooResource));
+        when(aooApi.findAOOByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().failure(webClientApplicationException));
         when(institutionApi.findInstitutionUsingGET("13071104841", null, null)).thenReturn(Uni.createFrom().item(institutionResource));
-        when(uoApi.findByUnicodeUsingGET1("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("18SU3R", null)).thenReturn(Uni.createFrom().item(uoResource));
         when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET("456")).thenReturn(Uni.createFrom().item(geographicTaxonomyResource));
 
         VerifyAggregateResponse verifyAggregateResponse = mockResponseForSEND();
@@ -233,8 +233,8 @@ class AggregatesServiceDefaultTest {
         Assertions.assertEquals(verifyAggregateResponse.getErrors(), resp.getItem().getErrors());
 
         verify(geographicTaxonomiesApi, times(1)).retrieveGeoTaxonomiesByCodeUsingGET("456");
-        verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3R", null);
-        verify(aooApi, times(1)).findByUnicodeUsingGET("18SU3S", null);
+        verify(aooApi, times(1)).findAOOByUnicodeUsingGET("18SU3R", null);
+        verify(aooApi, times(1)).findAOOByUnicodeUsingGET("18SU3S", null);
         verify(institutionApi, times(3)).findInstitutionUsingGET("13071104841", null, null);
     }
 

@@ -17,25 +17,25 @@ import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.Objects;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     private static final List<String> ALLOWED_PRICING_PLANS = List.of("C0");
 
-    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+    public RegistryManagerIPAUo(Onboarding onboarding, UoControllerApi uoApi, AooControllerApi aooApi) {
         super(onboarding, uoApi, aooApi);
     }
 
-    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi) {
+    public RegistryManagerIPAUo(Onboarding onboarding, UoControllerApi uoApi) {
         super(onboarding, uoApi);
     }
 
-    public RegistryManagerIPAUo(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi, GeographicTaxonomiesApi geographicTaxonomiesApi) {
+    public RegistryManagerIPAUo(Onboarding onboarding, UoControllerApi uoApi, InstitutionControllerApi institutionApi, GeographicTaxonomiesControllerApi geographicTaxonomiesApi) {
         super(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
     }
 
@@ -72,7 +72,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
     }
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
-        return super.uoClient.findByUnicodeUsingGET1(recipientCode, null)
+        return super.uoClient.findUoByUnicodeUsingGET(recipientCode, null)
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(
@@ -132,7 +132,7 @@ public class RegistryManagerIPAUo extends ClientRegistryIPA {
 
     private Uni<Onboarding> checkTaxCodeInvoicing(Onboarding onboarding) {
         /* if tax code invoicing is not into hierarchy, throw an exception */
-        return super.uoClient.findAllUsingGET1(null, null, onboarding.getBilling().getTaxCodeInvoicing())
+        return super.uoClient.findUosUsingGET(null, null, onboarding.getBilling().getTaxCodeInvoicing())
                 .flatMap(uosResource -> {
                     /* if parent tax code is not into hierarchy, throw an exception */
                     if (Objects.nonNull(uosResource) && Objects.nonNull(uosResource.getItems())

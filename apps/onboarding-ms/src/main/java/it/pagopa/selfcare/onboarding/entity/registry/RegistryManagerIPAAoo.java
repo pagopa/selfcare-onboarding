@@ -10,19 +10,19 @@ import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.AooControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.AOOResource;
 
 public class RegistryManagerIPAAoo extends RegistryManagerIPAUo {
 
-    public RegistryManagerIPAAoo(Onboarding onboarding, UoApi uoApi, AooApi aooApi) {
+    public RegistryManagerIPAAoo(Onboarding onboarding, UoControllerApi uoApi, AooControllerApi aooApi) {
         super(onboarding, uoApi, aooApi);
     }
 
     @Override
     public IPAEntity retrieveInstitution() {
-        AOOResource aooResource = super.aooClient.findByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
+        AOOResource aooResource = super.aooClient.findAOOByUnicodeUsingGET(onboarding.getInstitution().getSubunitCode(), null)
                 .onFailure().retry().atMost(MAX_NUMBER_ATTEMPTS)
                 .onFailure(WebApplicationException.class).recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(String.format(AOO_NOT_FOUND.getMessage(), onboarding.getInstitution().getSubunitCode())))

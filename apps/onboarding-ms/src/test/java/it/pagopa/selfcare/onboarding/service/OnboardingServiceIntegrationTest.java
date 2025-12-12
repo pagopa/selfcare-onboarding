@@ -71,7 +71,7 @@ class OnboardingServiceIntegrationTest {
 
     @InjectMock
     @RestClient
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi institutionRegistryProxyApi;
 
     @InjectMock
     @RestClient

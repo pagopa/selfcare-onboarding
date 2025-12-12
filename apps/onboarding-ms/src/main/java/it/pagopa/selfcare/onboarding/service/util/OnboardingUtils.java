@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.UOResource;
 
 import java.util.Objects;
@@ -19,10 +19,10 @@ public class OnboardingUtils {
 
     @RestClient
     @Inject
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     public Uni<UOResource> getUoFromRecipientCode(String recipientCode) {
-        return uoApi.findByUnicodeUsingGET1(recipientCode, null)
+        return uoApi.findUoByUnicodeUsingGET(recipientCode, null)
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> ((WebApplicationException) ex).getResponse().getStatus() == 404
                         ? Uni.createFrom().failure(new ResourceNotFoundException(

@@ -54,10 +54,7 @@ import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.AooApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InfocamereApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.*;
 import org.openapi.quarkus.party_registry_proxy_json.model.BusinessesResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalDto;
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
@@ -121,11 +118,11 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @RestClient
     @Inject
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi institutionRegistryProxyApi;
 
     @RestClient
     @Inject
-    AooApi aooApi;
+    AooControllerApi aooApi;
 
     @RestClient
     @Inject
@@ -133,7 +130,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @RestClient
     @Inject
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @RestClient
     @Inject
@@ -141,7 +138,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @RestClient
     @Inject
-    NationalRegistriesApi nationalRegistriesApi;
+    NationalRegistriesControllerApi nationalRegistriesApi;
 
     @RestClient
     @Inject

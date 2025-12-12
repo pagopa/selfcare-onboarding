@@ -90,14 +90,14 @@ class OnboardingServiceDefaultTest {
 
     @InjectMock
     @RestClient
-    InsuranceCompaniesApi insuranceCompaniesApi;
+    IvassControllerApi insuranceCompaniesApi;
 
     @InjectMock
     ProductService productService;
 
     @InjectMock
     @RestClient
-    AooApi aooApi;
+    AooControllerApi aooApi;
 
     @InjectMock
     @RestClient
@@ -105,11 +105,11 @@ class OnboardingServiceDefaultTest {
 
     @InjectMock
     @RestClient
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi institutionRegistryProxyApi;
 
     @InjectMock
     @RestClient
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @InjectMock
     @RestClient
@@ -121,7 +121,7 @@ class OnboardingServiceDefaultTest {
 
     @RestClient
     @InjectMock
-    NationalRegistriesApi nationalRegistriesApi;
+    NationalRegistriesControllerApi nationalRegistriesApi;
 
     @RestClient
     @InjectMock
@@ -145,7 +145,7 @@ class OnboardingServiceDefaultTest {
 
     @InjectMock
     @RestClient
-    GeographicTaxonomiesApi geographicTaxonomiesApi;
+    GeographicTaxonomiesControllerApi geographicTaxonomiesApi;
 
     @InjectMock
     OnboardingValidationStrategy onboardingValidationStrategy;
@@ -328,7 +328,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
         uoResource.setCodiceIpa("originId");
-        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         managerResource.setId(UUID.fromString("9456d91f-ef53-4f89-8330-7f9a195d5d1e"));
         when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any())).thenReturn(Uni.createFrom().item(managerResource));
@@ -402,7 +402,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
         uoResource.setCodiceIpa("originId");
-        when(uoApi.findByUnicodeUsingGET1(any(), any())).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET(any(), any())).thenReturn(Uni.createFrom().item(uoResource));
 
         PanacheMock.mock(Onboarding.class);
         ReactivePanacheQuery query = Mockito.mock(ReactivePanacheQuery.class);
@@ -524,7 +524,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null),
                 InvalidRequestException.class);
@@ -560,7 +560,7 @@ class OnboardingServiceDefaultTest {
         aooResource.setDenominazioneEnte("TEST");
         aooResource.setDenominazioneAoo("TEST");
         aooResource.setMail1(DIGITAL_ADDRESS_FIELD);
-        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(aooApi.findAOOByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(aooResource)));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
@@ -599,9 +599,9 @@ class OnboardingServiceDefaultTest {
         when(exception.getResponse()).thenReturn(response);
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(uoApi.findUoByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
-        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(aooApi.findAOOByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), ResourceNotFoundException.class);
@@ -634,10 +634,10 @@ class OnboardingServiceDefaultTest {
 
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(uoApi.findUoByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
 
-        asserter.execute(() -> when(aooApi.findByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(aooApi.findAOOByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), WebApplicationException.class);
@@ -673,7 +673,7 @@ class OnboardingServiceDefaultTest {
         uoResource.setDenominazioneEnte("TEST");
         uoResource.setMail1(DIGITAL_ADDRESS_FIELD);
         uoResource.setDescrizioneUo("TEST");
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(uoApi.findUoByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().item(uoResource)));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
@@ -712,10 +712,10 @@ class OnboardingServiceDefaultTest {
         uoResource.setCodiceFiscaleEnte("taxCode");
         uoResource.setMail1("mail@pec.it");
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(new InstitutionResource()));
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(uoApi.findUoByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(resourceNotFoundException)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), ResourceNotFoundException.class);
@@ -746,7 +746,7 @@ class OnboardingServiceDefaultTest {
 
         UOResource uoResource = new UOResource();
         uoResource.setDenominazioneEnte("TEST");
-        asserter.execute(() -> when(uoApi.findByUnicodeUsingGET1(institutionBaseRequest.getSubunitCode(), null))
+        asserter.execute(() -> when(uoApi.findUoByUnicodeUsingGET(institutionBaseRequest.getSubunitCode(), null))
                 .thenReturn(Uni.createFrom().failure(exception)));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(request, users, null), WebApplicationException.class);
@@ -783,7 +783,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
         uoResource.setCodiceIpa("originId");
-        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDescription("TEST");
@@ -832,7 +832,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
         uoResource.setCodiceIpa("originId");
-        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDescription("TEST");
@@ -874,7 +874,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceFiscaleSfe("codSfe");
         uoResource.setCodiceIpa("originId");
-        when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
+        when(uoApi.findUoByUnicodeUsingGET("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
         institutionResource.setDescription("TEST");
@@ -1221,7 +1221,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -1288,7 +1288,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, List.of(aggregateInstitutionRequest)), Assertions::assertNotNull);
@@ -1328,7 +1328,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
@@ -1521,7 +1521,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingDefaultRequest, users, null), Assertions::assertNotNull);
 
@@ -1572,7 +1572,7 @@ class OnboardingServiceDefaultTest {
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
         uoResource.setMail1(DIGITAL_ADDRESS_FIELD);
         uoResource.setDescrizioneUo(DESCRIPTION_FIELD);
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -2369,7 +2369,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -2732,8 +2732,8 @@ class OnboardingServiceDefaultTest {
         CustomError customError = CustomError.DENIED_NO_ASSOCIATION;
         UOResource uoResource = Mockito.mock(UOResource.class);
         OnboardingUtils onboardingUtils = Mockito.mock(OnboardingUtils.class);
-        // Mock the response from uoApi.findByUnicodeUsingGET1
-        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+        // Mock the response from uoApi.findUoByUnicodeUsingGET
+        when(uoApi.findUoByUnicodeUsingGET(eq(recipientCode), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         // Mock the response from onboardingUtils.validationRecipientCode
@@ -2754,7 +2754,7 @@ class OnboardingServiceDefaultTest {
         final String recipientCode = "recipientCode";
         final String originId = "originId";
         RuntimeException exception = new RuntimeException("Generic error");
-        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+        when(uoApi.findUoByUnicodeUsingGET(eq(recipientCode), any()))
                 .thenReturn(Uni.createFrom().failure(exception));
         UniAssertSubscriber<CustomError> subscriber = onboardingService
                 .checkRecipientCode(recipientCode, originId)
@@ -2769,7 +2769,7 @@ class OnboardingServiceDefaultTest {
         final String recipientCode = "recipientCode";
         final String originId = "originId";
         ClientWebApplicationException exception = new ClientWebApplicationException(HttpStatus.SC_NOT_FOUND);
-        when(uoApi.findByUnicodeUsingGET1(eq(recipientCode), any()))
+        when(uoApi.findUoByUnicodeUsingGET(eq(recipientCode), any()))
                 .thenReturn(Uni.createFrom().failure(exception));
         UniAssertSubscriber<CustomError> subscriber = onboardingService
                 .checkRecipientCode(recipientCode, originId)
@@ -3235,7 +3235,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -3806,7 +3806,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -3878,7 +3878,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -3954,7 +3954,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -4044,7 +4044,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -4132,7 +4132,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -4215,7 +4215,7 @@ class OnboardingServiceDefaultTest {
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
         uoResource.setCodiceFiscaleSfe("codiceFiscaleSfe");
-        when(uoApi.findByUnicodeUsingGET1(any(), any()))
+        when(uoApi.findUoByUnicodeUsingGET(any(), any()))
                 .thenReturn(Uni.createFrom().item(uoResource));
 
         InstitutionResource institutionResource = new InstitutionResource();
@@ -4391,7 +4391,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
@@ -4426,7 +4426,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
                 InvalidRequestException.class);
@@ -4457,7 +4457,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
 
@@ -4492,7 +4492,7 @@ class OnboardingServiceDefaultTest {
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
-        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+        when(insuranceCompaniesApi.searchInsurancesUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
                 InvalidRequestException.class);

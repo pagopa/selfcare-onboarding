@@ -16,7 +16,7 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
-import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.LegalVerificationResult;
 
 @QuarkusTest
@@ -24,7 +24,7 @@ public class RegistryManagerADETest {
 
     @InjectMock
     @RestClient
-    NationalRegistriesApi nationalRegistriesApi;
+    NationalRegistriesControllerApi nationalRegistriesApi;
 
     @Test
     void retrieveInstitution() {

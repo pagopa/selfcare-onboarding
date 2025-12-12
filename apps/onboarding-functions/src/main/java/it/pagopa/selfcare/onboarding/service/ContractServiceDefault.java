@@ -217,6 +217,11 @@ public class ContractServiceDefault implements ContractService {
     String pdfFormatFilename) {
 
     log.info("START - createContractPdf for template: {}", contractTemplatePath);
+    
+    if (contractTemplatePath == null || contractTemplatePath.isEmpty()) {
+      throw new GenericOnboardingException("Contract template path is not configured for this product and institution type");
+    }
+    
     // Generate a unique filename for the PDF.
     final String productId = onboarding.getProductId();
     final Institution institution = onboarding.getInstitution();

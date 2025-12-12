@@ -8,9 +8,9 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import jakarta.ws.rs.WebApplicationException;
-import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.GeographicTaxonomiesControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.GeographicTaxonomyResource;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 
@@ -25,7 +25,7 @@ public class RegistryManagerIPA extends RegistryManagerIPAUo {
 
     private static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
 
-    public RegistryManagerIPA(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi, GeographicTaxonomiesApi geographicTaxonomiesApi) {
+    public RegistryManagerIPA(Onboarding onboarding, UoControllerApi uoApi, InstitutionControllerApi institutionApi, GeographicTaxonomiesControllerApi geographicTaxonomiesApi) {
         super(onboarding, uoApi, institutionApi, geographicTaxonomiesApi);
     }
 

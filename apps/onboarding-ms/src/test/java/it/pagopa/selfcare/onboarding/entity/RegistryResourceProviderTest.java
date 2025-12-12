@@ -12,9 +12,9 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.InsuranceCompaniesApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.StationsApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.IvassControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.StationControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 
 @QuarkusTest
 class RegistryResourceProviderTest {
@@ -24,15 +24,15 @@ class RegistryResourceProviderTest {
 
     @InjectMock
     @RestClient
-    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionApi;
+    org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi institutionApi;
 
     @InjectMock
     @RestClient
-    UoApi uoApi;
+    UoControllerApi uoApi;
 
     @InjectMock
     @RestClient
-    InsuranceCompaniesApi insuranceCompaniesApi;
+    IvassControllerApi insuranceCompaniesApi;
 
     @InjectMock
     @RestClient
@@ -40,7 +40,7 @@ class RegistryResourceProviderTest {
 
     @InjectMock
     @RestClient
-    StationsApi stationsApi;
+    StationControllerApi stationsApi;
 
     private static final String MANAGER_TAX_CODE = "managerTaxCode";
 

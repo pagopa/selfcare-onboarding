@@ -5,8 +5,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.registry.client.ClientRegistryADE;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
-import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
-import org.openapi.quarkus.user_registry_json.api.UserApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesControllerApi;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -14,7 +13,7 @@ import java.util.Objects;
 public class RegistryManagerADE extends ClientRegistryADE {
 
   public RegistryManagerADE(
-      Onboarding onboarding, NationalRegistriesApi nationalRegistriesApi, String managerTaxCode) {
+          Onboarding onboarding, NationalRegistriesControllerApi nationalRegistriesApi, String managerTaxCode) {
     super(onboarding, nationalRegistriesApi, managerTaxCode);
   }
 

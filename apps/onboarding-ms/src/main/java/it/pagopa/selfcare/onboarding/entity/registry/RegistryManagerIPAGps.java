@@ -12,13 +12,13 @@ import jakarta.ws.rs.WebApplicationException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi;
-import org.openapi.quarkus.party_registry_proxy_json.api.UoApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.InstitutionControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.UoControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.InstitutionResource;
 
 public class RegistryManagerIPAGps extends RegistryManagerIPAUo {
 
-    public RegistryManagerIPAGps(Onboarding onboarding, UoApi uoApi, InstitutionApi institutionApi) {
+    public RegistryManagerIPAGps(Onboarding onboarding, UoControllerApi uoApi, InstitutionControllerApi institutionApi) {
         super(onboarding, uoApi, institutionApi, null);
     }
 

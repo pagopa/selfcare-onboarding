@@ -10,15 +10,15 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.NationalRegistriesControllerApi;
 
 @Slf4j
 public abstract class ClientRegistryADE extends BaseRegistryManager<Boolean> {
 
-  private final NationalRegistriesApi client;
+  private final NationalRegistriesControllerApi client;
   private final String managerTaxCode;
 
-  protected ClientRegistryADE(Onboarding onboarding, NationalRegistriesApi client, String managerTaxCode) {
+  protected ClientRegistryADE(Onboarding onboarding, NationalRegistriesControllerApi client, String managerTaxCode) {
     super(onboarding);
     this.client = client;
     this.managerTaxCode = managerTaxCode;
