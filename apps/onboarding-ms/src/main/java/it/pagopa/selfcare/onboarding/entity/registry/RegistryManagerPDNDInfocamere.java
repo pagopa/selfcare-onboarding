@@ -8,14 +8,17 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.product.entity.Product;
 import jakarta.ws.rs.WebApplicationException;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.PdndVisuraInfoCamereControllerApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.SaveUserDto;
 import org.openapi.quarkus.user_registry_json.model.UserSearchDto;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IDPAY_MERCHANT;
 
@@ -25,12 +28,14 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
 
     private final UserApi userRegistryApi;
     private final Optional<String> allowedAtecoCodes;
+    private final PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi;
 
     public RegistryManagerPDNDInfocamere(Onboarding onboarding, InfocamerePdndApi infocamerePdndApi, UserApi userRegistryApi,
-                                        Optional<String> allowedAtecoCodes) {
+                                         Optional<String> allowedAtecoCodes, PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi) {
         super(onboarding, infocamerePdndApi);
         this.userRegistryApi = userRegistryApi;
         this.allowedAtecoCodes = allowedAtecoCodes;
+        this.pdndVisuraInfoCamereControllerApi = pdndVisuraInfoCamereControllerApi;
     }
 
     @Override
@@ -112,16 +117,18 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
 
         List<String> allowedCodes = allowedAtecoCodes
                 .filter(codes -> !codes.trim().isEmpty())
-                .map(codes -> List.of(codes.split(",")))
+                .map(codes -> Arrays.stream(codes.split(","))
+                        .map(String::trim)
+                        .collect(Collectors.toList()))
                 .orElseThrow(() -> new InvalidRequestException("Allowed ATECO codes are not configured"));
-        boolean hasValidAteco = institutionAtecoCodes.stream()
-                .anyMatch(ateco -> allowedCodes.contains(ateco.trim()));
 
-        if (!hasValidAteco) {
-            return Uni.createFrom().failure(new InvalidRequestException("Institution ATECO codes are not allowed for this product"));
-        }
-
-        return Uni.createFrom().item(onboarding);
+        return validPdndVisuraInfocamere(onboarding, pdndVisuraInfoCamereControllerApi, allowedCodes)
+                .onItem().transform(isValid -> {
+                    if (!isValid) {
+                        throw new InvalidRequestException("Institution ATECO codes from PDND Visura are not allowed for this product");
+                    }
+                    return onboarding;
+                });
     }
 
     @Override
@@ -130,6 +137,22 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
               return Uni.createFrom().failure(new InvalidRequestException("Field digitalAddress or description are not valid"));
         }*/
         return Uni.createFrom().item(true);
+    }
+
+    private Uni<Boolean> validPdndVisuraInfocamere(Onboarding onboarding, PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi, List<String> allowedCodes) {
+        String taxCode = onboarding.getInstitution().getTaxCode();
+
+        return pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(taxCode)
+                .onItem().transform(pdndBusinessResource -> {
+                    List<String> pdndAtecoCodes = pdndBusinessResource.getAtecoCodes();
+
+                    if (Objects.isNull(pdndAtecoCodes) || pdndAtecoCodes.isEmpty()) {
+                        return false;
+                    }
+
+                    return pdndAtecoCodes.stream()
+                            .anyMatch(ateco -> allowedCodes.contains(ateco.trim()));
+                });
     }
 
     private boolean originPDNDInfocamere(Onboarding onboarding, PDNDBusinessResource pdndBusinessResource) {

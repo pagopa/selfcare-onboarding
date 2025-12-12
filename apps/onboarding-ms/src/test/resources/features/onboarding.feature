@@ -417,7 +417,7 @@ Feature: Onboarding collection
     Given I have a request object named "invalid_ateco_invalid_prv_request"
     When I send a POST request to "" with this request
     Then the response status code should be 400
-    And the response should contain the text "Institution ATECO codes are not allowed for this product"
+    And the response should contain the text "Institution ATECO codes from PDND Visura are not allowed for this product"
 
   Scenario: Successfully store onboarding PRV merchant in status REQUEST with valid ATECO codes
     Given I have a request object named "success_ateco_valid_prv_request"

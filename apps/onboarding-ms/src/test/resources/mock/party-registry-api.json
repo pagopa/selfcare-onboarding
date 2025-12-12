@@ -482,7 +482,7 @@
     },
     "httpResponse": {
       "statusCode": 200,
-      "body": "{\"businessTaxId\":\"15376371009\",\"businessName\":\"PAGOPA S.P.A.\",\"legalNature\":\"SP\",\"legalNatureDescription\":\"SOCIETA' PER AZIONI\",\"cciaa\":\"RM\",\"nRea\":\"1586302\",\"businessStatus\":\"Registrata\",\"city\":\"ROMA\",\"county\":\"RM\",\"zipCode\":\"00187\",\"address\":\"PIAZZA COLONNA 370\",\"digitalAddress\":\"PAGOPASPA@PEC.PAGOPA.IT\"}",
+      "body": "{\"businessTaxId\":\"15376371009\",\"businessName\":\"PAGOPA S.P.A.\",\"legalNature\":\"SP\",\"legalNatureDescription\":\"SOCIETA' PER AZIONI\",\"cciaa\":\"RM\",\"nRea\":\"1586302\",\"businessStatus\":\"Registrata\",\"city\":\"ROMA\",\"county\":\"RM\",\"zipCode\":\"00187\",\"address\":\"PIAZZA COLONNA 370\",\"digitalAddress\":\"PAGOPASPA@PEC.PAGOPA.IT\",\"atecoCodes\":[\"01.11.00\",\"01.12.00\"]}",
       "headers": {
         "Content-Type": "application/json"
       }

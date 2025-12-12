@@ -22,6 +22,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.api.PdndVisuraInfoCamereControllerApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import it.pagopa.selfcare.product.entity.Product;
@@ -37,6 +39,10 @@ class RegistryManagerPDNDInfocamereTest {
     @RestClient
     UserApi userRegistryApi;
 
+    @InjectMock
+    @RestClient
+    PdndVisuraInfoCamereControllerApi pdndVisuraInfoCamereControllerApi;
+
     private Onboarding onboarding;
     private RegistryManagerPDNDInfocamere registryManager;
     private Product product;
@@ -48,16 +54,25 @@ class RegistryManagerPDNDInfocamereTest {
     }
 
     @Test
-    void customValidation_withIdPayMerchantProduct_validAtecoCodes() {
+    void customValidation_withIdPayMerchantProduct_pdndAtecosValid() {
         // given
         when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(List.of("12.34", "56.78"));
-        String allowedAtecoCodes = "12.34,90.01,45.67";
+        onboarding.getInstitution().setAtecoCodes(List.of("01.11.00"));
+        onboarding.getInstitution().setTaxCode("01234567890");
+        String allowedAtecoCodes = "01.11.00,90.01,45.67";
+        
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of("01.11.00", "01.12.00"));
+        
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET("01234567890"))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+        
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.of(allowedAtecoCodes)
+                Optional.of(allowedAtecoCodes),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -70,16 +85,25 @@ class RegistryManagerPDNDInfocamereTest {
     }
 
     @Test
-    void customValidation_withIdPayMerchantProduct_noAtecoCodes() {
+    void customValidation_withIdPayMerchantProduct_pdndAtecosNotInAllowedList() {
         // given
         when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(null);
+        onboarding.getInstitution().setAtecoCodes(List.of("99.99"));
+        onboarding.getInstitution().setTaxCode("01234567890");
         String allowedAtecoCodes = "12.34,90.01,45.67";
+        
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of("88.88", "77.77"));
+        
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET("01234567890"))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+        
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.of(allowedAtecoCodes)
+                Optional.of(allowedAtecoCodes),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -90,16 +114,25 @@ class RegistryManagerPDNDInfocamereTest {
     }
 
     @Test
-    void customValidation_withIdPayMerchantProduct_emptyAtecoCodes() {
+    void customValidation_withIdPayMerchantProduct_pdndAtecosEmpty() {
         // given
         when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(List.of());
+        onboarding.getInstitution().setAtecoCodes(List.of("12.34"));
+        onboarding.getInstitution().setTaxCode("01234567890");
         String allowedAtecoCodes = "12.34,90.01,45.67";
+        
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of());
+        
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET("01234567890"))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+        
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.of(allowedAtecoCodes)
+                Optional.of(allowedAtecoCodes),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -110,36 +143,25 @@ class RegistryManagerPDNDInfocamereTest {
     }
 
     @Test
-    void customValidation_withIdPayMerchantProduct_noMatchingAtecoCodes() {
+    void customValidation_withIdPayMerchantProduct_pdndAtecosWithWhitespace() {
         // given
         when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(List.of("99.99", "88.88"));
-        String allowedAtecoCodes = "12.34,90.01,45.67";
-        registryManager = new RegistryManagerPDNDInfocamere(
-                onboarding,
-                infocamerePdndApi,
-                userRegistryApi,
-                Optional.of(allowedAtecoCodes)
-        );
-
-        // when
-        Uni<Onboarding> result = registryManager.customValidation(product);
-
-        // then
-        assertThrows(InvalidRequestException.class, () -> result.await().indefinitely());
-    }
-
-    @Test
-    void customValidation_withIdPayMerchantProduct_atecoCodesWithWhitespace() {
-        // given
-        when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(List.of(" 12.34 ", "56.78"));
+        onboarding.getInstitution().setAtecoCodes(List.of("12.34"));
+        onboarding.getInstitution().setTaxCode("01234567890");
         String allowedAtecoCodes = "12.34, 90.01 , 45.67";
+        
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of(" 12.34 ", "56.78"));
+        
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET("01234567890"))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+        
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.of(allowedAtecoCodes)
+                Optional.of(allowedAtecoCodes),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -159,7 +181,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when & then
@@ -175,7 +198,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         UserResource userResource = new UserResource();
@@ -205,7 +229,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         RuntimeException searchException = new RuntimeException("Search failed");
@@ -231,7 +256,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -251,7 +277,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -270,7 +297,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when
@@ -279,28 +307,6 @@ class RegistryManagerPDNDInfocamereTest {
         // then
         Boolean isValid = result.await().indefinitely();
         assertTrue(isValid);
-    }
-
-    @Test
-    void customValidation_multipleAtecoCodes_oneMatches() {
-        // given
-        when(product.getId()).thenReturn("prod-idpay-merchant");
-        onboarding.getInstitution().setAtecoCodes(List.of("99.99", "12.34", "88.88"));
-        String allowedAtecoCodes = "12.34,90.01,45.67";
-        registryManager = new RegistryManagerPDNDInfocamere(
-                onboarding,
-                infocamerePdndApi,
-                userRegistryApi,
-                Optional.of(allowedAtecoCodes)
-        );
-
-        // when
-        Uni<Onboarding> result = registryManager.customValidation(product);
-
-        // then
-        Onboarding resultOnboarding = result.await().indefinitely();
-        assertNotNull(resultOnboarding);
-        assertEquals(onboarding.getId(), resultOnboarding.getId());
     }
 
     @Test
@@ -313,7 +319,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.of(allowedAtecoCodes)
+                Optional.of(allowedAtecoCodes),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when & then
@@ -329,7 +336,8 @@ class RegistryManagerPDNDInfocamereTest {
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty()
+                Optional.empty(),
+                pdndVisuraInfoCamereControllerApi
         );
 
         // when & then
