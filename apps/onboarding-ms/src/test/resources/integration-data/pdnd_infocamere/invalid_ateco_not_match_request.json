@@ -28,7 +28,7 @@
       }
     ],
     "imported": false,
-    "atecoCodes": ["99.99.99", "88.88.88"]
+    "atecoCodes": ["01.13.00", "01.14.10"]
   },
   "billing": {
     "vatNumber": "00876320409",
