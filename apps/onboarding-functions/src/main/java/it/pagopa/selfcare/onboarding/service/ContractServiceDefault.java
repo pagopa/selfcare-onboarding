@@ -217,7 +217,6 @@ public class ContractServiceDefault implements ContractService {
     String pdfFormatFilename) {
 
     log.info("START - createContractPdf for template: {}", contractTemplatePath);
-
     // Generate a unique filename for the PDF.
     final String productId = onboarding.getProductId();
     final Institution institution = onboarding.getInstitution();
