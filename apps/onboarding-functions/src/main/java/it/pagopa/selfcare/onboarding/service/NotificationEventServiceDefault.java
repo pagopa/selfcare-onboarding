@@ -122,6 +122,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
             sendNotification(context, consumer.topic(), notificationToSend, notificationEventTraceId);
+            // CALL WEBHOOK POST API
             sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend, notificationEventTraceId);
         } else {
             context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
