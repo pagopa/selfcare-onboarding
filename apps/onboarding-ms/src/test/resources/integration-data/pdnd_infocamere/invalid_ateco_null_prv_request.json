@@ -2,25 +2,25 @@
   "productId": "prod-idpay-merchant",
   "users": [
     {
-      "taxCode": "GRSGNT71A62C950S",
-      "name": "Gianantonio",
-      "surname": "Grassi",
-      "email": "g.grassi@test.it",
+      "taxCode": "FRDSMN80A01F205Z",
+      "name": "Sigmund",
+      "surname": "Freud",
+      "email": "s.freud@test.email.it",
       "role": "MANAGER"
     }
   ],
   "institution": {
     "institutionType": "PRV",
-    "taxCode": "00876320409",
+    "taxCode": "15376371009",
     "origin": "PDND_INFOCAMERE",
-    "city": "FORLI",
-    "originId": "00876320409",
+    "originId": "15376371009",
+    "city": "Roccamonfina",
     "country": "IT",
-    "county": "FC",
-    "description": "UNIEURO  S.P.A.",
-    "digitalAddress": "UFFICIOPAGHE@PEC.SGMDISTRIBUZIONE.IT",
-    "address": "VIA PIERO MARONCELLI 10",
-    "zipCode": "47121",
+    "county": "CE",
+    "description": "PAGOPA S.P.A.",
+    "digitalAddress": "PAGOPASPA@PEC.PAGOPA.IT",
+    "address": "Via Municipio N. 8",
+    "zipCode": "81035",
     "geographicTaxonomies": [
       {
         "code": "ITA",
@@ -28,7 +28,7 @@
       }
     ],
     "imported": false,
-    "atecoCodes": ["01.11.00", "01.12.00"]
+    "atecoCodes": null
   },
   "billing": {
     "vatNumber": "00876320409",
@@ -36,7 +36,7 @@
     "publicServices": true
   },
   "payment": {
-    "iban": "FR60X0542811101000000123456",
+    "iban": "IT60X0542811101000000123456",
     "holder": "Antonello Golfini"
   }
 }

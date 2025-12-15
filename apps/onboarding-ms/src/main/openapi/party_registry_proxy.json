@@ -57,6 +57,14 @@
     {
       "name": "uo",
       "description": "UO Controller"
+    },
+    {
+      "name": "infocamere PDND",
+      "description": "Info Camere Controller"
+    },
+    {
+      "name": "pdnd-visura-info-camere-controller",
+      "description": "Pdnd Visura Info Camere Controller"
     }
   ],
   "paths": {
@@ -1826,6 +1834,244 @@
           }
         ]
       }
+    },
+    "/visura-infocamere-pdnd/institutions": {
+      "get": {
+        "tags": [
+          "pdnd-visura-info-camere-controller"
+        ],
+        "summary": "Get institutions detail by institution rea",
+        "description": "Get the company represented by rea of the institution passed as a parameter",
+        "operationId": "institutionsPdndByReaGET",
+        "parameters": [
+          {
+            "name": "rea",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PDNDBusinessResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "global"
+            ]
+          }
+        ]
+      }
+    },
+    "/visura-infocamere-pdnd/institutions/{taxCode}": {
+      "get": {
+        "tags": [
+          "pdnd-visura-info-camere-controller"
+        ],
+        "summary": "Get institution by institution taxCode",
+        "description": "Get the company represented by taxCode of the institution passed as a parameter",
+        "operationId": "institutionVisuraPdndByTaxCodeUsingGET",
+        "parameters": [
+          {
+            "name": "taxCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PDNDBusinessResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "global"
+            ]
+          }
+        ]
+      }
+    },
+    "/visura-infocamere-pdnd/institutions/{taxCode}/document": {
+      "get": {
+        "tags": [
+          "pdnd-visura-info-camere-controller"
+        ],
+        "summary": "Get institution by institution taxCode",
+        "description": "Get the company represented by taxCode of the institution passed as a parameter",
+        "operationId": "institutionVisuraDocumentByTaxCodeUsingGET",
+        "parameters": [
+          {
+            "name": "taxCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document successfully retrieved",
+            "content": {
+              "application/xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "byte"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": [
+              "global"
+            ]
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -2533,31 +2779,12 @@
         }
       },
       "PDNDBusinessResource": {
-        "title": "PDNDBusinessResource",
         "type": "object",
         "properties": {
-          "address": {
-            "type": "string"
-          },
-          "businessName": {
-            "type": "string"
-          },
-          "businessStatus": {
-            "type": "string"
-          },
           "businessTaxId": {
             "type": "string"
           },
-          "cciaa": {
-            "type": "string"
-          },
-          "city": {
-            "type": "string"
-          },
-          "county": {
-            "type": "string"
-          },
-          "digitalAddress": {
+          "businessName": {
             "type": "string"
           },
           "legalNature": {
@@ -2566,10 +2793,52 @@
           "legalNatureDescription": {
             "type": "string"
           },
-          "nrea": {
+          "cciaa": {
+            "type": "string"
+          },
+          "businessStatus": {
+            "type": "string"
+          },
+          "vatNumber": {
+            "type": "string"
+          },
+          "legalForm": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "county": {
             "type": "string"
           },
           "zipCode": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "digitalAddress": {
+            "type": "string"
+          },
+          "atecoCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "disabledStateInstitution": {
+            "type": "string"
+          },
+          "descriptionStateInstitution": {
+            "type": "string"
+          },
+          "statusCompanyRI": {
+            "type": "string"
+          },
+          "statusCompanyRD": {
+            "type": "string"
+          },
+          "nrea": {
             "type": "string"
           }
         }
