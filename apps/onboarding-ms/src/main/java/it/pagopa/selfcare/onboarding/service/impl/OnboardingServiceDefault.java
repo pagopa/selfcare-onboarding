@@ -36,6 +36,7 @@ import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -1472,7 +1473,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<String> uploadSignedContractAndUpdateToken(Onboarding onboarding, FormItem formItem) {
         String onboardingId = onboarding.getId();
 
-        return retrieveToken(onboardingId)
+        return retrieveToken(onboarding, formItem)
                 .onItem()
                 .transformToUni(token -> processAndUploadFile(token, onboardingId, formItem));
     }
@@ -1598,12 +1599,37 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Token> retrieveToken(String onboardingId) {
         return Token.list("onboardingId", onboardingId)
-                .map(tokens -> tokens.stream()
-                        .findFirst()
-                        .map(Token.class::cast)
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                String.format("Onboarding with onboarding id %s does not have an associated token", onboardingId)
-                        )));
+                .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
+    }
+
+    Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem) {
+        String onboardingId = onboarding.getId();
+        return Token.list("onboardingId", onboardingId)
+                .flatMap(tokens -> {
+                    if (tokens.isEmpty()) {
+                        return getProductByOnboarding(onboarding)
+                                .flatMap(product -> createAndConfigureToken(onboarding, formItem, product));
+                    }
+                    return Uni.createFrom().item((Token) tokens.get(0));
+                });
+    }
+
+    private Uni<Token> createAndConfigureToken(Onboarding onboarding, FormItem formItem, Product product) {
+        String onboardingId = onboarding.getId();
+        String institutionType = onboarding.getInstitution().getInstitutionType().name();
+        ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
+        String digest = tokenService.getAndVerifyDigest(formItem, contractTemplate, true);
+        Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
+        token.setContractSigned(tokenService.getContractPathByOnboarding(onboardingId, formItem.getFileName()));
+        token.setContractFilename(formItem.getFileName());
+        token.setChecksum(digest);
+
+        return token.persist().replaceWith(token);
+    }
+
+    private ContractTemplate getContractTemplate(String institutionType, Product product) {
+        return product
+                .getInstitutionContractTemplate(institutionType);
     }
 
     private Uni<List<String>> retrieveOnboardingUserFiscalCodeList(Onboarding onboarding) {

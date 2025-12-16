@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.List;
 
 import it.pagopa.selfcare.onboarding.model.FormItem;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import org.jboss.resteasy.reactive.RestResponse;
 
 public interface TokenService {
@@ -26,4 +27,8 @@ public interface TokenService {
   Uni<List<String>> getAttachments(String onboardingId);
 
   Uni<ContractSignedReport> reportContractSigned(String onboardingId);
+
+  String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck);
+
+  String getContractPathByOnboarding(String onboardingId, String filename);
 }
