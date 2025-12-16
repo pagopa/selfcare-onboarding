@@ -25,16 +25,14 @@ import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
+import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
 import it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault;
 import it.pagopa.selfcare.onboarding.service.profile.OnboardingTestProfile;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
-import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
-import it.pagopa.selfcare.product.entity.Product;
-import it.pagopa.selfcare.product.entity.ProductRole;
-import it.pagopa.selfcare.product.entity.ProductRoleInfo;
+import it.pagopa.selfcare.product.entity.*;
 import it.pagopa.selfcare.product.exception.ProductNotFoundException;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
@@ -156,6 +154,9 @@ class OnboardingServiceDefaultTest {
 
     @Spy
     OnboardingMapper onboardingMapper = new OnboardingMapperImpl();
+
+    @InjectMock
+    TokenMapper tokenMapper;
 
     static final UserRequest manager = UserRequest.builder()
             .name("name")
@@ -4281,6 +4282,61 @@ class OnboardingServiceDefaultTest {
                 });
     }
 
+    @Test
+    @RunOnVertxContext
+    void uploadContractSigned_shouldCreateNewToken_WhenTokenListIsEmpty(UniAsserter asserter) {
+
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setStatus(OnboardingStatus.COMPLETED);
+        onboarding.getInstitution().setInstitutionType(PA);
+        String onboardingId = onboarding.getId();
+        final String filepath = "upload-file-path";
+
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding)));
+        when(Onboarding.findById(any()))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+
+        PanacheMock.mock(Token.class);
+        when(Token.list(eq("onboardingId"), eq(onboardingId)))
+                .thenReturn(Uni.createFrom().item(Collections.emptyList()));
+
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
+
+        Token mockToken = mock(Token.class);
+
+        when(tokenMapper.toModel(eq(onboarding), any(), any(ContractTemplate.class)))
+                .thenReturn(mockToken);
+
+        when(mockToken.persist()).thenReturn(Uni.createFrom().item(mockToken));
+
+        doNothing().when(mockToken).setContractSigned(anyString());
+        doNothing().when(mockToken).setContractFilename(anyString());
+        doNothing().when(mockToken).setChecksum(anyString());
+
+        when(tokenService.getAndVerifyDigest(any(), any(ContractTemplate.class), anyBoolean()))
+                .thenReturn("digest_mock");
+        when(tokenService.getContractPathByOnboarding(any(), any()))
+                .thenReturn("path/to/contract");
+
+        mockUpdateToken(asserter, onboardingId);
+        mockUpdateOnboarding(onboardingId, 1L);
+
+        asserter.assertThat(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
+                result -> {
+                    Assertions.assertNotNull(result);
+                    Assertions.assertEquals(onboarding.getId(), result.getId());
+
+                    // Usa la stessa sintassi sicura anche nel verify
+                    verify(tokenMapper).toModel(eq(onboarding), any(), any(ContractTemplate.class));
+                    verify(mockToken).persist();
+                    verify(mockToken).setChecksum("digest_mock");
+                });
+    }
+
 
     @Test
     @RunOnVertxContext
@@ -4359,26 +4415,6 @@ class OnboardingServiceDefaultTest {
         asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
                 RuntimeException.class);
     }
-
-    @Test
-    @RunOnVertxContext
-    void uploadContractSigned_whenTokenNotFound_shouldThrowResourceNotFoundException(UniAsserter asserter) {
-        Onboarding onboarding = createDummyOnboarding();
-        onboarding.setStatus(OnboardingStatus.COMPLETED);
-        String onboardingId = onboarding.getId();
-
-        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
-        asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
-                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
-
-        asserter.execute(() -> PanacheMock.mock(Token.class));
-        asserter.execute(() -> when(Token.list("onboardingId", onboardingId))
-                .thenReturn(Uni.createFrom().item(List.of())));
-
-        asserter.assertFailedWith(() -> onboardingService.uploadContractSigned(onboardingId, TEST_FORM_ITEM),
-                ResourceNotFoundException.class);
-    }
-
 
     @Test
     @RunOnVertxContext

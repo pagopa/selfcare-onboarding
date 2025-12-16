@@ -2,7 +2,9 @@ package it.pagopa.selfcare.onboarding.service;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -661,4 +663,124 @@ class TokenServiceDefaultTest {
               });
     }
   }
+
+    @Test
+    void getAndVerifyDigestWithContractTemplateSuccess() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/template.pdf");
+
+      when(azureBlobClient.getFileAsPdf("contracts/template.pdf")).thenReturn(uploadedFile);
+
+      String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+
+      assertNotNull(result);
+      assertFalse(result.isEmpty());
+      verify(azureBlobClient).getFileAsPdf("contracts/template.pdf");
+    }
+
+    @Test
+    void getAndVerifyDigestWithContractTemplateDigestMismatch() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/original.pdf");
+
+      File differentFile = new File("src/test/resources/original.pdf");
+      when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
+
+      try {
+        tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        Assertions.fail("Expected InvalidRequestException to be thrown");
+      } catch (InvalidRequestException e) {
+        assertTrue(e.getMessage().contains("File has been changed"));
+      }
+      verify(azureBlobClient).getFileAsPdf("contracts/original.pdf");
+    }
+
+    @Test
+    void getAndVerifyDigestReturnsBase64EncodedDigest() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/test.pdf");
+
+      when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(uploadedFile);
+
+      String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+
+      assertNotNull(result);
+      assertTrue(result.matches("^[A-Za-z0-9+/=]+$"));
+    }
+
+    @Test
+    void getAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/original.pdf");
+
+      File differentFile = new File("src/test/resources/original.pdf");
+      when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
+
+      try {
+        tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        Assertions.fail("Expected InvalidRequestException to be thrown");
+      } catch (InvalidRequestException e) {
+        assertEquals("File has been changed. It's not possible to complete upload", e.getMessage());
+      }
+    }
+
+    @Test
+    void getAndVerifyDigestVerifiesAzureBlobClientIsCalled() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      String templatePath = "contracts/template/path.pdf";
+      contractTemplate.setContractTemplatePath(templatePath);
+
+      when(azureBlobClient.getFileAsPdf(templatePath)).thenReturn(uploadedFile);
+
+      tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+
+      verify(azureBlobClient).getFileAsPdf(templatePath);
+    }
+
+    @Test
+    void getAndVerifyDigestWithSameFileReturnsDigest() {
+      File file = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(file).fileName("test.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/test.pdf");
+
+      when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(file);
+
+      String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+
+      assertNotNull(result);
+      assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void getAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
+      File uploadedFile = new File("src/test/resources/test.pdf");
+      FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+      ContractTemplate contractTemplate = new ContractTemplate();
+      contractTemplate.setContractTemplatePath("contracts/original.pdf");
+
+      File originalFile = new File("src/test/resources/original.pdf");
+      when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(originalFile);
+
+      Assertions.assertThrows(InvalidRequestException.class, () ->
+              tokenService.getAndVerifyDigest(formItem, contractTemplate, false)
+      );
+    }
 }
