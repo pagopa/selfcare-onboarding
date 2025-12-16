@@ -10,10 +10,8 @@ import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.client.webhook.WebhookRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
-import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
-import it.pagopa.selfcare.onboarding.dto.NotificationUserToSend;
-import it.pagopa.selfcare.onboarding.dto.NotificationsResources;
-import it.pagopa.selfcare.onboarding.dto.QueueEvent;
+import it.pagopa.selfcare.onboarding.dto.*;
+import it.pagopa.selfcare.onboarding.dto.webhook.NotificationRequest;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
@@ -205,7 +203,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
             context.getLogger().info(() -> String.format("Sending notification to webhook with message: %s", finalMessage));
         }
 
-        webhookRestClient.sendWebHookNotification(message);
+        webhookRestClient.sendNotification(NotificationRequest.builder().productId(notificationToSend.getProduct()).payload(message).build());
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, "WEBHOOK", notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 

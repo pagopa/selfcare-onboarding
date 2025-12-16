@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.client.webhook;
 
+import it.pagopa.selfcare.onboarding.dto.webhook.NotificationRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -12,5 +13,5 @@ public interface WebhookRestClient {
 
     @POST
     @Path("webhooks/notify")
-    void sendWebHookNotification(String notificationRequest);
+    void sendNotification(NotificationRequest notificationRequest);
 }
