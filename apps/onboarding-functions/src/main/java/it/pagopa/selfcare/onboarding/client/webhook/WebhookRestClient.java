@@ -11,6 +11,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 public interface WebhookRestClient {
 
     @POST
-    @Path("/webhooks/notify")
+    @Path("webhooks/notify")
     void sendWebHookNotification(String notificationRequest);
 }
