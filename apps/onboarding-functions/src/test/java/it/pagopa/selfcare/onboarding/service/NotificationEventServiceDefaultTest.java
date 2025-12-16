@@ -5,6 +5,7 @@ import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.client.webhook.WebhookRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
@@ -64,6 +65,10 @@ public class NotificationEventServiceDefaultTest {
 
   @InjectMock
   QueueEventExaminer queueEventExaminer;
+
+    @RestClient
+    @InjectMock
+    WebhookRestClient webhookRestClient;
 
 
   @Test

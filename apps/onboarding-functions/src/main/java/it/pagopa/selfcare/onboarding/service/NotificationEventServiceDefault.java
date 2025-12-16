@@ -8,6 +8,7 @@ import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.client.webhook.WebhookRestClient;
 import it.pagopa.selfcare.onboarding.config.NotificationConfig;
 import it.pagopa.selfcare.onboarding.dto.NotificationToSend;
 import it.pagopa.selfcare.onboarding.dto.NotificationUserToSend;
@@ -51,6 +52,10 @@ public class NotificationEventServiceDefault implements NotificationEventService
     @RestClient
     @Inject
     org.openapi.quarkus.user_json.api.UserApi userApi;
+
+    @RestClient
+    @Inject
+    WebhookRestClient webhookRestClient;
 
     private final ProductService productService;
     private final NotificationConfig notificationConfig;
@@ -122,7 +127,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         if (notificationBuilder.shouldSendNotification(notificationsResources.getOnboarding(), notificationsResources.getInstitution())) {
             NotificationToSend notificationToSend = notificationBuilder.buildNotificationToSend(notificationsResources.getOnboarding(), notificationsResources.getToken(), notificationsResources.getInstitution(), notificationsResources.getQueueEvent());
             sendNotification(context, consumer.topic(), notificationToSend, notificationEventTraceId);
-            // CALL WEBHOOK POST API
+            sendWebHookNotification(context, notificationToSend, notificationEventTraceId);
             sendTestEnvProductsNotification(context, product, consumer.topic(), notificationToSend, notificationEventTraceId);
         } else {
             context.getLogger().info(() -> String.format("It was not necessary to send a notification on the topic %s because the onboarding with ID %s did not pass filter verification", notificationsResources.getOnboarding().getId(), consumer.topic()));
@@ -186,6 +191,22 @@ public class NotificationEventServiceDefault implements NotificationEventService
 
         eventHubRestClient.sendMessage(topic, message);
         telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+    }
+
+
+    private void sendWebHookNotification(ExecutionContext context, NotificationToSend notificationToSend, String notificationEventTraceId) {
+        String message = null;
+        try {
+            message = mapper.writeValueAsString(notificationToSend);
+        } catch (JsonProcessingException e) {
+            throw new NotificationException("Notification cannot be serialized");
+        } finally {
+            String finalMessage = message;
+            context.getLogger().info(() -> String.format("Sending notification to webhook with message: %s", finalMessage));
+        }
+
+        webhookRestClient.sendWebHookNotification(message);
+        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, "WEBHOOK", notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
     /*private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {
