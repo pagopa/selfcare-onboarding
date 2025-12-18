@@ -102,7 +102,7 @@ app_settings = {
 
 
   ##ARUBA SIGNATURE
-  "PAGOPA_SIGNATURE_SOURCE"                        = "namirial",
+  "PAGOPA_SIGNATURE_SOURCE"                        = "disabled",
   "ARUBA_SIGN_SERVICE_IDENTITY_TYPE_OTP_AUTH"      = "faPagoPa",
   "ARUBA_SIGN_SERVICE_IDENTITY_OTP_PWD"            = "dsign",
   "ARUBA_SIGN_SERVICE_IDENTITY_USER"               = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/aruba-sign-service-user/)",
