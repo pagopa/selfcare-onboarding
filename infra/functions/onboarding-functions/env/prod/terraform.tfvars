@@ -117,6 +117,9 @@ app_settings = {
   "JWT_TOKEN_PRIVATE_KEY"                          = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-private-key/)"
   "JWT_TOKEN_KID"                                  = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/jwt-kid/)"
 
+  ##WEBHOOK
+  "WEBHOOK_BASE_PATH"                              = "https://selc-p-webhook-ms-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io"
+
   ##NAMIRIAL SIGNATURE
   "NAMIRIAL_BASE_URL"                       = "https://selc-p-namirial-sws-ca.lemonpond-bb0b750e.westeurope.azurecontainerapps.io",
   "NAMIRIAL_SIGN_SERVICE_IDENTITY_USER"     = "@Microsoft.KeyVault(SecretUri=https://selc-p-kv.vault.azure.net/secrets/namirial-sign-service-user/)",

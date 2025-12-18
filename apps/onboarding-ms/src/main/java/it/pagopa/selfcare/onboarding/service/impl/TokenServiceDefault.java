@@ -26,6 +26,7 @@ import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -36,10 +37,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -234,12 +232,20 @@ public class TokenServiceDefault implements TokenService {
     }
 
     private String getAndVerifyDigest(FormItem file, AttachmentTemplate attachment) {
+        return getAndVerifyDigestByTemplate(file, attachment.getTemplatePath(), false);
+    }
+
+    public String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck) {
+        return getAndVerifyDigestByTemplate(file, contract.getContractTemplatePath(), skipDigestCheck);
+    }
+
+    private String getAndVerifyDigestByTemplate(FormItem file, String templatePath, boolean skipDigestCheck) {
         DSSDocument document = new FileDocument(file.getFile());
         String digest = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        File originalFile = azureBlobClient.getFileAsPdf(attachment.getTemplatePath());
+        File originalFile = azureBlobClient.getFileAsPdf(templatePath);
         DSSDocument originalDocument = new FileDocument(originalFile);
         String originalDigest = originalDocument.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        if (!digest.equals(originalDigest)) {
+        if (!digest.equals(originalDigest) && !skipDigestCheck) {
             throw new InvalidRequestException(
                     "File has been changed. It's not possible to complete upload");
         }
@@ -301,6 +307,10 @@ public class TokenServiceDefault implements TokenService {
 
     private String getAttachmentByOnboarding(String onboardingId, String filename) {
         return String.format("%s%s%s%s", onboardingMsConfig.getContractPath(), onboardingId, "/attachments", "/" + filename);
+    }
+
+    public String getContractPathByOnboarding(String onboardingId, String filename) {
+        return String.format("%s%s%s", onboardingMsConfig.getContractPath(), onboardingId, "/" + filename);
     }
 
     @Override
