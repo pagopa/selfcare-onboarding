@@ -243,10 +243,9 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductThrowException(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
+        Onboarding onboardingRequest = createDummyOnboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new Institution());
 
         Product productResource = new Product();
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
@@ -261,10 +260,9 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductIsNotValid(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
+        Onboarding onboardingRequest = createDummyOnboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new Institution());
 
         Product productResource = new Product();
         asserter.execute(() -> when(productService.getProductIsValid(onboardingRequest.getProductId()))
@@ -458,12 +456,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_throwExceptionIfProductRoleIsNotValid(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
+        Onboarding onboardingRequest = createDummyOnboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("prod-pn");
-        Institution institutionBaseRequest = new Institution();
-        institutionBaseRequest.setInstitutionType(InstitutionType.PG);
-        onboardingRequest.setInstitution(institutionBaseRequest);
+        onboardingRequest.getInstitution().setInstitutionType(InstitutionType.PG);
 
         Product productResource = new Product();
         productResource.setRoleMappings(new HashMap<>());
@@ -482,10 +478,9 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPa_throwExceptionIfProductParentRoleIsNotValid(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
+        Onboarding onboardingRequest = createDummyOnboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        onboardingRequest.setInstitution(new Institution());
 
         Product productResource = new Product();
         Product productParent = new Product();
@@ -1381,12 +1376,11 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingPsp_whenUserFoundedAndWillNotUpdate(UniAsserter asserter) {
-        Onboarding onboardingRequest = new Onboarding();
+        Onboarding onboardingRequest = createDummyOnboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
-        Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setInstitutionType(PSP);
-        onboardingRequest.setInstitution(institutionPspRequest);
+        onboardingRequest.getInstitution().setOrigin(Origin.SELC);
+        onboardingRequest.getInstitution().setInstitutionType(PSP);
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -1591,12 +1585,13 @@ class OnboardingServiceDefaultTest {
                 .role(PartyRole.MANAGER)
                 .build();
 
-        Onboarding request = new Onboarding();
+        Onboarding request = createDummyOnboarding();
         List<UserRequest> users = List.of(wrongManager);
         request.setProductId(PROD_PAGOPA.getValue());
-        Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setInstitutionType(InstitutionType.GSP);
-        request.setInstitution(institutionPspRequest);
+        request.getInstitution().setInstitutionType(InstitutionType.GSP);
+        request.getInstitution().setOrigin(Origin.SELC);
+
+
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
@@ -1632,12 +1627,11 @@ class OnboardingServiceDefaultTest {
                 .email("example@live.it")
                 .build();
 
-        Onboarding request = new Onboarding();
+        Onboarding request = createDummyOnboarding();
         List<UserRequest> users = List.of(newManager);
         request.setProductId(PROD_IO.getValue());
-        Institution institutionPspRequest = new Institution();
-        institutionPspRequest.setInstitutionType(InstitutionType.GSP);
-        request.setInstitution(institutionPspRequest);
+        request.getInstitution().setInstitutionType(InstitutionType.GSP);
+
 
         mockSimpleProductValidAssert(request.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
@@ -1676,6 +1670,7 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         request.setProductId("productId");
         request.setInstitution(dummyInstitution());
+        request.getInstitution().setOrigin(Origin.SELC);
         final UUID createUserId = UUID.randomUUID();
 
         mockPersistOnboarding(asserter);
@@ -1719,9 +1714,10 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_shouldThrowExceptionIfUserRegistryFails(UniAsserter asserter) {
-        Onboarding onboardingDefaultRequest = new Onboarding();
+        Onboarding onboardingDefaultRequest = createDummyOnboarding();
         Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.GSP);
+        institution.setOrigin(Origin.SELC);
         onboardingDefaultRequest.setInstitution(institution);
         onboardingDefaultRequest.setProductId(PROD_PAGOPA.getValue());
         List<UserRequest> users = List.of(manager);
@@ -2069,6 +2065,7 @@ class OnboardingServiceDefaultTest {
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
         institution.setSubunitCode("subunitCode");
+        institution.setOrigin(Origin.IPA);
         onboarding.setInstitution(institution);
 
         User user = new User();
@@ -4397,6 +4394,9 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
         institution.setTaxCode(individualCF);
         onboardingRequest.setInstitution(institution);
 
@@ -4432,6 +4432,9 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
         institution.setTaxCode(individualCF);
         institution.setOriginId("originId");
         onboardingRequest.setInstitution(institution);
@@ -4462,6 +4465,9 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
         institution.setTaxCode(companyTaxCode);
         onboardingRequest.setInstitution(institution);
 
@@ -4498,6 +4504,9 @@ class OnboardingServiceDefaultTest {
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
         Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.IVASS);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
         institution.setTaxCode(companyTaxCode);
         onboardingRequest.setInstitution(institution);
 
