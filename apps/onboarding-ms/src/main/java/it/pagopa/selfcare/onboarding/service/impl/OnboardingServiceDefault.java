@@ -77,6 +77,7 @@ import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
@@ -787,7 +788,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         if (InstitutionType.PA.equals(institutionType)
-                || verifyInstitutionOnInterop(institutionType, onboarding.getProductId())
+                || verifyInstitutionOnGSP(institutionType, onboarding.getInstitution().getOrigin().getValue())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || Objects.nonNull(product.getParentId())
@@ -808,10 +809,10 @@ public class OnboardingServiceDefault implements OnboardingService {
         return WorkflowType.FOR_APPROVE;
     }
 
-    private boolean verifyInstitutionOnInterop(InstitutionType institutionType, String productId) {
+    private boolean verifyInstitutionOnGSP(InstitutionType institutionType, String origin) {
         Set<InstitutionType> allowedInstitutionType = Set.of(InstitutionType.GSP, InstitutionType.SCEC);
         return Objects.nonNull(institutionType) && allowedInstitutionType.contains(institutionType)
-                && PROD_INTEROP.getValue().equalsIgnoreCase(productId);
+                && IPA.getValue().equals(origin);
     }
 
     private Uni<Product> product(String productId) {
