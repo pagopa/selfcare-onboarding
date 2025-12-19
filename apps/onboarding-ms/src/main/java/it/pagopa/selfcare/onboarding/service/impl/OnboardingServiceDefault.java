@@ -108,6 +108,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
     private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
+    private static final String ONBOARDING_ID = "onboardingId";
     private static final Pattern INDIVIDUAL_CF_PATTERN =
             Pattern.compile("^[A-Z]{6}\\d{2}[A-Z]\\d{2}[A-Z]\\d{3}[A-Z]$");
 
@@ -1515,7 +1516,7 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     private Uni<Void> updateTokenUpdatedAt(String onboardingId) {
         return Token.update("updatedAt", LocalDateTime.now())
-                .where("onboardingId", onboardingId)
+                .where(ONBOARDING_ID, onboardingId)
                 .onItem()
                 .transform(ignore -> null);
     }
@@ -1599,13 +1600,13 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Token> retrieveToken(String onboardingId) {
-        return Token.list("onboardingId", onboardingId)
+        return Token.list(ONBOARDING_ID, onboardingId)
                 .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
     }
 
     Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem) {
         String onboardingId = onboarding.getId();
-        return Token.list("onboardingId", onboardingId)
+        return Token.list(ONBOARDING_ID, onboardingId)
                 .flatMap(tokens -> {
                     if (tokens.isEmpty()) {
                         return getProductByOnboarding(onboarding)
