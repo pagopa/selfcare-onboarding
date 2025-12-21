@@ -144,6 +144,7 @@ public class OnboardingController {
                     + "The API initiates the onboarding process for the aggregated entities received as input.")
     @POST
     @Path("/aggregation/increment")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingAggregationIncrement(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
