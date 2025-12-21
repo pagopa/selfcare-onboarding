@@ -400,7 +400,7 @@ paths:
   /v1/onboarding/aggregation/increment:
     post:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: Perform Increment for aggregates
       description: Perform the increment of the aggregates for an aggregator entity
         that has already completed the initial onboarding.The API initiates the onboarding
