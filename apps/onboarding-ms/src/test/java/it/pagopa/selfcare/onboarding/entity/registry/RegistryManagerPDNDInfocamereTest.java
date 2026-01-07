@@ -191,13 +191,25 @@ class RegistryManagerPDNDInfocamereTest {
     @Test
     void customValidation_withPrivatePersonInstitution_userSearchSuccessful() {
         // given
+        String taxCode = "RSSMRA80A01H501T";
+        String allowedAtecoCodes = "01.11.00";
         onboarding.getInstitution().setInstitutionType(InstitutionType.PRV_PF);
-        onboarding.getInstitution().setTaxCode("RSSMRA80A01H501T");
+        onboarding.getInstitution().setTaxCode(taxCode);
+        onboarding.getInstitution().setAtecoCodes(List.of("01.11.00"));
+
+        when(product.getId()).thenReturn("prod-idpay-merchant");
+
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of("01.11.00"));
+
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(taxCode))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty(),
+                Optional.of(allowedAtecoCodes),
                 pdndVisuraInfoCamereControllerApi
         );
 
@@ -222,13 +234,25 @@ class RegistryManagerPDNDInfocamereTest {
     @Test
     void customValidation_withPrivatePersonInstitution_userSearchThrowsException() {
         // given
+        String taxCode = "RSSMRA80A01H501T";
+        String allowedAtecoCodes = "01.11.00";
         onboarding.getInstitution().setInstitutionType(InstitutionType.PRV_PF);
-        onboarding.getInstitution().setTaxCode("RSSMRA80A01H501T");
+        onboarding.getInstitution().setTaxCode(taxCode);
+        onboarding.getInstitution().setAtecoCodes(List.of("01.11.00"));
+
+        when(product.getId()).thenReturn("prod-idpay-merchant");
+
+        PDNDBusinessResource pdndResource = new PDNDBusinessResource();
+        pdndResource.setAtecoCodes(List.of("01.11.00"));
+
+        when(pdndVisuraInfoCamereControllerApi.institutionVisuraPdndByTaxCodeUsingGET(taxCode))
+                .thenReturn(Uni.createFrom().item(pdndResource));
+
         registryManager = new RegistryManagerPDNDInfocamere(
                 onboarding,
                 infocamerePdndApi,
                 userRegistryApi,
-                Optional.empty(),
+                Optional.of(allowedAtecoCodes),
                 pdndVisuraInfoCamereControllerApi
         );
 

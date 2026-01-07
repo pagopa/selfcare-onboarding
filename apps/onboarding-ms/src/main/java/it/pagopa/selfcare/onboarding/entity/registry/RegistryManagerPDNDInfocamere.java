@@ -39,10 +39,10 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
     @Override
     public Uni<Onboarding> customValidation(Product product) {
         if (isIdPayMerchantProduct(product)) {
-            return validateAtecoCodes();
-        }
-        if (isPrivatePersonInstitution()) {
-            return manageTaxCode();
+            return validateAtecoCodes()
+                    .chain(() -> isPrivatePersonInstitution()
+                            ? manageTaxCode()
+                            : Uni.createFrom().item(onboarding));
         }
         return Uni.createFrom().item(onboarding);
     }
@@ -108,7 +108,7 @@ public class RegistryManagerPDNDInfocamere extends ClientRegistryPDNDInfocamere 
      */
     private Uni<Onboarding> validateAtecoCodes() {
         List<String> institutionAtecoCodes = onboarding.getInstitution().getAtecoCodes();
-        
+
         if (Objects.isNull(institutionAtecoCodes) || institutionAtecoCodes.isEmpty()) {
             return Uni.createFrom().failure(new InvalidRequestException("Institution must have at least one ATECO code"));
         }
