@@ -74,7 +74,9 @@ public class PdfMapper {
     map.put("zipCode", Optional.ofNullable(institution.getZipCode()).orElse(""));
     map.put("managerName", getStringValue(manager.getName()));
     map.put("managerSurname", getStringValue(manager.getFamilyName()));
-    map.put("originId", Optional.ofNullable(institution.getOriginId()).orElse(UNDERSCORE));
+    map.put("originId", Optional.ofNullable(institution.getOriginId())
+            .filter(id -> !id.equals(institution.getTaxCode()))
+            .orElse(UNDERSCORE));
     map.put("institutionCity", Optional.ofNullable(institution.getCity()).orElse("__"));
     map.put("institutionCountry", Optional.ofNullable(institution.getCountry()).orElse("__"));
     map.put("institutionCounty", Optional.ofNullable(institution.getCounty()).orElse("__"));
