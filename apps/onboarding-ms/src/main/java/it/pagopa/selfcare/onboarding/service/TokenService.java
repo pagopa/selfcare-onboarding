@@ -31,4 +31,6 @@ public interface TokenService {
   String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck);
 
   String getContractPathByOnboarding(String onboardingId, String filename);
+
+  Uni<Boolean> attachmentExists(String onboardingId, String attachmentName);
 }
