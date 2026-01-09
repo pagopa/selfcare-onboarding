@@ -1538,6 +1538,37 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/tokens/{onboardingId}/attachment/status:
+    head:
+      tags:
+      - Token Controller
+      summary: Verify attachment availability
+      description: "Verifies the availability of the specified attachment in the storage\
+        \ system. A successful check returns HTTP 204 (No Content), while a missing\
+        \ attachment results in HTTP 404 (Not Found)."
+      operationId: headAttachment
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/tokens/{onboardingId}/contract:
     get:
       tags:
