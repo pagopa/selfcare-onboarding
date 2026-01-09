@@ -380,7 +380,7 @@ public class TokenServiceDefault implements TokenService {
         }
     }
 
-    public Uni<Boolean> attachmentExists(String onboardingId, String attachmentName) {
+    public Uni<Boolean> existsAttachment(String onboardingId, String attachmentName) {
         return findOnboardingById(onboardingId)
                 .onItem().transformToUni(onboarding ->
                         {

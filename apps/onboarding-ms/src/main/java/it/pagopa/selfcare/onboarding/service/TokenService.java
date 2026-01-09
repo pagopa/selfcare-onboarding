@@ -32,5 +32,5 @@ public interface TokenService {
 
   String getContractPathByOnboarding(String onboardingId, String filename);
 
-  Uni<Boolean> attachmentExists(String onboardingId, String attachmentName);
+  Uni<Boolean> existsAttachment(String onboardingId, String attachmentName);
 }

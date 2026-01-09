@@ -148,7 +148,7 @@ public class TokenController {
             @NotNull @QueryParam("name") String attachmentName
     ) {
         log.info("Head attachment for {} - {}", onboardingId, attachmentName);
-        return tokenService.attachmentExists(onboardingId, attachmentName)
+        return tokenService.existsAttachment(onboardingId, attachmentName)
                 .map(exists -> exists
                         ? Response.noContent().build()
                         : Response.status(Response.Status.NOT_FOUND).build()
