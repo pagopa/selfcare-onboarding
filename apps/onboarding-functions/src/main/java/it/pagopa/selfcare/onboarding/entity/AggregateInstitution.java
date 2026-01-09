@@ -25,7 +25,15 @@ public class AggregateInstitution {
     private String iban;
     private String recipientCode;
     private String parentDescription;
+    private String istatCode;
 
+    public String getIstatCode() {
+        return istatCode;
+    }
+
+    public void setIstatCode(String istatCode) {
+        this.istatCode = istatCode;
+    }
     public String getTaxCode() {
         return taxCode;
     }

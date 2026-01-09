@@ -2352,6 +2352,9 @@
               "$ref" : "#/components/schemas/UserRequest"
             }
           },
+          "istatCode" : {
+            "type" : "string"
+          },
           "recipientCode" : {
             "type" : "string"
           },

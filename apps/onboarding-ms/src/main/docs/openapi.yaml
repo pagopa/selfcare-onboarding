@@ -1722,6 +1722,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
+        istatCode:
+          type: string
         recipientCode:
           type: string
         digitalAddress:
