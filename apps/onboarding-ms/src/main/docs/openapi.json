@@ -2095,7 +2095,7 @@
         } ]
       }
     },
-    "/v1/tokens/{onboardingId}/attachments" : {
+    "/v1/tokens/{onboardingId}/attachment/status" : {
       "head" : {
         "tags" : [ "Token Controller" ],
         "summary" : "Verify attachment availability",

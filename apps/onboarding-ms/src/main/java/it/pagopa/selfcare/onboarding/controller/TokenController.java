@@ -142,7 +142,7 @@ public class TokenController {
                     + "A successful check returns HTTP 204 (No Content), while a missing attachment results in HTTP 404 (Not Found)."
     )
     @HEAD
-    @Path("/{onboardingId}/attachments")
+    @Path("/{onboardingId}/attachment/status")
     public Uni<Response> headAttachment(
             @PathParam("onboardingId") String onboardingId,
             @NotNull @QueryParam("name") String attachmentName
