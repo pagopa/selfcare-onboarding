@@ -23,6 +23,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+import org.owasp.encoder.Encode;
 
 import static it.pagopa.selfcare.onboarding.util.Utils.retrieveAttachmentFromFormData;
 
@@ -147,7 +148,7 @@ public class TokenController {
             @PathParam("onboardingId") String onboardingId,
             @NotNull @QueryParam("name") String attachmentName
     ) {
-        log.info("Head attachment for {} - {}", onboardingId, attachmentName);
+        log.info("Head attachment for {} - {}", Encode.forJava(onboardingId), Encode.forJava(attachmentName));
         return tokenService.existsAttachment(onboardingId, attachmentName)
                 .map(exists -> exists
                         ? Response.noContent().build()
