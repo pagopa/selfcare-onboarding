@@ -239,4 +239,51 @@ class TokenControllerTest {
     verify(tokenService, never())
             .uploadAttachment(any(), any(), any());
   }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void headAttachmentTest_OK() {
+        // given
+        final String onboardingId = "onboardingId";
+        final String name = "name";
+
+        when(tokenService.existsAttachment(onboardingId, name)).thenReturn(Uni.createFrom().item(Boolean.TRUE));
+
+        // when
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", name)
+                .contentType(MediaType.APPLICATION_JSON)
+                .head("/{onboardingId}/attachment/status")
+                .then()
+                .statusCode(204);
+
+        // then
+        Mockito.verify(tokenService, times(1)).existsAttachment(anyString(), anyString());
+    }
+
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void headAttachmentTest_KO() {
+        // given
+        final String onboardingId = "onboardingId";
+        final String name = "name";
+
+        when(tokenService.existsAttachment(onboardingId, name)).thenReturn(Uni.createFrom().item(Boolean.FALSE));
+
+        // when
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", name)
+                .contentType(MediaType.APPLICATION_JSON)
+                .head("/{onboardingId}/attachment/status")
+                .then()
+                .statusCode(404);
+
+        // then
+        Mockito.verify(tokenService, times(1)).existsAttachment(anyString(), anyString());
+    }
 }

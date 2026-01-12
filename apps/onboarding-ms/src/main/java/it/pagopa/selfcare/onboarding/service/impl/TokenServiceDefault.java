@@ -4,12 +4,14 @@ import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
 
+import com.azure.storage.blob.models.BlobStorageException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
+import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageException;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.conf.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
@@ -376,5 +378,56 @@ public class TokenServiceDefault implements TokenService {
             throw new OnboardingNotAllowedException(GENERIC_ERROR.getCode(),
                     "Error on upload contract for onboarding with id " + onboardingId);
         }
+    }
+
+    public Uni<Boolean> existsAttachment(String onboardingId, String attachmentName) {
+        return findOnboardingById(onboardingId)
+                .onItem().transformToUni(onboarding ->
+                        {
+                            String id = onboarding.getId();
+                            return Token.find(
+                                            "onboardingId = ?1 and type = ?2 and name = ?3",
+                                            id,
+                                            ATTACHMENT.name(),
+                                            attachmentName
+                                    )
+                                    .firstResult()
+                                    .map(Token.class::cast)
+                                    .onItem().transformToUni(token -> {
+                                        if (Objects.isNull(token)) {
+                                            log.info("Token not found onboardingId={}, attachmentName={}", id, attachmentName);
+                                            return Uni.createFrom().item(false);
+                                        }
+                                        String blobPath = getAttachmentByOnboarding(
+                                                id,
+                                                token.getContractFilename()
+                                        );
+                                        log.debug("Blob path: {}", blobPath);
+
+                                        return Uni.createFrom()
+                                                .item(() -> {
+                                                    try {
+                                                        azureBlobClient.getProperties(blobPath);
+
+                                                        log.info(
+                                                                "Attachment found in storage onboardingId={}, attachmentName={}",
+                                                                id,
+                                                                attachmentName
+                                                        );
+
+                                                        return true;
+                                                    } catch (SelfcareAzureStorageException e) {
+                                                            log.info(
+                                                                    "Attachment not found in storage onboardingId={}, attachmentName={}",
+                                                                    id,
+                                                                    attachmentName
+                                                            );
+                                                            return false;
+                                                        }
+                                                })
+                                                .runSubscriptionOn(Infrastructure.getDefaultExecutor());
+                                    });
+                        }
+                );
     }
 }

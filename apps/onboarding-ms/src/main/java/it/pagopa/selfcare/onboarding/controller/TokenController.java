@@ -16,18 +16,21 @@ import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
+import org.owasp.encoder.Encode;
 
 import static it.pagopa.selfcare.onboarding.util.Utils.retrieveAttachmentFromFormData;
 
 @Authenticated
 @Path("/v1/tokens")
 @AllArgsConstructor
+@Slf4j
 public class TokenController {
 
   @Inject
@@ -132,4 +135,24 @@ public class TokenController {
                     .status(HttpStatus.SC_NO_CONTENT)
                     .build());
   }
+
+
+  @Operation(
+            summary = "Verify attachment availability",
+            description = "Verifies the availability of the specified attachment in the storage system. "
+                    + "A successful check returns HTTP 204 (No Content), while a missing attachment results in HTTP 404 (Not Found)."
+    )
+    @HEAD
+    @Path("/{onboardingId}/attachment/status")
+    public Uni<Response> headAttachment(
+            @PathParam("onboardingId") String onboardingId,
+            @NotNull @QueryParam("name") String attachmentName
+    ) {
+        log.info("Head attachment for {} - {}", Encode.forJava(onboardingId), Encode.forJava(attachmentName));
+        return tokenService.existsAttachment(onboardingId, attachmentName)
+                .map(exists -> exists
+                        ? Response.noContent().build()
+                        : Response.status(Response.Status.NOT_FOUND).build()
+                );
+    }
 }
