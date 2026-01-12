@@ -392,11 +392,12 @@ public class TokenServiceDefault implements TokenService {
                                             attachmentName
                                     )
                                     .firstResult()
-                                    .onItem().ifNull().failWith(() ->
-                                            new ResourceNotFoundException(String.format("Token with id %s not found", id))
-                                    )
                                     .map(Token.class::cast)
                                     .onItem().transformToUni(token -> {
+                                        if (Objects.isNull(token)) {
+                                            log.info("Token not found onboardingId={}, attachmentName={}", id, attachmentName);
+                                            return Uni.createFrom().item(false);
+                                        }
                                         String blobPath = getAttachmentByOnboarding(
                                                 id,
                                                 token.getContractFilename()
