@@ -489,11 +489,12 @@ public class CompletionServiceDefaultTest {
                 .thenThrow(e);
 
         InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                null, null, null, null, null))
+                null, Origin.IPA.name(), null, null, null))
                 .thenReturn(response);
 
-        InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionUsingPOST(any())).thenReturn(institutionResponse);
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
