@@ -441,7 +441,7 @@ public class CompletionServiceDefault implements CompletionService {
             return institutionApi.createInstitutionFromInfocamereUsingPOST(institutionMapper.toInstitutionRequest(institution));
         }
 
-        if (isInstitutionPresentOnIpa(institution)) {
+        if (Origin.IPA.name().equalsIgnoreCase(institution.getOrigin().name()) && isInstitutionPresentOnIpa(institution)) {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
