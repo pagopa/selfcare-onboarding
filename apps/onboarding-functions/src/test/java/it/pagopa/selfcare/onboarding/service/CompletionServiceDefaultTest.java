@@ -373,6 +373,7 @@ public class CompletionServiceDefaultTest {
 
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
+        institution.setOrigin(Origin.IPA);
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.AOO);
         institution.setSubunitCode("code");
@@ -409,6 +410,7 @@ public class CompletionServiceDefaultTest {
 
         Institution institution = new Institution();
         institution.setTaxCode("taxCode");
+        institution.setOrigin(Origin.IPA);
         institution.setInstitutionType(InstitutionType.PA);
         institution.setSubunitType(InstitutionPaSubunitType.UO);
         institution.setSubunitCode("code");
@@ -444,6 +446,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setOrigin(Origin.IPA);
         institution.setInstitutionType(InstitutionType.PA);
         institution.setTaxCode("taxCode");
         onboarding.setInstitution(institution);
@@ -477,6 +480,7 @@ public class CompletionServiceDefaultTest {
         Onboarding onboarding = createOnboarding();
 
         Institution institution = new Institution();
+        institution.setOrigin(Origin.IPA);
         institution.setInstitutionType(InstitutionType.GSP);
         onboarding.setInstitution(institution);
 
@@ -485,11 +489,12 @@ public class CompletionServiceDefaultTest {
                 .thenThrow(e);
 
         InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = dummyInstitutionResponse();
+
         when(institutionApi.getInstitutionsUsingGET(onboarding.getInstitution().getTaxCode(),
-                null, null, null, null, null))
+                null, Origin.IPA.name(), null, null, null))
                 .thenReturn(response);
 
-        InstitutionResponse institutionResponse = dummyInstitutionResponse();
         when(institutionApi.createInstitutionUsingPOST(any())).thenReturn(institutionResponse);
 
         mockOnboardingUpdateAndExecuteCreateInstitution(onboarding);
