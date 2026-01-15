@@ -376,6 +376,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .invoke(() -> validateTaxCode(onboarding.getInstitution().getTaxCode(), product))
                 .onItem()
+                .invoke(() -> verifyAllowManagerAsDelegate(userRequests))
+                .onItem()
                 .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
                 .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
@@ -388,6 +390,39 @@ public class OnboardingServiceDefault implements OnboardingService {
                         orchestrationService.triggerOrchestration(currentOnboarding.getId(), null)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
+    }
+
+    /**
+     * Validates that among MANAGER and DELEGATE user requests, the same tax code is never associated
+     * with more than one distinct email address.
+     * <p>
+     * Emails are normalized (trim + lowercase) before comparison.
+     * If a violation is found, the returned {@link Uni} fails with {@link InvalidRequestException};
+     * otherwise it completes successfully.
+     */
+    public Uni<Void> verifyAllowManagerAsDelegate(List<UserRequest> userRequests) {
+
+        boolean ok = userRequests.stream()
+                .filter(userRequest -> userRequest.getRole() == PartyRole.MANAGER || userRequest.getRole() == PartyRole.DELEGATE)
+                .filter(userRequest -> userRequest.getTaxCode() != null)
+                .filter(userRequest -> userRequest.getEmail() != null && !userRequest.getEmail().isBlank())
+                .collect(Collectors.groupingBy(
+                        UserRequest::getTaxCode,
+                        Collectors.mapping(userRequest -> userRequest.getEmail().trim().toLowerCase(), Collectors.toSet())
+                ))
+                .values().stream()
+                .allMatch(emails -> emails.size() <= 1);
+
+        if (!ok) {
+            return Uni.createFrom().failure(
+                    new InvalidRequestException(
+                            VALIDATION_USER_BY_TAXCODE.getMessage(),
+                            VALIDATION_USER_BY_TAXCODE.getCode()
+                    )
+            );
+        }
+
+        return Uni.createFrom().voidItem();
     }
 
     /**
@@ -446,6 +481,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .onItem()
                                         .invoke(
                                                 current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                                        .onItem()
+                                        .invoke(() -> verifyAllowManagerAsDelegate(userRequests))
                                         .onItem()
                                         .transformToUni(
                                                 current -> persistOnboarding(onboarding, userRequests, product, null))
