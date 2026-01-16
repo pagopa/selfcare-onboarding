@@ -345,6 +345,7 @@ public class TokenServiceDefault implements TokenService {
 
     private Uni<Token> persistTokenAttachment(String onboardingId, FormItem file, AttachmentTemplate attachment, String digest) {
         Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
         token.setCreatedAt(LocalDateTime.now());
         token.setActivatedAt(LocalDateTime.now());
         token.setType(ATTACHMENT);
