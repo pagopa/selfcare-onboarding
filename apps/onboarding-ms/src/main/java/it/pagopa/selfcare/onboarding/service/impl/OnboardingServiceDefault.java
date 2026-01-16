@@ -376,7 +376,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .invoke(() -> validateTaxCode(onboarding.getInstitution().getTaxCode(), product))
                 .onItem()
-                .invoke(() -> verifyAllowManagerAsDelegate(userRequests))
+                .transformToUni(ignored -> verifyAllowManagerAsDelegate(userRequests))
                 .onItem()
                 .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
@@ -400,14 +400,16 @@ public class OnboardingServiceDefault implements OnboardingService {
      * If a violation is found, the returned {@link Uni} fails with {@link InvalidRequestException};
      * otherwise it completes successfully.
      */
-    public Uni<Void> verifyAllowManagerAsDelegate(List<UserRequest> userRequests) {
+    private Uni<Void> verifyAllowManagerAsDelegate(List<UserRequest> userRequests) {
+
+        log.info("Starting verifyAllowManagerAsDelegate");
 
         boolean ok = userRequests.stream()
                 .filter(userRequest -> userRequest.getRole() == PartyRole.MANAGER || userRequest.getRole() == PartyRole.DELEGATE)
-                .filter(userRequest -> userRequest.getTaxCode() != null)
+                .filter(userRequest -> userRequest.getTaxCode() != null && !userRequest.getTaxCode().isBlank())
                 .filter(userRequest -> userRequest.getEmail() != null && !userRequest.getEmail().isBlank())
                 .collect(Collectors.groupingBy(
-                        UserRequest::getTaxCode,
+                        userRequest -> userRequest.getTaxCode().trim().toLowerCase(),
                         Collectors.mapping(userRequest -> userRequest.getEmail().trim().toLowerCase(), Collectors.toSet())
                 ))
                 .values().stream()

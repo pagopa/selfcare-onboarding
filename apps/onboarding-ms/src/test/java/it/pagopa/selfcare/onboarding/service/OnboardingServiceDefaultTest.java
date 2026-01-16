@@ -68,7 +68,9 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.*;
 import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.VALIDATION_USER_BY_TAXCODE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -163,6 +165,7 @@ class OnboardingServiceDefaultTest {
             .surname("surname")
             .taxCode("taxCode")
             .role(PartyRole.MANAGER)
+            .email("email_manager")
             .build();
 
     static final UserRequest delegate1 = UserRequest.builder()
@@ -4526,6 +4529,88 @@ class OnboardingServiceDefaultTest {
 
         asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
                 InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenAllowManagerAsDelegateWithSameTaxCodeAndSameEmail_shouldSucceed(UniAsserter asserter) {
+        String companyTaxCode = "12345678901";
+
+        final UserRequest delegate = UserRequest.builder()
+                .name("name_delegate_1")
+                .surname("surname_delegate_2")
+                .taxCode("taxCode")
+                .role(PartyRole.DELEGATE)
+                .email("email_manager")
+                .build();
+
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager, delegate);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.SELC);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
+        institution.setTaxCode(companyTaxCode);
+        onboardingRequest.setInstitution(institution);
+
+        mockPersistOnboarding(asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        // Create a product that allows company onboarding
+        Product product = createDummyProduct("productId", false, true, true);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertThat(() -> onboardingService.onboarding(onboardingRequest, users, null), Assertions::assertNotNull);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void onboarding_whenAllowManagerAsDelegateWithSameTaxCodeAndDifferentEmail_shouldThrowInvalidRequestException(UniAsserter asserter) {
+        String companyTaxCode = "12345678901";
+
+        final UserRequest delegate = UserRequest.builder()
+                .name("name_delegate_1")
+                .surname("surname_delegate_2")
+                .taxCode("taxCode")
+                .role(PartyRole.DELEGATE)
+                .email("email_delegate")
+                .build();
+
+        Onboarding onboardingRequest = new Onboarding();
+        List<UserRequest> users = List.of(manager, delegate);
+        onboardingRequest.setProductId("productId");
+        Institution institution = dummyInstitution();
+        institution.setOrigin(Origin.SELC);
+        institution.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        institution.setDescription(DESCRIPTION_FIELD);
+        institution.setTaxCode(companyTaxCode);
+        onboardingRequest.setInstitution(institution);
+
+        mockPersistOnboarding(asserter);
+        mockSimpleSearchPOSTAndPersist(asserter);
+
+        // Create a product that allows company onboarding
+        Product product = createDummyProduct("productId", false, true, true);
+        asserter.execute(() -> when(productService.getProductIsValid("productId"))
+                .thenReturn(product));
+
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
+        InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
+        insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
+        insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
+        when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
+
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), InvalidRequestException.class);
     }
 
 }
