@@ -1566,7 +1566,7 @@ class OnboardingServiceDefaultTest {
 
         asserter.assertThat(() -> onboardingService.onboarding(request, users, null), response -> {
             Assertions.assertEquals(request.getProductId(), response.getProductId());
-            Assertions.assertNull(response.getUsers().get(0).getUserMailUuid());
+            Assertions.assertNotNull(response.getUsers().get(0).getUserMailUuid());
         });
 
         asserter.execute(() -> {
