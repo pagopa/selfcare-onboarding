@@ -600,10 +600,7 @@ public class ContractServiceDefault implements ContractService {
 
   Path createSafeTempFile(String prefix, String suffix) throws IOException {
     try {
-      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
-              PosixFilePermissions.fromString("rw-------")
-      );
-      return Files.createTempFile(prefix, suffix, attr);
+      return createTempFileWithPosix(prefix, suffix);
     } catch (UnsupportedOperationException e) {
       // Fallback per sistemi non-POSIX (es. Windows in locale)
       File f = Files.createTempFile(prefix, suffix).toFile();
@@ -617,5 +614,12 @@ public class ContractServiceDefault implements ContractService {
       }
       return f.toPath();
     }
+  }
+
+  Path createTempFileWithPosix(String prefix, String suffix) throws IOException {
+    FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
+            PosixFilePermissions.fromString("rw-------")
+    );
+    return Files.createTempFile(prefix, suffix, attr);
   }
 }

@@ -37,6 +37,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -893,6 +894,28 @@ class ContractServiceDefaultTest {
     } finally {
       Files.deleteIfExists(tempFile);
     }
+  }
+
+  @Test
+  void createSafeTempFileUnsupportedOperationException() throws IOException {
+    String prefix = "testPrefix";
+    String suffix = ".txt";
+
+    ContractServiceDefault serviceSpy = spy((ContractServiceDefault) contractService);
+    doThrow(new UnsupportedOperationException("forced"))
+            .when(serviceSpy).createTempFileWithPosix(anyString(), anyString());
+
+    Path tempFile = serviceSpy.createSafeTempFile(prefix, suffix);
+
+    assertTrue(tempFile.getFileName().toString().startsWith(prefix));
+    assertTrue(tempFile.getFileName().toString().endsWith(suffix));
+    assertTrue(Files.exists(tempFile));
+
+    File f = tempFile.toFile();
+    assertTrue(f.canRead());
+    assertTrue(f.canWrite());
+
+    Files.deleteIfExists(tempFile);
   }
 
   private void verifyFilePermissions(File file) {

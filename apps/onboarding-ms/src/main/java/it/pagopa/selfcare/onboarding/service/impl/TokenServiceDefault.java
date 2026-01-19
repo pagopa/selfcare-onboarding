@@ -4,7 +4,6 @@ import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
 
-import com.azure.storage.blob.models.BlobStorageException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
@@ -268,7 +267,7 @@ public class TokenServiceDefault implements TokenService {
                         .replace("${productName}", productId);
 
         log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
-        Path signedPdf = Files.createTempFile("signed", ".pdf");
+        Path signedPdf = createSafeTempFile();
         padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
         return signedPdf.toFile();
     }
@@ -429,5 +428,29 @@ public class TokenServiceDefault implements TokenService {
                                     });
                         }
                 );
+    }
+
+    public java.nio.file.Path createSafeTempFile() throws java.io.IOException {
+        try {
+            return createTempFileWithPosix();
+        } catch (UnsupportedOperationException e) {
+            // Fallback per Windows/Non-POSIX
+            java.io.File f = java.nio.file.Files.createTempFile("signed", ".pdf").toFile();
+            boolean readable = f.setReadable(true, true);
+            boolean writable = f.setWritable(true, true);
+            boolean executable = f.setExecutable(false); // Importante: NO esecuzione
+            if (!readable || !writable || !executable) {
+                log.warn("Could not set restricted permissions on temporary file: {}", f.getAbsolutePath());
+            }
+            return f.toPath();
+        }
+    }
+
+    public java.nio.file.Path createTempFileWithPosix() throws java.io.IOException {
+        java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr =
+                java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                        java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
+                );
+        return java.nio.file.Files.createTempFile("signed", ".pdf", attr);
     }
 }
