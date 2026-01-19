@@ -259,6 +259,7 @@ class TokenServiceDefaultTest {
 
         Token token = new Token();
         token.setContractFilename(filename);
+        token.setContractSigned(filename);
         token.setName(filename);
 
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
@@ -272,7 +273,7 @@ class TokenServiceDefaultTest {
                 filename))
                 .thenReturn(queryPage);
 
-        File file = new File("test.pdf");
+        File file = new File("filename.pdf");
         when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(file);
 
         UniAssertSubscriber<RestResponse<File>> subscriber =
