@@ -185,10 +185,7 @@ public class TokenServiceDefault implements TokenService {
                             .onItem().transformToUni(token ->
                                     Uni.createFrom()
                                             .item(() -> azureBlobClient.getFileAsPdf(
-                                                    getAttachmentByOnboarding(
-                                                            onboardingId,
-                                                            token.getContractFilename()
-                                                    )
+                                                    token.getContractSigned()
                                             ))
                                             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                             .onItem().transform(contract -> RestResponse.ResponseBuilder
@@ -365,6 +362,7 @@ public class TokenServiceDefault implements TokenService {
                 onboardingId,
                 token.getContractFilename()
         ));
+        
         token.setChecksum(digest);
         return Token.persist(token).replaceWith(token);
     }
@@ -406,16 +404,11 @@ public class TokenServiceDefault implements TokenService {
                                             log.info("Token not found onboardingId={}, attachmentName={}", id, attachmentName);
                                             return Uni.createFrom().item(false);
                                         }
-                                        String blobPath = getAttachmentByOnboarding(
-                                                id,
-                                                token.getContractFilename()
-                                        );
-                                        log.debug("Blob path: {}", blobPath);
 
                                         return Uni.createFrom()
                                                 .item(() -> {
                                                     try {
-                                                        azureBlobClient.getProperties(blobPath);
+                                                        azureBlobClient.getProperties(token.getContractSigned());
 
                                                         log.info(
                                                                 "Attachment found in storage onboardingId={}, attachmentName={}",
