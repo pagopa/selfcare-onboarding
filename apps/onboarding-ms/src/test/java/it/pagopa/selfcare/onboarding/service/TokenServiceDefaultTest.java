@@ -371,6 +371,22 @@ class TokenServiceDefaultTest {
 
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName(filename).build();
 
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboardingId))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+        when(queryPage.firstResult()).thenReturn(Uni.createFrom().nullItem());
+
+        PanacheMock.mock(Token.class);
+        when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
+                onboardingId,
+                ATTACHMENT.name(),
+                filename
+        )).thenReturn(queryPage);
+
+        when(azureBlobClient.getProperties(anyString())).thenReturn(null);
+
         UniAssertSubscriber<Void> subscriber =
                 tokenService
                         .uploadAttachment(onboardingId, formItem, filename)
@@ -400,6 +416,20 @@ class TokenServiceDefaultTest {
         Institution institution = new Institution();
         institution.setInstitutionType(InstitutionType.PA);
         onboarding.setInstitution(institution);
+
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboardingId))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+        when(queryPage.firstResult()).thenReturn(Uni.createFrom().nullItem());
+
+        PanacheMock.mock(Token.class);
+        when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
+                onboardingId,
+                ATTACHMENT.name(),
+                filename
+        )).thenReturn(queryPage);
 
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
         asserter.execute(
@@ -433,6 +463,68 @@ class TokenServiceDefaultTest {
                     verify(azureBlobClient).getFileAsPdf(anyString());
                     verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
                 });
+    }
+
+    @Test
+    @RunOnVertxContext
+    void uploadAttachmentFailed(UniAsserter asserter) {
+
+        final String onboardingId = "onboardingId";
+        final String filename = "filename.pdf";
+        final String productId = "productId";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        onboarding.setProductId(productId);
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+
+        PanacheMock.mock(Onboarding.class);
+        when(Onboarding.findById(onboardingId))
+                .thenReturn(Uni.createFrom().item(onboarding));
+
+        ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+        when(queryPage.firstResult()).thenReturn(Uni.createFrom().item(this::createDummyToken));
+
+        PanacheMock.mock(Token.class);
+        when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
+                onboardingId,
+                ATTACHMENT.name(),
+                filename
+        )).thenReturn(queryPage);
+
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(
+                () -> when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().item(onboarding)));
+
+        AttachmentTemplate attachment = new AttachmentTemplate();
+        attachment.setName(filename);
+        attachment.setTemplatePath("template.pdf");
+        attachment.setGenerated(true);
+
+        Product product = createProductWithAttachment("PA", attachment);
+        asserter.execute(() -> when(productService.getProductIsValid(anyString())).thenReturn(product));
+
+        File pdf = new File("src/test/resources/test.pdf");
+
+        asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
+
+        asserter.execute(
+                () ->
+                        when(azureBlobClient.uploadFile(anyString(), anyString(), any(byte[].class)))
+                                .thenReturn("mocked-filepath"));
+
+        FormItem formItem = FormItem.builder().file(pdf).fileName(filename).build();
+
+        mockPersistToken(asserter);
+
+        asserter.assertFailedWith(
+                () -> tokenService.uploadAttachment(onboardingId, formItem, filename),
+                it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException.class
+        );
+
     }
 
     void mockPersistToken(UniAsserter asserter) {
@@ -723,7 +815,7 @@ class TokenServiceDefaultTest {
     void existsAttachmentTest_shouldReturnTrue(UniAsserter asserter) {
         // given
         String onboardingId = UUID.randomUUID().toString();
-        String filename = "filename";
+        String filename = "Addendum.pdf";
 
         Onboarding onboarding = new Onboarding();
         onboarding.setId(onboardingId);
@@ -876,6 +968,24 @@ class TokenServiceDefaultTest {
             institution.setInstitutionType(InstitutionType.PA);
             institution.setDescription("description");
             onboarding.setInstitution(institution);
+
+            asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+            asserter.execute(() ->
+                    when(Onboarding.findById(onboardingId))
+                            .thenReturn(Uni.createFrom().item(onboarding))
+            );
+
+            ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
+            when(queryPage.firstResult()).thenReturn(Uni.createFrom().nullItem());
+
+            asserter.execute(() -> PanacheMock.mock(Token.class));
+            asserter.execute(() ->
+                    when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
+                            onboardingId,
+                            ATTACHMENT.name(),
+                            filename
+                    )).thenReturn(queryPage)
+            );
 
             asserter.execute(() -> PanacheMock.mock(Onboarding.class));
             asserter.execute(
