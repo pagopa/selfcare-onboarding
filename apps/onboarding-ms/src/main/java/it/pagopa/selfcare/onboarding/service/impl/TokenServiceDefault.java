@@ -200,7 +200,7 @@ public class TokenServiceDefault implements TokenService {
     }
 
     @Override
-    public Uni<Void> uploadAttachment(String onboardingId, FormItem file, String attachmentName) {
+    public Uni<Void> uploadAttachment(String onboardingId, FormItem formItem, String attachmentName) {
         return findOnboardingById(onboardingId)
                 .onItem()
                 .transformToUni(
@@ -208,18 +208,18 @@ public class TokenServiceDefault implements TokenService {
                             Product product = productService.getProductIsValid(onboarding.getProductId());
                             AttachmentTemplate attachment = this.getAttachmentTemplate(attachmentName, onboarding, product);
                             if (Boolean.TRUE.equals(isVerifyEnabled)) {
-                                signatureService.verifySignature(file.getFile());
+                                signatureService.verifySignature(formItem.getFile());
                             }
                             // verify if document has not been changed
-                            String digest = getAndVerifyDigest(file, attachment);
+                            String digest = getAndVerifyDigest(formItem, attachment);
                             File signedFile;
                             try {
-                                signedFile = signPdf(file.getFile(), onboarding.getInstitution().getDescription(), product.getId());
+                                signedFile = signPdf(formItem.getFile(), onboarding.getInstitution().getDescription(), product.getId());
                             } catch (IOException e) {
                                 throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
                             }
 
-                            return persistTokenAttachment(onboardingId, file, attachment, digest)
+                            return persistTokenAttachment(onboardingId, attachment, digest)
                                     .onItem().invoke(token ->
                                             uploadFileToAzure(
                                                     token.getContractFilename(),
@@ -341,7 +341,7 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    private Uni<Token> persistTokenAttachment(String onboardingId, FormItem file, AttachmentTemplate attachment, String digest) {
+    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest) {
         Token token = new Token();
         token.setId(UUID.randomUUID().toString());
         token.setCreatedAt(LocalDateTime.now());
@@ -352,8 +352,7 @@ public class TokenServiceDefault implements TokenService {
         token.setContractVersion(attachment.getTemplateVersion());
         token.setContractTemplate(attachment.getTemplatePath());
 
-        String name = file.getFileName();
-        token.setName(name.endsWith(".pdf") ? name.substring(0, name.length() - 4) : name);
+        token.setName(attachment.getName());
 
         String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
         token.setContractFilename(String.format("signed_%s", signedContractFileName));
