@@ -349,20 +349,20 @@ public class TokenServiceDefault implements TokenService {
         token.setType(ATTACHMENT);
         token.setOnboardingId(onboardingId);
 
+        token.setContractVersion(attachment.getTemplateVersion());
+        token.setContractTemplate(attachment.getTemplatePath());
+
         String name = file.getFileName();
         token.setName(name.endsWith(".pdf") ? name.substring(0, name.length() - 4) : name);
 
         String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
         token.setContractFilename(String.format("signed_%s", signedContractFileName));
 
-        token.setContractVersion(attachment.getTemplateVersion());
-        token.setContractTemplate(attachment.getTemplatePath());
-
         token.setContractSigned(getAttachmentByOnboarding(
                 onboardingId,
                 token.getContractFilename()
         ));
-        
+
         token.setChecksum(digest);
         return Token.persist(token).replaceWith(token);
     }
