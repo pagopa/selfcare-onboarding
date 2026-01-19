@@ -861,19 +861,50 @@ class ContractServiceDefaultTest {
     verifyFilePermissions(result);
   }
 
+  @Test
+  void createSafeTempFile() throws IOException {
+    String prefix = "testPrefix";
+    String suffix = ".txt";
+    Path tempFile = ((ContractServiceDefault) contractService).createSafeTempFile(prefix, suffix);
+
+    assertTrue(tempFile.getFileName().toString().startsWith(prefix));
+    assertTrue(tempFile.getFileName().toString().endsWith(suffix));
+    assertTrue(Files.exists(tempFile));
+
+    try {
+      if (Files.getFileStore(tempFile).supportsFileAttributeView("posix")) {
+        Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(tempFile);
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_READ));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_EXECUTE));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_READ));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+      }
+    } catch (IOException e) {
+      // Fallback for non-POSIX systems, check readable/writable/executable
+      File f = tempFile.toFile();
+      assertTrue(f.canRead());
+      assertTrue(f.canWrite());
+      assertFalse(f.canExecute());
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
+  }
+
   private void verifyFilePermissions(File file) {
     Path path = file.toPath();
     try {
       if (Files.getFileStore(path).supportsFileAttributeView("posix")) {
         Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
-        Set<PosixFilePermission> restricted = Set.of(
-                PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE,
-                PosixFilePermission.OWNER_EXECUTE
-        );
-        assertTrue(permissions.containsAll(restricted));
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
         // Ensure no other permissions are set (group/others)
-        assertEquals(3, permissions.size(), "File should only have owner permissions: " + permissions);
+        assertEquals(2, permissions.size(), "File should only have owner read/write permissions: " + permissions);
       }
     } catch (IOException e) {
       // Ignore if not supported

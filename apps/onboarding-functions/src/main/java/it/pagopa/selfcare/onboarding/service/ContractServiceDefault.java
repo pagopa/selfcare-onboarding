@@ -598,14 +598,21 @@ public class ContractServiceDefault implements ContractService {
     return csvFile;
   }
 
-  private Path createSafeTempFile(String prefix, String suffix) throws IOException {
+  Path createSafeTempFile(String prefix, String suffix) throws IOException {
     try {
-      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
+              PosixFilePermissions.fromString("rw-------")
+      );
       return Files.createTempFile(prefix, suffix, attr);
     } catch (UnsupportedOperationException e) {
-      // Fallback for non-POSIX systems (e.g., Windows)
+      // Fallback per sistemi non-POSIX (es. Windows in locale)
       File f = Files.createTempFile(prefix, suffix).toFile();
-      if (!f.setReadable(true, true) || !f.setWritable(true, true) || !f.setExecutable(true, true)) {
+
+      boolean readable = f.setReadable(true, true); // true = leggibile, true = solo owner
+      boolean writable = f.setWritable(true, true); // true = scrivibile, true = solo owner
+      boolean executable = f.setExecutable(false);  // FIX: false = NON eseguibile (più sicuro)
+
+      if (!readable || !writable || !executable) {
         log.warn("Could not set restricted permissions on temporary file: {}", f.getAbsolutePath());
       }
       return f.toPath();
