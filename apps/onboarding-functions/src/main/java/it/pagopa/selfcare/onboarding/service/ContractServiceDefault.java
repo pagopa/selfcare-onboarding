@@ -13,7 +13,6 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.StringSubstitutor;
@@ -49,21 +48,17 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
 
-  @Inject
-  @RestClient
-  UserApi userRegistryApi;
-
   private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
   public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
+
+  private final UserApi userRegistryApi;
   private final AzureStorageConfig azureStorageConfig;
   private final AzureBlobClient azureBlobClient;
   private final PadesSignService padesSignService;
   private final PagoPaSignatureConfig pagoPaSignatureConfig;
   private final MailTemplatePlaceholdersConfig templatePlaceholdersConfig;
-
-  Boolean isLogoEnable;
-
   private final String logoPath;
+  private final boolean isLogoEnable;
 
   private static final String INSTITUTION_DESCRIPTION_HEADER = "Ragione Sociale";
   private static final String PEC_HEADER = "PEC";
@@ -217,24 +212,16 @@ public class ContractServiceDefault implements ContractService {
     String pdfFormatFilename) {
 
     log.info("START - createContractPdf for template: {}", contractTemplatePath);
-    // Generate a unique filename for the PDF.
     final String productId = onboarding.getProductId();
     final Institution institution = onboarding.getInstitution();
 
     try {
-      final String[] split = contractTemplatePath.split("\\.");
-      final String fileType = split[split.length - 1];
+      File temporaryPdfFile = isPdfFile(contractTemplatePath)
+              ? azureBlobClient.getFileAsPdf(contractTemplatePath)
+              : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
 
-      // If contract template is a PDF, I get without parsing
-      File temporaryPdfFile =
-        "pdf".equals(fileType)
-          ? azureBlobClient.getFileAsPdf(contractTemplatePath)
-          : createPdfFileContract(contractTemplatePath, onboarding, manager, users);
-
-      // Define the filename and path for storage.
       final String filename = CONTRACT_FILENAME_FUNC.apply(pdfFormatFilename, productName);
-      final String path =
-        String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
+      final String path = String.format("%s%s", azureStorageConfig.contractPath(), onboarding.getId());
 
       File signedPath = signPdf(temporaryPdfFile, institution.getDescription(), productId);
       azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedPath.toPath()));
@@ -246,27 +233,30 @@ public class ContractServiceDefault implements ContractService {
     }
   }
 
+  private boolean isPdfFile(String path) {
+    return path.endsWith(".pdf");
+  }
+
   @Override
   public String deleteContract(String fileName, boolean absolutePath) {
-    String filePath = absolutePath ? fileName :  azureStorageConfig.contractPath() + fileName;
+    String filePath = absolutePath ? fileName : azureStorageConfig.contractPath() + fileName;
     log.info("START - deleteContract fileName: {}", filePath);
 
     try {
-      // First retrieve file
       File temporaryFile = azureBlobClient.retrieveFile(filePath);
       String deletedFileName = filePath.replace(azureStorageConfig.contractPath(), azureStorageConfig.deletedPath());
-      // Upload to deleted file storage
+
       azureBlobClient.uploadFilePath(deletedFileName, Files.readAllBytes(temporaryFile.toPath()));
-      // Remove contract from original path
       azureBlobClient.removeFile(filePath);
-      // set new file path
+
       return deletedFileName;
     } catch (IOException e) {
-      log.error("START - deleteContract error: {}", String.format("Can not remove contract file, message: %s", e.getMessage()));
+      log.error("Error deleting contract {}: {}", filePath, e.getMessage());
     }
     return filePath;
   }
 
+  @Override
   public File createAttachmentPDF(
     String attachmentTemplatePath,
     Onboarding onboarding,
@@ -276,21 +266,12 @@ public class ContractServiceDefault implements ContractService {
     log.info("START - createAttachmentPDF for template: {}", attachmentTemplatePath);
 
     try {
-      final String[] split = attachmentTemplatePath.split("\\.");
-      final String fileType = split[split.length - 1];
+      File attachmentPdfFile = isPdfFile(attachmentTemplatePath)
+              ? azureBlobClient.getFileAsPdf(attachmentTemplatePath)
+              : createPdfFileAttachment(attachmentTemplatePath, onboarding, userResource);
 
-      // If contract template is a PDF, I get without parsing
-      File attachmentPdfFile =
-        "pdf".equals(fileType)
-          ? azureBlobClient.getFileAsPdf(attachmentTemplatePath)
-          : createPdfFileAttachment(attachmentTemplatePath, onboarding, userResource);
-
-      // Define the filename and path for storage.
-      final String filename =
-        CONTRACT_FILENAME_FUNC.apply("%s_" + attachmentName + ".pdf", productName);
-      final String path =
-        String.format(
-          "%s%s%s", azureStorageConfig.contractPath(), onboarding.getId(), "/attachments");
+      final String filename = CONTRACT_FILENAME_FUNC.apply("%s_" + attachmentName + ".pdf", productName);
+      final String path = String.format("%s%s/attachments", azureStorageConfig.contractPath(), onboarding.getId());
 
       azureBlobClient.uploadFile(path, filename, Files.readAllBytes(attachmentPdfFile.toPath()));
 
@@ -307,64 +288,84 @@ public class ContractServiceDefault implements ContractService {
     UserResource manager,
     List<UserResource> users)
     throws IOException {
-    final String builder =
+    final String prefix =
       LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
         + "_"
         + UUID.randomUUID()
         + "_contratto_interoperabilita.";
 
-    final String productId = onboarding.getProductId();
-    final Institution institution = onboarding.getInstitution();
-
     // Read the content of the contract template file.
     String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
     // Create a temporary PDF file to store the contract.
-    Path temporaryPdfFile = Files.createTempFile(builder, ".pdf");
+    Path temporaryPdfFile = Files.createTempFile(prefix, ".pdf");
     // Setting baseUrl used to construct aggregates csv url
     String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
-    // Prepare common data for the contract document.
-    Map<String, Object> data;
-    // Customize data based on the product and institution type.
+
     if (InstitutionType.PRV_PF.equals(onboarding.getInstitution().getInstitutionType())) {
-        UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
-        onboarding.getInstitution().setTaxCode(userResource.getFiscalCode());
-        onboarding.getInstitution().setOriginId(userResource.getFiscalCode());
+      UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
+      onboarding.getInstitution().setTaxCode(userResource.getFiscalCode());
+      onboarding.getInstitution().setOriginId(userResource.getFiscalCode());
     }
-    data = setUpCommonData(manager, users, onboarding, baseUrl);
-    if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
-      && InstitutionType.PSP == institution.getInstitutionType()) {
+
+    // Prepare common data for the contract document.
+    Map<String, Object> data = setUpCommonData(manager, users, onboarding, baseUrl);
+
+    // Customize data based on the product and institution type.
+    setupProductSpecificData(data, onboarding, manager, users);
+
+    log.debug("data Map for PDF: {}", data);
+    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
+    return temporaryPdfFile.toFile();
+  }
+
+  private void setupProductSpecificData(Map<String, Object> data, Onboarding onboarding, UserResource manager, List<UserResource> users) {
+    final String productId = onboarding.getProductId();
+    final Institution institution = onboarding.getInstitution();
+    final InstitutionType institutionType = institution.getInstitutionType();
+
+    if (isPspAndPagoPaOrDashboard(productId, institutionType)) {
       setupPSPData(data, manager, onboarding);
-    } else if ((PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_IDPAY_MERCHANT.getValue().equalsIgnoreCase(productId))
-            && (InstitutionType.PRV == institution.getInstitutionType() || InstitutionType.GPU == institution.getInstitutionType()
-            || InstitutionType.PRV_PF == institution.getInstitutionType())) {
-        setupPRVData(data, onboarding, users);
-
-      Payment payment = onboarding.getPayment();
-      if (Objects.nonNull(payment)) {
-        setupPaymentData(data, payment);
+    } else if (isPrvOrGpuAndPagoPaOrIdpay(productId, institutionType)) {
+      setupPRVData(data, onboarding, users);
+      if (Objects.nonNull(onboarding.getPayment())) {
+        setupPaymentData(data, onboarding.getPayment());
       }
-
-    } else if (PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
-      && InstitutionType.PSP != institution.getInstitutionType()
-      && InstitutionType.PT != institution.getInstitutionType()) {
-      setECData(data, onboarding);
-    } else if (PROD_IO.getValue().equalsIgnoreCase(productId)
-      || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
-      || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId)) {
+    } else if (isEcAndPagoPa(productId, institutionType)) {
+      setECData(data, institution);
+    } else if (isProdIO(productId)) {
       setupProdIOData(onboarding, data, manager);
     } else if (PROD_PN.getValue().equalsIgnoreCase(productId)) {
       setupProdPNData(data, institution, onboarding.getBilling());
     } else if (PROD_INTEROP.getValue().equalsIgnoreCase(productId)) {
       setupSAProdInteropData(data, institution);
     }
-    log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
-    return temporaryPdfFile.toFile();
+  }
+
+  private boolean isPspAndPagoPaOrDashboard(String productId, InstitutionType institutionType) {
+    return (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_DASHBOARD_PSP.getValue().equalsIgnoreCase(productId))
+            && InstitutionType.PSP == institutionType;
+  }
+
+  private boolean isPrvOrGpuAndPagoPaOrIdpay(String productId, InstitutionType institutionType) {
+    return (PROD_PAGOPA.getValue().equalsIgnoreCase(productId) || PROD_IDPAY_MERCHANT.getValue().equalsIgnoreCase(productId))
+            && (InstitutionType.PRV == institutionType || InstitutionType.GPU == institutionType || InstitutionType.PRV_PF == institutionType);
+  }
+
+  private boolean isEcAndPagoPa(String productId, InstitutionType institutionType) {
+    return PROD_PAGOPA.getValue().equalsIgnoreCase(productId)
+            && InstitutionType.PSP != institutionType
+            && InstitutionType.PT != institutionType;
+  }
+
+  private boolean isProdIO(String productId) {
+    return PROD_IO.getValue().equalsIgnoreCase(productId)
+            || PROD_IO_PREMIUM.getValue().equalsIgnoreCase(productId)
+            || PROD_IO_SIGN.getValue().equalsIgnoreCase(productId);
   }
 
   private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
     throws IOException {
-    final String builder =
+    final String prefix =
       LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
         + "_"
         + UUID.randomUUID()
@@ -373,7 +374,7 @@ public class ContractServiceDefault implements ContractService {
     // Read the content of the contract template file.
     String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
     // Create a temporary PDF file to store the contract.
-    Path attachmentPdfFile = Files.createTempFile(builder, ".pdf");
+    Path attachmentPdfFile = Files.createTempFile(prefix, ".pdf");
     // Prepare common data for the contract document.
     Map<String, Object> data = setUpAttachmentData(onboarding, userResource);
 
@@ -488,7 +489,7 @@ public class ContractServiceDefault implements ContractService {
 
   @Override
   public Optional<File> getLogoFile() {
-    if (Boolean.TRUE.equals(isLogoEnable)) {
+    if (isLogoEnable) {
 
       StringBuilder stringBuilder =
         new StringBuilder(
