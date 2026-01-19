@@ -33,6 +33,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -297,7 +300,7 @@ public class ContractServiceDefault implements ContractService {
     // Read the content of the contract template file.
     String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
     // Create a temporary PDF file to store the contract.
-    Path temporaryPdfFile = Files.createTempFile(prefix, ".pdf");
+    Path temporaryPdfFile = createSafeTempFile(prefix, ".pdf");
     // Setting baseUrl used to construct aggregates csv url
     String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
 
@@ -374,7 +377,7 @@ public class ContractServiceDefault implements ContractService {
     // Read the content of the contract template file.
     String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
     // Create a temporary PDF file to store the contract.
-    Path attachmentPdfFile = Files.createTempFile(prefix, ".pdf");
+    Path attachmentPdfFile = createSafeTempFile(prefix, ".pdf");
     // Prepare common data for the contract document.
     Map<String, Object> data = setUpAttachmentData(onboarding, userResource);
 
@@ -397,7 +400,7 @@ public class ContractServiceDefault implements ContractService {
         .replace("${productName}", productId);
 
     log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
-    Path signedPdf = Files.createTempFile("signed", ".pdf");
+    Path signedPdf = createSafeTempFile("signed", ".pdf");
     padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
     return signedPdf.toFile();
   }
@@ -496,7 +499,7 @@ public class ContractServiceDefault implements ContractService {
           LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS)));
       stringBuilder.append("_").append(UUID.randomUUID()).append("_logo");
       try {
-        Path path = Files.createTempFile(stringBuilder.toString(), ".png");
+        Path path = createSafeTempFile(stringBuilder.toString(), ".png");
         Files.writeString(path, azureBlobClient.getFileAsText(logoPath));
         return Optional.of(path.toFile());
       } catch (IOException e) {
@@ -513,7 +516,7 @@ public class ContractServiceDefault implements ContractService {
 
     try {
       Onboarding onboarding = onboardingWorkflow.getOnboarding();
-      Path filePath = Files.createTempFile("tempfile", ".csv");
+      Path filePath = createSafeTempFile("tempfile", ".csv");
       File csv =
         generateAggregatesCsv(onboarding.getProductId(), onboarding.getAggregates(), filePath);
       final String path =
@@ -593,5 +596,20 @@ public class ContractServiceDefault implements ContractService {
         String.format(CREATE_AGGREGATES_CSV_ERROR.getMessage(), e.getMessage()));
     }
     return csvFile;
+  }
+
+  private Path createSafeTempFile(String prefix, String suffix) throws IOException {
+    if (System.getProperty("os.name").toLowerCase().contains("win")) {
+      Path path = Files.createTempFile(prefix, suffix);
+      File f = path.toFile();
+      boolean success = f.setReadable(true, true) && f.setWritable(true, true) && f.setExecutable(true, true);
+      if (!success) {
+        log.warn("Could not set full permissions on temporary file: {}", path);
+      }
+      return path;
+    } else {
+      FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+      return Files.createTempFile(prefix, suffix, attr);
+    }
   }
 }
