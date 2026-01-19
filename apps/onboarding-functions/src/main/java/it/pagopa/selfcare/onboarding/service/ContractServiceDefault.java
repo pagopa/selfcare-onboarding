@@ -599,17 +599,16 @@ public class ContractServiceDefault implements ContractService {
   }
 
   private Path createSafeTempFile(String prefix, String suffix) throws IOException {
-    if (System.getProperty("os.name").toLowerCase().contains("win")) {
-      Path path = Files.createTempFile(prefix, suffix);
-      File f = path.toFile();
-      boolean success = f.setReadable(true, true) && f.setWritable(true, true) && f.setExecutable(true, true);
-      if (!success) {
-        log.warn("Could not set full permissions on temporary file: {}", path);
-      }
-      return path;
-    } else {
+    try {
       FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
       return Files.createTempFile(prefix, suffix, attr);
+    } catch (UnsupportedOperationException e) {
+      // Fallback for non-POSIX systems (e.g., Windows)
+      File f = Files.createTempFile(prefix, suffix).toFile();
+      if (!f.setReadable(true, true) || !f.setWritable(true, true) || !f.setExecutable(true, true)) {
+        log.warn("Could not set restricted permissions on temporary file: {}", f.getAbsolutePath());
+      }
+      return f.toPath();
     }
   }
 }
