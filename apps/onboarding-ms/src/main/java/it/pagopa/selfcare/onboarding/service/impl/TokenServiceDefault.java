@@ -221,10 +221,11 @@ public class TokenServiceDefault implements TokenService {
                             } catch (IOException e) {
                                 throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
                             }
+
                             return persistTokenAttachment(onboardingId, file, attachment, digest)
                                     .onItem().invoke(token ->
                                             uploadFileToAzure(
-                                                    token,
+                                                    token.getContractFilename(),
                                                     onboardingId,
                                                     signedFile
                                             )
@@ -354,9 +355,12 @@ public class TokenServiceDefault implements TokenService {
         String name = file.getFileName();
         token.setName(name.endsWith(".pdf") ? name.substring(0, name.length() - 4) : name);
 
+        String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
+        token.setContractFilename(String.format("signed_%s", signedContractFileName));
+
         token.setContractVersion(attachment.getTemplateVersion());
         token.setContractTemplate(attachment.getTemplatePath());
-        token.setContractFilename(file.getFileName());
+
         token.setContractSigned(getAttachmentByOnboarding(
                 onboardingId,
                 token.getContractFilename()
@@ -373,10 +377,9 @@ public class TokenServiceDefault implements TokenService {
                 .map(Onboarding.class::cast);
     }
 
-    private void uploadFileToAzure(Token token, String onboardingId, File signedFile) throws OnboardingNotAllowedException {
+    private void uploadFileToAzure(String filename, String onboardingId, File signedFile) throws OnboardingNotAllowedException {
         final String path = String.format("%s%s", pathContracts, onboardingId).concat("/attachments");
-        final String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
-        final String filename = String.format("signed_%s", signedContractFileName);
+
         try {
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedFile.toPath()));
         } catch (IOException e) {
