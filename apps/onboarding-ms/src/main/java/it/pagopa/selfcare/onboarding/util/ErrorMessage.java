@@ -64,13 +64,18 @@ public enum ErrorMessage {
 
     ONBOARDING_EXPIRED("0040", "Onboarding with id %s not found or it is expired!"),
     ONBOARDING_NOT_TO_BE_VALIDATED("0043", "Onboarding with id %s has not TO_BE_VALIDATED status!"),
+    ONBOARDING_NOT_COMPLETED("0044", "Onboarding with id %s must be in COMPLETED status but it is in %s status!"),
     GET_INSTITUTION_BY_GEOTAXONOMY_ERROR("0053", "Error while searching institutions related to given geoTaxonomies"),
     GET_INSTITUTION_BY_PRODUCTID_ERROR("0053", "Error while searching institutions related to given productId"),
     GET_INSTITUTIONS_REQUEST_ERROR("0054", "Invalid request parameters sent. Allowed filters combinations taxCode and subunit or origin and originId"),
 
     VERIFY_USER_ERROR("0000", "Error while searching institutions related to given productId"),
+    VALIDATION_USER_BY_TAXCODE("0000", "Different emails cannot exist for the same tax code (MANAGER/DELEGATE)"),
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
+    ATTACHMENT_UPLOAD_ERROR("0000", "Attachment already uploaded"),
+
     GENERIC_ERROR("0000", "Generic Error");
+
 
     private final String code;
     private final String message;

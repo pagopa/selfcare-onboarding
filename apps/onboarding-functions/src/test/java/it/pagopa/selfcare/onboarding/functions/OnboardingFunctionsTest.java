@@ -561,8 +561,8 @@ class OnboardingFunctionsTest {
     assertEquals(CREATE_INSTITUTION_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(1));
     assertEquals(STORE_ONBOARDING_ACTIVATEDAT, captorActivity.getAllValues().get(2));
-    assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(3));
-    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(4));
+    assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(3));
+    assertEquals(CREATE_ONBOARDING_ACTIVITY, captorActivity.getAllValues().get(4));
     assertEquals(CREATE_USERS_ACTIVITY, captorActivity.getAllValues().get(5));
     assertEquals(SEND_MAIL_COMPLETION_ACTIVITY, captorActivity.getAllValues().get(6));
 

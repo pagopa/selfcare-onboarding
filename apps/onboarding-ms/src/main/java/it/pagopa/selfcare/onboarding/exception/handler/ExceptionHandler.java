@@ -1,9 +1,6 @@
 package it.pagopa.selfcare.onboarding.exception.handler;
 
-import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
-import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
-import it.pagopa.selfcare.onboarding.exception.ResourceConflictException;
-import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.exception.model.Problem;
 import it.pagopa.selfcare.onboarding.exception.model.ProblemError;
 import jakarta.ws.rs.core.Response;
@@ -48,6 +45,15 @@ public class ExceptionHandler {
     public RestResponse<String> toResponse(ResourceConflictException exception) {
         log.error(LOG_ERROR_SYNTAX, SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
         return RestResponse.status(Response.Status.CONFLICT, exception.getMessage());
+    }
+    @ServerExceptionMapper
+    public Response toResponse(UpdateNotAllowedException exception) {
+        log.error(LOG_ERROR_SYNTAX, SOMETHING_HAS_GONE_WRONG_IN_THE_SERVER, exception.getMessage());
+        Problem problem = problem(exception.getMessage(), Response.Status.CONFLICT.getStatusCode(), exception.getCode());
+        return Response
+                .status(Response.Status.CONFLICT)
+                .entity(problem)
+                .build();
     }
 
     private Problem problem(String errorMessage, Integer status, String code) {

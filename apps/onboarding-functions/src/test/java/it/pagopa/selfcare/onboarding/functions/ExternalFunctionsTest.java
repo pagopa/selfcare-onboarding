@@ -164,4 +164,60 @@ import static org.mockito.Mockito.*;
         HttpResponseMessage responseMessage = function.messageAcknowledgment(req, "productId", "messageId", "NACK", context);
         assertEquals(HttpStatus.OK.value(), responseMessage.getStatusCode());
     }
+
+    @Test
+    void webhookTest_success() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        String validJson = "{\"key\":\"value\"}";
+        doReturn(Optional.of(validJson)).when(req).getBody();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        HttpResponseMessage response = function.webhookTest(req, context);
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode());
+    }
+
+    @Test
+    void webhookTest_invalidJson() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        String invalidJson = "{invalid}";
+        doReturn(Optional.of(invalidJson)).when(req).getBody();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        HttpResponseMessage response = function.webhookTest(req, context);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode());
+    }
+
+    @Test
+    void webhookTest_emptyBody() {
+        final HttpRequestMessage<Optional<String>> req = mock(HttpRequestMessage.class);
+        final ExecutionContext context = mock(ExecutionContext.class);
+        doReturn(Logger.getGlobal()).when(context).getLogger();
+
+        doReturn(Optional.empty()).when(req).getBody();
+
+        doAnswer((Answer<HttpResponseMessage.Builder>) invocation -> {
+            HttpStatus status = (HttpStatus) invocation.getArguments()[0];
+            return new HttpResponseMessageMock.HttpResponseMessageBuilderMock().status(status);
+        }).when(req).createResponseBuilder(any(HttpStatus.class));
+
+        HttpResponseMessage response = function.webhookTest(req, context);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode());
+    }
 }

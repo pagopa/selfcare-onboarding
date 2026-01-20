@@ -28,6 +28,16 @@ public interface TokenMapper {
     @Mapping(target = "activatedAt", ignore = true)
     Token toModel(Onboarding onboarding, Product product, OnboardingImportContract contractImported);
 
+    @Mapping(target = "id", source = "onboarding.id")
+    @Mapping(target = "onboardingId", source = "onboarding.id")
+    @Mapping(target = "contractTemplate", source = "contractTemplate.contractTemplatePath")
+    @Mapping(target = "contractVersion", source = "contractTemplate.contractTemplateVersion")
+    @Mapping(target = "type", constant = "INSTITUTION")
+    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "activatedAt", ignore = true)
+    Token toModel(Onboarding onboarding, Product product, ContractTemplate contractTemplate);
+
     default String getContractTemplatePath(Onboarding onboarding, Product product) {
         ContractTemplate contractTemplate = product.getInstitutionContractTemplate(
                 InstitutionUtils.getCurrentInstitutionType(onboarding));

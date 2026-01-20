@@ -1,9 +1,10 @@
 package it.pagopa.selfcare.onboarding.controller;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -16,15 +17,15 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
-
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
-
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 @QuarkusTest
@@ -126,7 +127,7 @@ class TokenControllerTest {
     final String onboardingId = "onboardingId";
     final String contractSigned = "contractSigned";
 
-    Uni<Long> response = Uni.createFrom().item(Long.valueOf(1));
+    Uni<Long> response = Uni.createFrom().item(1L);
     when(tokenService.updateContractSigned(onboardingId, contractSigned)).thenReturn(response);
 
     // when
@@ -192,4 +193,122 @@ class TokenControllerTest {
     // then
     Mockito.verify(tokenService, times(1)).reportContractSigned(anyString());
   }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void uploadAttachment() {
+    File testFile = new File("src/test/resources/application.properties");
+    String onboardingId = "actual-onboarding-id";
+
+    when(tokenService.uploadAttachment(any(), any(), anyString()))
+            .thenReturn(Uni.createFrom().nullItem());
+
+    given()
+            .when()
+            .pathParam("onboardingId", onboardingId)
+            .queryParam("name", "name")
+            .contentType(ContentType.MULTIPART)
+            .multiPart("file", testFile)
+            .post("/{onboardingId}/attachment")
+            .then()
+            .statusCode(204);
+
+    ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+    verify(tokenService, times(1))
+            .uploadAttachment(expectedId.capture(), any(), anyString());
+    assertEquals(expectedId.getValue(), onboardingId);
+  }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadAttachmentTest_shouldFailed_whenThrowsException() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(tokenService.uploadAttachment(any(), any(), anyString()))
+                .thenThrow(new UpdateNotAllowedException("Attachment already uploaded"));
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", "name")
+                .contentType(ContentType.MULTIPART)
+                .multiPart("file", testFile)
+                .post("/{onboardingId}/attachment")
+                .then()
+                .statusCode(409);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(tokenService, times(1))
+                .uploadAttachment(expectedId.capture(), any(), anyString());
+    }
+
+  @Test
+  @TestSecurity(user = "userJwt")
+  void uploadAttachmentError() {
+    File testFile1 = new File("src/test/resources/application.properties");
+    File testFile2 = new File("src/test/resources/application.properties");
+    String onboardingId = "actual-onboarding-id";
+
+    given()
+            .when()
+            .pathParam("onboardingId", onboardingId)
+            .queryParam("name", "name")
+            .contentType(ContentType.MULTIPART)
+            .multiPart("file", testFile1)
+            .multiPart("file", testFile2)
+            .post("/{onboardingId}/attachment")
+            .then()
+            .statusCode(400);
+
+    verify(tokenService, never())
+            .uploadAttachment(any(), any(), any());
+  }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void headAttachmentTest_OK() {
+        // given
+        final String onboardingId = "onboardingId";
+        final String name = "name";
+
+        when(tokenService.existsAttachment(onboardingId, name)).thenReturn(Uni.createFrom().item(Boolean.TRUE));
+
+        // when
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", name)
+                .contentType(MediaType.APPLICATION_JSON)
+                .head("/{onboardingId}/attachment/status")
+                .then()
+                .statusCode(204);
+
+        // then
+        Mockito.verify(tokenService, times(1)).existsAttachment(anyString(), anyString());
+    }
+
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void headAttachmentTest_KO() {
+        // given
+        final String onboardingId = "onboardingId";
+        final String name = "name";
+
+        when(tokenService.existsAttachment(onboardingId, name)).thenReturn(Uni.createFrom().item(Boolean.FALSE));
+
+        // when
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", name)
+                .contentType(MediaType.APPLICATION_JSON)
+                .head("/{onboardingId}/attachment/status")
+                .then()
+                .statusCode(404);
+
+        // then
+        Mockito.verify(tokenService, times(1)).existsAttachment(anyString(), anyString());
+    }
 }

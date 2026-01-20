@@ -230,6 +230,7 @@ class OnboardingServiceIntegrationTest {
         productResource.setRoleMappings(roleMappings);
         productResource.setRoleMappingsByInstitutionType(Map.of(PSP.name(), roleMappingByInstitutionType));
         productResource.setTitle("title");
+        productResource.setAllowCompanyOnboarding(true);
         if (PROD_DASHBOARD_PSP.getValue().equals(productId)) {
             List<String> institutionTypeList = new ArrayList<>();
             institutionTypeList.add(PSP.name());

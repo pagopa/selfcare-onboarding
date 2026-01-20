@@ -18,7 +18,7 @@
   "id": "prod-test",
   "identityTokenAudience": "www.google.it",
   "institutionContractMappings": {
-    "default": {
+    "DEFAULT": {
       "contractTemplatePath": "path_template",
       "contractTemplateVersion": "1.0.0"
     }

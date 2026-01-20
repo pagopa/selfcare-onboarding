@@ -144,6 +144,7 @@ public class OnboardingController {
                     + "The API initiates the onboarding process for the aggregated entities received as input.")
     @POST
     @Path("/aggregation/increment")
+    @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Uni<OnboardingResponse> onboardingAggregationIncrement(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
@@ -662,4 +663,19 @@ public class OnboardingController {
         return onboardingService.retrieveOnboardingByInstitutionId(institutionId, productId);
     }
 
+    @Operation(
+            summary = "Update COMPELTED onboarding uploading signed contract",
+            description = "Uploading signed contract given onboardingId, updating related token",
+            operationId = "uploadContractSigned"
+    )
+    @PUT
+    @Path("/{onboardingId}/upload-contract-signed")
+    @Tag(name = "internal-v1")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Uni<Response> uploadContractSigned(@PathParam(value = "onboardingId") String onboardingId, @NotNull @RestForm("contract") File file, @Context ResteasyReactiveRequestContext ctx) {
+        return onboardingService.uploadContractSigned(onboardingId, retrieveContractFromFormData(ctx.getFormData(), file))
+                .map(ignore -> Response
+                        .status(HttpStatus.SC_NO_CONTENT)
+                        .build());
+    }
 }

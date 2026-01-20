@@ -400,7 +400,7 @@ paths:
   /v1/onboarding/aggregation/increment:
     post:
       tags:
-      - Onboarding Controller
+      - internal-v1
       summary: Perform Increment for aggregates
       description: Perform the increment of the aggregates for an aggregator entity
         that has already completed the initial onboarding.The API initiates the onboarding
@@ -1312,6 +1312,42 @@ paths:
           description: Not Allowed
       security:
       - SecurityScheme: []
+  /v1/onboarding/{onboardingId}/upload-contract-signed:
+    put:
+      tags:
+      - internal-v1
+      summary: Update COMPELTED onboarding uploading signed contract
+      description: "Uploading signed contract given onboardingId, updating related\
+        \ token"
+      operationId: uploadContractSigned
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - contract
+              type: object
+              properties:
+                contract:
+                  format: binary
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
   /v1/onboarding/{onboardingId}/withUserInfo:
     get:
       tags:
@@ -1455,6 +1491,78 @@ paths:
               schema:
                 format: binary
                 type: string
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+    post:
+      tags:
+      - Token Controller
+      summary: "Upload attachment by verifying and signing document, then save into\
+        \ storage."
+      description: Perform upload  of the file passed in input verifying digest e
+        put company signature
+      operationId: complete
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - file
+              type: object
+              properties:
+                file:
+                  format: binary
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme: []
+  /v1/tokens/{onboardingId}/attachment/status:
+    head:
+      tags:
+      - Token Controller
+      summary: Verify attachment availability
+      description: "Verifies the availability of the specified attachment in the storage\
+        \ system. A successful check returns HTTP 204 (No Content), while a missing\
+        \ attachment results in HTTP 404 (Not Found)."
+      operationId: headAttachment
+      parameters:
+      - name: onboardingId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
         "401":
           description: Not Authorized
         "403":
@@ -1614,6 +1722,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRequest"
+        istatCode:
+          type: string
         recipientCode:
           type: string
         digitalAddress:

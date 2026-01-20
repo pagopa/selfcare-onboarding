@@ -36,6 +36,7 @@ import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -71,10 +72,12 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
@@ -105,6 +108,11 @@ public class OnboardingServiceDefault implements OnboardingService {
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
     private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
+    private static final String ONBOARDING_ID = "onboardingId";
+    private static final Pattern INDIVIDUAL_CF_PATTERN =
+            Pattern.compile("^[A-Z]{6}\\d{2}[A-Z]\\d{2}[A-Z]\\d{3}[A-Z]$");
+
+
 
     @RestClient
     @Inject
@@ -366,6 +374,10 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(ignored -> registryManager.validateInstitutionType(product))
                 .onItem()
+                .invoke(() -> validateTaxCode(onboarding.getInstitution().getTaxCode(), product))
+                .onItem()
+                .transformToUni(ignored -> verifyAllowManagerAsDelegate(userRequests))
+                .onItem()
                 .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
                 .invoke(() -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
@@ -378,6 +390,41 @@ public class OnboardingServiceDefault implements OnboardingService {
                         orchestrationService.triggerOrchestration(currentOnboarding.getId(), null)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
+    }
+
+    /**
+     * Validates that among MANAGER and DELEGATE user requests, the same tax code is never associated
+     * with more than one distinct email address.
+     * <p>
+     * Emails are normalized (trim + lowercase) before comparison.
+     * If a violation is found, the returned {@link Uni} fails with {@link InvalidRequestException};
+     * otherwise it completes successfully.
+     */
+    private Uni<Void> verifyAllowManagerAsDelegate(List<UserRequest> userRequests) {
+
+        log.info("Starting verifyAllowManagerAsDelegate");
+
+        boolean ok = userRequests.stream()
+                .filter(userRequest -> userRequest.getRole() == PartyRole.MANAGER || userRequest.getRole() == PartyRole.DELEGATE)
+                .filter(userRequest -> userRequest.getTaxCode() != null && !userRequest.getTaxCode().isBlank())
+                .filter(userRequest -> userRequest.getEmail() != null && !userRequest.getEmail().isBlank())
+                .collect(Collectors.groupingBy(
+                        userRequest -> userRequest.getTaxCode().trim().toLowerCase(),
+                        Collectors.mapping(userRequest -> userRequest.getEmail().trim().toLowerCase(), Collectors.toSet())
+                ))
+                .values().stream()
+                .allMatch(emails -> emails.size() <= 1);
+
+        if (!ok) {
+            return Uni.createFrom().failure(
+                    new InvalidRequestException(
+                            VALIDATION_USER_BY_TAXCODE.getMessage(),
+                            VALIDATION_USER_BY_TAXCODE.getCode()
+                    )
+            );
+        }
+
+        return Uni.createFrom().voidItem();
     }
 
     /**
@@ -436,6 +483,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         .onItem()
                                         .invoke(
                                                 current -> onboarding.setTestEnvProductIds(product.getTestEnvProductIds()))
+                                        .onItem()
+                                        .invoke(() -> verifyAllowManagerAsDelegate(userRequests))
                                         .onItem()
                                         .transformToUni(
                                                 current -> persistOnboarding(onboarding, userRequests, product, null))
@@ -779,7 +828,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         if (InstitutionType.PA.equals(institutionType)
-                || verifyInstitutionOnInterop(institutionType, onboarding.getProductId())
+                || verifyInstitutionOnGSP(institutionType, onboarding.getInstitution().getOrigin().getValue())
                 || InstitutionType.SA.equals(institutionType)
                 || InstitutionType.AS.equals(institutionType)
                 || Objects.nonNull(product.getParentId())
@@ -800,10 +849,10 @@ public class OnboardingServiceDefault implements OnboardingService {
         return WorkflowType.FOR_APPROVE;
     }
 
-    private boolean verifyInstitutionOnInterop(InstitutionType institutionType, String productId) {
+    private boolean verifyInstitutionOnGSP(InstitutionType institutionType, String origin) {
         Set<InstitutionType> allowedInstitutionType = Set.of(InstitutionType.GSP, InstitutionType.SCEC);
         return Objects.nonNull(institutionType) && allowedInstitutionType.contains(institutionType)
-                && PROD_INTEROP.getValue().equalsIgnoreCase(productId);
+                && IPA.getValue().equals(origin);
     }
 
     private Uni<Product> product(String productId) {
@@ -1370,6 +1419,28 @@ public class OnboardingServiceDefault implements OnboardingService {
         return complete(onboardingId, formItem, verification);
     }
 
+    @Override
+    public Uni<Onboarding> uploadContractSigned(
+            String onboardingId, FormItem formItem) {
+
+        return retrieveOnboarding(onboardingId)
+                .onItem()
+                .transformToUni(this::checkIfCompleted)
+                .onItem()
+                .transformToUni(onboarding ->
+                        uploadSignedContractAndUpdateToken(onboarding, formItem)
+                                .onItem()
+                                .transform(ignore -> {
+                                    onboarding.setUpdatedAt(LocalDateTime.now());
+                                    return onboarding;
+                                }))
+                .onItem()
+                .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding)
+                        .onItem()
+                        .transformToUni(ignore -> updateTokenUpdatedAt(onboardingId))
+                        .replaceWith(onboarding));
+    }
+
     private Uni<Onboarding> complete(
             String onboardingId,
             FormItem formItem,
@@ -1443,7 +1514,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<String> uploadSignedContractAndUpdateToken(Onboarding onboarding, FormItem formItem) {
         String onboardingId = onboarding.getId();
 
-        return retrieveToken(onboardingId)
+        return retrieveToken(onboarding, formItem)
                 .onItem()
                 .transformToUni(token -> processAndUploadFile(token, onboardingId, formItem));
     }
@@ -1482,6 +1553,34 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .replaceWith(filepath);
     }
 
+    private Uni<Void> updateTokenUpdatedAt(String onboardingId) {
+        return Token.update("updatedAt", LocalDateTime.now())
+                .where(ONBOARDING_ID, onboardingId)
+                .onItem()
+                .transform(ignore -> null);
+    }
+
+    private Uni<Onboarding> retrieveOnboarding(String onboardingId) {
+        // Retrieve Onboarding if exists
+        return Onboarding.findByIdOptional(onboardingId)
+                .onItem()
+                .transformToUni(
+                        opt ->
+                                opt
+                                        // I must cast to Onboarding because findByIdOptional return a generic
+                                        // ReactiveEntity
+                                        .map(Onboarding.class::cast)
+                                        .map(onboarding -> Uni.createFrom().item(onboarding))
+                                        .orElse(
+                                                Uni.createFrom()
+                                                        .failure(
+                                                                new InvalidRequestException(
+                                                                        String.format(
+                                                                                "Onboarding with id '%s' not found",
+                                                                                onboardingId)))));
+    }
+
+
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
         // Retrieve Onboarding if exists
         return Onboarding.findByIdOptional(onboardingId)
@@ -1517,6 +1616,19 @@ public class OnboardingServiceDefault implements OnboardingService {
                                         ONBOARDING_NOT_TO_BE_VALIDATED.getCode())));
     }
 
+    private Uni<Onboarding> checkIfCompleted(Onboarding onboarding) {
+        return COMPLETED.equals(onboarding.getStatus())
+                ? Uni.createFrom().item(onboarding)
+                : Uni.createFrom()
+                .failure(
+                        new InvalidRequestException(
+                                String.format(
+                                        ONBOARDING_NOT_COMPLETED.getMessage(),
+                                        onboarding.getId(),
+                                        onboarding.getStatus(),
+                                        ONBOARDING_NOT_COMPLETED.getCode())));
+    }
+
     public static boolean isOnboardingExpired(LocalDateTime dateTime) {
         LocalDateTime now = LocalDateTime.now();
         return Objects.nonNull(dateTime) && (now.isEqual(dateTime) || now.isAfter(dateTime));
@@ -1527,8 +1639,38 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Token> retrieveToken(String onboardingId) {
-        return Token.list("onboardingId", onboardingId)
+        return Token.list(ONBOARDING_ID, onboardingId)
                 .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
+    }
+
+    Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem) {
+        String onboardingId = onboarding.getId();
+        return Token.list(ONBOARDING_ID, onboardingId)
+                .flatMap(tokens -> {
+                    if (tokens.isEmpty()) {
+                        return getProductByOnboarding(onboarding)
+                                .flatMap(product -> createAndConfigureToken(onboarding, formItem, product));
+                    }
+                    return Uni.createFrom().item((Token) tokens.get(0));
+                });
+    }
+
+    private Uni<Token> createAndConfigureToken(Onboarding onboarding, FormItem formItem, Product product) {
+        String onboardingId = onboarding.getId();
+        String institutionType = onboarding.getInstitution().getInstitutionType().name();
+        ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
+        String digest = tokenService.getAndVerifyDigest(formItem, contractTemplate, true);
+        Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
+        token.setContractSigned(tokenService.getContractPathByOnboarding(onboardingId, formItem.getFileName()));
+        token.setContractFilename(formItem.getFileName());
+        token.setChecksum(digest);
+
+        return token.persist().replaceWith(token);
+    }
+
+    private ContractTemplate getContractTemplate(String institutionType, Product product) {
+        return product
+                .getInstitutionContractTemplate(institutionType);
     }
 
     private Uni<List<String>> retrieveOnboardingUserFiscalCodeList(Onboarding onboarding) {
@@ -2339,6 +2481,44 @@ public class OnboardingServiceDefault implements OnboardingService {
         Onboarding onboarding = new Onboarding();
         onboarding.setInstitution(institutionMapper.toEntity(aggregate));
         return onboarding;
+    }
+
+    /**
+     * Validates the institution tax code against product onboarding rules.
+     * Checks if the tax code is an Italian individual CF (16 characters, specific format).
+     * If it's an individual CF, allowIndividualOnboarding must be true.
+     * If it's not an individual CF, allowCompanyOnboarding must be true.
+     *
+     * @param taxCode The tax code to validate
+     * @param product The product with onboarding rules
+     * @throws InvalidRequestException if validation fails
+     */
+    private void validateTaxCode(String taxCode, Product product) {
+        if (StringUtils.isBlank(taxCode)) {
+            return;
+        }
+
+        boolean isIndividual = isIndividualTaxCode(taxCode);
+
+        if (isIndividual && !product.isAllowIndividualOnboarding()) {
+            throw new InvalidRequestException(
+                    INDIVIDUAL_ONBOARDING_NOT_ALLOWED.getMessage(),
+                    INDIVIDUAL_ONBOARDING_NOT_ALLOWED.getCode()
+            );
+        }
+
+        if (!isIndividual && !product.isAllowCompanyOnboarding()) {
+            throw new InvalidRequestException(
+                    COMPANY_ONBOARDING_NOT_ALLOWED.getMessage(),
+                    COMPANY_ONBOARDING_NOT_ALLOWED.getCode()
+            );
+        }
+    }
+
+    private boolean isIndividualTaxCode(String taxCode) {
+        return INDIVIDUAL_CF_PATTERN
+                .matcher(taxCode.toUpperCase(Locale.ITALY))
+                .matches();
     }
 
     @Override

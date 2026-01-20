@@ -5,11 +5,13 @@ import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
+import it.pagopa.selfcare.onboarding.client.webhook.WebhookRestClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
+import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.dto.UserToNotify;
-import it.pagopa.selfcare.onboarding.dto.*;
+import it.pagopa.selfcare.onboarding.dto.webhook.NotificationRequest;
 import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -65,11 +67,17 @@ public class NotificationEventServiceDefaultTest {
   @InjectMock
   QueueEventExaminer queueEventExaminer;
 
+    @RestClient
+    @InjectMock
+    WebhookRestClient webhookRestClient;
+
 
   @Test
   void sendMessage() {
+    // given
     final Onboarding onboarding = createOnboarding();
     final Product product = createProduct();
+
     when(productService.getProduct(any())).thenReturn(product);
     mockNotificationMapper(true);
     when(tokenRepository.findByOnboardingId(any())).thenReturn(Optional.of(new Token()));
@@ -79,10 +87,18 @@ public class NotificationEventServiceDefaultTest {
       .thenReturn(users);
     ExecutionContext context = mock(ExecutionContext.class);
     doReturn(Logger.getGlobal()).when(context).getLogger();
+
     doNothing().when(eventHubRestClient).sendMessage(anyString(), anyString());
+    doNothing().when(webhookRestClient).sendNotification(any(NotificationRequest.class));
+
+    // when
     notificationServiceDefault.send(context, onboarding, QueueEvent.ADD);
+
+    // then
     verify(eventHubRestClient, times(3))
       .sendMessage(anyString(), anyString());
+    verify(webhookRestClient, times(3))
+      .sendNotification(any(NotificationRequest.class));
   }
 
   @Test

@@ -58,6 +58,8 @@ public interface OnboardingService {
 
     Uni<Onboarding> completeWithoutSignatureVerification(String tokenId, FormItem formItem);
 
+    Uni<Onboarding> uploadContractSigned(String tokenId, FormItem formItem);
+
     Uni<OnboardingGetResponse> onboardingGet(OnboardingGetFilters filters);
 
     Uni<Long> rejectOnboarding(String onboardingId, String reasonForReject);

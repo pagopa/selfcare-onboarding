@@ -29,11 +29,15 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
@@ -755,10 +759,185 @@ class ContractServiceDefaultTest {
     Files.deleteIfExists(result.toPath());
   }
 
+  @Test
+  void createContractPDFForPspAndPagoPa() {
+    final String contractFilepath = "contract";
+    final String contractHtml = "contract";
+
+    Onboarding onboarding = createOnboarding();
+    User userManager = onboarding.getUsers().get(0);
+    UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+    onboarding.getInstitution().setInstitutionType(InstitutionType.PSP);
+    onboarding.setProductId("prod-pagopa");
+
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+    File result = contractService.createContractPDF(
+            contractFilepath,
+            onboarding,
+            manager,
+            List.of(),
+            PRODUCT_NAME_EXAMPLE,
+            PDF_FORMAT_FILENAME);
+
+    assertNotNull(result);
+    // Verify permissions if POSIX
+    verifyFilePermissions(result);
+  }
+
+  @Test
+  void createContractPDFForProdIO() {
+    final String contractFilepath = "contract";
+    final String contractHtml = "contract";
+
+    Onboarding onboarding = createOnboarding();
+    User userManager = onboarding.getUsers().get(0);
+    UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+    onboarding.setProductId("prod-io");
+
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+    File result = contractService.createContractPDF(
+            contractFilepath,
+            onboarding,
+            manager,
+            List.of(),
+            PRODUCT_NAME_EXAMPLE,
+            PDF_FORMAT_FILENAME);
+
+    assertNotNull(result);
+    verifyFilePermissions(result);
+  }
+
+  @Test
+  void createContractPDFForProdPN() {
+    final String contractFilepath = "contract";
+    final String contractHtml = "contract";
+
+    Onboarding onboarding = createOnboarding();
+    User userManager = onboarding.getUsers().get(0);
+    UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+    onboarding.setProductId("prod-pn");
+    onboarding.setBilling(new Billing());
+
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+    File result = contractService.createContractPDF(
+            contractFilepath,
+            onboarding,
+            manager,
+            List.of(),
+            PRODUCT_NAME_EXAMPLE,
+            PDF_FORMAT_FILENAME);
+
+    assertNotNull(result);
+    verifyFilePermissions(result);
+  }
+
+  @Test
+  void createContractPDFForProdInterop() {
+    final String contractFilepath = "contract";
+    final String contractHtml = "contract";
+
+    Onboarding onboarding = createOnboarding();
+    User userManager = onboarding.getUsers().get(0);
+    UserResource manager = createDummyUserResource(userManager.getId(), userManager.getUserMailUuid());
+    onboarding.setProductId("prod-interop");
+
+    Mockito.when(azureBlobClient.getFileAsText(contractFilepath)).thenReturn(contractHtml);
+    Mockito.when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(contractHtml);
+
+    File result = contractService.createContractPDF(
+            contractFilepath,
+            onboarding,
+            manager,
+            List.of(),
+            PRODUCT_NAME_EXAMPLE,
+            PDF_FORMAT_FILENAME);
+
+    assertNotNull(result);
+    verifyFilePermissions(result);
+  }
+
+  @Test
+  void createSafeTempFile() throws IOException {
+    String prefix = "testPrefix";
+    String suffix = ".txt";
+    Path tempFile = ((ContractServiceDefault) contractService).createSafeTempFile(prefix, suffix);
+
+    assertTrue(tempFile.getFileName().toString().startsWith(prefix));
+    assertTrue(tempFile.getFileName().toString().endsWith(suffix));
+    assertTrue(Files.exists(tempFile));
+
+    try {
+      if (Files.getFileStore(tempFile).supportsFileAttributeView("posix")) {
+        Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(tempFile);
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_READ));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.GROUP_EXECUTE));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_READ));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+      }
+    } catch (IOException e) {
+      // Fallback for non-POSIX systems, check readable/writable/executable
+      File f = tempFile.toFile();
+      assertTrue(f.canRead());
+      assertTrue(f.canWrite());
+      assertFalse(f.canExecute());
+    } finally {
+      Files.deleteIfExists(tempFile);
+    }
+  }
+
+  @Test
+  void createSafeTempFileUnsupportedOperationException() throws IOException {
+    String prefix = "testPrefix";
+    String suffix = ".txt";
+
+    ContractServiceDefault serviceSpy = spy((ContractServiceDefault) contractService);
+    doThrow(new UnsupportedOperationException("forced"))
+            .when(serviceSpy).createTempFileWithPosix(anyString(), anyString());
+
+    Path tempFile = serviceSpy.createSafeTempFile(prefix, suffix);
+
+    assertTrue(tempFile.getFileName().toString().startsWith(prefix));
+    assertTrue(tempFile.getFileName().toString().endsWith(suffix));
+    assertTrue(Files.exists(tempFile));
+
+    File f = tempFile.toFile();
+    assertTrue(f.canRead());
+    assertTrue(f.canWrite());
+
+    Files.deleteIfExists(tempFile);
+  }
+
+  private void verifyFilePermissions(File file) {
+    Path path = file.toPath();
+    try {
+      if (Files.getFileStore(path).supportsFileAttributeView("posix")) {
+        Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+        assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+        assertFalse(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
+        // Ensure no other permissions are set (group/others)
+        assertEquals(2, permissions.size(), "File should only have owner read/write permissions: " + permissions);
+      }
+    } catch (IOException e) {
+      // Ignore if not supported
+    }
+  }
+
   String getDummyTemplate() throws IOException {
 
     FileInputStream fis = new FileInputStream("src/test/resources/fn/dummy-accordo_di_adesione.html");
-    return IOUtils.toString(fis, "UTF-8");
+    return IOUtils.toString(fis, StandardCharsets.UTF_8);
 
   }
 

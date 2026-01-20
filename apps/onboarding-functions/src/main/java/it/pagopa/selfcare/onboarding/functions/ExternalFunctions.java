@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.functions;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -98,4 +99,27 @@ public class ExternalFunctions {
 
         return ackPayloadRequest;
     }
+
+  @FunctionName("webhookTest")
+  public HttpResponseMessage webhookTest(
+          @HttpTrigger(name = "req", methods = {HttpMethod.POST}, route = "webhookTest", authLevel = AuthorizationLevel.FUNCTION)
+          HttpRequestMessage<Optional<String>> request, final ExecutionContext context) {
+    context.getLogger().info("webhookTest trigger processed a request");
+
+    try {
+      String body = request.getBody().orElseThrow(() -> new IllegalArgumentException("Request body cannot be empty."));
+      JsonNode jsonNode = objectMapper.readTree(body);
+      context.getLogger().info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode));
+
+    } catch (Exception e) {
+      context.getLogger().warning(e::getMessage);
+      return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+              .body(e.getMessage())
+              .build();
+    }
+
+    context.getLogger().info("webhookTest end");
+
+    return request.createResponseBuilder(HttpStatus.OK).build();
+  }
 }
