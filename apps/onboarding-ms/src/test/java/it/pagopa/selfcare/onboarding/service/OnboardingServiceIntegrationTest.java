@@ -1,10 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -18,9 +13,13 @@ import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
-import it.pagopa.selfcare.onboarding.common.*;
-import it.pagopa.selfcare.onboarding.controller.request.*;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.common.Origin;
+import it.pagopa.selfcare.onboarding.common.PartyRole;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
+import it.pagopa.selfcare.onboarding.entity.User;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault;
@@ -33,7 +32,6 @@ import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
@@ -43,15 +41,24 @@ import org.mockito.Spy;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
-import org.openapi.quarkus.party_registry_proxy_json.api.*;
-import org.openapi.quarkus.party_registry_proxy_json.model.*;
+import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
+import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
+import java.util.*;
+
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_DASHBOARD_PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @QuarkusTest
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 @TestProfile(IntegrationProfile.class)
 class OnboardingServiceIntegrationTest {
 
@@ -80,6 +87,9 @@ class OnboardingServiceIntegrationTest {
     @InjectMock
     @RestClient
     OrchestrationApi orchestrationApi;
+
+    @InjectMock
+    UserService userService;
 
     @InjectMock
     OnboardingValidationStrategy onboardingValidationStrategy;

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(AggregatesController.class)
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 @TestSecurity(user = "userJwt")
 class AggregatesControllerTest {
 
