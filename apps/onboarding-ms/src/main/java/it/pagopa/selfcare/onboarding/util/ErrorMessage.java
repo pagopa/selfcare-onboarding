@@ -72,7 +72,10 @@ public enum ErrorMessage {
     VERIFY_USER_ERROR("0000", "Error while searching institutions related to given productId"),
     VALIDATION_USER_BY_TAXCODE("0000", "Different emails cannot exist for the same tax code (MANAGER/DELEGATE)"),
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
+    ATTACHMENT_UPLOAD_ERROR("0000", "Attachment already uploaded"),
+
     GENERIC_ERROR("0000", "Generic Error");
+
 
     private final String code;
     private final String message;

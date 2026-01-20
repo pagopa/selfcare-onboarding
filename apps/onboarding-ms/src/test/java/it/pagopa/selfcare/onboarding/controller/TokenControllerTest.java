@@ -17,6 +17,7 @@ import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
@@ -217,6 +218,30 @@ class TokenControllerTest {
             .uploadAttachment(expectedId.capture(), any(), anyString());
     assertEquals(expectedId.getValue(), onboardingId);
   }
+
+    @Test
+    @TestSecurity(user = "userJwt")
+    void uploadAttachmentTest_shouldFailed_whenThrowsException() {
+        File testFile = new File("src/test/resources/application.properties");
+        String onboardingId = "actual-onboarding-id";
+
+        when(tokenService.uploadAttachment(any(), any(), anyString()))
+                .thenThrow(new UpdateNotAllowedException("Attachment already uploaded"));
+
+        given()
+                .when()
+                .pathParam("onboardingId", onboardingId)
+                .queryParam("name", "name")
+                .contentType(ContentType.MULTIPART)
+                .multiPart("file", testFile)
+                .post("/{onboardingId}/attachment")
+                .then()
+                .statusCode(409);
+
+        ArgumentCaptor<String> expectedId = ArgumentCaptor.forClass(String.class);
+        verify(tokenService, times(1))
+                .uploadAttachment(expectedId.capture(), any(), anyString());
+    }
 
   @Test
   @TestSecurity(user = "userJwt")
