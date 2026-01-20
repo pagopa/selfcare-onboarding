@@ -1,8 +1,7 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.GENERIC_ERROR;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.ORIGINAL_DOCUMENT_NOT_FOUND;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
@@ -21,6 +20,7 @@ import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.SignatureService;
 import it.pagopa.selfcare.onboarding.service.TokenService;
@@ -184,10 +184,7 @@ public class TokenServiceDefault implements TokenService {
                             .onItem().transformToUni(token ->
                                     Uni.createFrom()
                                             .item(() -> azureBlobClient.getFileAsPdf(
-                                                    getAttachmentByOnboarding(
-                                                            onboardingId,
-                                                            token.getContractFilename()
-                                                    )
+                                                    token.getContractSigned()
                                             ))
                                             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                             .onItem().transform(contract -> RestResponse.ResponseBuilder
@@ -202,33 +199,47 @@ public class TokenServiceDefault implements TokenService {
     }
 
     @Override
-    public Uni<Void> uploadAttachment(String onboardingId, FormItem file, String attachmentName) {
-        return findOnboardingById(onboardingId)
-                .onItem()
-                .transformToUni(
-                        onboarding -> {
-                            Product product = productService.getProductIsValid(onboarding.getProductId());
-                            AttachmentTemplate attachment = this.getAttachmentTemplate(attachmentName, onboarding, product);
-                            if (Boolean.TRUE.equals(isVerifyEnabled)) {
-                                signatureService.verifySignature(file.getFile());
-                            }
-                            // verify if document has not been changed
-                            String digest = getAndVerifyDigest(file, attachment);
-                            File signedFile;
-                            try {
-                                signedFile = signPdf(file.getFile(), onboarding.getInstitution().getDescription(), product.getId());
-                            } catch (IOException e) {
-                                throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
-                            }
-                            return persistTokenAttachment(onboardingId, file, attachment, digest)
-                                    .onItem().invoke(token ->
-                                            uploadFileToAzure(
-                                                    token,
-                                                    onboardingId,
-                                                    signedFile
-                                            )
-                                    );
-                        })
+    public Uni<Void> uploadAttachment(String onboardingId, FormItem formItem, String attachmentName) {
+        return existsAttachment(onboardingId, attachmentName)
+                .onItem().transformToUni(exists -> {
+                    if (Boolean.TRUE.equals(exists)) {
+                        return Uni.createFrom().failure(new UpdateNotAllowedException(ATTACHMENT_UPLOAD_ERROR.getMessage()));
+                    }
+                    return Uni.createFrom().voidItem();
+                })
+                .chain(() -> findOnboardingById(onboardingId))
+                .chain(onboarding -> {
+                    Product product = productService.getProductIsValid(onboarding.getProductId());
+                    AttachmentTemplate attachment = this.getAttachmentTemplate(attachmentName, onboarding, product);
+
+                    if (Boolean.TRUE.equals(isVerifyEnabled)) {
+                        signatureService.verifySignature(formItem.getFile());
+                    }
+
+                    String digest = getAndVerifyDigest(formItem, attachment);
+
+                    File signedFile;
+                    try {
+                        signedFile = signPdf(
+                                formItem.getFile(),
+                                onboarding.getInstitution().getDescription(),
+                                product.getId()
+                        );
+                    } catch (IOException e) {
+                        return Uni.createFrom().failure(
+                                new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e)
+                        );
+                    }
+
+                    return persistTokenAttachment(onboardingId, attachment, digest)
+                            .onItem().invoke(token ->
+                                    uploadFileToAzure(
+                                            token.getContractFilename(),
+                                            onboardingId,
+                                            signedFile
+                                    )
+                            );
+                })
                 .replaceWithVoid();
     }
 
@@ -342,19 +353,27 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    private Uni<Token> persistTokenAttachment(String onboardingId, FormItem file, AttachmentTemplate attachment, String digest) {
+    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest) {
         Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
         token.setCreatedAt(LocalDateTime.now());
         token.setActivatedAt(LocalDateTime.now());
         token.setType(ATTACHMENT);
         token.setOnboardingId(onboardingId);
+
         token.setContractVersion(attachment.getTemplateVersion());
         token.setContractTemplate(attachment.getTemplatePath());
-        token.setContractFilename(file.getFileName());
+
+        token.setName(attachment.getName());
+
+        String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
+        token.setContractFilename(String.format("signed_%s", signedContractFileName));
+
         token.setContractSigned(getAttachmentByOnboarding(
                 onboardingId,
                 token.getContractFilename()
         ));
+
         token.setChecksum(digest);
         return Token.persist(token).replaceWith(token);
     }
@@ -367,10 +386,9 @@ public class TokenServiceDefault implements TokenService {
                 .map(Onboarding.class::cast);
     }
 
-    private void uploadFileToAzure(Token token, String onboardingId, File signedFile) throws OnboardingNotAllowedException {
+    private void uploadFileToAzure(String filename, String onboardingId, File signedFile) throws OnboardingNotAllowedException {
         final String path = String.format("%s%s", pathContracts, onboardingId).concat("/attachments");
-        final String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
-        final String filename = String.format("signed_%s", signedContractFileName);
+
         try {
             azureBlobClient.uploadFile(path, filename, Files.readAllBytes(signedFile.toPath()));
         } catch (IOException e) {
@@ -397,16 +415,11 @@ public class TokenServiceDefault implements TokenService {
                                             log.info("Token not found onboardingId={}, attachmentName={}", id, attachmentName);
                                             return Uni.createFrom().item(false);
                                         }
-                                        String blobPath = getAttachmentByOnboarding(
-                                                id,
-                                                token.getContractFilename()
-                                        );
-                                        log.debug("Blob path: {}", blobPath);
 
                                         return Uni.createFrom()
                                                 .item(() -> {
                                                     try {
-                                                        azureBlobClient.getProperties(blobPath);
+                                                        azureBlobClient.getProperties(token.getContractSigned());
 
                                                         log.info(
                                                                 "Attachment found in storage onboardingId={}, attachmentName={}",
