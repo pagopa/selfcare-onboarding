@@ -70,6 +70,7 @@ public enum ErrorMessage {
     GET_INSTITUTIONS_REQUEST_ERROR("0054", "Invalid request parameters sent. Allowed filters combinations taxCode and subunit or origin and originId"),
 
     VERIFY_USER_ERROR("0000", "Error while searching institutions related to given productId"),
+    VALIDATION_USER_BY_TAXCODE("0000", "Different emails cannot exist for the same tax code (MANAGER/DELEGATE)"),
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
     GENERIC_ERROR("0000", "Generic Error");
 
