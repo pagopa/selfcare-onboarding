@@ -38,6 +38,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
@@ -1027,5 +1031,45 @@ class TokenServiceDefaultTest {
                         verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
                     });
         }
+    }
+
+    @Test
+    void createSafeTempFile() throws Exception {
+        Path path = tokenService.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.getName().startsWith("signed"));
+        assertTrue(file.getName().endsWith(".pdf"));
+
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            java.util.Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+            assertEquals(2, permissions.size(), "Permissions should only be OWNER_READ and OWNER_WRITE");
+        } else {
+            assertTrue(file.canRead());
+            assertTrue(file.canWrite());
+        }
+
+        Files.deleteIfExists(path);
+    }
+
+    @Test
+    void createSafeTempFileUnsupportedOperationException() throws Exception {
+        TokenServiceDefault serviceSpy = spy(tokenService);
+        doThrow(new UnsupportedOperationException("forced"))
+                .when(serviceSpy).createTempFileWithPosix();
+
+        Path path = serviceSpy.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.canRead());
+        assertTrue(file.canWrite());
+
+        Files.deleteIfExists(path);
     }
 }
