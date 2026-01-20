@@ -26,10 +26,7 @@ import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
-import it.pagopa.selfcare.onboarding.service.OnboardingService;
-import it.pagopa.selfcare.onboarding.service.OrchestrationService;
-import it.pagopa.selfcare.onboarding.service.SignatureService;
-import it.pagopa.selfcare.onboarding.service.TokenService;
+import it.pagopa.selfcare.onboarding.service.*;
 import it.pagopa.selfcare.onboarding.service.strategy.OnboardingValidationStrategy;
 import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
@@ -146,10 +143,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Inject
     NationalRegistriesApi nationalRegistriesApi;
 
-    @RestClient
-    @Inject
-    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
-
     @Inject
     OnboardingMapper onboardingMapper;
 
@@ -182,6 +175,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     OrchestrationService orchestrationService;
+
+    @Inject
+    UserService userService;
 
     @ConfigProperty(name = "onboarding.orchestration.enabled")
     Boolean onboardingOrchestrationEnabled;
@@ -2128,7 +2124,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      * @return a Uni with the result of the check
      */
     private Uni<Boolean> isUserActiveManager(String institutionId, String productId, String uuid) {
-        return userInstitutionApi
+        return userService
                 .retrieveUserInstitutions(
                         institutionId,
                         null,
