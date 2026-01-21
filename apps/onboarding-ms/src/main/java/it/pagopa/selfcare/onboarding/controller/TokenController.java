@@ -130,9 +130,9 @@ public class TokenController {
     @POST
     @Path("/{onboardingId}/attachment")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Uni<Response> complete(@PathParam(value = "onboardingId") String onboardingId,
-                                  @NotNull @RestForm("file") File file, @Context ResteasyReactiveRequestContext ctx,
-                                  @NotNull @QueryParam(value = "name") String attachmentName) {
+    public Uni<Response> uploadAttachment(@PathParam(value = "onboardingId") String onboardingId,
+                                          @NotNull @RestForm("file") File file, @Context ResteasyReactiveRequestContext ctx,
+                                          @NotNull @QueryParam(value = "name") String attachmentName) {
         return tokenService.uploadAttachment(onboardingId, retrieveAttachmentFromFormData(ctx.getFormData(), file), attachmentName)
                 .replaceWith(Response.status(HttpStatus.SC_NO_CONTENT).build())
                 .onFailure(UpdateNotAllowedException.class)
