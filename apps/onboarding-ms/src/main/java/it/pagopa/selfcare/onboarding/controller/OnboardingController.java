@@ -17,6 +17,7 @@ import it.pagopa.selfcare.onboarding.entity.Billing;
 import it.pagopa.selfcare.onboarding.entity.CheckManagerResponse;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAggregationImportRequest;
+import it.pagopa.selfcare.onboarding.entity.UserRequester;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
@@ -485,7 +486,7 @@ public class OnboardingController {
     }
 
     private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {
-        onboarding.getUserRequester().setUserRequestUid(userRequestUid);
+        onboarding.setUserRequester(UserRequester.builder().userRequestUid(userRequestUid).build());
         return onboarding;
     }
 
