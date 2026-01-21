@@ -1504,7 +1504,7 @@ paths:
         \ storage."
       description: Perform upload  of the file passed in input verifying digest e
         put company signature
-      operationId: complete
+      operationId: uploadAttachment
       parameters:
       - name: onboardingId
         in: path
