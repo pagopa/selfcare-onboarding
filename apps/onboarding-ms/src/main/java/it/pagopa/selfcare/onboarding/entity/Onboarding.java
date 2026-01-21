@@ -37,7 +37,6 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private LocalDateTime deletedAt;
 
     private OnboardingStatus status;
-    private String userRequestUid;
     private AdditionalInformations additionalInformations;
     private String reasonForReject;
     private Boolean isAggregator;
@@ -48,6 +47,8 @@ public class Onboarding extends ReactivePanacheMongoEntityBase {
     private String previousManagerId;
 
     private Boolean sendMailForImport;
+
+    private UserRequester userRequester;
 
     @BsonIgnore
     private Boolean skipVerifyLegal;

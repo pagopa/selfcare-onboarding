@@ -72,7 +72,10 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboarding(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                null,
+                                onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -121,7 +124,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPa(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null, onboardingRequest.getUserRequester()));
     }
     @Operation(
             summary = "Aggregated onboarding for PA institutions, saves user data, creates contracts, and sends emails.",
@@ -136,7 +139,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPaAggregation(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates(), onboardingRequest.getUserRequester()));
     }
 
     @Operation(summary = "Perform Increment for aggregates",
@@ -166,7 +169,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPsp(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+                        .onboarding(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null, onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -482,7 +485,7 @@ public class OnboardingController {
     }
 
     private Onboarding fillUserId(Onboarding onboarding, String userRequestUid) {
-        onboarding.setUserRequestUid(userRequestUid);
+        onboarding.getUserRequester().setUserRequestUid(userRequestUid);
         return onboarding;
     }
 

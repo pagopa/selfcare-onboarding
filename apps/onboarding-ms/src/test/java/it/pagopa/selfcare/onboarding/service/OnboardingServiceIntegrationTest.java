@@ -174,7 +174,7 @@ class OnboardingServiceIntegrationTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboarding(request, users, null, ), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
