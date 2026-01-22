@@ -241,56 +241,88 @@ public class TokenServiceDefault implements TokenService {
 
 
     public String getTemplateAndVerifyDigest(FormItem file, String documentTemplatePath, boolean skipDigestCheck) {
-        log.info("Verify digest on attachment");
-        DSSDocument uploadedDoc = new FileDocument(file.getFile());
+        log.info("Start verifying uploaded content against template (templatePath={})", documentTemplatePath);
+        Objects.requireNonNull(file, "Uploaded file must not be null");
 
-        File originalFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
-        DSSDocument originalPdfDoc = new FileDocument(originalFile);
+        DSSDocument uploadedDocument = new FileDocument(file.getFile());
 
-        DSSDocument uploadedPdf = unwrapFromSignedContent(uploadedDoc);
+        File templateFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
+        DSSDocument templateDocument = new FileDocument(templateFile);
 
-        String originalContentDigest = calculateDigestOnDocument(originalPdfDoc);
-        String uploadedContentDigest = calculateDigestOnDocument(uploadedPdf);
+        SignedDocumentValidator uploadedValidator = SignedDocumentValidator.fromDocument(uploadedDocument);
+        SignedDocumentValidator templateValidator = SignedDocumentValidator.fromDocument(templateDocument);
 
-        if (!uploadedContentDigest.equals(originalContentDigest) && !skipDigestCheck) {
+        DSSDocument uploadedPdf = extractPdfFromSignedContainer(uploadedValidator, uploadedDocument);
+        DSSDocument templatePdf = extractPdfFromSignedContainer(templateValidator, templateDocument);
+
+        String templateDigest = computeDigestOfSignedRevision(templateValidator, templatePdf);
+        String uploadedDigest = computeDigestOfSignedRevision(uploadedValidator, uploadedPdf);
+
+        log.debug("Template content digest (base64): {}", templateDigest);
+        log.debug("Uploaded  content digest (base64): {}", uploadedDigest);
+
+        if (!templateDigest.equals(uploadedDigest) && !skipDigestCheck) {
+            log.warn("Content mismatch ignoring signatures. templateDigest={} uploadedDigest={}", templateDigest, uploadedDigest);
             throw new InvalidRequestException("File has been changed. It's not possible to complete upload");
+        } else {
+            log.info("Content check passed (ignoring signatures).");
         }
-        return uploadedContentDigest;
+
+        return uploadedDigest;
     }
 
-    private DSSDocument unwrapFromSignedContent(DSSDocument dssDocument) {
-        SignedDocumentValidator v = SignedDocumentValidator.fromDocument(dssDocument);
-        List<AdvancedSignature> sigs = v.getSignatures();
-
+    /**
+     * If validator exposes original documents for a signature, returns the first original (signed) content.
+     * Otherwise returns the input document unchanged.
+     */
+    private DSSDocument extractPdfFromSignedContainer(SignedDocumentValidator validator, DSSDocument inputDoc) {
+        List<AdvancedSignature> sigs = validator.getSignatures();
         if (sigs == null || sigs.isEmpty()) {
-            return dssDocument;
+            log.debug("No signatures detected; using document as-is.");
+            return inputDoc;
         }
 
-        String sigId = sigs.get(0).getId();
-        List<DSSDocument> originals = v.getOriginalDocuments(sigId);
+        AdvancedSignature selected = chooseEarliestSignature(sigs);
+        log.debug("Selected signature id='{}' signingTime='{}' for unwrapping", selected.getId(), selected.getSigningTime());
 
+        List<DSSDocument> originals = validator.getOriginalDocuments(selected.getId());
         if (originals != null && !originals.isEmpty()) {
+            log.debug("Unwrapped {} original document(s) from signature id='{}'", originals.size(), selected.getId());
             return originals.get(0);
         }
-        return dssDocument;
+
+        log.debug("No originals available for signature id='{}'; returning input document", selected.getId());
+        return inputDoc;
     }
 
-
-    private String calculateDigestOnDocument(DSSDocument pdfDoc) {
-        SignedDocumentValidator v = SignedDocumentValidator.fromDocument(pdfDoc);
-        List<AdvancedSignature> sigs = v.getSignatures();
-        if (sigs == null || sigs.isEmpty()) {
-            return pdfDoc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+    /**
+     * Compute SHA-256 (Base64) for the document content corresponding to the chosen signature revision.
+     * If there are no signatures, compute digest of the whole document bytes.
+     */
+    private String computeDigestOfSignedRevision(SignedDocumentValidator validator, DSSDocument doc) {
+        List<AdvancedSignature> signatures = validator.getSignatures();
+        if (signatures == null || signatures.isEmpty()) {
+            log.debug("No PAdES signatures found - computing full-document digest.");
+            return doc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
         }
 
-        AdvancedSignature oldest = sigs.stream()
-                .min(Comparator.comparing(AdvancedSignature::getId))
+        AdvancedSignature chosen = chooseEarliestSignature(signatures);
+        log.debug("Using signature id='{}' signingTime='{}' to compute content digest", chosen.getId(), chosen.getSigningTime());
+
+        List<DSSDocument> originals = validator.getOriginalDocuments(chosen.getId());
+        DSSDocument contentDoc = (originals != null && !originals.isEmpty()) ? originals.get(0) : doc;
+
+        String digest = contentDoc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+        log.debug("Computed content digest (base64) for signature id='{}': {}", chosen.getId(), digest);
+        return digest;
+    }
+
+    /** Choose earliest signature by signingTime, fallback to id ordering. */
+    private AdvancedSignature chooseEarliestSignature(List<AdvancedSignature> sigs) {
+        return sigs.stream()
+                .min(Comparator.comparing(AdvancedSignature::getSigningTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(AdvancedSignature::getId))
                 .orElse(sigs.get(0));
-
-        List<DSSDocument> originals = v.getOriginalDocuments(oldest.getId());
-        DSSDocument signedContent = (originals != null && !originals.isEmpty()) ? originals.get(0) : pdfDoc;
-
-        return signedContent.getDigest(DigestAlgorithm.SHA256).getBase64Value();
     }
 
     private Uni<File> signDocument(File pdf, String institutionDescription, String productId) {
