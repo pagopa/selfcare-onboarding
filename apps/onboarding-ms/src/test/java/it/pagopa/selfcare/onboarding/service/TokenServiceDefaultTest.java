@@ -701,7 +701,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestWithContractTemplateSuccess() {
+    void getTemplateAndVerifyDigestWithContractTemplateSuccess() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
 
@@ -710,7 +710,7 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/template.pdf")).thenReturn(uploadedFile);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -718,7 +718,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestWithContractTemplateDigestMismatch() {
+    void getTemplateAndVerifyDigestWithContractTemplateDigestMismatch() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
 
@@ -729,7 +729,7 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
 
         try {
-            tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+            tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
             Assertions.fail("Expected InvalidRequestException to be thrown");
         } catch (InvalidRequestException e) {
             assertTrue(e.getMessage().contains("File has been changed"));
@@ -738,7 +738,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestReturnsBase64EncodedDigest() {
+    void getTemplateAndVerifyDigestReturnsBase64EncodedDigest() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -747,14 +747,14 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(uploadedFile);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertTrue(result.matches("^[A-Za-z0-9+/=]+$"));
     }
 
     @Test
-    void getAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
+    void getTemplateAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -765,7 +765,7 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
 
         try {
-            tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+            tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
             Assertions.fail("Expected InvalidRequestException to be thrown");
         } catch (InvalidRequestException e) {
             assertEquals("File has been changed. It's not possible to complete upload", e.getMessage());
@@ -773,7 +773,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestVerifiesAzureBlobClientIsCalled() {
+    void getTemplateAndVerifyDigestVerifiesAzureBlobClientIsCalled() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -783,13 +783,13 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf(templatePath)).thenReturn(uploadedFile);
 
-        tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         verify(azureBlobClient).getFileAsPdf(templatePath);
     }
 
     @Test
-    void getAndVerifyDigestWithSameFileReturnsDigest() {
+    void getTemplateAndVerifyDigestWithSameFileReturnsDigest() {
         File file = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(file).fileName("test.pdf").build();
 
@@ -798,14 +798,14 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(file);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
     }
 
     @Test
-    void getAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
+    void getTemplateAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -816,7 +816,7 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(originalFile);
 
         Assertions.assertThrows(InvalidRequestException.class, () ->
-                tokenService.getAndVerifyDigest(formItem, contractTemplate, false)
+                tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false)
         );
     }
 
