@@ -162,6 +162,8 @@ public class TokenServiceDefault implements TokenService {
                         return Uni.createFrom()
                                 .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                                .chain(file -> signPdf(file, onboarding.getInstitution().getDescription(),
+                                        product.getId()))
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
                                         .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
                                         .header(
@@ -218,25 +220,14 @@ public class TokenServiceDefault implements TokenService {
 
                     String digest = getAndVerifyDigest(formItem, attachment);
 
-                    File signedFile;
-                    try {
-                        signedFile = signPdf(
-                                formItem.getFile(),
-                                onboarding.getInstitution().getDescription(),
-                                product.getId()
-                        );
-                    } catch (IOException e) {
-                        return Uni.createFrom().failure(
-                                new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e)
-                        );
-                    }
+                    File fileToUpload = formItem.getFile();
 
                     return persistTokenAttachment(onboardingId, attachment, digest)
                             .onItem().invoke(token ->
                                     uploadFileToAzure(
                                             token.getContractFilename(),
                                             onboardingId,
-                                            signedFile
+                                            fileToUpload
                                     )
                             );
                 })
@@ -264,8 +255,9 @@ public class TokenServiceDefault implements TokenService {
         return digest;
     }
 
-    private File signPdf(File pdf, String institutionDescription, String productId)
-            throws IOException {
+    private Uni<File> signPdf(File pdf, String institutionDescription, String productId) {
+        return Uni.createFrom().item(() -> {
+                    try {
         if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
             log.info("Skipping PagoPA contract pdf sign due to global disabling");
             return pdf;
@@ -278,9 +270,16 @@ public class TokenServiceDefault implements TokenService {
                         .replace("${productName}", productId);
 
         log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
+
         Path signedPdf = createSafeTempFile();
         padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
         return signedPdf.toFile();
+
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
+                    }
+                })
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor());
     }
 
     private SignatureInformation buildSignatureInfo(String signReason) {
