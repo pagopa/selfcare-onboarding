@@ -4274,7 +4274,12 @@ class OnboardingServiceDefaultTest {
         when(Token.list(eq("onboardingId"), eq(onboardingId)))
                 .thenReturn(Uni.createFrom().item(Collections.emptyList()));
 
-        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
+        Product product = mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("test/path");
+
+        product.setInstitutionContractMappings(Map.of("PA", contractTemplate));
 
         Token mockToken = mock(Token.class);
 
