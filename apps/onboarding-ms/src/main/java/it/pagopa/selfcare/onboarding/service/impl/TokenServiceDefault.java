@@ -1,8 +1,5 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
-import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
@@ -33,13 +30,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -47,6 +37,20 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestResponse;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.Executors;
+
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 
 @Slf4j
 @ApplicationScoped
@@ -258,22 +262,22 @@ public class TokenServiceDefault implements TokenService {
     private Uni<File> signPdf(File pdf, String institutionDescription, String productId) {
         return Uni.createFrom().item(() -> {
                     try {
-        if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
-            log.info("Skipping PagoPA contract pdf sign due to global disabling");
-            return pdf;
-        }
+                        if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
+                            log.info("Skipping PagoPA contract pdf sign due to global disabling");
+                            return pdf;
+                        }
 
-        String signReason =
-                pagoPaSignatureConfig
-                        .applyOnboardingTemplateReason()
-                        .replace("${institutionName}", institutionDescription)
-                        .replace("${productName}", productId);
+                        String signReason =
+                                pagoPaSignatureConfig
+                                        .applyOnboardingTemplateReason()
+                                        .replace("${institutionName}", institutionDescription)
+                                        .replace("${productName}", productId);
 
-        log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
+                        log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
 
-        Path signedPdf = createSafeTempFile();
-        padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
-        return signedPdf.toFile();
+                        Path signedPdf = createSafeTempFile();
+                        padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
+                        return signedPdf.toFile();
 
                     } catch (IOException e) {
                         throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
@@ -442,12 +446,12 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    public java.nio.file.Path createSafeTempFile() throws java.io.IOException {
+    public Path createSafeTempFile() throws IOException {
         try {
             return createTempFileWithPosix();
         } catch (UnsupportedOperationException e) {
             // Fallback per Windows/Non-POSIX
-            java.io.File f = java.nio.file.Files.createTempFile("signed", ".pdf").toFile();
+            File f = Files.createTempFile("signed", ".pdf").toFile();
             boolean readable = f.setReadable(true, true);
             boolean writable = f.setWritable(true, true);
             boolean executable = f.setExecutable(false); // Importante: NO esecuzione
@@ -458,11 +462,11 @@ public class TokenServiceDefault implements TokenService {
         }
     }
 
-    public java.nio.file.Path createTempFileWithPosix() throws java.io.IOException {
-        java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr =
-                java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
-                        java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
+    public Path createTempFileWithPosix() throws IOException {
+        FileAttribute<Set<PosixFilePermission>> attr =
+                PosixFilePermissions.asFileAttribute(
+                        PosixFilePermissions.fromString("rw-------")
                 );
-        return java.nio.file.Files.createTempFile("signed", ".pdf", attr);
+        return Files.createTempFile("signed", ".pdf", attr);
     }
 }
