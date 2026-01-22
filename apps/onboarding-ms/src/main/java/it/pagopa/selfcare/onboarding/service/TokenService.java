@@ -28,7 +28,7 @@ public interface TokenService {
 
   Uni<ContractSignedReport> reportContractSigned(String onboardingId);
 
-  String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck);
+  String getTemplateAndVerifyDigest(FormItem file, String contractTemplatePath, boolean skipDigestCheck);
 
   String getContractPathByOnboarding(String onboardingId, String filename);
 

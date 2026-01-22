@@ -3,6 +3,8 @@ package it.pagopa.selfcare.onboarding.service.impl;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.spi.signature.AdvancedSignature;
+import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -24,7 +26,6 @@ import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
-import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -166,7 +167,7 @@ public class TokenServiceDefault implements TokenService {
                         return Uni.createFrom()
                                 .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                                .chain(file -> signPdf(file, onboarding.getInstitution().getDescription(),
+                                .chain(file -> signDocument(file, onboarding.getInstitution().getDescription(),
                                         product.getId()))
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
                                         .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
@@ -222,7 +223,7 @@ public class TokenServiceDefault implements TokenService {
                         signatureService.verifySignature(formItem.getFile());
                     }
 
-                    String digest = getAndVerifyDigest(formItem, attachment);
+                    String digest = getTemplateAndVerifyDigest(formItem, attachment.getTemplatePath(), false);
 
                     File fileToUpload = formItem.getFile();
 
@@ -238,28 +239,61 @@ public class TokenServiceDefault implements TokenService {
                 .replaceWithVoid();
     }
 
-    private String getAndVerifyDigest(FormItem file, AttachmentTemplate attachment) {
-        return getAndVerifyDigestByTemplate(file, attachment.getTemplatePath(), false);
-    }
 
-    public String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck) {
-        return getAndVerifyDigestByTemplate(file, contract.getContractTemplatePath(), skipDigestCheck);
-    }
+    public String getTemplateAndVerifyDigest(FormItem file, String documentTemplatePath, boolean skipDigestCheck) {
+        log.info("Verify digest on attachment");
+        DSSDocument uploadedDoc = new FileDocument(file.getFile());
 
-    private String getAndVerifyDigestByTemplate(FormItem file, String templatePath, boolean skipDigestCheck) {
-        DSSDocument document = new FileDocument(file.getFile());
-        String digest = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        File originalFile = azureBlobClient.getFileAsPdf(templatePath);
-        DSSDocument originalDocument = new FileDocument(originalFile);
-        String originalDigest = originalDocument.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        if (!digest.equals(originalDigest) && !skipDigestCheck) {
-            throw new InvalidRequestException(
-                    "File has been changed. It's not possible to complete upload");
+        File originalFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
+        DSSDocument originalPdfDoc = new FileDocument(originalFile);
+
+        DSSDocument uploadedPdf = unwrapFromSignedContent(uploadedDoc);
+
+        String originalContentDigest = calculateDigestOnDocument(originalPdfDoc);
+        String uploadedContentDigest = calculateDigestOnDocument(uploadedPdf);
+
+        if (!uploadedContentDigest.equals(originalContentDigest) && !skipDigestCheck) {
+            throw new InvalidRequestException("File has been changed. It's not possible to complete upload");
         }
-        return digest;
+        return uploadedContentDigest;
     }
 
-    private Uni<File> signPdf(File pdf, String institutionDescription, String productId) {
+    private DSSDocument unwrapFromSignedContent(DSSDocument dssDocument) {
+        SignedDocumentValidator v = SignedDocumentValidator.fromDocument(dssDocument);
+        List<AdvancedSignature> sigs = v.getSignatures();
+
+        if (sigs == null || sigs.isEmpty()) {
+            return dssDocument;
+        }
+
+        String sigId = sigs.get(0).getId();
+        List<DSSDocument> originals = v.getOriginalDocuments(sigId);
+
+        if (originals != null && !originals.isEmpty()) {
+            return originals.get(0);
+        }
+        return dssDocument;
+    }
+
+
+    private String calculateDigestOnDocument(DSSDocument pdfDoc) {
+        SignedDocumentValidator v = SignedDocumentValidator.fromDocument(pdfDoc);
+        List<AdvancedSignature> sigs = v.getSignatures();
+        if (sigs == null || sigs.isEmpty()) {
+            return pdfDoc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+        }
+
+        AdvancedSignature oldest = sigs.stream()
+                .min(Comparator.comparing(AdvancedSignature::getId))
+                .orElse(sigs.get(0));
+
+        List<DSSDocument> originals = v.getOriginalDocuments(oldest.getId());
+        DSSDocument signedContent = (originals != null && !originals.isEmpty()) ? originals.get(0) : pdfDoc;
+
+        return signedContent.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+    }
+
+    private Uni<File> signDocument(File pdf, String institutionDescription, String productId) {
         return Uni.createFrom().item(() -> {
                     try {
                         if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {

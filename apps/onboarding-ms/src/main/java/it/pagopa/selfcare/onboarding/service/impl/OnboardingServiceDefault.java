@@ -1655,7 +1655,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         String onboardingId = onboarding.getId();
         String institutionType = onboarding.getInstitution().getInstitutionType().name();
         ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
-        String digest = tokenService.getAndVerifyDigest(formItem, contractTemplate, true);
+        String digest = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), true);
         Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
         token.setContractSigned(tokenService.getContractPathByOnboarding(onboardingId, formItem.getFileName()));
         token.setContractFilename(formItem.getFileName());
