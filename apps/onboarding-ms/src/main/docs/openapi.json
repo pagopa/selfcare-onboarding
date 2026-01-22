@@ -3311,9 +3311,6 @@
           "additionalInformations" : {
             "$ref" : "#/components/schemas/AdditionalInformationsDto"
           },
-          "userRequestUid" : {
-            "type" : "string"
-          },
           "isAggregator" : {
             "type" : "boolean"
           },
@@ -3325,6 +3322,9 @@
           },
           "referenceOnboardingId" : {
             "type" : "string"
+          },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterResponse"
           }
         }
       },
@@ -3583,6 +3583,17 @@
             "type" : "string"
           },
           "email" : {
+            "type" : "string"
+          }
+        }
+      },
+      "UserRequesterResponse" : {
+        "type" : "object",
+        "properties" : {
+          "userMailUuid" : {
+            "type" : "string"
+          },
+          "userRequestUid" : {
             "type" : "string"
           }
         }

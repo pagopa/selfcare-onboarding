@@ -215,7 +215,6 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     @Override
-    // TODO gestire campo userRequester
     public Uni<OnboardingResponse> onboardingIncrement(
             Onboarding onboarding,
             List<UserRequest> userRequests,
@@ -431,20 +430,15 @@ public class OnboardingServiceDefault implements OnboardingService {
                                             .replaceWith(userResource.getId()))
                             .orElse(Uni.createFrom().item(userResource.getId()))
                             .onItem()
-                            .invoke(() -> {
-                                optUserMailRandomUuid.ifPresent(userRequester1::setUserMailUuid);
-                            });
+                            .invoke(() -> optUserMailRandomUuid.ifPresent(userRequester1::setUserMailUuid));
                 })
-                /*
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> {
                     if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
                         return Uni.createFrom().failure(ex);
                     }
-                    return Uni.createFrom().voidItem();
+                    return Uni.createFrom().nullItem();
                 })
-                */
-
                 .replaceWithVoid();
     }
 

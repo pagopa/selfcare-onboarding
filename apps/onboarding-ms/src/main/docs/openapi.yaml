@@ -2415,8 +2415,6 @@ components:
           type: string
         additionalInformations:
           $ref: "#/components/schemas/AdditionalInformationsDto"
-        userRequestUid:
-          type: string
         isAggregator:
           type: boolean
         createdAt:
@@ -2425,6 +2423,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         referenceOnboardingId:
           type: string
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterResponse"
     OnboardingStatus:
       enum:
       - REQUEST
@@ -2636,6 +2636,13 @@ components:
         surname:
           type: string
         email:
+          type: string
+    UserRequesterResponse:
+      type: object
+      properties:
+        userMailUuid:
+          type: string
+        userRequestUid:
           type: string
     UserResponse:
       type: object
