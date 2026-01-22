@@ -197,6 +197,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     @ConfigProperty(name = "quarkus.profile")
     String activeProfile;
 
+    @ConfigProperty(name = "onboarding-ms.add-user-requester.enabled")
+    boolean addUserRequesterEnabled;
+
     @Override
     public Uni<OnboardingResponse> onboarding(
             Onboarding onboarding,
@@ -404,6 +407,11 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Void> addUserRequester(UserRequester userRequester,
                                        it.pagopa.selfcare.onboarding.entity.UserRequester userRequester1) {
         log.info("Starting addUserRequester");
+
+        if (!addUserRequesterEnabled) {
+            log.info("addUserRequester skipped (feature flag disabled)");
+            return Uni.createFrom().voidItem();
+        }
 
         return userRegistryApi
                 .findByIdUsingGET(USERS_FIELD_LIST, userRequester1.getUserRequestUid())
