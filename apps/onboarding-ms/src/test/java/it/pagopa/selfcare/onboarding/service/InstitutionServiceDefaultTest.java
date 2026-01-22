@@ -1,9 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -13,17 +9,23 @@ import io.quarkus.test.vertx.RunOnVertxContext;
 import io.quarkus.test.vertx.UniAsserter;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.helpers.test.AssertSubscriber;
-import it.pagopa.selfcare.onboarding.common.*;
-import it.pagopa.selfcare.onboarding.controller.response.*;
-import it.pagopa.selfcare.onboarding.entity.*;
+import it.pagopa.selfcare.onboarding.common.InstitutionType;
+import it.pagopa.selfcare.onboarding.controller.response.InstitutionResponse;
+import it.pagopa.selfcare.onboarding.entity.Institution;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.service.impl.InstitutionServiceDefault;
 import jakarta.inject.Inject;
-import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @QuarkusTest
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 class InstitutionServiceDefaultTest {
 
     @Inject

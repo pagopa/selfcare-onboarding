@@ -1,11 +1,5 @@
 package it.pagopa.selfcare.onboarding.controller;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -20,17 +14,24 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
 import it.pagopa.selfcare.onboarding.service.TokenService;
 import jakarta.ws.rs.core.MediaType;
-import java.io.File;
-import java.util.List;
-import java.util.UUID;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.util.List;
+import java.util.UUID;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 @QuarkusTest
 @TestHTTPEndpoint(TokenController.class)
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 class TokenControllerTest {
 
   @InjectMock
