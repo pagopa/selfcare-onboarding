@@ -37,7 +37,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,12 +58,16 @@ class TokenServiceDefaultTest {
     private static final String onboardingId = "onboardingId";
     @Inject
     TokenServiceDefault tokenService;
+
     @InjectMock
     AzureBlobClient azureBlobClient;
+
     @InjectMock
     SignatureService signatureService;
+
     @InjectMock
     PadesSignService padesSignService;
+
     @InjectMock
     ProductService productService;
 
@@ -584,6 +589,7 @@ class TokenServiceDefaultTest {
         assertEquals(filename, actual.get(0));
     }
 
+
     @Test
     void updateContractSignedTest_OK() {
         // given
@@ -945,11 +951,51 @@ class TokenServiceDefaultTest {
         );
     }
 
+    @Test
+    void createSafeTempFile() throws Exception {
+        Path path = tokenService.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.getName().startsWith("signed"));
+        assertTrue(file.getName().endsWith(".pdf"));
+
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            java.util.Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+            assertEquals(2, permissions.size(), "Permissions should only be OWNER_READ and OWNER_WRITE");
+        } else {
+            assertTrue(file.canRead());
+            assertTrue(file.canWrite());
+        }
+
+        Files.deleteIfExists(path);
+    }
+
+    @Test
+    void createSafeTempFileUnsupportedOperationException() throws Exception {
+        TokenServiceDefault serviceSpy = spy(tokenService);
+        doThrow(new UnsupportedOperationException("forced"))
+                .when(serviceSpy).createTempFileWithPosix();
+
+        Path path = serviceSpy.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.canRead());
+        assertTrue(file.canWrite());
+
+        Files.deleteIfExists(path);
+    }
+
     public static class SignPdfProfile implements io.quarkus.test.junit.QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of(
-                    "onboarding-ms.pagopa-signature.source", "test");
+                    "onboarding-ms.pagopa-signature.source", "true");
         }
     }
 
@@ -1031,45 +1077,79 @@ class TokenServiceDefaultTest {
                         verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
                     });
         }
-    }
 
-    @Test
-    void createSafeTempFile() throws Exception {
-        Path path = tokenService.createSafeTempFile();
+        @Test
+        void retrieveAttachmentGeneratedFalseSuccessAndSignTest() throws Exception {
+            // given
+            final String onboardingId = "onboardingId";
+            final String filename = "filename.pdf";
+            final String productId = "productId";
+            final String institutionType = "PA";
 
-        assertNotNull(path);
-        File file = path.toFile();
-        assertTrue(file.exists());
-        assertTrue(file.getName().startsWith("signed"));
-        assertTrue(file.getName().endsWith(".pdf"));
+            Onboarding onboarding = new Onboarding();
+            onboarding.setId(onboardingId);
+            onboarding.setProductId(productId);
 
-        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-            java.util.Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
-            assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-            assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
-            assertEquals(2, permissions.size(), "Permissions should only be OWNER_READ and OWNER_WRITE");
-        } else {
-            assertTrue(file.canRead());
-            assertTrue(file.canWrite());
+            Institution institution = new Institution();
+            institution.setInstitutionType(InstitutionType.PA);
+            institution.setDescription("description");
+            onboarding.setInstitution(institution);
+
+            PanacheMock.mock(Onboarding.class);
+            when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
+
+            AttachmentTemplate attachment = new AttachmentTemplate();
+            attachment.setName(filename);
+            attachment.setGenerated(false);
+            attachment.setTemplatePath("templatePath");
+
+            Product product = createProductWithAttachment(institutionType, attachment);
+            product.setId(productId);
+
+            when(productService.getProductIsValid(productId)).thenReturn(product);
+
+            File inputFile = Files.createTempFile("input", ".pdf").toFile();
+            inputFile.deleteOnExit();
+            try (FileOutputStream fos = new FileOutputStream(inputFile)) {
+                fos.write("dummy-content".getBytes(StandardCharsets.UTF_8));
+            }
+
+            when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(inputFile);
+
+            doAnswer(invocation -> {
+                File in = invocation.getArgument(0);
+                File out = invocation.getArgument(1);
+                try (InputStream is = new FileInputStream(in);
+                     OutputStream os = new FileOutputStream(out)) {
+                    is.transferTo(os);
+                }
+                return null;
+            }).when(padesSignService).padesSign(any(File.class), any(File.class), any());
+
+            // when
+            UniAssertSubscriber<RestResponse<File>> subscriber =
+                    tokenService.retrieveAttachment(onboardingId, filename)
+                            .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+            // then
+            RestResponse<File> response = subscriber.awaitItem().getItem();
+
+            assertNotNull(response);
+            assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
+
+            File signedFile = response.getEntity();
+            assertNotNull(signedFile);
+            assertTrue(signedFile.exists());
+
+            assertNotEquals(inputFile.getAbsolutePath(), signedFile.getAbsolutePath());
+
+            byte[] origBytes = Files.readAllBytes(inputFile.toPath());
+            byte[] signedBytes = Files.readAllBytes(signedFile.toPath());
+            assertArrayEquals(origBytes, signedBytes);
+
+            verify(productService).getProductIsValid(productId);
+            verify(azureBlobClient).getFileAsPdf(anyString());
+            verify(padesSignService).padesSign(any(File.class), any(File.class), any());
         }
-
-        Files.deleteIfExists(path);
-    }
-
-    @Test
-    void createSafeTempFileUnsupportedOperationException() throws Exception {
-        TokenServiceDefault serviceSpy = spy(tokenService);
-        doThrow(new UnsupportedOperationException("forced"))
-                .when(serviceSpy).createTempFileWithPosix();
-
-        Path path = serviceSpy.createSafeTempFile();
-
-        assertNotNull(path);
-        File file = path.toFile();
-        assertTrue(file.exists());
-        assertTrue(file.canRead());
-        assertTrue(file.canWrite());
-
-        Files.deleteIfExists(path);
     }
 }
