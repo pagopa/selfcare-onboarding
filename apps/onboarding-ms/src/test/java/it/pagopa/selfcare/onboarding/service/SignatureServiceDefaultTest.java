@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 
 
 @QuarkusTest
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 class SignatureServiceDefaultTest {
 
 
