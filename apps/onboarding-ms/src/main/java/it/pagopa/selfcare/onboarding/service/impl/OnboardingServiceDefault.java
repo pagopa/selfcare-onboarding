@@ -11,7 +11,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
-import it.pagopa.selfcare.onboarding.controller.request.UserRequester;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequesterDto;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -205,7 +205,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            UserRequester userRequester) {
+            UserRequesterDto userRequester) {
         Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
@@ -322,7 +322,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             boolean isAggregatesIncrement,
-            UserRequester userRequester) {
+            UserRequesterDto userRequester) {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
@@ -349,7 +349,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             Product product,
-            UserRequester userRequester) {
+            UserRequesterDto userRequester) {
 
         return Uni.createFrom()
                 .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
@@ -377,7 +377,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
             Product product,
-            UserRequester userRequester) {
+            UserRequesterDto userRequester) {
 
         return registryManager.isValid()
                 .onItem()
@@ -403,8 +403,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transform(onboardingMapper::toResponse);
     }
 
-    private Uni<Void> addUserRequester(UserRequester userRequester,
-                                       it.pagopa.selfcare.onboarding.entity.UserRequester userRequester1) {
+    private Uni<Void> addUserRequester(UserRequesterDto userRequesterRequest,
+                                       UserRequester userRequester) {
         log.info("Starting addUserRequester");
 
         if (!addUserRequesterEnabled) {
@@ -413,15 +413,15 @@ public class OnboardingServiceDefault implements OnboardingService {
         }
 
         return userRegistryApi
-                .findByIdUsingGET(USERS_FIELD_LIST, userRequester1.getUserRequestUid())
+                .findByIdUsingGET(USERS_FIELD_LIST, userRequester.getUserRequestUid())
                 .onItem()
                 .transformToUni(userResource -> {
                     Optional<String> optUserMailRandomUuid =
-                            Optional.ofNullable(userRequester.getEmail())
+                            Optional.ofNullable(userRequesterRequest.getEmail())
                                     .map(mail -> retrieveUserMailUuid(userResource, mail));
 
                     Optional<MutableUserFieldsDto> optUserFieldsDto =
-                            toUpdateUserRequest(userRequester, userResource, optUserMailRandomUuid);
+                            toUpdateUserRequest(userRequesterRequest, userResource, optUserMailRandomUuid);
 
                     return optUserFieldsDto
                             .map(userUpdateRequest ->
@@ -430,7 +430,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                             .replaceWith(userResource.getId()))
                             .orElse(Uni.createFrom().item(userResource.getId()))
                             .onItem()
-                            .invoke(() -> optUserMailRandomUuid.ifPresent(userRequester1::setUserMailUuid));
+                            .invoke(() -> optUserMailRandomUuid.ifPresent(userRequester::setUserMailUuid));
                 })
                 .onFailure(WebApplicationException.class)
                 .recoverWithUni(ex -> {
@@ -1308,7 +1308,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             name = userRequest.getName();
             surname = userRequest.getSurname();
             email = userRequest.getEmail();
-        } else if (user instanceof UserRequester userRequester) {
+        } else if (user instanceof UserRequesterDto userRequester) {
             name = userRequester.getName();
             surname = userRequester.getSurname();
             email = userRequester.getEmail();

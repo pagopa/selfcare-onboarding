@@ -2937,7 +2937,7 @@
             "type" : "boolean"
           },
           "userRequester" : {
-            "$ref" : "#/components/schemas/UserRequester"
+            "$ref" : "#/components/schemas/UserRequesterRequest"
           },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
@@ -2989,7 +2989,7 @@
             "type" : "boolean"
           },
           "userRequester" : {
-            "$ref" : "#/components/schemas/UserRequester"
+            "$ref" : "#/components/schemas/UserRequesterRequest"
           },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
@@ -3190,7 +3190,7 @@
             "type" : "boolean"
           },
           "userRequester" : {
-            "$ref" : "#/components/schemas/UserRequester"
+            "$ref" : "#/components/schemas/UserRequesterRequest"
           },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
@@ -3268,7 +3268,7 @@
             "type" : "boolean"
           },
           "userRequester" : {
-            "$ref" : "#/components/schemas/UserRequester"
+            "$ref" : "#/components/schemas/UserRequesterRequest"
           },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionPspRequest"
@@ -3573,7 +3573,7 @@
           }
         }
       },
-      "UserRequester" : {
+      "UserRequesterRequest" : {
         "type" : "object",
         "properties" : {
           "name" : {

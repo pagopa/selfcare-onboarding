@@ -21,7 +21,7 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboarding(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates, UserRequester userRequester);
+            List<AggregateInstitutionRequest> aggregates, UserRequesterDto userRequester);
 
     Uni<OnboardingResponse> onboardingUsers(
             OnboardingUserRequest onboardingUserRequest, String userId, WorkflowType workflowType);

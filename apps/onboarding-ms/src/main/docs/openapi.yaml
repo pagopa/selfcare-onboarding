@@ -2145,7 +2145,7 @@ components:
         signContract:
           type: boolean
         userRequester:
-          $ref: "#/components/schemas/UserRequester"
+          $ref: "#/components/schemas/UserRequesterRequest"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2182,7 +2182,7 @@ components:
         signContract:
           type: boolean
         userRequester:
-          $ref: "#/components/schemas/UserRequester"
+          $ref: "#/components/schemas/UserRequesterRequest"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2327,7 +2327,7 @@ components:
         signContract:
           type: boolean
         userRequester:
-          $ref: "#/components/schemas/UserRequester"
+          $ref: "#/components/schemas/UserRequesterRequest"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2387,7 +2387,7 @@ components:
         signContract:
           type: boolean
         userRequester:
-          $ref: "#/components/schemas/UserRequester"
+          $ref: "#/components/schemas/UserRequesterRequest"
         institution:
           $ref: "#/components/schemas/InstitutionPspRequest"
         billing:
@@ -2628,7 +2628,7 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/PartyRole"
-    UserRequester:
+    UserRequesterRequest:
       type: object
       properties:
         name:

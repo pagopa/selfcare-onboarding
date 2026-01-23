@@ -3,7 +3,7 @@ package it.pagopa.selfcare.onboarding.controller.request;
 import lombok.Data;
 
 @Data
-public class UserRequester {
+public class UserRequesterDto {
 
     private String name;
     private String surname;

@@ -21,6 +21,6 @@ public class OnboardingBaseRequest {
 
     private Boolean signContract;
 
-    private UserRequester userRequester;
+    private UserRequesterDto userRequester;
 
 }
