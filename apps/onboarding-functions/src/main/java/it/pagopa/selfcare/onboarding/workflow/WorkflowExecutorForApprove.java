@@ -38,9 +38,11 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
     @Override
     public Optional<OnboardingStatus> executeToBeValidatedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         String onboardingWorkflowString = getOnboardingWorkflowString(objectMapper, onboardingWorkflow);
+        String onboardingString = getOnboardingString(objectMapper, onboardingWorkflow.getOnboarding());
         ctx.callActivity(BUILD_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString, optionsRetry, String.class).await();
+        ctx.callActivity(SET_ONBOARDING_EXPIRING_DATE_ACTIVITY, onboardingString, optionsRetry, String.class).await();
         sendMailForUserActivity(ctx, onboardingWorkflow, onboardingMapper);
         return Optional.of(OnboardingStatus.PENDING);
     }
