@@ -1064,7 +1064,7 @@ class OnboardingFunctionsTest {
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
     doNothing().when(service).updateOnboardingExpiringDate(any());
 
-    function.setOnboardingExpiringDate(onboardingStringBase, executionContext);
+    function.updateOnboardingExpiringDate(onboardingStringBase, executionContext);
 
     verify(service, times(1)).updateOnboardingExpiringDate(any());
   }

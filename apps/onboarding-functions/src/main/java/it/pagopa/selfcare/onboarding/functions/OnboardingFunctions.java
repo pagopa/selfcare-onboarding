@@ -720,7 +720,7 @@ public class OnboardingFunctions {
   }
 
   @FunctionName(UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY)
-  public void setOnboardingExpiringDate(
+  public void updateOnboardingExpiringDate(
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
     context
