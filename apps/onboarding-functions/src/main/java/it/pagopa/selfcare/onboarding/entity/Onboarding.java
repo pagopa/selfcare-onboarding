@@ -65,6 +65,7 @@ public class Onboarding {
                 ", workflowInstanceId='" + workflowInstanceId + '\'' +
                 ", activatedAt=" + activatedAt +
                 ", deletedAt=" + deletedAt +
+                ", userRequester=" + userRequester +
                 ", reasonForReject='" + reasonForReject + '\'' +
                 ", aggregator=" + aggregator +
                 ", aggregates=" + aggregates +
