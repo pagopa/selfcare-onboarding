@@ -28,7 +28,7 @@ public class Onboarding {
     private Boolean signContract;
     private LocalDateTime expiringDate;
     private OnboardingStatus status;
-    private String userRequestUid;
+    private UserRequester userRequester;
     private String workflowInstanceId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -62,7 +62,6 @@ public class Onboarding {
                 ", expiringDate=" + expiringDate +
                 ", status=" + status +
                 ", payment=" + payment +
-                ", userRequestUid='" + userRequestUid + '\'' +
                 ", workflowInstanceId='" + workflowInstanceId + '\'' +
                 ", activatedAt=" + activatedAt +
                 ", deletedAt=" + deletedAt +

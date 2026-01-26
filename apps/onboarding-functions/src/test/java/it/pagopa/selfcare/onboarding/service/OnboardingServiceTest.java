@@ -82,7 +82,7 @@ class OnboardingServiceTest {
     institution.setDescription("description");
     institution.setInstitutionType(InstitutionType.PA);
     onboarding.setInstitution(institution);
-    onboarding.setUserRequestUid("example-uid");
+    onboarding.setUserRequester(UserRequester.builder().userRequestUid("example-uid").build());
     onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
     onboarding.setStatus(OnboardingStatus.REQUEST);
     return onboarding;
@@ -406,7 +406,7 @@ class OnboardingServiceTest {
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
 
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);
@@ -450,7 +450,6 @@ class OnboardingServiceTest {
     SendMailDto expectedDto = new SendMailDto();
     expectedDto.setInstitutionName("Test Institution");
     expectedDto.setProductId("prod-123");
-    expectedDto.setRole(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
     expectedDto.setUserMailUuid("uuid-123");
 
     Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
@@ -463,7 +462,6 @@ class OnboardingServiceTest {
             Mockito.argThat(dto ->
                     dto.getInstitutionName().equals(expectedDto.getInstitutionName()) &&
                             dto.getProductId().equals(expectedDto.getProductId()) &&
-                            dto.getRole().equals(expectedDto.getRole()) &&
                             dto.getUserMailUuid().equals(expectedDto.getUserMailUuid())
             )
     );
@@ -550,7 +548,7 @@ class OnboardingServiceTest {
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
     when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
     doNothing()
             .when(notificationService)
@@ -637,7 +635,7 @@ class OnboardingServiceTest {
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
     when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
     doNothing()
             .when(notificationService)
@@ -673,7 +671,7 @@ class OnboardingServiceTest {
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
     when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDate);
 
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
 
     when(onboardingRepository.findByFilters(any(), any(), any(), any(), any()))
@@ -754,7 +752,7 @@ class OnboardingServiceTest {
     UserResource userResource = createUserResource();
 
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
 
     doNothing()
@@ -789,7 +787,7 @@ class OnboardingServiceTest {
     UserResource userResource = createUserResource();
 
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
     doNothing()
             .when(notificationService)
@@ -953,7 +951,7 @@ class OnboardingServiceTest {
     when(tokenRepository.findByOnboardingId(onboarding.getId())).thenReturn(Optional.of(token));
     when(productService.getProduct(onboarding.getProductId())).thenReturn(product);
 
-    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+    when(userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
             .thenReturn(userResource);
 
     OnboardingWorkflow onboardingWorkflow = getOnboardingWorkflowInstitution(onboarding);

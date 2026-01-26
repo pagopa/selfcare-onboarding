@@ -261,13 +261,12 @@ public class OnboardingService {
 
   public void sendMailRegistrationForUser(Onboarding onboarding) {
 
+   log.info("Sending mail to user");
    User user = onboarding.getUsers().get(0);
    SendMailDto sendMailDto = new SendMailDto();
    sendMailDto.setInstitutionName(onboarding.getInstitution().getDescription());
    sendMailDto.setProductId(onboarding.getProductId());
-   sendMailDto.setRole(userMapper.toUserPartyRole(user.getRole()));
    sendMailDto.setUserMailUuid(user.getUserMailUuid());
-   sendMailDto.userRequestUid(onboarding.getUserRequestUid());
 
    try {
      userApi.sendMailRequest(user.getId(), sendMailDto);
@@ -275,6 +274,22 @@ public class OnboardingService {
      log.error("Impossible to send mail to user");
    }
   }
+
+    public void sendMailRegistrationForUserRequester(Onboarding onboarding) {
+
+        log.info("Sending mail to user requester");
+        UserRequester userRequester = onboarding.getUserRequester();
+        SendMailDto sendMailDto = new SendMailDto();
+        sendMailDto.setInstitutionName(onboarding.getInstitution().getDescription());
+        sendMailDto.setProductId(onboarding.getProductId());
+        sendMailDto.setUserMailUuid(userRequester.getUserMailUuid());
+
+        try {
+            userApi.sendMailRequest(userRequester.getUserRequestUid(), sendMailDto);
+        } catch (Exception e) {
+            log.error("Impossible to send mail to user");
+        }
+    }
 
   public void saveVisuraForMerchant(Onboarding onboarding) {
     var taxCode = onboarding.getInstitution().getTaxCode();
@@ -383,7 +398,7 @@ public class OnboardingService {
     // Retrieve user request name and surname
     UserResource userRequest =
       Optional.ofNullable(
-          userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequestUid()))
+          userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getUserRequester().getUserRequestUid()))
         .orElseThrow(
           () ->
             new GenericOnboardingException(

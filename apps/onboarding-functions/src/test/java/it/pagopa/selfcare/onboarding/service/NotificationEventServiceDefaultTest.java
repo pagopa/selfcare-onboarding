@@ -12,10 +12,7 @@ import it.pagopa.selfcare.onboarding.dto.*;
 import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.dto.UserToNotify;
 import it.pagopa.selfcare.onboarding.dto.webhook.NotificationRequest;
-import it.pagopa.selfcare.onboarding.entity.Billing;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.Token;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.NotificationException;
 import it.pagopa.selfcare.onboarding.repository.TokenRepository;
 import it.pagopa.selfcare.onboarding.utils.*;
@@ -387,7 +384,7 @@ public class NotificationEventServiceDefaultTest {
     onboarding.setPricingPlan("pricingPlan");
     onboarding.setUsers(List.of());
     onboarding.setInstitution(new Institution());
-    onboarding.setUserRequestUid("example-uid");
+    onboarding.setUserRequester(UserRequester.builder().userRequestUid("example-uid").build());
 
     Billing billing = new Billing();
     billing.setPublicServices(true);

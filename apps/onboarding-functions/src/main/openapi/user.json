@@ -1208,7 +1208,7 @@
     },
     "/users/{id}/user-registry" : {
       "put" : {
-        "tags" : [ "User" ],
+        "tags" : [ "User", "support", "support-pnpg" ],
         "summary" : "Update user registry and send notification upon data update",
         "description" : "Service to update user in user-registry and send notification when user data gets updated",
         "operationId" : "updateUserRegistryAndSendNotification",
@@ -1967,7 +1967,7 @@
         }
       },
       "SendMailDto" : {
-        "required" : [ "userMailUuid", "institutionName", "productId", "role", "userRequestUid" ],
+        "required" : [ "userMailUuid", "institutionName", "productId" ],
         "type" : "object",
         "properties" : {
           "userMailUuid" : {
@@ -1980,12 +1980,6 @@
           },
           "productId" : {
             "minLength" : 1,
-            "type" : "string"
-          },
-          "role" : {
-            "$ref" : "#/components/schemas/PartyRole"
-          },
-          "userRequestUid" : {
             "type" : "string"
           }
         }

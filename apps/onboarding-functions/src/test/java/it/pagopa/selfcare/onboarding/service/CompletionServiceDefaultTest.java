@@ -972,7 +972,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setSignContract(true);
         onboarding.setExpiringDate(LocalDateTime.MAX);
         onboarding.setStatus(OnboardingStatus.PENDING);
-        onboarding.setUserRequestUid("example-uid");
+        onboarding.setUserRequester(UserRequester.builder().userRequestUid("example-uid").build());
         onboarding.setWorkflowInstanceId("workflowInstanceId");
         onboarding.setCreatedAt(LocalDateTime.MAX);
         onboarding.setUpdatedAt(LocalDateTime.MAX);
@@ -1327,7 +1327,7 @@ public class CompletionServiceDefaultTest {
         onboarding.setPricingPlan("pricingPlan");
         onboarding.setUsers(List.of());
         onboarding.setInstitution(new Institution());
-        onboarding.setUserRequestUid("example-uid");
+        onboarding.setUserRequester(UserRequester.builder().userRequestUid("example-uid").build());
 
         Billing billing = new Billing();
         billing.setPublicServices(true);

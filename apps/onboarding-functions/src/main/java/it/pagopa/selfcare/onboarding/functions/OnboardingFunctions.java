@@ -457,6 +457,22 @@ public class OnboardingFunctions {
             readOnboardingValue(objectMapper, onboardingString));
   }
 
+  @FunctionName(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER)
+  public void sendMailRegistrationForUserRequester(
+          @DurableActivityTrigger(name = "onboardingString") String onboardingString,
+          final ExecutionContext context) {
+    context
+            .getLogger()
+            .info(
+                    () ->
+                            String.format(
+                                    FORMAT_LOGGER_ONBOARDING_STRING,
+                                    SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER,
+                                    onboardingString));
+    service.sendMailRegistrationForUser(
+            readOnboardingValue(objectMapper, onboardingString));
+  }
+
   /** This is the activity function that gets invoked by the orchestrator function. */
   @FunctionName(SAVE_VISURA_FOR_MERCHANT)
   public void saveVisuraForMerchant(

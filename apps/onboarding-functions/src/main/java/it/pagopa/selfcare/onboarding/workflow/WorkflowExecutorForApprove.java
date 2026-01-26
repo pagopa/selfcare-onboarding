@@ -42,6 +42,7 @@ public class WorkflowExecutorForApprove implements WorkflowExecutor {
         ctx.callActivity(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, onboardingWorkflowString, optionsRetry, String.class).await();
         ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, onboardingWorkflowString, optionsRetry, String.class).await();
         sendMailForUserActivity(ctx, onboardingWorkflow, onboardingMapper);
+        sendMailForUserRequesterActivity(ctx, onboardingWorkflow);
         return Optional.of(OnboardingStatus.PENDING);
     }
 
