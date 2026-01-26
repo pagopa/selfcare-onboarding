@@ -1012,4 +1012,71 @@ class OnboardingServiceTest {
     assertThrows(GenericOnboardingException.class, () -> onboardingService.updateOnboardingExpiringDate(onboarding));
     verify(onboardingRepository, never()).update(any(Onboarding.class));
   }
+
+    @Test
+    void testSendMailRegistrationForUserRequester_Success() {
+        // Arrange
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setDescription("Test Institution");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId("prod-123");
+
+        User user = new User();
+        user.setId("user-1");
+        user.setRole(PartyRole.MANAGER);
+        user.setUserMailUuid("uuid-123");
+        onboarding.setUsers(List.of(user));
+
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .userMailUuid("uuid-123")
+                .build();
+        onboarding.setUserRequester(userRequester);
+
+        SendMailDto expectedDto = new SendMailDto();
+        expectedDto.setInstitutionName("Test Institution");
+        expectedDto.setProductId("prod-123");
+        expectedDto.setUserMailUuid("uuid-123");
+
+        Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+
+        // Act
+        onboardingService.sendMailRegistrationForUserRequester(onboarding);
+
+        // Assert
+        Mockito.verify(userApi).sendMailRequest(any(),
+                Mockito.argThat(dto ->
+                        dto.getInstitutionName().equals(expectedDto.getInstitutionName()) &&
+                                dto.getProductId().equals(expectedDto.getProductId()) &&
+                                dto.getUserMailUuid().equals(expectedDto.getUserMailUuid())
+                )
+        );
+    }
+
+    @Test
+    void testSendMailRegistrationForUserRequester_Exception() {
+        Onboarding onboarding = new Onboarding();
+        Institution institution = new Institution();
+        institution.setDescription("Test Institution");
+        onboarding.setInstitution(institution);
+        onboarding.setProductId("prod-123");
+        User user = new User();
+        user.setId("user-1");
+        user.setRole(PartyRole.MANAGER);
+        user.setUserMailUuid("uuid-123");
+        onboarding.setUsers(List.of(user));
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .userMailUuid("uuid-123")
+                .build();
+        onboarding.setUserRequester(userRequester);
+        Mockito.when(userMapper.toUserPartyRole(PartyRole.MANAGER)).thenReturn(org.openapi.quarkus.user_json.model.PartyRole.MANAGER);
+        Mockito.doThrow(new RuntimeException("Email failure"))
+                .when(userApi).sendMailRequest(Mockito.any(), Mockito.any());
+
+        Assertions.assertDoesNotThrow(() -> onboardingService.sendMailRegistrationForUserRequester(onboarding));
+
+        Mockito.verify(userApi).sendMailRequest(Mockito.any(), Mockito.any());
+    }
 }
