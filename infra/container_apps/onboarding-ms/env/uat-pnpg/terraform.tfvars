@@ -77,6 +77,10 @@ app_settings = [
   {
     name  = "JWT_BEARER_TOKEN"
     value = "@Microsoft.KeyVault(SecretUri=https://selc-u-pnpg-kv.vault.azure.net/secrets/jwt-bearer-token-functions/)"
+  },
+  {
+    name  = "ONBOARDING-UPDATE-USER-REQUESTER"
+    value = "true",
   }
 ]
 

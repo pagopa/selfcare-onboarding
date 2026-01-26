@@ -84,6 +84,10 @@ app_settings = [
   {
     name  = "NAMIRIAL_BASE_URL"
     value = "https://selc-d-namirial-sws-ca.whitemoss-eb7ef327.westeurope.azurecontainerapps.io",
+  },
+  {
+    name  = "ONBOARDING-UPDATE-USER-REQUESTER"
+    value = "true",
   }
 ]
 
