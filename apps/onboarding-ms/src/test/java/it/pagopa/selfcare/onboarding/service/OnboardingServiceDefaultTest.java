@@ -76,7 +76,7 @@ import static org.mockito.Mockito.*;
 import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 @QuarkusTest
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 class OnboardingServiceDefaultTest {
 
     @Inject
@@ -125,10 +125,6 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     NationalRegistriesApi nationalRegistriesApi;
 
-    @RestClient
-    @InjectMock
-    org.openapi.quarkus.user_json.api.InstitutionApi userInstitutionApi;
-
     @InjectMock
     AzureBlobClient azureBlobClient;
 
@@ -144,6 +140,9 @@ class OnboardingServiceDefaultTest {
 
     @InjectMock
     OrchestrationService orchestrationService;
+
+    @InjectMock
+    UserService userInstitutionApi;
 
     @InjectMock
     @RestClient
