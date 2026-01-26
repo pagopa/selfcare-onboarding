@@ -151,11 +151,13 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO estrarre UserRequester
     public Uni<OnboardingResponse> onboardingAggregationIncrement(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingIncrement(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+                        .onboardingIncrement(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                onboardingRequest.getAggregates(),
+                                onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -184,11 +186,12 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO estrarre UserRequester
     public Uni<OnboardingResponse> onboardingCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -201,11 +204,12 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO estrarre UserRequester
     public Uni<OnboardingResponse> onboardingPaCompletion(@Valid OnboardingPaRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                onboardingRequest.getUserRequester()));
     }
 
   @Operation(
@@ -221,7 +225,10 @@ public class OnboardingController {
   public Uni<OnboardingResponse> onboardingPaImport(@Valid OnboardingImportRequest onboardingRequest, @Context SecurityContext ctx) {
     return readUserIdFromToken(ctx)
       .onItem().transformToUni(userId -> onboardingService
-        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getContractImported()));
+        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                onboardingRequest.getUsers(),
+                onboardingRequest.getContractImported(),
+                null));
   }
 
     @Operation(
@@ -237,7 +244,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingImport(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), null, null));
     }
 
     @Operation(
@@ -251,7 +258,7 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingPspImport(@Valid OnboardingImportPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported()));
+                        .onboardingImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), List.of(), onboardingRequest.getContractImported(), null));
     }
 
     @Operation(
@@ -264,11 +271,10 @@ public class OnboardingController {
     @Tag(name = "internal-v1")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO estrarre UserRequester
     public Uni<OnboardingResponse> onboardingPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -281,11 +287,11 @@ public class OnboardingController {
     @Tag(name = "internal-pnpg")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO estrarre UserRequester
     public Uni<OnboardingResponse> onboardingPgCompletion(@Valid OnboardingPgRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingPgCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers()));
+                        .onboardingPgCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers()));
     }
 
     @Operation(
@@ -561,7 +567,10 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingAggregationCompletion(@Valid OnboardingDefaultRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                onboardingRequest.getAggregates(),
+                                onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -575,7 +584,10 @@ public class OnboardingController {
     public Uni<OnboardingResponse> onboardingAggregationPspCompletion(@Valid OnboardingPspRequest onboardingRequest, @Context SecurityContext ctx) {
         return readUserIdFromToken(ctx)
                 .onItem().transformToUni(userId -> onboardingService
-                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+                        .onboardingAggregationCompletion(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
+                                onboardingRequest.getUsers(),
+                                onboardingRequest.getAggregates(),
+                                onboardingRequest.getUserRequester()));
     }
 
     @Operation(
@@ -641,7 +653,10 @@ public class OnboardingController {
         return readUserIdFromToken(ctx)
             .onItem().transformToUni(userId -> onboardingService
                 .onboardingAggregationImport(fillUserId(onboardingMapper.toEntity(onboardingRequest), userId),
-                    onboardingRequest.getOnboardingImportContract(), onboardingRequest.getUsers(), onboardingRequest.getAggregates()));
+                    onboardingRequest.getOnboardingImportContract(),
+                        onboardingRequest.getUsers(),
+                        onboardingRequest.getAggregates(),
+                        onboardingRequest.getUserRequester()));
     }
 
     @Operation(summary = "Perform delete operation of an onboarding request",

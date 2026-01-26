@@ -29,10 +29,11 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            OnboardingImportContract contractImported);
+            OnboardingImportContract contractImported,
+            UserRequesterDto userRequester);
 
     Uni<OnboardingResponse> onboardingCompletion(
-            Onboarding onboarding, List<UserRequest> userRequests);
+            Onboarding onboarding, List<UserRequest> userRequests, UserRequesterDto userRequester);
 
     Uni<OnboardingResponse> onboardingPgCompletion(
             Onboarding onboarding, List<UserRequest> userRequests);
@@ -40,13 +41,15 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingAggregationCompletion(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates);
+            List<AggregateInstitutionRequest> aggregates,
+            UserRequesterDto userRequester);
 
     Uni<OnboardingResponse> onboardingAggregationImport(
-        Onboarding onboarding,
-        OnboardingImportContract contractImported,
-        List<UserRequest> userRequests,
-        List<AggregateInstitutionRequest> aggregates);
+            Onboarding onboarding,
+            OnboardingImportContract contractImported,
+            List<UserRequest> userRequests,
+            List<AggregateInstitutionRequest> aggregates,
+            UserRequesterDto userRequester);
 
     Uni<OnboardingResponse> onboardingUserPg(Onboarding onboarding, List<UserRequest> userRequests);
 
@@ -93,7 +96,8 @@ public interface OnboardingService {
     Uni<OnboardingResponse> onboardingIncrement(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates);
+            List<AggregateInstitutionRequest> aggregates,
+            UserRequesterDto userRequester);
 
     Uni<OnboardingGet> retrieveOnboardingByInstitutionId(String institutionId, String productId);
 }

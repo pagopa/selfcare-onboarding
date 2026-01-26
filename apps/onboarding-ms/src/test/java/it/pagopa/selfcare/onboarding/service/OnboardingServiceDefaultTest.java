@@ -295,6 +295,15 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingIncrement_Ok(UniAsserter asserter) {
+        UserRequesterDto userRequesterDto = new UserRequesterDto();
+        userRequesterDto.setName("name");
+        userRequesterDto.setSurname("surname");
+        userRequesterDto.setEmail("test@test.com");
+
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .build();
+
         Onboarding onboardingRequest = new Onboarding();
         onboardingRequest.setIsAggregator(true);
         List<UserRequest> users = List.of(manager);
@@ -310,6 +319,7 @@ class OnboardingServiceDefaultTest {
         Billing billing = new Billing();
         billing.setRecipientCode("recCode");
         onboardingRequest.setBilling(billing);
+        onboardingRequest.setUserRequester(userRequester);
 
         AggregateInstitution aggregateInstitution = new AggregateInstitution();
         aggregateInstitution.setDescription("test");
@@ -335,11 +345,18 @@ class OnboardingServiceDefaultTest {
         when(uoApi.findByUnicodeUsingGET1("recCode", null)).thenReturn(Uni.createFrom().item(uoResource));
 
         managerResource.setId(UUID.fromString("9456d91f-ef53-4f89-8330-7f9a195d5d1e"));
-        when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any())).thenReturn(Uni.createFrom().item(managerResource));
 
+        asserter.execute(() -> {
+            when(userRegistryApi.updateUsingPATCH(any(), any()))
+                    .thenReturn(Uni.createFrom().item(Response.noContent().build()));
+            when(userRegistryApi.findByIdUsingGET(any(), any()))
+                    .thenReturn(Uni.createFrom().item(managerResourceWk));
+            when(userRegistryApi.searchUsingPOST(eq(USERS_FIELD_LIST), any()))
+                    .thenReturn(Uni.createFrom().item(managerResource));
+        });
         OnboardingResponse onboardingResponse = getOnboardingResponse();
 
-        Uni<OnboardingResponse> response = onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest));
+        Uni<OnboardingResponse> response = onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest), userRequesterDto);
 
         // Confronta con AssertJ ignorando `createdAt`
         asserter.execute(() -> response.subscribe().with(actualResponse -> assertThat(actualResponse)
@@ -380,6 +397,15 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboardingIncrement_throwExceptionIfProductNotOnboarded(UniAsserter asserter) {
+        UserRequesterDto userRequesterDto = new UserRequesterDto();
+        userRequesterDto.setName("name");
+        userRequesterDto.setSurname("surname");
+        userRequesterDto.setEmail("test@test.com");
+
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .build();
+
         Onboarding onboardingRequest = new Onboarding();
         List<UserRequest> users = List.of(manager);
         onboardingRequest.setProductId("productId");
@@ -390,6 +416,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
         onboardingRequest.setInstitution(institutionBaseRequest);
+        onboardingRequest.setUserRequester(userRequester);
 
         AggregateInstitution aggregateInstitution = new AggregateInstitution();
         aggregateInstitution.setDescription("test");
@@ -424,8 +451,15 @@ class OnboardingServiceDefaultTest {
         institutionResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         institutionResource.setDescription(DESCRIPTION_FIELD);
         when(institutionRegistryProxyApi.findInstitutionUsingGET(any(), any(), any())).thenReturn(Uni.createFrom().item(institutionResource));
+        asserter.execute(() -> {
+            when(userRegistryApi.updateUsingPATCH(any(), any()))
+                    .thenReturn(Uni.createFrom().item(Response.noContent().build()));
+            when(userRegistryApi.findByIdUsingGET(any(), any()))
+                    .thenReturn(Uni.createFrom().item(managerResourceWk));
+        });
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingIncrement(onboardingRequest, users, List.of(aggregateInstitutionRequest)), InvalidRequestException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingIncrement(onboardingRequest,
+                users, List.of(aggregateInstitutionRequest), userRequesterDto), InvalidRequestException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
@@ -1152,6 +1186,15 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_SELC_WorkflowType_CONFIRMATION(UniAsserter asserter) {
+        UserRequesterDto userRequesterDto = new UserRequesterDto();
+        userRequesterDto.setName("name");
+        userRequesterDto.setSurname("surname");
+        userRequesterDto.setEmail("test@test.com");
+
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .build();
+
         Onboarding request = new Onboarding();
         List<UserRequest> users = List.of(manager);
         request.setProductId(PROD_PAGOPA.getValue());
@@ -1161,10 +1204,15 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setInstitutionType(InstitutionType.GSP);
         institutionBaseRequest.setTaxCode("taxCode");
         request.setInstitution(institutionBaseRequest);
+        request.setUserRequester(userRequester);
         mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
-                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+        asserter.execute(() -> {
+            when(userRegistryApi.updateUsingPATCH(any(), any()))
+                    .thenReturn(Uni.createFrom().item(Response.noContent().build()));
+            when(userRegistryApi.findByIdUsingGET(any(), any()))
+                    .thenReturn(Uni.createFrom().item(managerResourceWk));
+        });
 
 
         mockSimpleSearchPOSTAndPersist(asserter);
@@ -1173,7 +1221,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
         // onboardingCompletion will set the workflowType to CONFIRMATION, which is allowed for GSP
-        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users, userRequesterDto), Assertions::assertNotNull);
     }
 
     /*@Test
@@ -2626,7 +2674,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, users, contractImported, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -2663,7 +2711,7 @@ class OnboardingServiceDefaultTest {
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter, true);
 
-        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingImport(request, List.of(), contractImported, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -2708,7 +2756,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingAggregationCompletion(request, users, null), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingAggregationCompletion(request, users, null, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -2753,7 +2801,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(institutionRegistryProxyApi.findInstitutionUsingGET(institutionBaseRequest.getTaxCode(), null, null))
                 .thenReturn(Uni.createFrom().item(institutionResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingCompletion(request, users, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -3531,7 +3579,7 @@ class OnboardingServiceDefaultTest {
         request.setAggregates(List.of(aggregateInstitution1, aggregateInstitution2, aggregateInstitution3));
 
         // when
-        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates),
+        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(request, contractImported, users, aggregates, null),
                 Assertions::assertNotNull);
 
         // then
@@ -4105,7 +4153,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingImport(onboarding, users, contractImported), ResourceConflictException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingImport(onboarding, users, contractImported, null), ResourceConflictException.class);
     }
 
     @Test
@@ -4177,7 +4225,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions), ResourceConflictException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions, null), ResourceConflictException.class);
     }
 
     @Test
@@ -4253,7 +4301,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions, null), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
@@ -4266,6 +4314,14 @@ class OnboardingServiceDefaultTest {
     @Test
     @RunOnVertxContext
     void onboarding_whenIsAggregatorTest_throwsIncrementException(UniAsserter asserter) {
+        UserRequesterDto userRequesterDto = new UserRequesterDto();
+        userRequesterDto.setName("name");
+        userRequesterDto.setSurname("surname");
+        userRequesterDto.setEmail("test@test.com");
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .build();
+
         Onboarding onboarding = new Onboarding();
 
         Billing billing = new Billing();
@@ -4288,6 +4344,7 @@ class OnboardingServiceDefaultTest {
         institutionBaseRequest.setDescription(DESCRIPTION_FIELD);
         institutionBaseRequest.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         onboarding.setInstitution(institutionBaseRequest);
+        onboarding.setUserRequester(userRequester);
 
         OnboardingImportContract contractImported = new OnboardingImportContract();
         contractImported.setFileName("filename");
@@ -4319,8 +4376,12 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
-                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+        asserter.execute(() -> {
+            when(userRegistryApi.updateUsingPATCH(any(), any()))
+                    .thenReturn(Uni.createFrom().item(Response.noContent().build()));
+            when(userRegistryApi.findByIdUsingGET(any(), any()))
+                    .thenReturn(Uni.createFrom().item(managerResourceWk));
+        });
 
         UOResource uoResource = new UOResource();
         uoResource.setCodiceIpa("codiceIPA");
@@ -4343,7 +4404,8 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions), Assertions::assertNotNull);
+        asserter.assertThat(() -> onboardingService.onboardingAggregationImport(
+                onboarding, contractImported, users, aggregateInstitutions, userRequesterDto), Assertions::assertNotNull);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class, times(3)).find(any(Document.class));
@@ -4528,7 +4590,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(geographicTaxonomiesApi.retrieveGeoTaxonomiesByCodeUsingGET(any()))
                 .thenReturn(Uni.createFrom().item(geographicTaxonomyResource)));
 
-        asserter.assertFailedWith(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions), ResourceConflictException.class);
+        asserter.assertFailedWith(() -> onboardingService.onboardingAggregationImport(onboarding, contractImported, users, aggregateInstitutions, null), ResourceConflictException.class);
 
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).find(any(Document.class));
