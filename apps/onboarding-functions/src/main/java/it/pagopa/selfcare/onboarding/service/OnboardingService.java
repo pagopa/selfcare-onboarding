@@ -348,7 +348,7 @@ public class OnboardingService {
       onboarding.getId());
   }
 
-  public void setOnboardingExpiringDate(Onboarding onboarding) {
+  public void updateOnboardingExpiringDate(Onboarding onboarding) {
     Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
     onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
     repository.update(onboarding);

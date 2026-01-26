@@ -38,7 +38,7 @@ public class ActivityName {
   public static final String VERIFY_ONBOARDING_AGGREGATE_ACTIVITY = "ExistsOnboardingActivity";
   public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
   public static final String BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY = "BuildAttachmentAndSaveTokens";
-  public static final String SET_ONBOARDING_EXPIRING_DATE_ACTIVITY= "SetOnboardingExpiringDate";
+  public static final String UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY = "UpdateOnboardingExpiringDate";
 
   private ActivityName() {
   }

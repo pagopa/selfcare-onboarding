@@ -719,7 +719,7 @@ public class OnboardingFunctions {
     return getDelegationResponseListString(objectMapper, delegationResponseList);
   }
 
-  @FunctionName(SET_ONBOARDING_EXPIRING_DATE_ACTIVITY)
+  @FunctionName(UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY)
   public void setOnboardingExpiringDate(
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
@@ -729,8 +729,8 @@ public class OnboardingFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_ONBOARDING_STRING,
-                                    SET_ONBOARDING_EXPIRING_DATE_ACTIVITY,
+                                    UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY,
                                     onboardingString));
-    service.setOnboardingExpiringDate(readOnboardingValue(objectMapper, onboardingString));
+    service.updateOnboardingExpiringDate(readOnboardingValue(objectMapper, onboardingString));
   }
 }
