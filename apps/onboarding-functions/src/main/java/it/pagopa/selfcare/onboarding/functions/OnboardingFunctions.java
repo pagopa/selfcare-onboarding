@@ -469,7 +469,7 @@ public class OnboardingFunctions {
                                     FORMAT_LOGGER_ONBOARDING_STRING,
                                     SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER,
                                     onboardingString));
-    service.sendMailRegistrationForUser(
+    service.sendMailRegistrationForUserRequester(
             readOnboardingValue(objectMapper, onboardingString));
   }
 
