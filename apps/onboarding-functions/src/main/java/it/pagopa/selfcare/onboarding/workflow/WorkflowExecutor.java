@@ -187,7 +187,10 @@ public interface WorkflowExecutor {
     }
 
     default void sendMailForUserRequesterActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
-        ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        if (Objects.nonNull(onboarding.getUserRequester().getUserMailUuid())) {
+            ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
+        }
     }
 
     default void saveVisuraActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
