@@ -23,7 +23,7 @@ import org.mockito.ArgumentCaptor;
 
 @QuarkusTest
 @TestHTTPEndpoint(DocumentController.class)
-@QuarkusTestResource(MongoTestResource.class)
+@QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 class DocumentControllerTest {
 
     @InjectMock
