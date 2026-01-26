@@ -981,7 +981,7 @@ class OnboardingServiceTest {
   }
 
   @Test
-  void setOnboardingExpiringDate_shouldSetCorrectExpiringDate() {
+  void setOnboardingExpiringDate_shouldSetCorrectExpiringDateAndPersist() {
     Onboarding onboarding = createOnboarding();
     Integer expirationDays = 30;
     when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDays);
@@ -992,6 +992,7 @@ class OnboardingServiceTest {
     assertEquals(
         OffsetDateTime.now().plusDays(expirationDays).toLocalDate(),
         onboarding.getExpiringDate().toLocalDate());
+    verify(onboardingRepository).update(onboarding);
   }
 
   @Test
@@ -1000,6 +1001,7 @@ class OnboardingServiceTest {
     when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(null);
 
     assertThrows(NullPointerException.class, () -> onboardingService.setOnboardingExpiringDate(onboarding));
+    verify(onboardingRepository, never()).update(any(Onboarding.class));
   }
 
   @Test
@@ -1010,5 +1012,6 @@ class OnboardingServiceTest {
         .thenThrow(new GenericOnboardingException("Product not found"));
 
     assertThrows(GenericOnboardingException.class, () -> onboardingService.setOnboardingExpiringDate(onboarding));
+    verify(onboardingRepository, never()).update(any(Onboarding.class));
   }
 }
