@@ -734,4 +734,19 @@ public class OnboardingFunctions {
         completionService.retrieveAggregates(readOnboardingValue(objectMapper, onboardingString));
     return getDelegationResponseListString(objectMapper, delegationResponseList);
   }
+
+  @FunctionName(UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY)
+  public void updateOnboardingExpiringDate(
+          @DurableActivityTrigger(name = "onboardingString") String onboardingString,
+          final ExecutionContext context) {
+    context
+            .getLogger()
+            .info(
+                    () ->
+                            String.format(
+                                    FORMAT_LOGGER_ONBOARDING_STRING,
+                                    UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY,
+                                    onboardingString));
+    service.updateOnboardingExpiringDate(readOnboardingValue(objectMapper, onboardingString));
+  }
 }
