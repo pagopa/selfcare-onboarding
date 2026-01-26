@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Stream;
@@ -345,6 +346,12 @@ public class OnboardingService {
             sendMailInput.getUserRequestSurname(),
       sendMailInput.getProduct().getTitle(),
       onboarding.getId());
+  }
+
+  public void updateOnboardingExpiringDate(Onboarding onboarding) {
+    Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
+    onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
+    repository.update(onboarding);
   }
 
   public void sendMailOnboardingApprove(Onboarding onboarding) {

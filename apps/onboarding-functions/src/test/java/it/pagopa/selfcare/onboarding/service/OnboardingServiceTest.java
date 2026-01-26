@@ -40,6 +40,7 @@ import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -979,4 +980,38 @@ class OnboardingServiceTest {
     verifyNoMoreInteractions(notificationService);
   }
 
+  @Test
+  void updateOnboardingExpiringDate_shouldUpdateCorrectExpiringDateAndPersist() {
+    Onboarding onboarding = createOnboarding();
+    Integer expirationDays = 30;
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(expirationDays);
+
+    onboardingService.updateOnboardingExpiringDate(onboarding);
+
+    assertNotNull(onboarding.getExpiringDate());
+    assertEquals(
+        OffsetDateTime.now().plusDays(expirationDays).toLocalDate(),
+        onboarding.getExpiringDate().toLocalDate());
+    verify(onboardingRepository).update(onboarding);
+  }
+
+  @Test
+  void updateOnboardingExpiringDate_shouldHandleNullExpirationDays() {
+    Onboarding onboarding = createOnboarding();
+    when(productService.getProductExpirationDate(onboarding.getProductId())).thenReturn(null);
+
+    assertThrows(NullPointerException.class, () -> onboardingService.updateOnboardingExpiringDate(onboarding));
+    verify(onboardingRepository, never()).update(any(Onboarding.class));
+  }
+
+  @Test
+  void updateOnboardingExpiringDate_shouldHandleInvalidProductId() {
+    Onboarding onboarding = createOnboarding();
+    onboarding.setProductId("invalid-product-id");
+    when(productService.getProductExpirationDate(onboarding.getProductId()))
+        .thenThrow(new GenericOnboardingException("Product not found"));
+
+    assertThrows(GenericOnboardingException.class, () -> onboardingService.updateOnboardingExpiringDate(onboarding));
+    verify(onboardingRepository, never()).update(any(Onboarding.class));
+  }
 }
