@@ -729,7 +729,7 @@ public class OnboardingFunctions {
                     () ->
                             String.format(
                                     FORMAT_LOGGER_ONBOARDING_STRING,
-                                    SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY,
+                                    SET_ONBOARDING_EXPIRING_DATE_ACTIVITY,
                                     onboardingString));
     service.setOnboardingExpiringDate(readOnboardingValue(objectMapper, onboardingString));
   }
