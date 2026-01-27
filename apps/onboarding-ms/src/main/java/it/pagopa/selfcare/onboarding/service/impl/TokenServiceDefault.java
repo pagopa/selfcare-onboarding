@@ -227,7 +227,11 @@ public class TokenServiceDefault implements TokenService {
 
                     File fileToUpload = formItem.getFile();
 
-                    return persistTokenAttachment(onboardingId, attachment, digest)
+                    boolean isP7M = Optional.of(formItem.getFileName())
+                            .map(name -> name.toLowerCase(Locale.ROOT).endsWith(".p7m"))
+                            .orElse(false);
+
+                    return persistTokenAttachment(onboardingId, attachment, digest, isP7M)
                             .onItem().invoke(token ->
                                     uploadFileToAzure(
                                             token.getContractFilename(),
@@ -424,7 +428,7 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest) {
+    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest, boolean isP7M) {
         Token token = new Token();
         token.setId(UUID.randomUUID().toString());
         token.setCreatedAt(LocalDateTime.now());
@@ -438,7 +442,13 @@ public class TokenServiceDefault implements TokenService {
         token.setName(attachment.getName());
 
         String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
-        token.setContractFilename(String.format("signed_%s", signedContractFileName));
+        String filename = String.format("signed_%s", signedContractFileName);
+
+        if (isP7M) {
+            filename = String.format("%s.p7m", filename);
+        }
+
+        token.setContractFilename(filename);
 
         token.setContractSigned(getAttachmentByOnboarding(
                 onboardingId,
