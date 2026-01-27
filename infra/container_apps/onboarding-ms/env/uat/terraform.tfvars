@@ -88,6 +88,10 @@ app_settings = [
   {
     name  = "NAMIRIAL_BASE_URL"
     value = "https://selc-u-namirial-sws-ca.mangopond-2a5d4d65.westeurope.azurecontainerapps.io",
+  },
+  {
+    name  = "ONBOARDING-UPDATE-USER-REQUESTER"
+    value = "true",
   }
 ]
 
