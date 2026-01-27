@@ -1648,17 +1648,15 @@ public class OnboardingServiceDefault implements OnboardingService {
 
 
     private Uni<Onboarding> retrieveOnboardingAndCheckIfExpired(String onboardingId) {
-        // Retrieve Onboarding if exists
         return Onboarding.findByIdOptional(onboardingId)
                 .onItem()
                 .transformToUni(
                         opt ->
                                 opt
-                                        // I must cast to Onboarding because findByIdOptional return a generic
-                                        // ReactiveEntity
                                         .map(Onboarding.class::cast)
-                                        // Check if onboarding is expired
-                                        .filter(onboarding -> !isOnboardingExpired(onboarding.getExpiringDate()))
+                                        .filter(onboarding ->
+                                                OnboardingStatus.TOBEVALIDATED.equals(onboarding.getStatus())
+                                                        || !isOnboardingExpired(onboarding.getExpiringDate()))
                                         .map(onboarding -> Uni.createFrom().item(onboarding))
                                         .orElse(
                                                 Uni.createFrom()
@@ -1666,8 +1664,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                                                 new InvalidRequestException(
                                                                         String.format(
                                                                                 ONBOARDING_EXPIRED.getMessage(),
-                                                                                onboardingId,
-                                                                                ONBOARDING_EXPIRED.getCode())))));
+                                                                                onboardingId),
+                                                                        ONBOARDING_EXPIRED.getCode()))));
     }
 
     private Uni<Onboarding> checkIfToBeValidated(Onboarding onboarding) {
