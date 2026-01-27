@@ -405,7 +405,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                        UserRequester userRequester) {
         log.info("Starting addUserRequester");
 
-        if (!addUserRequesterEnabled || userRequester == null) {
+        if (!addUserRequesterEnabled || Objects.isNull(userRequesterRequest)) {
             log.info("addUserRequester skipped (feature flag disabled) or userRequester is null");
             return Uni.createFrom().voidItem();
         }
