@@ -445,6 +445,9 @@ public class CompletionServiceDefault implements CompletionService {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
+            fromIpaPost.setRea(institution.getRea());
+            fromIpaPost.setShareCapital(institution.getShareCapital());
+            fromIpaPost.setBusinessRegisterPlace(institution.getBusinessRegisterPlace());
             fromIpaPost.setGeographicTaxonomies(Optional.ofNullable(institution.getGeographicTaxonomies())
                     .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
                     .orElse(List.of()));
