@@ -1767,6 +1767,80 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
+    void completeWithoutSignatureVerification_shouldNotThrowExceptionWhenExpiredAndStatusIsToBeValidated(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setExpiringDate(LocalDateTime.now().minusDays(1));
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboarding.getId());
+
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
+
+        final String filepath = "upload-file-path";
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+        mockUpdateToken(asserter, filepath);
+
+        asserter.assertThat(() -> onboardingService.completeWithoutSignatureVerification(onboarding.getId(), TEST_FORM_ITEM),
+                Assertions::assertNotNull);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void complete_shouldNotThrowExceptionWhenExpiredAndStatusIsToBeValidated(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setExpiringDate(LocalDateTime.now().minusDays(1));
+        onboarding.setStatus(OnboardingStatus.TOBEVALIDATED);
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        mockFindToken(asserter, onboarding.getId());
+
+        //Mock find managerUserfiscal code
+        String actualUseUid = onboarding.getUsers().get(0).getId();
+        UserResource actualUserResource = new UserResource();
+        actualUserResource.setFiscalCode("ACTUAL-FISCAL-CODE");
+        asserter.execute(() -> when(userRegistryApi.findByIdUsingGET(USERS_FIELD_TAXCODE, actualUseUid))
+                .thenReturn(Uni.createFrom().item(actualUserResource)));
+
+        //Mock contract signature
+        asserter.execute(() -> doNothing()
+                .when(signatureService)
+                .verifySignature(any(), any(), any()));
+
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
+        mockVerifyOnboardingNotFound();
+        mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
+
+        final String filepath = "upload-file-path";
+        when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
+        mockUpdateToken(asserter, filepath);
+
+        asserter.assertThat(() -> onboardingService.complete(onboarding.getId(), TEST_FORM_ITEM),
+                Assertions::assertNotNull);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void complete_shouldThrowExceptionWhenExpiredAndStatusIsNotToBeValidated(UniAsserter asserter) {
+        Onboarding onboarding = createDummyOnboarding();
+        onboarding.setExpiringDate(LocalDateTime.now().minusDays(1));
+        onboarding.setStatus(OnboardingStatus.PENDING);
+        asserter.execute(() -> PanacheMock.mock(Onboarding.class));
+        asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
+                .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
+
+        asserter.assertFailedWith(() -> onboardingService.complete(onboarding.getId(), null),
+                InvalidRequestException.class);
+    }
+
+    @Test
+    @RunOnVertxContext
     void completeWithoutSignatureVerification(UniAsserter asserter) {
         Onboarding onboarding = createDummyOnboarding();
         asserter.execute(() -> PanacheMock.mock(Onboarding.class));
