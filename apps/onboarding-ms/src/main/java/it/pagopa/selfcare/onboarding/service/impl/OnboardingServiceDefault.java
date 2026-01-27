@@ -405,7 +405,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                        UserRequester userRequester) {
         log.info("Starting addUserRequester");
 
-        if (!addUserRequesterEnabled || Objects.isNull(userRequesterRequest)) {
+        if (!addUserRequesterEnabled || Objects.isNull(userRequesterRequest) || StringUtils.isBlank(userRequesterRequest.getEmail())) {
             log.info("addUserRequester skipped (feature flag disabled) or userRequester is null");
             return Uni.createFrom().voidItem();
         }
@@ -414,9 +414,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .findByIdUsingGET(USERS_FIELD_LIST, userRequester.getUserRequestUid())
                 .onItem()
                 .transformToUni(userResource -> {
-                    Optional<String> optUserMailRandomUuid =
-                            Optional.ofNullable(userRequesterRequest.getEmail())
-                                    .map(mail -> retrieveUserMailUuid(userResource, mail));
+                    Optional<String> optUserMailRandomUuid = Optional.of(retrieveUserMailUuid(userResource, userRequesterRequest.getEmail()));
 
                     Optional<MutableUserFieldsDto> optUserFieldsDto =
                             toUpdateUserRequest(userRequesterRequest, userResource, optUserMailRandomUuid);
