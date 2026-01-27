@@ -228,13 +228,13 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void retrieveAttachment_onboardingNotFound() {
+    void retrieveAttachment_Template_onboardingNotFound() {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().nullItem());
 
         UniAssertSubscriber<RestResponse<File>> subscriber =
                 tokenService
-                        .retrieveAttachment("id", "file")
+                        .retrieveTemplateAttachment("id", "file")
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
@@ -242,29 +242,9 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void retrieveAttachmentGeneratedSuccess() {
+    void retrieveTemplateAttachmentGeneratedSuccess() {
         final String onboardingId = "onboardingId";
         final String filename = "filename.pdf";
-        final String productId = "productId";
-        final String institutionType = "PA";
-
-        Onboarding onboarding = new Onboarding();
-        onboarding.setId(onboardingId);
-        onboarding.setProductId(productId);
-
-        Institution institution = new Institution();
-        institution.setInstitutionType(InstitutionType.PA);
-        onboarding.setInstitution(institution);
-
-        PanacheMock.mock(Onboarding.class);
-        when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
-
-        AttachmentTemplate attachment = new AttachmentTemplate();
-        attachment.setName(filename);
-        attachment.setGenerated(true);
-        Product product = createProductWithAttachment(institutionType, attachment);
-
-        when(productService.getProductIsValid(productId)).thenReturn(product);
 
         Token token = new Token();
         token.setContractFilename(filename);
@@ -296,13 +276,11 @@ class TokenServiceDefaultTest {
         assertNotNull(response);
         assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
         assertEquals(file, response.getEntity());
-
-        verify(productService).getProductIsValid(productId);
         verify(azureBlobClient).getFileAsPdf(anyString());
     }
 
     @Test
-    void retrieveAttachmentGeneratedFalseSuccess() {
+    void retrieveTemplateAttachmentGeneratedFalseSuccess() {
         final String onboardingId = "onboardingId";
         final String filename = "filename.pdf";
         final String productId = "productId";
@@ -332,7 +310,7 @@ class TokenServiceDefaultTest {
 
         UniAssertSubscriber<RestResponse<File>> subscriber =
                 tokenService
-                        .retrieveAttachment(onboardingId, filename)
+                        .retrieveTemplateAttachment(onboardingId, filename)
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
@@ -1079,7 +1057,7 @@ class TokenServiceDefaultTest {
         }
 
         @Test
-        void retrieveAttachmentGeneratedFalseSuccessAndSignTest() throws Exception {
+        void retrieveAttachmentSuccessAndSignTest() throws Exception {
             // given
             final String onboardingId = "onboardingId";
             final String filename = "filename.pdf";
@@ -1128,7 +1106,7 @@ class TokenServiceDefaultTest {
 
             // when
             UniAssertSubscriber<RestResponse<File>> subscriber =
-                    tokenService.retrieveAttachment(onboardingId, filename)
+                    tokenService.retrieveTemplateAttachment(onboardingId, filename)
                             .subscribe().withSubscriber(UniAssertSubscriber.create());
 
             // then

@@ -59,17 +59,16 @@ public class TokenServiceDefault implements TokenService {
 
     public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
             "Token with id %s not found or already deleted";
-    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
-
-    @Inject
-    SignatureService signatureService;
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ProductService productService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
     private final PadesSignService padesSignService;
+    @Inject
+    SignatureService signatureService;
     @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
     Boolean isVerifyEnabled;
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
@@ -85,6 +84,29 @@ public class TokenServiceDefault implements TokenService {
         this.productService = productService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
         this.padesSignService = padesSignService;
+    }
+
+    public static void isP7mValid(File contract, SignatureService signatureService) {
+        signatureService.verifySignature(contract);
+    }
+
+    public static void isPdfValid(File contract) {
+        try (PDDocument document = Loader.loadPDF(contract)) {
+            document.getNumberOfPages();
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.getText(document);
+        } catch (IOException e) {
+            throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+        }
+    }
+
+    private static String getCurrentContractName(Token token, boolean isSigned) {
+        return isSigned ? getContractSignedName(token) : token.getContractFilename();
+    }
+
+    private static String getContractSignedName(Token token) {
+        File file = new File(token.getContractSigned());
+        return file.getName();
     }
 
     @Override
@@ -127,82 +149,59 @@ public class TokenServiceDefault implements TokenService {
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
     }
 
-    public static void isP7mValid(File contract, SignatureService signatureService) {
-        signatureService.verifySignature(contract);
-    }
-
-    public static void isPdfValid(File contract) {
-        try (PDDocument document = Loader.loadPDF(contract)) {
-            document.getNumberOfPages();
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.getText(document);
-        } catch (IOException e) {
-            throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
-        }
-    }
-
     private String getContractNotSigned(String onboardingId, Token token) {
         return String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId,
                 token.getContractFilename());
     }
 
-    private static String getCurrentContractName(Token token, boolean isSigned) {
-        return isSigned ? getContractSignedName(token) : token.getContractFilename();
-    }
-
-    private static String getContractSignedName(Token token) {
-        File file = new File(token.getContractSigned());
-        return file.getName();
-    }
-
     @Override
-    public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
+    public Uni<RestResponse<File>> retrieveTemplateAttachment(String onboardingId, String attachmentName) {
         return findOnboardingById(onboardingId)
                 .onItem().transformToUni(onboarding -> {
 
                     Product product = productService.getProductIsValid(onboarding.getProductId());
                     AttachmentTemplate attachment = getAttachmentTemplate(attachmentName, onboarding, product);
 
-                    if (!attachment.isGenerated()) {
-                        return Uni.createFrom()
-                                .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
+                    return Uni.createFrom()
+                            .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
+                            .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Template Attachment not found on storage for onboarding: %s", onboardingId)))
+                            .chain(file -> signDocument(file, onboarding.getInstitution().getDescription(),
+                                    product.getId()))
+                            .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                            .onItem().transform(file -> RestResponse.ResponseBuilder
+                                    .ok(file, MediaType.APPLICATION_OCTET_STREAM)
+                                    .header(HTTP_HEADER_CONTENT_DISPOSITION,
+                                            HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName)
+                                    .build());
+                });
+    }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
+        return Token
+                .find(
+                        "onboardingId = ?1 and type = ?2 and name = ?3",
+                        onboardingId,
+                        ATTACHMENT.name(),
+                        attachmentName
+                )
+                .firstResult()
+                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Token with id %s not found", onboardingId)))
+                .map(Token.class::cast)
+                .onItem().transformToUni(token ->
+                        Uni.createFrom()
+                                .item(() -> azureBlobClient.getFileAsPdf(
+                                        token.getContractSigned()
+                                ))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                                .chain(file -> signDocument(file, onboarding.getInstitution().getDescription(),
-                                        product.getId()))
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
                                         .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
                                         .header(
                                                 HTTP_HEADER_CONTENT_DISPOSITION,
-                                                HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName
+                                                HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
                                         )
-                                        .build());
-                    }
-
-                    return Token
-                            .find(
-                                    "onboardingId = ?1 and type = ?2 and name = ?3",
-                                    onboardingId,
-                                    ATTACHMENT.name(),
-                                    attachmentName
-                            )
-                            .firstResult()
-                            .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Token with id %s not found", onboardingId)))
-                            .map(Token.class::cast)
-                            .onItem().transformToUni(token ->
-                                    Uni.createFrom()
-                                            .item(() -> azureBlobClient.getFileAsPdf(
-                                                    token.getContractSigned()
-                                            ))
-                                            .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                                            .onItem().transform(contract -> RestResponse.ResponseBuilder
-                                                    .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
-                                                    .header(
-                                                            HTTP_HEADER_CONTENT_DISPOSITION,
-                                                            HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
-                                                    )
-                                                    .build())
-                            );
-                });
+                                        .build())
+                );
     }
 
     @Override
@@ -323,7 +322,9 @@ public class TokenServiceDefault implements TokenService {
         return digest;
     }
 
-    /** Choose earliest signature by signingTime, fallback to id ordering. */
+    /**
+     * Choose earliest signature by signingTime, fallback to id ordering.
+     */
     private AdvancedSignature chooseEarliestSignature(List<AdvancedSignature> sigs) {
         return sigs.stream()
                 .min(Comparator.comparing(AdvancedSignature::getSigningTime, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -510,13 +511,13 @@ public class TokenServiceDefault implements TokenService {
 
                                                         return true;
                                                     } catch (SelfcareAzureStorageException e) {
-                                                            log.info(
-                                                                    "Attachment not found in storage onboardingId={}, attachmentName={}",
-                                                                    id,
-                                                                    attachmentName
-                                                            );
-                                                            return false;
-                                                        }
+                                                        log.info(
+                                                                "Attachment not found in storage onboardingId={}, attachmentName={}",
+                                                                id,
+                                                                attachmentName
+                                                        );
+                                                        return false;
+                                                    }
                                                 })
                                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor());
                                     });
