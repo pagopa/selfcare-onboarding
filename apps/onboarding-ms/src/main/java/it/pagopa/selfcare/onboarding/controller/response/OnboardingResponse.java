@@ -17,10 +17,10 @@ public class OnboardingResponse {
     private BillingResponse billing;
     private String status;
     private AdditionalInformationsDto additionalInformations;
-    private String userRequestUid;
     private Boolean isAggregator;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String referenceOnboardingId;
+    private UserRequesterResponse userRequester;
 
 }
