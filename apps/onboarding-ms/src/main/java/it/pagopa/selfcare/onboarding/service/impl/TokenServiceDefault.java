@@ -249,21 +249,23 @@ public class TokenServiceDefault implements TokenService {
         File templateFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
         DSSDocument templateDocument = new FileDocument(templateFile);
 
-        SignedDocumentValidator uploadedValidator = SignedDocumentValidator.fromDocument(uploadedDocument);
-        SignedDocumentValidator templateValidator = SignedDocumentValidator.fromDocument(templateDocument);
+        DSSDocument uploadedPdf = extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(uploadedDocument), uploadedDocument);
+        DSSDocument templatePdf = extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(templateDocument), templateDocument);
 
-        DSSDocument uploadedPdf = extractPdfFromSignedContainer(uploadedValidator, uploadedDocument);
-        DSSDocument templatePdf = extractPdfFromSignedContainer(templateValidator, templateDocument);
+        SignedDocumentValidator uploadedPdfValidator = SignedDocumentValidator.fromDocument(uploadedPdf);
+        SignedDocumentValidator templatePdfValidator = SignedDocumentValidator.fromDocument(templatePdf);
 
-        String templateDigest = computeDigestOfSignedRevision(templateValidator, templatePdf);
-        String uploadedDigest = computeDigestOfSignedRevision(uploadedValidator, uploadedPdf);
+        String templateDigest = computeDigestOfSignedRevision(templatePdfValidator, templatePdf);
+        String uploadedDigest = computeDigestOfSignedRevision(uploadedPdfValidator, uploadedPdf);
 
         log.debug("Template content digest (base64): {}", templateDigest);
         log.debug("Uploaded  content digest (base64): {}", uploadedDigest);
 
-        if (!templateDigest.equals(uploadedDigest) && !skipDigestCheck) {
+        if (!templateDigest.equals(uploadedDigest)) {
             log.warn("Content mismatch ignoring signatures. templateDigest={} uploadedDigest={}", templateDigest, uploadedDigest);
-            throw new InvalidRequestException("File has been changed. It's not possible to complete upload");
+            if (!skipDigestCheck) {
+                throw new InvalidRequestException("File has been changed. It's not possible to complete upload");
+            }
         } else {
             log.info("Content check passed (ignoring signatures).");
         }
