@@ -26,6 +26,7 @@ import it.pagopa.selfcare.onboarding.service.TokenService;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.Utils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -242,6 +243,22 @@ public class TokenServiceDefault implements TokenService {
                 .replaceWithVoid();
     }
 
+    public String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck) {
+        return getAndVerifyDigestByTemplate(file, contract.getContractTemplatePath(), skipDigestCheck);
+    }
+
+    private String getAndVerifyDigestByTemplate(FormItem file, String templatePath, boolean skipDigestCheck) {
+        DSSDocument document = new FileDocument(file.getFile());
+        String digest = document.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+        File originalFile = azureBlobClient.getFileAsPdf(templatePath);
+        DSSDocument originalDocument = new FileDocument(originalFile);
+        String originalDigest = originalDocument.getDigest(DigestAlgorithm.SHA256).getBase64Value();
+        if (!digest.equals(originalDigest) && !skipDigestCheck) {
+            throw new InvalidRequestException(
+                    "File has been changed. It's not possible to complete upload");
+        }
+        return digest;
+    }
 
     public String getTemplateAndVerifyDigest(FormItem file, String documentTemplatePath, boolean skipDigestCheck) {
         log.info("Start verifying uploaded content against template (templatePath={})", documentTemplatePath);
