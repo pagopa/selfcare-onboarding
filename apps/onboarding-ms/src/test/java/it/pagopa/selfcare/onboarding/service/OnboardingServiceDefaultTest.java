@@ -4348,12 +4348,7 @@ class OnboardingServiceDefaultTest {
         when(Token.list(eq("onboardingId"), eq(onboardingId)))
                 .thenReturn(Uni.createFrom().item(Collections.emptyList()));
 
-        Product product = mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
-
-        ContractTemplate contractTemplate = new ContractTemplate();
-        contractTemplate.setContractTemplatePath("test/path");
-
-        product.setInstitutionContractMappings(Map.of("PA", contractTemplate));
+        mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         Token mockToken = mock(Token.class);
 
@@ -4366,8 +4361,7 @@ class OnboardingServiceDefaultTest {
         doNothing().when(mockToken).setContractFilename(anyString());
         doNothing().when(mockToken).setChecksum(anyString());
 
-        when(tokenService.getTemplateAndVerifyDigest(any(), anyString(), anyBoolean()))
-                .thenReturn("digest_mock");
+        when(tokenService.getAndVerifyDigest(any(), any(ContractTemplate.class), anyBoolean()));
         when(tokenService.getContractPathByOnboarding(any(), any()))
                 .thenReturn("path/to/contract");
 
