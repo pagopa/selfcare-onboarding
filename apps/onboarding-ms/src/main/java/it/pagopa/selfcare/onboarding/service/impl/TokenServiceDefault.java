@@ -210,7 +210,7 @@ public class TokenServiceDefault implements TokenService {
         return existsAttachment(onboardingId, attachmentName)
                 .onItem().transformToUni(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
-                        return Uni.createFrom().failure(new UpdateNotAllowedException(ATTACHMENT_UPLOAD_ERROR.getMessage()));
+                        return Uni.createFrom().failure(new UpdateNotAllowedException(ATTACHMENT_UPLOAD_ERROR.getCode(), ATTACHMENT_UPLOAD_ERROR.getMessage()));
                     }
                     return Uni.createFrom().voidItem();
                 })
@@ -269,14 +269,14 @@ public class TokenServiceDefault implements TokenService {
         File templateFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
         DSSDocument templateDocument = new FileDocument(templateFile);
 
-        DSSDocument uploadedPdf = extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(uploadedDocument), uploadedDocument);
-        DSSDocument templatePdf = extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(templateDocument), templateDocument);
+        DSSDocument uploadedPdf = signatureService.extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(uploadedDocument), uploadedDocument);
+        DSSDocument templatePdf = signatureService.extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(templateDocument), templateDocument);
 
         SignedDocumentValidator uploadedPdfValidator = SignedDocumentValidator.fromDocument(uploadedPdf);
         SignedDocumentValidator templatePdfValidator = SignedDocumentValidator.fromDocument(templatePdf);
 
-        String templateDigest = computeDigestOfSignedRevision(templatePdfValidator, templatePdf);
-        String uploadedDigest = computeDigestOfSignedRevision(uploadedPdfValidator, uploadedPdf);
+        String templateDigest = signatureService.computeDigestOfSignedRevision(templatePdfValidator, templatePdf);
+        String uploadedDigest = signatureService.computeDigestOfSignedRevision(uploadedPdfValidator, uploadedPdf);
 
         log.debug("Template content digest (base64): {}", templateDigest);
         log.debug("Uploaded  content digest (base64): {}", uploadedDigest);
@@ -293,61 +293,6 @@ public class TokenServiceDefault implements TokenService {
         return uploadedDigest;
     }
 
-    /**
-     * If validator exposes original documents for a signature, returns the first original (signed) content.
-     * Otherwise returns the input document unchanged.
-     */
-    private DSSDocument extractPdfFromSignedContainer(SignedDocumentValidator validator, DSSDocument inputDoc) {
-        List<AdvancedSignature> sigs = validator.getSignatures();
-        if (sigs == null || sigs.isEmpty()) {
-            log.debug("No signatures detected; using document as-is.");
-            return inputDoc;
-        }
-
-        AdvancedSignature selected = chooseEarliestSignature(sigs);
-        log.debug("Selected signature id='{}' signingTime='{}' for unwrapping", selected.getId(), selected.getSigningTime());
-
-        List<DSSDocument> originals = validator.getOriginalDocuments(selected.getId());
-        if (originals != null && !originals.isEmpty()) {
-            log.debug("Unwrapped {} original document(s) from signature id='{}'", originals.size(), selected.getId());
-            return originals.get(0);
-        }
-
-        log.debug("No originals available for signature id='{}'; returning input document", selected.getId());
-        return inputDoc;
-    }
-
-    /**
-     * Compute SHA-256 (Base64) for the document content corresponding to the chosen signature revision.
-     * If there are no signatures, compute digest of the whole document bytes.
-     */
-    private String computeDigestOfSignedRevision(SignedDocumentValidator validator, DSSDocument doc) {
-        List<AdvancedSignature> signatures = validator.getSignatures();
-        if (signatures == null || signatures.isEmpty()) {
-            log.debug("No PAdES signatures found - computing full-document digest.");
-            return doc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        }
-
-        AdvancedSignature chosen = chooseEarliestSignature(signatures);
-        log.debug("Using signature id='{}' signingTime='{}' to compute content digest", chosen.getId(), chosen.getSigningTime());
-
-        List<DSSDocument> originals = validator.getOriginalDocuments(chosen.getId());
-        DSSDocument contentDoc = (originals != null && !originals.isEmpty()) ? originals.get(0) : doc;
-
-        String digest = contentDoc.getDigest(DigestAlgorithm.SHA256).getBase64Value();
-        log.debug("Computed content digest (base64) for signature id='{}': {}", chosen.getId(), digest);
-        return digest;
-    }
-
-    /**
-     * Choose earliest signature by signingTime, fallback to id ordering.
-     */
-    private AdvancedSignature chooseEarliestSignature(List<AdvancedSignature> sigs) {
-        return sigs.stream()
-                .min(Comparator.comparing(AdvancedSignature::getSigningTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(AdvancedSignature::getId))
-                .orElse(sigs.get(0));
-    }
 
     private Uni<File> signDocument(File pdf, String institutionDescription, String productId) {
         return Uni.createFrom().item(() -> {
