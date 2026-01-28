@@ -29,6 +29,8 @@ public interface TokenService {
 
   Uni<ContractSignedReport> reportContractSigned(String onboardingId);
 
+  String getTemplateAndVerifyDigest(FormItem file, String contractTemplatePath, boolean skipDigestCheck);
+
   String getContractPathByOnboarding(String onboardingId, String filename);
 
   Uni<Boolean> existsAttachment(String onboardingId, String attachmentName);

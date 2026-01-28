@@ -9,6 +9,4 @@ public interface SignatureService {
   boolean verifySignature(File file);
 
   File extractFile(File contract);
-
-  String getTemplateAndVerifyDigest(File uploadedFile, File templateFile, boolean skipDigestCheck);
 }
