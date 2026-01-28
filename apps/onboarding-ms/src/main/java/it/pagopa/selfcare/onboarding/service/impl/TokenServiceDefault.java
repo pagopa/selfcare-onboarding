@@ -263,6 +263,7 @@ public class TokenServiceDefault implements TokenService {
     public String getTemplateAndVerifyDigest(FormItem file, String documentTemplatePath, boolean skipDigestCheck) {
         log.info("Start verifying uploaded content against template (templatePath={})", documentTemplatePath);
         Objects.requireNonNull(file, "Uploaded file must not be null");
+        Objects.requireNonNull(documentTemplatePath, "Document template path must not be null");
 
         DSSDocument uploadedDocument = new FileDocument(file.getFile());
 

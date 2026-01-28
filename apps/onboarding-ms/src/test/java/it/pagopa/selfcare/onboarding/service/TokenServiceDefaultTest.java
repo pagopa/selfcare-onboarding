@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -365,6 +368,12 @@ class TokenServiceDefaultTest {
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
         when(queryPage.firstResult()).thenReturn(Uni.createFrom().nullItem());
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(originalFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document).thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
+
         PanacheMock.mock(Token.class);
         when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
                 onboardingId,
@@ -431,6 +440,12 @@ class TokenServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(anyString())).thenReturn(product));
 
         File pdf = new File("src/test/resources/test.pdf");
+
+        DSSDocument document = new FileDocument(pdf);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
 
         asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
 
@@ -688,6 +703,12 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/template.pdf")).thenReturn(uploadedFile);
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
+
         String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
@@ -702,6 +723,12 @@ class TokenServiceDefaultTest {
 
         ContractTemplate contractTemplate = new ContractTemplate();
         contractTemplate.setContractTemplatePath("contracts/original.pdf");
+
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
+
 
         File differentFile = new File("src/test/resources/original.pdf");
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
@@ -725,6 +752,11 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(uploadedFile);
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("rhfouednionew3");
+
         String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
@@ -740,6 +772,16 @@ class TokenServiceDefaultTest {
         contractTemplate.setContractTemplatePath("contracts/original.pdf");
 
         File differentFile = new File("src/test/resources/original.pdf");
+
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(differentFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class)))
+                .thenReturn(document)
+                .thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest")
+                .thenReturn("fake-digestt");
+
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
 
         try {
@@ -761,6 +803,10 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf(templatePath)).thenReturn(uploadedFile);
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
         tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         verify(azureBlobClient).getFileAsPdf(templatePath);
@@ -773,6 +819,12 @@ class TokenServiceDefaultTest {
 
         ContractTemplate contractTemplate = new ContractTemplate();
         contractTemplate.setContractTemplatePath("contracts/test.pdf");
+
+        DSSDocument document = new FileDocument(file);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
 
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(file);
 
@@ -792,6 +844,12 @@ class TokenServiceDefaultTest {
 
         File originalFile = new File("src/test/resources/original.pdf");
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(originalFile);
+
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(originalFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document).thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
 
         Assertions.assertThrows(InvalidRequestException.class, () ->
                 tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false)
@@ -1044,6 +1102,12 @@ class TokenServiceDefaultTest {
             );
 
             FormItem formItem = FormItem.builder().file(pdf).fileName(filename).build();
+
+
+            DSSDocument document = new FileDocument(pdf);
+            when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+            when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
 
             mockPersistToken(asserter);
 
