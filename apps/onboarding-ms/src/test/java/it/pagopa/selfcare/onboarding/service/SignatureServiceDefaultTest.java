@@ -18,12 +18,15 @@ import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.mongodb.MongoTestResource;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
+import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.impl.SignatureServiceDefault;
+import it.pagopa.selfcare.product.entity.ContractTemplate;
 import jakarta.inject.Inject;
 import org.apache.batik.anim.dom.BindableElement;
 import org.apache.batik.anim.dom.SVG12DOMImplementation;
 import org.apache.batik.anim.dom.SVG12OMDocument;
 import org.apache.batik.dom.GenericDocumentType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -635,5 +638,90 @@ class SignatureServiceDefaultTest {
     String resourcePath = Objects.requireNonNull(classLoader.getResource("documents/contract_error.p7m")).getPath();
     assertThrows(InvalidRequestException.class, () -> signatureService.extractFile(new File(resourcePath)));
   }
+
+
+    @Test
+    void getTemplateAndVerifyDigestWithContractTemplateSuccess() {
+        File uploadedFile = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
+
+        File contractFile = new File("src/test/resources/test.pdf");
+
+        String result = signatureService.getTemplateAndVerifyDigest(formItem.getFile(), contractFile, false);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void getTemplateAndVerifyDigestWithContractTemplateDigestMismatch() {
+        File uploadedFile = new File("src/test/resources/test.pdf");
+
+        File differentFile = new File("src/test/resources/original.pdf");
+
+        try {
+            signatureService.getTemplateAndVerifyDigest(uploadedFile, differentFile, false);
+            Assertions.fail("Expected InvalidRequestException to be thrown");
+        } catch (InvalidRequestException e) {
+            assertTrue(e.getMessage().contains("File has been changed"));
+        }
+    }
+
+    @Test
+    void getTemplateAndVerifyDigestReturnsBase64EncodedDigest() {
+        File uploadedFile = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("contracts/test.pdf");
+
+        File contractFile = new File("src/test/resources/test.pdf");
+
+        String result = signatureService.getTemplateAndVerifyDigest(uploadedFile, contractFile, false);
+
+        assertNotNull(result);
+        assertTrue(result.matches("^[A-Za-z0-9+/=]+$"));
+    }
+
+    @Test
+    void getTemplateAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
+        File uploadedFile = new File("src/test/resources/test.pdf");
+        File differentFile = new File("src/test/resources/original.pdf");
+
+        try {
+            signatureService.getTemplateAndVerifyDigest(uploadedFile, differentFile, false);
+            Assertions.fail("Expected InvalidRequestException to be thrown");
+        } catch (InvalidRequestException e) {
+            assertEquals("File has been changed. It's not possible to complete upload", e.getMessage());
+        }
+    }
+
+
+    @Test
+    void getTemplateAndVerifyDigestWithSameFileReturnsDigest() {
+        File file = new File("src/test/resources/test.pdf");
+        File fileTemplateOriginal = new File("src/test/resources/test.pdf");
+
+        String result = signatureService.getTemplateAndVerifyDigest(file, fileTemplateOriginal, false);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void getTemplateAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
+        File uploadedFile = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("contracts/original.pdf");
+
+        File originalFile = new File("src/test/resources/original.pdf");
+
+        Assertions.assertThrows(InvalidRequestException.class, () ->
+                signatureService.getTemplateAndVerifyDigest(uploadedFile, originalFile, false)
+        );
+    }
+
 }
 

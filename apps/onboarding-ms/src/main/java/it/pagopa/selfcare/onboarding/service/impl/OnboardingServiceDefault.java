@@ -32,8 +32,8 @@ import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.onboarding.util.Utils;
-import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -62,6 +62,7 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -75,7 +76,8 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
 import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
@@ -1653,7 +1655,12 @@ public class OnboardingServiceDefault implements OnboardingService {
         String onboardingId = onboarding.getId();
         String institutionType = onboarding.getInstitution().getInstitutionType().name();
         ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
-        String digest = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), true);
+
+        File contractDefaultFile = azureBlobClient.getFileAsPdf(contractTemplate.getContractTemplatePath());
+        File uploadedFile = formItem.getFile();
+
+        String digest = signatureService.getTemplateAndVerifyDigest(uploadedFile, contractDefaultFile, true);
+
         Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
         token.setContractSigned(tokenService.getContractPathByOnboarding(onboardingId, formItem.getFileName()));
         token.setContractFilename(formItem.getFileName());

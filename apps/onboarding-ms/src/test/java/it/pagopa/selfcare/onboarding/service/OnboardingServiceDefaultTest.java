@@ -4366,7 +4366,7 @@ class OnboardingServiceDefaultTest {
         doNothing().when(mockToken).setContractFilename(anyString());
         doNothing().when(mockToken).setChecksum(anyString());
 
-        when(tokenService.getTemplateAndVerifyDigest(any(), anyString(), anyBoolean()))
+        when(signatureService.getTemplateAndVerifyDigest(any(), any(), anyBoolean()))
                 .thenReturn("digest_mock");
         when(tokenService.getContractPathByOnboarding(any(), any()))
                 .thenReturn("path/to/contract");
