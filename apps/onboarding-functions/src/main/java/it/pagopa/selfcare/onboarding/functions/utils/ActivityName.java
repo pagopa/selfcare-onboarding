@@ -16,6 +16,7 @@ public class ActivityName {
   public static final String SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY =
     "SendMailRegistrationRequest";
   public static final String SEND_MAIL_REGISTRATION_FOR_USER = "SendMailRegistrationForUser";
+  public static final String SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER = "SendMailRegistrationForUserRequester";
   public static final String SAVE_VISURA_FOR_MERCHANT = "SaveVisuraForMerchant";
   public static final String SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY =
     "SendMailRegistrationApprove";

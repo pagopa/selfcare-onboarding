@@ -237,8 +237,8 @@
           "isAggregator": {
             "type": "boolean"
           },
-          "userRequestUid": {
-            "type": "string"
+          "userRequester": {
+            "$ref": "#/components/schemas/UserRequester"
           },
           "referenceOnboardingId": {
             "type": "string"
@@ -565,6 +565,17 @@
           "PDND_INFOCAMERE"
         ],
         "type": "string"
+      },
+      "UserRequester" : {
+        "type" : "object",
+        "properties" : {
+          "userRequestUid" : {
+            "type" : "string"
+          },
+          "userMailUuid" : {
+            "type" : "string"
+          }
+        }
       },
       "InstitutionPaSubunitType": {
         "enum": [

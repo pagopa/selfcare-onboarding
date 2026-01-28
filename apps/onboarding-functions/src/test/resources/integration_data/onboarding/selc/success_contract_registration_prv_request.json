@@ -33,7 +33,9 @@
   },
   "productId": "prod-idpay-merchant",
   "status": "REQUEST",
-  "userRequestUid": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b",
+  "userRequester" : {
+    "userRequestUid": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b"
+  },
   "users": [
     {
       "id": "6f8b2d3a-4c1e-44d8-bf92-1a7f8e2c3d5b",

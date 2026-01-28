@@ -25,7 +25,9 @@
   },
   "productId": "prod-io",
   "status": "REQUEST",
-  "userRequestUid": "ec7ca4d5-c537-462a-8c06-e102e0c21c44",
+  "userRequester" : {
+    "userRequestUid": "ec7ca4d5-c537-462a-8c06-e102e0c21c44"
+  },
   "users": [
     {
       "id": "ec7ca4d5-c537-462a-8c06-e102e0c21c44",

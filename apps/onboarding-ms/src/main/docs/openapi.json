@@ -2936,6 +2936,9 @@
           "signContract" : {
             "type" : "boolean"
           },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterDto"
+          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -2984,6 +2987,9 @@
           },
           "signContract" : {
             "type" : "boolean"
+          },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterDto"
           },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
@@ -3183,6 +3189,9 @@
           "signContract" : {
             "type" : "boolean"
           },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterDto"
+          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionBaseRequest"
           },
@@ -3258,6 +3267,9 @@
           "signContract" : {
             "type" : "boolean"
           },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterDto"
+          },
           "institution" : {
             "$ref" : "#/components/schemas/InstitutionPspRequest"
           },
@@ -3299,9 +3311,6 @@
           "additionalInformations" : {
             "$ref" : "#/components/schemas/AdditionalInformationsDto"
           },
-          "userRequestUid" : {
-            "type" : "string"
-          },
           "isAggregator" : {
             "type" : "boolean"
           },
@@ -3313,6 +3322,9 @@
           },
           "referenceOnboardingId" : {
             "type" : "string"
+          },
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterResponse"
           }
         }
       },
@@ -3558,6 +3570,31 @@
           },
           "role" : {
             "$ref" : "#/components/schemas/PartyRole"
+          }
+        }
+      },
+      "UserRequesterDto" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "surname" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          }
+        }
+      },
+      "UserRequesterResponse" : {
+        "type" : "object",
+        "properties" : {
+          "userMailUuid" : {
+            "type" : "string"
+          },
+          "userRequestUid" : {
+            "type" : "string"
           }
         }
       },
