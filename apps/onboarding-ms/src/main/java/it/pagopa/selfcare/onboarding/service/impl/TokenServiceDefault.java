@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.service.impl;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
-import eu.europa.esig.dss.spi.signature.AdvancedSignature;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -191,8 +190,7 @@ public class TokenServiceDefault implements TokenService {
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
                         Uni.createFrom()
-                                .item(() -> azureBlobClient.getFileAsPdf(
-                                        token.getContractSigned()
+                                .item(() -> azureBlobClient.getFileAsPdf(buildAttachmentPath(token)
                                 ))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
@@ -362,6 +360,10 @@ public class TokenServiceDefault implements TokenService {
 
     public String getContractPathByOnboarding(String onboardingId, String filename) {
         return String.format("%s%s%s", onboardingMsConfig.getContractPath(), onboardingId, "/" + filename);
+    }
+
+    private String buildAttachmentPath(Token token) {
+        return Objects.nonNull(token.getContractSigned()) ? token.getContractSigned() : getAttachmentByOnboarding(token.getOnboardingId(), token.getContractFilename());
     }
 
     @Override
