@@ -71,7 +71,7 @@ public interface OnboardingMapper {
     Onboarding toEntity(OnboardingUserPgRequest request);
 
     @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())")
-    @Mapping(target = "userRequestUid", source = "userId")
+    @Mapping(target = "userRequester.userRequestUid", source = "userId")
     @Mapping(target = "productId", source = "request.productId")
     @Mapping(target = "workflowType", source = "workflowType")
     @Mapping(target = "status", expression = "java(OnboardingStatus.REQUEST)")

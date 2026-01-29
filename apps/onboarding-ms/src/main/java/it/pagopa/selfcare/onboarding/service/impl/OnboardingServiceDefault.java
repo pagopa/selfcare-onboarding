@@ -11,6 +11,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.*;
 import it.pagopa.selfcare.onboarding.constants.CustomError;
 import it.pagopa.selfcare.onboarding.controller.request.*;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequesterDto;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGet;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingGetResponse;
 import it.pagopa.selfcare.onboarding.controller.response.OnboardingResponse;
@@ -32,8 +33,8 @@ import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.onboarding.util.Utils;
-import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
@@ -75,7 +76,8 @@ import java.util.stream.Collectors;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
 import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
 import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
 import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
 import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
@@ -191,24 +193,29 @@ public class OnboardingServiceDefault implements OnboardingService {
     @ConfigProperty(name = "quarkus.profile")
     String activeProfile;
 
+    @ConfigProperty(name = "onboarding-ms.add-user-requester.enabled")
+    boolean addUserRequesterEnabled;
+
     @Override
     public Uni<OnboardingResponse> onboarding(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates) {
+            List<AggregateInstitutionRequest> aggregates,
+            UserRequesterDto userRequester) {
         Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(getWorkflowType(onboarding));
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false, userRequester);
     }
 
     @Override
     public Uni<OnboardingResponse> onboardingIncrement(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates) {
+            List<AggregateInstitutionRequest> aggregates,
+            UserRequesterDto userRequester) {
         Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
         onboarding.setExpiringDate(
                 OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
@@ -216,7 +223,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(PENDING);
 
         return addReferencedOnboardingId(onboarding)
-                .flatMap(onboardingObj -> fillUsersAndOnboarding(onboardingObj, userRequests, aggregates, true));
+                .flatMap(onboardingObj -> fillUsersAndOnboarding(onboardingObj, userRequests, aggregates, true, userRequester));
     }
 
     /**
@@ -250,12 +257,12 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     @Override
     public Uni<OnboardingResponse> onboardingCompletion(
-            Onboarding onboarding, List<UserRequest> userRequests) {
+            Onboarding onboarding, List<UserRequest> userRequests, UserRequesterDto userRequester) {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION);
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
         return fillUsersAndOnboarding(
-                onboarding, userRequests, null, false);
+                onboarding, userRequests, null, false, userRequester);
     }
 
     @Override
@@ -265,18 +272,18 @@ public class OnboardingServiceDefault implements OnboardingService {
         onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboarding(
-                onboarding, userRequests, null, false);
+                onboarding, userRequests, null, false, null);
     }
 
     @Override
     public Uni<OnboardingResponse> onboardingAggregationCompletion(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates) {
+            List<AggregateInstitutionRequest> aggregates, UserRequesterDto userRequester) {
         onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATOR);
         onboarding.setStatus(OnboardingStatus.REQUEST);
 
-        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false);
+        return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false, null);
     }
 
     @Override
@@ -284,12 +291,12 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             OnboardingImportContract contractImported,
             List<UserRequest> userRequests,
-            List<AggregateInstitutionRequest> aggregates) {
+            List<AggregateInstitutionRequest> aggregates, UserRequesterDto userRequester) {
         onboarding.setWorkflowType(WorkflowType.IMPORT_AGGREGATION);
         onboarding.setStatus(PENDING);
 
         return fillUsersAndOnboardingForImport(
-                onboarding, userRequests, aggregates, contractImported);
+                onboarding, userRequests, aggregates, contractImported, userRequester);
     }
 
 
@@ -300,24 +307,26 @@ public class OnboardingServiceDefault implements OnboardingService {
     public Uni<OnboardingResponse> onboardingImport(
             Onboarding onboarding,
             List<UserRequest> userRequests,
-            OnboardingImportContract contractImported) {
+            OnboardingImportContract contractImported,
+            UserRequesterDto userRequester) {
         onboarding.setWorkflowType(WorkflowType.IMPORT);
         onboarding.setStatus(PENDING);
         return fillUsersAndOnboardingForImport(
-                onboarding, userRequests, null, contractImported);
+                onboarding, userRequests, null, contractImported, userRequester);
     }
 
     private Uni<OnboardingResponse> fillUsersAndOnboarding(
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            boolean isAggregatesIncrement) {
+            boolean isAggregatesIncrement,
+            UserRequesterDto userRequester) {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
         return verifyExistingOnboarding(onboarding, isAggregatesIncrement)
                 .onItem()
-                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, product));
+                .transformToUni(product -> handleOnboarding(onboarding, userRequests, aggregates, product, userRequester));
     }
 
 
@@ -337,7 +346,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            Product product) {
+            Product product,
+            UserRequesterDto userRequester) {
 
         return Uni.createFrom()
                 .item(registryResourceFactory.create(onboarding, getManagerTaxCode(userRequests)))
@@ -345,7 +355,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .invoke(registryManager -> registryManager.setResource(registryManager.retrieveInstitution()))
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                 .onItem()
-                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product));
+                .transformToUni(registryManager -> validateAndPersistOnboarding(registryManager, onboarding, userRequests, aggregates, product, userRequester));
     }
 
     private String getManagerTaxCode(List<UserRequest> userRequests) {
@@ -364,7 +374,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregates,
-            Product product) {
+            Product product,
+            UserRequesterDto userRequester) {
 
         return registryManager.isValid()
                 .onItem()
@@ -373,6 +384,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .invoke(() -> validateTaxCode(onboarding.getInstitution().getTaxCode(), product))
                 .onItem()
                 .transformToUni(ignored -> verifyAllowManagerAsDelegate(userRequests))
+                .onItem()
+                .transformToUni(ignored -> addUserRequester(userRequester, onboarding.getUserRequester()))
                 .onItem()
                 .transformToUni(ignored -> registryManager.customValidation(product))
                 .onItem()
@@ -386,6 +399,43 @@ public class OnboardingServiceDefault implements OnboardingService {
                         orchestrationService.triggerOrchestration(currentOnboarding.getId(), null)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
+    }
+
+    private Uni<Void> addUserRequester(UserRequesterDto userRequesterRequest,
+                                       UserRequester userRequester) {
+        log.info("Starting addUserRequester");
+
+        if (!addUserRequesterEnabled || Objects.isNull(userRequesterRequest) || StringUtils.isBlank(userRequesterRequest.getEmail())) {
+            log.info("addUserRequester skipped (feature flag disabled) or userRequester is null");
+            return Uni.createFrom().voidItem();
+        }
+
+        return userRegistryApi
+                .findByIdUsingGET(USERS_FIELD_LIST, userRequester.getUserRequestUid())
+                .onItem()
+                .transformToUni(userResource -> {
+                    Optional<String> optUserMailRandomUuid = Optional.of(retrieveUserMailUuid(userResource, userRequesterRequest.getEmail()));
+
+                    Optional<MutableUserFieldsDto> optUserFieldsDto =
+                            toUpdateUserRequest(userRequesterRequest, userResource, optUserMailRandomUuid);
+
+                    return optUserFieldsDto
+                            .map(userUpdateRequest ->
+                                    userRegistryApi
+                                            .updateUsingPATCH(userResource.getId().toString(), userUpdateRequest)
+                                            .replaceWith(userResource.getId()))
+                            .orElse(Uni.createFrom().item(userResource.getId()))
+                            .onItem()
+                            .invoke(() -> optUserMailRandomUuid.ifPresent(userRequester::setUserMailUuid));
+                })
+                .onFailure(WebApplicationException.class)
+                .recoverWithUni(ex -> {
+                    if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
+                        return Uni.createFrom().failure(ex);
+                    }
+                    return Uni.createFrom().nullItem();
+                })
+                .replaceWithVoid();
     }
 
     /**
@@ -500,7 +550,8 @@ public class OnboardingServiceDefault implements OnboardingService {
             Onboarding onboarding,
             List<UserRequest> userRequests,
             List<AggregateInstitutionRequest> aggregateRequests,
-            OnboardingImportContract contractImported) {
+            OnboardingImportContract contractImported,
+            UserRequesterDto userRequester) {
 
         onboarding.setCreatedAt(LocalDateTime.now());
 
@@ -517,7 +568,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                     // For other cases, rethrow the exception
                     log.info("Existing onboarding found for institution {} and product {}, calling onboardingIncrement",
                             onboarding.getInstitution().getTaxCode(), onboarding.getProductId());
-                    return onboardingIncrement(onboarding, userRequests, aggregateRequests);
+                    return onboardingIncrement(onboarding, userRequests, aggregateRequests, userRequester);
                 });
     }
 
@@ -1244,21 +1295,38 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     protected static Optional<MutableUserFieldsDto> toUpdateUserRequest(
-            UserRequest user, UserResource foundUser, Optional<String> optUserMailRandomUuid) {
+            Object user, UserResource foundUser, Optional<String> optUserMailRandomUuid) {
+
+        String name;
+        String surname;
+        String email;
+
+        if (user instanceof UserRequest userRequest) {
+            name = userRequest.getName();
+            surname = userRequest.getSurname();
+            email = userRequest.getEmail();
+        } else if (user instanceof UserRequesterDto userRequester) {
+            name = userRequester.getName();
+            surname = userRequester.getSurname();
+            email = userRequester.getEmail();
+        } else {
+            throw new IllegalArgumentException("Unsupported user type: " + user.getClass());
+        }
+
         Optional<MutableUserFieldsDto> mutableUserFieldsDto = Optional.empty();
-        if (isFieldToUpdate(foundUser.getName(), user.getName())) {
+        if (isFieldToUpdate(foundUser.getName(), name)) {
             MutableUserFieldsDto dto = new MutableUserFieldsDto();
             dto.setName(
                     new CertifiableFieldResourceOfstring()
-                            .value(user.getName())
+                            .value(name)
                             .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
             mutableUserFieldsDto = Optional.of(dto);
         }
-        if (isFieldToUpdate(foundUser.getFamilyName(), user.getSurname())) {
+        if (isFieldToUpdate(foundUser.getFamilyName(), surname)) {
             MutableUserFieldsDto dto = mutableUserFieldsDto.orElseGet(MutableUserFieldsDto::new);
             dto.setFamilyName(
                     new CertifiableFieldResourceOfstring()
-                            .value(user.getSurname())
+                            .value(surname)
                             .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
             mutableUserFieldsDto = Optional.of(dto);
         }
@@ -1276,7 +1344,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 final WorkContactResource workContact = new WorkContactResource();
                 workContact.setEmail(
                         new CertifiableFieldResourceOfstring()
-                                .value(user.getEmail())
+                                .value(email)
                                 .certification(CertifiableFieldResourceOfstring.CertificationEnum.NONE));
                 dto.setWorkContacts(Map.of(optUserMailRandomUuid.get(), workContact));
                 mutableUserFieldsDto = Optional.of(dto);

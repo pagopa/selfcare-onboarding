@@ -17,9 +17,11 @@ import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PartyRole;
 import it.pagopa.selfcare.onboarding.controller.request.UserRequest;
+import it.pagopa.selfcare.onboarding.controller.request.UserRequesterDto;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.UserRequester;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapperImpl;
 import it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault;
@@ -32,6 +34,7 @@ import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Assertions;
@@ -57,6 +60,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Slf4j
 @QuarkusTest
 @QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
 @TestProfile(IntegrationProfile.class)
@@ -158,34 +162,56 @@ class OnboardingServiceIntegrationTest {
     @Test
     @RunOnVertxContext
     void onboarding_PRV(UniAsserter asserter) {
-        Onboarding request = new Onboarding();
-        List<UserRequest> users = List.of(manager);
-        request.setProductId(PROD_INTEROP.getValue());
+        // Given
+        UserRequesterDto userRequesterDto = new UserRequesterDto();
+        userRequesterDto.setName("name");
+        userRequesterDto.setSurname("surname");
+        userRequesterDto.setEmail("test@test.com");
+
+        UserRequester userRequester = UserRequester.builder()
+                .userRequestUid(UUID.randomUUID().toString())
+                .build();
+
         Institution institutionBaseRequest = new Institution();
         institutionBaseRequest.setOrigin(Origin.PDND_INFOCAMERE);
         institutionBaseRequest.setDescription("name");
         institutionBaseRequest.setDigitalAddress("pec");
         institutionBaseRequest.setInstitutionType(InstitutionType.PRV);
         institutionBaseRequest.setTaxCode("taxCode");
-        request.setInstitution(institutionBaseRequest);
-        mockPersistOnboarding(asserter);
 
-        asserter.execute(() -> when(userRegistryApi.updateUsingPATCH(any(), any()))
-                .thenReturn(Uni.createFrom().item(Response.noContent().build())));
+        Onboarding request = new Onboarding();
+        request.setProductId(PROD_INTEROP.getValue());
+        request.setInstitution(institutionBaseRequest);
+        request.setUserRequester(userRequester);
+
+        List<UserRequest> users = List.of(manager);
 
         PDNDBusinessResource pdndBusinessResource = new PDNDBusinessResource();
         pdndBusinessResource.setBusinessName("name");
         pdndBusinessResource.setDigitalAddress("pec");
 
-        when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(pdndBusinessResource));
-
+        mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
         mockSimpleProductValidAssert(request.getProductId(), asserter);
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(request.getProductId(), asserter);
 
-        asserter.assertThat(() -> onboardingService.onboarding(request, users, null), Assertions::assertNotNull);
+        asserter.execute(() -> {
+            when(userRegistryApi.updateUsingPATCH(any(), any()))
+                    .thenReturn(Uni.createFrom().item(Response.noContent().build()));
+            when(userRegistryApi.findByIdUsingGET(any(), any()))
+                    .thenReturn(Uni.createFrom().item(managerResourceWk));
+            when(infocamerePdndApi.institutionPdndByTaxCodeUsingGET(any()))
+                    .thenReturn(Uni.createFrom().item(pdndBusinessResource));
+        });
 
+        // When
+        asserter.assertThat(
+                () -> onboardingService.onboarding(request, users, null, userRequesterDto),
+                Assertions::assertNotNull
+        );
+
+        // Then
         asserter.execute(() -> {
             PanacheMock.verify(Onboarding.class).persist(any(Onboarding.class), any());
             PanacheMock.verify(Onboarding.class).persistOrUpdate(any(List.class));

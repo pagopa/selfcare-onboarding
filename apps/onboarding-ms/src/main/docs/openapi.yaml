@@ -2177,6 +2177,8 @@ components:
           type: string
         signContract:
           type: boolean
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterDto"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2212,6 +2214,8 @@ components:
           type: string
         signContract:
           type: boolean
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterDto"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2355,6 +2359,8 @@ components:
           type: string
         signContract:
           type: boolean
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterDto"
         institution:
           $ref: "#/components/schemas/InstitutionBaseRequest"
         billing:
@@ -2413,6 +2419,8 @@ components:
           type: string
         signContract:
           type: boolean
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterDto"
         institution:
           $ref: "#/components/schemas/InstitutionPspRequest"
         billing:
@@ -2440,8 +2448,6 @@ components:
           type: string
         additionalInformations:
           $ref: "#/components/schemas/AdditionalInformationsDto"
-        userRequestUid:
-          type: string
         isAggregator:
           type: boolean
         createdAt:
@@ -2450,6 +2456,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         referenceOnboardingId:
           type: string
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterResponse"
     OnboardingStatus:
       enum:
       - REQUEST
@@ -2653,6 +2661,22 @@ components:
           type: string
         role:
           $ref: "#/components/schemas/PartyRole"
+    UserRequesterDto:
+      type: object
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+    UserRequesterResponse:
+      type: object
+      properties:
+        userMailUuid:
+          type: string
+        userRequestUid:
+          type: string
     UserResponse:
       type: object
       properties:
