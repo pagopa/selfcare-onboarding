@@ -20,6 +20,7 @@ import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Institution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.User;
+import it.pagopa.selfcare.onboarding.entity.UserRequester;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -61,23 +62,23 @@ class OnboardingFunctionsTest {
   final String onboardingStringBase = "{\"onboardingId\":\"onboardingId\"}";
 
   final String onboardingWorkflowString =
-          "{\"type\":\"INSTITUTION\",\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+          "{\"type\":\"INSTITUTION\",\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
 
   final String onboardingString =
-          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
+          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   final String onboardingString2 =
-          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
+          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   final String onboardingAttachmentString =
-          "{\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
+          "{\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
                   + "\"templatePath\": null, \"templateVersion\": null, \"name\": null, \"mandatory\": null, \"generated\": null, \"workflowType\": null, \"workflowState\": null, \"order\": null}}";
 
   final String onboardingWithoutInstitutionIdString =
-          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":{\"id\":null},\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
+          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":{\"id\":null},\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   final String onboardingWithInstitutionIdString =
-          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":{\"id\":\"inst123\"},\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"userRequestUid\":null,\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
+          "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":{\"id\":\"inst123\"},\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   static ExecutionContext executionContext;
 
@@ -155,17 +156,25 @@ class OnboardingFunctionsTest {
     onboarding.setUsers(users);
     onboarding.setInstitution(new Institution());
 
+    UserRequester userRequester =
+        UserRequester.builder()
+            .userRequestUid(UUID.randomUUID().toString())
+            .userMailUuid(UUID.randomUUID().toString())
+            .build();
+    onboarding.setUserRequester(userRequester);
+
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(4))
+    verify(orchestrationContext, times(5))
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(3));
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, captorActivity.getAllValues().get(4));
 
     verify(service, times(1)).updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
   }
@@ -186,18 +195,26 @@ class OnboardingFunctionsTest {
     institution.setLegalForm("srl");
     onboarding.setInstitution(institution);
 
+    UserRequester userRequester =
+        UserRequester.builder()
+            .userRequestUid(UUID.randomUUID().toString())
+            .userMailUuid(UUID.randomUUID().toString())
+            .build();
+    onboarding.setUserRequester(userRequester);
+
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(5))
+    verify(orchestrationContext, times(6))
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(2));
     assertEquals(SAVE_VISURA_FOR_MERCHANT, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(4));
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, captorActivity.getAllValues().get(5));
 
     verify(service, times(1)).updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
   }
@@ -213,18 +230,25 @@ class OnboardingFunctionsTest {
     onboarding.setWorkflowType(WorkflowType.CONTRACT_REGISTRATION_AGGREGATOR);
     onboarding.setUsers(users);
 
+    UserRequester userRequester =
+        UserRequester.builder()
+            .userRequestUid(UUID.randomUUID().toString())
+            .userMailUuid(UUID.randomUUID().toString())
+            .build();
+    onboarding.setUserRequester(userRequester);
+
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(5))
+    verify(orchestrationContext, times(6))
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(CREATE_AGGREGATES_CSV_ACTIVITY, captorActivity.getAllValues().get(0));
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(2));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(4));
-
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, captorActivity.getAllValues().get(5));
 
     verify(service, times(1)).updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
 
@@ -500,12 +524,19 @@ class OnboardingFunctionsTest {
     onboarding.setWorkflowType(WorkflowType.FOR_APPROVE);
     onboarding.setUsers(users);
 
+    UserRequester userRequester =
+        UserRequester.builder()
+            .userRequestUid(UUID.randomUUID().toString())
+            .userMailUuid(UUID.randomUUID().toString())
+            .build();
+    onboarding.setUserRequester(userRequester);
+
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(5))
+    verify(orchestrationContext, times(6))
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
@@ -516,6 +547,7 @@ class OnboardingFunctionsTest {
             UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY,
             captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(4));
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, captorActivity.getAllValues().get(5));
 
     verify(service, times(1)).updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);
   }
@@ -1037,6 +1069,17 @@ class OnboardingFunctionsTest {
   }
 
   @Test
+  void sendMailRegistrationForUserRequester() {
+
+    when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
+    doNothing().when(service).sendMailRegistrationForUserRequester(any());
+
+    function.sendMailRegistrationForUserRequester(onboardingStringBase, executionContext);
+
+    verify(service, times(1)).sendMailRegistrationForUserRequester(any());
+  }
+
+  @Test
   void saveVisuraForMerchant() {
 
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
@@ -1427,18 +1470,25 @@ class OnboardingFunctionsTest {
     onboarding.setWorkflowType(WorkflowType.FOR_APPROVE_GPU);
     onboarding.setUsers(users);
 
+    UserRequester userRequester = UserRequester.builder()
+            .userRequestUid(UUID.randomUUID().toString())
+            .userMailUuid(UUID.randomUUID().toString())
+            .build();
+    onboarding.setUserRequester(userRequester);
+
     TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
 
     function.onboardingsOrchestrator(orchestrationContext, executionContext);
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(5))
+    verify(orchestrationContext, times(6))
             .callActivity(captorActivity.capture(), any(), any(), any());
     assertEquals(BUILD_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(0));
     assertEquals(SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME, captorActivity.getAllValues().get(1));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY, captorActivity.getAllValues().get(2));
     assertEquals(UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY, captorActivity.getAllValues().get(3));
     assertEquals(SEND_MAIL_REGISTRATION_FOR_USER, captorActivity.getAllValues().get(4));
+    assertEquals(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, captorActivity.getAllValues().get(5));
 
     verify(service, times(1))
             .updateOnboardingStatus(onboarding.getId(), OnboardingStatus.PENDING);

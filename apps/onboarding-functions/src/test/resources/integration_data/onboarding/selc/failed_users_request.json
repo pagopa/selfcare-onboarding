@@ -24,5 +24,7 @@
   "workflowType": "USERS",
   "workflowInstanceId": "ec7ca4d5-c537-462a-8c06-e102e0c21c44",
   "updatedAt": "2025-05-13T12:38:17.000Z",
-  "userRequestUid": "ec7ca4d5-c537-462a-8c06-e102e0c21c44"
+  "userRequester" : {
+    "userRequestUid": "ec7ca4d5-c537-462a-8c06-e102e0c21c44"
+  }
 }

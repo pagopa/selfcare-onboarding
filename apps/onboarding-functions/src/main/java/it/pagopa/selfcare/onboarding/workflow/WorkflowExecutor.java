@@ -9,6 +9,7 @@ import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.entity.UserRequester;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 
@@ -183,6 +184,13 @@ public interface WorkflowExecutor {
             onboardingWorkflow.setOnboarding(onboardingWithSingleUser);
             ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
         });
+    }
+
+    default void sendMailForUserRequesterActivity(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
+        Onboarding onboarding = onboardingWorkflow.getOnboarding();
+        if (Objects.nonNull(onboarding.getUserRequester().getUserMailUuid())) {
+            ctx.callActivity(SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER, getOnboardingString(objectMapper(), onboardingWorkflow.getOnboarding()), optionsRetry(), String.class).await();
+        }
     }
 
     default void saveVisuraActivity(TaskOrchestrationContext ctx, Onboarding onboarding) {
