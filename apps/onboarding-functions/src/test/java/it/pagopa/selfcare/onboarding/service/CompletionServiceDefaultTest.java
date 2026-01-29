@@ -215,6 +215,126 @@ public class CompletionServiceDefaultTest {
 
         assertNotNull(serviceResponse);
         assertEquals("actual-id", serviceResponse.getId());
+        // Verify that updateInstitutionUsingPUT is not called when rea, businessRegisterPlace and shareCapital are not set
+        verify(institutionApi, never()).updateInstitutionUsingPUT(any(), any());
+    }
+
+    @Test
+    void createOrRetrieveInstitutionSuccess_withReaField_shouldUpdateInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        institution.setRea("REA123");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
+
+        ArgumentCaptor<InstitutionPut> captor = ArgumentCaptor.forClass(InstitutionPut.class);
+        verify(institutionApi, times(1)).updateInstitutionUsingPUT(eq("actual-id"), captor.capture());
+        assertEquals("REA123", captor.getValue().getRea());
+        assertNull(captor.getValue().getBusinessRegisterPlace());
+        assertNull(captor.getValue().getShareCapital());
+    }
+
+    @Test
+    void createOrRetrieveInstitutionSuccess_withBusinessRegisterPlace_shouldUpdateInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        institution.setBusinessRegisterPlace("Milano");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
+
+        ArgumentCaptor<InstitutionPut> captor = ArgumentCaptor.forClass(InstitutionPut.class);
+        verify(institutionApi, times(1)).updateInstitutionUsingPUT(eq("actual-id"), captor.capture());
+        assertEquals("Milano", captor.getValue().getBusinessRegisterPlace());
+        assertNull(captor.getValue().getRea());
+        assertNull(captor.getValue().getShareCapital());
+    }
+
+    @Test
+    void createOrRetrieveInstitutionSuccess_withShareCapital_shouldUpdateInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        institution.setShareCapital("10000");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
+
+        ArgumentCaptor<InstitutionPut> captor = ArgumentCaptor.forClass(InstitutionPut.class);
+        verify(institutionApi, times(1)).updateInstitutionUsingPUT(eq("actual-id"), captor.capture());
+        assertEquals("10000", captor.getValue().getShareCapital());
+        assertNull(captor.getValue().getRea());
+        assertNull(captor.getValue().getBusinessRegisterPlace());
+    }
+
+    @Test
+    void createOrRetrieveInstitutionSuccess_withAllFields_shouldUpdateInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        institution.setRea("REA123");
+        institution.setBusinessRegisterPlace("Milano");
+        institution.setShareCapital("10000");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
+
+        ArgumentCaptor<InstitutionPut> captor = ArgumentCaptor.forClass(InstitutionPut.class);
+        verify(institutionApi, times(1)).updateInstitutionUsingPUT(eq("actual-id"), captor.capture());
+        assertEquals("REA123", captor.getValue().getRea());
+        assertEquals("Milano", captor.getValue().getBusinessRegisterPlace());
+        assertEquals("10000", captor.getValue().getShareCapital());
     }
 
     @Test
