@@ -9,7 +9,7 @@
     </parent>
     <artifactId>onboarding-sdk-product</artifactId>
     <name>onboarding-sdk-product</name>
-    <version>0.14.0</version>
+    <version>0.15.0</version>
 
     <properties>
         <jackson.version>2.15.2</jackson.version>
