@@ -1,5 +1,8 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -37,7 +40,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,12 +61,16 @@ class TokenServiceDefaultTest {
     private static final String onboardingId = "onboardingId";
     @Inject
     TokenServiceDefault tokenService;
+
     @InjectMock
     AzureBlobClient azureBlobClient;
+
     @InjectMock
     SignatureService signatureService;
+
     @InjectMock
     PadesSignService padesSignService;
+
     @InjectMock
     ProductService productService;
 
@@ -223,13 +231,13 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void retrieveAttachment_onboardingNotFound() {
+    void retrieveAttachment_Template_onboardingNotFound() {
         PanacheMock.mock(Onboarding.class);
         when(Onboarding.findById(anyString())).thenReturn(Uni.createFrom().nullItem());
 
         UniAssertSubscriber<RestResponse<File>> subscriber =
                 tokenService
-                        .retrieveAttachment("id", "file")
+                        .retrieveTemplateAttachment("id", "file")
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
@@ -237,29 +245,9 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void retrieveAttachmentGeneratedSuccess() {
+    void retrieveTemplateAttachmentGeneratedSuccess() {
         final String onboardingId = "onboardingId";
         final String filename = "filename.pdf";
-        final String productId = "productId";
-        final String institutionType = "PA";
-
-        Onboarding onboarding = new Onboarding();
-        onboarding.setId(onboardingId);
-        onboarding.setProductId(productId);
-
-        Institution institution = new Institution();
-        institution.setInstitutionType(InstitutionType.PA);
-        onboarding.setInstitution(institution);
-
-        PanacheMock.mock(Onboarding.class);
-        when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
-
-        AttachmentTemplate attachment = new AttachmentTemplate();
-        attachment.setName(filename);
-        attachment.setGenerated(true);
-        Product product = createProductWithAttachment(institutionType, attachment);
-
-        when(productService.getProductIsValid(productId)).thenReturn(product);
 
         Token token = new Token();
         token.setContractFilename(filename);
@@ -291,13 +279,11 @@ class TokenServiceDefaultTest {
         assertNotNull(response);
         assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
         assertEquals(file, response.getEntity());
-
-        verify(productService).getProductIsValid(productId);
         verify(azureBlobClient).getFileAsPdf(anyString());
     }
 
     @Test
-    void retrieveAttachmentGeneratedFalseSuccess() {
+    void retrieveTemplateAttachmentGeneratedFalseSuccess() {
         final String onboardingId = "onboardingId";
         final String filename = "filename.pdf";
         final String productId = "productId";
@@ -327,7 +313,7 @@ class TokenServiceDefaultTest {
 
         UniAssertSubscriber<RestResponse<File>> subscriber =
                 tokenService
-                        .retrieveAttachment(onboardingId, filename)
+                        .retrieveTemplateAttachment(onboardingId, filename)
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
@@ -381,6 +367,12 @@ class TokenServiceDefaultTest {
 
         ReactivePanacheQuery queryPage = mock(ReactivePanacheQuery.class);
         when(queryPage.firstResult()).thenReturn(Uni.createFrom().nullItem());
+
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(originalFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document).thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
 
         PanacheMock.mock(Token.class);
         when(Token.find("onboardingId = ?1 and type = ?2 and name = ?3",
@@ -448,6 +440,12 @@ class TokenServiceDefaultTest {
         asserter.execute(() -> when(productService.getProductIsValid(anyString())).thenReturn(product));
 
         File pdf = new File("src/test/resources/test.pdf");
+
+        DSSDocument document = new FileDocument(pdf);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
 
         asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
 
@@ -584,6 +582,7 @@ class TokenServiceDefaultTest {
         assertEquals(filename, actual.get(0));
     }
 
+
     @Test
     void updateContractSignedTest_OK() {
         // given
@@ -695,7 +694,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestWithContractTemplateSuccess() {
+    void getTemplateAndVerifyDigestWithContractTemplateSuccess() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
 
@@ -704,7 +703,13 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/template.pdf")).thenReturn(uploadedFile);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
+
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -712,18 +717,24 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestWithContractTemplateDigestMismatch() {
+    void getTemplateAndVerifyDigestWithContractTemplateDigestMismatch() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("contract.pdf").build();
 
         ContractTemplate contractTemplate = new ContractTemplate();
         contractTemplate.setContractTemplatePath("contracts/original.pdf");
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
+
+
         File differentFile = new File("src/test/resources/original.pdf");
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
 
         try {
-            tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+            tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
             Assertions.fail("Expected InvalidRequestException to be thrown");
         } catch (InvalidRequestException e) {
             assertTrue(e.getMessage().contains("File has been changed"));
@@ -732,7 +743,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestReturnsBase64EncodedDigest() {
+    void getTemplateAndVerifyDigestReturnsBase64EncodedDigest() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -741,14 +752,19 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(uploadedFile);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("rhfouednionew3");
+
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertTrue(result.matches("^[A-Za-z0-9+/=]+$"));
     }
 
     @Test
-    void getAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
+    void getTemplateAndVerifyDigestThrowsInvalidRequestExceptionWithCorrectMessage() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -756,10 +772,20 @@ class TokenServiceDefaultTest {
         contractTemplate.setContractTemplatePath("contracts/original.pdf");
 
         File differentFile = new File("src/test/resources/original.pdf");
+
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(differentFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class)))
+                .thenReturn(document)
+                .thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest")
+                .thenReturn("fake-digestt");
+
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(differentFile);
 
         try {
-            tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+            tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
             Assertions.fail("Expected InvalidRequestException to be thrown");
         } catch (InvalidRequestException e) {
             assertEquals("File has been changed. It's not possible to complete upload", e.getMessage());
@@ -767,7 +793,7 @@ class TokenServiceDefaultTest {
     }
 
     @Test
-    void getAndVerifyDigestVerifiesAzureBlobClientIsCalled() {
+    void getTemplateAndVerifyDigestVerifiesAzureBlobClientIsCalled() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -777,29 +803,39 @@ class TokenServiceDefaultTest {
 
         when(azureBlobClient.getFileAsPdf(templatePath)).thenReturn(uploadedFile);
 
-        tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        DSSDocument document = new FileDocument(uploadedFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
+        tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         verify(azureBlobClient).getFileAsPdf(templatePath);
     }
 
     @Test
-    void getAndVerifyDigestWithSameFileReturnsDigest() {
+    void getTemplateAndVerifyDigestWithSameFileReturnsDigest() {
         File file = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(file).fileName("test.pdf").build();
 
         ContractTemplate contractTemplate = new ContractTemplate();
         contractTemplate.setContractTemplatePath("contracts/test.pdf");
 
+        DSSDocument document = new FileDocument(file);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
+
         when(azureBlobClient.getFileAsPdf("contracts/test.pdf")).thenReturn(file);
 
-        String result = tokenService.getAndVerifyDigest(formItem, contractTemplate, false);
+        String result = tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false);
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
     }
 
     @Test
-    void getAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
+    void getTemplateAndVerifyDigestThrowsExceptionWhenFilesAreDifferent() {
         File uploadedFile = new File("src/test/resources/test.pdf");
         FormItem formItem = FormItem.builder().file(uploadedFile).fileName("test.pdf").build();
 
@@ -809,8 +845,14 @@ class TokenServiceDefaultTest {
         File originalFile = new File("src/test/resources/original.pdf");
         when(azureBlobClient.getFileAsPdf("contracts/original.pdf")).thenReturn(originalFile);
 
+        DSSDocument document = new FileDocument(uploadedFile);
+        DSSDocument document2 = new FileDocument(originalFile);
+        when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document).thenReturn(document2);
+
+        when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest").thenReturn("fake-digest2");
+
         Assertions.assertThrows(InvalidRequestException.class, () ->
-                tokenService.getAndVerifyDigest(formItem, contractTemplate, false)
+                tokenService.getTemplateAndVerifyDigest(formItem, contractTemplate.getContractTemplatePath(), false)
         );
     }
 
@@ -945,11 +987,51 @@ class TokenServiceDefaultTest {
         );
     }
 
+    @Test
+    void createSafeTempFile() throws Exception {
+        Path path = tokenService.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.getName().startsWith("signed"));
+        assertTrue(file.getName().endsWith(".pdf"));
+
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            java.util.Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
+            assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
+            assertEquals(2, permissions.size(), "Permissions should only be OWNER_READ and OWNER_WRITE");
+        } else {
+            assertTrue(file.canRead());
+            assertTrue(file.canWrite());
+        }
+
+        Files.deleteIfExists(path);
+    }
+
+    @Test
+    void createSafeTempFileUnsupportedOperationException() throws Exception {
+        TokenServiceDefault serviceSpy = spy(tokenService);
+        doThrow(new UnsupportedOperationException("forced"))
+                .when(serviceSpy).createTempFileWithPosix();
+
+        Path path = serviceSpy.createSafeTempFile();
+
+        assertNotNull(path);
+        File file = path.toFile();
+        assertTrue(file.exists());
+        assertTrue(file.canRead());
+        assertTrue(file.canWrite());
+
+        Files.deleteIfExists(path);
+    }
+
     public static class SignPdfProfile implements io.quarkus.test.junit.QuarkusTestProfile {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of(
-                    "onboarding-ms.pagopa-signature.source", "test");
+                    "onboarding-ms.pagopa-signature.source", "true");
         }
     }
 
@@ -1021,6 +1103,12 @@ class TokenServiceDefaultTest {
 
             FormItem formItem = FormItem.builder().file(pdf).fileName(filename).build();
 
+
+            DSSDocument document = new FileDocument(pdf);
+            when(signatureService.extractPdfFromSignedContainer(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn(document);
+
+            when(signatureService.computeDigestOfSignedRevision(any(SignedDocumentValidator.class), any(DSSDocument.class))).thenReturn("fake-digest");
+
             mockPersistToken(asserter);
 
             asserter.assertThat(
@@ -1031,45 +1119,79 @@ class TokenServiceDefaultTest {
                         verify(azureBlobClient).uploadFile(anyString(), anyString(), any(byte[].class));
                     });
         }
-    }
 
-    @Test
-    void createSafeTempFile() throws Exception {
-        Path path = tokenService.createSafeTempFile();
+        @Test
+        void retrieveAttachmentSuccessAndSignTest() throws Exception {
+            // given
+            final String onboardingId = "onboardingId";
+            final String filename = "filename.pdf";
+            final String productId = "productId";
+            final String institutionType = "PA";
 
-        assertNotNull(path);
-        File file = path.toFile();
-        assertTrue(file.exists());
-        assertTrue(file.getName().startsWith("signed"));
-        assertTrue(file.getName().endsWith(".pdf"));
+            Onboarding onboarding = new Onboarding();
+            onboarding.setId(onboardingId);
+            onboarding.setProductId(productId);
 
-        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-            java.util.Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
-            assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-            assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
-            assertEquals(2, permissions.size(), "Permissions should only be OWNER_READ and OWNER_WRITE");
-        } else {
-            assertTrue(file.canRead());
-            assertTrue(file.canWrite());
+            Institution institution = new Institution();
+            institution.setInstitutionType(InstitutionType.PA);
+            institution.setDescription("description");
+            onboarding.setInstitution(institution);
+
+            PanacheMock.mock(Onboarding.class);
+            when(Onboarding.findById(onboardingId)).thenReturn(Uni.createFrom().item(onboarding));
+
+            AttachmentTemplate attachment = new AttachmentTemplate();
+            attachment.setName(filename);
+            attachment.setGenerated(false);
+            attachment.setTemplatePath("templatePath");
+
+            Product product = createProductWithAttachment(institutionType, attachment);
+            product.setId(productId);
+
+            when(productService.getProductIsValid(productId)).thenReturn(product);
+
+            File inputFile = Files.createTempFile("input", ".pdf").toFile();
+            inputFile.deleteOnExit();
+            try (FileOutputStream fos = new FileOutputStream(inputFile)) {
+                fos.write("dummy-content".getBytes(StandardCharsets.UTF_8));
+            }
+
+            when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(inputFile);
+
+            doAnswer(invocation -> {
+                File in = invocation.getArgument(0);
+                File out = invocation.getArgument(1);
+                try (InputStream is = new FileInputStream(in);
+                     OutputStream os = new FileOutputStream(out)) {
+                    is.transferTo(os);
+                }
+                return null;
+            }).when(padesSignService).padesSign(any(File.class), any(File.class), any());
+
+            // when
+            UniAssertSubscriber<RestResponse<File>> subscriber =
+                    tokenService.retrieveTemplateAttachment(onboardingId, filename)
+                            .subscribe().withSubscriber(UniAssertSubscriber.create());
+
+            // then
+            RestResponse<File> response = subscriber.awaitItem().getItem();
+
+            assertNotNull(response);
+            assertEquals(RestResponse.Status.OK.getStatusCode(), response.getStatus());
+
+            File signedFile = response.getEntity();
+            assertNotNull(signedFile);
+            assertTrue(signedFile.exists());
+
+            assertNotEquals(inputFile.getAbsolutePath(), signedFile.getAbsolutePath());
+
+            byte[] origBytes = Files.readAllBytes(inputFile.toPath());
+            byte[] signedBytes = Files.readAllBytes(signedFile.toPath());
+            assertArrayEquals(origBytes, signedBytes);
+
+            verify(productService).getProductIsValid(productId);
+            verify(azureBlobClient).getFileAsPdf(anyString());
+            verify(padesSignService).padesSign(any(File.class), any(File.class), any());
         }
-
-        Files.deleteIfExists(path);
-    }
-
-    @Test
-    void createSafeTempFileUnsupportedOperationException() throws Exception {
-        TokenServiceDefault serviceSpy = spy(tokenService);
-        doThrow(new UnsupportedOperationException("forced"))
-                .when(serviceSpy).createTempFileWithPosix();
-
-        Path path = serviceSpy.createSafeTempFile();
-
-        assertNotNull(path);
-        File file = path.toFile();
-        assertTrue(file.exists());
-        assertTrue(file.canRead());
-        assertTrue(file.canWrite());
-
-        Files.deleteIfExists(path);
     }
 }

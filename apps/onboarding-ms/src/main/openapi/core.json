@@ -22,6 +22,9 @@
     "name" : "Delegation",
     "description" : "Delegation Controller"
   }, {
+    "name" : "Events",
+    "description" : "Events Controller"
+  }, {
     "name" : "External",
     "description" : "External Controller"
   }, {
@@ -749,6 +752,63 @@
           },
           "404" : {
             "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ "global" ]
+        } ]
+      }
+    },
+    "/events/delegations" : {
+      "post" : {
+        "tags" : [ "Events" ],
+        "summary" : "Resend delegation events from a start date",
+        "description" : "Resend delegation events from a start date",
+        "operationId" : "sendDelegationEventsUsingPOST",
+        "parameters" : [ {
+          "name" : "fromDate",
+          "in" : "query",
+          "description" : "Start date to filter events (ISO 8601 format)",
+          "required" : true,
+          "style" : "form",
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Conflict",
             "content" : {
               "application/problem+json" : {
                 "schema" : {
@@ -3336,6 +3396,9 @@
         "title" : "InstitutionFromIpaPost",
         "type" : "object",
         "properties" : {
+          "businessRegisterPlace" : {
+            "type" : "string"
+          },
           "geographicTaxonomies" : {
             "type" : "array",
             "items" : {
@@ -3345,6 +3408,12 @@
           "institutionType" : {
             "type" : "string",
             "enum" : [ "AS", "CON", "GPU", "GSP", "PA", "PG", "PRV", "PRV_PF", "PSP", "PT", "REC", "SA", "SCEC", "SCP" ]
+          },
+          "rea" : {
+            "type" : "string"
+          },
+          "shareCapital" : {
+            "type" : "string"
           },
           "subunitCode" : {
             "type" : "string"

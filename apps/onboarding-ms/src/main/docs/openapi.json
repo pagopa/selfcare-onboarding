@@ -2210,6 +2210,51 @@
           "SecurityScheme" : [ ]
         } ]
       }
+    },
+    "/v1/tokens/{onboardingId}/template-attachment" : {
+      "get" : {
+        "tags" : [ "Token Controller" ],
+        "summary" : "Retrieve template attachment for a given onboarding and filename",
+        "description" : "Downloads the template attachment file associated with the specified onboarding ID and filename.",
+        "operationId" : "getTemplateAttachment",
+        "parameters" : [ {
+          "name" : "onboardingId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "name",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "format" : "binary",
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ ]
+        } ]
+      }
     }
   },
   "components" : {
