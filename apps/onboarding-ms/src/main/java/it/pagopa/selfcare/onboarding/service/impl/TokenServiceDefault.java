@@ -1,11 +1,9 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
-import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
@@ -33,13 +31,6 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -48,23 +39,36 @@ import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestResponse;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.Executors;
+
+import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+
 @Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
 
     public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
+    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
             "Token with id %s not found or already deleted";
-    public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
-
-    @Inject
-    SignatureService signatureService;
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ProductService productService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
     private final PadesSignService padesSignService;
+    @Inject
+    SignatureService signatureService;
     @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
     Boolean isVerifyEnabled;
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
@@ -80,6 +84,29 @@ public class TokenServiceDefault implements TokenService {
         this.productService = productService;
         this.pagoPaSignatureConfig = pagoPaSignatureConfig;
         this.padesSignService = padesSignService;
+    }
+
+    public static void isP7mValid(File contract, SignatureService signatureService) {
+        signatureService.verifySignature(contract);
+    }
+
+    public static void isPdfValid(File contract) {
+        try (PDDocument document = Loader.loadPDF(contract)) {
+            document.getNumberOfPages();
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.getText(document);
+        } catch (IOException e) {
+            throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+        }
+    }
+
+    private static String getCurrentContractName(Token token, boolean isSigned) {
+        return isSigned ? getContractSignedName(token) : token.getContractFilename();
+    }
+
+    private static String getContractSignedName(Token token) {
+        File file = new File(token.getContractSigned());
+        return file.getName();
     }
 
     @Override
@@ -122,80 +149,58 @@ public class TokenServiceDefault implements TokenService {
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
     }
 
-    public static void isP7mValid(File contract, SignatureService signatureService) {
-        signatureService.verifySignature(contract);
-    }
-
-    public static void isPdfValid(File contract) {
-        try (PDDocument document = Loader.loadPDF(contract)) {
-            document.getNumberOfPages();
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.getText(document);
-        } catch (IOException e) {
-            throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
-        }
-    }
-
     private String getContractNotSigned(String onboardingId, Token token) {
         return String.format("%s%s/%s", onboardingMsConfig.getContractPath(), onboardingId,
                 token.getContractFilename());
     }
 
-    private static String getCurrentContractName(Token token, boolean isSigned) {
-        return isSigned ? getContractSignedName(token) : token.getContractFilename();
-    }
-
-    private static String getContractSignedName(Token token) {
-        File file = new File(token.getContractSigned());
-        return file.getName();
-    }
-
     @Override
-    public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
+    public Uni<RestResponse<File>> retrieveTemplateAttachment(String onboardingId, String attachmentName) {
         return findOnboardingById(onboardingId)
                 .onItem().transformToUni(onboarding -> {
 
                     Product product = productService.getProductIsValid(onboarding.getProductId());
                     AttachmentTemplate attachment = getAttachmentTemplate(attachmentName, onboarding, product);
 
-                    if (!attachment.isGenerated()) {
-                        return Uni.createFrom()
-                                .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
+                    return Uni.createFrom()
+                            .item(() -> azureBlobClient.getFileAsPdf(attachment.getTemplatePath()))
+                            .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Template Attachment not found on storage for onboarding: %s", onboardingId)))
+                            .chain(file -> signDocument(file, onboarding.getInstitution().getDescription(),
+                                    product.getId()))
+                            .runSubscriptionOn(Infrastructure.getDefaultExecutor())
+                            .onItem().transform(file -> RestResponse.ResponseBuilder
+                                    .ok(file, MediaType.APPLICATION_OCTET_STREAM)
+                                    .header(HTTP_HEADER_CONTENT_DISPOSITION,
+                                            HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName)
+                                    .build());
+                });
+    }
+
+    @Override
+    public Uni<RestResponse<File>> retrieveAttachment(String onboardingId, String attachmentName) {
+        return Token
+                .find(
+                        "onboardingId = ?1 and type = ?2 and name = ?3",
+                        onboardingId,
+                        ATTACHMENT.name(),
+                        attachmentName
+                )
+                .firstResult()
+                .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Token with id %s not found", onboardingId)))
+                .map(Token.class::cast)
+                .onItem().transformToUni(token ->
+                        Uni.createFrom()
+                                .item(() -> azureBlobClient.getFileAsPdf(buildAttachmentPath(token)
+                                ))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
                                         .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
                                         .header(
                                                 HTTP_HEADER_CONTENT_DISPOSITION,
-                                                HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName
+                                                HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
                                         )
-                                        .build());
-                    }
-
-                    return Token
-                            .find(
-                                    "onboardingId = ?1 and type = ?2 and name = ?3",
-                                    onboardingId,
-                                    ATTACHMENT.name(),
-                                    attachmentName
-                            )
-                            .firstResult()
-                            .onItem().ifNull().failWith(() -> new ResourceNotFoundException(String.format("Token with id %s not found", onboardingId)))
-                            .map(Token.class::cast)
-                            .onItem().transformToUni(token ->
-                                    Uni.createFrom()
-                                            .item(() -> azureBlobClient.getFileAsPdf(
-                                                    token.getContractSigned()
-                                            ))
-                                            .runSubscriptionOn(Infrastructure.getDefaultExecutor())
-                                            .onItem().transform(contract -> RestResponse.ResponseBuilder
-                                                    .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
-                                                    .header(
-                                                            HTTP_HEADER_CONTENT_DISPOSITION,
-                                                            HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
-                                                    )
-                                                    .build())
-                            );
-                });
+                                        .build())
+                );
     }
 
     @Override
@@ -203,7 +208,7 @@ public class TokenServiceDefault implements TokenService {
         return existsAttachment(onboardingId, attachmentName)
                 .onItem().transformToUni(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
-                        return Uni.createFrom().failure(new UpdateNotAllowedException(ATTACHMENT_UPLOAD_ERROR.getMessage()));
+                        return Uni.createFrom().failure(new UpdateNotAllowedException(ATTACHMENT_UPLOAD_ERROR.getCode(), ATTACHMENT_UPLOAD_ERROR.getMessage()));
                     }
                     return Uni.createFrom().voidItem();
                 })
@@ -216,35 +221,24 @@ public class TokenServiceDefault implements TokenService {
                         signatureService.verifySignature(formItem.getFile());
                     }
 
-                    String digest = getAndVerifyDigest(formItem, attachment);
+                    String digest = getTemplateAndVerifyDigest(formItem, attachment.getTemplatePath(), false);
 
-                    File signedFile;
-                    try {
-                        signedFile = signPdf(
-                                formItem.getFile(),
-                                onboarding.getInstitution().getDescription(),
-                                product.getId()
-                        );
-                    } catch (IOException e) {
-                        return Uni.createFrom().failure(
-                                new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e)
-                        );
-                    }
+                    File fileToUpload = formItem.getFile();
 
-                    return persistTokenAttachment(onboardingId, attachment, digest)
+                    boolean isP7M = Optional.of(formItem.getFileName())
+                            .map(name -> name.toLowerCase(Locale.ROOT).endsWith(".p7m"))
+                            .orElse(false);
+
+                    return persistTokenAttachment(onboardingId, attachment, digest, isP7M)
                             .onItem().invoke(token ->
                                     uploadFileToAzure(
                                             token.getContractFilename(),
                                             onboardingId,
-                                            signedFile
+                                            fileToUpload
                                     )
                             );
                 })
                 .replaceWithVoid();
-    }
-
-    private String getAndVerifyDigest(FormItem file, AttachmentTemplate attachment) {
-        return getAndVerifyDigestByTemplate(file, attachment.getTemplatePath(), false);
     }
 
     public String getAndVerifyDigest(FormItem file, ContractTemplate contract, boolean skipDigestCheck) {
@@ -264,23 +258,66 @@ public class TokenServiceDefault implements TokenService {
         return digest;
     }
 
-    private File signPdf(File pdf, String institutionDescription, String productId)
-            throws IOException {
-        if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
-            log.info("Skipping PagoPA contract pdf sign due to global disabling");
-            return pdf;
+    public String getTemplateAndVerifyDigest(FormItem file, String documentTemplatePath, boolean skipDigestCheck) {
+        log.info("Start verifying uploaded content against template (templatePath={})", documentTemplatePath);
+        Objects.requireNonNull(file, "Uploaded file must not be null");
+        Objects.requireNonNull(documentTemplatePath, "Document template path must not be null");
+
+        DSSDocument uploadedDocument = new FileDocument(file.getFile());
+
+        File templateFile = azureBlobClient.getFileAsPdf(documentTemplatePath);
+        DSSDocument templateDocument = new FileDocument(templateFile);
+
+        DSSDocument uploadedPdf = signatureService.extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(uploadedDocument), uploadedDocument);
+        DSSDocument templatePdf = signatureService.extractPdfFromSignedContainer(SignedDocumentValidator.fromDocument(templateDocument), templateDocument);
+
+        SignedDocumentValidator uploadedPdfValidator = SignedDocumentValidator.fromDocument(uploadedPdf);
+        SignedDocumentValidator templatePdfValidator = SignedDocumentValidator.fromDocument(templatePdf);
+
+        String templateDigest = signatureService.computeDigestOfSignedRevision(templatePdfValidator, templatePdf);
+        String uploadedDigest = signatureService.computeDigestOfSignedRevision(uploadedPdfValidator, uploadedPdf);
+
+        log.debug("Template content digest (base64): {}", templateDigest);
+        log.debug("Uploaded  content digest (base64): {}", uploadedDigest);
+
+        if (!templateDigest.equals(uploadedDigest)) {
+            log.warn("Content mismatch ignoring signatures. templateDigest={} uploadedDigest={}", templateDigest, uploadedDigest);
+            if (!skipDigestCheck) {
+                throw new InvalidRequestException("File has been changed. It's not possible to complete upload");
+            }
+        } else {
+            log.info("Content check passed (ignoring signatures).");
         }
 
-        String signReason =
-                pagoPaSignatureConfig
-                        .applyOnboardingTemplateReason()
-                        .replace("${institutionName}", institutionDescription)
-                        .replace("${productName}", productId);
+        return uploadedDigest;
+    }
 
-        log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
-        Path signedPdf = createSafeTempFile();
-        padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
-        return signedPdf.toFile();
+
+    private Uni<File> signDocument(File pdf, String institutionDescription, String productId) {
+        return Uni.createFrom().item(() -> {
+                    try {
+                        if (PAGOPA_SIGNATURE_DISABLED.equals(pagoPaSignatureConfig.source())) {
+                            log.info("Skipping PagoPA contract pdf sign due to global disabling");
+                            return pdf;
+                        }
+
+                        String signReason =
+                                pagoPaSignatureConfig
+                                        .applyOnboardingTemplateReason()
+                                        .replace("${institutionName}", institutionDescription)
+                                        .replace("${productName}", productId);
+
+                        log.info("Signing input file {} using reason {}", pdf.getName(), signReason);
+
+                        Path signedPdf = createSafeTempFile();
+                        padesSignService.padesSign(pdf, signedPdf.toFile(), buildSignatureInfo(signReason));
+                        return signedPdf.toFile();
+
+                    } catch (IOException e) {
+                        throw new IllegalArgumentException("Impossible to sign pdf. Error: " + e.getMessage(), e);
+                    }
+                })
+                .runSubscriptionOn(Infrastructure.getDefaultExecutor());
     }
 
     private SignatureInformation buildSignatureInfo(String signReason) {
@@ -325,6 +362,10 @@ public class TokenServiceDefault implements TokenService {
         return String.format("%s%s%s", onboardingMsConfig.getContractPath(), onboardingId, "/" + filename);
     }
 
+    private String buildAttachmentPath(Token token) {
+        return Objects.nonNull(token.getContractSigned()) ? token.getContractSigned() : getAttachmentByOnboarding(token.getOnboardingId(), token.getContractFilename());
+    }
+
     @Override
     public Uni<ContractSignedReport> reportContractSigned(String onboardingId) {
         return Token.findById(onboardingId)
@@ -353,7 +394,7 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest) {
+    private Uni<Token> persistTokenAttachment(String onboardingId, AttachmentTemplate attachment, String digest, boolean isP7M) {
         Token token = new Token();
         token.setId(UUID.randomUUID().toString());
         token.setCreatedAt(LocalDateTime.now());
@@ -367,7 +408,13 @@ public class TokenServiceDefault implements TokenService {
         token.setName(attachment.getName());
 
         String signedContractFileName = Utils.extractFileName(token.getContractTemplate());
-        token.setContractFilename(String.format("signed_%s", signedContractFileName));
+        String filename = String.format("signed_%s", signedContractFileName);
+
+        if (isP7M) {
+            filename = String.format("%s.p7m", filename);
+        }
+
+        token.setContractFilename(filename);
 
         token.setContractSigned(getAttachmentByOnboarding(
                 onboardingId,
@@ -429,13 +476,13 @@ public class TokenServiceDefault implements TokenService {
 
                                                         return true;
                                                     } catch (SelfcareAzureStorageException e) {
-                                                            log.info(
-                                                                    "Attachment not found in storage onboardingId={}, attachmentName={}",
-                                                                    id,
-                                                                    attachmentName
-                                                            );
-                                                            return false;
-                                                        }
+                                                        log.info(
+                                                                "Attachment not found in storage onboardingId={}, attachmentName={}",
+                                                                id,
+                                                                attachmentName
+                                                        );
+                                                        return false;
+                                                    }
                                                 })
                                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor());
                                     });
@@ -443,12 +490,12 @@ public class TokenServiceDefault implements TokenService {
                 );
     }
 
-    public java.nio.file.Path createSafeTempFile() throws java.io.IOException {
+    public Path createSafeTempFile() throws IOException {
         try {
             return createTempFileWithPosix();
         } catch (UnsupportedOperationException e) {
             // Fallback per Windows/Non-POSIX
-            java.io.File f = java.nio.file.Files.createTempFile("signed", ".pdf").toFile();
+            File f = Files.createTempFile("signed", ".pdf").toFile();
             boolean readable = f.setReadable(true, true);
             boolean writable = f.setWritable(true, true);
             boolean executable = f.setExecutable(false); // Importante: NO esecuzione
@@ -459,11 +506,11 @@ public class TokenServiceDefault implements TokenService {
         }
     }
 
-    public java.nio.file.Path createTempFileWithPosix() throws java.io.IOException {
-        java.nio.file.attribute.FileAttribute<java.util.Set<java.nio.file.attribute.PosixFilePermission>> attr =
-                java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
-                        java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
+    public Path createTempFileWithPosix() throws IOException {
+        FileAttribute<Set<PosixFilePermission>> attr =
+                PosixFilePermissions.asFileAttribute(
+                        PosixFilePermissions.fromString("rw-------")
                 );
-        return java.nio.file.Files.createTempFile("signed", ".pdf", attr);
+        return Files.createTempFile("signed", ".pdf", attr);
     }
 }

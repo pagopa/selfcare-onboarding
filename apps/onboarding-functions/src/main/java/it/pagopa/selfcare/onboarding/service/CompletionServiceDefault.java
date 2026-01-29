@@ -152,10 +152,32 @@ public class CompletionServiceDefault implements CompletionService {
             throw new GenericOnboardingException("List of institutions is ambiguous, it is empty or has more than one element!!");
         }
 
-        return
-                Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()
-                        ? createInstitution(institution)
-                        : institutionsResponse.getInstitutions().get(0);
+        if (Objects.isNull(institutionsResponse.getInstitutions()) || institutionsResponse.getInstitutions().isEmpty()) {
+            return createInstitution(institution);
+        }
+
+        InstitutionResponse existingInstitution = institutionsResponse.getInstitutions().get(0);
+
+        if (shouldUpdateInstitutionFields(institution)) {
+            updateInstitutionFields(existingInstitution.getId(), institution);
+        }
+
+        return existingInstitution;
+    }
+
+    private boolean shouldUpdateInstitutionFields(Institution institution) {
+        return StringUtils.isNotBlank(institution.getRea())
+                || StringUtils.isNotBlank(institution.getBusinessRegisterPlace())
+                || StringUtils.isNotBlank(institution.getShareCapital());
+    }
+
+    private void updateInstitutionFields(String institutionId, Institution institution) {
+        InstitutionPut updateRequest = new InstitutionPut();
+        updateRequest.setRea(institution.getRea());
+        updateRequest.setBusinessRegisterPlace(institution.getBusinessRegisterPlace());
+        updateRequest.setShareCapital(institution.getShareCapital());
+
+        institutionApi.updateInstitutionUsingPUT(institutionId, updateRequest);
     }
 
     @Override
@@ -445,6 +467,9 @@ public class CompletionServiceDefault implements CompletionService {
 
             InstitutionFromIpaPost fromIpaPost = new InstitutionFromIpaPost();
             fromIpaPost.setTaxCode(institution.getTaxCode());
+            fromIpaPost.setRea(institution.getRea());
+            fromIpaPost.setShareCapital(institution.getShareCapital());
+            fromIpaPost.setBusinessRegisterPlace(institution.getBusinessRegisterPlace());
             fromIpaPost.setGeographicTaxonomies(Optional.ofNullable(institution.getGeographicTaxonomies())
                     .map(geographicTaxonomies -> geographicTaxonomies.stream().map(institutionMapper::toGeographicTaxonomy).toList())
                     .orElse(List.of()));
