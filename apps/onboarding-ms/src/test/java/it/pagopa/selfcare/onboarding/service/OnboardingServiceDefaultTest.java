@@ -4914,7 +4914,7 @@ class OnboardingServiceDefaultTest {
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null, null),
                 InvalidRequestException.class);
 
     }
