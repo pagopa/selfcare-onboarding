@@ -161,7 +161,11 @@ public class Product {
         return roleMappings;
     }
 
-    public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
+  public Map<String, Map<PartyRole, ProductRoleInfo>> getRoleMappingsByInstitutionType() {
+    return roleMappingsByInstitutionType;
+  }
+
+  public Map<PartyRole, List<ProductRoleInfo>> getAllRoleMappings() {
         Map<PartyRole, List<ProductRoleInfo>> roleInfoMap = new HashMap<>();
         Optional.ofNullable(roleMappings)
                 .ifPresent(
