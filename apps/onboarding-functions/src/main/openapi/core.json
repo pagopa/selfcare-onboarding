@@ -3610,6 +3610,9 @@
           "address" : {
             "type" : "string"
           },
+          "businessRegisterPlace" : {
+            "type" : "string"
+          },
           "description" : {
             "type" : "string"
           },
@@ -3629,6 +3632,12 @@
             }
           },
           "parentDescription" : {
+            "type" : "string"
+          },
+          "rea" : {
+            "type" : "string"
+          },
+          "shareCapital" : {
             "type" : "string"
           },
           "zipCode" : {
