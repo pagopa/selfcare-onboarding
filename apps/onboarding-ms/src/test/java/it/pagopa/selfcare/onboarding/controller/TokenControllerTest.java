@@ -93,25 +93,25 @@ class TokenControllerTest {
 
   @Test
   @TestSecurity(user = "userJwt")
-  void getAttachment() {
+  void getTemplateAttachment() {
     final String onboardingId = "onboardingId";
     final String filename = "filename";
     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
-    when(tokenService.retrieveAttachment(onboardingId, filename))
+    when(tokenService.retrieveTemplateAttachment(onboardingId, filename))
       .thenReturn(Uni.createFrom().item(response.build()));
 
     given()
       .when()
       .queryParam("name", filename)
       .contentType(MediaType.APPLICATION_OCTET_STREAM)
-      .get("/{onboardingId}/attachment", onboardingId)
+      .get("/{onboardingId}/template-attachment", onboardingId)
       .then()
       .statusCode(200);
   }
 
   @Test
   @TestSecurity(user = "userJwt")
-  void getAttachmentBadRequest() {
+  void getTemplateAttachmentBadRequest() {
     final String onboardingId = "onboardingId";
     given()
       .when()

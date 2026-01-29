@@ -4476,11 +4476,11 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        
+
         Product product = createDummyProduct("productId", false, true, true);
         asserter.execute(() -> when(productService.getProductIsValid("productId"))
                 .thenReturn(product));
-        
+
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
@@ -4515,18 +4515,18 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
         mockSimpleSearchPOSTAndPersist(asserter);
-        
+
         Product product = createDummyProduct("productId", false, false, true);
         asserter.execute(() -> when(productService.getProductIsValid("productId"))
                 .thenReturn(product));
-        
+
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null),
                 InvalidRequestException.class);
 
     }
@@ -4547,12 +4547,12 @@ class OnboardingServiceDefaultTest {
 
         mockPersistOnboarding(asserter);
         mockSimpleSearchPOSTAndPersist(asserter);
-        
+
         // Create product that allows company onboarding
         Product product = createDummyProduct("productId", false, true, true);
         asserter.execute(() -> when(productService.getProductIsValid("productId"))
                 .thenReturn(product));
-        
+
         mockVerifyOnboardingNotFound();
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
@@ -4586,19 +4586,19 @@ class OnboardingServiceDefaultTest {
 
         mockVerifyOnboardingNotFound();
         mockSimpleSearchPOSTAndPersist(asserter);
-        
+
         // Create product that disallows company onboarding
         Product product = createDummyProduct("productId", false, true, false);
         asserter.execute(() -> when(productService.getProductIsValid("productId"))
                 .thenReturn(product));
-        
+
         mockVerifyAllowedProductList(onboardingRequest.getProductId(), asserter, true);
         InsuranceCompanyResource insuranceCompanyResource = new InsuranceCompanyResource();
         insuranceCompanyResource.setDescription(DESCRIPTION_FIELD);
         insuranceCompanyResource.setDigitalAddress(DIGITAL_ADDRESS_FIELD);
         when(insuranceCompaniesApi.searchByTaxCodeUsingGET(any())).thenReturn(Uni.createFrom().item(insuranceCompanyResource));
 
-        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null), 
+        asserter.assertFailedWith(() -> onboardingService.onboarding(onboardingRequest, users, null),
                 InvalidRequestException.class);
     }
 

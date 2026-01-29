@@ -87,6 +87,18 @@ public class TokenController {
     }
 
     @Operation(
+            summary = "Retrieve template attachment for a given onboarding and filename",
+            description = "Downloads the template attachment file associated with the specified onboarding ID and filename."
+    )
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("/{onboardingId}/template-attachment")
+    public Uni<RestResponse<File>> getTemplateAttachment(@PathParam(value = "onboardingId") String onboardingId,
+                                                         @NotNull @QueryParam(value = "name") String attachmentName) {
+        return tokenService.retrieveTemplateAttachment(onboardingId, attachmentName);
+    }
+
+    @Operation(
             summary = "Retrieve attachment for a given onboarding and filename",
             description = "Downloads the attachment file associated with the specified onboarding ID and filename."
     )
@@ -94,7 +106,7 @@ public class TokenController {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/attachment")
     public Uni<RestResponse<File>> getAttachment(@PathParam(value = "onboardingId") String onboardingId,
-                                                 @NotNull @QueryParam(value = "name") String attachmentName) {
+                                                         @NotNull @QueryParam(value = "name") String attachmentName) {
         return tokenService.retrieveAttachment(onboardingId, attachmentName);
     }
 
