@@ -2261,8 +2261,8 @@ components:
           $ref: "#/components/schemas/LocalDateTime"
         status:
           type: string
-        userRequestUid:
-          type: string
+        userRequester:
+          $ref: "#/components/schemas/UserRequesterResponse"
         reasonForReject:
           type: string
         attachments:
