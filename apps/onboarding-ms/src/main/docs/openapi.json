@@ -3104,8 +3104,8 @@
           "status" : {
             "type" : "string"
           },
-          "userRequestUid" : {
-            "type" : "string"
+          "userRequester" : {
+            "$ref" : "#/components/schemas/UserRequesterResponse"
           },
           "reasonForReject" : {
             "type" : "string"

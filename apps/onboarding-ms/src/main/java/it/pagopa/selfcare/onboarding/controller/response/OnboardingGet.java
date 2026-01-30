@@ -23,7 +23,7 @@ public class OnboardingGet {
     private LocalDateTime expiringDate;
     private LocalDateTime activatedAt;
     private String status;
-    private String userRequestUid;
+    private UserRequesterResponse userRequester;
     private String reasonForReject;
     private List<String> attachments;
 }
