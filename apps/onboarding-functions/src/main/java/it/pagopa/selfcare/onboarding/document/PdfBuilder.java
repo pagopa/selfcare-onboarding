@@ -2,7 +2,7 @@ package it.pagopa.selfcare.onboarding.document;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
-import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.exception.PdfBuilderException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -14,7 +14,6 @@ import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -22,80 +21,74 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
-import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_CREATION_FAILED;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_RESOURCE_RESOLUTION_FAILED;
 
 @Slf4j
-@NoArgsConstructor(access= AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PdfBuilder {
 
-    private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final String CLASSPATH_BASE_URI = "classpath:/";
 
-    public static File generateDocument(String documentName, String documentTemplate, Map<String, Object> content) throws IOException {
+    public static File generateDocument(String documentName,
+                                        String documentTemplate,
+                                        Map<String, Object> content) {
+        try {
+            String nameFile = DATE_TIME_FORMATTER.format(LocalDateTime.now())
+                    + "_" + UUID.randomUUID()
+                    + "_" + documentName;
 
-        final String nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS)) +
-                "_" + UUID.randomUUID() + documentName;
+            Path temporaryPdfFile = Files.createTempFile(nameFile, ".pdf");
 
-        Path temporaryPdfFile = generateFile(nameFile);
-
-        if (Objects.nonNull(temporaryPdfFile)) {
-            log.debug("Getting PDF for HTML template...");
             String htmlContent = StringSubstitutor.replace(documentTemplate, content);
 
-            Document dom = W3CDom.convert(Jsoup.parse(htmlContent, "UTF-8"));
-            PdfRendererBuilder builder = getPdfRendererBuilder(dom);
+            Document dom = new W3CDom().fromJsoup(Jsoup.parse(htmlContent));
 
-            buildOutputStream(temporaryPdfFile, builder);
+            PdfRendererBuilder builder = buildRenderer(dom);
 
-            log.debug("PDF stream properly retrieved");
+            try (FileOutputStream out = new FileOutputStream(temporaryPdfFile.toFile())) {
+                builder.toStream(out);
+                builder.run();
+            }
+
             return temporaryPdfFile.toFile();
 
-        } else {
-            throw new IOException("Invalid file path");
-        }
-
-    }
-
-    private static Path generateFile(String nameFile) {
-        // Create a temporary PDF file to store the contract.
-        try {
-            return Files.createTempFile(nameFile, ".pdf");
-        } catch (IOException e) {
-            log.error("Unable to create file ", e);
-            return null;
+        } catch (Exception e) {
+            log.error("Error while generating PDF", e);
+            throw new PdfBuilderException(PDF_CREATION_FAILED.getMessage(), PDF_CREATION_FAILED.getCode());
         }
     }
 
-    private static PdfRendererBuilder getPdfRendererBuilder(Document dom) {
-        // Create a pdfRenderedBuilder instance
+    private static PdfRendererBuilder buildRenderer(Document dom) {
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.useFastMode();
+
         builder.useProtocolsStreamImplementation(url -> {
-            URI fullUri;
             try {
-                fullUri = new URI(url);
-                return new ClassPathStream(fullUri.getPath());
-            } catch (URISyntaxException e) {
-                log.error("URISintaxException in ClassPathStreamFactory: ", e);
-                throw new GenericOnboardingException(GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
+                String path = normalizeClasspathUrl(url);
+                return new ClassPathStream(path);
+            } catch (Exception e) {
+                log.error("Error resolving classpath resource: {}", url, e);
+                throw new PdfBuilderException(PDF_RESOURCE_RESOLUTION_FAILED.getMessage(), PDF_RESOURCE_RESOLUTION_FAILED.getCode());
             }
         }, "classpath");
 
         builder.useSVGDrawer(new BatikSVGDrawer());
-        builder.withW3cDocument(dom, null);
-
+        builder.withW3cDocument(dom, CLASSPATH_BASE_URI);
         return builder;
     }
 
-    private static void buildOutputStream(Path temporaryPdfFile, PdfRendererBuilder builder) {
-        try (FileOutputStream fileOutputStream = new FileOutputStream(temporaryPdfFile.toFile())) {
-            builder.toStream(fileOutputStream);
-            builder.run();
-        } catch (IOException e) {
-            throw new GenericOnboardingException(e.getMessage());
+    private static String normalizeClasspathUrl(String url) throws URISyntaxException {
+        if (url == null) return "";
+        if (url.startsWith("classpath:")) {
+            return url.substring("classpath:".length());
         }
+        URI uri = new URI(url);
+        return uri.getPath() != null ? uri.getPath() : url;
     }
 
 }
+

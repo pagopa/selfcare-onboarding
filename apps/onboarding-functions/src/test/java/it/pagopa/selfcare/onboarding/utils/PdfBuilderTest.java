@@ -40,13 +40,13 @@ class PdfBuilderTest {
         // u need to set the local path of the template file
         templateContent =
                 setupTemplateContext(
-                        "C:\\Users\\gferrara\\git\\selfcare-infra\\src\\core\\contracts_template\\contracts\\template\\pagopa\\1.0.0\\pagopa-accordo_di_adesione_prv-v.1.0.0.html");
-        content = setupContent();
+                        "/Users/gferrara/Developer/git/selfcare-infra/src/core/contracts_template/contracts/template/io-sign/8.0.0/io_sign-accordo_di_adesione-v.8.0.0.html");
     }
 
     @Test
     void generateDocumentTest() throws IOException {
         // given
+        content = setupContent();
 
         // when
         File result = PdfBuilder.generateDocument("namePdf", templateContent, content);
@@ -56,7 +56,7 @@ class PdfBuilderTest {
         assertTrue(result.exists());
         log.debug("Temp path: {}", result.getAbsolutePath());
 
-        // result.deleteOnExit();
+        result.deleteOnExit();
     }
 
     private static Map<String, Object> setupContent() {
