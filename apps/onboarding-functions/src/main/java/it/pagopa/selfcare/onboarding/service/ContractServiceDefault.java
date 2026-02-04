@@ -12,6 +12,7 @@ import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
+import it.pagopa.selfcare.onboarding.utils.PdfBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -45,7 +46,7 @@ import static it.pagopa.selfcare.onboarding.common.ProductId.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
+import static it.pagopa.selfcare.onboarding.utils.PdfMapperData.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
 @ApplicationScoped
@@ -214,7 +215,7 @@ public class ContractServiceDefault implements ContractService {
     String productName,
     String pdfFormatFilename) {
 
-    log.info("START - createContractPdf for template: {}", contractTemplatePath);
+    log.info("START - createContractPdf for template: {} with onboardingId: {}", contractTemplatePath, onboarding.getId());
     final String productId = onboarding.getProductId();
     final Institution institution = onboarding.getInstitution();
 
@@ -291,18 +292,12 @@ public class ContractServiceDefault implements ContractService {
     UserResource manager,
     List<UserResource> users)
     throws IOException {
-    final String prefix =
-      LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
-        + "_"
-        + UUID.randomUUID()
-        + "_contratto_interoperabilita.";
 
-    // Read the content of the contract template file.
-    String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
-    // Create a temporary PDF file to store the contract.
-    Path temporaryPdfFile = createSafeTempFile(prefix, ".pdf");
-    // Setting baseUrl used to construct aggregates csv url
-    String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
+      // Read the content of the contract template file.
+      String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
+
+      // Setting baseUrl used to construct aggregates csv url
+      String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
 
     if (InstitutionType.PRV_PF.equals(onboarding.getInstitution().getInstitutionType())) {
       UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
@@ -316,9 +311,8 @@ public class ContractServiceDefault implements ContractService {
     // Customize data based on the product and institution type.
     setupProductSpecificData(data, onboarding, manager, users);
 
-    log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
-    return temporaryPdfFile.toFile();
+    log.debug("Building PDF template context: dataMap keys={}, size={}", data.keySet(), data.size());
+    return PdfBuilder.generateDocument("_contratto_interoperabilita.", contractTemplateText, data);
   }
 
   private void setupProductSpecificData(Map<String, Object> data, Onboarding onboarding, UserResource manager, List<UserResource> users) {
