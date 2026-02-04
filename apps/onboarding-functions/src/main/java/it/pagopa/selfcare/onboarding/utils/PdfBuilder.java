@@ -3,7 +3,7 @@ package it.pagopa.selfcare.onboarding.utils;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
@@ -27,8 +27,7 @@ import java.util.UUID;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
 
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access= AccessLevel.PRIVATE)
 public class PdfBuilder {
 
     public static File generateDocument(String documentName, String documentTemplate, Map<String, Object> content) throws IOException {

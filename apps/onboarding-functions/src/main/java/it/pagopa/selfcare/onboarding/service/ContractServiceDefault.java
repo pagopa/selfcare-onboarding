@@ -362,22 +362,15 @@ public class ContractServiceDefault implements ContractService {
 
   private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
     throws IOException {
-    final String prefix =
-      LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
-        + "_"
-        + UUID.randomUUID()
-        + "_allegato_interoperabilita.";
-
-    // Read the content of the contract template file.
+    // Read the content of the attachment template file.
     String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
-    // Create a temporary PDF file to store the contract.
-    Path attachmentPdfFile = createSafeTempFile(prefix, ".pdf");
+
     // Prepare common data for the contract document.
     Map<String, Object> data = setUpAttachmentData(onboarding, userResource);
 
-    log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(attachmentPdfFile, attachmentTemplateText, data);
-    return attachmentPdfFile.toFile();
+    log.debug("Building PDF attachment template context: dataMap keys={}, size={}", data.keySet(), data.size());
+    return PdfBuilder.generateDocument("_allegato_interoperabilita.", attachmentTemplateText, data);
+
   }
 
   private File signPdf(File pdf, String institutionDescription, String productId)
@@ -422,44 +415,6 @@ public class ContractServiceDefault implements ContractService {
       throw new GenericOnboardingException(
         String.format("Can not load contract PDF, message: %s", e.getMessage()));
     }
-  }
-
-  private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
-    log.debug("Getting PDF for HTML template...");
-    String html = StringSubstitutor.replace(contractTemplate, data);
-    PdfRendererBuilder builder = getPdfRendererBuilder();
-    var doc = Jsoup.parse(html, "UTF-8");
-    var dom = W3CDom.convert(doc);
-    builder.withW3cDocument(dom, null);
-    builder.useSVGDrawer(new BatikSVGDrawer());
-
-    try (FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-      builder.toStream(fileOutputStream);
-      builder.run();
-    } catch (IOException e) {
-      throw new GenericOnboardingException(e.getMessage());
-    }
-
-    log.debug("PDF stream properly retrieved");
-  }
-
-  private static PdfRendererBuilder getPdfRendererBuilder() {
-    PdfRendererBuilder builder = new PdfRendererBuilder();
-    builder.useFastMode();
-    builder.useProtocolsStreamImplementation(
-      url -> {
-        URI fullUri;
-        try {
-          fullUri = new URI(url);
-          return new ClassPathStream(fullUri.getPath());
-        } catch (URISyntaxException e) {
-          log.error("URISintaxException in ClassPathStreamFactory: ", e);
-          throw new GenericOnboardingException(
-            GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
-        }
-      },
-      "classpath");
-    return builder;
   }
 
   @Override
