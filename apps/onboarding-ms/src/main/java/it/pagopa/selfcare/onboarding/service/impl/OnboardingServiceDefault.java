@@ -207,7 +207,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         WorkflowType workflowType = getWorkflowType(onboarding);
         onboarding.setWorkflowType(workflowType);
         onboarding.setStatus(OnboardingStatus.REQUEST);
-        log.info("Starting onboarding for institution with description: {} , origin: {}, institutionType: {}, workflowType: {}",
+        log.info("Starting onboarding for institution with description: {}, origin: {}, institutionType: {}, workflowType: {}",
                 onboarding.getInstitution().getDescription(),
                 onboarding.getInstitution().getOrigin(),
                 onboarding.getInstitution().getInstitutionType(),
@@ -226,7 +226,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(PENDING);
-        log.info("Starting onboardingIncrement for institution with description: {} , origin: {}, institutionType: {}, workflowType: {}",
+        log.info("Starting onboardingIncrement for institution with description: {}, origin: {}, institutionType: {}, workflowType: {}",
                 onboarding.getInstitution().getDescription(),
                 onboarding.getInstitution().getOrigin(),
                 onboarding.getInstitution().getInstitutionType(),
@@ -1272,7 +1272,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                           return userRegistryApi
                                               .updateUsingPATCH(
                                                   userResource.getId().toString(), userUpdateRequest)
-                                              .replaceWith(userResource.getId()))
+                                              .replaceWith(userResource.getId());
                                       })
                                   .orElse(Uni.createFrom().item(userResource.getId()))
                                   .map(
