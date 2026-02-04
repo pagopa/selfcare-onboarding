@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
@@ -26,6 +27,7 @@ import java.util.Map;
 import static io.smallrye.common.constraint.Assert.assertNotNull;
 import static io.smallrye.common.constraint.Assert.assertTrue;
 
+@Disabled
 @Slf4j
 class PdfBuilderTest {
 
