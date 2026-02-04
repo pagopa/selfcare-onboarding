@@ -1,4 +1,4 @@
-package it.pagopa.selfcare.onboarding.utils;
+package it.pagopa.selfcare.onboarding.document;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;

@@ -1,8 +1,9 @@
-package it.pagopa.selfcare.onboarding.utils;
+package it.pagopa.selfcare.onboarding.document;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
+import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +31,11 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.GENERIC_ERROR;
 @NoArgsConstructor(access= AccessLevel.PRIVATE)
 public class PdfBuilder {
 
+    private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
+
     public static File generateDocument(String documentName, String documentTemplate, Map<String, Object> content) throws IOException {
 
-        final String nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) +
+        final String nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS)) +
                 "_" + UUID.randomUUID() + documentName;
 
         Path temporaryPdfFile = generateFile(nameFile);
