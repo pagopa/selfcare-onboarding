@@ -7,18 +7,17 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
+import it.pagopa.selfcare.onboarding.document.PdfBuilder;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import it.pagopa.selfcare.onboarding.document.PdfBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,17 +33,15 @@ import java.util.*;
 import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.document.PdfMapperData.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.document.PdfMapperData.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
+@Slf4j
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
-
-  private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
-  public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
   private final UserApi userRegistryApi;
   private final AzureStorageConfig azureStorageConfig;
@@ -55,6 +52,7 @@ public class ContractServiceDefault implements ContractService {
   private final String logoPath;
   private final boolean isLogoEnable;
 
+  public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
   private static final String INSTITUTION_DESCRIPTION_HEADER = "Ragione Sociale";
   private static final String PEC_HEADER = "PEC";
   private static final String FISCAL_CODE_HEADER = "Codice Fiscale";
@@ -63,6 +61,25 @@ public class ContractServiceDefault implements ContractService {
   private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
   private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
   private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
+
+  public ContractServiceDefault(
+            AzureStorageConfig azureStorageConfig,
+            AzureBlobClient azureBlobClient,
+            PadesSignService padesSignService,
+            PagoPaSignatureConfig pagoPaSignatureConfig,
+            MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
+            @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
+            @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable,
+            @RestClient UserApi userRegistryApi) {
+        this.azureStorageConfig = azureStorageConfig;
+        this.azureBlobClient = azureBlobClient;
+        this.padesSignService = padesSignService;
+        this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
+        this.logoPath = logoPath;
+        this.isLogoEnable = isLogoEnable;
+        this.userRegistryApi = userRegistryApi;
+    }
 
   private static final String[] CSV_HEADERS_IO = {
     INSTITUTION_DESCRIPTION_HEADER,
@@ -162,25 +179,6 @@ public class ContractServiceDefault implements ContractService {
       userInfo.getFiscalCode(),
       userInfo.getWorkContacts().get(user.getUserMailUuid()).getEmail().getValue()
     );
-  }
-
-  public ContractServiceDefault(
-    AzureStorageConfig azureStorageConfig,
-    AzureBlobClient azureBlobClient,
-    PadesSignService padesSignService,
-    PagoPaSignatureConfig pagoPaSignatureConfig,
-    MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
-    @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
-    @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable,
-    @RestClient UserApi userRegistryApi) {
-    this.azureStorageConfig = azureStorageConfig;
-    this.azureBlobClient = azureBlobClient;
-    this.padesSignService = padesSignService;
-    this.pagoPaSignatureConfig = pagoPaSignatureConfig;
-    this.templatePlaceholdersConfig = templatePlaceholdersConfig;
-    this.logoPath = logoPath;
-    this.isLogoEnable = isLogoEnable;
-    this.userRegistryApi = userRegistryApi;
   }
 
   /**
