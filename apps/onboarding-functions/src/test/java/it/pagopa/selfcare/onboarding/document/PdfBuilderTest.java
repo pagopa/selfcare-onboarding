@@ -1,6 +1,5 @@
-package it.pagopa.selfcare.onboarding.utils;
+package it.pagopa.selfcare.onboarding.document;
 
-import it.pagopa.selfcare.onboarding.document.PdfBuilder;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
