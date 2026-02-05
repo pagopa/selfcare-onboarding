@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.config.AzureStorageConfig;
@@ -9,28 +7,21 @@ import it.pagopa.selfcare.onboarding.config.MailTemplatePlaceholdersConfig;
 import it.pagopa.selfcare.onboarding.config.PagoPaSignatureConfig;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
+import it.pagopa.selfcare.onboarding.document.PdfBuilder;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.text.StringSubstitutor;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jsoup.Jsoup;
-import org.jsoup.helper.W3CDom;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
@@ -42,17 +33,15 @@ import java.util.*;
 import java.util.function.Function;
 
 import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.document.PdfMapperData.*;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.service.OnboardingService.USERS_WORKS_FIELD_LIST;
 import static it.pagopa.selfcare.onboarding.utils.GenericError.*;
-import static it.pagopa.selfcare.onboarding.utils.PdfMapper.*;
 import static it.pagopa.selfcare.onboarding.utils.Utils.CONTRACT_FILENAME_FUNC;
 
+@Slf4j
 @ApplicationScoped
 public class ContractServiceDefault implements ContractService {
-
-  private static final Logger log = LoggerFactory.getLogger(ContractServiceDefault.class);
-  public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
 
   private final UserApi userRegistryApi;
   private final AzureStorageConfig azureStorageConfig;
@@ -63,6 +52,7 @@ public class ContractServiceDefault implements ContractService {
   private final String logoPath;
   private final boolean isLogoEnable;
 
+  public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
   private static final String INSTITUTION_DESCRIPTION_HEADER = "Ragione Sociale";
   private static final String PEC_HEADER = "PEC";
   private static final String FISCAL_CODE_HEADER = "Codice Fiscale";
@@ -71,6 +61,25 @@ public class ContractServiceDefault implements ContractService {
   private static final String REGISTERED_OFFICE_CITY = "Sede legale - Citta'";
   private static final String REGISTERED_OFFICE_COUNTY = "Sede legale - Provincia (Sigla)";
   private static final String DATE_PATTERN_YYYY_M_MDD_H_HMMSS = "yyyyMMddHHmmss";
+
+  public ContractServiceDefault(
+            AzureStorageConfig azureStorageConfig,
+            AzureBlobClient azureBlobClient,
+            PadesSignService padesSignService,
+            PagoPaSignatureConfig pagoPaSignatureConfig,
+            MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
+            @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
+            @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable,
+            @RestClient UserApi userRegistryApi) {
+        this.azureStorageConfig = azureStorageConfig;
+        this.azureBlobClient = azureBlobClient;
+        this.padesSignService = padesSignService;
+        this.pagoPaSignatureConfig = pagoPaSignatureConfig;
+        this.templatePlaceholdersConfig = templatePlaceholdersConfig;
+        this.logoPath = logoPath;
+        this.isLogoEnable = isLogoEnable;
+        this.userRegistryApi = userRegistryApi;
+    }
 
   private static final String[] CSV_HEADERS_IO = {
     INSTITUTION_DESCRIPTION_HEADER,
@@ -172,25 +181,6 @@ public class ContractServiceDefault implements ContractService {
     );
   }
 
-  public ContractServiceDefault(
-    AzureStorageConfig azureStorageConfig,
-    AzureBlobClient azureBlobClient,
-    PadesSignService padesSignService,
-    PagoPaSignatureConfig pagoPaSignatureConfig,
-    MailTemplatePlaceholdersConfig templatePlaceholdersConfig,
-    @ConfigProperty(name = "onboarding-functions.logo-path") String logoPath,
-    @ConfigProperty(name = "onboarding-functions.logo-enable") Boolean isLogoEnable,
-    @RestClient UserApi userRegistryApi) {
-    this.azureStorageConfig = azureStorageConfig;
-    this.azureBlobClient = azureBlobClient;
-    this.padesSignService = padesSignService;
-    this.pagoPaSignatureConfig = pagoPaSignatureConfig;
-    this.templatePlaceholdersConfig = templatePlaceholdersConfig;
-    this.logoPath = logoPath;
-    this.isLogoEnable = isLogoEnable;
-    this.userRegistryApi = userRegistryApi;
-  }
-
   /**
    * Creates a PDF contract document from a given contract template file and institution data. Based
    * on @contractTemplatePath it loads contract template as test and replace placeholder using a map
@@ -214,7 +204,7 @@ public class ContractServiceDefault implements ContractService {
     String productName,
     String pdfFormatFilename) {
 
-    log.info("START - createContractPdf for template: {}", contractTemplatePath);
+    log.info("START - createContractPdf for template: {} with onboardingId: {}", contractTemplatePath, onboarding.getId());
     final String productId = onboarding.getProductId();
     final Institution institution = onboarding.getInstitution();
 
@@ -291,18 +281,12 @@ public class ContractServiceDefault implements ContractService {
     UserResource manager,
     List<UserResource> users)
     throws IOException {
-    final String prefix =
-      LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
-        + "_"
-        + UUID.randomUUID()
-        + "_contratto_interoperabilita.";
 
-    // Read the content of the contract template file.
-    String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
-    // Create a temporary PDF file to store the contract.
-    Path temporaryPdfFile = createSafeTempFile(prefix, ".pdf");
-    // Setting baseUrl used to construct aggregates csv url
-    String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
+      // Read the content of the contract template file.
+      String contractTemplateText = azureBlobClient.getFileAsText(contractTemplatePath);
+
+      // Setting baseUrl used to construct aggregates csv url
+      String baseUrl = templatePlaceholdersConfig.rejectOnboardingUrlValue();
 
     if (InstitutionType.PRV_PF.equals(onboarding.getInstitution().getInstitutionType())) {
       UserResource userResource = userRegistryApi.findByIdUsingGET(USERS_FIELD_LIST, onboarding.getInstitution().getTaxCode());
@@ -316,9 +300,8 @@ public class ContractServiceDefault implements ContractService {
     // Customize data based on the product and institution type.
     setupProductSpecificData(data, onboarding, manager, users);
 
-    log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(temporaryPdfFile, contractTemplateText, data);
-    return temporaryPdfFile.toFile();
+    log.debug("Building PDF template context: dataMap keys={}, size={}", data.keySet(), data.size());
+    return PdfBuilder.generateDocument("_contratto_interoperabilita.", contractTemplateText, data);
   }
 
   private void setupProductSpecificData(Map<String, Object> data, Onboarding onboarding, UserResource manager, List<UserResource> users) {
@@ -368,22 +351,15 @@ public class ContractServiceDefault implements ContractService {
 
   private File createPdfFileAttachment(String attachmentTemplatePath, Onboarding onboarding, UserResource userResource)
     throws IOException {
-    final String prefix =
-      LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN_YYYY_M_MDD_H_HMMSS))
-        + "_"
-        + UUID.randomUUID()
-        + "_allegato_interoperabilita.";
-
-    // Read the content of the contract template file.
+    // Read the content of the attachment template file.
     String attachmentTemplateText = azureBlobClient.getFileAsText(attachmentTemplatePath);
-    // Create a temporary PDF file to store the contract.
-    Path attachmentPdfFile = createSafeTempFile(prefix, ".pdf");
+
     // Prepare common data for the contract document.
     Map<String, Object> data = setUpAttachmentData(onboarding, userResource);
 
-    log.debug("data Map for PDF: {}", data);
-    fillPDFAsFile(attachmentPdfFile, attachmentTemplateText, data);
-    return attachmentPdfFile.toFile();
+    log.debug("Building PDF attachment template context: dataMap keys={}, size={}", data.keySet(), data.size());
+    return PdfBuilder.generateDocument("_allegato_interoperabilita.", attachmentTemplateText, data);
+
   }
 
   private File signPdf(File pdf, String institutionDescription, String productId)
@@ -428,44 +404,6 @@ public class ContractServiceDefault implements ContractService {
       throw new GenericOnboardingException(
         String.format("Can not load contract PDF, message: %s", e.getMessage()));
     }
-  }
-
-  private void fillPDFAsFile(Path file, String contractTemplate, Map<String, Object> data) {
-    log.debug("Getting PDF for HTML template...");
-    String html = StringSubstitutor.replace(contractTemplate, data);
-    PdfRendererBuilder builder = getPdfRendererBuilder();
-    var doc = Jsoup.parse(html, "UTF-8");
-    var dom = W3CDom.convert(doc);
-    builder.withW3cDocument(dom, null);
-    builder.useSVGDrawer(new BatikSVGDrawer());
-
-    try (FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-      builder.toStream(fileOutputStream);
-      builder.run();
-    } catch (IOException e) {
-      throw new GenericOnboardingException(e.getMessage());
-    }
-
-    log.debug("PDF stream properly retrieved");
-  }
-
-  private static PdfRendererBuilder getPdfRendererBuilder() {
-    PdfRendererBuilder builder = new PdfRendererBuilder();
-    builder.useFastMode();
-    builder.useProtocolsStreamImplementation(
-      url -> {
-        URI fullUri;
-        try {
-          fullUri = new URI(url);
-          return new ClassPathStream(fullUri.getPath());
-        } catch (URISyntaxException e) {
-          log.error("URISintaxException in ClassPathStreamFactory: ", e);
-          throw new GenericOnboardingException(
-            GENERIC_ERROR.getMessage(), GENERIC_ERROR.getCode());
-        }
-      },
-      "classpath");
-    return builder;
   }
 
   @Override
