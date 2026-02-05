@@ -204,9 +204,14 @@ public class OnboardingServiceDefault implements OnboardingService {
             UserRequesterDto userRequester) {
         Integer onboardingExpirationDays = productService.getProductExpirationDate(onboarding.getProductId());
         onboarding.setExpiringDate(OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
-        onboarding.setWorkflowType(getWorkflowType(onboarding));
+        WorkflowType workflowType = getWorkflowType(onboarding);
+        onboarding.setWorkflowType(workflowType);
         onboarding.setStatus(OnboardingStatus.REQUEST);
-
+        log.info("Starting onboarding for institution with description: {}, origin: {}, institutionType: {}, workflowType: {}",
+                onboarding.getInstitution().getDescription(),
+                onboarding.getInstitution().getOrigin(),
+                onboarding.getInstitution().getInstitutionType(),
+                workflowType);
         return fillUsersAndOnboarding(onboarding, userRequests, aggregates, false, userRequester);
     }
 
@@ -221,7 +226,11 @@ public class OnboardingServiceDefault implements OnboardingService {
                 OffsetDateTime.now().plusDays(onboardingExpirationDays).toLocalDateTime());
         onboarding.setWorkflowType(WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         onboarding.setStatus(PENDING);
-
+        log.info("Starting onboardingIncrement for institution with description: {}, origin: {}, institutionType: {}, workflowType: {}",
+                onboarding.getInstitution().getDescription(),
+                onboarding.getInstitution().getOrigin(),
+                onboarding.getInstitution().getInstitutionType(),
+                WorkflowType.INCREMENT_REGISTRATION_AGGREGATOR);
         return addReferencedOnboardingId(onboarding)
                 .flatMap(onboardingObj -> fillUsersAndOnboarding(onboardingObj, userRequests, aggregates, true, userRequester));
     }
@@ -232,6 +241,10 @@ public class OnboardingServiceDefault implements OnboardingService {
     @Override
     public Uni<OnboardingResponse> onboardingUsers(
             OnboardingUserRequest request, String userId, WorkflowType workflowType) {
+        log.info("Starting onboardingUsers for institution with origin: {}, institutionType: {}, workflowType: {}",
+                request.getOrigin(),
+                request.getInstitutionType(),
+                workflowType);
         Integer onboardingExpirationDays = productService.getProductExpirationDate(request.getProductId());
         return getInstitutionFromUserRequest(request)
                 .onItem()
@@ -376,7 +389,9 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<AggregateInstitutionRequest> aggregates,
             Product product,
             UserRequesterDto userRequester) {
-
+        log.info(
+            "Starting validateAndPersistOnboarding for institution with description: {}",
+            onboarding.getInstitution().getDescription());
         return registryManager.isValid()
                 .onItem()
                 .transformToUni(ignored -> registryManager.validateInstitutionType(product))
@@ -401,6 +416,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transform(onboardingMapper::toResponse);
     }
 
+    /**
+     * Adds the email UUID of the user requester by calling the user registry API and, if necessary,
+     * updating the remote user.
+     *
+     * @param userRequesterRequest DTO containing the requester data (used for the email)
+     * @param userRequester object {@code UserRequester} that can be modified to set {@code userMailUuid}
+     */
     private Uni<Void> addUserRequester(UserRequesterDto userRequesterRequest,
                                        UserRequester userRequester) {
         log.info("Starting addUserRequester");
@@ -488,8 +510,18 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .invoke(aggregateRegistryManager -> aggregateRegistryManager.setResource(aggregateRegistryManager.retrieveInstitution()))
                         .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                         .onItem()
-                        .transformToUni(aggregateRegistryManager -> aggregateRegistryManager.isValid()
-                                .onFailure().recoverWithUni(failure -> Uni.createFrom().failure(failure))
+                        .transformToUni(aggregateRegistryManager ->
+                                aggregateRegistryManager.isValid()
+                                        .onItem().invoke(() ->
+                                                log.debug("Aggregate valid: taxCode: {}, originId: {}",
+                                                        aggregate.getTaxCode(),
+                                                        aggregate.getOriginId()))
+                                        .onFailure().invoke(failure ->
+                                                log.warn("Aggregate validation failed: taxCode: {}, originId: {}, reason: {}",
+                                                        aggregate.getTaxCode(),
+                                                        aggregate.getOriginId(),
+                                                        failure.getMessage()))
+                                        .onFailure().recoverWithUni(failure -> Uni.createFrom().failure(failure))
                         )
                         .replaceWithVoid())
                 .collect(Collectors.toList());
@@ -587,8 +619,15 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<Product> handleConflictForImport(Onboarding onboarding, Product product) {
+        log.info("Handling conflict for import: institutionTaxCode: {}, productId: {}, isAggregator: {}",
+                onboarding.getInstitution().getTaxCode(),
+                product.getId(),
+                onboarding.getIsAggregator());
         // Apply special logic only if onboarding is aggregator and product is PROD_IO
         if (!isAggregatorProdIo(onboarding)) {
+            log.info("Not an aggregator PROD_IO case, rethrowing conflict exception for institutionTaxCode: {}, productId: {}",
+                    onboarding.getInstitution().getTaxCode(),
+                    product.getId());
             // For other cases (not aggregator or not PROD_IO), rethrow the original exception
             return Uni.createFrom().failure(createConflictException(product, onboarding.getInstitution()));
         }
@@ -611,6 +650,16 @@ public class OnboardingServiceDefault implements OnboardingService {
                     boolean hasNonConfirmationAggregate = onboardingResponses.stream()
                             .anyMatch(response -> !Objects.equals(response.getWorkflowType(),
                                     WorkflowType.CONFIRMATION_AGGREGATE.name()));
+
+                    if (hasNonConfirmationAggregate) {
+                        log.info("Found existing onboarding with workflowType different from {}, for institutionTaxCode: {}",
+                                WorkflowType.CONFIRMATION_AGGREGATE.name(),
+                                institution.getTaxCode());
+                    } else {
+                        log.info("All existing onboardings have {} workflowType, ignoring conflict for institutionTaxCode: {}",
+                                WorkflowType.CONFIRMATION_AGGREGATE.name(),
+                                institution.getTaxCode());
+                    }
 
                     // If at least one has different workflowType, throw custom exception to trigger onboardingIncrement
                     // Otherwise, all are CONFIRMATION_AGGREGATE, ignore the 409 and continue
@@ -926,6 +975,8 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<Boolean> verifyAlreadyOnboardingForProductAndProductParent(
             Institution institution, String productId, String productParentId) {
         if (Objects.nonNull(productParentId)) {
+            log.info("Verifying already onboarding for institution: {}, productId: {}, parentId: {}",
+                    institution.getDescription(), productId, productParentId);
             return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId)
                     .onItem().transformToUni(ignored ->
                             checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productParentId)
@@ -939,6 +990,8 @@ public class OnboardingServiceDefault implements OnboardingService {
                                     .recoverWithNull().replaceWith(Uni.createFrom().item(true))
                     );
         } else {
+            log.info("Verifying already onboarding for institution: {}, productId: {}",
+                    institution.getDescription(), productId);
             return checkIfAlreadyOnboardingAndValidateAllowedProductList(institution, productId);
         }
     }
@@ -1034,36 +1087,34 @@ public class OnboardingServiceDefault implements OnboardingService {
                 onboarding.getInstitution().getTaxCode(),
                 onboarding.getInstitution().getSubunitCode(),
                 productId)
-                .flatMap(
-                        ignored -> {
-                            if (Objects.isNull(onboarding.getReferenceOnboardingId())) {
-                                return Uni.createFrom()
-                                        .failure(
-                                                new InvalidRequestException(
-                                                        INVALID_REFERENCE_ONBORADING.getMessage(),
-                                                        INVALID_REFERENCE_ONBORADING.getCode()));
-                            }
-                            return Onboarding.findByIdOptional(onboarding.getReferenceOnboardingId())
-                                    .onItem()
-                                    .transformToUni(
-                                            opt ->
-                                                    opt.map(Onboarding.class::cast)
-                                                            .filter(
-                                                                    referenceOnboarding ->
-                                                                            referenceOnboarding
-                                                                                    .getStatus()
-                                                                                    .equals(COMPLETED))
-                                                            .map(referenceOnboarding -> Uni.createFrom().item(Boolean.TRUE))
-                                                            .orElse(
-                                                                    Uni.createFrom()
-                                                                            .failure(
-                                                                                    new InvalidRequestException(
-                                                                                            String.format(
-                                                                                                    PRODUCT_NOT_ONBOARDED.getMessage(),
-                                                                                                    onboarding.getProductId(),
-                                                                                                    onboarding.getInstitution().getTaxCode(),
-                                                                                                    PRODUCT_NOT_ONBOARDED.getCode())))));
-                        });
+            .flatMap(
+                ignored -> {
+                  if (Objects.isNull(onboarding.getReferenceOnboardingId())) {
+                    return Uni.createFrom()
+                        .failure(
+                            new InvalidRequestException(
+                                INVALID_REFERENCE_ONBORADING.getMessage(),
+                                INVALID_REFERENCE_ONBORADING.getCode()));
+                  }
+                  return Onboarding.findByIdOptional(onboarding.getReferenceOnboardingId())
+                      .onItem()
+                      .transformToUni(
+                          opt ->
+                              opt.map(Onboarding.class::cast)
+                                  .filter(
+                                      referenceOnboarding ->
+                                          referenceOnboarding.getStatus().equals(COMPLETED))
+                                  .map(referenceOnboarding -> Uni.createFrom().item(Boolean.TRUE))
+                                  .orElse(
+                                      Uni.createFrom()
+                                          .failure(
+                                              new InvalidRequestException(
+                                                  String.format(
+                                                      PRODUCT_NOT_ONBOARDED.getMessage(),
+                                                      onboarding.getProductId(),
+                                                      onboarding.getInstitution().getTaxCode(),
+                                                      PRODUCT_NOT_ONBOARDED.getCode())))));
+                });
     }
 
     private String retrieveProductRole(
@@ -1128,7 +1179,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                             .invoke(
                                                     throwable ->
                                                             log.error(
-                                                                    "Error during validation role for aggregate: %s",
+                                                                    "Error during validation role for aggregate: {}",
                                                                     aggregate.getTaxCode(), throwable)))
                     .collect()
                     .asList()
@@ -1194,66 +1245,75 @@ public class OnboardingServiceDefault implements OnboardingService {
             List<UserRequest> users, Map<PartyRole, ProductRoleInfo> roleMappings) {
 
         return Multi.createFrom()
-                .iterable(users)
-                .onItem()
-                .transformToUni(
-                        user ->
-                                userRegistryApi
-                                        /* search user by tax code */
-                                        .searchUsingPOST(
-                                                USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
+            .iterable(users)
+            .onItem()
+            .transformToUni(
+                user -> {
+                    log.debug("Processing user with taxCode: {}", user.getTaxCode());
+                    return userRegistryApi
+                        /* search user by tax code */
+                        .searchUsingPOST(
+                            USERS_FIELD_LIST, new UserSearchDto().fiscalCode(user.getTaxCode()))
 
-                                        /* retrieve userId, if found will eventually update some fields */
-                                        .onItem()
-                                        .transformToUni(
-                                                userResource -> {
-                                                    Optional<String> optUserMailRandomUuid =
-                                                            Optional.ofNullable(user.getEmail())
-                                                                    .map(mail -> retrieveUserMailUuid(userResource, mail));
-                                                    Optional<MutableUserFieldsDto> optUserFieldsDto =
-                                                            toUpdateUserRequest(user, userResource, optUserMailRandomUuid);
-                                                    return optUserFieldsDto
-                                                            .map(
-                                                                    userUpdateRequest ->
-                                                                            userRegistryApi
-                                                                                    .updateUsingPATCH(
-                                                                                            userResource.getId().toString(), userUpdateRequest)
-                                                                                    .replaceWith(userResource.getId()))
-                                                            .orElse(Uni.createFrom().item(userResource.getId()))
-                                                            .map(
-                                                                    userResourceId ->
-                                                                            User.builder()
-                                                                                    .id(userResourceId.toString())
-                                                                                    .role(user.getRole())
-                                                                                    .userMailUuid(optUserMailRandomUuid.orElse(null))
-                                                                                    .productRole(retrieveProductRole(user, roleMappings))
-                                                                                    .build());
-                                                })
-                                        /* if not found 404, will create new user */
-                                        .onFailure(WebApplicationException.class)
-                                        .recoverWithUni(
-                                                ex -> {
-                                                    if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
-                                                        return Uni.createFrom().failure(ex);
-                                                    }
+                        /* retrieve userId, if found will eventually update some fields */
+                        .onItem()
+                        .transformToUni(
+                            userResource -> {
+                              log.debug("User found with id: {}", userResource.getId());
+                              Optional<String> optUserMailRandomUuid =
+                                  Optional.ofNullable(user.getEmail())
+                                      .map(mail -> retrieveUserMailUuid(userResource, mail));
+                              Optional<MutableUserFieldsDto> optUserFieldsDto =
+                                  toUpdateUserRequest(user, userResource, optUserMailRandomUuid);
+                              return optUserFieldsDto
+                                  .map(
+                                      userUpdateRequest -> {
+                                          log.debug("Updating user: {}", userResource.getId());
+                                          return userRegistryApi
+                                              .updateUsingPATCH(
+                                                  userResource.getId().toString(), userUpdateRequest)
+                                              .replaceWith(userResource.getId());
+                                      })
+                                  .orElse(Uni.createFrom().item(userResource.getId()))
+                                  .map(
+                                      userResourceId ->
+                                          User.builder()
+                                              .id(userResourceId.toString())
+                                              .role(user.getRole())
+                                              .userMailUuid(optUserMailRandomUuid.orElse(null))
+                                              .productRole(retrieveProductRole(user, roleMappings))
+                                              .build());
+                            })
+                        /* if not found 404, will create new user */
+                        .onFailure(WebApplicationException.class)
+                        .recoverWithUni(
+                            ex -> {
+                              if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
+                                log.debug("Error retrieving user with taxCode: {}", user.getTaxCode(), ex);
+                                return Uni.createFrom().failure(ex);
+                              }
 
-                                                    String userMailRandomUuid =
-                                                            ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
-                                                    return userRegistryApi
-                                                            .saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid))
-                                                            .onItem()
-                                                            .transform(
-                                                                    userId ->
-                                                                            User.builder()
-                                                                                    .id(userId.getId().toString())
-                                                                                    .role(user.getRole())
-                                                                                    .userMailUuid(userMailRandomUuid)
-                                                                                    .productRole(retrieveProductRole(user, roleMappings))
-                                                                                    .build());
-                                                }))
-                .concatenate()
-                .collect()
-                .asList();
+                              log.debug("User not found, creating new user with taxCode: {}", user.getTaxCode());
+                              String userMailRandomUuid =
+                                  ID_MAIL_PREFIX.concat(UUID.randomUUID().toString());
+                              return userRegistryApi
+                                  .saveUsingPATCH(createSaveUserDto(user, userMailRandomUuid))
+                                  .onItem()
+                                  .transform(
+                                      userId -> {
+                                          log.debug("User created with id: {}", userId.getId());
+                                          return User.builder()
+                                              .id(userId.getId().toString())
+                                              .role(user.getRole())
+                                              .userMailUuid(userMailRandomUuid)
+                                              .productRole(retrieveProductRole(user, roleMappings))
+                                              .build();
+                                      });
+                            });
+                })
+            .concatenate()
+            .collect()
+            .asList();
     }
 
     private SaveUserDto createSaveUserDto(UserRequest model, String userMailRandomUuid) {
@@ -2041,6 +2101,18 @@ public class OnboardingServiceDefault implements OnboardingService {
                         });
     }
 
+    /**
+     * Retrieves institution data from the Institution API based on the provided onboarding user request.
+     * Supports multiple query strategies: by tax code and subunit code,
+     * by tax code only, or by origin and origin ID.
+     * Handles 404 errors by converting them to ResourceNotFoundException.
+     * Validates the response to ensure exactly one institution is found,
+     * filtering by institution type if multiple results are returned.
+     *
+     * @param request the onboarding user request containing institution identifiers
+     * @return Uni emitting the institution response
+     * @throws ResourceNotFoundException if no institution is found or if multiple institutions are found without a matching type
+     */
     private Uni<InstitutionResponse> getInstitutionFromUserRequest(OnboardingUserRequest request) {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
@@ -2514,6 +2586,7 @@ public class OnboardingServiceDefault implements OnboardingService {
      */
     @Override
     public Uni<Long> deleteOnboarding(String onboardingId) {
+        log.info("Deleting onboarding with id {}", onboardingId);
         return Onboarding.findById(onboardingId)
                 .onItem()
                 .transform(Onboarding.class::cast)
