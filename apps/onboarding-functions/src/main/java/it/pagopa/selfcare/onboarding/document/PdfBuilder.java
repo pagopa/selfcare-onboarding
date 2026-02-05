@@ -48,10 +48,15 @@ public class PdfBuilder {
                     + "_" + UUID.randomUUID()
                     + "_" + documentName;
 
-            FileAttribute<Set<PosixFilePermission>> attribute = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+            FileAttribute<Set<PosixFilePermission>> dirAttr =
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
 
-            temporaryDirectory = Files.createTempDirectory("pdfgen-", attribute);
-            temporaryPdfFile = Files.createTempFile(temporaryDirectory, nameFile, ".pdf", attribute);
+            temporaryDirectory = Files.createTempDirectory("pdfgen-", dirAttr);
+
+            FileAttribute<Set<PosixFilePermission>> fileAttr =
+                    PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
+
+            temporaryPdfFile = Files.createTempFile(temporaryDirectory, nameFile, ".pdf", fileAttr);
 
             String htmlContent = StringSubstitutor.replace(documentTemplate, content);
 
