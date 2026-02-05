@@ -18,9 +18,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_CREATION_FAILED;
@@ -44,8 +48,10 @@ public class PdfBuilder {
                     + "_" + UUID.randomUUID()
                     + "_" + documentName;
 
-            temporaryDirectory = Files.createTempDirectory("pdfgen-");
-            temporaryPdfFile = Files.createTempFile(temporaryDirectory, nameFile, ".pdf");
+            FileAttribute<Set<PosixFilePermission>> attribute = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------"));
+
+            temporaryDirectory = Files.createTempDirectory("pdfgen-", attribute);
+            temporaryPdfFile = Files.createTempFile(temporaryDirectory, nameFile, ".pdf", attribute);
 
             String htmlContent = StringSubstitutor.replace(documentTemplate, content);
 
