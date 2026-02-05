@@ -63,7 +63,7 @@ public enum GenericError {
     CREATE_AGGREGATES_CSV_ERROR("0000", "Can not create aggregates CSV, message: %s"),
 
     PDF_CREATION_FAILED("0000", "PDF rendering failed");
-    
+
     private final String code;
     private final String detail;
 

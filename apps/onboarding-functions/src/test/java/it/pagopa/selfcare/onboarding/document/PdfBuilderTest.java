@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static io.smallrye.common.constraint.Assert.assertNotNull;
 import static io.smallrye.common.constraint.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Disabled
 @Slf4j
