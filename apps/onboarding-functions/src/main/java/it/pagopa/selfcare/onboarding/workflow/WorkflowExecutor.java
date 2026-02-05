@@ -132,7 +132,7 @@ public interface WorkflowExecutor {
     }
 
     default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
-        // Prepara tutti gli input serializzati per ogni aggregato
+        // Prepare all serialized inputs for each aggregate
         List<String> aggregateInputs = onboarding.getAggregates().stream()
                 .map(aggregate -> {
                     OnboardingAggregateOrchestratorInput input = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
@@ -140,8 +140,8 @@ public interface WorkflowExecutor {
                 })
                 .toList();
 
-        // Chiama la sub-orchestrazione che gestisce il batching
-        // Il batchSize viene letto dalla configurazione direttamente nell'orchestratore
+        // Call the sub-orchestration that handles batching
+        // The batchSize is read from the configuration directly into the orchestrator
         AggregatesBatchOrchestratorInput batchInput = new AggregatesBatchOrchestratorInput(
                 onboarding.getId(),
                 aggregateInputs,
