@@ -1,8 +1,9 @@
 package it.pagopa.selfcare.onboarding.utils;
 
+import lombok.Getter;
+
+@Getter
 public enum GenericError {
-
-
     MANAGER_NOT_FOUND_GENERIC_ERROR("0033", "No onboarded managers"),
     GET_USER_INSTITUTION_RELATIONSHIP_ERROR("0023", "Error while retrieving user relationships"),
     GET_INSTITUTION_BY_ID_ERROR("0040", Constants.ERROR_WHILE_RETRIEVING_INSTITUTION_HAVING_EXTERNAL_ID),
@@ -59,19 +60,16 @@ public enum GenericError {
     GET_USER_ERROR("0000", "Error while searching user given UserID"),
     GENERIC_ERROR("0000", "Generic Error"),
     LOAD_AGGREGATES_CSV_ERROR("0000", "Can not load aggregates CSV, message: %s"),
-    CREATE_AGGREGATES_CSV_ERROR("0000", "Can not create aggregates CSV, message: %s");
+    CREATE_AGGREGATES_CSV_ERROR("0000", "Can not create aggregates CSV, message: %s"),
+
+    PDF_CREATION_FAILED("0000", "PDF rendering failed");
 
     private final String code;
     private final String detail;
 
-
     GenericError(String code, String detail) {
         this.code = code;
         this.detail = detail;
-    }
-
-    public String getCode() {
-        return code;
     }
 
     public String getMessage() {
