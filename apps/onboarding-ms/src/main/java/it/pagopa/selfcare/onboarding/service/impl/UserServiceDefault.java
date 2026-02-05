@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.service.impl;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.service.UserService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -14,9 +13,11 @@ import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 @ApplicationScoped
 public class UserServiceDefault implements UserService {
 
-    @Inject
-    @RestClient
-    InstitutionApi userInstitutionApi;
+    private final InstitutionApi userInstitutionApi;
+
+    public UserServiceDefault(@RestClient InstitutionApi userInstitutionApi) {
+        this.userInstitutionApi = userInstitutionApi;
+    }
 
     @Override
     public Uni<List<UserInstitutionResponse>> retrieveUserInstitutions(String institutionId, List<String> productRoles, List<String> products, List<String> roles, List<String> states, String userId) {

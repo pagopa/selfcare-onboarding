@@ -4,23 +4,24 @@ import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.service.OrchestrationService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 
-@ApplicationScoped
 @Data
 @Slf4j
+@ApplicationScoped
 public class OrchestrationServiceDefault implements OrchestrationService {
 
     public static final String STARTING_ONBOARDING_ORCHESTRATION_FOR = "Starting Onboarding Orchestration for";
 
-    @Inject
-    @RestClient
-    OrchestrationApi orchestrationApi;
+    private final OrchestrationApi orchestrationApi;
+
+    public OrchestrationServiceDefault(@RestClient  OrchestrationApi orchestrationApi) {
+        this.orchestrationApi = orchestrationApi;
+    }
 
     /**
      * Starts the onboarding orchestration for the given identifier, returning a lazy asynchronous action
