@@ -1,5 +1,6 @@
 package it.pagopa.selfcare.onboarding.document;
 
+import it.pagopa.selfcare.onboarding.exception.PdfBuilderException;
 import it.pagopa.selfcare.onboarding.service.ContractService;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +108,25 @@ class PdfBuilderTest {
         }
 
         return content;
+    }
+
+
+    /* ---------------------------------------- */
+
+    @Test
+    void generateDocumentTest_shoultThrownException() {
+        // given
+
+        // when
+        Exception exception = assertThrows(PdfBuilderException.class, () -> {
+            PdfBuilder.generateDocument("namePdf", null, null);
+        });
+
+        // then
+        String expectedMessage = "PDF rendering failed";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
 }

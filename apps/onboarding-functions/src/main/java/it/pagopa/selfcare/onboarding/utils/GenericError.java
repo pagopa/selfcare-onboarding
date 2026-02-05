@@ -62,10 +62,8 @@ public enum GenericError {
     LOAD_AGGREGATES_CSV_ERROR("0000", "Can not load aggregates CSV, message: %s"),
     CREATE_AGGREGATES_CSV_ERROR("0000", "Can not create aggregates CSV, message: %s"),
 
-    PDF_RESOURCE_RESOLUTION_FAILED("0000", "Unable to resolve classpath resource for PDF rendering"),
     PDF_CREATION_FAILED("0000", "PDF rendering failed");
-
-
+    
     private final String code;
     private final String detail;
 

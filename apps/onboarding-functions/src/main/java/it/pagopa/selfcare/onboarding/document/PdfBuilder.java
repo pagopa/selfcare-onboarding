@@ -3,7 +3,6 @@ package it.pagopa.selfcare.onboarding.document;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import it.pagopa.selfcare.onboarding.exception.PdfBuilderException;
-import it.pagopa.selfcare.onboarding.utils.ClassPathStream;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +13,6 @@ import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
@@ -28,7 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_CREATION_FAILED;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_RESOURCE_RESOLUTION_FAILED;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -86,29 +82,9 @@ public class PdfBuilder {
     private static PdfRendererBuilder buildRenderer(Document dom) {
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.useFastMode();
-
-        builder.useProtocolsStreamImplementation(url -> {
-            try {
-                String path = normalizeClasspathUrl(url);
-                return new ClassPathStream(path);
-            } catch (Exception e) {
-                log.error("Error resolving classpath resource: {}", url, e);
-                throw new PdfBuilderException(PDF_RESOURCE_RESOLUTION_FAILED.getMessage(), PDF_RESOURCE_RESOLUTION_FAILED.getCode());
-            }
-        }, "classpath");
-
         builder.useSVGDrawer(new BatikSVGDrawer());
         builder.withW3cDocument(dom, CLASSPATH_BASE_URI);
         return builder;
-    }
-
-    private static String normalizeClasspathUrl(String url) throws URISyntaxException {
-        if (url == null) return "";
-        if (url.startsWith("classpath:")) {
-            return url.substring("classpath:".length());
-        }
-        URI uri = new URI(url);
-        return uri.getPath() != null ? uri.getPath() : url;
     }
 
 }
