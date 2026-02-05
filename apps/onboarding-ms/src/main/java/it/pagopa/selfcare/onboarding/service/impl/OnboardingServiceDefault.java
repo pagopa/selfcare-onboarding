@@ -1289,7 +1289,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         .recoverWithUni(
                             ex -> {
                               if (((WebApplicationException) ex).getResponse().getStatus() != 404) {
-                                log.error("Error retrieving user with taxCode: {}", user.getTaxCode(), ex);
+                                log.debug("Error retrieving user with taxCode: {}", user.getTaxCode(), ex);
                                 return Uni.createFrom().failure(ex);
                               }
 
