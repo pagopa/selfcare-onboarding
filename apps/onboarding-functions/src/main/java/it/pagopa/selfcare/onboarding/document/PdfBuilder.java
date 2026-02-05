@@ -31,7 +31,6 @@ import static it.pagopa.selfcare.onboarding.utils.GenericError.PDF_CREATION_FAIL
 public class PdfBuilder {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final String CLASSPATH_BASE_URI = "classpath:/";
 
     public static File generateDocument(String documentName,
                                         String documentTemplate,
@@ -83,7 +82,7 @@ public class PdfBuilder {
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.useFastMode();
         builder.useSVGDrawer(new BatikSVGDrawer());
-        builder.withW3cDocument(dom, CLASSPATH_BASE_URI);
+        builder.withW3cDocument(dom, null);
         return builder;
     }
 
