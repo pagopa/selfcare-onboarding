@@ -20,7 +20,6 @@ import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 
 @Slf4j
 @ApplicationScoped
-@AllArgsConstructor
 public class InstitutionServiceDefault implements InstitutionService {
 
     @Inject
@@ -34,6 +33,10 @@ public class InstitutionServiceDefault implements InstitutionService {
                                                              String originId,
                                                              String productId,
                                                              Boolean enableSubunits) {
+        log.info("Calling institutionApi.getInstitutionsUsingGET");
+        log.debug("getInstitutionsUsingGET params: taxCode={}, subunitCode={}, origin={}, originId={}, productId={}, enableSubunits={}",
+                taxCode, subunitCode, origin, originId, productId, enableSubunits);
+
         return institutionApi.getInstitutionsUsingGET(taxCode,
                 subunitCode,
                 origin,
