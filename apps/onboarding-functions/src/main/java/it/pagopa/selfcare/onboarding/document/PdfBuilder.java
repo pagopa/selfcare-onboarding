@@ -36,12 +36,16 @@ public class PdfBuilder {
     public static File generateDocument(String documentName,
                                         String documentTemplate,
                                         Map<String, Object> content) {
+        Path temporaryPdfFile = null;
+        Path temporaryDirectory = null;
+
         try {
             String nameFile = DATE_TIME_FORMATTER.format(LocalDateTime.now())
                     + "_" + UUID.randomUUID()
                     + "_" + documentName;
 
-            Path temporaryPdfFile = Files.createTempFile(nameFile, ".pdf");
+            temporaryDirectory = Files.createTempDirectory("pdfgen-");
+            temporaryPdfFile = Files.createTempFile(temporaryDirectory, nameFile, ".pdf");
 
             String htmlContent = StringSubstitutor.replace(documentTemplate, content);
 
@@ -58,6 +62,12 @@ public class PdfBuilder {
 
         } catch (Exception e) {
             log.error("Error while generating PDF", e);
+            if (temporaryPdfFile != null) {
+                try { Files.deleteIfExists(temporaryPdfFile); } catch (Exception ignored) {}
+            }
+            if (temporaryDirectory != null) {
+                try { Files.deleteIfExists(temporaryDirectory); } catch (Exception ignored) {}
+            }
             throw new PdfBuilderException(PDF_CREATION_FAILED.getMessage(), PDF_CREATION_FAILED.getCode());
         }
     }
