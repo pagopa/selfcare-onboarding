@@ -1,5 +1,18 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.*;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.*;
+import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_LIST;
+import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
+
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -38,6 +51,9 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -48,7 +64,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
@@ -57,23 +72,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.*;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PA;
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.*;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.*;
-import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_LIST;
-import static it.pagopa.selfcare.onboarding.service.impl.OnboardingServiceDefault.USERS_FIELD_TAXCODE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.openapi.quarkus.core_json.model.InstitutionProduct.StateEnum.PENDING;
 
 @QuarkusTest
 @QuarkusTestResource(value = MongoTestResource.class, restrictToAnnotatedClass = true)
@@ -96,10 +94,6 @@ class OnboardingServiceDefaultTest {
     @InjectMock
     @RestClient
     AooApi aooApi;
-
-    @InjectMock
-    @RestClient
-    InstitutionApi institutionApi;
 
     @InjectMock
     @RestClient
@@ -143,6 +137,9 @@ class OnboardingServiceDefaultTest {
 
     @InjectMock
     UserService userInstitutionApi;
+
+    @InjectMock
+    InstitutionService institutionService;
 
     @InjectMock
     @RestClient
@@ -2959,7 +2956,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setOriginId("originId");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse));
-        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
+        asserter.execute(() -> when(institutionService.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response)));
 
         asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
@@ -2992,7 +2989,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setOriginId("originId");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse));
-        when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
+        when(institutionService.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response));
 
         asserter.assertFailedWith(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS_EA), ResourceNotFoundException.class);
@@ -3015,7 +3012,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setInstitutionType("PSP");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
-        when(institutionApi.getInstitutionsUsingGET("taxCode", "subunitCode", null, null, null, null))
+        when(institutionService.getInstitutionsUsingGET("taxCode", "subunitCode", null, null, null, null))
                 .thenReturn(Uni.createFrom().item(response));
 
         onboardingService
@@ -3056,7 +3053,7 @@ class OnboardingServiceDefaultTest {
         institutionResponse.setInstitutionType("PSP");
         InstitutionsResponse response = new InstitutionsResponse();
         response.setInstitutions(List.of(institutionResponse, institutionResponse));
-        asserter.execute(() -> when(institutionApi.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
+        asserter.execute(() -> when(institutionService.getInstitutionsUsingGET(any(), any(), any(), any(), any(), any()))
                 .thenReturn(Uni.createFrom().item(response)));
 
         asserter.assertThat(() -> onboardingService.onboardingUsers(request, "userId", WorkflowType.USERS), Assertions::assertNotNull);
