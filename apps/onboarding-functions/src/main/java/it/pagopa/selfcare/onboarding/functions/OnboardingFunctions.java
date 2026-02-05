@@ -12,6 +12,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.AggregateBatchConfig;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
@@ -27,6 +28,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,6 +53,7 @@ public class OnboardingFunctions {
   private final TaskOptions optionsRetry;
   private final OnboardingMapper onboardingMapper;
   private final ProductService productService;
+  private final AggregateBatchConfig aggregateBatchConfig;
 
   public OnboardingFunctions(
       OnboardingService service,
@@ -59,13 +62,15 @@ public class OnboardingFunctions {
       CompletionService completionService,
       ContractService contractService,
       OnboardingMapper onboardingMapper,
-      ProductService productService) {
+      ProductService productService,
+      AggregateBatchConfig aggregateBatchConfig) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
+    this.aggregateBatchConfig = aggregateBatchConfig;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -165,6 +170,70 @@ public class OnboardingFunctions {
       service.updateOnboardingStatusAndInstanceId(
           onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
       throw ex;
+    }
+  }
+
+  /**
+   * This orchestrator manages the batch processing of aggregate onboardings.
+   * It processes aggregates in controlled batches to avoid DB overload (TooManyRequests).
+   * Uses do-while pattern for sequential batch processing with controlled parallelism.
+   * Uses continueAsNew only to prevent history explosion after processing multiple batches.
+   */
+  @FunctionName(ONBOARDINGS_AGGREGATE_BATCH_ORCHESTRATOR)
+  public void onboardingsAggregateBatchOrchestrator(
+      @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+      ExecutionContext functionContext) {
+
+    String input = ctx.getInput(String.class);
+    var batchInput = readAggregatesBatchInput(objectMapper, input);
+
+    List<String> allInputs = batchInput.getAggregateOrchestratorInputs();
+    int currentIndex = batchInput.getCurrentIndex();
+    int batchSize = aggregateBatchConfig.size();
+    int batchesProcessed = 0;
+
+    // Maximum number of batches to process before calling continueAsNew to reset orchestration history.
+    // This prevents history explosion in long-running orchestrations.
+    final int maxBatchesBeforeContinue = aggregateBatchConfig.maxBatchesBeforeContinue();
+
+    // Delay in seconds between batch processing to avoid DB overload (TooManyRequests).
+    final int delaySecondsBetweenBatches = aggregateBatchConfig.delaySeconds();
+
+    do {
+      int endIndex = Math.min(currentIndex + batchSize, allInputs.size());
+      List<String> currentBatch = allInputs.subList(currentIndex, endIndex);
+
+      final int logCurrentIndex = currentIndex;
+      final int logEndIndex = endIndex;
+      functionContext.getLogger().info(() -> String.format(
+          "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
+          logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()));
+
+      // Process batch in parallel (controlled)
+      List<Task<String>> batchTasks = new ArrayList<>();
+      for (String aggregateInput : currentBatch) {
+        batchTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, aggregateInput, String.class));
+      }
+      ctx.allOf(batchTasks).await();
+
+      currentIndex = endIndex;
+      batchesProcessed++;
+
+      // Delay between batches (skip on last batch)
+      if (currentIndex < allInputs.size()) {
+        ctx.createTimer(Duration.ofSeconds(delaySecondsBetweenBatches)).await();
+      }
+
+    } while (currentIndex < allInputs.size() && batchesProcessed < maxBatchesBeforeContinue);
+
+    // continueAsNew only if there are more items and we hit the batch limit
+    if (currentIndex < allInputs.size()) {
+      batchInput.setCurrentIndex(currentIndex);
+      String nextInput = getAggregatesBatchInputString(objectMapper, batchInput);
+      ctx.continueAsNew(nextInput);
+    } else {
+      functionContext.getLogger().info(() -> String.format(
+          "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()));
     }
   }
 
