@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -158,21 +160,8 @@ public class OnboardingFunctions {
                 .await();
         ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
       }
-    } catch (TaskFailedException ex) {
-      if (!ctx.getIsReplaying()) {
-        functionContext
-            .getLogger()
-            .warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
-      }
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
-      throw ex;
-    } catch (ResourceNotFoundException ex) {
-      if (!ctx.getIsReplaying()) {
-        functionContext.getLogger().warning(ex.getMessage());
-      }
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+    } catch (TaskFailedException | ResourceNotFoundException ex) {
+      handleOrchestratorException(ctx, functionContext, onboardingId, ex);
       throw ex;
     }
   }
@@ -209,11 +198,9 @@ public class OnboardingFunctions {
 
       final int logCurrentIndex = currentIndex;
       final int logEndIndex = endIndex;
-      if (!ctx.getIsReplaying()) {
-        functionContext.getLogger().info(() -> String.format(
-            "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
-            logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()));
-      }
+      log(ctx, functionContext, () -> String.format(
+          "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
+          logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()));
 
       // Process batch in parallel (controlled)
       List<Task<String>> batchTasks = new ArrayList<>();
@@ -225,12 +212,10 @@ public class OnboardingFunctions {
         try {
           batchTasks.get(i).await();
         } catch (TaskFailedException e) {
-          if (!ctx.getIsReplaying()) {
-            String failedInput = currentBatch.get(i);
-            functionContext.getLogger().severe(String.format(
-                "Single aggregate orchestration failed during batch processing for onboarding %s, input [%s]: %s",
-                batchInput.getOnboardingId(), failedInput, e.getMessage()));
-          }
+          String failedInput = currentBatch.get(i);
+          log(ctx, functionContext, Level.SEVERE, String.format(
+              "Single aggregate orchestration failed during batch processing for onboarding %s, input [%s]: %s",
+              batchInput.getOnboardingId(), failedInput, e.getMessage()));
         }
       }
 
@@ -250,10 +235,8 @@ public class OnboardingFunctions {
       String nextInput = getAggregatesBatchInputString(objectMapper, batchInput);
       ctx.continueAsNew(nextInput);
     } else {
-      if (!ctx.getIsReplaying()) {
-        functionContext.getLogger().info(() -> String.format(
-            "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()));
-      }
+      log(ctx, functionContext, () -> String.format(
+          "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()));
     }
   }
 
@@ -318,21 +301,8 @@ public class OnboardingFunctions {
       Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
       optNextStatus.ifPresent(
           onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
-    } catch (TaskFailedException ex) {
-      if (!ctx.getIsReplaying()) {
-        functionContext
-            .getLogger()
-            .warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
-      }
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
-      throw ex;
-    } catch (ResourceNotFoundException ex) {
-      if (!ctx.getIsReplaying()) {
-        functionContext.getLogger().warning(ex.getMessage());
-      }
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+    } catch (TaskFailedException | ResourceNotFoundException ex) {
+      handleOrchestratorException(ctx, functionContext, onboardingId, ex);
       throw ex;
     }
   }
@@ -431,9 +401,24 @@ public class OnboardingFunctions {
                       String.class)
                   .await();
             });
+    log(ctx, functionContext, Level.INFO, "BuildAttachmentAndSaveToken orchestration completed");
+  }
+
+  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Level level, String message) {
     if (!ctx.getIsReplaying()) {
-      functionContext.getLogger().info("BuildAttachmentAndSaveToken orchestration completed");
+      fCtx.getLogger().log(level, message);
     }
+  }
+
+  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Supplier<String> messageSupplier) {
+    if (!ctx.getIsReplaying()) {
+      fCtx.getLogger().log(Level.INFO, messageSupplier);
+    }
+  }
+
+  private void handleOrchestratorException(TaskOrchestrationContext ctx, ExecutionContext fCtx, String onboardingId, Exception ex) {
+    log(ctx, fCtx, Level.WARNING, "Error during workflow execution: " + ex.getMessage());
+    service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */

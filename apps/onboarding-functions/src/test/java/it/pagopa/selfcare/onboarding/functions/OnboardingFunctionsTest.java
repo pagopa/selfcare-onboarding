@@ -36,6 +36,7 @@ import org.openapi.quarkus.core_json.model.DelegationResponse;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -744,7 +745,7 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify logger was called when not replaying
-    verify(logger, atLeastOnce()).info(any(Supplier.class));
+    verify(logger, atLeastOnce()).log(eq(Level.INFO), any(Supplier.class));
     // Verify all 3 aggregates were processed in a single batch
     verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
@@ -778,10 +779,8 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify logger was NEVER called during replay
-    verify(logger, never()).info(any(String.class));
-    verify(logger, never()).info(any(Supplier.class));
-    verify(logger, never()).warning(any(String.class));
-    verify(logger, never()).severe(any(String.class));
+    verify(logger, never()).log(any(Level.class), any(String.class));
+    verify(logger, never()).log(any(Level.class), any(Supplier.class));
     }
 
     @Test
@@ -820,7 +819,7 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify severe log was called for the failure
-    verify(logger, times(1)).severe(contains("failed during batch processing"));
+    verify(logger, times(1)).log(eq(Level.SEVERE), contains("failed during batch processing"));
 
     // Verify all 3 aggregates were attempted
     verify(orchestrationContext, times(3))
