@@ -7,6 +7,7 @@ import com.microsoft.azure.functions.HttpRequestMessage;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
 import it.pagopa.selfcare.onboarding.dto.AckPayloadRequest;
+import it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -71,7 +72,8 @@ public class Utils {
       ObjectMapper objectMapper, String delegationResponseString) {
     try {
       return objectMapper.readValue(
-          delegationResponseString, new TypeReference<List<DelegationResponse>>() {});
+          delegationResponseString, new TypeReference<>() {
+              });
     } catch (JsonProcessingException e) {
       throw new FunctionOrchestratedException(e);
     }
@@ -137,6 +139,27 @@ public class Utils {
       throw new FunctionOrchestratedException(e);
     }
     return onboardingAggregateString;
+  }
+
+  public static String getAggregatesBatchInputString(
+      ObjectMapper objectMapper, AggregatesBatchOrchestratorInput batchInput) {
+
+    String batchInputString;
+    try {
+      batchInputString = objectMapper.writeValueAsString(batchInput);
+    } catch (JsonProcessingException e) {
+      throw new FunctionOrchestratedException(e);
+    }
+    return batchInputString;
+  }
+
+  public static AggregatesBatchOrchestratorInput readAggregatesBatchInput(
+      ObjectMapper objectMapper, String batchInputString) {
+    try {
+      return objectMapper.readValue(batchInputString, AggregatesBatchOrchestratorInput.class);
+    } catch (JsonProcessingException e) {
+      throw new FunctionOrchestratedException(e);
+    }
   }
 
   public static ResendNotificationsFilters getResendNotificationsFilters(
