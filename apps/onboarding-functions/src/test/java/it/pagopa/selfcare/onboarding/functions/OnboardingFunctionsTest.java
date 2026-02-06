@@ -16,11 +16,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import it.pagopa.selfcare.onboarding.HttpResponseMessageMock;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.common.WorkflowType;
-import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
-import it.pagopa.selfcare.onboarding.entity.Institution;
-import it.pagopa.selfcare.onboarding.entity.Onboarding;
-import it.pagopa.selfcare.onboarding.entity.User;
-import it.pagopa.selfcare.onboarding.entity.UserRequester;
+import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
@@ -39,11 +35,12 @@ import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /** Unit test for Function class. */
@@ -559,7 +556,7 @@ class OnboardingFunctionsTest {
   }
 
   @Test
-  void onboardingsOrchestratorConfirmation() {
+  void onboardingOrchestratorConfirmation() {
     Onboarding onboarding = new Onboarding();
     onboarding.setId("onboardingId");
     onboarding.setStatus(OnboardingStatus.PENDING);
@@ -720,8 +717,8 @@ class OnboardingFunctionsTest {
                     null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
   }
 
-  @Test
-  void onboardingsAggregateBatchOrchestrator_singleBatch() throws JsonProcessingException {
+    @Test
+    void onboardingsAggregateBatchOrchestrator_singleBatch() throws JsonProcessingException {
     // Prepare batch input with 3 aggregates (less than batch size of 5)
     List<String> aggregateInputs = List.of(
             "{\"id\":\"agg1\",\"productId\":\"prod-test\"}",
@@ -736,20 +733,105 @@ class OnboardingFunctionsTest {
 
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
+    when(orchestrationContext.getIsReplaying()).thenReturn(false);
+    Logger logger = mock(Logger.class);
+    when(executionContext.getLogger()).thenReturn(logger);
 
     Task task = mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
             .thenReturn(task);
-    when(orchestrationContext.allOf(anyList())).thenReturn(task);
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
+    // Verify logger was called when not replaying
+    verify(logger, atLeastOnce()).info(any(Supplier.class));
     // Verify all 3 aggregates were processed in a single batch
     verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
+    verify(task, times(3)).await();
     // No continueAsNew should be called since all items fit in one batch
     verify(orchestrationContext, never()).continueAsNew(any());
-  }
+    }
+
+    @Test
+    void onboardingsAggregateBatchOrchestrator_replay() throws JsonProcessingException {
+    // Prepare batch input
+    List<String> aggregateInputs = List.of("{\"id\":\"agg1\"}");
+    it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput batchInput =
+            new it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput(
+                    "onboardingId", aggregateInputs, 0);
+
+    String batchInputString = objectMapper.writeValueAsString(batchInput);
+
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
+    // SIMULATE REPLAY
+    when(orchestrationContext.getIsReplaying()).thenReturn(true);
+
+    Logger logger = mock(Logger.class);
+    when(executionContext.getLogger()).thenReturn(logger);
+
+    Task task = mock(Task.class);
+    when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
+            .thenReturn(task);
+
+    function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
+
+    // Verify logger was NEVER called during replay
+    verify(logger, never()).info(any(String.class));
+    verify(logger, never()).info(any(Supplier.class));
+    verify(logger, never()).warning(any(String.class));
+    verify(logger, never()).severe(any(String.class));
+    }
+
+    @Test
+    void onboardingsAggregateBatchOrchestrator_partialFailure() throws JsonProcessingException {
+    // Prepare batch input with 3 aggregates
+    List<String> aggregateInputs = List.of(
+            "{\"id\":\"agg1\"}",
+            "{\"id\":\"agg2\"}",
+            "{\"id\":\"agg3\"}"
+    );
+    it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput batchInput =
+            new it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput(
+                    "onboardingId", aggregateInputs, 0);
+
+    String batchInputString = objectMapper.writeValueAsString(batchInput);
+
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
+    when(orchestrationContext.getIsReplaying()).thenReturn(false);
+    Logger logger = mock(Logger.class);
+    when(executionContext.getLogger()).thenReturn(logger);
+
+    Task<String> successTask = mock(Task.class);
+    Task<String> failedTask = mock(Task.class);
+
+    // Second task fails
+    when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), eq(aggregateInputs.get(0)), eq(String.class)))
+            .thenReturn(successTask);
+    when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), eq(aggregateInputs.get(1)), eq(String.class)))
+            .thenReturn(failedTask);
+    when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), eq(aggregateInputs.get(2)), eq(String.class)))
+            .thenReturn(successTask);
+
+    when(failedTask.await()).thenThrow(mock(TaskFailedException.class));
+
+    function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
+
+    // Verify severe log was called for the failure
+    verify(logger, times(1)).severe(contains("failed during batch processing"));
+
+    // Verify all 3 aggregates were attempted
+    verify(orchestrationContext, times(3))
+            .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
+
+    // Verify await was called on all tasks even if one failed
+    verify(successTask, times(2)).await();
+    verify(failedTask, times(1)).await();
+
+    verify(orchestrationContext, never()).continueAsNew(any());
+    }
 
   @Test
   void onboardingsAggregateBatchOrchestrator_multipleBatches() throws JsonProcessingException {
@@ -770,7 +852,6 @@ class OnboardingFunctionsTest {
     Task task = mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
             .thenReturn(task);
-    when(orchestrationContext.allOf(anyList())).thenReturn(task);
     when(orchestrationContext.createTimer(any(Duration.class))).thenReturn(task);
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
@@ -778,6 +859,7 @@ class OnboardingFunctionsTest {
     // Verify all 12 aggregates were processed (5 + 5 + 2 in three batches within one orchestration)
     verify(orchestrationContext, times(12))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
+    verify(task, times(14)).await(); // 12 for sub-orchestrators + 2 for timers
     // Verify timer was called between batches (2 times for 3 batches)
     verify(orchestrationContext, times(2)).createTimer(any(Duration.class));
     // No continueAsNew since we're under maxBatchesBeforeContinue (10)
@@ -803,13 +885,13 @@ class OnboardingFunctionsTest {
     Task task = mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
             .thenReturn(task);
-    when(orchestrationContext.allOf(anyList())).thenReturn(task);
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Should only process remaining 5 aggregates (from index 5 to 9)
     verify(orchestrationContext, times(5))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
+    verify(task, times(5)).await();
     verify(orchestrationContext, never()).continueAsNew(any());
   }
 
