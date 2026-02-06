@@ -26,9 +26,8 @@ import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.onboarding.workflow.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
+import jakarta.inject.Inject;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +48,6 @@ public class OnboardingFunctions {
   private static final String CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG =
       "Created new Build Attachments orchestration with instance ID = ";
 
-  private final TelemetryClient telemetryClient;
   private final OnboardingService service;
   private final CompletionService completionService;
   private final ContractService contractService;
@@ -58,6 +56,9 @@ public class OnboardingFunctions {
   private final OnboardingMapper onboardingMapper;
   private final ProductService productService;
 
+  @Inject
+  TelemetryClient telemetryClient;
+
   public OnboardingFunctions(
       OnboardingService service,
       ObjectMapper objectMapper,
@@ -65,22 +66,18 @@ public class OnboardingFunctions {
       CompletionService completionService,
       ContractService contractService,
       OnboardingMapper onboardingMapper,
-      ProductService productService,
-      TelemetryClient telemetryClient) {
+      ProductService productService) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
-    this.telemetryClient = telemetryClient;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
     retryPolicy.setBackoffCoefficient(retryPolicyConfig.backoffCoefficient());
     optionsRetry = new TaskOptions(retryPolicy);
-    // Configura l'operation name
-    telemetryClient.getContext().getOperation().setName("ONBOARDING-FUNCTIONS");
   }
 
   /**
