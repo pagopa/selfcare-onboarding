@@ -25,6 +25,7 @@ import it.pagopa.selfcare.onboarding.workflow.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
+import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.util.List;
@@ -94,6 +95,8 @@ public class OnboardingFunctions {
     final String onboardingId = request.getQueryParameters().get("onboardingId");
     final String timeoutString = request.getQueryParameters().get("timeout");
 
+    MDC.put("onboardingId", onboardingId);
+
     DurableTaskClient client = durableContext.getClient();
     String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
     context
@@ -128,6 +131,8 @@ public class OnboardingFunctions {
     } catch (TimeoutException timeoutEx) {
       // timeout expired - return a 202 response
       return durableContext.createCheckStatusResponse(request, instanceId);
+    } finally {
+        MDC.clear();
     }
   }
 
