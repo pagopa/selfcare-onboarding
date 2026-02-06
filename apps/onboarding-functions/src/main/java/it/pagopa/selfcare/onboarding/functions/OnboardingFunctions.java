@@ -3,6 +3,7 @@ package it.pagopa.selfcare.onboarding.functions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.applicationinsights.telemetry.SeverityLevel;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -27,6 +28,8 @@ import it.pagopa.selfcare.onboarding.workflow.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Context;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 import java.time.Duration;
 import java.util.HashMap;
@@ -38,6 +41,7 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
+import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 /** Azure Functions with HTTP Trigger integrated with Quarkus */
@@ -54,10 +58,8 @@ public class OnboardingFunctions {
   private final ObjectMapper objectMapper;
   private final TaskOptions optionsRetry;
   private final OnboardingMapper onboardingMapper;
+  private final TelemetryClient telemetryClient;
   private final ProductService productService;
-
-  @Inject
-  TelemetryClient telemetryClient;
 
   public OnboardingFunctions(
       OnboardingService service,
@@ -66,13 +68,19 @@ public class OnboardingFunctions {
       CompletionService completionService,
       ContractService contractService,
       OnboardingMapper onboardingMapper,
-      ProductService productService) {
+      ProductService productService,
+      @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string")
+          String appInsightsConnectionString) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
+    TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
+    telemetryConfiguration.setConnectionString(appInsightsConnectionString);
+    this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+    this.telemetryClient.getContext().getOperation().setName(EVENT_ONBOARDING_FN_NAME);
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
