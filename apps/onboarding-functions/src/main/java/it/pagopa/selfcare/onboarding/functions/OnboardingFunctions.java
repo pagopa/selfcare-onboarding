@@ -49,7 +49,7 @@ public class OnboardingFunctions {
   private static final String CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG =
       "Created new Build Attachments orchestration with instance ID = ";
 
-  private static final TelemetryClient telemetryClient = new TelemetryClient();
+  private final TelemetryClient telemetryClient;
   private final OnboardingService service;
   private final CompletionService completionService;
   private final ContractService contractService;
@@ -65,18 +65,22 @@ public class OnboardingFunctions {
       CompletionService completionService,
       ContractService contractService,
       OnboardingMapper onboardingMapper,
-      ProductService productService) {
+      ProductService productService,
+      TelemetryClient telemetryClient) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
+    this.telemetryClient = telemetryClient;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
     retryPolicy.setBackoffCoefficient(retryPolicyConfig.backoffCoefficient());
     optionsRetry = new TaskOptions(retryPolicy);
+    // Configura l'operation name
+    telemetryClient.getContext().getOperation().setName("ONBOARDING-FUNCTIONS");
   }
 
   /**
