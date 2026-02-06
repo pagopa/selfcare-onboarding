@@ -1,5 +1,12 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_DASHBOARD_PSP;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.quarkus.mongodb.panache.common.reactive.ReactivePanacheUpdate;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.quarkus.panache.mock.PanacheMock;
@@ -34,6 +41,7 @@ import it.pagopa.selfcare.product.entity.ProductRoleInfo;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -41,8 +49,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.openapi.quarkus.core_json.api.InstitutionApi;
-import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.openapi.quarkus.party_registry_proxy_json.api.InfocamerePdndApi;
 import org.openapi.quarkus.party_registry_proxy_json.model.PDNDBusinessResource;
@@ -50,15 +56,6 @@ import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
-
-import java.util.*;
-
-import static it.pagopa.selfcare.onboarding.common.InstitutionType.PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_DASHBOARD_PSP;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_INTEROP;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Slf4j
 @QuarkusTest
@@ -78,10 +75,6 @@ class OnboardingServiceIntegrationTest {
 
     @InjectMock
     @RestClient
-    InstitutionApi institutionApi;
-
-    @InjectMock
-    @RestClient
     org.openapi.quarkus.party_registry_proxy_json.api.InstitutionApi institutionRegistryProxyApi;
 
     @InjectMock
@@ -89,11 +82,13 @@ class OnboardingServiceIntegrationTest {
     InfocamerePdndApi infocamerePdndApi;
 
     @InjectMock
-    @RestClient
-    OrchestrationApi orchestrationApi;
+    OrchestrationService orchestrationService;
 
     @InjectMock
     UserService userService;
+
+    @InjectMock
+    InstitutionService institutionService;
 
     @InjectMock
     OnboardingValidationStrategy onboardingValidationStrategy;
@@ -234,7 +229,7 @@ class OnboardingServiceIntegrationTest {
                     return Uni.createFrom().nullItem();
                 }));
 
-        asserter.execute(() -> when(orchestrationApi.apiStartOnboardingOrchestrationGet(any(), any()))
+        asserter.execute(() -> when(orchestrationService.triggerOrchestration(any(), any()))
                 .thenReturn(Uni.createFrom().item(new OrchestrationResponse())));
     }
 
