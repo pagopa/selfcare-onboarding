@@ -2,6 +2,8 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.telemetry.SeverityLevel;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
@@ -27,10 +29,10 @@ import it.pagopa.selfcare.product.service.ProductService;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -48,6 +50,7 @@ public class OnboardingFunctions {
       "Created new Build Attachments orchestration with instance ID = ";
 
   private static final Logger log = LoggerFactory.getLogger(OnboardingFunctions.class);
+  private static final TelemetryClient telemetryClient = new TelemetryClient();
   private final OnboardingService service;
   private final CompletionService completionService;
   private final ContractService contractService;
@@ -98,8 +101,16 @@ public class OnboardingFunctions {
     final String onboardingId = request.getQueryParameters().get("onboardingId");
     final String timeoutString = request.getQueryParameters().get("timeout");
 
-    MDC.put("onboardingId", onboardingId);
-    log.info("StartOnboardingOrchestration trigger processed a request.");
+      // Log strutturato con custom dimensions
+      Map<String, String> properties = new HashMap<>();
+      properties.put("onboardingId", onboardingId);
+      properties.put("operationType", "orchestration_start");
+
+      telemetryClient.trackTrace(
+              "StartOnboardingOrchestration trigger processed a request",
+              SeverityLevel.Information,
+              properties
+      );
 
     DurableTaskClient client = durableContext.getClient();
     String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
@@ -112,7 +123,11 @@ public class OnboardingFunctions {
                     "%s %s",
                     CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
      */
-    log.info("{} {}", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId);
+    telemetryClient.trackTrace(
+        String.format(
+            "%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId),
+        SeverityLevel.Information,
+        properties);
     try {
 
       /* if timeout is null, caller wants response asynchronously */
@@ -137,8 +152,6 @@ public class OnboardingFunctions {
     } catch (TimeoutException timeoutEx) {
       // timeout expired - return a 202 response
       return durableContext.createCheckStatusResponse(request, instanceId);
-    } finally {
-        MDC.clear();
     }
   }
 
