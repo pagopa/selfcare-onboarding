@@ -49,7 +49,6 @@ public class OnboardingFunctions {
   private static final String CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG =
       "Created new Build Attachments orchestration with instance ID = ";
 
-  private static final Logger log = LoggerFactory.getLogger(OnboardingFunctions.class);
   private static final TelemetryClient telemetryClient = new TelemetryClient();
   private final OnboardingService service;
   private final CompletionService completionService;
