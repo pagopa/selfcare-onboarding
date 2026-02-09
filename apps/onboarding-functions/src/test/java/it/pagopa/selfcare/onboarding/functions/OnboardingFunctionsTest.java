@@ -59,7 +59,7 @@ class OnboardingFunctionsTest {
 
   @Inject ObjectMapper objectMapper;
 
-  final String onboardingStringBase = "{\"onboardingId\":\"onboardingId\"}";
+  final String onboardingStringBase = "{\"id\":\"onboardingId\", \"productId\":\"prod-test\"}";
 
   final String onboardingWorkflowString =
           "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
@@ -1285,7 +1285,7 @@ class OnboardingFunctionsTest {
 
   @Test
   void createAggregateOnboardingRequest() {
-    final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
+    final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\", \"id\":\"onboardingId\"}";
 
     String onboardingId = "id";
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
