@@ -18,7 +18,9 @@ import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
+import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.functions.utils.TelemetryUtils;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.ContractService;
@@ -27,7 +29,6 @@ import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.onboarding.workflow.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
@@ -41,7 +42,6 @@ import java.util.concurrent.TimeoutException;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
-import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOARDING_FN_NAME;
 import static it.pagopa.selfcare.onboarding.utils.Utils.*;
 
 /** Azure Functions with HTTP Trigger integrated with Quarkus */
@@ -80,7 +80,6 @@ public class OnboardingFunctions {
     TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
     telemetryConfiguration.setConnectionString(appInsightsConnectionString);
     this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-    this.telemetryClient.getContext().getOperation().setName(EVENT_ONBOARDING_FN_NAME);
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -95,7 +94,7 @@ public class OnboardingFunctions {
    * instance output, delivered synchronously. * The orchestration instances can't complete within
    * the defined timeout, and the response is the default one described in http api uri
    */
-  @FunctionName("StartOnboardingOrchestration")
+  @FunctionName(START_ONBOARDING_ORCHESTRATION)
   public HttpResponseMessage startOrchestration(
       @HttpTrigger(
               name = "req",
@@ -104,38 +103,30 @@ public class OnboardingFunctions {
           HttpRequestMessage<Optional<String>> request,
       @DurableClientInput(name = "durableContext") DurableClientContext durableContext,
       final ExecutionContext context) {
-    //context.getLogger().info("StartOnboardingOrchestration trigger processed a request.");
 
     final String onboardingId = request.getQueryParameters().get("onboardingId");
     final String timeoutString = request.getQueryParameters().get("timeout");
 
-      // Log strutturato con custom dimensions
-      Map<String, String> properties = new HashMap<>();
-      properties.put("onboardingId", onboardingId);
-      properties.put("operationType", "orchestration_start");
+    Map<String, String> properties = Map.of("onboardingId", onboardingId);
 
-      telemetryClient.trackTrace(
-              "StartOnboardingOrchestration trigger processed a request",
-              SeverityLevel.Information,
-              properties
-      );
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        START_ONBOARDING_ORCHESTRATION,
+        "StartOnboardingOrchestration trigger processed a request",
+        SeverityLevel.Information,
+        properties);
 
     DurableTaskClient client = durableContext.getClient();
     String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
-    /*
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    "%s %s",
-                    CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
-     */
-    telemetryClient.trackTrace(
+
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        START_ONBOARDING_ORCHESTRATION,
         String.format(
             "%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId),
         SeverityLevel.Information,
         properties);
+
     try {
 
       /* if timeout is null, caller wants response asynchronously */
@@ -168,8 +159,10 @@ public class OnboardingFunctions {
       @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
       ExecutionContext functionContext) {
     String onboardingId = null;
+    Map<String, String> properties = new HashMap<>();
     try {
       String onboardingAggregate = ctx.getInput(String.class);
+      properties.put("onboardingAggregate", onboardingAggregate);
       boolean existsDelegation =
           Boolean.parseBoolean(
               ctx.callActivity(
@@ -183,17 +176,27 @@ public class OnboardingFunctions {
                     optionsRetry,
                     String.class)
                 .await();
+        properties.put("onboardingId", onboardingId);
         ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
       }
     } catch (TaskFailedException ex) {
-      functionContext
-          .getLogger()
-          .warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
+      TelemetryUtils.trackFunction(
+          this.telemetryClient,
+          ONBOARDINGS_AGGREGATE_ORCHESTRATOR,
+          "Error during OnboardingsAggregateOrchestrator execute, msg: " + ex.getMessage(),
+          SeverityLevel.Warning,
+          properties);
       service.updateOnboardingStatusAndInstanceId(
           onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
       throw ex;
     } catch (ResourceNotFoundException ex) {
-      functionContext.getLogger().warning(ex.getMessage());
+      TelemetryUtils.trackFunction(
+          this.telemetryClient,
+          ONBOARDINGS_AGGREGATE_ORCHESTRATOR,
+          "Resource not found during OnboardingsAggregateOrchestrator execute, msg: "
+              + ex.getMessage(),
+          SeverityLevel.Warning,
+          properties);
       service.updateOnboardingStatusAndInstanceId(
           onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
       throw ex;
@@ -204,14 +207,20 @@ public class OnboardingFunctions {
    * This is the orchestrator function, which can schedule activity functions, create durable
    * timers, or wait for external events in a way that's completely fault-tolerant.
    */
-  @FunctionName("Onboardings")
+  @FunctionName(ONBOARDINGS)
   public void onboardingsOrchestrator(
       @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
       ExecutionContext functionContext) {
     String onboardingId = ctx.getInput(String.class);
     Onboarding onboarding;
-
     WorkflowExecutor workflowExecutor;
+
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        ONBOARDINGS,
+        "OnboardingsOrchestrator trigger processed a request for onboardingId: " + onboardingId,
+        SeverityLevel.Information,
+        Map.of("onboardingId", onboardingId));
 
     try {
       onboarding =
@@ -262,14 +271,22 @@ public class OnboardingFunctions {
       optNextStatus.ifPresent(
           onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
     } catch (TaskFailedException ex) {
-      functionContext
-          .getLogger()
-          .warning("Error during workflowExecutor execute, msg: " + ex.getMessage());
+      TelemetryUtils.trackFunction(
+          this.telemetryClient,
+          ONBOARDINGS,
+          "Error during workflowExecutor execute, msg: " + ex.getMessage(),
+          SeverityLevel.Warning,
+          Map.of("onboardingId", onboardingId));
       service.updateOnboardingStatusAndInstanceId(
           onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
       throw ex;
     } catch (ResourceNotFoundException ex) {
-      functionContext.getLogger().warning(ex.getMessage());
+      TelemetryUtils.trackFunction(
+          this.telemetryClient,
+          ONBOARDINGS,
+          "Resource not found during workflowExecutor execute, msg: " + ex.getMessage(),
+          SeverityLevel.Warning,
+          Map.of("onboardingId", onboardingId));
       service.updateOnboardingStatusAndInstanceId(
           onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
       throw ex;
@@ -281,19 +298,20 @@ public class OnboardingFunctions {
   public void buildContract(
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    FORMAT_LOGGER_ONBOARDING_STRING,
-                    BUILD_CONTRACT_ACTIVITY_NAME,
-                    onboardingWorkflowString));
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        BUILD_CONTRACT_ACTIVITY_NAME,
+        String.format(
+            FORMAT_LOGGER_ONBOARDING_STRING,
+            BUILD_CONTRACT_ACTIVITY_NAME,
+            onboardingWorkflowString),
+        SeverityLevel.Information,
+        Map.of("onboardingWorkflow", onboardingWorkflowString));
     service.createContract(readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
   }
 
   /** This HTTP-triggered function invokes an orchestration to build attachments and save tokens */
-  @FunctionName("TriggerBuildAttachmentsAndSaveTokens")
+  @FunctionName(TRIGGER_BUILD_ATTACHMENTS_AND_SAVE_TOKENS)
   public HttpResponseMessage buildAttachmentsAndSaveTokens(
       @HttpTrigger(
               name = "req",
@@ -316,13 +334,13 @@ public class OnboardingFunctions {
     String instanceId =
         client.scheduleNewOrchestrationInstance(
             "BuildAttachmentAndSaveToken", onboardingString.get());
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    "%s %s",
-                    CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId));
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        TRIGGER_BUILD_ATTACHMENTS_AND_SAVE_TOKENS,
+        String.format(
+            "%s %s", CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId),
+        SeverityLevel.Information,
+        Map.of("instanceId", instanceId));
 
     return durableContext.createCheckStatusResponse(request, instanceId);
   }
@@ -370,7 +388,17 @@ public class OnboardingFunctions {
                       String.class)
                   .await();
             });
-    functionContext.getLogger().info("BuildAttachmentAndSaveToken orchestration completed");
+    Map<String, String> properties =
+        Map.of(
+            "onboardingId", onboarding.getId(),
+            "productId", onboarding.getProductId());
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY,
+        "BuildAttachmentAndSaveToken orchestration completed for onboardingId: "
+            + onboarding.getId(),
+        SeverityLevel.Information,
+        properties);
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
@@ -378,16 +406,22 @@ public class OnboardingFunctions {
   public void buildAttachment(
       @DurableActivityTrigger(name = "onboardingString") String onboardingAttachmentString,
       final ExecutionContext context) {
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    FORMAT_LOGGER_ONBOARDING_STRING,
-                    BUILD_ATTACHMENT_ACTIVITY_NAME,
-                    onboardingAttachmentString));
-    service.createAttachment(
-        readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString));
+    OnboardingAttachment onboardingAttachment = readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString);
+
+    Map<String, String> properties =
+        Map.of(
+            "onboardingId", onboardingAttachment.getOnboarding().getId(),
+            "productId", onboardingAttachment.getOnboarding().getProductId());
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        BUILD_ATTACHMENT_ACTIVITY_NAME,
+        String.format(
+            FORMAT_LOGGER_ONBOARDING_STRING,
+            BUILD_ATTACHMENT_ACTIVITY_NAME,
+            onboardingAttachmentString),
+        SeverityLevel.Information,
+        properties);
+    service.createAttachment(onboardingAttachment);
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
@@ -395,14 +429,21 @@ public class OnboardingFunctions {
   public void saveToken(
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    FORMAT_LOGGER_ONBOARDING_STRING,
-                    SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME,
-                    onboardingWorkflowString));
+    OnboardingWorkflow onboardingWorkflow =
+        readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString);
+    Map<String, String> properties =
+        Map.of(
+            "onboardingId", onboardingWorkflow.getOnboarding().getId(),
+            "productId", onboardingWorkflow.getOnboarding().getProductId());
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME,
+        String.format(
+            FORMAT_LOGGER_ONBOARDING_STRING,
+            SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME,
+            onboardingWorkflowString),
+        SeverityLevel.Information,
+        properties);
     service.saveTokenWithContract(
         readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString));
   }
@@ -412,16 +453,21 @@ public class OnboardingFunctions {
   public void saveTokenAttachment(
       @DurableActivityTrigger(name = "onboardingString") String onboardingAttachmentString,
       final ExecutionContext context) {
-    context
-        .getLogger()
-        .info(
-            () ->
-                String.format(
-                    FORMAT_LOGGER_ONBOARDING_STRING,
-                    SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
-                    onboardingAttachmentString));
-    service.saveTokenWithAttachment(
-        readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString));
+    OnboardingAttachment onboardingAttachment = readOnboardingAttachmentValue(objectMapper, onboardingAttachmentString);
+    Map<String, String> properties =
+        Map.of(
+            "onboardingId", onboardingAttachment.getOnboarding().getId(),
+            "productId", onboardingAttachment.getOnboarding().getProductId());
+    TelemetryUtils.trackFunction(
+        this.telemetryClient,
+        SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
+        String.format(
+            FORMAT_LOGGER_ONBOARDING_STRING,
+            SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
+            onboardingAttachmentString),
+        SeverityLevel.Information,
+        properties);
+    service.saveTokenWithAttachment(onboardingAttachment);
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */
