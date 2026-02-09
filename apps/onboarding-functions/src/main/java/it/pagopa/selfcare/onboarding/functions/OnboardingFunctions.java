@@ -15,6 +15,7 @@ import com.microsoft.durabletask.azurefunctions.DurableClientContext;
 import com.microsoft.durabletask.azurefunctions.DurableClientInput;
 import com.microsoft.durabletask.azurefunctions.DurableOrchestrationTrigger;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.config.AggregateBatchConfig;
 import it.pagopa.selfcare.onboarding.config.RetryPolicyConfig;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
@@ -35,11 +36,14 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -61,6 +65,7 @@ public class OnboardingFunctions {
   private final OnboardingMapper onboardingMapper;
   private final TelemetryClient telemetryClient;
   private final ProductService productService;
+  private final AggregateBatchConfig aggregateBatchConfig;
 
   public OnboardingFunctions(
       OnboardingService service,
@@ -70,14 +75,16 @@ public class OnboardingFunctions {
       ContractService contractService,
       OnboardingMapper onboardingMapper,
       ProductService productService,
+      AggregateBatchConfig aggregateBatchConfig,
       @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string")
-          String appInsightsConnectionString) {
+      String appInsightsConnectionString) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
     this.contractService = contractService;
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
+    this.aggregateBatchConfig = aggregateBatchConfig;
     TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
     telemetryConfiguration.setConnectionString(appInsightsConnectionString);
     this.telemetryClient = new TelemetryClient(telemetryConfiguration);
@@ -180,27 +187,84 @@ public class OnboardingFunctions {
         properties.put("onboardingId", onboardingId);
         ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
       }
-    } catch (TaskFailedException ex) {
-      TelemetryUtils.trackFunction(
-          this.telemetryClient,
-          ONBOARDINGS_AGGREGATE_ORCHESTRATOR,
-          "Error during OnboardingsAggregateOrchestrator execute, msg: " + ex.getMessage(),
-          SeverityLevel.Warning,
-          properties);
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+    } catch (TaskFailedException | ResourceNotFoundException ex) {
+      handleOrchestratorException(ctx, functionContext, onboardingId, ex);
       throw ex;
-    } catch (ResourceNotFoundException ex) {
-      TelemetryUtils.trackFunction(
-          this.telemetryClient,
-          ONBOARDINGS_AGGREGATE_ORCHESTRATOR,
-          "Resource not found during OnboardingsAggregateOrchestrator execute, msg: "
-              + ex.getMessage(),
-          SeverityLevel.Warning,
-          properties);
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
-      throw ex;
+    }
+    }
+  }
+
+  /**
+   * This orchestrator manages the batch processing of aggregate onboardings.
+   * It processes aggregates in controlled batches to avoid DB overload (TooManyRequests).
+   * Uses do-while pattern for sequential batch processing with controlled parallelism.
+   * Uses continueAsNew only to prevent history explosion after processing multiple batches.
+   */
+  @FunctionName(ONBOARDINGS_AGGREGATE_BATCH_ORCHESTRATOR)
+  public void onboardingsAggregateBatchOrchestrator(
+      @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
+      ExecutionContext functionContext) {
+
+    String input = ctx.getInput(String.class);
+    var batchInput = readAggregatesBatchInput(objectMapper, input);
+
+    List<String> allInputs = batchInput.getAggregateOrchestratorInputs();
+    int currentIndex = batchInput.getCurrentIndex();
+    int batchSize = aggregateBatchConfig.size();
+    int batchesProcessed = 0;
+
+    // Maximum number of batches to process before calling continueAsNew to reset orchestration history.
+    // This prevents history explosion in long-running orchestrations.
+    final int maxBatchesBeforeContinue = aggregateBatchConfig.maxBatchesBeforeContinue();
+
+    // Delay in seconds between batch processing to avoid DB overload (TooManyRequests).
+    final int delaySecondsBetweenBatches = aggregateBatchConfig.delaySeconds();
+
+    do {
+      int endIndex = Math.min(currentIndex + batchSize, allInputs.size());
+      List<String> currentBatch = allInputs.subList(currentIndex, endIndex);
+
+      final int logCurrentIndex = currentIndex;
+      final int logEndIndex = endIndex;
+      log(ctx, functionContext, () -> String.format(
+          "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
+          logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()));
+
+      // Process batch in parallel (controlled)
+      List<Task<String>> batchTasks = new ArrayList<>();
+      for (String aggregateInput : currentBatch) {
+        batchTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, aggregateInput, String.class));
+      }
+
+      for (int i = 0; i < batchTasks.size(); i++) {
+        try {
+          batchTasks.get(i).await();
+        } catch (TaskFailedException e) {
+          String failedInput = currentBatch.get(i);
+          log(ctx, functionContext, Level.SEVERE, String.format(
+              "Single aggregate orchestration failed during batch processing for onboarding %s, input [%s]: %s",
+              batchInput.getOnboardingId(), failedInput, e.getMessage()));
+        }
+      }
+
+      currentIndex = endIndex;
+      batchesProcessed++;
+
+      // Delay between batches (skip on last batch)
+      if (currentIndex < allInputs.size()) {
+        ctx.createTimer(Duration.ofSeconds(delaySecondsBetweenBatches)).await();
+      }
+
+    } while (currentIndex < allInputs.size() && batchesProcessed < maxBatchesBeforeContinue);
+
+    // continueAsNew only if there are more items and we hit the batch limit
+    if (currentIndex < allInputs.size()) {
+      batchInput.setCurrentIndex(currentIndex);
+      String nextInput = getAggregatesBatchInputString(objectMapper, batchInput);
+      ctx.continueAsNew(nextInput);
+    } else {
+      log(ctx, functionContext, () -> String.format(
+          "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()));
     }
   }
 
@@ -271,25 +335,8 @@ public class OnboardingFunctions {
       Optional<OnboardingStatus> optNextStatus = workflowExecutor.execute(ctx, onboarding);
       optNextStatus.ifPresent(
           onboardingStatus -> service.updateOnboardingStatus(onboardingId, onboardingStatus));
-    } catch (TaskFailedException ex) {
-      TelemetryUtils.trackFunction(
-          this.telemetryClient,
-          ONBOARDINGS,
-          "Error during workflowExecutor execute, msg: " + ex.getMessage(),
-          SeverityLevel.Warning,
-          Map.of("onboardingId", onboardingId));
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
-      throw ex;
-    } catch (ResourceNotFoundException ex) {
-      TelemetryUtils.trackFunction(
-          this.telemetryClient,
-          ONBOARDINGS,
-          "Resource not found during workflowExecutor execute, msg: " + ex.getMessage(),
-          SeverityLevel.Warning,
-          Map.of("onboardingId", onboardingId));
-      service.updateOnboardingStatusAndInstanceId(
-          onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
+    } catch (TaskFailedException | ResourceNotFoundException ex) {
+      handleOrchestratorException(ctx, functionContext, onboardingId, ex);
       throw ex;
     }
   }
@@ -389,17 +436,24 @@ public class OnboardingFunctions {
                       String.class)
                   .await();
             });
-    Map<String, String> properties =
-        Map.of(
-            "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId());
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
-        BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY,
-        "BuildAttachmentAndSaveToken orchestration completed for onboardingId: "
-            + onboarding.getId(),
-        SeverityLevel.Information,
-        properties);
+    log(ctx, functionContext, Level.INFO, "BuildAttachmentAndSaveToken orchestration completed");
+  }
+
+  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Level level, String message) {
+    if (!ctx.getIsReplaying()) {
+      fCtx.getLogger().log(level, message);
+    }
+  }
+
+  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Supplier<String> messageSupplier) {
+    if (!ctx.getIsReplaying()) {
+      fCtx.getLogger().log(Level.INFO, messageSupplier);
+    }
+  }
+
+  private void handleOrchestratorException(TaskOrchestrationContext ctx, ExecutionContext fCtx, String onboardingId, Exception ex) {
+    log(ctx, fCtx, Level.WARNING, "Error during workflow execution: " + ex.getMessage());
+    service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
   }
 
   /** This is the activity function that gets invoked by the orchestrator function. */

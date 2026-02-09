@@ -1,21 +1,25 @@
-package it.pagopa.selfcare.onboarding.utils;
-
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
-import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
+package it.pagopa.selfcare.onboarding.document;
 
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.Origin;
 import it.pagopa.selfcare.onboarding.common.PricingPlan;
 import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
-import java.util.*;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.openapi.quarkus.user_registry_json.model.CertifiableFieldResourceOfstring;
 import org.openapi.quarkus.user_registry_json.model.UserResource;
 import org.openapi.quarkus.user_registry_json.model.WorkContactResource;
 
-public class PdfMapper {
+import java.util.*;
+
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PN;
+import static it.pagopa.selfcare.onboarding.utils.GenericError.MANAGER_EMAIL_NOT_FOUND;
+
+@NoArgsConstructor(access= AccessLevel.PRIVATE)
+public class PdfMapperData {
 
   private static final String UNDERSCORE = "_______________";
   private static final String CHECKBOX_X = "X";
@@ -44,9 +48,7 @@ public class PdfMapper {
   public static final String CSV_AGGREGATES_TEXT = "Dati di Enti Aggregati";
   public static final String CSV_AGGREGATES_TEXT_IO = "Dati degli Enti Aggregati_IO";
 
-  private PdfMapper() {}
-
-  public static Map<String, Object> setUpCommonData(
+    public static Map<String, Object> setUpCommonData(
       UserResource manager, List<UserResource> users, Onboarding onboarding, String baseUrl) {
 
     Map<String, Object> map = new HashMap<>();

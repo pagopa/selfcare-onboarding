@@ -5,11 +5,10 @@ import com.microsoft.durabletask.Task;
 import com.microsoft.durabletask.TaskOptions;
 import com.microsoft.durabletask.TaskOrchestrationContext;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
+import it.pagopa.selfcare.onboarding.dto.AggregatesBatchOrchestratorInput;
 import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
-import it.pagopa.selfcare.onboarding.entity.AggregateInstitution;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
-import it.pagopa.selfcare.onboarding.entity.UserRequester;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 
@@ -133,15 +132,24 @@ public interface WorkflowExecutor {
     }
 
     default void createInstitutionAndOnboardingAggregate(TaskOrchestrationContext ctx, Onboarding onboarding, OnboardingMapper onboardingMapper){
-        List<Task<String>> parallelTasks = new ArrayList<>();
+        // Prepare all serialized inputs for each aggregate
+        List<String> aggregateInputs = onboarding.getAggregates().stream()
+                .map(aggregate -> {
+                    OnboardingAggregateOrchestratorInput input = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
+                    return getOnboardingAggregateString(objectMapper(), input);
+                })
+                .toList();
 
-        for (AggregateInstitution aggregate : onboarding.getAggregates()) {
-            OnboardingAggregateOrchestratorInput onboardingAggregate = onboardingMapper.mapToOnboardingAggregateOrchestratorInput(onboarding, aggregate);
-            final String onboardingAggregateString = getOnboardingAggregateString(objectMapper(), onboardingAggregate);
-            parallelTasks.add(ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_ORCHESTRATOR, onboardingAggregateString, String.class));
-        }
+        // Call the sub-orchestration that handles batching
+        // The batchSize is read from the configuration directly into the orchestrator
+        AggregatesBatchOrchestratorInput batchInput = new AggregatesBatchOrchestratorInput(
+                onboarding.getId(),
+                aggregateInputs,
+                0
+        );
 
-        ctx.allOf(parallelTasks).await();
+        String batchInputString = getAggregatesBatchInputString(objectMapper(), batchInput);
+        ctx.callSubOrchestrator(ONBOARDINGS_AGGREGATE_BATCH_ORCHESTRATOR, batchInputString, String.class).await();
     }
 
     default Optional<OnboardingStatus> handleOnboardingCompletionActivityWithOptionalMail(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
@@ -163,8 +171,7 @@ public interface WorkflowExecutor {
     default Optional<OnboardingStatus> executeRejectedState(TaskOrchestrationContext ctx, OnboardingWorkflow onboardingWorkflow) {
         Onboarding onboarding = onboardingWorkflow.getOnboarding();
         String onboardingString = getOnboardingString(objectMapper(), onboarding);
-        if (Objects.isNull(onboarding.getReasonForReject()) ||
-                (Objects.nonNull(onboarding.getReasonForReject()) && !onboarding.getReasonForReject().equals("REJECTED_BY_USER"))) {
+        if (Objects.isNull(onboarding.getReasonForReject()) || !onboarding.getReasonForReject().equals("REJECTED_BY_USER")) {
             ctx.callActivity(SEND_MAIL_REJECTION_ACTIVITY, onboardingString, optionsRetry(), String.class).await();
         }
         return Optional.empty();

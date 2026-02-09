@@ -1,5 +1,15 @@
 package it.pagopa.selfcare.onboarding.service.impl;
 
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
+import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
+import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
+import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
+import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
+import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
+import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
+
 import io.quarkus.mongodb.panache.common.reactive.Panache;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheQuery;
 import io.smallrye.mutiny.Multi;
@@ -41,13 +51,21 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.api.OnboardingApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
 import org.openapi.quarkus.core_json.model.InstitutionsResponse;
@@ -62,26 +80,6 @@ import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLega
 import org.openapi.quarkus.party_registry_proxy_json.model.GetInstitutionsByLegalFilterDto;
 import org.openapi.quarkus.user_registry_json.api.UserApi;
 import org.openapi.quarkus.user_registry_json.model.*;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.COMPLETED;
-import static it.pagopa.selfcare.onboarding.common.OnboardingStatus.PENDING;
-import static it.pagopa.selfcare.onboarding.common.Origin.IPA;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_IO;
-import static it.pagopa.selfcare.onboarding.common.ProductId.PROD_PAGOPA;
-import static it.pagopa.selfcare.onboarding.common.WorkflowType.USERS;
-import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
-import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
-import static it.pagopa.selfcare.product.utils.ProductUtils.validRoles;
 
 @Slf4j
 @ApplicationScoped
@@ -131,10 +129,6 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @RestClient
     @Inject
-    InstitutionApi institutionApi;
-
-    @RestClient
-    @Inject
     UoApi uoApi;
 
     @RestClient
@@ -180,6 +174,9 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     UserService userService;
+
+    @Inject
+    InstitutionService institutionService;
 
     @ConfigProperty(name = "onboarding.orchestration.enabled")
     Boolean onboardingOrchestrationEnabled;
@@ -2117,13 +2114,13 @@ public class OnboardingServiceDefault implements OnboardingService {
         Uni<InstitutionsResponse> responseUni;
         if (Objects.nonNull(request.getTaxCode()) && Objects.nonNull(request.getSubunitCode())) {
             responseUni =
-                    institutionApi.getInstitutionsUsingGET(
+                    institutionService.getInstitutionsUsingGET(
                             request.getTaxCode(), request.getSubunitCode(), null, null, null, null);
         } else if (Objects.nonNull(request.getTaxCode())) {
-            responseUni = institutionApi.getInstitutionsUsingGET(request.getTaxCode(), null, null, null, null, null);
+            responseUni = institutionService.getInstitutionsUsingGET(request.getTaxCode(), null, null, null, null, null);
         } else {
             responseUni =
-                    institutionApi.getInstitutionsUsingGET(
+                    institutionService.getInstitutionsUsingGET(
                             null, null, request.getOrigin(), request.getOriginId(), null, null);
         }
         return responseUni
