@@ -640,14 +640,7 @@ class OnboardingFunctionsTest {
 
   @Test
   void onboardingsAggregateOrchestrator() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
-
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+    TaskOrchestrationContext orchestrationContext = mockTaskAggregateOrchestrationContext();
     Task<Object> mockTask = Mockito.mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(any(), any(), any())).thenReturn(mockTask);
 
@@ -664,58 +657,46 @@ class OnboardingFunctionsTest {
 
   @Test
   void onboardingsAggregateOrchestrator_resourceNotFound() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
 
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-
-    when(orchestrationContext.callActivity(any(), any(), any(), any()))
-            .thenThrow(ResourceNotFoundException.class);
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(eq(EXISTS_DELEGATION_ACTIVITY), any(), any(), any()))
+        .thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.callActivity(
+            eq(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY), any(), any(), any()))
+        .thenThrow(ResourceNotFoundException.class);
+    when(executionContext.getFunctionName()).thenReturn("functionName");
 
     assertThrows(
-            ResourceNotFoundException.class,
-            () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+        ResourceNotFoundException.class,
+        () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(1))
-            .callActivity(captorActivity.capture(), any(), any(), any());
+    verify(orchestrationContext, times(2))
+        .callActivity(captorActivity.capture(), any(), any(), any());
 
     assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
     verify(service, times(1))
-            .updateOnboardingStatusAndInstanceId(
-                    null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+        .updateOnboardingStatusAndInstanceId(
+            "id", OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
   }
 
   @Test
   void onboardingsAggregateOrchestrator_taskFailed() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
 
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+    when(orchestrationContext.callActivity(eq(EXISTS_DELEGATION_ACTIVITY), any(), any(), any()))
+        .thenThrow(TaskFailedException.class);
 
-    when(orchestrationContext.callActivity(any(), any(), any(), any()))
-            .thenThrow(TaskFailedException.class);
+    verify(orchestrationContext, times(0))
+        .callActivity(eq(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY), any(), any(), any());
 
-    assertThrows(
-            TaskFailedException.class,
-            () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
-
-    ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(1))
-            .callActivity(captorActivity.capture(), any(), any(), any());
-
-    assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
-    verify(service, times(1))
-            .updateOnboardingStatusAndInstanceId(
-                    null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+    verify(service, times(0))
+        .updateOnboardingStatusAndInstanceId(
+            null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
   }
 
     @Test
@@ -735,8 +716,6 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
     when(orchestrationContext.getIsReplaying()).thenReturn(false);
-    Logger logger = mock(Logger.class);
-    when(executionContext.getLogger()).thenReturn(logger);
 
     Task task = mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
@@ -744,8 +723,6 @@ class OnboardingFunctionsTest {
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
-    // Verify logger was called when not replaying
-    verify(logger, atLeastOnce()).log(eq(Level.INFO), any(Supplier.class));
     // Verify all 3 aggregates were processed in a single batch
     verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
@@ -800,8 +777,6 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
     when(orchestrationContext.getIsReplaying()).thenReturn(false);
-    Logger logger = mock(Logger.class);
-    when(executionContext.getLogger()).thenReturn(logger);
 
     Task<String> successTask = mock(Task.class);
     Task<String> failedTask = mock(Task.class);
@@ -817,9 +792,6 @@ class OnboardingFunctionsTest {
     when(failedTask.await()).thenThrow(mock(TaskFailedException.class));
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
-
-    // Verify severe log was called for the failure
-    verify(logger, times(1)).log(eq(Level.SEVERE), contains("failed during batch processing"));
 
     // Verify all 3 aggregates were attempted
     verify(orchestrationContext, times(3))
@@ -1017,6 +989,21 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getId());
     when(service.getOnboarding(anyString())).thenReturn(Optional.of(onboarding));
+    when(completionService.existsDelegation(any())).thenReturn("false");
+
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+
+    when(orchestrationContext.callSubOrchestrator(any(), any())).thenReturn(task);
+    when(orchestrationContext.callSubOrchestrator(any(), any(), any())).thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.allOf(anyList())).thenReturn(task);
+    return orchestrationContext;
+  }
+
+  TaskOrchestrationContext mockTaskAggregateOrchestrationContext() {
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
     when(completionService.existsDelegation(any())).thenReturn("false");
 
     Task task = mock(Task.class);

@@ -21,6 +21,7 @@ import it.pagopa.selfcare.onboarding.dto.OnboardingAggregateOrchestratorInput;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
+import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.functions.utils.TelemetryUtils;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
@@ -35,7 +36,6 @@ import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 
 import static it.pagopa.selfcare.onboarding.functions.CommonFunctions.FORMAT_LOGGER_ONBOARDING_STRING;
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -167,15 +166,26 @@ public class OnboardingFunctions {
       @DurableOrchestrationTrigger(name = "taskOrchestrationContext") TaskOrchestrationContext ctx,
       ExecutionContext functionContext) {
     String onboardingId = null;
-    Map<String, String> properties = new HashMap<>();
+    String onboardingAggregate = ctx.getInput(String.class);
+    boolean existsDelegation;
     try {
-      String onboardingAggregate = ctx.getInput(String.class);
-      properties.put("onboardingAggregate", onboardingAggregate);
-      boolean existsDelegation =
+      onboardingId = readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingAggregate).getId();
+      existsDelegation =
           Boolean.parseBoolean(
               ctx.callActivity(
                       EXISTS_DELEGATION_ACTIVITY, onboardingAggregate, optionsRetry, String.class)
                   .await());
+    } catch (TaskFailedException | GenericOnboardingException e) {
+      TelemetryUtils.trackFunction(
+            this.telemetryClient,
+            functionContext.getFunctionName(),
+            "Error checking delegation, proceeding as if it exist: " + e.getMessage(),
+            SeverityLevel.Warning,
+            Map.of("onboardingId", onboardingId == null ? "unknown" : onboardingId)
+      );
+      existsDelegation = true;
+    }
+    try {
       if (!existsDelegation) {
         onboardingId =
             ctx.callActivity(
@@ -184,13 +194,11 @@ public class OnboardingFunctions {
                     optionsRetry,
                     String.class)
                 .await();
-        properties.put("onboardingId", onboardingId);
         ctx.callSubOrchestrator("Onboardings", onboardingId, String.class).await();
       }
     } catch (TaskFailedException | ResourceNotFoundException ex) {
       handleOrchestratorException(ctx, functionContext, onboardingId, ex);
       throw ex;
-    }
     }
   }
 
@@ -226,9 +234,15 @@ public class OnboardingFunctions {
 
       final int logCurrentIndex = currentIndex;
       final int logEndIndex = endIndex;
-      log(ctx, functionContext, () -> String.format(
-          "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
-          logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()));
+      log(
+          ctx,
+          functionContext,
+          SeverityLevel.Information,
+          () ->
+              String.format(
+                  "Processing aggregate batch [%d-%d] of %d total for onboarding %s",
+                  logCurrentIndex, logEndIndex - 1, allInputs.size(), batchInput.getOnboardingId()),
+          Map.of("onboardingId", batchInput.getOnboardingId()));
 
       // Process batch in parallel (controlled)
       List<Task<String>> batchTasks = new ArrayList<>();
@@ -241,9 +255,14 @@ public class OnboardingFunctions {
           batchTasks.get(i).await();
         } catch (TaskFailedException e) {
           String failedInput = currentBatch.get(i);
-          log(ctx, functionContext, Level.SEVERE, String.format(
-              "Single aggregate orchestration failed during batch processing for onboarding %s, input [%s]: %s",
-              batchInput.getOnboardingId(), failedInput, e.getMessage()));
+          log(
+              ctx,
+              functionContext,
+              SeverityLevel.Error,
+              String.format(
+                  "Single aggregate orchestration failed during batch processing for onboarding %s, input [%s]: %s",
+                  batchInput.getOnboardingId(), failedInput, e.getMessage()),
+              Map.of("onboardingId", batchInput.getOnboardingId()));
         }
       }
 
@@ -263,8 +282,8 @@ public class OnboardingFunctions {
       String nextInput = getAggregatesBatchInputString(objectMapper, batchInput);
       ctx.continueAsNew(nextInput);
     } else {
-      log(ctx, functionContext, () -> String.format(
-          "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()));
+      log(ctx, functionContext, SeverityLevel.Information,() -> String.format(
+          "Completed all aggregate batches for onboarding %s", batchInput.getOnboardingId()), Map.of("onboardingId", batchInput.getOnboardingId()));
     }
   }
 
@@ -436,23 +455,49 @@ public class OnboardingFunctions {
                       String.class)
                   .await();
             });
-    log(ctx, functionContext, Level.INFO, "BuildAttachmentAndSaveToken orchestration completed");
+    log(
+        ctx,
+        functionContext,
+        SeverityLevel.Information,
+        "BuildAttachmentAndSaveToken orchestration completed",
+        Map.of("onboardingId", onboarding.getId(), "productId", onboarding.getProductId()));
   }
 
-  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Level level, String message) {
+  private void log(
+      TaskOrchestrationContext ctx,
+      ExecutionContext fCtx,
+      SeverityLevel severityLevel,
+      Supplier<String> messageSupplier,
+      Map<String, String> properties) {
     if (!ctx.getIsReplaying()) {
-      fCtx.getLogger().log(level, message);
+      TelemetryUtils.trackFunction(
+          this.telemetryClient,
+          fCtx.getFunctionName(),
+          messageSupplier.get(),
+          severityLevel,
+          properties);
     }
   }
 
-  private void log(TaskOrchestrationContext ctx, ExecutionContext fCtx, Supplier<String> messageSupplier) {
+  private void log(
+      TaskOrchestrationContext ctx,
+      ExecutionContext fCtx,
+      SeverityLevel severityLevel,
+      String message,
+      Map<String, String> properties) {
     if (!ctx.getIsReplaying()) {
-      fCtx.getLogger().log(Level.INFO, messageSupplier);
+      TelemetryUtils.trackFunction(this.telemetryClient, fCtx.getFunctionName(), message, severityLevel, properties);
     }
   }
 
-  private void handleOrchestratorException(TaskOrchestrationContext ctx, ExecutionContext fCtx, String onboardingId, Exception ex) {
-    log(ctx, fCtx, Level.WARNING, "Error during workflow execution: " + ex.getMessage());
+  private void handleOrchestratorException(
+      TaskOrchestrationContext ctx, ExecutionContext fCtx, String onboardingId, Exception ex) {
+    log(
+        ctx,
+        fCtx,
+        SeverityLevel.Warning,
+        "Error during workflow execution: " + ex.getMessage(),
+        Map.of("onboardingId", onboardingId));
     service.updateOnboardingStatusAndInstanceId(onboardingId, OnboardingStatus.FAILED, ctx.getInstanceId());
   }
 
