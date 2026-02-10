@@ -75,8 +75,7 @@ public class OnboardingFunctions {
       OnboardingMapper onboardingMapper,
       ProductService productService,
       AggregateBatchConfig aggregateBatchConfig,
-      @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string")
-      String appInsightsConnectionString) {
+      TelemetryClient telemetryClient) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
@@ -84,9 +83,7 @@ public class OnboardingFunctions {
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
     this.aggregateBatchConfig = aggregateBatchConfig;
-    TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-    telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-    this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+    this.telemetryClient = telemetryClient;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);

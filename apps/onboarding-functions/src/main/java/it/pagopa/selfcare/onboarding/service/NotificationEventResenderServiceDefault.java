@@ -37,13 +37,11 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
     public NotificationEventResenderServiceDefault(
             NotificationEventService notificationEventService,
             OnboardingService onboardingService,
-            @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString
+            TelemetryClient telemetryClient
     ) {
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient = telemetryClient;
         this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
     }
 

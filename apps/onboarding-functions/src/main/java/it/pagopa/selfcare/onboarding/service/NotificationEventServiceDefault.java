@@ -70,16 +70,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
                                            NotificationUserBuilderFactory notificationUserBuilderFactory,
                                            TokenRepository tokenRepository,
                                            QueueEventExaminer queueEventExaminer,
-                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+                                           TelemetryClient telemetryClient) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.notificationUserBuilderFactory = notificationUserBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
+        this.telemetryClient = telemetryClient;
         this.telemetryClient.getContext().getOperation().setName(EVENT_ONBOARDING_FN_NAME);
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
