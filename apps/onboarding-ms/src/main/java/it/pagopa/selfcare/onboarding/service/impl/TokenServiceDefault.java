@@ -34,7 +34,6 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
 import org.bson.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestResponse;
@@ -91,11 +90,22 @@ public class TokenServiceDefault implements TokenService {
     }
 
     public static void isPdfValid(File contract) {
+        // Carica il documento. Se il file è corrotto o non è un PDF,
+        // Loader.loadPDF lancerà IOException.
         try (PDDocument document = Loader.loadPDF(contract)) {
-            document.getNumberOfPages();
-            PDFTextStripper stripper = new PDFTextStripper();
-            stripper.getText(document);
+
+            // Verifica minima: il documento deve avere almeno una pagina.
+            if (document.getNumberOfPages() == 0) {
+                throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+            }
+
+            // RIMUOVIAMO PDFTextStripper.
+            // Non è necessario leggere tutto il testo per dire che il file è valido per il download.
+            // stripper.getText(document); <--- RIMOSSO
+
         } catch (IOException e) {
+            // Logga l'errore per debugging, ma considera se vuoi davvero bloccare l'utente
+            // o se preferisci lasciar scaricare il file "best effort".
             throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
         }
     }
