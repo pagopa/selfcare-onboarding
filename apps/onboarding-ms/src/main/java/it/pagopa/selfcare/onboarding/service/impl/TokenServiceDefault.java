@@ -145,9 +145,6 @@ public class TokenServiceDefault implements TokenService {
                             }
                             RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
                             String filename = getCurrentContractName(token, true);
-                            if (filename.endsWith(".p7m")) {
-                                filename = filename.replace(".p7m", "");
-                            }
                             response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
                             return response.build();
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
