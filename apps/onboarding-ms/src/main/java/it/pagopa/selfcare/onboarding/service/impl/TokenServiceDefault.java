@@ -99,8 +99,8 @@ public class TokenServiceDefault implements TokenService {
             }
 
             // 2. Logica di Riparazione (Sanitizzazione)
-            // Creiamo un temp file dove risalvare il PDF pulito
-            File repairedFile = File.createTempFile("repaired_", ".pdf");
+            // Creiamo un temp file dove risalvare il PDF pulito con permessi più restrittivi
+            File repairedFile = Files.createTempFile("repaired_", ".pdf").toFile();
 
             // Rimuoviamo sicurezze che potrebbero dar fastidio al browser
             doc.setAllSecurityToBeRemoved(true);
