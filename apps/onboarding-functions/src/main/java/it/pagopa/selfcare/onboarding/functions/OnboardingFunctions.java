@@ -2,8 +2,6 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.applicationinsights.telemetry.SeverityLevel;
 import com.microsoft.azure.functions.*;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
@@ -23,7 +21,7 @@ import it.pagopa.selfcare.onboarding.entity.OnboardingAttachment;
 import it.pagopa.selfcare.onboarding.entity.OnboardingWorkflow;
 import it.pagopa.selfcare.onboarding.exception.GenericOnboardingException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
-import it.pagopa.selfcare.onboarding.functions.utils.TelemetryUtils;
+import it.pagopa.selfcare.onboarding.service.TelemetryService;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.ContractService;
@@ -32,8 +30,6 @@ import it.pagopa.selfcare.onboarding.utils.InstitutionUtils;
 import it.pagopa.selfcare.onboarding.workflow.*;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
-import jakarta.ws.rs.core.Context;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.openapi.quarkus.core_json.model.DelegationResponse;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -62,7 +58,7 @@ public class OnboardingFunctions {
   private final ObjectMapper objectMapper;
   private final TaskOptions optionsRetry;
   private final OnboardingMapper onboardingMapper;
-  private final TelemetryClient telemetryClient;
+  private final TelemetryService telemetryService;
   private final ProductService productService;
   private final AggregateBatchConfig aggregateBatchConfig;
 
@@ -75,7 +71,7 @@ public class OnboardingFunctions {
       OnboardingMapper onboardingMapper,
       ProductService productService,
       AggregateBatchConfig aggregateBatchConfig,
-      TelemetryClient telemetryClient) {
+      TelemetryService telemetryService) {
     this.service = service;
     this.objectMapper = objectMapper;
     this.completionService = completionService;
@@ -83,7 +79,7 @@ public class OnboardingFunctions {
     this.onboardingMapper = onboardingMapper;
     this.productService = productService;
     this.aggregateBatchConfig = aggregateBatchConfig;
-    this.telemetryClient = telemetryClient;
+    this.telemetryService = telemetryService;
     final int maxAttempts = retryPolicyConfig.maxAttempts();
     final Duration firstRetryInterval = Duration.ofSeconds(retryPolicyConfig.firstRetryInterval());
     RetryPolicy retryPolicy = new RetryPolicy(maxAttempts, firstRetryInterval);
@@ -113,8 +109,7 @@ public class OnboardingFunctions {
 
     Map<String, String> properties = Map.of("onboardingId", onboardingId);
 
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         START_ONBOARDING_ORCHESTRATION,
         "StartOnboardingOrchestration trigger processed a request",
         SeverityLevel.Information,
@@ -123,8 +118,7 @@ public class OnboardingFunctions {
     DurableTaskClient client = durableContext.getClient();
     String instanceId = client.scheduleNewOrchestrationInstance("Onboardings", onboardingId);
 
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         START_ONBOARDING_ORCHESTRATION,
         String.format(
             "%s %s", CREATED_NEW_ONBOARDING_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId),
@@ -173,13 +167,11 @@ public class OnboardingFunctions {
                       EXISTS_DELEGATION_ACTIVITY, onboardingAggregate, optionsRetry, String.class)
                   .await());
     } catch (TaskFailedException | GenericOnboardingException e) {
-      TelemetryUtils.trackFunction(
-            this.telemetryClient,
-            functionContext.getFunctionName(),
-            "Error checking delegation, proceeding as if it exist: " + e.getMessage(),
-            SeverityLevel.Warning,
-            Map.of("onboardingId", onboardingId == null ? "unknown" : onboardingId)
-      );
+      telemetryService.trackFunction(
+          functionContext.getFunctionName(),
+          "Error checking delegation, proceeding as if it exist: " + e.getMessage(),
+          SeverityLevel.Warning,
+          Map.of("onboardingId", onboardingId == null ? "unknown" : onboardingId));
       existsDelegation = true;
     }
     try {
@@ -296,8 +288,7 @@ public class OnboardingFunctions {
     Onboarding onboarding;
     WorkflowExecutor workflowExecutor;
 
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         ONBOARDINGS,
         "OnboardingsOrchestrator trigger processed a request for onboardingId: " + onboardingId,
         SeverityLevel.Information,
@@ -362,8 +353,7 @@ public class OnboardingFunctions {
   public void buildContract(
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+      telemetryService.trackFunction(
         BUILD_CONTRACT_ACTIVITY_NAME,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -398,8 +388,7 @@ public class OnboardingFunctions {
     String instanceId =
         client.scheduleNewOrchestrationInstance(
             "BuildAttachmentAndSaveToken", onboardingString.get());
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         TRIGGER_BUILD_ATTACHMENTS_AND_SAVE_TOKENS,
         String.format(
             "%s %s", CREATED_NEW_BUILD_ATTACHMENTS_ORCHESTRATION_WITH_INSTANCE_ID_MSG, instanceId),
@@ -467,12 +456,8 @@ public class OnboardingFunctions {
       Supplier<String> messageSupplier,
       Map<String, String> properties) {
     if (!ctx.getIsReplaying()) {
-      TelemetryUtils.trackFunction(
-          this.telemetryClient,
-          fCtx.getFunctionName(),
-          messageSupplier.get(),
-          severityLevel,
-          properties);
+      telemetryService.trackFunction(
+          fCtx.getFunctionName(), messageSupplier.get(), severityLevel, properties);
     }
   }
 
@@ -483,7 +468,7 @@ public class OnboardingFunctions {
       String message,
       Map<String, String> properties) {
     if (!ctx.getIsReplaying()) {
-      TelemetryUtils.trackFunction(this.telemetryClient, fCtx.getFunctionName(), message, severityLevel, properties);
+      telemetryService.trackFunction(fCtx.getFunctionName(), message, severityLevel, properties);
     }
   }
 
@@ -509,8 +494,7 @@ public class OnboardingFunctions {
         Map.of(
             "onboardingId", onboardingAttachment.getOnboarding().getId(),
             "productId", onboardingAttachment.getOnboarding().getProductId());
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         BUILD_ATTACHMENT_ACTIVITY_NAME,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -532,8 +516,7 @@ public class OnboardingFunctions {
         Map.of(
             "onboardingId", onboardingWorkflow.getOnboarding().getId(),
             "productId", onboardingWorkflow.getOnboarding().getProductId());
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SAVE_TOKEN_WITH_CONTRACT_ACTIVITY_NAME,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -555,8 +538,7 @@ public class OnboardingFunctions {
         Map.of(
             "onboardingId", onboardingAttachment.getOnboarding().getId(),
             "productId", onboardingAttachment.getOnboarding().getProductId());
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SAVE_TOKEN_WITH_ATTACHMENT_ACTIVITY_NAME,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -573,8 +555,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
     OnboardingWorkflow onboardingWorkflow = readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_FOR_CONTRACT,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -592,8 +573,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
     OnboardingWorkflow onboardingWorkflow = readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_FOR_CONTRACT_WHEN_APPROVE_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -611,8 +591,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_REQUEST_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -631,18 +610,14 @@ public class OnboardingFunctions {
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_FOR_USER,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            SEND_MAIL_REGISTRATION_FOR_USER,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REGISTRATION_FOR_USER, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     service.sendMailRegistrationForUser(onboarding);
   }
 
@@ -651,8 +626,7 @@ public class OnboardingFunctions {
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_FOR_USER_REQUESTER,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -661,8 +635,7 @@ public class OnboardingFunctions {
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     service.sendMailRegistrationForUserRequester(onboarding);
   }
 
@@ -672,18 +645,13 @@ public class OnboardingFunctions {
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SAVE_VISURA_FOR_MERCHANT,
-        String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            SAVE_VISURA_FOR_MERCHANT,
-            onboardingString),
+        String.format(FORMAT_LOGGER_ONBOARDING_STRING, SAVE_VISURA_FOR_MERCHANT, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     service.saveVisuraForMerchant(onboarding);
   }
 
@@ -693,8 +661,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REGISTRATION_APPROVE_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -703,8 +670,7 @@ public class OnboardingFunctions {
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     service.sendMailRegistrationApprove(onboarding);
   }
 
@@ -713,8 +679,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_ONBOARDING_APPROVE_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -723,8 +688,7 @@ public class OnboardingFunctions {
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     service.sendMailOnboardingApprove(onboarding);
   }
 
@@ -733,18 +697,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_INSTITUTION_ACTIVITY,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            CREATE_INSTITUTION_ACTIVITY,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, CREATE_INSTITUTION_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     return completionService.createInstitutionAndPersistInstitutionId(onboarding);
   }
 
@@ -753,18 +713,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         STORE_ONBOARDING_ACTIVATEDAT,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            STORE_ONBOARDING_ACTIVATEDAT,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, STORE_ONBOARDING_ACTIVATEDAT, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     completionService.persistActivatedAt(readOnboardingValue(objectMapper, onboardingString));
   }
 
@@ -773,18 +729,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
       Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         REJECT_OUTDATED_ONBOARDINGS,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            REJECT_OUTDATED_ONBOARDINGS,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, REJECT_OUTDATED_ONBOARDINGS, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     completionService.rejectOutdatedOnboardings(onboarding);
   }
 
@@ -793,16 +745,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
       Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_ONBOARDING_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING, CREATE_ONBOARDING_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     completionService.persistOnboarding(onboarding);
   }
 
@@ -811,8 +761,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingWorkflowString,
       final ExecutionContext context) {
     OnboardingWorkflow onboardingWorkflow = readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_COMPLETION_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -821,8 +770,7 @@ public class OnboardingFunctions {
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboardingWorkflow.getOnboarding().getId(),
-            "productId", onboardingWorkflow.getOnboarding().getProductId())
-    );
+            "productId", onboardingWorkflow.getOnboarding().getProductId()));
     completionService.sendCompletedEmail(onboardingWorkflow);
   }
 
@@ -831,18 +779,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         SEND_MAIL_REJECTION_ACTIVITY,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            SEND_MAIL_REJECTION_ACTIVITY,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, SEND_MAIL_REJECTION_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     completionService.sendMailRejection(context, onboarding);
   }
 
@@ -851,16 +795,13 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_USERS_ACTIVITY,
-        String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString),
+        String.format(FORMAT_LOGGER_ONBOARDING_STRING, CREATE_USERS_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     completionService.persistUsers(onboarding);
   }
 
@@ -872,8 +813,7 @@ public class OnboardingFunctions {
     OnboardingAggregateOrchestratorInput onboarding =
         readOnboardingAggregateOrchestratorInputValue(
             objectMapper, onboardingAggregateOrchestratorInputString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -891,16 +831,14 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_DELEGATION_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING, CREATE_DELEGATION_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     return completionService.createDelegation(onboarding);
   }
 
@@ -910,18 +848,14 @@ public class OnboardingFunctions {
       final ExecutionContext context) {
     OnboardingAggregateOrchestratorInput onboarding =
         readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         EXISTS_DELEGATION_ACTIVITY,
         String.format(
-            FORMAT_LOGGER_ONBOARDING_STRING,
-            EXISTS_DELEGATION_ACTIVITY,
-            onboardingString),
+            FORMAT_LOGGER_ONBOARDING_STRING, EXISTS_DELEGATION_ACTIVITY, onboardingString),
         SeverityLevel.Information,
         Map.of(
             "onboardingId", onboarding.getId(),
-            "productId", onboarding.getProductId())
-    );
+            "productId", onboarding.getProductId()));
     return completionService.existsDelegation(onboarding);
   }
 
@@ -931,8 +865,7 @@ public class OnboardingFunctions {
           final ExecutionContext context) {
     OnboardingAggregateOrchestratorInput onboarding =
         readOnboardingAggregateOrchestratorInputValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         VERIFY_ONBOARDING_AGGREGATE_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -968,8 +901,7 @@ public class OnboardingFunctions {
       final ExecutionContext context) {
     OnboardingWorkflow onboardingWorkflow =
         readOnboardingWorkflowValue(objectMapper, onboardingWorkflowString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         CREATE_AGGREGATES_CSV_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,
@@ -987,8 +919,7 @@ public class OnboardingFunctions {
       @DurableActivityTrigger(name = "onboardingString") String onboardingString,
       final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         RETRIEVE_AGGREGATES_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING, RETRIEVE_AGGREGATES_ACTIVITY, onboardingString),
@@ -1006,8 +937,7 @@ public class OnboardingFunctions {
           @DurableActivityTrigger(name = "onboardingString") String onboardingString,
           final ExecutionContext context) {
     Onboarding onboarding = readOnboardingValue(objectMapper, onboardingString);
-    TelemetryUtils.trackFunction(
-        this.telemetryClient,
+    telemetryService.trackFunction(
         UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY,
         String.format(
             FORMAT_LOGGER_ONBOARDING_STRING,

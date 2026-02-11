@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.telemetry.SeverityLevel;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -20,6 +21,7 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.service.TelemetryService;
 import it.pagopa.selfcare.onboarding.utils.Utils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
@@ -35,8 +37,6 @@ import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -55,6 +55,8 @@ class OnboardingFunctionsTest {
   @InjectMock CompletionService completionService;
 
   @InjectMock ProductService productService;
+
+  @InjectMock TelemetryService telemetryService;
 
   @Inject ObjectMapper objectMapper;
 
@@ -723,6 +725,8 @@ class OnboardingFunctionsTest {
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
+    // verify telemetry service was called when not replaying
+    verify(telemetryService, atLeastOnce()).trackFunction(any(), any(), any(), any());
     // Verify all 3 aggregates were processed in a single batch
     verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
@@ -756,8 +760,7 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify logger was NEVER called during replay
-    verify(logger, never()).log(any(Level.class), any(String.class));
-    verify(logger, never()).log(any(Level.class), any(Supplier.class));
+    verify(telemetryService, never()).trackFunction(any(), any(), any(), any());
     }
 
     @Test
@@ -792,6 +795,9 @@ class OnboardingFunctionsTest {
     when(failedTask.await()).thenThrow(mock(TaskFailedException.class));
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
+
+    // Verify severe log was called for the failure
+    verify(telemetryService).trackFunction(any(), contains("failed during batch processing"), eq(SeverityLevel.Error), any());
 
     // Verify all 3 aggregates were attempted
     verify(orchestrationContext, times(3))
