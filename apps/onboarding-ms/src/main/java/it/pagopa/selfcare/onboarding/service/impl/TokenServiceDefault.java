@@ -30,6 +30,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -120,7 +121,7 @@ public class TokenServiceDefault implements TokenService {
                         Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(isSigned ? token.getContractSigned() : getContractNotSigned(onboardingId, token)))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> {
-                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, "application/pdf");
+                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
                                     response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, isSigned));
                                     return response.build();
                                 }));
@@ -141,11 +142,8 @@ public class TokenServiceDefault implements TokenService {
                                 fileToSend = signatureService.extractFile(contract);
                                 isPdfValid(fileToSend);
                             }
-                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, "application/pdf");
+                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
                             String filename = getCurrentContractName(token, true);
-                            if (filename.endsWith(".p7m")) {
-                                filename = filename.replace(".p7m", "");
-                            }
                             response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
                             return response.build();
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
@@ -171,7 +169,7 @@ public class TokenServiceDefault implements TokenService {
                                     product.getId()))
                             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                             .onItem().transform(file -> RestResponse.ResponseBuilder
-                                    .ok(file, "application/pdf")
+                                    .ok(file, MediaType.APPLICATION_OCTET_STREAM)
                                     .header(HTTP_HEADER_CONTENT_DISPOSITION,
                                             HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName)
                                     .build());
@@ -196,7 +194,7 @@ public class TokenServiceDefault implements TokenService {
                                 ))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
-                                        .ok(contract, "application/pdf")
+                                        .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
                                         .header(
                                                 HTTP_HEADER_CONTENT_DISPOSITION,
                                                 HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
