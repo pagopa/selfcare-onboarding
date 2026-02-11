@@ -146,15 +146,28 @@ public class TokenServiceDefault implements TokenService {
                 .onItem().transformToUni(token -> Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
                         .runSubscriptionOn(Executors.newSingleThreadExecutor())
                         .onItem().transform(contract -> {
+                            File fileToSend = contract; // Di base mandiamo il contratto originale
+
                             if (token.getContractSigned().endsWith(".pdf")) {
                                 isPdfValid(contract);
                             } else {
                                 isP7mValid(contract, signatureService);
-                                File original = signatureService.extractFile(contract);
-                                isPdfValid(original);
+                                // Sovrascriviamo fileToSend con il PDF estratto per permettere la visualizzazione
+                                fileToSend = signatureService.extractFile(contract);
+                                isPdfValid(fileToSend);
                             }
-                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-                            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, true));
+
+                            // Nota: Usa fileToSend invece di contract
+                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
+
+                            // Opzionale: Se vuoi essere gentile col browser, cambia l'estensione nel nome file da .p7m a .pdf
+                            // così quando l'utente salva, lo salva come PDF leggibile.
+                            String filename = getCurrentContractName(token, true);
+                            if(filename.endsWith(".p7m")) {
+                                filename = filename.replace(".p7m", "");
+                            }
+                            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
+
                             return response.build();
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
     }
