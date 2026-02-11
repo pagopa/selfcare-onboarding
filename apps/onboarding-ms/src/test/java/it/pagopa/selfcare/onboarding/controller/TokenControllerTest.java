@@ -77,7 +77,7 @@ class TokenControllerTest {
   void getContractSignedTest() {
     // given
     final String onboardingId = "onboardingId";
-    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok();
+    RestResponse.ResponseBuilder<Object> response = RestResponse.ResponseBuilder.ok();
 
     when(tokenService.retrieveSignedFile(onboardingId))
       .thenReturn(Uni.createFrom().item(response.build()));

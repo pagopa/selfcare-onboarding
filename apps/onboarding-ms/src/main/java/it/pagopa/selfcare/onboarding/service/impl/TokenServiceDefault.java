@@ -31,6 +31,7 @@ import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.StreamingOutput;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -89,24 +90,35 @@ public class TokenServiceDefault implements TokenService {
         signatureService.verifySignature(contract);
     }
 
-    public static void isPdfValid(File contract) {
-        // Carica il documento. Se il file è corrotto o non è un PDF,
-        // Loader.loadPDF lancerà IOException.
-        try (PDDocument document = Loader.loadPDF(contract)) {
+    public static File checkAndRepairPdf(File file) {
+        try (PDDocument doc = Loader.loadPDF(file)) {
 
-            // Verifica minima: il documento deve avere almeno una pagina.
-            if (document.getNumberOfPages() == 0) {
+            // 1. Validazione base (quella che facevi prima)
+            if (doc.getNumberOfPages() == 0) {
                 throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
             }
 
-            // RIMUOVIAMO PDFTextStripper.
-            // Non è necessario leggere tutto il testo per dire che il file è valido per il download.
-            // stripper.getText(document); <--- RIMOSSO
+            // 2. Logica di Riparazione (Sanitizzazione)
+            // Creiamo un temp file dove risalvare il PDF pulito
+            File repairedFile = File.createTempFile("repaired_", ".pdf");
+
+            // Rimuoviamo sicurezze che potrebbero dar fastidio al browser
+            doc.setAllSecurityToBeRemoved(true);
+
+            // Il salvataggio riscrive il file correggendo gli offset corrotti (fix per "Spett.le")
+            doc.save(repairedFile);
+
+            return repairedFile;
 
         } catch (IOException e) {
-            // Logga l'errore per debugging, ma considera se vuoi davvero bloccare l'utente
-            // o se preferisci lasciar scaricare il file "best effort".
-            throw new InvalidRequestException(ORIGINAL_DOCUMENT_NOT_FOUND.getMessage(), ORIGINAL_DOCUMENT_NOT_FOUND.getCode());
+            // Se il PDF è talmente rotto da non aprirsi, o se il salvataggio fallisce:
+            // Logghiamo l'errore ma restituiamo il file originale come fallback.
+            // In questo modo non blocchi l'utente, ma tenti il "best effort".
+            log.warn("Impossibile riparare il PDF, restituisco l'originale. Errore: " + e.getMessage());
+            return file;
+
+            // OPPURE: Se preferisci essere severo e bloccare tutto se il PDF è brutto:
+            // throw new InvalidRequestException("PDF Corrotto", "Error");
         }
     }
 
@@ -140,36 +152,65 @@ public class TokenServiceDefault implements TokenService {
     }
 
     @Override
-    public Uni<RestResponse<File>> retrieveSignedFile(String onboardingId) {
+    public Uni<RestResponse<Object>> retrieveSignedFile(String onboardingId) {
         return Token.findById(onboardingId)
                 .map(Token.class::cast)
                 .onItem().transformToUni(token -> Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
                         .runSubscriptionOn(Executors.newSingleThreadExecutor())
                         .onItem().transform(contract -> {
-                            File fileToSend = contract; // Di base mandiamo il contratto originale
 
-                            if (token.getContractSigned().endsWith(".pdf")) {
-                                isPdfValid(contract);
-                            } else {
+                            List<File> tempFiles = new ArrayList<>();
+                            tempFiles.add(contract);
+
+                            File fileToSend = contract;
+
+                            // 1. Gestione P7M: Estrazione
+                            if (!token.getContractSigned().endsWith(".pdf")) {
+                                // Validiamo la firma (importante per la sicurezza)
                                 isP7mValid(contract, signatureService);
-                                // Sovrascriviamo fileToSend con il PDF estratto per permettere la visualizzazione
+                                // Estraiamo il contenuto
                                 fileToSend = signatureService.extractFile(contract);
-                                isPdfValid(fileToSend);
+                                tempFiles.add(fileToSend);
                             }
 
-                            // Nota: Usa fileToSend invece di contract
-                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
+                            // 2. Validazione e Riparazione PDF
+                            // Questo metodo si occupa di caricare, controllare e sanitizzare il file.
+                            File repairedFile = checkAndRepairPdf(fileToSend);
+                            if (repairedFile != fileToSend) {
+                                tempFiles.add(repairedFile);
+                                fileToSend = repairedFile;
+                            }
 
-                            // Opzionale: Se vuoi essere gentile col browser, cambia l'estensione nel nome file da .p7m a .pdf
-                            // così quando l'utente salva, lo salva come PDF leggibile.
+                            final File finalFileToSend = fileToSend;
+
+                            // 3. Creazione dello StreamingOutput per invio e pulizia
+                            StreamingOutput streamingOutput = output -> {
+                                try {
+                                    Files.copy(finalFileToSend.toPath(), output);
+                                    output.flush();
+                                } finally {
+                                    // Pulizia: elimina tutti i file temporanei tracciati
+                                    tempFiles.forEach(f -> {
+                                        try {
+                                            Files.deleteIfExists(f.toPath());
+                                        } catch (IOException e) {
+                                            log.warn("Errore durante la cancellazione del file temporaneo: {}", f.getAbsolutePath());
+                                        }
+                                    });
+                                }
+                            };
+
+                            // 4. Costruzione Risposta
                             String filename = getCurrentContractName(token, true);
-                            if(filename.endsWith(".p7m")) {
-                                filename = filename.replace(".p7m", "");
+                            if (filename.endsWith(".p7m")) {
+                                filename = filename.replace(".p7m", ".pdf");
                             }
-                            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
 
-                            return response.build();
-                        }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
+                            return RestResponse.ResponseBuilder.ok((Object) streamingOutput, MediaType.APPLICATION_OCTET_STREAM)
+                                    .header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename)
+                                    .build();
+
+                        }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.notFound().build())));
     }
 
     private String getContractNotSigned(String onboardingId, Token token) {

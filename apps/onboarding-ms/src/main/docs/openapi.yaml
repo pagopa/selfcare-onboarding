@@ -1616,9 +1616,7 @@ paths:
           description: OK
           content:
             application/octet-stream:
-              schema:
-                format: binary
-                type: string
+              schema: {}
         "401":
           description: Not Authorized
         "403":

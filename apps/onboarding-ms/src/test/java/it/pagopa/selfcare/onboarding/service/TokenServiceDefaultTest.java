@@ -156,14 +156,14 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
 
         // when
-        UniAssertSubscriber<RestResponse<File>> subscriber =
+        UniAssertSubscriber<RestResponse<Object>> subscriber =
                 tokenService
                         .retrieveSignedFile(onboardingId)
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
         // then
-        RestResponse<File> actual = subscriber.awaitItem().getItem();
+        RestResponse<Object> actual = subscriber.awaitItem().getItem();
         assertNotNull(actual);
         assertEquals(RestResponse.Status.NOT_FOUND.getStatusCode(), actual.getStatus());
     }
@@ -186,14 +186,14 @@ class TokenServiceDefaultTest {
         when(azureBlobClient.retrieveFile(anyString())).thenReturn(new File(resourcePath));
 
         // when
-        UniAssertSubscriber<RestResponse<File>> subscriber =
+        UniAssertSubscriber<RestResponse<Object>> subscriber =
                 tokenService
                         .retrieveSignedFile(onboardingId)
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
         // then
-        RestResponse<File> actual = subscriber.awaitItem().getItem();
+        RestResponse<Object> actual = subscriber.awaitItem().getItem();
         assertNotNull(actual);
         assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
     }
@@ -218,14 +218,14 @@ class TokenServiceDefaultTest {
         when(signatureService.extractFile(any())).thenReturn(new File(resourceExtractedPath));
 
         // when
-        UniAssertSubscriber<RestResponse<File>> subscriber =
+        UniAssertSubscriber<RestResponse<Object>> subscriber =
                 tokenService
                         .retrieveSignedFile(onboardingId)
                         .subscribe()
                         .withSubscriber(UniAssertSubscriber.create());
 
         // then
-        RestResponse<File> actual = subscriber.awaitItem().getItem();
+        RestResponse<Object> actual = subscriber.awaitItem().getItem();
         assertNotNull(actual);
         assertEquals(RestResponse.Status.OK.getStatusCode(), actual.getStatus());
     }

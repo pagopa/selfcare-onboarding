@@ -82,7 +82,7 @@ public class TokenController {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Path("/{onboardingId}/contract-signed")
-    public Uni<RestResponse<File>> getContractSigned(@PathParam(value = "onboardingId") String onboardingId) {
+    public Uni<RestResponse<Object>> getContractSigned(@PathParam(value = "onboardingId") String onboardingId) {
         return tokenService.retrieveSignedFile(onboardingId);
     }
 
