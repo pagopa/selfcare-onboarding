@@ -1,7 +1,5 @@
 package it.pagopa.selfcare.onboarding.service;
 
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import io.quarkus.runtime.util.ExceptionUtil;
 import it.pagopa.selfcare.onboarding.common.OnboardingStatus;
@@ -9,9 +7,7 @@ import it.pagopa.selfcare.onboarding.dto.QueueEvent;
 import it.pagopa.selfcare.onboarding.dto.ResendNotificationsFilters;
 import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Context;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,7 +24,7 @@ import static it.pagopa.selfcare.onboarding.utils.CustomMetricsConst.EVENT_ONBOA
 public class NotificationEventResenderServiceDefault implements NotificationEventResenderService {
     private final NotificationEventService notificationEventService;
     private final OnboardingService onboardingService;
-    private final TelemetryClient telemetryClient;
+    private final TelemetryService telemetryService;
     public static final String OPERATION_NAME = "ONBOARDING-FN";
     private static final String RESEND_ENDING_LOG = "Resend notifications for page %s completed";
     private static final String RESEND_ENDING_LOG_LAST_PAGE = "There aren't more notifications to resend, page %s completed";
@@ -37,14 +33,11 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
     public NotificationEventResenderServiceDefault(
             NotificationEventService notificationEventService,
             OnboardingService onboardingService,
-            @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString
+            TelemetryService telemetryService
     ) {
         this.notificationEventService = notificationEventService;
         this.onboardingService = onboardingService;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-        this.telemetryClient.getContext().getOperation().setName(OPERATION_NAME);
+        this.telemetryService = telemetryService;
     }
 
     public ResendNotificationsFilters resendNotifications(ResendNotificationsFilters filters, ExecutionContext context) {
@@ -106,7 +99,7 @@ public class NotificationEventResenderServiceDefault implements NotificationEven
     }
 
     private void trackErrorEvent(Onboarding onboarding, Exception e, String notificationEventTraceId) {
-        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
+        telemetryService.trackEvent(EVENT_ONBOARDING_FN_NAME, onboardingEventFailureMap(onboarding, e, notificationEventTraceId),  Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_FAILURE, 1D));
     }
 
     private static Map<String, String> onboardingEventFailureMap(Onboarding onboarding, Exception e, String notificationEventTraceId) {

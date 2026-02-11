@@ -41,7 +41,9 @@ public class ActivityName {
   public static final String RETRIEVE_AGGREGATES_ACTIVITY = "RetrieveAggregates";
   public static final String BUILD_ATTACHMENTS_SAVE_TOKENS_ACTIVITY = "BuildAttachmentAndSaveTokens";
   public static final String UPDATE_ONBOARDING_EXPIRING_DATE_ACTIVITY = "UpdateOnboardingExpiringDate";
-
+  public static final String START_ONBOARDING_ORCHESTRATION = "StartOnboardingOrchestration";
+  public static final String ONBOARDINGS = "Onboardings";
+  public static final String TRIGGER_BUILD_ATTACHMENTS_AND_SAVE_TOKENS = "TriggerBuildAttachmentsAndSaveTokens";
   private ActivityName() {
   }
 }

@@ -4,8 +4,6 @@ package it.pagopa.selfcare.onboarding.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.TelemetryClient;
-import com.microsoft.applicationinsights.TelemetryConfiguration;
 import com.microsoft.azure.functions.ExecutionContext;
 import it.pagopa.selfcare.onboarding.client.eventhub.EventHubRestClient;
 import it.pagopa.selfcare.onboarding.client.webhook.WebhookRestClient;
@@ -21,8 +19,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.Context;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.openapi.quarkus.core_json.api.InstitutionApi;
 import org.openapi.quarkus.core_json.model.InstitutionResponse;
@@ -38,7 +34,7 @@ import static it.pagopa.selfcare.onboarding.utils.Utils.isNotInstitutionOnboardi
 
 @ApplicationScoped
 public class NotificationEventServiceDefault implements NotificationEventService {
-    private final TelemetryClient telemetryClient;
+    private final TelemetryService telemetryService;
     @RestClient
     @Inject
     EventHubRestClient eventHubRestClient;
@@ -70,17 +66,14 @@ public class NotificationEventServiceDefault implements NotificationEventService
                                            NotificationUserBuilderFactory notificationUserBuilderFactory,
                                            TokenRepository tokenRepository,
                                            QueueEventExaminer queueEventExaminer,
-                                           @Context @ConfigProperty(name = "onboarding-functions.appinsights.connection-string") String appInsightsConnectionString) {
+                                           TelemetryService telemetryService) {
         this.productService = productService;
         this.notificationConfig = notificationConfig;
         this.notificationBuilderFactory = notificationBuilderFactory;
         this.notificationUserBuilderFactory = notificationUserBuilderFactory;
         this.tokenRepository = tokenRepository;
         this.queueEventExaminer = queueEventExaminer;
-        TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.createDefault();
-        telemetryConfiguration.setConnectionString(appInsightsConnectionString);
-        this.telemetryClient = new TelemetryClient(telemetryConfiguration);
-        this.telemetryClient.getContext().getOperation().setName(EVENT_ONBOARDING_FN_NAME);
+        this.telemetryService = telemetryService;
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
     }
@@ -188,7 +181,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         eventHubRestClient.sendMessage(topic, message);
-        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        telemetryService.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, topic, notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
 
@@ -204,7 +197,7 @@ public class NotificationEventServiceDefault implements NotificationEventService
         }
 
         webhookRestClient.sendNotification(NotificationRequest.builder().productId(notificationToSend.getProduct()).payload(message).build());
-        telemetryClient.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, "WEBHOOK", notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
+        telemetryService.trackEvent(EVENT_ONBOARDING_FN_NAME, notificationEventMap(notificationToSend, "WEBHOOK", notificationEventTraceId), Map.of(EVENT_ONBOARDING_INSTTITUTION_FN_SUCCESS, 1D));
     }
 
     /*private void sendUserNotification(ExecutionContext context, String topic, NotificationUserToSend notificationUserToSend, String notificationEventTraceId) {

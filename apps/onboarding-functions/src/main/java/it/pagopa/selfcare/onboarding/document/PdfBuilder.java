@@ -13,6 +13,7 @@ import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
@@ -34,12 +35,13 @@ public class PdfBuilder {
 
     public static File generateDocument(String documentName,
                                         String documentTemplate,
-                                        Map<String, Object> content) {
+                                        Map<String, Object> content) throws IOException {
         Path temporaryPdfFile = null;
         Path temporaryDirectory = null;
+        String nameFile = null;
 
         try {
-            String nameFile = DATE_TIME_FORMATTER.format(LocalDateTime.now())
+            nameFile = DATE_TIME_FORMATTER.format(LocalDateTime.now())
                     + "_" + UUID.randomUUID()
                     + "_" + documentName;
 
@@ -66,6 +68,18 @@ public class PdfBuilder {
 
             return temporaryPdfFile.toFile();
 
+        } catch (UnsupportedOperationException e) {
+            // Fallback per sistemi non-POSIX (es. Windows in locale)
+            File f = Files.createTempFile(nameFile, ".pdf").toFile();
+
+            boolean readable = f.setReadable(true, true); // true = leggibile, true = solo owner
+            boolean writable = f.setWritable(true, true); // true = scrivibile, true = solo owner
+            boolean executable = f.setExecutable(false);  // FIX: false = NON eseguibile (più sicuro)
+
+            if (!readable || !writable || !executable) {
+                log.warn("Could not set restricted permissions on temporary file: {}", f.getAbsolutePath());
+            }
+            return f;
         } catch (Exception e) {
             log.error("Error while generating PDF", e);
             if (temporaryPdfFile != null) {

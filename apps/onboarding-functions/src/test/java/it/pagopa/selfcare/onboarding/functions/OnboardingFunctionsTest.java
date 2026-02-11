@@ -2,6 +2,7 @@ package it.pagopa.selfcare.onboarding.functions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.applicationinsights.telemetry.SeverityLevel;
 import com.microsoft.azure.functions.ExecutionContext;
 import com.microsoft.azure.functions.HttpRequestMessage;
 import com.microsoft.azure.functions.HttpResponseMessage;
@@ -20,6 +21,7 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.service.CompletionService;
 import it.pagopa.selfcare.onboarding.service.OnboardingService;
+import it.pagopa.selfcare.onboarding.service.TelemetryService;
 import it.pagopa.selfcare.onboarding.utils.Utils;
 import it.pagopa.selfcare.product.entity.AttachmentTemplate;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
@@ -35,8 +37,6 @@ import org.openapi.quarkus.core_json.model.DelegationResponse;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static it.pagopa.selfcare.onboarding.functions.utils.ActivityName.*;
@@ -56,12 +56,14 @@ class OnboardingFunctionsTest {
 
   @InjectMock ProductService productService;
 
+  @InjectMock TelemetryService telemetryService;
+
   @Inject ObjectMapper objectMapper;
 
-  final String onboardingStringBase = "{\"onboardingId\":\"onboardingId\"}";
+  final String onboardingStringBase = "{\"id\":\"onboardingId\", \"productId\":\"prod-test\"}";
 
   final String onboardingWorkflowString =
-          "{\"type\":\"INSTITUTION\",\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
+          "{\"type\":\"INSTITUTION\",\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}}";
 
   final String onboardingString =
           "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
@@ -70,7 +72,7 @@ class OnboardingFunctionsTest {
           "{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"CONTRACT_REGISTRATION\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null}";
 
   final String onboardingAttachmentString =
-          "{\"onboardingString\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachmentTemplate\":{"
+          "{\"onboarding\":{\"id\":\"id\",\"productId\":\"prod-test\",\"testEnvProductIds\":null,\"workflowType\":\"FOR_APPROVE\",\"institution\":null,\"users\":null,\"aggregates\":null,\"pricingPlan\":null,\"billing\":null,\"signContract\":null,\"expiringDate\":null,\"status\":\"REQUEST\",\"workflowInstanceId\":null,\"createdAt\":null,\"updatedAt\":null,\"activatedAt\":null,\"deletedAt\":null,\"reasonForReject\":null,\"isAggregator\":null},\"attachment\":{"
                   + "\"templatePath\": null, \"templateVersion\": null, \"name\": null, \"mandatory\": null, \"generated\": null, \"workflowType\": null, \"workflowState\": null, \"order\": null}}";
 
   final String onboardingWithoutInstitutionIdString =
@@ -640,14 +642,7 @@ class OnboardingFunctionsTest {
 
   @Test
   void onboardingsAggregateOrchestrator() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
-
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+    TaskOrchestrationContext orchestrationContext = mockTaskAggregateOrchestrationContext();
     Task<Object> mockTask = Mockito.mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(any(), any(), any())).thenReturn(mockTask);
 
@@ -664,58 +659,46 @@ class OnboardingFunctionsTest {
 
   @Test
   void onboardingsAggregateOrchestrator_resourceNotFound() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
 
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
-
-    when(orchestrationContext.callActivity(any(), any(), any(), any()))
-            .thenThrow(ResourceNotFoundException.class);
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(eq(EXISTS_DELEGATION_ACTIVITY), any(), any(), any()))
+        .thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.callActivity(
+            eq(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY), any(), any(), any()))
+        .thenThrow(ResourceNotFoundException.class);
+    when(executionContext.getFunctionName()).thenReturn("functionName");
 
     assertThrows(
-            ResourceNotFoundException.class,
-            () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
+        ResourceNotFoundException.class,
+        () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
 
     ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(1))
-            .callActivity(captorActivity.capture(), any(), any(), any());
+    verify(orchestrationContext, times(2))
+        .callActivity(captorActivity.capture(), any(), any(), any());
 
     assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
     verify(service, times(1))
-            .updateOnboardingStatusAndInstanceId(
-                    null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+        .updateOnboardingStatusAndInstanceId(
+            "id", OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
   }
 
   @Test
   void onboardingsAggregateOrchestrator_taskFailed() {
-    Onboarding onboarding = new Onboarding();
-    onboarding.setId("onboardingId");
-    onboarding.setStatus(OnboardingStatus.PENDING);
-    onboarding.setWorkflowType(WorkflowType.CONFIRMATION_AGGREGATE);
-    onboarding.setInstitution(new Institution());
-    onboarding.setTestEnvProductIds(List.of("test1"));
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
 
-    TaskOrchestrationContext orchestrationContext = mockTaskOrchestrationContext(onboarding);
+    when(orchestrationContext.callActivity(eq(EXISTS_DELEGATION_ACTIVITY), any(), any(), any()))
+        .thenThrow(TaskFailedException.class);
 
-    when(orchestrationContext.callActivity(any(), any(), any(), any()))
-            .thenThrow(TaskFailedException.class);
+    verify(orchestrationContext, times(0))
+        .callActivity(eq(CREATE_AGGREGATE_ONBOARDING_REQUEST_ACTIVITY), any(), any(), any());
 
-    assertThrows(
-            TaskFailedException.class,
-            () -> function.onboardingsAggregateOrchestrator(orchestrationContext, executionContext));
-
-    ArgumentCaptor<String> captorActivity = ArgumentCaptor.forClass(String.class);
-    verify(orchestrationContext, times(1))
-            .callActivity(captorActivity.capture(), any(), any(), any());
-
-    assertEquals(EXISTS_DELEGATION_ACTIVITY, captorActivity.getAllValues().get(0));
-    verify(service, times(1))
-            .updateOnboardingStatusAndInstanceId(
-                    null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
+    verify(service, times(0))
+        .updateOnboardingStatusAndInstanceId(
+            null, OnboardingStatus.FAILED, orchestrationContext.getInstanceId());
   }
 
     @Test
@@ -735,8 +718,6 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
     when(orchestrationContext.getIsReplaying()).thenReturn(false);
-    Logger logger = mock(Logger.class);
-    when(executionContext.getLogger()).thenReturn(logger);
 
     Task task = mock(Task.class);
     when(orchestrationContext.callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class)))
@@ -744,8 +725,8 @@ class OnboardingFunctionsTest {
 
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
-    // Verify logger was called when not replaying
-    verify(logger, atLeastOnce()).log(eq(Level.INFO), any(Supplier.class));
+    // verify telemetry service was called when not replaying
+    verify(telemetryService, atLeastOnce()).trackFunction(any(), any(), any(), any());
     // Verify all 3 aggregates were processed in a single batch
     verify(orchestrationContext, times(3))
             .callSubOrchestrator(eq(ONBOARDINGS_AGGREGATE_ORCHESTRATOR), any(), eq(String.class));
@@ -779,8 +760,7 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify logger was NEVER called during replay
-    verify(logger, never()).log(any(Level.class), any(String.class));
-    verify(logger, never()).log(any(Level.class), any(Supplier.class));
+    verify(telemetryService, never()).trackFunction(any(), any(), any(), any());
     }
 
     @Test
@@ -800,8 +780,6 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(batchInputString);
     when(orchestrationContext.getIsReplaying()).thenReturn(false);
-    Logger logger = mock(Logger.class);
-    when(executionContext.getLogger()).thenReturn(logger);
 
     Task<String> successTask = mock(Task.class);
     Task<String> failedTask = mock(Task.class);
@@ -819,7 +797,7 @@ class OnboardingFunctionsTest {
     function.onboardingsAggregateBatchOrchestrator(orchestrationContext, executionContext);
 
     // Verify severe log was called for the failure
-    verify(logger, times(1)).log(eq(Level.SEVERE), contains("failed during batch processing"));
+    verify(telemetryService).trackFunction(any(), contains("failed during batch processing"), eq(SeverityLevel.Error), any());
 
     // Verify all 3 aggregates were attempted
     verify(orchestrationContext, times(3))
@@ -1017,6 +995,21 @@ class OnboardingFunctionsTest {
     TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
     when(orchestrationContext.getInput(String.class)).thenReturn(onboarding.getId());
     when(service.getOnboarding(anyString())).thenReturn(Optional.of(onboarding));
+    when(completionService.existsDelegation(any())).thenReturn("false");
+
+    Task task = mock(Task.class);
+    when(orchestrationContext.callActivity(any(), any(), any(), any())).thenReturn(task);
+
+    when(orchestrationContext.callSubOrchestrator(any(), any())).thenReturn(task);
+    when(orchestrationContext.callSubOrchestrator(any(), any(), any())).thenReturn(task);
+    when(task.await()).thenReturn("false");
+    when(orchestrationContext.allOf(anyList())).thenReturn(task);
+    return orchestrationContext;
+  }
+
+  TaskOrchestrationContext mockTaskAggregateOrchestrationContext() {
+    TaskOrchestrationContext orchestrationContext = mock(TaskOrchestrationContext.class);
+    when(orchestrationContext.getInput(String.class)).thenReturn(onboardingString);
     when(completionService.existsDelegation(any())).thenReturn("false");
 
     Task task = mock(Task.class);
@@ -1467,7 +1460,7 @@ class OnboardingFunctionsTest {
 
   @Test
   void createAggregateOnboardingRequest() {
-    final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\"}";
+    final String onboardingAggregateOrchestratorInputString = "{\"productId\":\"prod-io\", \"id\":\"onboardingId\"}";
 
     String onboardingId = "id";
     when(executionContext.getLogger()).thenReturn(Logger.getGlobal());
