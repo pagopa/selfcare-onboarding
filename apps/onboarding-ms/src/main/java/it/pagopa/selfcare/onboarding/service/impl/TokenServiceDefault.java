@@ -30,7 +30,6 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -47,7 +46,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.Executors;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
@@ -120,9 +118,9 @@ public class TokenServiceDefault implements TokenService {
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
                         Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(isSigned ? token.getContractSigned() : getContractNotSigned(onboardingId, token)))
-                                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> {
-                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
+                                    RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, "application/pdf");
                                     response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, isSigned));
                                     return response.build();
                                 }));
@@ -133,7 +131,7 @@ public class TokenServiceDefault implements TokenService {
         return Token.findById(onboardingId)
                 .map(Token.class::cast)
                 .onItem().transformToUni(token -> Uni.createFrom().item(() -> azureBlobClient.retrieveFile(token.getContractSigned()))
-                        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                        .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                         .onItem().transform(contract -> {
                             File fileToSend = contract;
                             if (token.getContractSigned().endsWith(".pdf")) {
@@ -143,8 +141,11 @@ public class TokenServiceDefault implements TokenService {
                                 fileToSend = signatureService.extractFile(contract);
                                 isPdfValid(fileToSend);
                             }
-                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
+                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, "application/pdf");
                             String filename = getCurrentContractName(token, true);
+                            if (filename.endsWith(".p7m")) {
+                                filename = filename.replace(".p7m", "");
+                            }
                             response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
                             return response.build();
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
@@ -170,7 +171,7 @@ public class TokenServiceDefault implements TokenService {
                                     product.getId()))
                             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                             .onItem().transform(file -> RestResponse.ResponseBuilder
-                                    .ok(file, MediaType.APPLICATION_OCTET_STREAM)
+                                    .ok(file, "application/pdf")
                                     .header(HTTP_HEADER_CONTENT_DISPOSITION,
                                             HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName)
                                     .build());
@@ -195,7 +196,7 @@ public class TokenServiceDefault implements TokenService {
                                 ))
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
-                                        .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
+                                        .ok(contract, "application/pdf")
                                         .header(
                                                 HTTP_HEADER_CONTENT_DISPOSITION,
                                                 HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
@@ -373,7 +374,7 @@ public class TokenServiceDefault implements TokenService {
                 .map(Token.class::cast)
                 .onItem().transformToUni(token ->
                         Uni.createFrom().item(() -> azureBlobClient.getFileAsPdf(token.getContractSigned()))
-                                .runSubscriptionOn(Executors.newSingleThreadExecutor())
+                                .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> {
                                     signatureService.verifySignature(contract);
                                     return ContractSignedReport.cades(true);
