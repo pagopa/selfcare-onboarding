@@ -143,7 +143,7 @@ public class TokenServiceDefault implements TokenService {
                                 fileToSend = signatureService.extractFile(contract);
                                 isPdfValid(fileToSend);
                             }
-                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.valueOf("application/pdf"));
+                            RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
                             String filename = getCurrentContractName(token, true);
                             if (filename.endsWith(".p7m")) {
                                 filename = filename.replace(".p7m", "");
