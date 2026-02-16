@@ -1,10 +1,13 @@
 package it.pagopa.selfcare.onboarding.service;
 
 import io.smallrye.mutiny.Uni;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
+import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.product.entity.ContractTemplate;
+import it.pagopa.selfcare.product.entity.Product;
 import org.jboss.resteasy.reactive.RestResponse;
 
 import java.io.File;
@@ -37,4 +40,14 @@ public interface TokenService {
     String getContractPathByOnboarding(String onboardingId, String filename);
 
     Uni<Boolean> existsAttachment(String onboardingId, String attachmentName);
+
+    Uni<Token> retrieveToken(String onboardingId);
+
+    Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem, Product product);
+
+    Uni<String> updateTokenWithFilePath(String filepath, Token token);
+
+    Uni<Void> updateTokenUpdatedAt(String onboardingId);
+
+    Uni<Void> persistTokenForImport(Onboarding onboardingPersisted, Product product, OnboardingImportContract contractImported);
 }

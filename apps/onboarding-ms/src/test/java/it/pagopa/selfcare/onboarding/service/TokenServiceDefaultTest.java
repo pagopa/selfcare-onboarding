@@ -532,14 +532,14 @@ class TokenServiceDefaultTest {
     void mockPersistToken(UniAsserter asserter) {
         asserter.execute(() -> PanacheMock.mock(Token.class));
         asserter.execute(
-                () ->
-                        when(Token.persist(any(Token.class), any()))
-                                .thenAnswer(
-                                        arg -> {
-                                            Token token = (Token) arg.getArguments()[0];
-                                            token.setId(UUID.randomUUID().toString());
-                                            return Uni.createFrom().nullItem();
-                                        }));
+            () ->
+                when(Token.persist(any(Token.class), any()))
+                    .thenAnswer(
+                        arg -> {
+                          Token token = (Token) arg.getArguments()[0];
+                          token.setId(UUID.randomUUID().toString());
+                          return Uni.createFrom().nullItem();
+                        }));
     }
 
     private Product createProductWithAttachment(
@@ -1193,5 +1193,100 @@ class TokenServiceDefaultTest {
             verify(azureBlobClient).getFileAsPdf(anyString());
             verify(padesSignService).padesSign(any(File.class), any(File.class), any());
         }
+    }
+
+    @Test
+    @RunOnVertxContext
+    void retrieveToken_whenTokenListIsEmpty_shouldCreateNewToken(UniAsserter asserter) {
+        String productId = "prod-id";
+        String institutionType = "PA";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        onboarding.setProductId(productId);
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+
+        File pdf = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder()
+                .file(pdf)
+                .fileName("contract.pdf")
+                .build();
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("contracts/template.pdf");
+
+        Product product = new Product();
+        product.setId(productId);
+        Map<String, ContractTemplate> mappings = new HashMap<>();
+        mappings.put(institutionType, contractTemplate);
+        product.setInstitutionContractMappings(mappings);
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() ->
+                when(Token.list("onboardingId", onboardingId))
+                        .thenReturn(Uni.createFrom().item(Collections.emptyList()))
+        );
+
+        asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
+
+        mockPersistToken(asserter);
+
+        asserter.assertThat(
+                () -> tokenService.retrieveToken(onboarding, formItem, product),
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(onboardingId, result.getOnboardingId());
+                    assertEquals(productId, result.getProductId());
+                    assertNotNull(result.getChecksum());
+                }
+        );
+    }
+
+    @Test
+    @RunOnVertxContext
+    void retrieveToken_whenTokenListIsNotEmpty_shouldReturnFirstToken(UniAsserter asserter) {
+        String productId = "prod-id";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        onboarding.setProductId(productId);
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+
+        File pdf = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder()
+                .file(pdf)
+                .fileName("contract.pdf")
+                .build();
+
+        Product product = new Product();
+        product.setId(productId);
+
+        Token existingToken = new Token();
+        existingToken.setId(UUID.randomUUID().toString());
+        existingToken.setOnboardingId(onboardingId);
+        existingToken.setProductId(productId);
+        existingToken.setChecksum("existing-checksum");
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() ->
+                when(Token.list("onboardingId", onboardingId))
+                        .thenReturn(Uni.createFrom().item(List.of(existingToken)))
+        );
+
+        asserter.assertThat(
+                () -> tokenService.retrieveToken(onboarding, formItem, product),
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(existingToken.getId(), result.getId());
+                    assertEquals(existingToken.getChecksum(), result.getChecksum());
+                    assertEquals(onboardingId, result.getOnboardingId());
+                }
+        );
     }
 }
