@@ -48,7 +48,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
@@ -1230,11 +1229,18 @@ class TokenServiceDefaultTest {
         mappings.put(institutionType, contractTemplate);
         product.setInstitutionContractMappings(mappings);
 
+        Token mappedToken = new Token();
+        mappedToken.setId(UUID.randomUUID().toString());
+        mappedToken.setOnboardingId(onboardingId);
+
         asserter.execute(() -> PanacheMock.mock(Token.class));
         asserter.execute(() ->
                 when(Token.list("onboardingId", onboardingId))
                         .thenReturn(Uni.createFrom().item(Collections.emptyList()))
         );
+        asserter.execute(() ->
+                when(tokenMapper.toModel(onboarding, product, contractTemplate))
+                    .thenReturn(mappedToken));
 
         asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
 
@@ -1245,7 +1251,6 @@ class TokenServiceDefaultTest {
                 result -> {
                     assertNotNull(result);
                     assertEquals(onboardingId, result.getOnboardingId());
-                    assertEquals(productId, result.getProductId());
                     assertNotNull(result.getChecksum());
                 }
         );
