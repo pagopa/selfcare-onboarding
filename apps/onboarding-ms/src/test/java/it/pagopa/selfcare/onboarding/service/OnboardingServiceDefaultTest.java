@@ -2413,6 +2413,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> PanacheMock.mock(Token.class));
         asserter.execute(() -> when(tokenService.retrieveToken(any(Onboarding.class), any(FormItem.class), any()))
                 .thenReturn(Uni.createFrom().item(token)));
+        asserter.execute(() -> when(tokenService.retrieveToken(anyString())).thenReturn(Uni.createFrom().item(token)));
     }
 
     private void mockUpdateToken(UniAsserter asserter, String filepath) {
