@@ -2200,7 +2200,7 @@ public class OnboardingServiceDefault implements OnboardingService {
         return userService
                 .retrieveUserInstitutions(
                         institutionId,
-                        null,
+                        List.of(),
                         Objects.nonNull(productId) ? List.of(productId) : null,
                         List.of(String.valueOf(PartyRole.MANAGER)),
                         List.of(String.valueOf(OnboardedProductResponse.StatusEnum.ACTIVE)),
