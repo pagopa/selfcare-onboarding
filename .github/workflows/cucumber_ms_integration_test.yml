@@ -46,6 +46,10 @@ jobs:
               {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
               {"id": "selfcare", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
             ]
+      - name: Verify Docker
+        run: |
+          docker version
+          docker ps
 
       - name: Run Integration Tests
         id: int_tests
@@ -54,6 +58,7 @@ jobs:
         shell: bash
         env:
           APP_SERVER_PORT: 8082
+          DOCKER_API_VERSION: "1.44"
 
       - name: Upload Test Results
         if: always() && (steps.int_tests.conclusion == 'success' || steps.int_tests.conclusion == 'failure')
