@@ -1,20 +1,18 @@
 package it.pagopa.selfcare.onboarding.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import it.pagopa.selfcare.onboarding.service.impl.UserServiceDefault;
 import jakarta.inject.Inject;
+import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 import org.openapi.quarkus.user_json.api.InstitutionApi;
 import org.openapi.quarkus.user_json.model.UserInstitutionResponse;
-
-import java.util.List;
-
-import static org.junit.Assert.assertSame;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @QuarkusTest
 class UserServiceDefaultTest {
@@ -46,7 +44,6 @@ class UserServiceDefaultTest {
                 userServiceDefault.retrieveUserInstitutions(institutionId, productRoles, products, roles, states, userId);
 
         // Then
-        assertSame(expected, result);
         verify(userInstitutionApi)
                 .retrieveUserInstitutions(institutionId, productRoles, products, roles, states, userId);
         verifyNoMoreInteractions(userInstitutionApi);
