@@ -31,6 +31,7 @@ import it.pagopa.selfcare.onboarding.entity.*;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import org.openapi.quarkus.core_json.model.OnboardedProductResponse;
 import org.openapi.quarkus.onboarding_functions_json.api.OrchestrationApi;
 import org.openapi.quarkus.onboarding_functions_json.model.OrchestrationResponse;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 @CucumberOptions(
         features = "src/test/resources/features",
@@ -96,8 +98,10 @@ public class OnboardingStep extends CucumberQuarkusTest {
     log.info("Starting test containers...");
 
     composeContainer = new ComposeContainer(new File("src/test/resources/docker-compose.yml"))
-            .withLocalCompose(true);
-    // .waitingFor("azure-cli", Wait.forLogMessage(".*BLOBSTORAGE INITIALIZED.*\\n", 1));
+            .withPull(true)
+            .waitingFor("mongo-db", Wait.forListeningPort())
+            .withStartupTimeout(Duration.ofMinutes(5));
+
     composeContainer.start();
     Runtime.getRuntime().addShutdownHook(new Thread(composeContainer::stop));
 
