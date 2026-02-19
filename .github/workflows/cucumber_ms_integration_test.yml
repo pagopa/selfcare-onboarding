@@ -46,10 +46,6 @@ jobs:
               {"id": "selfcare-github", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"},
               {"id": "selfcare", "username": "${{ github.actor }}", "password": "${{ secrets.GITHUB_TOKEN }}"}
             ]
-      - name: Verify Docker
-        run: |
-          docker version
-          docker ps
 
       - name: Run Integration Tests
         id: int_tests
