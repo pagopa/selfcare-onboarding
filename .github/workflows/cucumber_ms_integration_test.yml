@@ -50,11 +50,8 @@ jobs:
       - name: Run Integration Tests
         id: int_tests
         working-directory: apps/onboarding-ms
+        run: mvn test -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingStep -Dsurefire.failIfNoSpecifiedTests=false
         shell: bash
-        run: |
-          set -eux
-          unset DOCKER_API_VERSION DOCKER_HOST DOCKER_TLS_VERIFY DOCKER_CERT_PATH
-          mvn test -Dtest=it.pagopa.selfcare.onboarding.steps.OnboardingStep -Dsurefire.failIfNoSpecifiedTests=false
         env:
           APP_SERVER_PORT: 8082
 
