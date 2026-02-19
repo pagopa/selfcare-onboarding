@@ -2070,7 +2070,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
@@ -2094,7 +2094,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
 
         //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -2142,7 +2142,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
 
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyOnboardingNotFound();
@@ -2165,7 +2165,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
 
         //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -2200,7 +2200,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
 
         //Mock find managerUserfiscal code
         String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -2235,7 +2235,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
@@ -2251,7 +2251,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
 
         asserter.execute(() -> when(onboardingValidationStrategy.validate(onboarding.getProductId()))
@@ -2269,7 +2269,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboarding.getId());
+        mockFindToken(asserter);
         mockSimpleProductValidAssert(onboarding.getProductId(), false, asserter, false, true);
         mockVerifyAllowedProductList(onboarding.getProductId(), asserter, true);
 
@@ -2407,12 +2407,13 @@ class OnboardingServiceDefaultTest {
         when(query.count()).thenReturn(Uni.createFrom().item(1L));
     }
 
-    private void mockFindToken(UniAsserter asserter, String onboardingId) {
+    private void mockFindToken(UniAsserter asserter) {
         Token token = new Token();
         token.setChecksum("actual-checksum");
         asserter.execute(() -> PanacheMock.mock(Token.class));
-        asserter.execute(() -> when(Token.list("onboardingId", onboardingId))
-                .thenReturn(Uni.createFrom().item(List.of(token))));
+        asserter.execute(() -> when(tokenService.retrieveToken(any(Onboarding.class), any(FormItem.class), any()))
+                .thenReturn(Uni.createFrom().item(token)));
+        asserter.execute(() -> when(tokenService.retrieveToken(anyString())).thenReturn(Uni.createFrom().item(token)));
     }
 
     private void mockUpdateToken(UniAsserter asserter, String filepath) {
@@ -3149,7 +3150,7 @@ class OnboardingServiceDefaultTest {
             asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                     .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-            mockFindToken(asserter, onboarding.getId());
+            mockFindToken(asserter);
 
             //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -3176,7 +3177,7 @@ class OnboardingServiceDefaultTest {
             asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                     .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-            mockFindToken(asserter, onboarding.getId());
+            mockFindToken(asserter);
 
             //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -3203,7 +3204,7 @@ class OnboardingServiceDefaultTest {
             asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                     .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-            mockFindToken(asserter, onboarding.getId());
+            mockFindToken(asserter);
 
             //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -3237,7 +3238,7 @@ class OnboardingServiceDefaultTest {
             asserter.execute(() -> when(Onboarding.findByIdOptional(any()))
                     .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-            mockFindToken(asserter, onboarding.getId());
+            mockFindToken(asserter);
 
             //Mock find managerUserfiscal code
             String actualUseUid = onboarding.getUsers().get(0).getId();
@@ -4683,7 +4684,7 @@ class OnboardingServiceDefaultTest {
         when(Onboarding.findById(any()))
                 .thenReturn(Uni.createFrom().item(onboarding));
 
-        mockFindToken(asserter, onboardingId);
+        mockFindToken(asserter);
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
         mockUpdateToken(asserter, onboardingId);
         mockUpdateOnboarding(onboardingId, 1L);
@@ -4698,7 +4699,7 @@ class OnboardingServiceDefaultTest {
 
     @Test
     @RunOnVertxContext
-    void uploadContractSigned_shouldCreateNewToken_WhenTokenListIsEmpty(UniAsserter asserter) {
+    void uploadContractSigned(UniAsserter asserter) {
 
         Onboarding onboarding = createDummyOnboarding();
         onboarding.setStatus(OnboardingStatus.COMPLETED);
@@ -4722,8 +4723,8 @@ class OnboardingServiceDefaultTest {
 
         Token mockToken = mock(Token.class);
 
-        when(tokenMapper.toModel(eq(onboarding), any(), any(ContractTemplate.class)))
-                .thenReturn(mockToken);
+        when(tokenService.retrieveToken(eq(onboarding), any(FormItem.class), any(Product.class)))
+                .thenReturn(Uni.createFrom().item(mockToken));
 
         when(mockToken.persist()).thenReturn(Uni.createFrom().item(mockToken));
 
@@ -4745,9 +4746,7 @@ class OnboardingServiceDefaultTest {
                     Assertions.assertEquals(onboarding.getId(), result.getId());
 
                     // Usa la stessa sintassi sicura anche nel verify
-                    verify(tokenMapper).toModel(eq(onboarding), any(), any(ContractTemplate.class));
-                    verify(mockToken).persist();
-                    verify(mockToken).setChecksum("digest_mock");
+                    verify(tokenService).retrieveToken(eq(onboarding), any(FormItem.class), any(Product.class));
                 });
     }
 
@@ -4791,7 +4790,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboardingId);
+        mockFindToken(asserter);
 
         when(azureBlobClient.uploadFile(any(), any(), any()))
                 .thenThrow(new RuntimeException("Azure upload failed"));
@@ -4812,7 +4811,7 @@ class OnboardingServiceDefaultTest {
         asserter.execute(() -> when(Onboarding.findByIdOptional(onboardingId))
                 .thenReturn(Uni.createFrom().item(Optional.of(onboarding))));
 
-        mockFindToken(asserter, onboardingId);
+        mockFindToken(asserter);
 
         when(azureBlobClient.uploadFile(any(), any(), any())).thenReturn(filepath);
 

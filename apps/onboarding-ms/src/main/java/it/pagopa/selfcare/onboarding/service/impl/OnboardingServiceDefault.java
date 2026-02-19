@@ -43,7 +43,6 @@ import it.pagopa.selfcare.onboarding.service.util.OnboardingUtils;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
 import it.pagopa.selfcare.onboarding.util.SortEnum;
 import it.pagopa.selfcare.onboarding.util.Utils;
-import it.pagopa.selfcare.product.entity.ContractTemplate;
 import it.pagopa.selfcare.product.entity.PHASE_ADDITION_ALLOWED;
 import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.entity.ProductRoleInfo;
@@ -105,7 +104,6 @@ public class OnboardingServiceDefault implements OnboardingService {
             "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
     private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
-    private static final String ONBOARDING_ID = "onboardingId";
     private static final Pattern INDIVIDUAL_CF_PATTERN =
             Pattern.compile("^[A-Z]{6}\\d{2}[A-Z]\\d{2}[A-Z]\\d{3}[A-Z]$");
 
@@ -144,9 +142,6 @@ public class OnboardingServiceDefault implements OnboardingService {
 
     @Inject
     OnboardingResponseFactory onboardingResponseFactory;
-
-    @Inject
-    TokenMapper tokenMapper;
 
     @Inject
     InstitutionMapper institutionMapper;
@@ -715,22 +710,13 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(ignored -> persistOnboarding(onboarding, userRequests, product, aggregateRequests))
                 .onItem()
-                .call(onboardingPersisted -> persistTokenForImport(onboardingPersisted, product, contractImported))
+                .call(onboardingPersisted -> tokenService.persistTokenForImport(onboardingPersisted, product, contractImported))
                 .onItem()
                 .transformToUni(currentOnboarding -> persistAndStartOrchestrationOnboarding(
                         currentOnboarding,
                         orchestrationService.triggerOrchestration(currentOnboarding.getId(), TIMEOUT_ORCHESTRATION_RESPONSE)))
                 .onItem()
                 .transform(onboardingMapper::toResponse);
-    }
-
-
-
-    private Uni<Void> persistTokenForImport(
-            Onboarding onboardingPersisted,
-            Product product,
-            OnboardingImportContract contractImported) {
-        return Token.persist(tokenMapper.toModel(onboardingPersisted, product, contractImported));
     }
 
     private Uni<Onboarding> persistOnboarding(
@@ -1558,7 +1544,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .onItem()
                 .transformToUni(onboarding -> updateOnboarding(onboardingId, onboarding)
                         .onItem()
-                        .transformToUni(ignore -> updateTokenUpdatedAt(onboardingId))
+                        .transformToUni(ignore -> tokenService.updateTokenUpdatedAt(onboardingId))
                         .replaceWith(onboarding));
     }
 
@@ -1635,9 +1621,9 @@ public class OnboardingServiceDefault implements OnboardingService {
     private Uni<String> uploadSignedContractAndUpdateToken(Onboarding onboarding, FormItem formItem) {
         String onboardingId = onboarding.getId();
 
-        return retrieveToken(onboarding, formItem)
-                .onItem()
-                .transformToUni(token -> processAndUploadFile(token, onboardingId, formItem));
+        return getProductByOnboarding(onboarding)
+                .flatMap(product -> tokenService.retrieveToken(onboarding, formItem, product))
+                .flatMap(token -> processAndUploadFile(token, onboardingId, formItem));
     }
 
     private Uni<String> processAndUploadFile(Token token, String onboardingId, FormItem formItem) {
@@ -1645,7 +1631,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .item(Unchecked.supplier(() -> uploadFileToAzure(token, onboardingId, formItem)))
                 .runSubscriptionOn(Infrastructure.getDefaultWorkerPool())
                 .onItem()
-                .transformToUni(filepath -> updateTokenWithFilePath(filepath, token));
+                .transformToUni(filepath -> tokenService.updateTokenWithFilePath(filepath, token));
     }
 
     private String uploadFileToAzure(Token token, String onboardingId, FormItem formItem)
@@ -1666,19 +1652,6 @@ public class OnboardingServiceDefault implements OnboardingService {
                     GENERIC_ERROR.getCode(),
                     "Error on upload contract for onboarding with id " + onboardingId);
         }
-    }
-
-    private Uni<String> updateTokenWithFilePath(String filepath, Token token) {
-        return Token.update("contractSigned", filepath)
-                .where("_id", token.getId())
-                .replaceWith(filepath);
-    }
-
-    private Uni<Void> updateTokenUpdatedAt(String onboardingId) {
-        return Token.update("updatedAt", LocalDateTime.now())
-                .where(ONBOARDING_ID, onboardingId)
-                .onItem()
-                .transform(ignore -> null);
     }
 
     private Uni<Onboarding> retrieveOnboarding(String onboardingId) {
@@ -1754,42 +1727,7 @@ public class OnboardingServiceDefault implements OnboardingService {
     }
 
     private Uni<String> retrieveContractDigest(String onboardingId) {
-        return retrieveToken(onboardingId).map(Token::getChecksum);
-    }
-
-    private Uni<Token> retrieveToken(String onboardingId) {
-        return Token.list(ONBOARDING_ID, onboardingId)
-                .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
-    }
-
-    Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem) {
-        String onboardingId = onboarding.getId();
-        return Token.list(ONBOARDING_ID, onboardingId)
-                .flatMap(tokens -> {
-                    if (tokens.isEmpty()) {
-                        return getProductByOnboarding(onboarding)
-                                .flatMap(product -> createAndConfigureToken(onboarding, formItem, product));
-                    }
-                    return Uni.createFrom().item((Token) tokens.get(0));
-                });
-    }
-
-    private Uni<Token> createAndConfigureToken(Onboarding onboarding, FormItem formItem, Product product) {
-        String onboardingId = onboarding.getId();
-        String institutionType = onboarding.getInstitution().getInstitutionType().name();
-        ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
-        String digest = tokenService.getAndVerifyDigest(formItem, contractTemplate, true);
-        Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
-        token.setContractSigned(tokenService.getContractPathByOnboarding(onboardingId, formItem.getFileName()));
-        token.setContractFilename(formItem.getFileName());
-        token.setChecksum(digest);
-
-        return token.persist().replaceWith(token);
-    }
-
-    private ContractTemplate getContractTemplate(String institutionType, Product product) {
-        return product
-                .getInstitutionContractTemplate(institutionType);
+        return tokenService.retrieveToken(onboardingId).map(Token::getChecksum);
     }
 
     private Uni<List<String>> retrieveOnboardingUserFiscalCodeList(Onboarding onboarding) {

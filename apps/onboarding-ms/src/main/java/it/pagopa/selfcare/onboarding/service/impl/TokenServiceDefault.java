@@ -10,6 +10,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageException;
 import it.pagopa.selfcare.onboarding.conf.OnboardingMsConfig;
 import it.pagopa.selfcare.onboarding.conf.PagoPaSignatureConfig;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.crypto.entity.SignatureInformation;
@@ -19,6 +20,7 @@ import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.OnboardingNotAllowedException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
 import it.pagopa.selfcare.onboarding.exception.UpdateNotAllowedException;
+import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.SignatureService;
 import it.pagopa.selfcare.onboarding.service.TokenService;
@@ -60,6 +62,7 @@ public class TokenServiceDefault implements TokenService {
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
     private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
             "Token with id %s not found or already deleted";
+    private static final String ONBOARDING_ID = "onboardingId";
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ProductService productService;
@@ -67,6 +70,8 @@ public class TokenServiceDefault implements TokenService {
     private final PadesSignService padesSignService;
     @Inject
     SignatureService signatureService;
+    @Inject
+    TokenMapper tokenMapper;
     @ConfigProperty(name = "onboarding-ms.signature.verify-enabled")
     Boolean isVerifyEnabled;
     @ConfigProperty(name = "onboarding-ms.blob-storage.path-contracts")
@@ -109,7 +114,7 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<List<Token>> getToken(String onboardingId) {
-        return Token.find("onboardingId", onboardingId)
+        return Token.find(ONBOARDING_ID, onboardingId)
                 .list();
     }
 
@@ -488,6 +493,66 @@ public class TokenServiceDefault implements TokenService {
                                     });
                         }
                 );
+    }
+
+    @Override
+    public Uni<Token> retrieveToken(String onboardingId) {
+        log.info("Retrieving token for onboardingId={}", onboardingId);
+        return Token.list(ONBOARDING_ID, onboardingId)
+                .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
+    }
+
+    @Override
+    public Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem, Product product) {
+        String onboardingId = onboarding.getId();
+        log.info("Retrieving token for onboardingId={}", onboardingId);
+        return Token.list(ONBOARDING_ID, onboardingId)
+                .flatMap(tokens -> {
+                    if (tokens.isEmpty()) {
+                        log.info("No token found for onboardingId={}, creating new token", onboardingId);
+                        return createAndConfigureToken(onboarding, formItem, product);
+                    }
+                    return Uni.createFrom().item((Token) tokens.get(0));
+                });
+    }
+
+    @Override
+    public Uni<String> updateTokenWithFilePath(String filepath, Token token) {
+        log.info("Updating token with id {} with file path {}", token.getId(), filepath);
+        return Token.update("contractSigned", filepath)
+                .where("_id", token.getId())
+                .replaceWith(filepath);
+    }
+
+    @Override
+    public Uni<Void> updateTokenUpdatedAt(String onboardingId) {
+        log.info("Updating token 'updatedAt' for onboardingId={}", onboardingId);
+        return Token.update("updatedAt", LocalDateTime.now())
+            .where(ONBOARDING_ID, onboardingId)
+            .onItem()
+            .transform(ignore -> null);
+    }
+
+    @Override
+    public Uni<Void> persistTokenForImport(Onboarding onboardingPersisted, Product product, OnboardingImportContract contractImported) {
+        log.info("Persisting token for onboardingId={}", onboardingPersisted.getId());
+        return Token.persist(tokenMapper.toModel(onboardingPersisted, product, contractImported));
+    }
+
+    private Uni<Token> createAndConfigureToken(Onboarding onboarding, FormItem formItem, Product product) {
+        String onboardingId = onboarding.getId();
+        String institutionType = onboarding.getInstitution().getInstitutionType().name();
+        ContractTemplate contractTemplate = getContractTemplate(institutionType, product);
+        String digest = getAndVerifyDigest(formItem, contractTemplate, true);
+        Token token = tokenMapper.toModel(onboarding, product, contractTemplate);
+        token.setContractSigned(getContractPathByOnboarding(onboardingId, formItem.getFileName()));
+        token.setContractFilename(formItem.getFileName());
+        token.setChecksum(digest);
+        return Token.persist(token).replaceWith(token);
+    }
+
+    private ContractTemplate getContractTemplate(String institutionType, Product product) {
+        return product.getInstitutionContractTemplate(institutionType);
     }
 
     public Path createSafeTempFile() throws IOException {

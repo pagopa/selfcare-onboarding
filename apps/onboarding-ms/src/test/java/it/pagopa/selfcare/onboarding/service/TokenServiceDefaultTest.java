@@ -20,6 +20,7 @@ import it.pagopa.selfcare.azurestorage.AzureBlobClient;
 import it.pagopa.selfcare.azurestorage.error.SelfcareAzureStorageException;
 import it.pagopa.selfcare.onboarding.common.InstitutionType;
 import it.pagopa.selfcare.onboarding.common.TokenType;
+import it.pagopa.selfcare.onboarding.controller.request.OnboardingImportContract;
 import it.pagopa.selfcare.onboarding.controller.response.ContractSignedReport;
 import it.pagopa.selfcare.onboarding.crypto.PadesSignService;
 import it.pagopa.selfcare.onboarding.entity.Institution;
@@ -27,6 +28,7 @@ import it.pagopa.selfcare.onboarding.entity.Onboarding;
 import it.pagopa.selfcare.onboarding.entity.Token;
 import it.pagopa.selfcare.onboarding.exception.InvalidRequestException;
 import it.pagopa.selfcare.onboarding.exception.ResourceNotFoundException;
+import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.service.impl.TokenServiceDefault;
 import it.pagopa.selfcare.onboarding.util.QueryUtils;
@@ -73,6 +75,9 @@ class TokenServiceDefaultTest {
 
     @InjectMock
     ProductService productService;
+
+    @InjectMock
+    TokenMapper tokenMapper;
 
     @Test
     void getToken() {
@@ -532,14 +537,14 @@ class TokenServiceDefaultTest {
     void mockPersistToken(UniAsserter asserter) {
         asserter.execute(() -> PanacheMock.mock(Token.class));
         asserter.execute(
-                () ->
-                        when(Token.persist(any(Token.class), any()))
-                                .thenAnswer(
-                                        arg -> {
-                                            Token token = (Token) arg.getArguments()[0];
-                                            token.setId(UUID.randomUUID().toString());
-                                            return Uni.createFrom().nullItem();
-                                        }));
+            () ->
+                when(Token.persist(any(Token.class), any()))
+                    .thenAnswer(
+                        arg -> {
+                          Token token = (Token) arg.getArguments()[0];
+                          token.setId(UUID.randomUUID().toString());
+                          return Uni.createFrom().nullItem();
+                        }));
     }
 
     private Product createProductWithAttachment(
@@ -1193,5 +1198,202 @@ class TokenServiceDefaultTest {
             verify(azureBlobClient).getFileAsPdf(anyString());
             verify(padesSignService).padesSign(any(File.class), any(File.class), any());
         }
+    }
+
+    @Test
+    @RunOnVertxContext
+    void retrieveToken_whenTokenListIsEmpty_shouldCreateNewToken(UniAsserter asserter) {
+        String productId = "prod-id";
+        String institutionType = "PA";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        onboarding.setProductId(productId);
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+
+        File pdf = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder()
+                .file(pdf)
+                .fileName("contract.pdf")
+                .build();
+
+        ContractTemplate contractTemplate = new ContractTemplate();
+        contractTemplate.setContractTemplatePath("contracts/template.pdf");
+
+        Product product = new Product();
+        product.setId(productId);
+        Map<String, ContractTemplate> mappings = new HashMap<>();
+        mappings.put(institutionType, contractTemplate);
+        product.setInstitutionContractMappings(mappings);
+
+        Token mappedToken = new Token();
+        mappedToken.setId(UUID.randomUUID().toString());
+        mappedToken.setOnboardingId(onboardingId);
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() ->
+                when(Token.list("onboardingId", onboardingId))
+                        .thenReturn(Uni.createFrom().item(Collections.emptyList()))
+        );
+        asserter.execute(() ->
+                when(tokenMapper.toModel(onboarding, product, contractTemplate))
+                    .thenReturn(mappedToken));
+
+        asserter.execute(() -> when(azureBlobClient.getFileAsPdf(anyString())).thenReturn(pdf));
+
+        mockPersistToken(asserter);
+
+        asserter.assertThat(
+                () -> tokenService.retrieveToken(onboarding, formItem, product),
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(onboardingId, result.getOnboardingId());
+                    assertNotNull(result.getChecksum());
+                }
+        );
+    }
+
+    @Test
+    @RunOnVertxContext
+    void retrieveToken_whenTokenListIsNotEmpty_shouldReturnFirstToken(UniAsserter asserter) {
+        String productId = "prod-id";
+
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+        onboarding.setProductId(productId);
+
+        Institution institution = new Institution();
+        institution.setInstitutionType(InstitutionType.PA);
+        onboarding.setInstitution(institution);
+
+        File pdf = new File("src/test/resources/test.pdf");
+        FormItem formItem = FormItem.builder()
+                .file(pdf)
+                .fileName("contract.pdf")
+                .build();
+
+        Product product = new Product();
+        product.setId(productId);
+
+        Token existingToken = new Token();
+        existingToken.setId(UUID.randomUUID().toString());
+        existingToken.setOnboardingId(onboardingId);
+        existingToken.setProductId(productId);
+        existingToken.setChecksum("existing-checksum");
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        asserter.execute(() ->
+                when(Token.list("onboardingId", onboardingId))
+                        .thenReturn(Uni.createFrom().item(List.of(existingToken)))
+        );
+
+        asserter.assertThat(
+                () -> tokenService.retrieveToken(onboarding, formItem, product),
+                result -> {
+                    assertNotNull(result);
+                    assertEquals(existingToken.getId(), result.getId());
+                    assertEquals(existingToken.getChecksum(), result.getChecksum());
+                    assertEquals(onboardingId, result.getOnboardingId());
+                }
+        );
+    }
+
+    @Test
+    void retrieveToken_shouldReturnFirstToken() {
+        Token expectedToken = new Token();
+        expectedToken.setId(UUID.randomUUID().toString());
+        expectedToken.setOnboardingId(onboardingId);
+        expectedToken.setProductId("prod-id");
+
+        PanacheMock.mock(Token.class);
+        when(Token.list("onboardingId", onboardingId))
+                .thenReturn(Uni.createFrom().item(List.of(expectedToken)));
+
+        UniAssertSubscriber<Token> subscriber = tokenService
+                .retrieveToken(onboardingId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create())
+                .assertCompleted();
+
+        Token actualToken = subscriber.awaitItem().getItem();
+        assertNotNull(actualToken);
+        assertEquals(expectedToken.getId(), actualToken.getId());
+        assertEquals(expectedToken.getOnboardingId(), actualToken.getOnboardingId());
+        assertEquals(expectedToken.getProductId(), actualToken.getProductId());
+    }
+
+    @Test
+    void updateTokenWithFilePath() {
+        String filepath = "/path/to/file.pdf";
+        Token token = new Token();
+        token.setId(UUID.randomUUID().toString());
+        token.setOnboardingId(onboardingId);
+
+        ReactivePanacheUpdate updateQuery = mock(ReactivePanacheUpdate.class);
+        when(updateQuery.where("_id", token.getId()))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        PanacheMock.mock(Token.class);
+        when(Token.update("contractSigned", filepath))
+                .thenReturn(updateQuery);
+
+        UniAssertSubscriber<String> subscriber = tokenService
+                .updateTokenWithFilePath(filepath, token)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        String result = subscriber.awaitItem().getItem();
+        assertNotNull(result);
+        assertEquals(filepath, result);
+    }
+
+    @Test
+    void updateTokenUpdatedAt() {
+        ReactivePanacheUpdate updateQuery = mock(ReactivePanacheUpdate.class);
+        when(updateQuery.where("onboardingId", onboardingId))
+                .thenReturn(Uni.createFrom().item(1L));
+
+        PanacheMock.mock(Token.class);
+        when(Token.update(eq("updatedAt"), any(Object.class)))
+                .thenReturn(updateQuery);
+
+        UniAssertSubscriber<Void> subscriber = tokenService
+                .updateTokenUpdatedAt(onboardingId)
+                .subscribe()
+                .withSubscriber(UniAssertSubscriber.create());
+
+        subscriber.awaitItem().assertCompleted();
+        verify(updateQuery).where("onboardingId", onboardingId);
+    }
+
+    @Test
+    @RunOnVertxContext
+    void persistTokenForImport(UniAsserter asserter) {
+        // given
+        Onboarding onboarding = new Onboarding();
+        onboarding.setId(onboardingId);
+
+        Product product = new Product();
+        product.setId("prod-id");
+
+        OnboardingImportContract contractImported = new OnboardingImportContract();
+
+        Token mappedToken = new Token();
+        mappedToken.setId(UUID.randomUUID().toString());
+        mappedToken.setOnboardingId(onboardingId);
+
+        when(tokenMapper.toModel(onboarding, product, contractImported)).thenReturn(mappedToken);
+
+        asserter.execute(() -> PanacheMock.mock(Token.class));
+        mockPersistToken(asserter);
+
+        asserter.assertThat(
+            () -> tokenService.persistTokenForImport(onboarding, product, contractImported),
+            result -> {
+              verify(tokenMapper).toModel(onboarding, product, contractImported);
+            });
     }
 }
