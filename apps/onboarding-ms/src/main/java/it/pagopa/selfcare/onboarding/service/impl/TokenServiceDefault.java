@@ -497,6 +497,7 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<Token> retrieveToken(String onboardingId) {
+        log.info("Retrieving token for onboardingId={}", onboardingId);
         return Token.list(ONBOARDING_ID, onboardingId)
                 .map(tokens -> tokens.stream().findFirst().map(Token.class::cast).orElseThrow());
     }
@@ -504,9 +505,11 @@ public class TokenServiceDefault implements TokenService {
     @Override
     public Uni<Token> retrieveToken(Onboarding onboarding, FormItem formItem, Product product) {
         String onboardingId = onboarding.getId();
+        log.info("Retrieving token for onboardingId={}", onboardingId);
         return Token.list(ONBOARDING_ID, onboardingId)
                 .flatMap(tokens -> {
                     if (tokens.isEmpty()) {
+                        log.info("No token found for onboardingId={}, creating new token", onboardingId);
                         return createAndConfigureToken(onboarding, formItem, product);
                     }
                     return Uni.createFrom().item((Token) tokens.get(0));
@@ -515,6 +518,7 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<String> updateTokenWithFilePath(String filepath, Token token) {
+        log.info("Updating token with id {} with file path {}", token.getId(), filepath);
         return Token.update("contractSigned", filepath)
                 .where("_id", token.getId())
                 .replaceWith(filepath);
@@ -522,6 +526,7 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<Void> updateTokenUpdatedAt(String onboardingId) {
+        log.info("Updating token 'updatedAt' for onboardingId={}", onboardingId);
         return Token.update("updatedAt", LocalDateTime.now())
             .where(ONBOARDING_ID, onboardingId)
             .onItem()
@@ -530,6 +535,7 @@ public class TokenServiceDefault implements TokenService {
 
     @Override
     public Uni<Void> persistTokenForImport(Onboarding onboardingPersisted, Product product, OnboardingImportContract contractImported) {
+        log.info("Persisting token for onboardingId={}", onboardingPersisted.getId());
         return Token.persist(tokenMapper.toModel(onboardingPersisted, product, contractImported));
     }
 
