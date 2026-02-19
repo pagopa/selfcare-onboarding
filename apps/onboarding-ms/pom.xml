@@ -45,13 +45,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-                <dependency>
-                    <groupId>org.testcontainers</groupId>
-                    <artifactId>testcontainers-bom</artifactId>
-                    <version>1.20.0</version>
-                    <type>pom</type>
-                    <scope>import</scope>
-                </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>2.0.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -303,6 +303,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
+            <version>2.0.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
