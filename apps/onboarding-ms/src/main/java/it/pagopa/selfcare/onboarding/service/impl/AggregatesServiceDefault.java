@@ -39,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static it.pagopa.selfcare.onboarding.common.InstitutionPaSubunitType.UO;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.*;
 
 @ApplicationScoped
 @Slf4j
@@ -79,25 +80,10 @@ public class AggregatesServiceDefault implements AggregatesService {
                 .build();
     }
 
-    private static final String LOG_CSV_ROWS = "CSV file validated end: {} valid row and {} invalid row";
     protected static final String DESCRIPTION_TO_REPLACE_REGEX = " - COMUNE";
-    public static final String ERROR_IPA = "Codice Fiscale non presente su IPA";
-    public static final String ERROR_TAXCODE = "Il Codice Fiscale è obbligatorio";
-    public static final String ERROR_SUBUNIT_TYPE = "SubunitType non valido";
-    public static final String ERROR_AOO_UO = "In caso di AOO/UO è necessario specificare la tipologia e il codice univoco IPA AOO/UO";
-    public static final String ERROR_VATNUMBER = "La Partita IVA è obbligatoria";
-    public static final String ERROR_ADMIN_NAME = "Nome Amministratore Ente Aggregato è obbligatorio";
-    public static final String ERROR_ADMIN_SURNAME = "Cognome Amministratore Ente Aggregato è obbligatorio";
-    public static final String ERROR_ADMIN_EMAIL = "Email Amministratore Ente Aggregato è obbligatorio";
-    public static final String ERROR_ADMIN_TAXCODE = "Codice Fiscale Amministratore Ente Aggregato è obbligatorio";
-    public static final String ERROR_IBAN = "IBAN è obbligatorio";
-    public static final String ERROR_CODICE_SDI = "Codice SDI è obbligatorio";
-    private static final String ERROR_ADMIN_NAME_MISMATCH = "Nome non corretto o diverso dal Codice Fiscale";
-    private static final String ERROR_ADMIN_SURNAME_MISMATCH = "Cognome non corretto o diverso dal Codice Fiscale";
-    private static final String ERROR_TAXCODE_LENGTH = "Il Codice Fiscale non è valido";
-    private static final String ERROR_VATNUMBER_LENGTH = "La Partita IVA non è valida";
-    private static final String PEC = "Pec";
     private static final String FILE_NAME_AGGREGATES_CSV = "aggregates.csv";
+    private static final String LOG_CSV_ROWS = "CSV file validated end: {} valid row and {} invalid row";
+    private static final String PEC = "Pec";
 
 
     @Override
@@ -228,20 +214,20 @@ public class AggregatesServiceDefault implements AggregatesService {
 
         if (StringUtils.isEmpty(aggregate.getSubunitType())) {
             return institutionApi.findInstitutionUsingGET(aggregate.getTaxCode(), null, null)
-                    .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .onFailure(this::checkIfNotFound).recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA.getMessage())))
                     .onItem().transformToUni(institutionResource -> retrieveCityCountyAndMapIpaFieldForPA(institutionResource, aggregate));
         } else if (InstitutionPaSubunitType.AOO.name().equalsIgnoreCase(aggregate.getSubunitType())) {
             return aooApi.findByUnicodeUsingGET(aggregate.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
-                    .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA.getMessage())))
                     .onItem().transformToUni(aooResource -> retrieveCityCountyAndMapIpaFieldForAOO(aooResource, aggregate));
         } else if (UO.name().equalsIgnoreCase(aggregate.getSubunitType())) {
             return uoApi.findByUnicodeUsingGET1(aggregate.getSubunitCode(), null)
                     .onFailure(this::checkIfNotFound)
-                    .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA)))
+                    .recoverWithUni(Uni.createFrom().failure(new ResourceNotFoundException(ERROR_IPA.getMessage())))
                     .onItem().transformToUni(uoResource -> retrieveCityCountyAndMapIpaFieldForUO(uoResource, aggregate));
         } else {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SUBUNIT_TYPE));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_SUBUNIT_TYPE.getMessage()));
         }
     }
 
@@ -320,12 +306,12 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Void> checkRequiredFieldsAppIo(CsvAggregateAppIo csvAggregateAppIo) {
 
         if (StringUtils.isEmpty(csvAggregateAppIo.getTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregateAppIo.getVatNumber())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER.getMessage()));
         } else if ((StringUtils.isEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitCode()))
                 || (StringUtils.isNotEmpty(csvAggregateAppIo.getSubunitType()) && StringUtils.isEmpty(csvAggregateAppIo.getSubunitCode()))) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO.getMessage()));
         }
         return Uni.createFrom().voidItem();
     }
@@ -333,11 +319,11 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Void> checkRequiredFieldsPagoPa(CsvAggregatePagoPa csvAggregate) {
 
         if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getIban())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_IBAN.getMessage()));
         }
         return Uni.createFrom().voidItem();
     }
@@ -345,22 +331,22 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Void> checkRequiredFieldsSend(CsvAggregateSend csvAggregate) {
 
         if (StringUtils.isEmpty(csvAggregate.getTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getVatNumber())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER.getMessage()));
         } else if ((StringUtils.isEmpty(csvAggregate.getSubunitType()) && StringUtils.isNotEmpty(csvAggregate.getSubunitCode()))
                 || (StringUtils.isNotEmpty(csvAggregate.getSubunitType()) && StringUtils.isEmpty(csvAggregate.getSubunitCode()))) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_AOO_UO.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateName())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateSurname())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateTaxCode())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_TAXCODE.getMessage()));
         } else if (StringUtils.isEmpty(csvAggregate.getAdminAggregateEmail())) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_EMAIL.getMessage()));
         } else if(StringUtils.isEmpty(csvAggregate.getRecipientCode())){
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CODICE_SDI));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_CODICE_SDI.getMessage()));
 
         }
         return Uni.createFrom().voidItem();
@@ -376,11 +362,11 @@ public class AggregatesServiceDefault implements AggregatesService {
         String taxCodeNamePart = taxCode.substring(3, 6).toUpperCase();
 
         if (!taxCodeSurnamePart.equals(expectedSurnamePart)) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME_MISMATCH));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_SURNAME_MISMATCH.getMessage()));
         }
 
         if (!taxCodeNamePart.equals(expectedNamePart)) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME_MISMATCH));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_ADMIN_NAME_MISMATCH.getMessage()));
         }
 
         return Uni.createFrom().voidItem();
@@ -389,11 +375,11 @@ public class AggregatesServiceDefault implements AggregatesService {
     private Uni<Void> formalCheckTaxCodeAndVatNumber(String taxCode, String vatNumber) {
 
         if (taxCode.length() < 11) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_LENGTH));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_TAXCODE_LENGTH.getMessage()));
         }
 
         if (vatNumber.length() < 11) {
-            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER_LENGTH));
+            return Uni.createFrom().failure(new InvalidRequestException(ERROR_VATNUMBER_LENGTH.getMessage()));
         }
 
         return Uni.createFrom().voidItem();
