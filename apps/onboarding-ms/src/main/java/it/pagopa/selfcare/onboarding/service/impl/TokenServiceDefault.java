@@ -32,6 +32,7 @@ import it.pagopa.selfcare.product.entity.Product;
 import it.pagopa.selfcare.product.service.ProductService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -51,23 +52,23 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static it.pagopa.selfcare.onboarding.common.TokenType.ATTACHMENT;
+import static it.pagopa.selfcare.onboarding.constants.CustomError.TOKEN_NOT_FOUND_OR_ALREADY_DELETED;
 import static it.pagopa.selfcare.onboarding.util.ErrorMessage.*;
 
 @Slf4j
 @ApplicationScoped
 public class TokenServiceDefault implements TokenService {
 
-    public static final String HTTP_HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HTTP_HEADER_VALUE_ATTACHMENT_FILENAME = "attachment;filename=";
     public static final String PAGOPA_SIGNATURE_DISABLED = "disabled";
-    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
-            "Token with id %s not found or already deleted";
     private static final String ONBOARDING_ID = "onboardingId";
+
     private final AzureBlobClient azureBlobClient;
     private final OnboardingMsConfig onboardingMsConfig;
     private final ProductService productService;
     private final PagoPaSignatureConfig pagoPaSignatureConfig;
     private final PadesSignService padesSignService;
+
     @Inject
     SignatureService signatureService;
     @Inject
@@ -127,7 +128,7 @@ public class TokenServiceDefault implements TokenService {
                                 .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                                 .onItem().transform(contract -> {
                                     RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(contract, MediaType.APPLICATION_OCTET_STREAM);
-                                    response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, isSigned));
+                                    response.header(HttpHeaders.CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + getCurrentContractName(token, isSigned));
                                     return response.build();
                                 }));
     }
@@ -149,7 +150,7 @@ public class TokenServiceDefault implements TokenService {
                             }
                             RestResponse.ResponseBuilder<File> response = RestResponse.ResponseBuilder.ok(fileToSend, MediaType.APPLICATION_OCTET_STREAM);
                             String filename = getCurrentContractName(token, true);
-                            response.header(HTTP_HEADER_CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
+                            response.header(HttpHeaders.CONTENT_DISPOSITION, HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + filename);
                             return response.build();
                         }).onFailure().recoverWithUni(() -> Uni.createFrom().item(RestResponse.ResponseBuilder.<File>notFound().build())));
     }
@@ -175,7 +176,7 @@ public class TokenServiceDefault implements TokenService {
                             .runSubscriptionOn(Infrastructure.getDefaultExecutor())
                             .onItem().transform(file -> RestResponse.ResponseBuilder
                                     .ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                                    .header(HTTP_HEADER_CONTENT_DISPOSITION,
+                                    .header(HttpHeaders.CONTENT_DISPOSITION,
                                             HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + attachmentName)
                                     .build());
                 });
@@ -201,7 +202,7 @@ public class TokenServiceDefault implements TokenService {
                                 .onItem().transform(contract -> RestResponse.ResponseBuilder
                                         .ok(contract, MediaType.APPLICATION_OCTET_STREAM)
                                         .header(
-                                                HTTP_HEADER_CONTENT_DISPOSITION,
+                                                HttpHeaders.CONTENT_DISPOSITION,
                                                 HTTP_HEADER_VALUE_ATTACHMENT_FILENAME + token.getContractFilename()
                                         )
                                         .build())
@@ -346,7 +347,7 @@ public class TokenServiceDefault implements TokenService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                                                        String.format(TOKEN_NOT_FOUND_OR_ALREADY_DELETED.getMessage(), onboardingId)));
                             }
                             return Uni.createFrom().item(updateItemCount);
                         });

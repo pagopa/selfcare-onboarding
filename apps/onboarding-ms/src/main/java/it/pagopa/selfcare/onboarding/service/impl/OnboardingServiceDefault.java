@@ -33,7 +33,6 @@ import it.pagopa.selfcare.onboarding.exception.*;
 import it.pagopa.selfcare.onboarding.factory.OnboardingResponseFactory;
 import it.pagopa.selfcare.onboarding.mapper.InstitutionMapper;
 import it.pagopa.selfcare.onboarding.mapper.OnboardingMapper;
-import it.pagopa.selfcare.onboarding.mapper.TokenMapper;
 import it.pagopa.selfcare.onboarding.mapper.UserMapper;
 import it.pagopa.selfcare.onboarding.model.FormItem;
 import it.pagopa.selfcare.onboarding.model.OnboardingGetFilters;
@@ -84,24 +83,11 @@ import org.openapi.quarkus.user_registry_json.model.*;
 @ApplicationScoped
 public class OnboardingServiceDefault implements OnboardingService {
 
-    protected static final String ATLEAST_ONE_PRODUCT_ROLE_REQUIRED =
-            "At least one Product role related to %s Party role is required";
-    protected static final String MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE =
-            "More than one Product role related to %s Party role is available. Cannot automatically set the Product role";
-    private static final String ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE =
-            "Institution with external id '%s' is not allowed to onboard '%s' product";
-    private static final String ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED =
-            "Onboarding with id %s not found or already deleted";
     public static final String GSP_CATEGORY_INSTITUTION_TYPE = "L37";
     public static final String SCEC_CATEGORY_INSTITUTION_TYPE = "S01G";
-    public static final String
-            UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED =
-            "Unable to complete the onboarding for institution with taxCode '%s' to product '%s', the product is dismissed.";
     public static final String USERS_FIELD_LIST = "fiscalCode,familyName,name,workContacts";
     public static final String USERS_FIELD_TAXCODE = "fiscalCode";
     private static final String ID_MAIL_PREFIX = "ID_MAIL#";
-    public static final String NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY =
-            "User is not manager of the institution on the registry";
     private static final String INTEGRATION_PROFILE = "integrationProfile";
     private static final String TIMEOUT_ORCHESTRATION_RESPONSE = "70";
     private static final Pattern INDIVIDUAL_CF_PATTERN =
@@ -949,7 +935,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                         ex ->
                                 new OnboardingNotAllowedException(
                                         String.format(
-                                                UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED,
+                                                UNABLE_TO_COMPLETE_THE_ONBOARDING_FOR_INSTITUTION_FOR_PRODUCT_DISMISSED.getMessage(),
                                                 onboarding.getInstitution().getTaxCode(),
                                                 onboarding.getProductId()),
                                         DEFAULT_ERROR.getCode()));
@@ -999,7 +985,7 @@ public class OnboardingServiceDefault implements OnboardingService {
             return Uni.createFrom()
                     .failure(
                             new OnboardingNotAllowedException(
-                                    String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE, taxCode, productId),
+                                    String.format(ONBOARDING_NOT_ALLOWED_ERROR_MESSAGE_TEMPLATE.getMessage(), taxCode, productId),
                                     DEFAULT_ERROR.getCode()));
 
         }
@@ -1108,13 +1094,13 @@ public class OnboardingServiceDefault implements OnboardingService {
 
             if (Objects.isNull(roleMappings.get(userInfo.getRole())))
                 throw new IllegalArgumentException(
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                        String.format(AT_LEAST_ONE_PRODUCT_ROLE_REQUIRED.getMessage(), userInfo.getRole()));
             if (Objects.isNull((roleMappings.get(userInfo.getRole()).getRoles())))
                 throw new IllegalArgumentException(
-                        String.format(ATLEAST_ONE_PRODUCT_ROLE_REQUIRED, userInfo.getRole()));
+                        String.format(AT_LEAST_ONE_PRODUCT_ROLE_REQUIRED.getMessage(), userInfo.getRole()));
             if (roleMappings.get(userInfo.getRole()).getRoles().size() != 1)
                 throw new IllegalArgumentException(
-                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE, userInfo.getRole()));
+                        String.format(MORE_THAN_ONE_PRODUCT_ROLE_AVAILABLE.getMessage(), userInfo.getRole()));
             return roleMappings.get(userInfo.getRole()).getRoles().get(0).getCode();
 
         } catch (IllegalArgumentException e) {
@@ -2013,7 +1999,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED.getMessage(), onboardingId)));
                             }
                             return Uni.createFrom().item(updateItemCount);
                         });
@@ -2030,7 +2016,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, id)));
+                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED.getMessage(), id)));
                             }
                             return Uni.createFrom().item(updateItemCount);
                         });
@@ -2231,7 +2217,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED, onboardingId)));
+                                                        String.format(ONBOARDING_NOT_FOUND_OR_ALREADY_DELETED.getMessage(), onboardingId)));
                             }
                             return Uni.createFrom().item(updateItemCount);
                         });
@@ -2471,7 +2457,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 || Objects.isNull(businessesResource.getBusinesses())
                 || businessesResource.getBusinesses().stream()
                 .noneMatch(business -> business.getBusinessTaxId().equals(taxCode))) {
-            throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
+            throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY.getMessage());
         }
 
         return Uni.createFrom().voidItem();
@@ -2492,7 +2478,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                 .transformToUni(
                         legalVerificationResult -> {
                             if (!legalVerificationResult.getVerificationResult()) {
-                                throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY);
+                                throw new InvalidRequestException(NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY.getMessage());
                             }
                             return Uni.createFrom().voidItem();
                         })
@@ -2505,7 +2491,7 @@ public class OnboardingServiceDefault implements OnboardingService {
                                 return Uni.createFrom()
                                         .failure(
                                                 new InvalidRequestException(
-                                                        NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY));
+                                                        NOT_MANAGER_OF_THE_INSTITUTION_ON_THE_REGISTRY.getMessage()));
                             }
 
                             return Uni.createFrom().failure(ex);
