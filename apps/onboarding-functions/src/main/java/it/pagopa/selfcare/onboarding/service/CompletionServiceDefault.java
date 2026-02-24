@@ -168,7 +168,9 @@ public class CompletionServiceDefault implements CompletionService {
     private boolean shouldUpdateInstitutionFields(Institution institution) {
         return StringUtils.isNotBlank(institution.getRea())
                 || StringUtils.isNotBlank(institution.getBusinessRegisterPlace())
-                || StringUtils.isNotBlank(institution.getShareCapital());
+                || StringUtils.isNotBlank(institution.getShareCapital())
+                || StringUtils.isNotBlank(institution.getSupportEmail());
+
     }
 
     private void updateInstitutionFields(String institutionId, Institution institution) {
@@ -176,6 +178,7 @@ public class CompletionServiceDefault implements CompletionService {
         updateRequest.setRea(institution.getRea());
         updateRequest.setBusinessRegisterPlace(institution.getBusinessRegisterPlace());
         updateRequest.setShareCapital(institution.getShareCapital());
+        updateRequest.setSupportEmail(institution.getSupportEmail());
 
         institutionApi.updateInstitutionUsingPUT(institutionId, updateRequest);
     }

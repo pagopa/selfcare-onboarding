@@ -307,6 +307,36 @@ public class CompletionServiceDefaultTest {
     }
 
     @Test
+    void createOrRetrieveInstitutionSuccess_withSupportEmail_shouldUpdateInstitution() {
+        Onboarding onboarding = createOnboarding();
+        Institution institution = new Institution();
+        institution.setId("actual-id");
+        institution.setTaxCode("123");
+        institution.setSupportEmail("support@test.it");
+        onboarding.setInstitution(institution);
+
+        InstitutionsResponse response = new InstitutionsResponse();
+        InstitutionResponse institutionResponse = new InstitutionResponse();
+        institutionResponse.setId("actual-id");
+        response.setInstitutions(List.of(institutionResponse));
+
+        when(institutionApi.getInstitutionsUsingGET(institution.getTaxCode(), null, null, null, null, null))
+                .thenReturn(response);
+
+        InstitutionResponse serviceResponse = completionServiceDefault.createOrRetrieveInstitution(onboarding);
+
+        assertNotNull(serviceResponse);
+        assertEquals("actual-id", serviceResponse.getId());
+
+        ArgumentCaptor<InstitutionPut> captor = ArgumentCaptor.forClass(InstitutionPut.class);
+        verify(institutionApi, times(1)).updateInstitutionUsingPUT(eq("actual-id"), captor.capture());
+        assertEquals("support@test.it", captor.getValue().getSupportEmail());
+        assertNull(captor.getValue().getRea());
+        assertNull(captor.getValue().getBusinessRegisterPlace());
+        assertNull(captor.getValue().getShareCapital());
+    }
+
+    @Test
     void createOrRetrieveInstitutionSuccess_withAllFields_shouldUpdateInstitution() {
         Onboarding onboarding = createOnboarding();
         Institution institution = new Institution();
@@ -315,6 +345,7 @@ public class CompletionServiceDefaultTest {
         institution.setRea("REA123");
         institution.setBusinessRegisterPlace("Milano");
         institution.setShareCapital("10000");
+        institution.setSupportEmail("support@test.it");
         onboarding.setInstitution(institution);
 
         InstitutionsResponse response = new InstitutionsResponse();
@@ -335,6 +366,7 @@ public class CompletionServiceDefaultTest {
         assertEquals("REA123", captor.getValue().getRea());
         assertEquals("Milano", captor.getValue().getBusinessRegisterPlace());
         assertEquals("10000", captor.getValue().getShareCapital());
+        assertEquals("support@test.it", captor.getValue().getSupportEmail());
     }
 
     @Test
