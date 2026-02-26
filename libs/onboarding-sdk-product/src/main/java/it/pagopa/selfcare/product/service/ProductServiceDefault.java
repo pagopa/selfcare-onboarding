@@ -186,7 +186,7 @@ public class ProductServiceDefault implements ProductService {
      * The verification logic is as follows:
      * <ul>
      *   <li>If the product has no allowed institution tax codes (i.e., the list is {@code null} or empty),
-     *       the method returns {@code true} (all tax codes are considered valid).</li>
+     *       the method returns {@code false}.</li>
      *   <li>If the list of allowed institution tax codes is not empty, the method returns {@code true}
      *       only if the given {@code taxCode} matches (case-insensitive) one of the codes in the list.</li>
      *   <li>Otherwise, the method returns {@code false}.</li>
@@ -203,7 +203,7 @@ public class ProductServiceDefault implements ProductService {
         List<String> allowedInstitutionTaxCode = product.getAllowedInstitutionTaxCode();
 
         if (allowedInstitutionTaxCode == null || allowedInstitutionTaxCode.isEmpty()) {
-            return true;
+            return false;
         }
 
         return allowedInstitutionTaxCode.stream()
